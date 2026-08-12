@@ -114,15 +114,142 @@ export default function ResearchTab() {
       }
     };
 
-    // นำตัวแปรที่คำนวณได้ไปใส่ในกราฟ
-    createChart("c_re_cnt", { type: "bar", data: { labels: M, datasets: [{ label: "จำนวนโครงการ", data: monthlyCount, backgroundColor: C_RES, borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grace: "20%", ticks: { stepSize: 1 }, title: { display: true, text: "จำนวนโครงการ" } } } } });
-    createChart("c_re_bud", { type: "bar", data: { labels: M, datasets: [{ label: "ล้านบาท", data: monthlyBudget, backgroundColor: C_RES, borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c: any) => c.raw.toFixed(2) + " ล้านบาท" } } }, scales: { y: { beginAtZero: true, grace: "20%", title: { display: true, text: "ล้านบาท" } } } } });
-    createChart("c_re_dept", { type: "bar", data: { labels: deptLabels, datasets: [{ label: "ล้านบาท", data: deptData, backgroundColor: C_RES, borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, indexAxis: "y", plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c: any) => c.raw.toFixed(2) + " ล้านบาท" } } }, scales: { x: { beginAtZero: true, grace: "20%", title: { display: true, text: "ล้านบาท" } } } } });
-    createChart("c_re_fund", { type: "doughnut", data: { labels: fundLabels.length > 0 ? fundLabels : ["ไม่มีข้อมูล"], datasets: [{ data: fundData.length > 0 ? fundData : [1], backgroundColor: UI_PALETTE.slice(0, fundLabels.length) }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { datalabels: pieDatalabels as any, legend: { position: "bottom", labels: { padding: 8 } }, tooltip: { callbacks: { label: (c: any) => c.label + ": ฿" + c.raw.toLocaleString() } } } } });
+    // 1. กราฟเส้น: จำนวนโครงการวิจัยรายเดือน
+    createChart("c_re_cnt", { 
+      type: "line", 
+      data: { 
+        labels: M, 
+        datasets: [{ 
+          label: "จำนวนโครงการ", 
+          data: monthlyCount, 
+          borderColor: C_RES,
+          backgroundColor: "rgba(0, 104, 56, 0.1)",
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: C_RES,
+          pointRadius: 5,
+          pointHoverRadius: 7
+        }] 
+      }, 
+      options: { 
+        responsive: true, 
+        maintainAspectRatio: false, 
+        plugins: { legend: { display: false }, datalabels: { align: 'top', anchor: 'end', color: C_RES, font: { weight: 'bold' } } }, 
+        scales: { y: { beginAtZero: true, grace: "20%", ticks: { stepSize: 1 }, title: { display: true, text: "จำนวนโครงการ" } } } 
+      } 
+    });
+
+    // 2. กราฟเส้น: งบประมาณวิจัยรายเดือน (ล้านบาท)
+    createChart("c_re_bud", { 
+      type: "line", 
+      data: { 
+        labels: M, 
+        datasets: [{ 
+          label: "ล้านบาท", 
+          data: monthlyBudget, 
+          borderColor: C_RES,
+          backgroundColor: "rgba(0, 104, 56, 0.1)",
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: C_RES,
+          pointRadius: 5,
+          pointHoverRadius: 7
+        }] 
+      }, 
+      options: { 
+        responsive: true, 
+        maintainAspectRatio: false, 
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c: any) => c.raw.toFixed(2) + " ล้านบาท" } }, datalabels: { align: 'top', anchor: 'end', color: C_RES, font: { weight: 'bold' }, formatter: (v: any) => v > 0 ? v.toFixed(1) : "" } }, 
+        scales: { y: { beginAtZero: true, grace: "20%", title: { display: true, text: "ล้านบาท" } } } 
+      } 
+    });
+
+    // 3. กราฟแท่ง: งบประมาณตามภาควิชา
+    createChart("c_re_dept", { 
+      type: "bar", 
+      data: { labels: deptLabels, datasets: [{ label: "ล้านบาท", data: deptData, backgroundColor: C_RES, borderRadius: 8 }] }, 
+      options: { responsive: true, maintainAspectRatio: false, indexAxis: "y", plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c: any) => c.raw.toFixed(2) + " ล้านบาท" } } }, scales: { x: { beginAtZero: true, grace: "20%", title: { display: true, text: "ล้านบาท" } } } } 
+    });
+
+    // 4. กราฟพาย: สัดส่วนแหล่งทุนวิจัย
+    createChart("c_re_fund", { 
+      type: "doughnut", 
+      data: { labels: fundLabels.length > 0 ? fundLabels : ["ไม่มีข้อมูล"], datasets: [{ data: fundData.length > 0 ? fundData : [1], backgroundColor: UI_PALETTE.slice(0, fundLabels.length) }] }, 
+      options: { responsive: true, maintainAspectRatio: false, plugins: { datalabels: pieDatalabels as any, legend: { position: "bottom", labels: { padding: 8 } }, tooltip: { callbacks: { label: (c: any) => c.label + ": ฿" + c.raw.toLocaleString() } } } } 
+    });
     
-    // SDG Mock ไว้ก่อนเนื่องจากไม่มีใน Excel
-    createChart("c_re_sdg", { type: "bar", data: { labels: ["SDG 6\nน้ำสะอาด", "SDG 9\nนวัตกรรม", "SDG 13\nสภาพภูมิอากาศ", "SDG 2\nอาหาร", "SDG 8\nเศรษฐกิจ"], datasets: [{ label: "จำนวนโครงการ", data: [4, 5, 3, 2, 1], backgroundColor: ["#26bde2", "#fd6925", "#3f7e44", "#dda63a", "#a21942"], borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grace: "20%", ticks: { stepSize: 1 }, title: { display: true, text: "จำนวนโครงการ" } } } } });
-    createChart("c_re_sdg_bud", { type: "bar", data: { labels: ["SDG 6", "SDG 9", "SDG 13", "SDG 2", "SDG 8"], datasets: [{ label: "ล้านบาท", data: [50.39, 16.27, 43.53, 6.88, 1.63], backgroundColor: ["#26bde2", "#fd6925", "#3f7e44", "#dda63a", "#a21942"], borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, indexAxis: "y", plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c: any) => c.raw.toFixed(2) + " ล้านบาท" } } }, scales: { x: { beginAtZero: true, grace: "20%", title: { display: true, text: "ล้านบาท" } } } } });
+    // 5. Diverging Bar Chart: การกระจายและงบประมาณตาม SDGs
+    const sdgLabels = ["SDG 6 น้ำสะอาด", "SDG 9 นวัตกรรม", "SDG 13 สภาพภูมิอากาศ", "SDG 2 อาหาร", "SDG 8 เศรษฐกิจ"];
+    const sdgColors = ["#26bde2", "#fd6925", "#3f7e44", "#dda63a", "#a21942"];
+    const rawSDGCount = [4, 5, 3, 2, 1]; // จำลองจำนวนโครงการ
+    const rawSDGBudget = [50.39, 16.27, 43.53, 6.88, 1.63]; // จำลองงบประมาณ
+    
+    // คำนวณ Scale Ratio เพื่อให้กราฟซ้าย-ขวากางออกอย่างสมดุล (ไม่เบี้ยวข้างใดข้างหนึ่ง)
+    const maxBudget = Math.max(...rawSDGBudget);
+    const maxCount = Math.max(...rawSDGCount);
+    const scaleRatio = maxBudget / maxCount;
+    const scaledCountData = rawSDGCount.map(v => -(v * scaleRatio));
+
+    createChart("c_re_sdg_combined", { 
+      type: "bar", 
+      data: { 
+        labels: sdgLabels, 
+        datasets: [
+          { 
+            label: "จำนวนโครงการ", 
+            data: scaledCountData, 
+            backgroundColor: sdgColors, 
+            borderRadius: 4,
+            barPercentage: 0.7
+          },
+          { 
+            label: "งบประมาณ (ล้านบาท)", 
+            data: rawSDGBudget, 
+            backgroundColor: sdgColors, 
+            borderRadius: 4,
+            barPercentage: 0.7
+          }
+        ] 
+      }, 
+      options: { 
+        responsive: true, 
+        maintainAspectRatio: false, 
+        indexAxis: "y", 
+        plugins: { 
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (c: any) => {
+                if (c.datasetIndex === 0) return "จำนวนโครงการ: " + rawSDGCount[c.dataIndex] + " โครงการ";
+                return "งบประมาณ: " + c.raw.toFixed(2) + " ล้านบาท";
+              }
+            }
+          },
+          datalabels: {
+            color: "#424242",
+            font: { weight: "bold", size: 11 },
+            anchor: (c: any) => c.datasetIndex === 0 ? "start" : "end",
+            align: (c: any) => c.datasetIndex === 0 ? "left" : "right",
+            formatter: (value: any, c: any) => {
+              if (c.datasetIndex === 0) return rawSDGCount[c.dataIndex] + " โครงการ";
+              return rawSDGBudget[c.dataIndex].toFixed(2) + " ลบ.";
+            }
+          }
+        }, 
+        scales: { 
+          x: { 
+            stacked: true,
+            ticks: { display: false }, // ซ่อนแกน x เพื่อความสะอาดตา เพราะเราโชว์ตัวเลขที่ Datalabels แล้ว
+            grid: { drawBorder: false, drawTicks: false },
+            title: { display: true, text: "← จำนวนโครงการ | งบประมาณ (ล้านบาท) →", font: { weight: "bold" }, padding: 10 }
+          },
+          y: { 
+            stacked: true,
+            ticks: { font: { weight: "bold" } }
+          } 
+        } 
+      } 
+    });
 
     // Counter animation 
     const obs = new IntersectionObserver((entries) => {
@@ -168,8 +295,8 @@ export default function ResearchTab() {
         <div className="kpi-card"><div className="kpi-icon"><i className="fas fa-hand-holding-usd"></i></div><div className="kpi-value">{uniqueFunds.size}</div><div className="kpi-label">แหล่งทุนวิจัย</div></div>
       </div>
       <div className="chart-grid">
-        <div className="chart-card"><h3><i className="fas fa-chart-bar"></i> จำนวนโครงการวิจัยรายเดือน (ข้อมูลจริง)</h3><div className="chart-wrapper"><canvas id="c_re_cnt"></canvas></div></div>
-        <div className="chart-card"><h3><i className="fas fa-chart-bar"></i> งบประมาณวิจัยรายเดือน (ล้านบาท) (ข้อมูลจริง)</h3><div className="chart-wrapper"><canvas id="c_re_bud"></canvas></div></div>
+        <div className="chart-card"><h3><i className="fas fa-chart-line"></i> จำนวนโครงการวิจัยรายเดือน (ข้อมูลจริง)</h3><div className="chart-wrapper"><canvas id="c_re_cnt"></canvas></div></div>
+        <div className="chart-card"><h3><i className="fas fa-chart-line"></i> งบประมาณวิจัยรายเดือน (ล้านบาท) (ข้อมูลจริง)</h3><div className="chart-wrapper"><canvas id="c_re_bud"></canvas></div></div>
       </div>
       
       <div className="table-card">
@@ -213,8 +340,12 @@ export default function ResearchTab() {
       <div className="chart-grid">
         <div className="chart-card"><h3><i className="fas fa-chart-bar"></i> งบประมาณตามภาควิชา (ข้อมูลจริง)</h3><div className="chart-wrapper"><canvas id="c_re_dept"></canvas></div></div>
         <div className="chart-card"><h3><i className="fas fa-chart-pie"></i> สัดส่วนแหล่งทุนวิจัย (ข้อมูลจริง)</h3><div className="chart-wrapper"><canvas id="c_re_fund"></canvas></div></div>
-        <div className="chart-card"><h3><i className="fas fa-globe"></i> การกระจายตาม SDGs</h3><div className="chart-wrapper"><canvas id="c_re_sdg"></canvas></div></div>
-        <div className="chart-card"><h3><i className="fas fa-coins"></i> งบประมาณตาม SDGs (ล้านบาท)</h3><div className="chart-wrapper"><canvas id="c_re_sdg_bud"></canvas></div></div>
+        
+        {/* กล่องรวมกราฟ SDGs แบบ Diverging */}
+        <div className="chart-card chart-full">
+          <h3><i className="fas fa-globe"></i> การกระจายและงบประมาณตาม SDGs</h3>
+          <div className="chart-wrapper"><canvas id="c_re_sdg_combined"></canvas></div>
+        </div>
       </div>
       <div className="decision-box"><div className="decision-header"><i className="fas fa-lightbulb"></i> ข้อมูลสนับสนุนการตัดสินใจ — โครงการวิจัย</div><ul>
         <li><strong>งบประมาณส่วนใหญ่</strong> มาจากแหล่งทุนภายนอก โดยเฉพาะจาก วช. และ สวก.</li>

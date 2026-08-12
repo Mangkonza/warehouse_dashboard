@@ -10,6 +10,9 @@ import pubData from "../data/publications.json";
 export default function PublicationsTab() {
   const chartInstances = useRef<Chart[]>([]);
 
+  // กรองข้อมูลขยะออก
+  const validData = pubData.filter((item: any) => item.name && item.name !== "nan" && item.name !== "NaT");
+
   useEffect(() => {
     chartInstances.current.forEach((chart) => chart.destroy());
     chartInstances.current = [];
@@ -55,12 +58,133 @@ export default function PublicationsTab() {
       }
     };
 
-    createChart("c_pub_monthly", { type: "bar", data: { labels: M, datasets: [{ label: "Q1", data: [3, 0, 4, 5, 4], backgroundColor: UI_PALETTE[0], borderRadius: 4 }, { label: "Q2", data: [3, 0, 2, 4, 1], backgroundColor: UI_PALETTE[1], borderRadius: 4 }, { label: "TCI", data: [2, 0, 1, 2, 0], backgroundColor: UI_PALETTE[2], borderRadius: 4 }, { label: "เตรียมตีพิมพ์", data: [8, 0, 3, 2, 6], backgroundColor: UI_PALETTE[3], borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { datalabels: stackedDatalabels as any, legend: { position: "bottom", labels: { padding: 10 } } }, scales: { y: { beginAtZero: true, grace: "20%", stacked: true, title: { display: true, text: "จำนวน" } }, x: { stacked: true } } } });
-    createChart("c_pub_bud", { type: "bar", data: { labels: M, datasets: [{ label: "เงินสนับสนุน (บาท)", data: [54133, 0, 87666, 150714, 44047], backgroundColor: C_PUB, borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c: any) => "฿" + c.raw.toLocaleString() } } }, scales: { y: { beginAtZero: true, grace: "20%", title: { display: true, text: "บาท" } } } } });
+    // กราฟ 1: จำนวนผลงานตีพิมพ์รายเดือน (คงไว้เป็น Bar แบบ Stacked เพราะดูง่ายกว่า)
+    createChart("c_pub_monthly", { 
+      type: "bar", 
+      data: { 
+        labels: M, 
+        datasets: [
+          { label: "Q1", data: [3, 0, 4, 5, 4], backgroundColor: UI_PALETTE[0], borderRadius: 4 }, 
+          { label: "Q2", data: [3, 0, 2, 4, 1], backgroundColor: UI_PALETTE[1], borderRadius: 4 }, 
+          { label: "TCI", data: [2, 0, 1, 2, 0], backgroundColor: UI_PALETTE[2], borderRadius: 4 }, 
+          { label: "เตรียมตีพิมพ์", data: [8, 0, 3, 2, 6], backgroundColor: UI_PALETTE[3], borderRadius: 4 }
+        ] 
+      }, 
+      options: { 
+        responsive: true, 
+        maintainAspectRatio: false, 
+        plugins: { datalabels: stackedDatalabels as any, legend: { position: "bottom", labels: { padding: 10 } } }, 
+        scales: { y: { beginAtZero: true, grace: "20%", stacked: true, title: { display: true, text: "จำนวน" } }, x: { stacked: true } } 
+      } 
+    });
+
+    // กราฟ 2: เงินสนับสนุนรายเดือน (เปลี่ยนเป็นกราฟเส้น)
+    createChart("c_pub_bud", { 
+      type: "line", 
+      data: { 
+        labels: M, 
+        datasets: [{ 
+          label: "เงินสนับสนุน (บาท)", 
+          data: [54133, 0, 87666, 150714, 44047], 
+          borderColor: C_PUB, 
+          backgroundColor: "rgba(142, 36, 170, 0.1)",
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: C_PUB,
+          pointRadius: 5,
+          pointHoverRadius: 7
+        }] 
+      }, 
+      options: { 
+        responsive: true, 
+        maintainAspectRatio: false, 
+        plugins: { 
+          legend: { display: false }, 
+          tooltip: { callbacks: { label: (c: any) => "฿" + c.raw.toLocaleString() } },
+          datalabels: { align: 'top', anchor: 'end', color: C_PUB, font: { weight: 'bold' }, formatter: (v: any) => v > 0 ? v.toLocaleString() : "" }
+        }, 
+        scales: { y: { beginAtZero: true, grace: "20%", title: { display: true, text: "บาท" } } } 
+      } 
+    });
+
     createChart("c_pub_level", { type: "pie", data: { labels: ["Q1", "Q2", "TCI1", "เตรียมตีพิมพ์"], datasets: [{ data: [22, 14, 10, 15], backgroundColor: UI_PALETTE.slice(0, 4) }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { datalabels: pieDatalabels as any, legend: { position: "bottom", labels: { padding: 8 } } } } });
     createChart("c_pub_dept", { type: "bar", data: { labels: ["ชลประทาน", "โยธา", "เกษตร", "อุตสาหการ", "เครื่องกล", "การอาหาร", "คอมพิวเตอร์"], datasets: [{ label: "จำนวนผลงาน", data: [16, 12, 10, 8, 6, 5, 4], backgroundColor: C_PUB, borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grace: "20%", title: { display: true, text: "จำนวน" } } } } });
     createChart("c_pub_sdg", { type: "bar", data: { labels: ["SDG 9\nนวัตกรรม", "SDG 2\nอาหาร", "SDG 6\nน้ำสะอาด", "SDG 11\nเมืองยั่งยืน", "SDG 13\nสภาพภูมิอากาศ", "SDG 12\nบริโภคยั่งยืน", "SDG 15\nระบบนิเวศบก"], datasets: [{ label: "จำนวนผลงาน", data: [22, 12, 10, 8, 5, 3, 1], backgroundColor: ["#fd6925", "#dda63a", "#26bde2", "#fd9d24", "#3f7e44", "#bf8b2e", "#56c02b"], borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grace: "20%", title: { display: true, text: "จำนวน" } } } } });
-    createChart("c_pub_sdg_q1", { type: "bar", data: { labels: ["SDG 9", "SDG 2", "SDG 6", "SDG 11", "SDG 13", "SDG 15"], datasets: [{ label: "จำนวน Q1", data: [10, 5, 4, 4, 3, 1], backgroundColor: ["#fd6925", "#dda63a", "#26bde2", "#fd9d24", "#3f7e44", "#56c02b"], borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, indexAxis: "y", plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, grace: "20%", ticks: { stepSize: 1 }, title: { display: true, text: "จำนวนผลงาน Q1" } } } } });
+    
+    // ==========================================
+    // 📊 Diverging Bar Chart: เปรียบเทียบผลงานทั้งหมด และ Q1 ตาม SDGs (ปรับสมดุล)
+    // ==========================================
+    const sdgLabels = ["SDG 9", "SDG 2", "SDG 6", "SDG 11", "SDG 13", "SDG 12", "SDG 15"];
+    const sdgColors = ["#fd6925", "#dda63a", "#26bde2", "#fd9d24", "#3f7e44", "#bf8b2e", "#56c02b"];
+    const rawQ1 = [10, 5, 4, 4, 3, 0, 1]; // ข้อมูลจำลองจำนวน Q1
+    const rawTotal = [22, 12, 10, 8, 5, 3, 1]; // ข้อมูลจำลองจำนวนทั้งหมด
+
+    // คำนวณ Scale Ratio เพื่อให้กราฟซ้าย-ขวากางออกอย่างสมดุล (ไม่ให้ฝั่งใดฝั่งหนึ่งหดสั้นเกินไป)
+    const maxTotal = Math.max(...rawTotal);
+    const maxQ1 = Math.max(...rawQ1);
+    const scaleRatio = maxTotal / (maxQ1 === 0 ? 1 : maxQ1);
+    const scaledQ1Data = rawQ1.map(v => -(v * scaleRatio));
+
+    createChart("c_pub_sdg_q1", {
+      type: "bar",
+      data: {
+        labels: sdgLabels,
+        datasets: [
+          {
+            label: "จำนวน Q1",
+            data: scaledQ1Data, // ฝั่งซ้าย (ติดลบ + ปรับสเกล)
+            backgroundColor: sdgColors,
+            borderRadius: 4,
+            barPercentage: 0.7
+          },
+          {
+            label: "จำนวนผลงานทั้งหมด",
+            data: rawTotal, // ฝั่งขวา (บวก)
+            backgroundColor: sdgColors,
+            borderRadius: 4,
+            barPercentage: 0.7
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: "y",
+        plugins: {
+          legend: { position: "bottom" },
+          tooltip: {
+            callbacks: {
+              label: (c: any) => {
+                if (c.datasetIndex === 0) return "จำนวน Q1: " + rawQ1[c.dataIndex] + " ผลงาน";
+                return "จำนวนทั้งหมด: " + rawTotal[c.dataIndex] + " ผลงาน";
+              }
+            }
+          },
+          datalabels: {
+            color: "#424242",
+            font: { weight: "bold", size: 11 },
+            anchor: (c: any) => c.datasetIndex === 0 ? "start" : "end",
+            align: (c: any) => c.datasetIndex === 0 ? "left" : "right",
+            formatter: (value: any, c: any) => {
+              if (c.datasetIndex === 0) return rawQ1[c.dataIndex] > 0 ? rawQ1[c.dataIndex] : "";
+              return rawTotal[c.dataIndex] > 0 ? rawTotal[c.dataIndex] : "";
+            }
+          }
+        },
+        scales: {
+          x: {
+            stacked: true,
+            ticks: { display: false }, // ซ่อนแกน x เพราะโชว์ตัวเลขที่แท่งกราฟแล้ว
+            grid: { drawBorder: false, drawTicks: false },
+            title: { display: true, text: "← จำนวน Q1 | จำนวนผลงานทั้งหมด →", font: { weight: "bold" }, padding: 10 }
+          },
+          y: {
+            stacked: true,
+            ticks: { font: { weight: "bold" } }
+          }
+        }
+      }
+    });
 
     // Counter animation
     const obs = new IntersectionObserver((entries) => {
@@ -96,7 +220,7 @@ export default function PublicationsTab() {
   return (
     <div className="tab-content active">
       <div className="kpi-grid">
-        <div className="kpi-card"><div className="kpi-icon"><i className="fas fa-book-open"></i></div><div className="kpi-value">{pubData.length}</div><div className="kpi-label">ผลงานทั้งหมด</div></div>
+        <div className="kpi-card"><div className="kpi-icon"><i className="fas fa-book-open"></i></div><div className="kpi-value">{validData.length}</div><div className="kpi-label">ผลงานทั้งหมด</div></div>
         <div className="kpi-card"><div className="kpi-icon"><i className="fas fa-trophy"></i></div><div className="kpi-value">22</div><div className="kpi-label">ระดับ Q1</div></div>
         <div className="kpi-card"><div className="kpi-icon"><i className="fas fa-medal"></i></div><div className="kpi-value">14</div><div className="kpi-label">ระดับ Q2</div></div>
         <div className="kpi-card"><div className="kpi-icon"><i className="fas fa-award"></i></div><div className="kpi-value">10</div><div className="kpi-label">ระดับ TCI</div></div>
@@ -104,7 +228,7 @@ export default function PublicationsTab() {
       </div>
       <div className="chart-grid">
         <div className="chart-card"><h3><i className="fas fa-chart-bar"></i> จำนวนผลงานตีพิมพ์รายเดือน (แยกระดับ)</h3><div className="chart-wrapper"><canvas id="c_pub_monthly"></canvas></div></div>
-        <div className="chart-card"><h3><i className="fas fa-chart-bar"></i> เงินสนับสนุนรายเดือน (บาท)</h3><div className="chart-wrapper"><canvas id="c_pub_bud"></canvas></div></div>
+        <div className="chart-card"><h3><i className="fas fa-chart-line"></i> เงินสนับสนุนรายเดือน (บาท)</h3><div className="chart-wrapper"><canvas id="c_pub_bud"></canvas></div></div>
       </div>
       
       {/* ส่วนตารางที่ดึงข้อมูลจาก JSON */}
@@ -124,7 +248,7 @@ export default function PublicationsTab() {
               </tr>
             </thead>
             <tbody>
-              {pubData.map((item, index) => (
+              {validData.map((item, index) => (
                 <tr key={index}>
                   <td>{index + 1}</td>
                   <td style={{ whiteSpace: "normal", minWidth: "300px" }}>{item.name}</td>
@@ -147,8 +271,10 @@ export default function PublicationsTab() {
       <div className="chart-grid">
         <div className="chart-card"><h3><i className="fas fa-chart-pie"></i> สัดส่วนผลงานตามระดับ</h3><div className="chart-wrapper"><canvas id="c_pub_level"></canvas></div></div>
         <div className="chart-card"><h3><i className="fas fa-chart-bar"></i> จำนวนผลงานตามภาควิชา</h3><div className="chart-wrapper"><canvas id="c_pub_dept"></canvas></div></div>
-        <div className="chart-card"><h3><i className="fas fa-globe"></i> การกระจายผลงานตาม SDGs</h3><div className="chart-wrapper"><canvas id="c_pub_sdg"></canvas></div></div>
-        <div className="chart-card"><h3><i className="fas fa-chart-bar"></i> ผลงาน Q1 ตาม SDGs</h3><div className="chart-wrapper"><canvas id="c_pub_sdg_q1"></canvas></div></div>
+        <div className="chart-card" style={{ gridColumn: "span 2" }}>
+          <h3><i className="fas fa-globe"></i> เปรียบเทียบจำนวนผลงานทั้งหมดและ Q1 ตาม SDGs (Diverging Chart)</h3>
+          <div className="chart-wrapper"><canvas id="c_pub_sdg_q1"></canvas></div>
+        </div>
       </div>
       <div className="decision-box"><div className="decision-header"><i className="fas fa-lightbulb"></i> ข้อมูลสนับสนุนการตัดสินใจ — ผลงานทางวิชาการ</div><ul>
         <li><strong>SDG 9 (นวัตกรรม)</strong> มีผลงานตีพิมพ์มากที่สุด โดยเฉพาะด้านวัสดุก่อสร้างและ Machine Learning</li>

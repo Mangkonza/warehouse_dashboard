@@ -88,15 +88,135 @@ export default function AcademicTab() {
       }
     };
 
-    createChart("c_ac_cnt", { type: "bar", data: { labels: M, datasets: [{ label: "จำนวนโครงการ", data: monthlyCount, backgroundColor: C_ACA, borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grace: "20%", ticks: { stepSize: 1 }, title: { display: true, text: "จำนวนโครงการ" } } } } });
-    createChart("c_ac_bud", { type: "bar", data: { labels: M, datasets: [{ label: "ล้านบาท", data: monthlyBudget, backgroundColor: C_ACA, borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c: any) => c.raw.toFixed(2) + " ล้านบาท" } } }, scales: { y: { beginAtZero: true, grace: "20%", title: { display: true, text: "ล้านบาท" } } } } });
+    // 1. กราฟเส้น: จำนวนโครงการรายเดือน
+    createChart("c_ac_cnt", { 
+      type: "line", 
+      data: { 
+        labels: M, 
+        datasets: [{ 
+          label: "จำนวนโครงการ", 
+          data: monthlyCount, 
+          borderColor: C_ACA,
+          backgroundColor: "rgba(21, 101, 192, 0.1)",
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: C_ACA,
+          pointRadius: 5,
+          pointHoverRadius: 7
+        }] 
+      }, 
+      options: { 
+        responsive: true, 
+        maintainAspectRatio: false, 
+        plugins: { legend: { display: false }, datalabels: { align: 'top', anchor: 'end', color: C_ACA, font: { weight: 'bold' } } }, 
+        scales: { y: { beginAtZero: true, grace: "20%", ticks: { stepSize: 1 }, title: { display: true, text: "จำนวนโครงการ" } } } 
+      } 
+    });
+
+    // 2. กราฟเส้น: งบประมาณรายเดือน (ล้านบาท)
+    createChart("c_ac_bud", { 
+      type: "line", 
+      data: { 
+        labels: M, 
+        datasets: [{ 
+          label: "ล้านบาท", 
+          data: monthlyBudget, 
+          borderColor: C_ACA,
+          backgroundColor: "rgba(21, 101, 192, 0.1)",
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: C_ACA,
+          pointRadius: 5,
+          pointHoverRadius: 7
+        }] 
+      }, 
+      options: { 
+        responsive: true, 
+        maintainAspectRatio: false, 
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c: any) => c.raw.toFixed(2) + " ล้านบาท" } }, datalabels: { align: 'top', anchor: 'end', color: C_ACA, font: { weight: 'bold' }, formatter: (v: any) => v > 0 ? v.toFixed(1) : "" } }, 
+        scales: { y: { beginAtZero: true, grace: "20%", title: { display: true, text: "ล้านบาท" } } } 
+      } 
+    });
     
+    // กราฟ 3: สัดส่วนการจัดสรรงบ (Doughnut)
     createChart("c_ac_alloc", { type: "doughnut", data: { labels: ["โครงการ (70%)", "ค่าอำนวยการ (15%)", "คณะ (5%)", "ภาควิชา (5%)", "มก. (5%)"], datasets: [{ data: [70, 15, 5, 5, 5], backgroundColor: UI_PALETTE.slice(0, 5) }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { datalabels: pieDatalabels as any, legend: { position: "bottom", labels: { padding: 8 } } } } });
-    createChart("c_ac_client", { type: "bar", data: { labels: clientLabels, datasets: [{ label: "ล้านบาท", data: clientData, backgroundColor: C_ACA, borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, indexAxis: "y", plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c: any) => c.raw.toFixed(2) + " ล้านบาท" } } }, scales: { x: { beginAtZero: true, grace: "20%", title: { display: true, text: "ล้านบาท" } } } } });
     
-    // SDGs Mock
-    createChart("c_ac_sdg", { type: "bar", data: { labels: ["SDG 6\nน้ำสะอาด", "SDG 9\nนวัตกรรม", "SDG 13\nสภาพภูมิอากาศ"], datasets: [{ label: "จำนวนโครงการ", data: [15, 12, 5], backgroundColor: ["#26bde2", "#fd6925", "#3f7e44"], borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grace: "20%", ticks: { stepSize: 1 }, title: { display: true, text: "จำนวนโครงการ" } } } } });
-    createChart("c_ac_sdg_bud", { type: "bar", data: { labels: ["SDG 6", "SDG 9", "SDG 13"], datasets: [{ label: "ล้านบาท", data: [97.28, 75.89, 15.94], backgroundColor: ["#26bde2", "#fd6925", "#3f7e44"], borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, indexAxis: "y", plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c: any) => c.raw.toFixed(2) + " ล้านบาท" } } }, scales: { x: { beginAtZero: true, grace: "20%", title: { display: true, text: "ล้านบาท" } } } } });
+    // กราฟ 4: Top ผู้ขอรับบริการ
+    createChart("c_ac_client", { type: "bar", data: { labels: clientLabels, datasets: [{ label: "ล้านบาท", data: clientData, backgroundColor: C_ACA, borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, indexAxis: "y", plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c: any) => c.raw.toFixed(2) + " ล้านบาท" } }, datalabels: { display: false } }, scales: { x: { beginAtZero: true, grace: "20%", title: { display: true, text: "ล้านบาท" } } } } });
+    
+    // ==========================================
+    // 📊 Diverging Bar Chart: SDGs (ปรับปรุงแล้ว)
+    // ==========================================
+    const sdgLabels = ["SDG 6", "SDG 9", "SDG 13", "SDG 2", "SDG 8"];
+    const rawSDGCount = [4, 5, 3, 2, 1]; // จำลองจำนวนโครงการ
+    const rawSDGBudget = [50.39, 16.27, 43.53, 6.88, 1.63]; // จำลองงบประมาณ
+    
+    // คำนวณ Scale Ratio เพื่อให้กราฟซ้าย-ขวากางออกอย่างสมดุล (ไม่เบี้ยวข้างใดข้างหนึ่ง)
+    const maxBudget = Math.max(...rawSDGBudget);
+    const maxCount = Math.max(...rawSDGCount);
+    const scaleRatio = maxBudget / maxCount;
+    const scaledCountData = rawSDGCount.map(v => -(v * scaleRatio));
+
+    createChart("c_ac_sdg_combined", {
+      type: "bar",
+      data: {
+        labels: sdgLabels,
+        datasets: [
+          {
+            label: "งบประมาณ (ล้านบาท)",
+            data: rawSDGBudget.map(v => -v), // ฝั่งซ้าย (ติดลบ)
+            backgroundColor: "#f4511e",
+            borderRadius: 4,
+            barPercentage: 0.7
+          },
+          {
+            label: "จำนวนโครงการ",
+            data: scaledCountData.map(v => Math.abs(v)), // ฝั่งขวา (บวก และ Scale แล้ว)
+            backgroundColor: "#1565c0",
+            borderRadius: 4,
+            barPercentage: 0.7
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: "y",
+        plugins: {
+          legend: { position: "bottom" },
+          tooltip: {
+            callbacks: {
+              label: (c: any) => {
+                if (c.datasetIndex === 1) return "จำนวนโครงการ: " + rawSDGCount[c.dataIndex] + " โครงการ";
+                return "งบประมาณ: " + rawSDGBudget[c.dataIndex].toFixed(2) + " ล้านบาท";
+              }
+            }
+          },
+          datalabels: {
+            color: "#424242",
+            font: { weight: "bold", size: 11 },
+            anchor: (c: any) => c.datasetIndex === 0 ? "start" : "end",
+            align: (c: any) => c.datasetIndex === 0 ? "left" : "right",
+            formatter: (value: any, c: any) => {
+              if (c.datasetIndex === 1) return rawSDGCount[c.dataIndex] + " โครงการ";
+              return rawSDGBudget[c.dataIndex].toFixed(2) + " ลบ.";
+            }
+          }
+        },
+        scales: {
+          x: {
+            stacked: true,
+            ticks: { display: false }, // ซ่อนแกน x
+            grid: { drawBorder: false, drawTicks: false },
+            title: { display: true, text: "← งบประมาณ (ล้านบาท) | จำนวนโครงการ →", font: { weight: "bold" }, padding: 10 }
+          },
+          y: {
+            stacked: true,
+            ticks: { font: { weight: "bold" } }
+          }
+        }
+      }
+    });
 
     // Counter animation 
     const obs = new IntersectionObserver((entries) => {
@@ -142,8 +262,8 @@ export default function AcademicTab() {
         <div className="kpi-card"><div className="kpi-icon"><i className="fas fa-user-tie"></i></div><div className="kpi-value">{uniqueHeads.size}</div><div className="kpi-label">หัวหน้าโครงการ (PI)</div></div>
       </div>
       <div className="chart-grid">
-        <div className="chart-card"><h3><i className="fas fa-chart-bar"></i> จำนวนโครงการรายเดือน (ข้อมูลจริง)</h3><div className="chart-wrapper"><canvas id="c_ac_cnt"></canvas></div></div>
-        <div className="chart-card"><h3><i className="fas fa-chart-bar"></i> งบประมาณรายเดือน (ล้านบาท) (ข้อมูลจริง)</h3><div className="chart-wrapper"><canvas id="c_ac_bud"></canvas></div></div>
+        <div className="chart-card"><h3><i className="fas fa-chart-line"></i> จำนวนโครงการรายเดือน (ข้อมูลจริง)</h3><div className="chart-wrapper"><canvas id="c_ac_cnt"></canvas></div></div>
+        <div className="chart-card"><h3><i className="fas fa-chart-line"></i> งบประมาณรายเดือน (ล้านบาท) (ข้อมูลจริง)</h3><div className="chart-wrapper"><canvas id="c_ac_bud"></canvas></div></div>
       </div>
       
       <div className="table-card">
@@ -178,10 +298,13 @@ export default function AcademicTab() {
 
       <div className="chart-grid">
         <div className="chart-card"><h3><i className="fas fa-chart-doughnut"></i> สัดส่วนการจัดสรรงบ</h3><div className="chart-wrapper"><canvas id="c_ac_alloc"></canvas></div></div>
-        <div className="chart-card"><h3><i className="fas fa-chart-bar"></i> Top ผู้ขอรับบริการ (ข้อมูลจริง)</h3><div className="chart-wrapper"><canvas id="c_ac_client"></canvas></div></div>
-        <div className="chart-card"><h3><i className="fas fa-globe"></i> การกระจายตาม SDGs</h3><div className="chart-wrapper"><canvas id="c_ac_sdg"></canvas></div></div>
-        <div className="chart-card"><h3><i className="fas fa-coins"></i> งบประมาณตาม SDGs (ล้านบาท)</h3><div className="chart-wrapper"><canvas id="c_ac_sdg_bud"></canvas></div></div>
+        <div className="chart-card"><h3><i className="fas fa-chart-bar"></i> Top ผู้ขอรับบริการ</h3><div className="chart-wrapper"><canvas id="c_ac_client"></canvas></div></div>
+        <div className="chart-card" style={{ gridColumn: "span 2" }}>
+            <h3><i className="fas fa-globe"></i> จำนวนและงบประมาณตาม SDGs (Diverging Chart)</h3>
+            <div className="chart-wrapper"><canvas id="c_ac_sdg_combined"></canvas></div>
+        </div>
       </div>
+
       <div className="decision-box"><div className="decision-header"><i className="fas fa-lightbulb"></i> ข้อมูลสนับสนุนการตัดสินใจ — โครงการพัฒนาวิชาการ</div><ul>
         <li><strong>งบประมาณรวม</strong> ของโครงการพัฒนาวิชาการสะท้อนมูลค่าการให้บริการแก่หน่วยงานภายนอกในระดับสูง</li>
         <li><strong>หน่วยงานภาครัฐ</strong> เป็นผู้รับบริการหลักในการขับเคลื่อนโครงการ</li>
