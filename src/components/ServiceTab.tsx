@@ -4,6 +4,9 @@ import { useEffect, useRef } from "react";
 import Chart from "chart.js/auto";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 
+// 1. นำเข้าข้อมูล JSON
+import serviceData from "../data/services.json";
+
 export default function ServiceTab() {
   const chartInstances = useRef<Chart[]>([]);
 
@@ -92,11 +95,44 @@ export default function ServiceTab() {
   return (
     <div className="tab-content active">
       <div className="kpi-grid">
-        <div className="kpi-card"><div className="kpi-icon"><i className="fas fa-hands-helping"></i></div><div className="kpi-value">229</div><div className="kpi-label">กิจกรรมทั้งหมด</div></div>
+        <div className="kpi-card"><div className="kpi-icon"><i className="fas fa-hands-helping"></i></div><div className="kpi-value">{serviceData.length}</div><div className="kpi-label">กิจกรรมทั้งหมด</div></div>
         <div className="kpi-card"><div className="kpi-icon"><i className="fas fa-user-check"></i></div><div className="kpi-value">100</div><div className="kpi-label">ผู้ทรงคุณวุฒิ</div></div>
         <div className="kpi-card"><div className="kpi-icon"><i className="fas fa-chalkboard-teacher"></i></div><div className="kpi-value">50</div><div className="kpi-label">วิชาการ</div></div>
         <div className="kpi-card"><div className="kpi-icon"><i className="fas fa-building"></i></div><div className="kpi-value">7</div><div className="kpi-label">ภาควิชาที่มีส่วนร่วม</div></div>
       </div>
+      
+      {/* เพิ่มตารางข้อมูลจริงตรงนี้ */}
+      <div className="table-card">
+        <h3><i className="fas fa-table"></i> รายละเอียดกิจกรรมบริการวิชาการ</h3>
+        <div className="table-scroll" style={{ maxHeight: "400px" }}>
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>วันที่</th>
+                <th>ชื่อกิจกรรม / เรื่อง</th>
+                <th>อาจารย์/ผู้รับผิดชอบ</th>
+                <th>กลุ่มเป้าหมาย</th>
+              </tr>
+            </thead>
+            <tbody>
+              {serviceData.map((item, index) => {
+                if (item.name === "NaT" || item.name === "nan") return null;
+                return (
+                  <tr key={index}>
+                    <td>{index}</td>
+                    <td>{item.date !== "nan" ? item.date.substring(0, 10) : "-"}</td>
+                    <td style={{ whiteSpace: "normal", minWidth: "250px" }}>{item.name}</td>
+                    <td>{item.person !== "nan" ? item.person : "-"}</td>
+                    <td>{item.target_group !== "nan" ? item.target_group : "-"}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <div className="chart-grid">
         <div className="chart-card"><h3><i className="fas fa-chart-line"></i> จำนวนกิจกรรมรายเดือน</h3><div className="chart-wrapper"><canvas id="c_sv_monthly"></canvas></div></div>
         <div className="chart-card"><h3><i className="fas fa-chart-bar"></i> ประเภทกิจกรรมรายเดือน</h3><div className="chart-wrapper"><canvas id="c_sv_type_m"></canvas></div></div>

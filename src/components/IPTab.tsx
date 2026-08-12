@@ -4,6 +4,9 @@ import { useEffect, useRef } from "react";
 import Chart from "chart.js/auto";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 
+// 1. นำเข้าข้อมูล JSON
+import ipData from "../data/ip.json";
+
 export default function IPTab() {
   const chartInstances = useRef<Chart[]>([]);
 
@@ -66,10 +69,13 @@ export default function IPTab() {
     };
   }, []);
 
+  // นับจำนวนรายการจริงๆ (ตัดแถวที่ชื่อ NaT หรือ ชื่อ เรื่อง ออก)
+  const validIpData = ipData.filter(item => item.name !== "NaT" && item.name !== "เรื่อง");
+
   return (
     <div className="tab-content active">
       <div className="kpi-grid">
-        <div className="kpi-card"><div className="kpi-icon"><i className="fas fa-file-alt"></i></div><div className="kpi-value">2</div><div className="kpi-label">อนุสิทธิบัตร</div></div>
+        <div className="kpi-card"><div className="kpi-icon"><i className="fas fa-file-alt"></i></div><div className="kpi-value">{validIpData.length}</div><div className="kpi-label">จำนวนทรัพย์สินทางปัญญา (รวม)</div></div>
         <div className="kpi-card"><div className="kpi-icon"><i className="fas fa-scroll"></i></div><div className="kpi-value">0</div><div className="kpi-label">สิทธิบัตร</div></div>
         <div className="kpi-card"><div className="kpi-icon"><i className="fas fa-money-bill-wave"></i></div><div className="kpi-value">฿20,000</div><div className="kpi-label">เงินสนับสนุน</div></div>
         <div className="kpi-card"><div className="kpi-icon"><i className="fas fa-building"></i></div><div className="kpi-value">1</div><div className="kpi-label">ภาควิชาที่มี IP</div></div>
@@ -78,13 +84,40 @@ export default function IPTab() {
         <div className="chart-card"><h3><i className="fas fa-chart-bar"></i> จำนวน IP รายเดือน</h3><div className="chart-wrapper"><canvas id="c_ip_monthly"></canvas></div></div>
         <div className="chart-card"><h3><i className="fas fa-chart-bar"></i> เปรียบเทียบ IP vs วิจัย vs ตีพิมพ์</h3><div className="chart-wrapper"><canvas id="c_ip_compare"></canvas></div></div>
       </div>
-      <div className="table-card"><h3><i className="fas fa-table"></i> รายการทรัพย์สินทางปัญญา</h3><div className="table-scroll"><table>
-        <thead><tr><th>#</th><th>เดือน</th><th>เรื่อง</th><th>ผู้ประดิษฐ์</th><th>ภาควิชา</th><th>ประเภท</th><th>เลขที่คำขอ</th><th>เลขที่คุ้มครอง</th><th>สถานะ</th><th>เงินสนับสนุน</th></tr></thead>
-        <tbody>
-          <tr><td>1</td><td>ม.ค.</td><td>ชุดอุปกรณ์ตรวจวัดความชื้นของเมล็ดพืช</td><td>รศ.ดร.พิมพ์พรรณ ปรืองาม</td><td>วิศวกรรมเกษตร</td><td><span className="badge badge-patent">อนุสิทธิบัตร</span></td><td>2403001791</td><td>26189</td><td>ได้รับความคุ้มครอง</td><td className="budget-cell">10,000</td></tr>
-          <tr><td>2</td><td>มี.ค.</td><td>รถไถเดินตามสำหรับกำจัดวัชพืช</td><td>รศ.ดร.ประเทือง อุษาบริสุทธิ์</td><td>วิศวกรรมเกษตร</td><td><span className="badge badge-patent">อนุสิทธิบัตร</span></td><td>2503001568</td><td>27126</td><td>ได้รับความคุ้มครอง</td><td className="budget-cell">10,000</td></tr>
-        </tbody>
-      </table></div></div>
+      
+      {/* ส่วนตารางที่ดึงข้อมูลจาก JSON */}
+      <div className="table-card">
+        <h3><i className="fas fa-table"></i> รายการทรัพย์สินทางปัญญา</h3>
+        <div className="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>เรื่อง</th>
+                <th>ผู้ประดิษฐ์</th>
+                <th>ภาควิชา</th>
+                <th>ประเภท</th>
+                <th>เลขที่คำขอ/วันที่ยื่น</th>
+                <th>สถานะ/วันหมดอายุ</th>
+              </tr>
+            </thead>
+            <tbody>
+              {validIpData.map((item, index) => (
+                <tr key={index}>
+                  <td>{index + 1}</td>
+                  <td style={{ whiteSpace: "normal", minWidth: "200px" }}>{item.name}</td>
+                  <td>{item.creator !== "nan" ? item.creator : "-"}</td>
+                  <td>{item.department !== "nan" ? item.department : "-"}</td>
+                  <td>{item.type !== "nan" ? item.type : "-"}</td>
+                  <td>{item.req_no !== "nan" ? item.req_no.substring(0,10) : "-"}</td>
+                  <td>{item.status !== "nan" ? item.status : "-"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <div className="decision-box"><div className="decision-header"><i className="fas fa-lightbulb"></i> ข้อมูลสนับสนุนการตัดสินใจ — ทรัพย์สินทางปัญญา</div><ul>
         <li>IP มี<strong>เพียง 2 รายการ</strong> ต่ำมากเทียบกับ 10 โครงการวิจัยและ 61 ผลงานตีพิมพ์</li>
         <li>ทั้ง 2 รายการมาจาก<strong>ภาควิชาวิศวกรรมเกษตรเท่านั้น</strong> ควรขยายไปภาควิชาอื่น</li>

@@ -4,6 +4,9 @@ import { useEffect, useRef } from "react";
 import Chart from "chart.js/auto";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 
+// 1. นำเข้าข้อมูล JSON
+import pubData from "../data/publications.json";
+
 export default function PublicationsTab() {
   const chartInstances = useRef<Chart[]>([]);
 
@@ -93,7 +96,7 @@ export default function PublicationsTab() {
   return (
     <div className="tab-content active">
       <div className="kpi-grid">
-        <div className="kpi-card"><div className="kpi-icon"><i className="fas fa-book-open"></i></div><div className="kpi-value">61</div><div className="kpi-label">ผลงานทั้งหมด</div></div>
+        <div className="kpi-card"><div className="kpi-icon"><i className="fas fa-book-open"></i></div><div className="kpi-value">{pubData.length}</div><div className="kpi-label">ผลงานทั้งหมด</div></div>
         <div className="kpi-card"><div className="kpi-icon"><i className="fas fa-trophy"></i></div><div className="kpi-value">22</div><div className="kpi-label">ระดับ Q1</div></div>
         <div className="kpi-card"><div className="kpi-icon"><i className="fas fa-medal"></i></div><div className="kpi-value">14</div><div className="kpi-label">ระดับ Q2</div></div>
         <div className="kpi-card"><div className="kpi-icon"><i className="fas fa-award"></i></div><div className="kpi-value">10</div><div className="kpi-label">ระดับ TCI</div></div>
@@ -103,24 +106,44 @@ export default function PublicationsTab() {
         <div className="chart-card"><h3><i className="fas fa-chart-bar"></i> จำนวนผลงานตีพิมพ์รายเดือน (แยกระดับ)</h3><div className="chart-wrapper"><canvas id="c_pub_monthly"></canvas></div></div>
         <div className="chart-card"><h3><i className="fas fa-chart-bar"></i> เงินสนับสนุนรายเดือน (บาท)</h3><div className="chart-wrapper"><canvas id="c_pub_bud"></canvas></div></div>
       </div>
-      <div className="table-card"><h3><i className="fas fa-table"></i> ผลงานตีพิมพ์ (ตัวอย่าง)</h3><div className="table-scroll"><table>
-        <thead><tr><th>#</th><th>เดือน</th><th>ชื่อผลงาน</th><th>เจ้าของผลงาน</th><th>ภาควิชา</th><th>ระดับ</th><th>เงินสนับสนุน</th><th>SDGs</th></tr></thead>
-        <tbody>
-          <tr><td>1</td><td>ม.ค.</td><td>Mechanical, fatigue...rubber wood fly ash concrete</td><td>ผศ.ดร.เพ็ญพิชชา สนิทอินทร์</td><td>วิศวกรรมโยธา</td><td><span className="badge badge-q1">Q1</span></td><td className="budget-cell">3,333</td><td><span className="badge-sdg" style={{ background: "#fd6925", color: "#fff" }}>SDG 9</span><span className="badge-sdg" style={{ background: "#fd9d24", color: "#fff" }}>SDG 11</span></td></tr>
-          <tr><td>2</td><td>ม.ค.</td><td>Physiological indicators...AWD irrigation</td><td>รศ.ดร.ชัยศรี สุขสาโรจน์</td><td>วิศวกรรมชลประทาน</td><td><span className="badge badge-q1">Q1</span></td><td className="budget-cell">20,000</td><td><span className="badge-sdg" style={{ background: "#26bde2", color: "#fff" }}>SDG 6</span><span className="badge-sdg" style={{ background: "#dda63a", color: "#fff" }}>SDG 2</span></td></tr>
-          <tr><td>3</td><td>ม.ค.</td><td>Impact of water channel obstructions...</td><td>ผศ.ดร.ไชยาพงษ์ เทพประสิทธิ์</td><td>วิศวกรรมชลประทาน</td><td><span className="badge badge-tci">TCI1</span></td><td className="budget-cell">5,000</td><td><span className="badge-sdg" style={{ background: "#26bde2", color: "#fff" }}>SDG 6</span><span className="badge-sdg" style={{ background: "#3f7e44", color: "#fff" }}>SDG 13</span></td></tr>
-          <tr><td>4</td><td>ม.ค.</td><td>Performance comparison...rotating fluidization</td><td>รศ.ดร.ปรีดา ปรากฏมาก</td><td>วิศวกรรมเครื่องกล</td><td><span className="badge badge-q1">Q1</span></td><td className="budget-cell">800</td><td><span className="badge-sdg" style={{ background: "#fd6925", color: "#fff" }}>SDG 9</span><span className="badge-sdg" style={{ background: "#dda63a", color: "#fff" }}>SDG 2</span></td></tr>
-          <tr><td>5</td><td>ม.ค.</td><td>Optimal Order Quantity for Perishable Products</td><td>ผศ.ดร.จิรเกียรติ ทรายทอง</td><td>วิศวกรรมอุตสาหการ</td><td><span className="badge badge-q2">Q2</span></td><td className="budget-cell">20,000</td><td><span className="badge-sdg" style={{ background: "#bf8b2e", color: "#fff" }}>SDG 12</span></td></tr>
-          <tr><td>6</td><td>มี.ค.</td><td>Postharvest detection anthracnose mango</td><td>ศ.ดร.อนุพันธ์ เทอดวงศ์วรกุล</td><td>วิศวกรรมเกษตร</td><td><span className="badge badge-q1">Q1</span></td><td className="budget-cell">1,666</td><td><span className="badge-sdg" style={{ background: "#dda63a", color: "#fff" }}>SDG 2</span><span className="badge-sdg" style={{ background: "#fd6925", color: "#fff" }}>SDG 9</span></td></tr>
-          <tr><td>7</td><td>มี.ค.</td><td>Shear Behavior UHPC Shear Pockets</td><td>รศ.ดร.นันทวัฒน์ ขมหวาน</td><td>วิศวกรรมโยธา</td><td><span className="badge badge-q1">Q1</span></td><td className="budget-cell">20,000</td><td><span className="badge-sdg" style={{ background: "#fd6925", color: "#fff" }}>SDG 9</span><span className="badge-sdg" style={{ background: "#fd9d24", color: "#fff" }}>SDG 11</span></td></tr>
-          <tr><td>8</td><td>มี.ค.</td><td>Maturity assessment durian ML + NIR</td><td>รศ.ดร.อมรฤทธิ์ พุทธิพิพัฒน์ขจร</td><td>วิศวกรรมคอมพิวเตอร์</td><td><span className="badge badge-q1">Q1</span></td><td className="budget-cell">20,000</td><td><span className="badge-sdg" style={{ background: "#dda63a", color: "#fff" }}>SDG 2</span><span className="badge-sdg" style={{ background: "#fd6925", color: "#fff" }}>SDG 9</span></td></tr>
-          <tr><td>9</td><td>เม.ย.</td><td>Gully erosion susceptibility assessment</td><td>ผศ.ดร.ชูพันธุ์ ชมภูจันทร์</td><td>วิศวกรรมชลประทาน</td><td><span className="badge badge-q1">Q1</span></td><td className="budget-cell">2,857</td><td><span className="badge-sdg" style={{ background: "#3f7e44", color: "#fff" }}>SDG 13</span><span className="badge-sdg" style={{ background: "#56c02b", color: "#fff" }}>SDG 15</span></td></tr>
-          <tr><td>10</td><td>เม.ย.</td><td>ML for Concrete Strength with Steel Clamps</td><td>ผศ.ชิษณุพงศ์ สุธัมมะ</td><td>วิศวกรรมโยธา</td><td><span className="badge badge-q1">Q1</span></td><td className="budget-cell">20,000</td><td><span className="badge-sdg" style={{ background: "#fd6925", color: "#fff" }}>SDG 9</span><span className="badge-sdg" style={{ background: "#fd9d24", color: "#fff" }}>SDG 11</span></td></tr>
-          <tr><td>11</td><td>พ.ค.</td><td>Multiple reservoir optimization Chao Phraya</td><td>รศ.ดร.วราวุธ วุฒิวณิชย์</td><td>วิศวกรรมชลประทาน</td><td><span className="badge badge-q1">Q1</span></td><td className="budget-cell">2,857</td><td><span className="badge-sdg" style={{ background: "#26bde2", color: "#fff" }}>SDG 6</span><span className="badge-sdg" style={{ background: "#3f7e44", color: "#fff" }}>SDG 13</span></td></tr>
-          <tr><td>12</td><td>พ.ค.</td><td>Filter-based SWIR imaging durian quality</td><td>ศ.ดร.อนุพันธ์ เทอดวงศ์วรกุล</td><td>วิศวกรรมเกษตร</td><td><span className="badge badge-q1">Q1</span></td><td className="budget-cell">2,500</td><td><span className="badge-sdg" style={{ background: "#dda63a", color: "#fff" }}>SDG 2</span><span className="badge-sdg" style={{ background: "#fd6925", color: "#fff" }}>SDG 9</span></td></tr>
-          <tr><td>13</td><td>พ.ค.</td><td>Supra-GQDs metakaolin-modified concrete</td><td>ผศ.ดร.เพ็ญพิชชา สนิทอินทร์</td><td>วิศวกรรมโยธา</td><td><span className="badge badge-q1">Q1</span></td><td className="budget-cell">6,000</td><td><span className="badge-sdg" style={{ background: "#fd6925", color: "#fff" }}>SDG 9</span><span className="badge-sdg" style={{ background: "#fd9d24", color: "#fff" }}>SDG 11</span></td></tr>
-        </tbody>
-      </table></div></div>
+      
+      {/* ส่วนตารางที่ดึงข้อมูลจาก JSON */}
+      <div className="table-card">
+        <h3><i className="fas fa-table"></i> รายละเอียดผลงานตีพิมพ์</h3>
+        <div className="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>ชื่อผลงาน</th>
+                <th>เจ้าของผลงาน</th>
+                <th>ภาควิชา</th>
+                <th>ประเภท</th>
+                <th>ระดับ</th>
+                <th>เงินสนับสนุน</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pubData.map((item, index) => (
+                <tr key={index}>
+                  <td>{index + 1}</td>
+                  <td style={{ whiteSpace: "normal", minWidth: "300px" }}>{item.name}</td>
+                  <td>{item.owner !== "nan" ? item.owner : "-"}</td>
+                  <td>{item.department !== "nan" ? item.department : "-"}</td>
+                  <td>{item.type !== "nan" ? item.type : "-"}</td>
+                  <td>
+                    <span className={`badge ${item.level === "นานาชาติ" ? "badge-q1" : "badge-q2"}`}>
+                      {item.level !== "nan" ? item.level : "-"}
+                    </span>
+                  </td>
+                  <td className="budget-cell">{(item.budget || 0).toLocaleString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <div className="chart-grid">
         <div className="chart-card"><h3><i className="fas fa-chart-pie"></i> สัดส่วนผลงานตามระดับ</h3><div className="chart-wrapper"><canvas id="c_pub_level"></canvas></div></div>
         <div className="chart-card"><h3><i className="fas fa-chart-bar"></i> จำนวนผลงานตามภาควิชา</h3><div className="chart-wrapper"><canvas id="c_pub_dept"></canvas></div></div>

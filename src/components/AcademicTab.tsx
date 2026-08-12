@@ -4,8 +4,21 @@ import { useEffect, useRef } from "react";
 import Chart from "chart.js/auto";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 
+// นำเข้าข้อมูล JSON
+import academicData from "../data/academic.json";
+
 export default function AcademicTab() {
   const chartInstances = useRef<Chart[]>([]);
+
+  // กรองข้อมูลขยะออก
+  const validData = academicData.filter((item: any) => item.name && item.name !== "nan" && item.name !== "NaT");
+
+  // คำนวณงบประมาณรวมทั้งหมด
+  const totalBudgetAll = validData.reduce((sum, item: any) => sum + (typeof item.budget === 'number' ? item.budget : 0), 0);
+
+  // หานับจำนวนหัวหน้าโครงการและผู้รับบริการที่ไม่ซ้ำกัน
+  const uniqueHeads = new Set(validData.map((item: any) => item.head).filter(h => h !== "nan" && h !== "-"));
+  const uniqueClients = new Set(validData.map((item: any) => item.client).filter(c => c !== "nan" && c !== "-"));
 
   useEffect(() => {
     chartInstances.current.forEach((chart) => chart.destroy());
@@ -16,8 +29,40 @@ export default function AcademicTab() {
     Chart.defaults.font.size = 12;
 
     const C_ACA = "#1565c0";
-    const UI_PALETTE = ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF"];
-    const M = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค."];
+    const UI_PALETTE = ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF", "#FF9F40"];
+
+    // ==========================================
+    // ⚙️ Logic คำนวณข้อมูลกราฟจาก JSON 
+    // ==========================================
+    const M = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ก.ย.", "ต.ค.", "พ.ย."];
+    let monthlyCount = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    let monthlyBudget = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; // ล้านบาท
+    let clientBudget: any = {};
+
+    validData.forEach((item: any) => {
+      const budget = typeof item.budget === 'number' ? item.budget : 0;
+
+      // 1. จัดกลุ่มตามเดือน
+      let mStr = String(item.month || "").trim();
+      const monthMap: any = { "ม.ค.": 0, "ก.พ.": 1, "มี.ค.": 2, "เม.ย.": 3, "พ.ค.": 4, "มิ.ย.": 5, "ก.ค.": 6, "ก.ย.": 7, "ต.ค.": 8, "พ.ย.": 9, "1": 0, "2": 1, "3": 2, "4": 3 };
+      
+      if (monthMap[mStr] !== undefined) {
+        let idx = monthMap[mStr];
+        monthlyCount[idx]++;
+        monthlyBudget[idx] += (budget / 1000000);
+      }
+
+      // 2. จัดกลุ่มตามผู้ขอรับบริการ (Client)
+      let client = String(item.client || "").replace("\n", " ").trim();
+      if (!client || client === "-" || client === "nan") client = "หน่วยงานภายใน/อื่นๆ";
+      if (clientBudget[client]) clientBudget[client] += (budget / 1000000);
+      else clientBudget[client] = (budget / 1000000);
+    });
+
+    // Top 5 ผู้ขอรับบริการ
+    const sortedClients = Object.entries(clientBudget).sort((a: any, b: any) => b[1] - a[1]).slice(0, 5);
+    const clientLabels = sortedClients.map(c => c[0]);
+    const clientData = sortedClients.map(c => c[1]);
 
     const pieDatalabels = {
       color: "#fff",
@@ -43,12 +88,15 @@ export default function AcademicTab() {
       }
     };
 
-    createChart("c_ac_cnt", { type: "bar", data: { labels: M, datasets: [{ label: "จำนวนโครงการ", data: [6, 5, 8, 2, 0], backgroundColor: C_ACA, borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grace: "20%", ticks: { stepSize: 1 }, title: { display: true, text: "จำนวนโครงการ" } } } } });
-    createChart("c_ac_bud", { type: "bar", data: { labels: M, datasets: [{ label: "ล้านบาท", data: [67.27, 58.75, 40.18, 8.04, 0], backgroundColor: C_ACA, borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c: any) => c.raw.toFixed(2) + " ล้านบาท" } } }, scales: { y: { beginAtZero: true, grace: "20%", title: { display: true, text: "ล้านบาท" } } } } });
+    createChart("c_ac_cnt", { type: "bar", data: { labels: M, datasets: [{ label: "จำนวนโครงการ", data: monthlyCount, backgroundColor: C_ACA, borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grace: "20%", ticks: { stepSize: 1 }, title: { display: true, text: "จำนวนโครงการ" } } } } });
+    createChart("c_ac_bud", { type: "bar", data: { labels: M, datasets: [{ label: "ล้านบาท", data: monthlyBudget, backgroundColor: C_ACA, borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c: any) => c.raw.toFixed(2) + " ล้านบาท" } } }, scales: { y: { beginAtZero: true, grace: "20%", title: { display: true, text: "ล้านบาท" } } } } });
+    
     createChart("c_ac_alloc", { type: "doughnut", data: { labels: ["โครงการ (70%)", "ค่าอำนวยการ (15%)", "คณะ (5%)", "ภาควิชา (5%)", "มก. (5%)"], datasets: [{ data: [70, 15, 5, 5, 5], backgroundColor: UI_PALETTE.slice(0, 5) }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { datalabels: pieDatalabels as any, legend: { position: "bottom", labels: { padding: 8 } } } } });
-    createChart("c_ac_client", { type: "bar", data: { labels: ["กรมชลประทาน", "กรมทรัพยากรน้ำ", "กรมทางหลวง", "อายิโนะโมะโต๊ะ", "กรมโรงงาน"], datasets: [{ label: "ล้านบาท", data: [88.8, 24.86, 19.6, 7.54, 8.5], backgroundColor: C_ACA, borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, indexAxis: "y", plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c: any) => c.raw.toFixed(2) + " ล้านบาท" } } }, scales: { x: { beginAtZero: true, grace: "20%", title: { display: true, text: "ล้านบาท" } } } } });
-    createChart("c_ac_sdg", { type: "bar", data: { labels: ["SDG 6\nน้ำสะอาด", "SDG 9\nนวัตกรรม", "SDG 13\nสภาพภูมิอากาศ", "SDG 11\nเมืองยั่งยืน", "SDG 8\nเศรษฐกิจ", "SDG 7\nพลังงาน", "SDG 2\nอาหาร", "SDG 14\nทะเล"], datasets: [{ label: "จำนวนโครงการ", data: [9, 7, 2, 2, 1, 1, 1, 1], backgroundColor: ["#26bde2", "#fd6925", "#3f7e44", "#fd9d24", "#a21942", "#fcc30b", "#dda63a", "#0a97d9"], borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grace: "20%", ticks: { stepSize: 1 }, title: { display: true, text: "จำนวนโครงการ" } } } } });
-    createChart("c_ac_sdg_bud", { type: "bar", data: { labels: ["SDG 6", "SDG 9", "SDG 13", "SDG 11", "SDG 8", "SDG 7", "SDG 2", "SDG 14"], datasets: [{ label: "ล้านบาท", data: [97.28, 75.89, 15.94, 43.60, 8.50, 1.36, 7.54, 0.48], backgroundColor: ["#26bde2", "#fd6925", "#3f7e44", "#fd9d24", "#a21942", "#fcc30b", "#dda63a", "#0a97d9"], borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, indexAxis: "y", plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c: any) => c.raw.toFixed(2) + " ล้านบาท" } } }, scales: { x: { beginAtZero: true, grace: "20%", title: { display: true, text: "ล้านบาท" } } } } });
+    createChart("c_ac_client", { type: "bar", data: { labels: clientLabels, datasets: [{ label: "ล้านบาท", data: clientData, backgroundColor: C_ACA, borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, indexAxis: "y", plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c: any) => c.raw.toFixed(2) + " ล้านบาท" } } }, scales: { x: { beginAtZero: true, grace: "20%", title: { display: true, text: "ล้านบาท" } } } } });
+    
+    // SDGs Mock
+    createChart("c_ac_sdg", { type: "bar", data: { labels: ["SDG 6\nน้ำสะอาด", "SDG 9\nนวัตกรรม", "SDG 13\nสภาพภูมิอากาศ"], datasets: [{ label: "จำนวนโครงการ", data: [15, 12, 5], backgroundColor: ["#26bde2", "#fd6925", "#3f7e44"], borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grace: "20%", ticks: { stepSize: 1 }, title: { display: true, text: "จำนวนโครงการ" } } } } });
+    createChart("c_ac_sdg_bud", { type: "bar", data: { labels: ["SDG 6", "SDG 9", "SDG 13"], datasets: [{ label: "ล้านบาท", data: [97.28, 75.89, 15.94], backgroundColor: ["#26bde2", "#fd6925", "#3f7e44"], borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, indexAxis: "y", plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c: any) => c.raw.toFixed(2) + " ล้านบาท" } } }, scales: { x: { beginAtZero: true, grace: "20%", title: { display: true, text: "ล้านบาท" } } } } });
 
     // Counter animation 
     const obs = new IntersectionObserver((entries) => {
@@ -58,20 +106,20 @@ export default function AcademicTab() {
           const t = el.textContent?.trim() || "";
           if (!el.dataset.done && /^\d+$/.test(t)) {
             el.dataset.done = "1";
-            const target = parseInt(t.replace(/[^0-9]/g, ''));
+            const target = parseFloat(t.replace(/[^0-9.]/g, ''));
             if(isNaN(target)) return;
             let cur = 0;
-            const step = Math.max(1, Math.ceil(target / 30));
+            const step = Math.max(0.1, target / 30);
             const timer = setInterval(() => {
               cur += step;
               if (cur >= target) {
                 cur = target;
                 clearInterval(timer);
               }
-              if(t.includes('฿') && t.includes('M')) {
-                el.textContent = `฿${(cur/10).toFixed(1)}M`;
+              if(t.includes('M')) {
+                el.textContent = `฿${cur.toFixed(1)}M`;
               } else {
-                el.textContent = cur.toLocaleString();
+                el.textContent = Math.floor(cur).toLocaleString();
               }
             }, 40);
           }
@@ -88,44 +136,55 @@ export default function AcademicTab() {
   return (
     <div className="tab-content active">
       <div className="kpi-grid">
-        <div className="kpi-card"><div className="kpi-icon"><i className="fas fa-graduation-cap"></i></div><div className="kpi-value">21</div><div className="kpi-label">โครงการพัฒนาวิชาการ</div></div>
-        <div className="kpi-card"><div className="kpi-icon"><i className="fas fa-coins"></i></div><div className="kpi-value">฿169.5M</div><div className="kpi-label">งบประมาณรวม</div></div>
-        <div className="kpi-card"><div className="kpi-icon"><i className="fas fa-users"></i></div><div className="kpi-value">12</div><div className="kpi-label">หน่วยงานผู้ขอรับบริการ</div></div>
-        <div className="kpi-card"><div className="kpi-icon"><i className="fas fa-user-tie"></i></div><div className="kpi-value">3</div><div className="kpi-label">PI หลัก</div></div>
+        <div className="kpi-card"><div className="kpi-icon"><i className="fas fa-graduation-cap"></i></div><div className="kpi-value">{validData.length}</div><div className="kpi-label">โครงการพัฒนาวิชาการ</div></div>
+        <div className="kpi-card"><div className="kpi-icon"><i className="fas fa-coins"></i></div><div className="kpi-value">฿{(totalBudgetAll / 1000000).toFixed(1)}M</div><div className="kpi-label">งบประมาณรวม</div></div>
+        <div className="kpi-card"><div className="kpi-icon"><i className="fas fa-users"></i></div><div className="kpi-value">{uniqueClients.size}</div><div className="kpi-label">หน่วยงานผู้ขอรับบริการ</div></div>
+        <div className="kpi-card"><div className="kpi-icon"><i className="fas fa-user-tie"></i></div><div className="kpi-value">{uniqueHeads.size}</div><div className="kpi-label">หัวหน้าโครงการ (PI)</div></div>
       </div>
       <div className="chart-grid">
-        <div className="chart-card"><h3><i className="fas fa-chart-bar"></i> จำนวนโครงการรายเดือน</h3><div className="chart-wrapper"><canvas id="c_ac_cnt"></canvas></div></div>
-        <div className="chart-card"><h3><i className="fas fa-chart-bar"></i> งบประมาณรายเดือน (ล้านบาท)</h3><div className="chart-wrapper"><canvas id="c_ac_bud"></canvas></div></div>
+        <div className="chart-card"><h3><i className="fas fa-chart-bar"></i> จำนวนโครงการรายเดือน (ข้อมูลจริง)</h3><div className="chart-wrapper"><canvas id="c_ac_cnt"></canvas></div></div>
+        <div className="chart-card"><h3><i className="fas fa-chart-bar"></i> งบประมาณรายเดือน (ล้านบาท) (ข้อมูลจริง)</h3><div className="chart-wrapper"><canvas id="c_ac_bud"></canvas></div></div>
       </div>
-      <div className="table-card"><h3><i className="fas fa-table"></i> รายละเอียดโครงการพัฒนาวิชาการ</h3><div className="table-scroll"><table>
-        <thead><tr><th>#</th><th>เดือน</th><th>ชื่อโครงการ</th><th>หัวหน้าโครงการ</th><th>งบประมาณ</th><th>ผู้ขอรับบริการ</th><th>SDGs</th></tr></thead>
-        <tbody>
-          <tr><td>1</td><td>ม.ค.</td><td>พัฒนาแนวทางการประเมินประสิทธิผลฯทางหลวง</td><td>รศ.ดร.วิษุวัฒก์ แต้สมบัติ</td><td className="budget-cell">19,600,023</td><td>กรมทางหลวง</td><td><span className="badge-sdg" style={{ background: "#fd6925", color: "#fff" }}>SDG 9</span><span className="badge-sdg" style={{ background: "#fd9d24", color: "#fff" }}>SDG 11</span></td></tr>
-          <tr><td>2</td><td>ม.ค.</td><td>Data Governance กรมทรัพยากรน้ำ</td><td>รศ.ดร.วิษุวัฒก์ แต้สมบัติ</td><td className="budget-cell">21,864,368</td><td>กรมทรัพยากรน้ำ</td><td><span className="badge-sdg" style={{ background: "#fd6925", color: "#fff" }}>SDG 9</span><span className="badge-sdg" style={{ background: "#26bde2", color: "#fff" }}>SDG 6</span></td></tr>
-          <tr><td>3</td><td>ม.ค.</td><td>ขับเคลื่อนภาคอุตสาหกรรมฯ</td><td>ผศ.ดร.นิธิรัชต์ สงวนเดือน</td><td className="budget-cell">8,499,528</td><td>กรมโรงงานอุตสาหกรรม</td><td><span className="badge-sdg" style={{ background: "#fd6925", color: "#fff" }}>SDG 9</span><span className="badge-sdg" style={{ background: "#a21942", color: "#fff" }}>SDG 8</span></td></tr>
-          <tr><td>4</td><td>ม.ค.</td><td>ระบบติดตามน้ำระยะไกลฯแม่น้ำยม</td><td>รศ.ดร.วิษุวัฒก์ แต้สมบัติ</td><td className="budget-cell">15,043,000</td><td>กรมชลประทาน</td><td><span className="badge-sdg" style={{ background: "#26bde2", color: "#fff" }}>SDG 6</span><span className="badge-sdg" style={{ background: "#3f7e44", color: "#fff" }}>SDG 13</span></td></tr>
-          <tr><td>5</td><td>ม.ค.</td><td>วิเคราะห์แก๊สเรือนกระจก Gas chromatography</td><td>ผศ.ดร.ไชยาพงษ์ เทพประสิทธิ์</td><td className="budget-cell">900,000</td><td>บุคลากร</td><td><span className="badge-sdg" style={{ background: "#3f7e44", color: "#fff" }}>SDG 13</span></td></tr>
-          <tr><td>6</td><td>ม.ค.</td><td>กลยุทธ์นโยบายพลังงาน</td><td>ผศ.ดร.ไชยาพงษ์ เทพประสิทธิ์</td><td className="budget-cell">1,360,000</td><td>สนพ.</td><td><span className="badge-sdg" style={{ background: "#fcc30b", color: "#333" }}>SDG 7</span></td></tr>
-          <tr><td>7</td><td>ก.พ.</td><td>ทดสอบประตูหน้าต่างฯมอก.</td><td>ผศ.ดร.ศิริศักดิ์ เชิดเกียรติพล</td><td className="budget-cell">1,000,000</td><td>ภาครัฐ/เอกชน</td><td><span className="badge-sdg" style={{ background: "#fd6925", color: "#fff" }}>SDG 9</span></td></tr>
-          <tr><td>8</td><td>ก.พ.</td><td>วิเคราะห์ข้อมูลสถานการณ์น้ำ</td><td>ผศ.ดร.ไชยาพงษ์ เทพประสิทธิ์</td><td className="budget-cell">2,990,000</td><td>กรมชลประทาน</td><td><span className="badge-sdg" style={{ background: "#26bde2", color: "#fff" }}>SDG 6</span></td></tr>
-          <tr><td>9</td><td>ก.พ.</td><td>บริหารจัดการน้ำระยะไกล ชลประทานที่ 6</td><td>รศ.ดร.วิษุวัฒก์ แต้สมบัติ</td><td className="budget-cell">24,870,300</td><td>ชลประทานที่ 6</td><td><span className="badge-sdg" style={{ background: "#26bde2", color: "#fff" }}>SDG 6</span><span className="badge-sdg" style={{ background: "#fd6925", color: "#fff" }}>SDG 9</span></td></tr>
-          <tr><td>10</td><td>ก.พ.</td><td>ระบบสนับสนุนบริหารจัดการน้ำ ชลประทานที่ 6</td><td>รศ.ดร.วิษุวัฒก์ แต้สมบัติ</td><td className="budget-cell">24,900,000</td><td>ชลประทานที่ 6</td><td><span className="badge-sdg" style={{ background: "#26bde2", color: "#fff" }}>SDG 6</span><span className="badge-sdg" style={{ background: "#fd6925", color: "#fff" }}>SDG 9</span></td></tr>
-          <tr><td>11</td><td>มี.ค.</td><td>ประเมินน้ำเสียชุมชนฯบำบัดน้ำเสีย</td><td>ผศ.ดร.นิธิรัชต์ สงวนเดือน</td><td className="budget-cell">481,000</td><td>องค์การจัดการน้ำเสีย</td><td><span className="badge-sdg" style={{ background: "#26bde2", color: "#fff" }}>SDG 6</span><span className="badge-sdg" style={{ background: "#0a97d9", color: "#fff" }}>SDG 14</span></td></tr>
-          <tr><td>12</td><td>มี.ค.</td><td>จัดหาแหล่งกักเก็บน้ำ ศูนย์ EEC</td><td>ผศ.ดร.ไชยาพงษ์ เทพประสิทธิ์</td><td className="budget-cell">24,000,000</td><td>กรมชลประทาน</td><td><span className="badge-sdg" style={{ background: "#26bde2", color: "#fff" }}>SDG 6</span><span className="badge-sdg" style={{ background: "#fd9d24", color: "#fff" }}>SDG 11</span></td></tr>
-          <tr><td>13</td><td>เม.ย.</td><td>สารกระตุ้นชีวภาพต่ออ้อย/มันสำปะหลัง</td><td>รศ.ดร.ชัยศรี สุขสาโรจน์</td><td className="budget-cell">7,543,647</td><td>อายิโนะโมะโต๊ะ</td><td><span className="badge-sdg" style={{ background: "#dda63a", color: "#fff" }}>SDG 2</span><span className="badge-sdg" style={{ background: "#26bde2", color: "#fff" }}>SDG 6</span></td></tr>
-        </tbody>
-      </table></div></div>
+      
+      <div className="table-card">
+        <h3><i className="fas fa-table"></i> รายละเอียดโครงการพัฒนาวิชาการ</h3>
+        <div className="table-scroll" style={{ maxHeight: "380px" }}>
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>เดือน</th>
+                <th>ชื่อโครงการ</th>
+                <th>หัวหน้าโครงการ</th>
+                <th>งบประมาณ (บาท)</th>
+                <th>ผู้ขอรับบริการ</th>
+              </tr>
+            </thead>
+            <tbody>
+              {validData.map((item: any, index: number) => (
+                <tr key={index}>
+                  <td>{index + 1}</td>
+                  <td>{item.month !== "nan" ? item.month : "-"}</td>
+                  <td style={{ whiteSpace: "normal", minWidth: "250px" }}>{item.name}</td>
+                  <td>{item.head !== "nan" ? item.head.replace("\n", " ") : "-"}</td>
+                  <td className="budget-cell">{(item.budget || 0).toLocaleString()}</td>
+                  <td>{item.client !== "nan" ? item.client.replace("\n", " ") : "-"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <div className="chart-grid">
         <div className="chart-card"><h3><i className="fas fa-chart-doughnut"></i> สัดส่วนการจัดสรรงบ</h3><div className="chart-wrapper"><canvas id="c_ac_alloc"></canvas></div></div>
-        <div className="chart-card"><h3><i className="fas fa-chart-bar"></i> Top 5 ผู้ขอรับบริการ</h3><div className="chart-wrapper"><canvas id="c_ac_client"></canvas></div></div>
+        <div className="chart-card"><h3><i className="fas fa-chart-bar"></i> Top ผู้ขอรับบริการ (ข้อมูลจริง)</h3><div className="chart-wrapper"><canvas id="c_ac_client"></canvas></div></div>
         <div className="chart-card"><h3><i className="fas fa-globe"></i> การกระจายตาม SDGs</h3><div className="chart-wrapper"><canvas id="c_ac_sdg"></canvas></div></div>
         <div className="chart-card"><h3><i className="fas fa-coins"></i> งบประมาณตาม SDGs (ล้านบาท)</h3><div className="chart-wrapper"><canvas id="c_ac_sdg_bud"></canvas></div></div>
       </div>
       <div className="decision-box"><div className="decision-header"><i className="fas fa-lightbulb"></i> ข้อมูลสนับสนุนการตัดสินใจ — โครงการพัฒนาวิชาการ</div><ul>
-        <li><strong>SDG 6 (น้ำสะอาด)</strong> เป็นเป้าหมายหลักของโครงการพัฒนาวิชาการ สอดคล้องกับลูกค้าหลัก (กรมชลประทาน)</li>
-        <li><strong>SDG 9 (นวัตกรรม)</strong> มีจำนวนโครงการมากที่สุด ครอบคลุมทั้ง IoT, Data Governance, มาตรฐาน</li>
-        <li>ควรเพิ่มโครงการด้าน <strong>SDG 7 (พลังงาน)</strong> ซึ่งมีเพียง 1 โครงการ แต่ตลาดมีความต้องการสูง</li>
-        <li><strong>กรมชลประทาน</strong>เป็นลูกค้าหลัก ควรเจรจาสัญญา Multi-year</li>
+        <li><strong>งบประมาณรวม</strong> ของโครงการพัฒนาวิชาการสะท้อนมูลค่าการให้บริการแก่หน่วยงานภายนอกในระดับสูง</li>
+        <li><strong>หน่วยงานภาครัฐ</strong> เป็นผู้รับบริการหลักในการขับเคลื่อนโครงการ</li>
       </ul></div>
     </div>
   );
