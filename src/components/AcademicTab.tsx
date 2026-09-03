@@ -7,11 +7,15 @@ import ChartDataLabels from "chartjs-plugin-datalabels";
 // นำเข้าข้อมูล JSON
 import academicData from "../data/academic.json";
 
-export default function AcademicTab() {
+// (ยังคงรับ Props setActiveTab ไว้เผื่อไฟล์ Dashboard หลักส่งมา จะได้ไม่ Error)
+export default function AcademicTab({ setActiveTab }: { setActiveTab?: (tab: string) => void }) {
   const chartInstances = useRef<Chart[]>([]);
-
+  
   // กรองข้อมูลขยะออก
   const validData = academicData.filter((item: any) => item.name && item.name !== "nan" && item.name !== "NaT");
+  
+  // ดึงเฉพาะ 5 รายการล่าสุดมาโชว์ที่หน้า Dashboard
+  const recentData = validData.slice(-5).reverse();
 
   // คำนวณงบประมาณรวมทั้งหมด
   const totalBudgetAll = validData.reduce((sum, item: any) => sum + (typeof item.budget === 'number' ? item.budget : 0), 0);
@@ -151,7 +155,6 @@ export default function AcademicTab() {
     const rawSDGCount = [4, 5, 3, 2, 1]; // จำลองจำนวนโครงการ
     const rawSDGBudget = [50.39, 16.27, 43.53, 6.88, 1.63]; // จำลองงบประมาณ
     
-    // คำนวณ Scale Ratio เพื่อให้กราฟซ้าย-ขวากางออกอย่างสมดุล (ไม่เบี้ยวข้างใดข้างหนึ่ง)
     const maxBudget = Math.max(...rawSDGBudget);
     const maxCount = Math.max(...rawSDGCount);
     const scaleRatio = maxBudget / maxCount;
@@ -206,7 +209,7 @@ export default function AcademicTab() {
         scales: {
           x: {
             stacked: true,
-            ticks: { display: false }, // ซ่อนแกน x
+            ticks: { display: false },
             grid: { drawBorder: false, drawTicks: false },
             title: { display: true, text: "← งบประมาณ (ล้านบาท) | จำนวนโครงการ →", font: { weight: "bold" }, padding: 10 }
           },
@@ -254,7 +257,7 @@ export default function AcademicTab() {
   }, []);
 
   return (
-    <div className="tab-content active">
+    <div className="tab-content active" style={{ position: "relative" }}>
       <div className="kpi-grid">
         <div className="kpi-card"><div className="kpi-icon"><i className="fas fa-graduation-cap"></i></div><div className="kpi-value">{validData.length}</div><div className="kpi-label">โครงการพัฒนาวิชาการ</div></div>
         <div className="kpi-card"><div className="kpi-icon"><i className="fas fa-coins"></i></div><div className="kpi-value">฿{(totalBudgetAll / 1000000).toFixed(1)}M</div><div className="kpi-label">งบประมาณรวม</div></div>
@@ -266,29 +269,39 @@ export default function AcademicTab() {
         <div className="chart-card"><h3><i className="fas fa-chart-line"></i> งบประมาณรายเดือน (ล้านบาท) (ข้อมูลจริง)</h3><div className="chart-wrapper"><canvas id="c_ac_bud"></canvas></div></div>
       </div>
       
-      <div className="table-card">
-        <h3><i className="fas fa-table"></i> รายละเอียดโครงการพัฒนาวิชาการ</h3>
-        <div className="table-scroll" style={{ maxHeight: "380px" }}>
-          <table>
+      {/* 💡 ตาราง 5 รายการล่าสุด (เอาปุ่มจัดการออก และปรับสไตล์ให้สวยงาม) */}
+      <h3 style={{ margin: "25px 0 15px 0", color: "#333", fontSize: "18px" }}>
+        <i className="fas fa-list-ul" style={{ color: "#1565c0", marginRight: "8px" }}></i> 
+        โครงการอัพเดทล่าสุด (5 รายการ)
+      </h3>
+
+      <div className="table-card" style={{ marginTop: 0, boxShadow: "0 4px 12px rgba(0,0,0,0.05)", borderRadius: "8px", overflow: "hidden" }}>
+        <div className="table-scroll">
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
-              <tr>
-                <th>#</th>
-                <th>เดือน</th>
-                <th>ชื่อโครงการ</th>
-                <th>หัวหน้าโครงการ</th>
-                <th>งบประมาณ (บาท)</th>
-                <th>ผู้ขอรับบริการ</th>
+              <tr style={{ backgroundColor: "#006838", color: "#fff" }}>
+                <th style={{ width: "80px", textAlign: "center", padding: "12px" }}>เดือน</th>
+                <th style={{ padding: "12px", textAlign: "left" }}>ชื่อโครงการ</th>
+                <th style={{ padding: "12px", textAlign: "left" }}>หัวหน้าโครงการ</th>
+                <th style={{ padding: "12px", textAlign: "right" }}>งบประมาณ (บาท)</th>
+                <th style={{ padding: "12px", textAlign: "left" }}>ผู้ขอรับบริการ</th>
               </tr>
             </thead>
             <tbody>
-              {validData.map((item: any, index: number) => (
-                <tr key={index}>
-                  <td>{index + 1}</td>
-                  <td>{item.month !== "nan" ? item.month : "-"}</td>
-                  <td style={{ whiteSpace: "normal", minWidth: "250px" }}>{item.name}</td>
-                  <td>{item.head !== "nan" ? item.head.replace("\n", " ") : "-"}</td>
-                  <td className="budget-cell">{(item.budget || 0).toLocaleString()}</td>
-                  <td>{item.client !== "nan" ? item.client.replace("\n", " ") : "-"}</td>
+              {recentData.map((item: any, index: number) => (
+                <tr key={index} style={{ borderBottom: "1px solid #f0f0f0", backgroundColor: index % 2 === 0 ? "#fff" : "#fafafa" }}>
+                  <td style={{ textAlign: "center", padding: "12px" }}>
+                    {/* ป้ายกำกับเดือนแบบวงกลม */}
+                    <div style={{ width: "36px", height: "36px", borderRadius: "50%", backgroundColor: "#e3f2fd", color: "#1565c0", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto", fontWeight: "bold", fontSize: "13px" }}>
+                      {item.month !== "nan" ? item.month : "-"}
+                    </div>
+                  </td>
+                  <td style={{ whiteSpace: "normal", padding: "12px", color: "#444", lineHeight: "1.5" }}>{item.name}</td>
+                  <td style={{ padding: "12px", color: "#555" }}>{item.head !== "nan" ? item.head.replace("\n", " ") : "-"}</td>
+                  <td style={{ padding: "12px", textAlign: "right", fontWeight: "bold", color: "#2e7d32" }}>
+                    {(item.budget || 0).toLocaleString()}
+                  </td>
+                  <td style={{ padding: "12px", color: "#555" }}>{item.client !== "nan" ? item.client.replace("\n", " ") : "-"}</td>
                 </tr>
               ))}
             </tbody>
@@ -309,6 +322,7 @@ export default function AcademicTab() {
         <li><strong>งบประมาณรวม</strong> ของโครงการพัฒนาวิชาการสะท้อนมูลค่าการให้บริการแก่หน่วยงานภายนอกในระดับสูง</li>
         <li><strong>หน่วยงานภาครัฐ</strong> เป็นผู้รับบริการหลักในการขับเคลื่อนโครงการ</li>
       </ul></div>
+
     </div>
   );
 }
