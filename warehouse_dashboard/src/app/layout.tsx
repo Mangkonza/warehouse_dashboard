@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import { ClientProviders } from "../components/ClientProviders";
+import { Providers } from "./providers";
+import { SITE_CONFIG } from "@/config/site";
 
 const kanit = localFont({
   src: [
@@ -29,8 +30,8 @@ const kanit = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "ระบบคลังข้อมูลหน่วยวิจัยและนวัตกรรม คณะวิศวกรรมศาสตร์ กำแพงแสน มหาวิทยาลัยเกษตรศาสตร์ | MyKU Warehouse",
-  description: "ระบบคลังข้อมูลหน่วยวิจัยและนวัตกรรม คณะวิศวกรรมศาสตร์ กำแพงแสน มหาวิทยาลัยเกษตรศาสตร์",
+  title: `${SITE_CONFIG.name} | ${SITE_CONFIG.shortName}`,
+  description: SITE_CONFIG.description,
   icons: {
     icon: [
       { url: "/icon.png", type: "image/png" },
@@ -66,9 +67,9 @@ export default function RootLayout({
           fontFamily: "var(--font-kanit), 'Kanit', sans-serif",
         }}
       >
-        <ClientProviders>
+        <Providers>
           {children}
-        </ClientProviders>
+        </Providers>
       </body>
     </html>
   );

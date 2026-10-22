@@ -1,5 +1,5 @@
-import DashboardApp from "../components/DashboardApp";
+import { redirect } from 'next/navigation';
 
-export default function HomePage() {
-  return <DashboardApp initialTab="overview" />;
+export default function RootPage() {
+  redirect('/overview');
 }
