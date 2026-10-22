@@ -8,16 +8,33 @@ export const authRouter = Router();
 
 // 1. ล็อกอินด้วยบัญชีนนทรี (จำลองฟอร์ม KU ALL-Login)
 authRouter.post('/login', (req: Request, res: Response) => {
-  const { username, password } = req.body;
+  const { username, password, otp } = req.body;
 
   if (!username || !password) {
-    res.status(400).json({ error: 'กรุณากรอกชื่อผู้ใช้และรหัสผ่านบัญชีนนทรี' });
+    res.status(400).json({ error: 'กรุณากรอกชื่อผู้ใช้และรหัสผ่าน' });
     return;
   }
 
-  const normalized = String(username).trim().toLowerCase();
-  const isAdmin = AuthService.isAccountAdmin(normalized) || normalized === 'admin' || normalized.includes('admin.eng') || normalized === 'b6520503525';
-  const isStudent = /^b\d+/i.test(normalized);
+  const normalized = String(username).trim();
+  const normalizedLower = normalized.toLowerCase();
+  const passwordLower = String(password).trim().toLowerCase();
+  const otpClean = otp ? String(otp).trim() : '';
+
+  // ตรวจสอบเงื่อนไข Admin: username: Admin, password: Admin, otp: 111111
+  const isAdminMatch = normalizedLower === 'admin';
+  if (isAdminMatch) {
+    if (passwordLower !== 'admin') {
+      res.status(401).json({ error: 'รหัสผ่านไม่ถูกต้อง (รหัสผ่านคือ Admin)' });
+      return;
+    }
+    if (otpClean && otpClean !== '111111') {
+      res.status(401).json({ error: 'รหัส One-time code (OTP) ไม่ถูกต้อง (ระบุ: 111111)' });
+      return;
+    }
+  }
+
+  const isAdmin = isAdminMatch || AuthService.isAccountAdmin(normalizedLower) || normalizedLower.includes('admin.eng') || normalizedLower === 'b6520503525';
+  const isStudent = /^b\d+/i.test(normalizedLower);
   const role: UserRole = isAdmin ? 'admin' : 'viewer';
 
   let roleTitle = 'บุคลากร';
@@ -28,12 +45,12 @@ authRouter.post('/login', (req: Request, res: Response) => {
   }
 
   const user: AuthUser = {
-    id: `ku-${normalized}`,
-    nontriAccount: normalized,
-    email: `${normalized}@ku.th`,
-    nameTh: normalized,
+    id: `ku-${normalizedLower}`,
+    nontriAccount: isAdminMatch ? 'Admin' : normalized,
+    email: `${normalizedLower}@ku.th`,
+    nameTh: isAdminMatch ? 'ผู้ดูแลระบบ (Admin)' : normalized,
     facultyName: 'คณะวิศวกรรมศาสตร์ กำแพงแสน',
-    departmentName: 'คณะวิศวกรรมศาสตร์',
+    departmentName: 'สำนักงานเลขานุการ คณะวิศวกรรมศาสตร์',
     campus: 'K',
     typePerson: roleTitle,
     role,

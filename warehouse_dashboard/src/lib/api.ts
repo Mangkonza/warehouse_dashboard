@@ -1,7 +1,8 @@
 export const getApiBaseUrl = (): string => {
+  // ใช้ Relative path เพื่อให้ Next.js Reverse Proxy ไปหา Backend (พอร์ต 8000) ได้อัตโนมัติ
+  // รองรับทั้ง localhost, ngrok, localtunnel และ domain จริง โดยไม่ต้องเปิดพอร์ต 8000 ให้ภายนอก
   if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname || 'localhost';
-    return `http://${hostname}:8000/api/v1`;
+    return '/api/v1';
   }
   return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 };

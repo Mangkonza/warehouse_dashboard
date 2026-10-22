@@ -29,6 +29,13 @@ export const AuthModal: React.FC = () => {
         setErrorMsg('กรุณากรอกรหัสผ่าน');
         return;
       }
+
+      // ตรวจสอบความถูกต้องของรหัสผ่าน Admin
+      if (username.trim().toLowerCase() === 'admin' && password.trim().toLowerCase() !== 'admin') {
+        setErrorMsg('รหัสผ่านไม่ถูกต้อง');
+        return;
+      }
+
       // ไป Step 2: One-time code (ตรงตาม Screenshot 2 ของ มก.)
       setStep(2);
       return;
@@ -39,8 +46,14 @@ export const AuthModal: React.FC = () => {
       return;
     }
 
+    // ตรวจสอบความถูกต้องของ OTP
+    if (username.trim().toLowerCase() === 'admin' && otp.trim() !== '111111') {
+      setErrorMsg('รหัส One-time code (OTP) ไม่ถูกต้อง');
+      return;
+    }
+
     // Step 2: ตรวจสอบและล็อกอิน
-    const result = await loginWithCredentials(username, password);
+    const result = await loginWithCredentials(username, password, otp);
     if (!result.success) {
       setErrorMsg(result.error || 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
       setStep(1);
@@ -74,28 +87,28 @@ export const AuthModal: React.FC = () => {
         style={{
           position: 'absolute',
           inset: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.15)',
+          backgroundColor: 'rgba(0, 0, 0, 0.2)',
           pointerEvents: 'none',
         }}
       />
 
-      {/* กล่อง Login สีขาว ตรงกลางจอ (ตรงตาม Screenshot 1 และ Screenshot 2) */}
+      {/* กล่อง Login สีขาว ตรงกลางจอ (สไตล์ KU ALL-Login ทางการ) */}
       <div
         style={{
           position: 'relative',
-          backgroundColor: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(8px)',
+          backgroundColor: 'rgba(255, 255, 255, 0.96)',
+          backdropFilter: 'blur(10px)',
           borderRadius: '24px',
           width: '100%',
-          maxWidth: '385px',
+          maxWidth: '390px',
           padding: '36px 36px 32px 36px',
-          boxShadow: '0 15px 40px rgba(0, 0, 0, 0.28)',
+          boxShadow: '0 20px 45px rgba(0, 0, 0, 0.35)',
           zIndex: 10,
           boxSizing: 'border-box',
         }}
       >
         {/* โลโก้ KU 80 ฉลองครบรอบ 80 ปี มก. */}
-        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '22px' }}>
           <img
             src="/KU-english-80-1024x1024.png"
             alt="Kasetsart University 80th Anniversary"
@@ -127,21 +140,23 @@ export const AuthModal: React.FC = () => {
             style={{
               backgroundColor: '#fee2e2',
               color: '#dc2626',
+              border: '1px solid #fecaca',
               padding: '8px 12px',
-              borderRadius: '4px',
+              borderRadius: '6px',
               fontSize: '12px',
               marginBottom: '14px',
               textAlign: 'center',
+              fontWeight: 500,
             }}
           >
             {errorMsg}
           </div>
         )}
 
-        {/* Step 1: Username & Password (ตรงตาม Screenshot 1) */}
+        {/* Step 1: Username & Password */}
         {step === 1 ? (
           <form onSubmit={handleSubmit} style={{ width: '100%' }}>
-            <div style={{ fontSize: '12.5px', color: '#00675a', fontWeight: 500, marginBottom: '8px', textAlign: 'left' }}>
+            <div style={{ fontSize: '12.5px', color: '#00675a', fontWeight: 600, marginBottom: '8px', textAlign: 'left' }}>
               Step 1/2: username
             </div>
 
@@ -157,7 +172,7 @@ export const AuthModal: React.FC = () => {
                   height: '42px',
                   backgroundColor: '#e8f0fe',
                   border: '1px solid #d4e3fc',
-                  borderRadius: '4px',
+                  borderRadius: '6px',
                   padding: '0 12px',
                   fontSize: '14.5px',
                   color: '#1a202c',
@@ -178,7 +193,7 @@ export const AuthModal: React.FC = () => {
                   height: '42px',
                   backgroundColor: '#e8f0fe',
                   border: '1px solid #d4e3fc',
-                  borderRadius: '4px',
+                  borderRadius: '6px',
                   padding: '0 12px',
                   fontSize: '14.5px',
                   color: '#1a202c',
@@ -196,12 +211,13 @@ export const AuthModal: React.FC = () => {
                   backgroundColor: '#00675a',
                   color: '#ffffff',
                   border: 'none',
-                  borderRadius: '4px',
-                  padding: '7px 24px',
-                  fontSize: '13px',
+                  borderRadius: '6px',
+                  padding: '8px 26px',
+                  fontSize: '13.5px',
                   fontWeight: 700,
                   cursor: isLoading ? 'not-allowed' : 'pointer',
                   transition: 'background 0.15s ease',
+                  boxShadow: '0 2px 6px rgba(0, 103, 90, 0.25)',
                 }}
                 onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#004f44')}
                 onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#00675a')}
@@ -210,7 +226,7 @@ export const AuthModal: React.FC = () => {
               </button>
             </div>
 
-            {/* ลิงก์ช่วยเหลือ (ตรงตาม Screenshot 1) */}
+            {/* ลิงก์ช่วยเหลือ (ตรงตาม Screenshot 1 ของ มก.) */}
             <div style={{ fontSize: '11px', lineHeight: '1.7', color: '#4b5563', textAlign: 'left' }}>
               <div><a href="https://accounts.ku.ac.th" target="_blank" rel="noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>Forgotten Password</a></div>
               <div><a href="https://accounts.ku.ac.th" target="_blank" rel="noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>Personal information verification</a></div>
@@ -219,9 +235,9 @@ export const AuthModal: React.FC = () => {
             </div>
           </form>
         ) : (
-          /* Step 2: One-time code (ตรงตาม Screenshot 2) */
+          /* Step 2: One-time code (OTP) */
           <form onSubmit={handleSubmit} style={{ width: '100%' }}>
-            <div style={{ fontSize: '14.5px', color: '#1a202c', fontWeight: 600, marginBottom: '6px', textAlign: 'left' }}>
+            <div style={{ fontSize: '14.5px', color: '#1a202c', fontWeight: 700, marginBottom: '6px', textAlign: 'left' }}>
               {username}
             </div>
 
@@ -246,7 +262,7 @@ export const AuthModal: React.FC = () => {
               </button>
             </div>
 
-            <div style={{ fontSize: '12.5px', color: '#00675a', fontWeight: 500, marginBottom: '8px', textAlign: 'left' }}>
+            <div style={{ fontSize: '12.5px', color: '#00675a', fontWeight: 600, marginBottom: '8px', textAlign: 'left' }}>
               Step 2/2: One-time code
             </div>
 
@@ -257,18 +273,20 @@ export const AuthModal: React.FC = () => {
                 onChange={(e) => setOtp(e.target.value)}
                 placeholder=""
                 autoFocus
+                maxLength={6}
                 style={{
                   width: '100%',
                   height: '42px',
                   backgroundColor: '#ffffff',
                   border: '1px solid #cbd5e1',
-                  borderRadius: '4px',
+                  borderRadius: '6px',
                   padding: '0 12px',
-                  fontSize: '15px',
+                  fontSize: '16px',
+                  fontWeight: 600,
                   color: '#1a202c',
                   outline: 'none',
                   boxSizing: 'border-box',
-                  letterSpacing: '1px',
+                  letterSpacing: '2px',
                 }}
               />
             </div>
@@ -281,24 +299,25 @@ export const AuthModal: React.FC = () => {
                   backgroundColor: '#00675a',
                   color: '#ffffff',
                   border: 'none',
-                  borderRadius: '4px',
-                  padding: '7px 24px',
-                  fontSize: '13px',
+                  borderRadius: '6px',
+                  padding: '8px 26px',
+                  fontSize: '13.5px',
                   fontWeight: 700,
                   cursor: isLoading ? 'not-allowed' : 'pointer',
                   transition: 'background 0.15s ease',
+                  boxShadow: '0 2px 6px rgba(0, 103, 90, 0.25)',
                 }}
                 onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#004f44')}
                 onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#00675a')}
               >
-                {isLoading ? 'Signing In...' : 'Sign In'}
+                {isLoading ? 'Verifying...' : 'Sign In'}
               </button>
             </div>
           </form>
         )}
       </div>
 
-      {/* ข้อความลิขสิทธิ์ด้านล่าง (ตรงตาม Screenshot 1 และ Screenshot 2) */}
+      {/* ข้อความลิขสิทธิ์ด้านล่าง */}
       <div
         style={{
           position: 'absolute',

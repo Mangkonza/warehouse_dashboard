@@ -20,7 +20,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAdmin: boolean;
   loginWithMock: (role: 'admin' | 'viewer') => Promise<void>;
-  loginWithCredentials: (username: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  loginWithCredentials: (username: string, password: string, otp?: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   openLoginModal: () => void;
   closeLoginModal: () => void;
@@ -90,27 +90,69 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loginWithCredentials = async (
     username: string,
-    password: string
+    password: string,
+    otp?: string
   ): Promise<{ success: boolean; error?: string }> => {
     setIsLoading(true);
     try {
-      const res = await apiFetch('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ username, password }),
-      });
+      const normalizedUser = String(username).trim();
+      const normalizedPass = String(password).trim();
+      const normalizedOtp = otp ? String(otp).trim() : '';
 
-      if (res.token && res.user) {
-        if (isAccountAdmin(res.user)) {
-          res.user.role = 'admin';
-          res.user.typePerson = 'ผู้ดูแลระบบ';
+      // ตรวจสอบเงื่อนไข Admin: username: Admin, password: Admin, otp: 111111
+      if (normalizedUser.toLowerCase() === 'admin') {
+        if (normalizedPass.toLowerCase() !== 'admin') {
+          return { success: false, error: 'รหัสผ่านไม่ถูกต้อง (รหัสผ่านคือ Admin)' };
         }
-        setToken(res.token);
-        setUser(res.user);
-        localStorage.setItem('ku_token', res.token);
-        localStorage.setItem('ku_user', JSON.stringify(res.user));
-        setIsLoginModalOpen(false);
-        return { success: true };
+        if (normalizedOtp && normalizedOtp !== '111111') {
+          return { success: false, error: 'รหัส One-time code (OTP) ไม่ถูกต้อง (ระบุ: 111111)' };
+        }
       }
+
+      // พยายามส่งไปหา Backend
+      try {
+        const res = await apiFetch('/auth/login', {
+          method: 'POST',
+          body: JSON.stringify({ username, password, otp }),
+        });
+
+        if (res.token && res.user) {
+          if (isAccountAdmin(res.user) || normalizedUser.toLowerCase() === 'admin') {
+            res.user.role = 'admin';
+            res.user.typePerson = 'ผู้ดูแลระบบ';
+            res.user.nontriAccount = 'Admin';
+          }
+          setToken(res.token);
+          setUser(res.user);
+          localStorage.setItem('ku_token', res.token);
+          localStorage.setItem('ku_user', JSON.stringify(res.user));
+          setIsLoginModalOpen(false);
+          return { success: true };
+        }
+      } catch (backendErr) {
+        // Fallback Client-side Login หาก Backend ยังไม่พร้อม หรือรันแบบ Standalone
+        if (normalizedUser.toLowerCase() === 'admin' && normalizedPass.toLowerCase() === 'admin' && (!normalizedOtp || normalizedOtp === '111111')) {
+          const adminUser: User = {
+            id: 'ku-admin-local',
+            nontriAccount: 'Admin',
+            nameTh: 'ผู้ดูแลระบบ (Admin)',
+            email: 'admin@ku.th',
+            facultyName: 'คณะวิศวกรรมศาสตร์ กำแพงแสน',
+            departmentName: 'สำนักงานเลขานุการ คณะวิศวกรรมศาสตร์',
+            typePerson: 'ผู้ดูแลระบบ',
+            role: 'admin',
+          };
+          const mockToken = 'mock_jwt_token_admin_2026';
+          setToken(mockToken);
+          setUser(adminUser);
+          localStorage.setItem('ku_token', mockToken);
+          localStorage.setItem('ku_user', JSON.stringify(adminUser));
+          setIsLoginModalOpen(false);
+          return { success: true };
+        }
+        throw backendErr;
+      }
+
       return { success: false, error: 'เข้าสู่ระบบไม่สำเร็จ ข้อมูลไม่ครบถ้วน' };
     } catch (err: any) {
       console.error('Login error:', err);
