@@ -36,10 +36,10 @@ interface KPITabProps {
 const CATEGORY_NAMES: Record<KPICategory | 'all', string> = {
   all: 'ทุกหมวดยุทธศาสตร์',
   research: 'โครงการวิจัย',
-  academic: 'พัฒนาวิชาการ',
-  publications: 'ผลงานตีพิมพ์',
-  service: 'บริการวิชาการ',
-  ip: 'ทรัพย์สินทางปัญญา',
+  academic: 'โครงการพัฒนาวิชาการ',
+  publications: 'ผลงานตีพิมพ์ทางวิชาการ',
+  service: 'งานบริการวิชาการ',
+  ip: 'งานทรัพย์สินทางปัญญา',
   personnel: 'บุคลากร/อาจารย์',
   strategy: 'ยุทธศาสตร์คณะฯ',
 };
@@ -196,7 +196,7 @@ export default function KPITab({ onNavigateToManage, timeFilter }: KPITabProps) 
             </span>
           </div>
           <h1 style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a', margin: 0 }}>
-            ระบบติดตามตัวชี้วัดยุทธศาสตร์
+            ระบบติดตามตัวชี้วัดตามแผนยุทธศาสตร์
           </h1>
           <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0 0' }}>
             ประมวลผลสถานะความสำเร็จและเปรียบเทียบกับเป้าหมายแบบเรียลไทม์จากคลังข้อมูลวิจัย
@@ -235,19 +235,19 @@ export default function KPITab({ onNavigateToManage, timeFilter }: KPITabProps) 
                 alignItems: 'center',
                 gap: '7px',
                 padding: '9px 18px',
-                backgroundColor: '#00a859',
+                backgroundColor: '#00A651',
                 border: 'none',
                 borderRadius: '8px',
                 color: '#ffffff',
                 fontSize: '13.5px',
                 fontWeight: 600,
                 cursor: 'pointer',
-                boxShadow: '0 2px 6px rgba(0, 168, 89, 0.25)',
+                boxShadow: '0 2px 6px rgba(0, 166, 81, 0.25)',
                 transition: 'all 0.15s ease',
               }}
             >
               <FaCog style={{ fontSize: '13px' }} />
-              <span>จัดการตัวชี้วัด (เพิ่ม/แก้ไข/ลบ)</span>
+              <span>จัดการตัวชี้วัดตามแผนยุทธศาสตร์ (เพิ่ม/แก้ไข/ลบ)</span>
             </button>
           )}
         </div>
@@ -456,8 +456,8 @@ export default function KPITab({ onNavigateToManage, timeFilter }: KPITabProps) 
                   borderRadius: '16px',
                   fontSize: '12px',
                   fontWeight: isSel ? 600 : 400,
-                  border: isSel ? '1px solid #00a859' : '1px solid #e2e8f0',
-                  backgroundColor: isSel ? '#00a859' : '#ffffff',
+                  border: isSel ? '1px solid #00A651' : '1px solid #e2e8f0',
+                  backgroundColor: isSel ? '#00A651' : '#ffffff',
                   color: isSel ? '#ffffff' : '#475569',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
@@ -556,7 +556,7 @@ export default function KPITab({ onNavigateToManage, timeFilter }: KPITabProps) 
                         style={{
                           fontSize: '12.5px',
                           fontWeight: 700,
-                          color: '#00a859',
+                          color: '#00A651',
                           backgroundColor: '#e8f5e9',
                           padding: '2px 8px',
                           borderRadius: '4px',
@@ -708,10 +708,10 @@ export default function KPITab({ onNavigateToManage, timeFilter }: KPITabProps) 
                                 fontSize: '11.5px',
                                 fontWeight: 700,
                                 letterSpacing: '0.5px',
-                                backgroundColor: isDone ? '#00a859' : '#f1f5f9',
+                                backgroundColor: isDone ? '#00A651' : '#f1f5f9',
                                 color: isDone ? '#ffffff' : '#64748b',
-                                border: isDone ? '1px solid #008f4c' : '1px solid #cbd5e1',
-                                boxShadow: isDone ? '0 1px 3px rgba(0, 168, 89, 0.25)' : 'none',
+                                border: isDone ? '1px solid #008f44' : '1px solid #cbd5e1',
+                                boxShadow: isDone ? '0 1px 3px rgba(0, 166, 81, 0.25)' : 'none',
                               }}
                             >
                               {abbr}
@@ -738,7 +738,7 @@ export default function KPITab({ onNavigateToManage, timeFilter }: KPITabProps) 
                         style={{
                           background: 'none',
                           border: 'none',
-                          color: '#00a859',
+                          color: '#00A651',
                           fontSize: '11.5px',
                           fontWeight: 600,
                           cursor: 'pointer',

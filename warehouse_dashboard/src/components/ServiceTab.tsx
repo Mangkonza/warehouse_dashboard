@@ -168,7 +168,7 @@ export default function ServiceTab({ timeFilter }: { timeFilter?: TimeFilterStat
       <div className="table-card">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
           <h3 style={{ margin: 0 }}>
-            <FaTable style={{ color: '#00914d', marginRight: '8px' }} /> รายละเอียดกิจกรรมบริการวิชาการ ({filteredData.length} กิจกรรม)
+            <FaTable style={{ color: '#00914d', marginRight: '8px' }} /> รายละเอียดงานบริการวิชาการ ({filteredData.length} กิจกรรม)
           </h3>
           <div style={{ display: 'flex', alignItems: 'center', background: '#fff', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '6px 12px', fontSize: '13px' }}>
             <FaSearch style={{ color: '#94a3b8', marginRight: '6px' }} />
@@ -235,7 +235,7 @@ export default function ServiceTab({ timeFilter }: { timeFilter?: TimeFilterStat
 
       <div className="decision-box">
         <div className="decision-header">
-          <FaLightbulb style={{ color: '#f59e0b', fontSize: '18px' }} /> ข้อมูลสนับสนุนการตัดสินใจ — บริการวิชาการ
+          <FaLightbulb style={{ color: '#f59e0b', fontSize: '18px' }} /> ข้อมูลสนับสนุนการตัดสินใจ — งานบริการวิชาการ
         </div>
         <ul>
           <li><strong>งานผู้ทรงคุณวุฒิ</strong>สัดส่วนสูงสุด อาจารย์เป็นที่ยอมรับในวงวิชาการ</li>

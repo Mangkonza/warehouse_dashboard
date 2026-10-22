@@ -143,7 +143,7 @@ export default function PublicationsTab({ timeFilter }: { timeFilter?: TimeFilte
     createChart("c_pub_sdg", { type: "bar", data: { labels: ["SDG 9\nนวัตกรรม", "SDG 2\nอาหาร", "SDG 6\nน้ำสะอาด", "SDG 11\nเมืองยั่งยืน", "SDG 13\nสภาพภูมิอากาศ", "SDG 12\nบริโภคยั่งยืน", "SDG 15\nระบบนิเวศบก"], datasets: [{ label: "จำนวนผลงาน", data: [22, 12, 10, 8, 5, 3, 1], backgroundColor: ["#fd6925", "#dda63a", "#26bde2", "#fd9d24", "#3f7e44", "#bf8b2e", "#56c02b"], borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grace: "20%", title: { display: true, text: "จำนวน" } } } } });
     
     // ==========================================
-    // 📊 Diverging Bar Chart: เปรียบเทียบผลงานทั้งหมด และ Q1 ตาม SDGs (ปรับสมดุล)
+    // Diverging Bar Chart: เปรียบเทียบผลงานทั้งหมด และ Q1 ตาม SDGs (ปรับสมดุล)
     // ==========================================
     const sdgLabels = ["SDG 9", "SDG 2", "SDG 6", "SDG 11", "SDG 13", "SDG 12", "SDG 15"];
     const sdgColors = ["#fd6925", "#dda63a", "#26bde2", "#fd9d24", "#3f7e44", "#bf8b2e", "#56c02b"];
@@ -302,7 +302,7 @@ export default function PublicationsTab({ timeFilter }: { timeFilter?: TimeFilte
 
       <div className="chart-grid">
         <div className="chart-card">
-          <h3><FaChartBar style={{ color: '#00914d' }} /> จำนวนผลงานตีพิมพ์รายเดือน (แยกระดับ)</h3>
+          <h3><FaChartBar style={{ color: '#00914d' }} /> จำนวนผลงานตีพิมพ์ทางวิชาการรายเดือน (แยกระดับ)</h3>
           <div className="chart-wrapper"><canvas id="c_pub_monthly"></canvas></div>
         </div>
         <div className="chart-card">
@@ -315,7 +315,7 @@ export default function PublicationsTab({ timeFilter }: { timeFilter?: TimeFilte
       <div className="table-card">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
           <h3 style={{ margin: 0 }}>
-            <FaTable style={{ color: '#00914d', marginRight: '8px' }} /> รายละเอียดผลงานตีพิมพ์ ({filteredData.length} เรื่อง)
+            <FaTable style={{ color: '#00914d', marginRight: '8px' }} /> รายละเอียดผลงานตีพิมพ์ทางวิชาการ ({filteredData.length} เรื่อง)
           </h3>
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', background: '#fff', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '6px 10px', fontSize: '13px' }}>
@@ -392,7 +392,7 @@ export default function PublicationsTab({ timeFilter }: { timeFilter?: TimeFilte
 
       <div className="decision-box">
         <div className="decision-header">
-          <FaLightbulb style={{ color: '#f59e0b', fontSize: '18px' }} /> ข้อมูลสนับสนุนการตัดสินใจ — ผลงานทางวิชาการ
+          <FaLightbulb style={{ color: '#f59e0b', fontSize: '18px' }} /> ข้อมูลสนับสนุนการตัดสินใจ — ผลงานตีพิมพ์ทางวิชาการ
         </div>
         <ul>
           <li><strong>SDG 9 (นวัตกรรม)</strong> มีผลงานตีพิมพ์มากที่สุด โดยเฉพาะด้านวัสดุก่อสร้างและ Machine Learning</li>

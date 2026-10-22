@@ -155,7 +155,7 @@ export default function DashboardApp({ initialTab = "overview" }: DashboardAppPr
       return;
     }
     if (!isAdmin) {
-      alert("⚠️ บัญชีของคุณ (" + user.nontriAccount + ") มีสิทธิ์เป็น Viewer เท่านั้น\nไม่สามารถเข้าใช้งานโหมดผู้ดูแลระบบได้ครับ");
+      alert("บัญชีของคุณ (" + user.nontriAccount + ") มีสิทธิ์เป็น Viewer เท่านั้น\nไม่สามารถเข้าใช้งานโหมดผู้ดูแลระบบได้ครับ");
       return;
     }
     handleTabChange("manage");
@@ -180,11 +180,11 @@ export default function DashboardApp({ initialTab = "overview" }: DashboardAppPr
     { id: "overview", label: "แดชบอร์ด ภาพรวม", icon: <FaThLarge /> },
     { id: "studio", label: "วิเคราะห์ข้อมูล (BI Studio)", icon: <FaChartLine /> },
     { id: "research", label: "โครงการวิจัย", icon: <FaFlask /> },
-    { id: "academic", label: "พัฒนาวิชาการ", icon: <FaGraduationCap /> },
-    { id: "publications", label: "ผลงานตีพิมพ์", icon: <FaBook /> },
-    { id: "service", label: "บริการวิชาการ", icon: <FaHandsHelping /> },
-    { id: "ip", label: "ทรัพย์สินทางปัญญา", icon: <FaCertificate /> },
-    { id: "kpi", label: "ตัวชี้วัด", icon: <FaBullseye /> },
+    { id: "academic", label: "โครงการพัฒนาวิชาการ", icon: <FaGraduationCap /> },
+    { id: "publications", label: "ผลงานตีพิมพ์ทางวิชาการ", icon: <FaBook /> },
+    { id: "service", label: "งานบริการวิชาการ", icon: <FaHandsHelping /> },
+    { id: "ip", label: "งานทรัพย์สินทางปัญญา", icon: <FaCertificate /> },
+    { id: "kpi", label: "ตัวชี้วัดตามแผนยุทธศาสตร์", icon: <FaBullseye /> },
   ];
 
   const singleRole = getSingleRoleTitle();
@@ -344,7 +344,7 @@ export default function DashboardApp({ initialTab = "overview" }: DashboardAppPr
                   display: "flex",
                   alignItems: "center",
                   border: "none",
-                  backgroundColor: isActive ? "#00a859" : "transparent",
+                  backgroundColor: isActive ? "#00A651" : "transparent",
                   color: isActive ? "#ffffff" : "#94a3b8",
                   fontWeight: isActive ? 700 : 500,
                   fontSize: "13.5px",
@@ -411,7 +411,7 @@ export default function DashboardApp({ initialTab = "overview" }: DashboardAppPr
                   display: "flex",
                   alignItems: "center",
                   border: "none",
-                  backgroundColor: activeTab === "manage" ? "#00a859" : "transparent",
+                  backgroundColor: activeTab === "manage" ? "#00A651" : "transparent",
                   color: activeTab === "manage" ? "#ffffff" : "#94a3b8",
                   fontWeight: activeTab === "manage" ? 700 : 500,
                   fontSize: "13.5px",
@@ -476,7 +476,7 @@ export default function DashboardApp({ initialTab = "overview" }: DashboardAppPr
           left: `${layoutLeftOffset}px`,
           right: 0,
           height: "50px",
-          backgroundColor: "#00a859",
+          backgroundColor: "#00A651",
           color: "#fff",
           display: "flex",
           alignItems: "center",
@@ -498,7 +498,7 @@ export default function DashboardApp({ initialTab = "overview" }: DashboardAppPr
           }}
         >
           <span style={{ fontSize: "14.5px", fontWeight: 700, letterSpacing: "0.2px" }}>
-            ระบบคลังข้อมูลวิจัยและนวัตกรรม มหาวิทยาลัยเกษตรศาสตร์
+            ระบบคลังข้อมูลหน่วยวิจัยและนวัตกรรม คณะวิศวกรรมศาสตร์ กำแพงแสน มหาวิทยาลัยเกษตรศาสตร์
           </span>
         </div>
 
@@ -523,13 +523,13 @@ export default function DashboardApp({ initialTab = "overview" }: DashboardAppPr
           </div>
         ) : activeTab === "manage" && !isAdmin ? (
           <div style={{ padding: "40px", textAlign: "center" }}>
-            <h3 style={{ color: "#ef4444", marginBottom: "12px" }}>⚠️ เข้าสู่ระบบด้วยสิทธิ์ผู้ดูแลระบบ (Admin)</h3>
+            <h3 style={{ color: "#ef4444", marginBottom: "12px" }}>เข้าสู่ระบบด้วยสิทธิ์ผู้ดูแลระบบ (Admin)</h3>
             <p style={{ color: "#64748b", marginBottom: "20px" }}>กรุณาเข้าสู่ระบบเพื่อเข้าใช้งานส่วนการจัดการข้อมูลและติดตามโครงการ</p>
             <button
               onClick={openLoginModal}
               style={{
                 padding: "10px 24px",
-                backgroundColor: "#00a859",
+                backgroundColor: "#00A651",
                 color: "#ffffff",
                 border: "none",
                 borderRadius: "8px",
@@ -572,7 +572,7 @@ export default function DashboardApp({ initialTab = "overview" }: DashboardAppPr
                     fontWeight: 600,
                   }}
                 >
-                  <FaCalendarAlt style={{ color: "#00a859", fontSize: "14px" }} />
+                  <FaCalendarAlt style={{ color: "#00A651", fontSize: "14px" }} />
                   <span>ช่วงเวลาข้อมูล:</span>
                 </div>
                 <div
@@ -622,14 +622,14 @@ export default function DashboardApp({ initialTab = "overview" }: DashboardAppPr
                   alignItems: "center",
                   gap: "8px",
                   padding: "8px 18px",
-                  backgroundColor: "#00a859",
+                  backgroundColor: "#00A651",
                   border: "none",
                   borderRadius: "8px",
                   color: "#ffffff",
                   fontSize: "13.5px",
                   fontWeight: 600,
                   cursor: "pointer",
-                  boxShadow: "0 2px 6px rgba(0, 168, 89, 0.25)",
+                  boxShadow: "0 2px 6px rgba(0, 166, 81, 0.25)",
                   transition: "all 0.15s ease",
                 }}
               >

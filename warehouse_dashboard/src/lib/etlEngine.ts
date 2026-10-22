@@ -427,23 +427,23 @@ export function exportMonthlyExecutiveMasterExcel(
     { A: '=== 2. สรุปภาพรวมปริมาณผลงานแยกตามหมวด ===', B: '', C: '', D: '', E: '' },
     { A: 'หมวดหมู่ภารกิจ', B: 'จำนวนรายการทั้งหมด', C: 'งบประมาณ/มูลค่ารวม (บาท)', D: 'หมายเหตุ', E: '' },
     { A: '1. โครงการวิจัย', B: (datasets.research || []).length, C: '104,480,000 บาท', D: 'ทุนภายนอก 99%', E: '' },
-    { A: '2. กิจกรรมพัฒนาวิชาการ', B: (datasets.academic || []).length, C: '2,450,000 บาท', D: 'อบรม/สัมมนา', E: '' },
-    { A: '3. ผลงานตีพิมพ์วิชาการ', B: (datasets.publications || []).length, C: 'เงินสนับสนุน มก.', D: 'Scopus Q1/Q2', E: '' },
-    { A: '4. บริการวิชาการสู่สังคม', B: (datasets.service || []).length, C: 'รายได้รวม', D: 'ผู้ทรงคุณวุฒิ/ที่ปรึกษา', E: '' },
-    { A: '5. ทรัพย์สินทางปัญญา', B: (datasets.ip || []).length, C: 'เงินรางวัลสนับสนุน', D: 'สิทธิบัตรการประดิษฐ์', E: '' }
+    { A: '2. โครงการพัฒนาวิชาการ', B: (datasets.academic || []).length, C: '2,450,000 บาท', D: 'อบรม/สัมมนา', E: '' },
+    { A: '3. ผลงานตีพิมพ์ทางวิชาการ', B: (datasets.publications || []).length, C: 'เงินสนับสนุน มก.', D: 'Scopus Q1/Q2', E: '' },
+    { A: '4. งานบริการวิชาการ', B: (datasets.service || []).length, C: 'รายได้รวม', D: 'ผู้ทรงคุณวุฒิ/ที่ปรึกษา', E: '' },
+    { A: '5. งานทรัพย์สินทางปัญญา', B: (datasets.ip || []).length, C: 'เงินรางวัลสนับสนุน', D: 'สิทธิบัตรการประดิษฐ์', E: '' }
   );
 
   const wsSummary = XLSX.utils.json_to_sheet(summaryRows, { skipHeader: true });
   wsSummary['!cols'] = [{ wch: 25 }, { wch: 45 }, { wch: 25 }, { wch: 25 }, { wch: 25 }];
   XLSX.utils.book_append_sheet(wb, wsSummary, 'ภาพรวมผู้บริหาร');
 
-  // 2-6. เพิ่มชีตของแต่ละหมวด (โครงการวิจัย, พัฒนาวิชาการ, ตีพิมพ์, บริการวิชาการ, ทรัพย์สินทางปัญญา)
+  // 2-6. เพิ่มชีตของแต่ละหมวด (โครงการวิจัย, โครงการพัฒนาวิชาการ, ผลงานตีพิมพ์ทางวิชาการ, งานบริการวิชาการ, งานทรัพย์สินทางปัญญา)
   const categoryOrder: { key: CategoryKey; title: string }[] = [
     { key: 'research', title: '1.โครงการวิจัย' },
-    { key: 'academic', title: '2.พัฒนาวิชาการ' },
-    { key: 'publications', title: '3.ผลงานตีพิมพ์' },
-    { key: 'service', title: '4.บริการวิชาการ' },
-    { key: 'ip', title: '5.ทรัพย์สินทางปัญญา' },
+    { key: 'academic', title: '2.โครงการพัฒนาวิชาการ' },
+    { key: 'publications', title: '3.ผลงานตีพิมพ์ทางวิชาการ' },
+    { key: 'service', title: '4.งานบริการวิชาการ' },
+    { key: 'ip', title: '5.งานทรัพย์สินทางปัญญา' },
   ];
 
   categoryOrder.forEach(({ key, title }) => {

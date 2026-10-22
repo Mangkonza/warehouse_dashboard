@@ -76,7 +76,7 @@ export default function IPTab({ timeFilter }: { timeFilter?: TimeFilterState }) 
   // สถิติที่คำนวณจากข้อมูลจริง
   const patentCount = useMemo(() => {
     return validIpData.filter(
-      (item) => item.department === "P" || item.type === "P" || (item.name && item.name.includes("สิทธิบัตร"))
+      (item) => item.department === "P" || item.type === "P" || (item.name && item.name.includes("สิทธิบัตร")) || (item.type && item.type.includes("สิทธิบัตร"))
     ).length;
   }, [validIpData]);
 
@@ -135,7 +135,7 @@ export default function IPTab({ timeFilter }: { timeFilter?: TimeFilterState }) 
     createChart("c_ip_compare", {
       type: "bar",
       data: {
-        labels: ["โครงการวิจัย", "ผลงานตีพิมพ์", "ทรัพย์สินทางปัญญา"],
+        labels: ["โครงการวิจัย", "ผลงานตีพิมพ์ทางวิชาการ", "งานทรัพย์สินทางปัญญา"],
         datasets: [
           {
             label: "จำนวน",
@@ -266,7 +266,7 @@ export default function IPTab({ timeFilter }: { timeFilter?: TimeFilterState }) 
           }}
         >
           <h3 style={{ margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
-            <FaTable style={{ color: "#006838" }} /> รายการทรัพย์สินทางปัญญา
+            <FaTable style={{ color: "#006838" }} /> รายการงานทรัพย์สินทางปัญญา
             <span
               style={{
                 fontSize: "12px",
@@ -399,7 +399,7 @@ export default function IPTab({ timeFilter }: { timeFilter?: TimeFilterState }) 
       {/* Decision Support Insights */}
       <div className="decision-box">
         <div className="decision-header">
-          <FaLightbulb style={{ marginRight: 8, color: "#f59e0b" }} /> ข้อมูลสนับสนุนการตัดสินใจ — ทรัพย์สินทางปัญญา
+          <FaLightbulb style={{ marginRight: 8, color: "#f59e0b" }} /> ข้อมูลสนับสนุนการตัดสินใจ — งานทรัพย์สินทางปัญญา
         </div>
         <ul>
           <li>
@@ -409,7 +409,7 @@ export default function IPTab({ timeFilter }: { timeFilter?: TimeFilterState }) 
             ปัจจุบันมาจาก <strong>{uniqueDeptCount} ภาควิชา</strong> ควรส่งเสริมและขยายการจดทะเบียนไปยังภาควิชาอื่นเพิ่มเติม
           </li>
           <li>
-            ควรสร้าง <strong>กลไกสนับสนุนการยื่นจดสิทธิบัตร</strong> ต่อเนื่องจากโครงการวิจัยและผลงานตีพิมพ์
+            ควรสร้าง <strong>กลไกสนับสนุนการยื่นจดสิทธิบัตร</strong> ต่อเนื่องจากโครงการวิจัยและผลงานตีพิมพ์ทางวิชาการ
           </li>
           <li>
             โครงการด้านเทคโนโลยีขั้นสูง เช่น IoT, AI ทางการเกษตร และวัสดุก่อสร้างคาร์บอนต่ำ ควรมีเป้าหมาย <strong>จดสิทธิบัตรเชิงพาณิชย์</strong>

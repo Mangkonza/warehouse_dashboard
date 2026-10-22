@@ -205,15 +205,15 @@ export default function OverviewTab({ timeFilter: propTimeFilter }: OverviewTabP
 
     const getStatusInfo = (actualPct: number, targetProRata: number) => {
       if (actualPct >= 100) {
-        return { label: 'บรรลุแล้ว', color: '#059669', bg: '#ecfdf5', badge: '🟢' };
+        return { label: 'บรรลุแล้ว', color: '#059669', bg: '#ecfdf5', badge: '' };
       }
       if (actualPct >= targetProRata * 0.9) {
-        return { label: 'ตามแผน', color: '#0284c7', bg: '#f0f9ff', badge: '🟢' };
+        return { label: 'ตามแผน', color: '#0284c7', bg: '#f0f9ff', badge: '' };
       }
       if (actualPct >= targetProRata * 0.7) {
-        return { label: 'เสี่ยง', color: '#d97706', bg: '#fffbeb', badge: '🟡' };
+        return { label: 'เสี่ยง', color: '#d97706', bg: '#fffbeb', badge: '' };
       }
-      return { label: 'ต้องเร่งรัด', color: '#dc2626', bg: '#fef2f2', badge: '🔴' };
+      return { label: 'ต้องเร่งรัด', color: '#dc2626', bg: '#fef2f2', badge: '' };
     };
 
     return [
@@ -276,7 +276,7 @@ export default function OverviewTab({ timeFilter: propTimeFilter }: OverviewTabP
       {
         id: 'ip_patents',
         code: 'KPI 2.3-2',
-        title: 'ยื่นจดทรัพย์สินทางปัญญา (IP)',
+        title: 'ยื่นจดงานทรัพย์สินทางปัญญา (IP)',
         actual: ipCount,
         actualFormatted: `${ipCount} รายการ`,
         target: targetIP,
@@ -429,13 +429,13 @@ export default function OverviewTab({ timeFilter: propTimeFilter }: OverviewTabP
           {
             label: 'ผลงานสะสมจริง (Actual)',
             data: burnupData.actualCumulative,
-            borderColor: '#00a859',
-            backgroundColor: 'rgba(0, 168, 89, 0.1)',
+            borderColor: '#00A651',
+            backgroundColor: 'rgba(0, 166, 81, 0.1)',
             fill: true,
             borderWidth: 3,
             tension: 0.35,
             pointRadius: 5,
-            pointBackgroundColor: '#00a859',
+            pointBackgroundColor: '#00A651',
           },
           {
             label: 'เส้นเป้าหมายตามเวลา (Target)',
@@ -527,7 +527,7 @@ export default function OverviewTab({ timeFilter: propTimeFilter }: OverviewTabP
             {
               label: 'ปีงบประมาณ 2568 (ปีปัจจุบัน)',
               data: [12.5, 24.8, 45.2, 62.0, 81.4, 95.8, 104.48, null, null, null, null, null],
-              borderColor: '#00a859',
+              borderColor: '#00A651',
               borderWidth: 3,
               tension: 0.35,
               pointRadius: 4,
@@ -721,14 +721,14 @@ export default function OverviewTab({ timeFilter: propTimeFilter }: OverviewTabP
               alignItems: 'center',
               gap: '6px',
               padding: '7px 16px',
-              backgroundColor: '#00a859',
+              backgroundColor: '#00A651',
               color: '#ffffff',
               border: 'none',
               borderRadius: '8px',
               fontSize: '12.5px',
               fontWeight: 600,
               cursor: 'pointer',
-              boxShadow: '0 2px 6px rgba(0, 168, 89, 0.25)',
+              boxShadow: '0 2px 6px rgba(0, 166, 81, 0.25)',
             }}
             title="ส่งออกรายงานรวม 5 หมวดและภาพรวมผู้บริหารในไฟล์ Excel เดียว"
           >
@@ -813,7 +813,7 @@ export default function OverviewTab({ timeFilter: propTimeFilter }: OverviewTabP
                   whiteSpace: 'nowrap',
                 }}
               >
-                {kpi.status.badge} {kpi.status.label}
+                {kpi.status.label}
               </span>
             </div>
 
@@ -858,7 +858,7 @@ export default function OverviewTab({ timeFilter: propTimeFilter }: OverviewTabP
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#94a3b8', marginTop: '4px' }}>
                 <span>0</span>
-                <span>📍 หมุดเป้าเวลา ({kpi.proRataTarget}%)</span>
+                <span>หมุดเป้าเวลา ({kpi.proRataTarget}%)</span>
                 <span>เป้าหมาย 100%</span>
               </div>
             </div>
@@ -873,7 +873,7 @@ export default function OverviewTab({ timeFilter: propTimeFilter }: OverviewTabP
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
             <div>
               <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <FaChartLine style={{ color: '#00a859' }} /> กราฟไต่ระดับผลงานสะสม (Burn-Up Chart vs เป้าหมาย)
+                <FaChartLine style={{ color: '#00A651' }} /> กราฟไต่ระดับผลงานสะสม (Burn-Up Chart vs เป้าหมาย)
               </h3>
               <p style={{ margin: '3px 0 0 0', fontSize: '12px', color: '#64748b' }}>
                 ประเมินความเร็วในการทำงาน (Velocity) และคาดการณ์โอกาสบรรลุเป้าหมาย ณ สิ้นปีงบประมาณ
@@ -958,7 +958,7 @@ export default function OverviewTab({ timeFilter: propTimeFilter }: OverviewTabP
             <div style={{ padding: '10px 12px', borderRadius: '10px', backgroundColor: '#fff7ed', borderLeft: '4px solid #ea580c' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#9a3412' }}>
-                  ⏳ โครงการสิ้นสุดใน 90 วัน
+                  โครงการสิ้นสุดใน 90 วัน
                 </span>
                 <span style={{ fontSize: '11px', fontWeight: 700, color: '#ea580c' }}>
                   {actionList.expiringSoon.length} โครงการ
@@ -975,7 +975,7 @@ export default function OverviewTab({ timeFilter: propTimeFilter }: OverviewTabP
             <div style={{ padding: '10px 12px', borderRadius: '10px', backgroundColor: '#fef2f2', borderLeft: '4px solid #dc2626' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#991b1b' }}>
-                  🔴 KPI ต้องเร่งรัดพิเศษ
+                  KPI ต้องเร่งรัดพิเศษ
                 </span>
                 <span style={{ fontSize: '11px', fontWeight: 700, color: '#dc2626' }}>
                   {actionList.redKpis.length} ตัวชี้วัด
@@ -992,7 +992,7 @@ export default function OverviewTab({ timeFilter: propTimeFilter }: OverviewTabP
             <div style={{ padding: '10px 12px', borderRadius: '10px', backgroundColor: '#f0f9ff', borderLeft: '4px solid #0284c7' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#075985' }}>
-                  💡 ความกระจุกตัวของทุนวิจัย
+                  ความกระจุกตัวของทุนวิจัย
                 </span>
                 <span style={{ fontSize: '11px', fontWeight: 700, color: '#0284c7' }}>IRE 70.8%</span>
               </div>
@@ -1025,7 +1025,7 @@ export default function OverviewTab({ timeFilter: propTimeFilter }: OverviewTabP
                 borderRadius: '10px',
                 fontSize: '13px',
                 fontWeight: activePerspective === tab.id ? 700 : 500,
-                backgroundColor: activePerspective === tab.id ? '#00a859' : 'rgba(255,255,255,0.7)',
+                backgroundColor: activePerspective === tab.id ? '#00A651' : 'rgba(255,255,255,0.7)',
                 color: activePerspective === tab.id ? '#ffffff' : '#64748b',
                 border: activePerspective === tab.id ? 'none' : '1px solid #cbd5e1',
                 cursor: 'pointer',
@@ -1043,7 +1043,7 @@ export default function OverviewTab({ timeFilter: propTimeFilter }: OverviewTabP
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
             <div>
               <h4 style={{ margin: '0 0 10px 0', fontSize: '13.5px', color: '#0f172a' }}>
-                📊 การกระจายตัวของงบประมาณวิจัย 7 ภาควิชา (ไฮไลท์สัดส่วน IRE 70.8%)
+                การกระจายตัวของงบประมาณวิจัย 7 ภาควิชา (ไฮไลท์สัดส่วน IRE 70.8%)
               </h4>
               <div style={{ height: '240px' }}>
                 <canvas id="chart_funding_treemap"></canvas>
@@ -1051,7 +1051,7 @@ export default function OverviewTab({ timeFilter: propTimeFilter }: OverviewTabP
             </div>
             <div>
               <h4 style={{ margin: '0 0 10px 0', fontSize: '13.5px', color: '#0f172a' }}>
-                📈 อัตราการเติบโตเปรียบเทียบปีงบประมาณ (YoY Overlay: 2567 vs 2568)
+                อัตราการเติบโตเปรียบเทียบปีงบประมาณ (YoY Overlay: 2567 vs 2568)
               </h4>
               <div style={{ height: '240px' }}>
                 <canvas id="chart_funding_yoy"></canvas>
@@ -1065,7 +1065,7 @@ export default function OverviewTab({ timeFilter: propTimeFilter }: OverviewTabP
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
             <div>
               <h4 style={{ margin: '0 0 10px 0', fontSize: '13.5px', color: '#0f172a' }}>
-                🏆 คุณภาพบทความตีพิมพ์ระดับสากล (Scopus Q1-Q4 & TCI)
+                คุณภาพบทความตีพิมพ์ระดับสากล (Scopus Q1-Q4 & TCI)
               </h4>
               <div style={{ height: '240px' }}>
                 <canvas id="chart_pub_quartile"></canvas>
@@ -1073,7 +1073,7 @@ export default function OverviewTab({ timeFilter: propTimeFilter }: OverviewTabP
             </div>
             <div>
               <h4 style={{ margin: '0 0 10px 0', fontSize: '13.5px', color: '#0f172a' }}>
-                🔥 Heatmap ผลงานรวม 7 ภาควิชา (วิจัย / ตีพิมพ์ / บริการวิชาการ)
+                Heatmap ผลงานรวม 7 ภาควิชา (วิจัย / ตีพิมพ์ / งานบริการวิชาการ)
               </h4>
               <div className="table-scroll">
                 <table className="glass-table">
@@ -1120,7 +1120,7 @@ export default function OverviewTab({ timeFilter: propTimeFilter }: OverviewTabP
         {activePerspective === 'projects' && (
           <div>
             <h4 style={{ margin: '0 0 12px 0', fontSize: '13.5px', color: '#0f172a' }}>
-              📋 สถานะการกำกับติดตามวงจรงานวิจัย (แก้ไขจุดตรวจสอบ 1.1)
+              สถานะการกำกับติดตามวงจรงานวิจัย (แก้ไขจุดตรวจสอบ 1.1)
             </h4>
             <div className="table-scroll" style={{ maxHeight: '280px' }}>
               <table className="glass-table">
@@ -1174,7 +1174,7 @@ export default function OverviewTab({ timeFilter: propTimeFilter }: OverviewTabP
         {activePerspective === 'sdg' && (
           <div>
             <h4 style={{ margin: '0 0 10px 0', fontSize: '13.5px', color: '#0f172a' }}>
-              🌿 การจัดหมวดหมู่ความยั่งยืน 17 เป้าหมาย (UI GreenMetric World University Rankings)
+              การจัดหมวดหมู่ความยั่งยืน 17 เป้าหมาย (UI GreenMetric World University Rankings)
             </h4>
             <div style={{ height: '320px' }}>
               <canvas id="chart_sdg_17"></canvas>
@@ -1188,14 +1188,14 @@ export default function OverviewTab({ timeFilter: propTimeFilter }: OverviewTabP
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
           <div>
             <h3 style={{ margin: 0, fontSize: '14.5px', fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <FaDatabase style={{ color: '#00a859' }} /> ตารางตรวจสอบความสมบูรณ์ของข้อมูล (Data Completeness Grid)
+              <FaDatabase style={{ color: '#00A651' }} /> ตารางตรวจสอบความสมบูรณ์ของข้อมูล (Data Completeness Grid)
             </h3>
             <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#64748b' }}>
               ตรวจสอบความครบถ้วนของข้อมูลที่ได้รับจาก 7 ภาควิชาในแต่ละหมวดงาน
             </p>
           </div>
           <span style={{ fontSize: '12px', color: '#059669', fontWeight: 600 }}>
-            🟢 ครบถ้วน | 🟡 มีข้อมูลบางส่วน | ⚪ รอดำเนินการ
+            ครบถ้วน | มีข้อมูลบางส่วน | รอดำเนินการ
           </span>
         </div>
 
@@ -1205,10 +1205,10 @@ export default function OverviewTab({ timeFilter: propTimeFilter }: OverviewTabP
               <tr>
                 <th>ภาควิชา (Department)</th>
                 <th style={{ textAlign: 'center' }}>1. โครงการวิจัย</th>
-                <th style={{ textAlign: 'center' }}>2. พัฒนาวิชาการ</th>
-                <th style={{ textAlign: 'center' }}>3. ผลงานตีพิมพ์</th>
-                <th style={{ textAlign: 'center' }}>4. บริการวิชาการ</th>
-                <th style={{ textAlign: 'center' }}>5. ทรัพย์สินทางปัญญา</th>
+                <th style={{ textAlign: 'center' }}>2. โครงการพัฒนาวิชาการ</th>
+                <th style={{ textAlign: 'center' }}>3. ผลงานตีพิมพ์ทางวิชาการ</th>
+                <th style={{ textAlign: 'center' }}>4. งานบริการวิชาการ</th>
+                <th style={{ textAlign: 'center' }}>5. งานทรัพย์สินทางปัญญา</th>
                 <th style={{ textAlign: 'center' }}>สถานะส่งข้อมูล</th>
               </tr>
             </thead>
@@ -1223,16 +1223,16 @@ export default function OverviewTab({ timeFilter: propTimeFilter }: OverviewTabP
                   <tr key={deptName}>
                     <td><strong>{deptName}</strong></td>
                     <td style={{ textAlign: 'center' }}>
-                      {resCount > 0 ? <span style={{ color: '#059669', fontWeight: 600 }}>🟢 {resCount} รายการ</span> : <span style={{ color: '#94a3b8' }}>⚪ 0</span>}
+                      {resCount > 0 ? <span style={{ color: '#059669', fontWeight: 600 }}>{resCount} รายการ</span> : <span style={{ color: '#94a3b8' }}>0</span>}
                     </td>
                     <td style={{ textAlign: 'center' }}>
-                      <span style={{ color: '#059669', fontWeight: 600 }}>🟢 มีข้อมูล</span>
+                      <span style={{ color: '#059669', fontWeight: 600 }}>มีข้อมูล</span>
                     </td>
                     <td style={{ textAlign: 'center' }}>
-                      {pubCount > 0 ? <span style={{ color: '#059669', fontWeight: 600 }}>🟢 {pubCount} เรื่อง</span> : <span style={{ color: '#d97706', fontWeight: 600 }}>🟡 รออัปเดต</span>}
+                      {pubCount > 0 ? <span style={{ color: '#059669', fontWeight: 600 }}>{pubCount} เรื่อง</span> : <span style={{ color: '#d97706', fontWeight: 600 }}>รออัปเดต</span>}
                     </td>
                     <td style={{ textAlign: 'center' }}>
-                      {srvCount > 0 ? <span style={{ color: '#059669', fontWeight: 600 }}>🟢 {srvCount} งาน</span> : <span style={{ color: '#94a3b8' }}>⚪ 0</span>}
+                      {srvCount > 0 ? <span style={{ color: '#059669', fontWeight: 600 }}>{srvCount} งาน</span> : <span style={{ color: '#94a3b8' }}>0</span>}
                     </td>
                     <td style={{ textAlign: 'center' }}>
                       <span style={{ color: '#64748b' }}>มีสิทธิบัตร</span>

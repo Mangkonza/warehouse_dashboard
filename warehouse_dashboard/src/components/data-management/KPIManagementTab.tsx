@@ -31,10 +31,10 @@ interface KPIManagementTabProps {
 
 const CATEGORY_LABELS: Record<KPICategory, string> = {
   research: 'โครงการวิจัย',
-  academic: 'พัฒนาวิชาการ',
-  publications: 'ผลงานตีพิมพ์',
-  service: 'บริการวิชาการ',
-  ip: 'ทรัพย์สินทางปัญญา',
+  academic: 'โครงการพัฒนาวิชาการ',
+  publications: 'ผลงานตีพิมพ์ทางวิชาการ',
+  service: 'งานบริการวิชาการ',
+  ip: 'งานทรัพย์สินทางปัญญา',
   personnel: 'บุคลากร/อาจารย์',
   strategy: 'ยุทธศาสตร์คณะฯ',
 };
@@ -392,8 +392,8 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets }) 
                 transition: 'all 0.15s ease',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = '#00a859';
-                e.currentTarget.style.color = '#00a859';
+                e.currentTarget.style.borderColor = '#00A651';
+                e.currentTarget.style.color = '#00A651';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.borderColor = '#cbd5e1';
@@ -413,9 +413,9 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets }) 
                 gap: '6px',
                 padding: '7px 16px',
                 backgroundColor: '#ffffff',
-                border: '1px solid #00a859',
+                border: '1px solid #00A651',
                 borderRadius: '8px',
-                color: '#00a859',
+                color: '#00A651',
                 fontSize: '13px',
                 fontWeight: 600,
                 cursor: 'pointer',
@@ -429,7 +429,7 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets }) 
               }}
             >
               <FaPlus style={{ fontSize: '12px' }} />
-              <span>เพิ่มตัวชี้วัด</span>
+              <span>เพิ่มตัวชี้วัดตามแผนยุทธศาสตร์</span>
             </button>
           </div>
         </div>
@@ -439,7 +439,7 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets }) 
           <table
             style={{
               width: '100%',
-              minWidth: '1050px',
+              minWidth: '1100px',
               tableLayout: 'fixed',
               borderCollapse: 'collapse',
               textAlign: 'left',
@@ -447,17 +447,19 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets }) 
             }}
           >
             <thead>
-              <tr style={{ backgroundColor: '#00a859' }}>
+              <tr style={{ backgroundColor: '#00A651' }}>
                 <th
                   style={{
                     width: '4%',
+                    minWidth: '42px',
                     textAlign: 'center',
                     padding: '12px 6px',
                     color: '#ffffff',
                     fontWeight: 600,
                     fontSize: '13.5px',
-                    backgroundColor: '#00a859',
-                    borderBottom: '2px solid #008f4c',
+                    backgroundColor: '#00A651',
+                    borderBottom: '2px solid #008f44',
+                    whiteSpace: 'nowrap',
                   }}
                 >
                   #
@@ -469,8 +471,9 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets }) 
                     color: '#ffffff',
                     fontWeight: 600,
                     fontSize: '13.5px',
-                    backgroundColor: '#00a859',
-                    borderBottom: '2px solid #008f4c',
+                    backgroundColor: '#00A651',
+                    borderBottom: '2px solid #008f44',
+                    whiteSpace: 'nowrap',
                   }}
                 >
                   รหัส
@@ -482,11 +485,12 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets }) 
                     color: '#ffffff',
                     fontWeight: 600,
                     fontSize: '13.5px',
-                    backgroundColor: '#00a859',
-                    borderBottom: '2px solid #008f4c',
+                    backgroundColor: '#00A651',
+                    borderBottom: '2px solid #008f44',
+                    whiteSpace: 'nowrap',
                   }}
                 >
-                  ชื่อตัวชี้วัดยุทธศาสตร์
+                  ชื่อตัวชี้วัดตามแผนยุทธศาสตร์
                 </th>
                 <th
                   style={{
@@ -495,8 +499,9 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets }) 
                     color: '#ffffff',
                     fontWeight: 600,
                     fontSize: '13.5px',
-                    backgroundColor: '#00a859',
-                    borderBottom: '2px solid #008f4c',
+                    backgroundColor: '#00A651',
+                    borderBottom: '2px solid #008f44',
+                    whiteSpace: 'nowrap',
                   }}
                 >
                   หมวดหมู่
@@ -508,8 +513,9 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets }) 
                     color: '#ffffff',
                     fontWeight: 600,
                     fontSize: '13.5px',
-                    backgroundColor: '#00a859',
-                    borderBottom: '2px solid #008f4c',
+                    backgroundColor: '#00A651',
+                    borderBottom: '2px solid #008f44',
+                    whiteSpace: 'nowrap',
                   }}
                 >
                   วิธีการประเมิน
@@ -522,8 +528,9 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets }) 
                     color: '#ffffff',
                     fontWeight: 600,
                     fontSize: '13.5px',
-                    backgroundColor: '#00a859',
-                    borderBottom: '2px solid #008f4c',
+                    backgroundColor: '#00A651',
+                    borderBottom: '2px solid #008f44',
+                    whiteSpace: 'nowrap',
                   }}
                 >
                   เป้าหมาย
@@ -536,8 +543,9 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets }) 
                     color: '#ffffff',
                     fontWeight: 600,
                     fontSize: '13.5px',
-                    backgroundColor: '#00a859',
-                    borderBottom: '2px solid #008f4c',
+                    backgroundColor: '#00A651',
+                    borderBottom: '2px solid #008f44',
+                    whiteSpace: 'nowrap',
                   }}
                 >
                   ผลงานปัจจุบัน
@@ -549,8 +557,9 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets }) 
                     color: '#ffffff',
                     fontWeight: 600,
                     fontSize: '13.5px',
-                    backgroundColor: '#00a859',
-                    borderBottom: '2px solid #008f4c',
+                    backgroundColor: '#00A651',
+                    borderBottom: '2px solid #008f44',
+                    whiteSpace: 'nowrap',
                   }}
                 >
                   ความก้าวหน้า
@@ -558,13 +567,15 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets }) 
                 <th
                   style={{
                     width: '6%',
+                    minWidth: '70px',
                     textAlign: 'center',
                     padding: '12px 6px',
                     color: '#ffffff',
                     fontWeight: 600,
                     fontSize: '13.5px',
-                    backgroundColor: '#00a859',
-                    borderBottom: '2px solid #008f4c',
+                    backgroundColor: '#00A651',
+                    borderBottom: '2px solid #008f44',
+                    whiteSpace: 'nowrap',
                   }}
                 >
                   จัดการ
@@ -613,7 +624,7 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets }) 
                         style={{
                           padding: '11px 10px',
                           fontWeight: 700,
-                          color: '#00a859',
+                          color: '#00A651',
                           fontFamily: 'monospace',
                           fontSize: '13px',
                         }}
@@ -942,11 +953,11 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets }) 
               animation: 'modalFadeIn 0.2s ease-out',
             }}
           >
-            {/* Modal Header (Major Style: สีเขียว KU #00a859) */}
+            {/* Modal Header (Major Style: สีเขียว KU #00A651) */}
             <div
               style={{
                 padding: '20px 24px',
-                backgroundColor: '#00a859',
+                backgroundColor: '#00A651',
                 color: '#ffffff',
                 display: 'flex',
                 alignItems: 'center',
@@ -957,7 +968,7 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets }) 
                 <FaBullseye style={{ fontSize: '20px', color: '#86efac' }} />
                 <div>
                   <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600 }}>
-                    {editingKpi ? 'แก้ไขตัวชี้วัดยุทธศาสตร์' : 'เพิ่มตัวชี้วัดยุทธศาสตร์'}
+                    {editingKpi ? 'แก้ไขตัวชี้วัดตามแผนยุทธศาสตร์' : 'เพิ่มตัวชี้วัดตามแผนยุทธศาสตร์'}
                   </h3>
                   <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#dcfce7' }}>
                     กำหนดการประเมินผลและการเชื่อมโยงข้อมูลกับคลังข้อมูลโดยตรง
@@ -1134,7 +1145,7 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets }) 
                       marginBottom: '10px',
                     }}
                   >
-                    <FaCalculator style={{ color: '#00a859' }} />
+                    <FaCalculator style={{ color: '#00A651' }} />
                     <span>วิธีการประเมินผลและการคำนวณ</span>
                   </label>
 
@@ -1155,7 +1166,7 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets }) 
                           style={{
                             padding: '10px 12px',
                             borderRadius: '8px',
-                            border: isSel ? '2px solid #00a859' : '1px solid #cbd5e1',
+                            border: isSel ? '2px solid #00A651' : '1px solid #cbd5e1',
                             backgroundColor: isSel ? '#f0fdf4' : '#ffffff',
                             cursor: 'pointer',
                             transition: 'all 0.15s ease',
@@ -1214,10 +1225,10 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets }) 
                             }}
                           >
                             <option value="research">โครงการวิจัย</option>
-                            <option value="academic">งานพัฒนาวิชาการ</option>
-                            <option value="publications">ผลงานตีพิมพ์</option>
-                            <option value="service">กิจกรรมบริการวิชาการ</option>
-                            <option value="ip">ทรัพย์สินทางปัญญา</option>
+                            <option value="academic">โครงการพัฒนาวิชาการ</option>
+                            <option value="publications">ผลงานตีพิมพ์ทางวิชาการ</option>
+                            <option value="service">งานบริการวิชาการ</option>
+                            <option value="ip">งานทรัพย์สินทางปัญญา</option>
                             <option value="personnel">บุคลากร/อาจารย์</option>
                           </select>
                         </div>
@@ -1500,12 +1511,12 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets }) 
                     padding: '8px 24px',
                     borderRadius: '8px',
                     border: 'none',
-                    backgroundColor: '#00a859',
+                    backgroundColor: '#00A651',
                     color: '#ffffff',
                     fontSize: '13.5px',
                     fontWeight: 600,
                     cursor: 'pointer',
-                    boxShadow: '0 2px 6px rgba(0, 168, 89, 0.25)',
+                    boxShadow: '0 2px 6px rgba(0, 166, 81, 0.25)',
                   }}
                 >
                   <FaSave style={{ fontSize: '13px' }} />

@@ -141,7 +141,7 @@ export const parseNumber = (val: any): number => {
 };
 
 // ==========================================
-// 💾 LocalStorage KPI Persistence
+// LocalStorage KPI Persistence
 // ==========================================
 export const getStoredKPIs = (): KPIItem[] => {
   if (typeof window === 'undefined') return DEFAULT_KPIS;
@@ -202,7 +202,7 @@ export const deleteKPI = (id: string): void => {
 };
 
 // ==========================================
-// ⚙️ Dynamic KPI Evaluation Engine
+// Dynamic KPI Evaluation Engine
 // ==========================================
 export const evaluateKPI = (kpi: KPIItem, datasets: Record<string, any[]>): KPIComputedResult => {
   const rawData = datasets[kpi.datasetKey] || [];

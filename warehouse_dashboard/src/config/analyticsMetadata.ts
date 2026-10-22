@@ -65,7 +65,7 @@ export const FACT_DOMAINS_CONFIG: Record<FactDomainId, FactDomainDef> = {
 
   service: {
     id: 'service',
-    nameTh: 'กิจกรรมบริการวิชาการ',
+    nameTh: 'งานบริการวิชาการ',
     nameEn: 'Academic Services',
     description: 'การฝึกอบรม สัมมนา ถ่ายทอดเทคโนโลยี และการให้คำปรึกษาแก่สังคม',
     iconName: 'FaHandsHelping',
@@ -82,7 +82,7 @@ export const FACT_DOMAINS_CONFIG: Record<FactDomainId, FactDomainDef> = {
 
   ip: {
     id: 'ip',
-    nameTh: 'ทรัพย์สินทางปัญญา',
+    nameTh: 'งานทรัพย์สินทางปัญญา',
     nameEn: 'Intellectual Property',
     description: 'สิทธิบัตรการประดิษฐ์ อนุสิทธิบัตร และลิขสิทธิ์ของคณะวิศวกรรมศาสตร์',
     iconName: 'FaCertificate',
