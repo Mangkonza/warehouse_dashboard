@@ -64,7 +64,12 @@ export default function DashboardApp({ initialTab = "overview" }: DashboardAppPr
 
   const [activeTab, setActiveTab] = useState<string>(() => resolveTabFromPath(pathname));
   const [isSidebarHovered, setIsSidebarHovered] = useState(false);
-  const [isSidebarPinned, setIsSidebarPinned] = useState(false);
+  const [isSidebarPinned, setIsSidebarPinned] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("ku_sidebar_pinned") === "true";
+    }
+    return false;
+  });
   const [isForceCollapsed, setIsForceCollapsed] = useState(false);
   const [timeFilter, setTimeFilter] = useState<TimeFilterState>(DEFAULT_TIME_FILTER);
   const [isTimeModalOpen, setIsTimeModalOpen] = useState(false);
@@ -81,15 +86,42 @@ export default function DashboardApp({ initialTab = "overview" }: DashboardAppPr
     }
   }, [pathname]);
 
-  // ฟังก์ชันสลับ Tab และเปลี่ยน URL Path ใน Browser แบบ Real-time
+  // ติดตาม popstate (เมื่อผู้ใช้กดย้อนกลับ/ถัดไปในเบราว์เซอร์)
+  useEffect(() => {
+    const handlePopState = () => {
+      const current = resolveTabFromPath(window.location.pathname);
+      setActiveTab(current);
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  // ฟังก์ชันสลับ Tab และเปลี่ยน URL Path ใน Browser แบบ Real-time โดยไม่ unmount component
   const handleTabChange = (targetTab: string) => {
     const normalized = targetTab.toLowerCase() === "services" ? "service" : targetTab;
     setActiveTab(normalized);
-    if (normalized === "overview") {
-      router.push("/overview");
-    } else {
-      router.push(`/${normalized}`);
+    const targetUrl = normalized === "overview" ? "/overview" : `/${normalized}`;
+    if (typeof window !== "undefined") {
+      window.history.pushState({ tab: normalized }, "", targetUrl);
     }
+  };
+
+  // ฟังก์ชันสลับการตรึงแถบเมนู (Pin / Unpin)
+  const handleTogglePin = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsSidebarPinned((prev) => {
+      const next = !prev;
+      if (typeof window !== "undefined") {
+        localStorage.setItem("ku_sidebar_pinned", String(next));
+      }
+      if (!next) {
+        setIsSidebarHovered(false);
+        setIsForceCollapsed(true);
+      } else {
+        setIsForceCollapsed(false);
+      }
+      return next;
+    });
   };
 
   // ปลดล็อค isForceCollapsed เมื่อเมาส์ขยับออกนอกโซน 70px ของ sidebar
@@ -269,34 +301,26 @@ export default function DashboardApp({ initialTab = "overview" }: DashboardAppPr
             <div style={{ paddingRight: "14px", flexShrink: 0 }}>
               <button
                 type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (isSidebarPinned) {
-                    setIsSidebarPinned(false);
-                    setIsSidebarHovered(false);
-                    setIsForceCollapsed(true);
-                  } else {
-                    setIsSidebarPinned(true);
-                    setIsForceCollapsed(false);
-                  }
-                }}
+                onClick={handleTogglePin}
+                title={isSidebarPinned ? "ยกเลิกการตรึงแถบเมนู (Collapse)" : "ตรึงแถบเมนูค้างไว้ (Pin Sidebar)"}
                 style={{
-                  background: "none",
-                  border: "none",
-                  color: "#94a3b8",
+                  background: isSidebarPinned ? "#2d343c" : "none",
+                  border: isSidebarPinned ? "1px solid #4b5563" : "none",
+                  borderRadius: "6px",
+                  color: isSidebarPinned ? "#00e676" : "#94a3b8",
                   cursor: "pointer",
-                  padding: "6px",
+                  padding: "6px 8px",
                   fontSize: "15px",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  transition: "color 0.15s ease",
+                  transition: "all 0.15s ease",
                 }}
                 onMouseOver={(e) => {
                   e.currentTarget.style.color = "#ffffff";
                 }}
                 onMouseOut={(e) => {
-                  e.currentTarget.style.color = "#94a3b8";
+                  e.currentTarget.style.color = isSidebarPinned ? "#00e676" : "#94a3b8";
                 }}
               >
                 <FaBars />
@@ -343,18 +367,7 @@ export default function DashboardApp({ initialTab = "overview" }: DashboardAppPr
                   }
                 }}
               >
-                {isActive && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      left: 0,
-                      top: 0,
-                      bottom: 0,
-                      width: "4px",
-                      backgroundColor: "#ffffff",
-                    }}
-                  />
-                )}
+                {/* ตัดแถบสีขาวออก เพื่อให้เป็นสีเขียวเต็มแถบชิดขอบ */}
 
                 <div
                   style={{
@@ -421,18 +434,7 @@ export default function DashboardApp({ initialTab = "overview" }: DashboardAppPr
                   }
                 }}
               >
-                {activeTab === "manage" && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      left: 0,
-                      top: 0,
-                      bottom: 0,
-                      width: "4px",
-                      backgroundColor: "#ffffff",
-                    }}
-                  />
-                )}
+                {/* ตัดแถบสีขาวออก เพื่อให้เป็นสีเขียวเต็มแถบชิดขอบ */}
 
                 <div
                   style={{
