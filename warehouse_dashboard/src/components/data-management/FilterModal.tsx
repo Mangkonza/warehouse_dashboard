@@ -111,7 +111,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
         <div
           style={{
             padding: '14px 20px',
-            backgroundColor: '#00a859',
+            backgroundColor: '#00A651',
             color: '#ffffff',
             display: 'flex',
             alignItems: 'center',
@@ -189,9 +189,9 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                   style={{
                     padding: '9px 12px',
                     borderRadius: '8px',
-                    border: draftRole ? '1.5px solid #00a859' : '1px solid #cbd5e1',
+                    border: draftRole ? '1.5px solid #00A651' : '1px solid #cbd5e1',
                     backgroundColor: draftRole ? '#f0fbf5' : '#ffffff',
-                    color: draftRole ? '#008f4c' : '#1e293b',
+                    color: draftRole ? '#00A651' : '#1e293b',
                     fontWeight: draftRole ? 600 : 400,
                     fontSize: '13.5px',
                     outline: 'none',
@@ -230,11 +230,11 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                         borderRadius: '8px',
                         border:
                           draftImageStatus === opt.key
-                            ? '1.5px solid #00a859'
+                            ? '1.5px solid #00A651'
                             : '1px solid #cbd5e1',
                         backgroundColor:
                           draftImageStatus === opt.key ? '#f0fbf5' : '#ffffff',
-                        color: draftImageStatus === opt.key ? '#008f4c' : '#475569',
+                        color: draftImageStatus === opt.key ? '#00A651' : '#475569',
                         fontWeight: draftImageStatus === opt.key ? 600 : 400,
                         fontSize: '13px',
                         cursor: 'pointer',
@@ -261,9 +261,9 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                 style={{
                   padding: '9px 12px',
                   borderRadius: '8px',
-                  border: draftSubFilter ? '1.5px solid #00a859' : '1px solid #cbd5e1',
+                  border: draftSubFilter ? '1.5px solid #00A651' : '1px solid #cbd5e1',
                   backgroundColor: draftSubFilter ? '#f0fbf5' : '#ffffff',
-                  color: draftSubFilter ? '#008f4c' : '#1e293b',
+                  color: draftSubFilter ? '#00A651' : '#1e293b',
                   fontWeight: draftSubFilter ? 600 : 400,
                   fontSize: '13.5px',
                   outline: 'none',
@@ -275,6 +275,38 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                 <option value="external">โครงการที่มีงบประมาณภายนอก</option>
                 <option value="internal">โครงการที่มีงบประมาณภายใน</option>
                 <option value="high_budget">โครงการงบประมาณรวม &gt; 1 ล้านบาท</option>
+              </select>
+            </div>
+          )}
+
+          {/* Academic Development Projects Category Filter */}
+          {activeCategory === 'academic' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>
+                ลักษณะโครงการและการบูรณาการ
+              </label>
+              <select
+                value={draftSubFilter}
+                onChange={(e) => setDraftSubFilter(e.target.value)}
+                style={{
+                  padding: '9px 12px',
+                  borderRadius: '8px',
+                  border: draftSubFilter ? '1.5px solid #00A651' : '1px solid #cbd5e1',
+                  backgroundColor: draftSubFilter ? '#f0fbf5' : '#ffffff',
+                  color: draftSubFilter ? '#00A651' : '#1e293b',
+                  fontWeight: draftSubFilter ? 600 : 400,
+                  fontSize: '13.5px',
+                  outline: 'none',
+                  fontFamily: 'inherit',
+                  cursor: 'pointer',
+                }}
+              >
+                <option value="">ทุกลักษณะและการบูรณาการ</option>
+                <option value="policy">สอดคล้องกับนโยบายชาติ</option>
+                <option value="value_add">เพิ่มมูลค่า</option>
+                <option value="has_research">มีการบูรณาการกับโครงการวิจัย</option>
+                <option value="has_patent">มีการบูรณาการกับสิทธิบัตร</option>
+                <option value="has_external_members">มีผู้ร่วมโครงการภายนอก</option>
               </select>
             </div>
           )}
@@ -291,9 +323,9 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                 style={{
                   padding: '9px 12px',
                   borderRadius: '8px',
-                  border: draftSubFilter ? '1.5px solid #00a859' : '1px solid #cbd5e1',
+                  border: draftSubFilter ? '1.5px solid #00A651' : '1px solid #cbd5e1',
                   backgroundColor: draftSubFilter ? '#f0fbf5' : '#ffffff',
-                  color: draftSubFilter ? '#008f4c' : '#1e293b',
+                  color: draftSubFilter ? '#00A651' : '#1e293b',
                   fontWeight: draftSubFilter ? 600 : 400,
                   fontSize: '13.5px',
                   outline: 'none',
@@ -314,7 +346,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
           {activeCategory === 'ip' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <label style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>
-                สถานะและประเภททรัพย์สินทางปัญญา
+                สถานะและประเภทงานทรัพย์สินทางปัญญา
               </label>
               <select
                 value={draftSubFilter}
@@ -322,9 +354,9 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                 style={{
                   padding: '9px 12px',
                   borderRadius: '8px',
-                  border: draftSubFilter ? '1.5px solid #00a859' : '1px solid #cbd5e1',
+                  border: draftSubFilter ? '1.5px solid #00A651' : '1px solid #cbd5e1',
                   backgroundColor: draftSubFilter ? '#f0fbf5' : '#ffffff',
-                  color: draftSubFilter ? '#008f4c' : '#1e293b',
+                  color: draftSubFilter ? '#00A651' : '#1e293b',
                   fontWeight: draftSubFilter ? 600 : 400,
                   fontSize: '13.5px',
                   outline: 'none',
@@ -400,12 +432,12 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                 padding: '8px 20px',
                 borderRadius: '8px',
                 border: 'none',
-                backgroundColor: '#00a859',
+                backgroundColor: '#00A651',
                 color: '#ffffff',
                 fontSize: '13px',
                 fontWeight: 600,
                 cursor: 'pointer',
-                boxShadow: '0 2px 6px rgba(0, 168, 89, 0.25)',
+                boxShadow: '0 2px 6px rgba(0, 166, 81, 0.25)',
               }}
             >
               <FaCheck style={{ fontSize: '11px' }} />

@@ -222,6 +222,17 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({ goBack }
           if (selectedSubFilter === 'granted' && !stat.includes('จดทะเบียน') && !stat.includes('สิทธิบัตร')) return false;
           if (selectedSubFilter === 'patent' && !type.includes('สิทธิบัตรการประดิษฐ์')) return false;
           if (selectedSubFilter === 'petty' && !type.includes('อนุสิทธิบัตร')) return false;
+        } else if (activeCategory === 'academic') {
+          const chars = Array.isArray(item.characteristics)
+            ? item.characteristics.join(' ')
+            : String(item.characteristics || '');
+          const resCount = Array.isArray(item.research_projects) ? item.research_projects.length : 0;
+          const patent = String(item.patent_integration || '').trim();
+          if (selectedSubFilter === 'policy' && !chars.includes('นโยบาย')) return false;
+          if (selectedSubFilter === 'value_add' && !chars.includes('เพิ่มมูลค่า')) return false;
+          if (selectedSubFilter === 'has_research' && resCount === 0) return false;
+          if (selectedSubFilter === 'has_patent' && !patent) return false;
+          if (selectedSubFilter === 'has_external_members' && (!item.co_members_external || Number(item.co_members_external) === 0)) return false;
         }
       }
 
@@ -406,11 +417,11 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({ goBack }
             position: 'fixed',
             bottom: '24px',
             right: '24px',
-            backgroundColor: '#00a859',
+            backgroundColor: '#00A651',
             color: '#ffffff',
             padding: '10px 18px',
             borderRadius: '8px',
-            boxShadow: '0 8px 24px rgba(0, 168, 89, 0.3)',
+            boxShadow: '0 8px 24px rgba(0, 166, 81, 0.3)',
             zIndex: 99999,
             display: 'flex',
             alignItems: 'center',
@@ -448,7 +459,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({ goBack }
             ระบบจัดการข้อมูล
           </h2>
           <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
-            จัดการและนำเข้าข้อมูลโครงการวิจัย ผลงานวิชาการ บริการวิชาการ และฐานข้อมูลบุคลากร
+            จัดการและนำเข้าข้อมูลโครงการวิจัย โครงการพัฒนาวิชาการ ผลงานตีพิมพ์ทางวิชาการ งานบริการวิชาการ งานทรัพย์สินทางปัญญา และฐานข้อมูลบุคลากร
           </div>
         </div>
 
@@ -469,8 +480,8 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({ goBack }
             transition: 'all 0.15s ease',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = '#00a859';
-            e.currentTarget.style.color = '#00a859';
+            e.currentTarget.style.borderColor = '#00A651';
+            e.currentTarget.style.color = '#00A651';
             e.currentTarget.style.backgroundColor = '#f0fbf5';
           }}
           onMouseLeave={(e) => {
@@ -590,20 +601,20 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({ goBack }
                 gap: '7px',
                 padding: '7px 14px',
                 borderRadius: '8px',
-                border: activeFilterCount > 0 ? '1.5px solid #00a859' : '1px solid #cbd5e1',
+                border: activeFilterCount > 0 ? '1.5px solid #00A651' : '1px solid #cbd5e1',
                 backgroundColor: activeFilterCount > 0 ? '#f0fbf5' : '#ffffff',
-                color: activeFilterCount > 0 ? '#008f4c' : '#334155',
+                color: activeFilterCount > 0 ? '#00A651' : '#334155',
                 fontSize: '13px',
                 fontWeight: activeFilterCount > 0 ? 600 : 500,
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
-                boxShadow: activeFilterCount > 0 ? '0 1px 3px rgba(0, 168, 89, 0.15)' : 'none',
+                boxShadow: activeFilterCount > 0 ? '0 1px 3px rgba(0, 166, 81, 0.15)' : 'none',
               }}
               onMouseEnter={(e) => {
                 if (activeFilterCount === 0) {
-                  e.currentTarget.style.borderColor = '#00a859';
+                  e.currentTarget.style.borderColor = '#00A651';
                   e.currentTarget.style.backgroundColor = '#f0fbf5';
-                  e.currentTarget.style.color = '#00a859';
+                  e.currentTarget.style.color = '#00A651';
                 }
               }}
               onMouseLeave={(e) => {
@@ -627,7 +638,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({ goBack }
                     height: '18px',
                     padding: '0 5px',
                     borderRadius: '9px',
-                    backgroundColor: '#00a859',
+                    backgroundColor: '#00A651',
                     color: '#ffffff',
                     fontSize: '11px',
                     fontWeight: 700,
@@ -683,7 +694,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({ goBack }
                   style={{
                     padding: '7px 12px',
                     border: 'none',
-                    backgroundColor: personnelViewMode === 'table' ? '#00a859' : '#ffffff',
+                    backgroundColor: personnelViewMode === 'table' ? '#00A651' : '#ffffff',
                     color: personnelViewMode === 'table' ? '#ffffff' : '#64748b',
                     cursor: 'pointer',
                     fontSize: '12px',
@@ -699,7 +710,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({ goBack }
                   style={{
                     padding: '7px 12px',
                     border: 'none',
-                    backgroundColor: personnelViewMode === 'grid' ? '#00a859' : '#ffffff',
+                    backgroundColor: personnelViewMode === 'grid' ? '#00A651' : '#ffffff',
                     color: personnelViewMode === 'grid' ? '#ffffff' : '#64748b',
                     cursor: 'pointer',
                     fontSize: '12px',
@@ -722,25 +733,23 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({ goBack }
                 gap: '6px',
                 padding: '7px 14px',
                 backgroundColor: '#ffffff',
-                border: '1px solid #cbd5e1',
+                border: '1px solid #00A651',
                 borderRadius: '8px',
-                color: '#334155',
+                color: '#00A651',
                 fontSize: '13px',
-                fontWeight: 500,
+                fontWeight: 600,
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = '#00a859';
-                e.currentTarget.style.color = '#00a859';
+                e.currentTarget.style.backgroundColor = '#f0fbf5';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = '#cbd5e1';
-                e.currentTarget.style.color = '#334155';
+                e.currentTarget.style.backgroundColor = '#ffffff';
               }}
               title="ดาวน์โหลดไฟล์แม่แบบ Excel สำหรับหมวดนี้"
             >
-              <FaDownload style={{ color: '#00a859', fontSize: '13px' }} />
+              <FaDownload style={{ color: '#00A651', fontSize: '13px' }} />
               <span>ดาวน์โหลดแม่แบบ</span>
             </button>
 
@@ -762,8 +771,8 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({ goBack }
                 transition: 'all 0.15s ease',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = '#00a859';
-                e.currentTarget.style.color = '#00a859';
+                e.currentTarget.style.borderColor = '#00A651';
+                e.currentTarget.style.color = '#00A651';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.borderColor = '#cbd5e1';
@@ -788,9 +797,9 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({ goBack }
                 gap: '6px',
                 padding: '7px 16px',
                 backgroundColor: '#ffffff',
-                border: '1px solid #00a859',
+                border: '1px solid #00A651',
                 borderRadius: '8px',
-                color: '#00a859',
+                color: '#00A651',
                 fontSize: '13px',
                 fontWeight: 600,
                 cursor: 'pointer',
@@ -803,7 +812,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({ goBack }
                 e.currentTarget.style.backgroundColor = '#ffffff';
               }}
             >
-              <FaPlus style={{ fontSize: '12px' }} />
+              <FaPlus style={{ fontSize: '12px', color: '#00A651' }} />
               <span>เพิ่มรายการ</span>
             </button>
 
@@ -815,18 +824,18 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({ goBack }
                 alignItems: 'center',
                 gap: '6px',
                 padding: '7px 18px',
-                backgroundColor: '#00a859',
+                backgroundColor: '#00A651',
                 border: 'none',
                 borderRadius: '8px',
                 color: '#ffffff',
                 fontSize: '13px',
                 fontWeight: 600,
                 cursor: 'pointer',
-                boxShadow: '0 2px 6px rgba(0, 168, 89, 0.25)',
+                boxShadow: '0 2px 6px rgba(0, 166, 81, 0.25)',
                 transition: 'background-color 0.15s ease',
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#008f4c')}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#00a859')}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#008f44')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#00A651')}
             >
               <FaFileExcel style={{ fontSize: '14px' }} />
               <span>นำเข้าไฟล์ Excel</span>
@@ -995,8 +1004,8 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({ goBack }
                           height: '28px',
                           padding: '0 6px',
                           borderRadius: '6px',
-                          border: isCurrent ? '1px solid #00a859' : '1px solid #e2e8f0',
-                          backgroundColor: isCurrent ? '#00a859' : '#ffffff',
+                          border: isCurrent ? '1px solid #00A651' : '1px solid #e2e8f0',
+                          backgroundColor: isCurrent ? '#00A651' : '#ffffff',
                           color: isCurrent ? '#ffffff' : '#334155',
                           fontWeight: isCurrent ? 700 : 500,
                           fontSize: '12px',

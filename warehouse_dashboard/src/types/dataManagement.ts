@@ -20,7 +20,12 @@ export type ColumnType =
   | 'sdg'
   | 'quartile'
   | 'members'
-  | 'status';
+  | 'status'
+  | 'academic_members'
+  | 'academic_budget'
+  | 'academic_timeline'
+  | 'academic_integration'
+  | 'academic_character';
 
 export interface ColumnDef {
   key: string;

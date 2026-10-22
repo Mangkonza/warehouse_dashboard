@@ -71,7 +71,7 @@ export default function AcademicTab({
     const UI_PALETTE = ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF", "#FF9F40"];
 
     // ==========================================
-    // ⚙️ Logic คำนวณข้อมูลกราฟจาก JSON 
+    // Logic คำนวณข้อมูลกราฟจาก JSON 
     // ==========================================
     const M = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ก.ย.", "ต.ค.", "พ.ย."];
     let monthlyCount = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
@@ -184,7 +184,7 @@ export default function AcademicTab({
     createChart("c_ac_client", { type: "bar", data: { labels: clientLabels, datasets: [{ label: "ล้านบาท", data: clientData, backgroundColor: C_ACA, borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, indexAxis: "y", plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c: any) => c.raw.toFixed(2) + " ล้านบาท" } }, datalabels: { display: false } }, scales: { x: { beginAtZero: true, grace: "20%", title: { display: true, text: "ล้านบาท" } } } } });
     
     // ==========================================
-    // 📊 Diverging Bar Chart: SDGs (ปรับปรุงแล้ว)
+    // Diverging Bar Chart: SDGs (ปรับปรุงแล้ว)
     // ==========================================
     const sdgLabels = ["SDG 6", "SDG 9", "SDG 13", "SDG 2", "SDG 8"];
     const rawSDGCount = [4, 5, 3, 2, 1]; // จำลองจำนวนโครงการ
@@ -338,7 +338,7 @@ export default function AcademicTab({
         </div>
       </div>
       
-      {/* 💡 Table with Search */}
+      {/* Table with Search */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '24px 0 12px', flexWrap: 'wrap', gap: '10px' }}>
         <h3 style={{ margin: 0, color: "#0f172a", fontSize: "16px", fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
           <FaListUl style={{ color: "#1565c0" }} /> 
@@ -361,11 +361,11 @@ export default function AcademicTab({
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr>
-                <th style={{ width: "80px", textAlign: "center", padding: "12px", color: '#ffffff', backgroundColor: '#005a30', fontWeight: 600 }}>เดือน</th>
-                <th style={{ padding: "12px", textAlign: "left", color: '#ffffff', backgroundColor: '#005a30', fontWeight: 600 }}>ชื่อโครงการ</th>
-                <th style={{ padding: "12px", textAlign: "left", color: '#ffffff', backgroundColor: '#005a30', fontWeight: 600 }}>หัวหน้าโครงการ</th>
-                <th style={{ padding: "12px", textAlign: "right", color: '#ffffff', backgroundColor: '#005a30', fontWeight: 600 }}>งบประมาณ (บาท)</th>
-                <th style={{ padding: "12px", textAlign: "left", color: '#ffffff', backgroundColor: '#005a30', fontWeight: 600 }}>ผู้ขอรับบริการ</th>
+                <th style={{ width: "80px", textAlign: "center", padding: "12px", color: '#ffffff', backgroundColor: '#00A651', borderBottom: '2px solid #008f44', fontWeight: 600, whiteSpace: 'nowrap' }}>เดือน</th>
+                <th style={{ padding: "12px", textAlign: "left", color: '#ffffff', backgroundColor: '#00A651', borderBottom: '2px solid #008f44', fontWeight: 600, whiteSpace: 'nowrap' }}>ชื่อโครงการพัฒนาวิชาการ</th>
+                <th style={{ padding: "12px", textAlign: "left", color: '#ffffff', backgroundColor: '#00A651', borderBottom: '2px solid #008f44', fontWeight: 600, whiteSpace: 'nowrap' }}>หัวหน้าโครงการ</th>
+                <th style={{ padding: "12px", textAlign: "right", color: '#ffffff', backgroundColor: '#00A651', borderBottom: '2px solid #008f44', fontWeight: 600, whiteSpace: 'nowrap' }}>งบประมาณรวม (บาท)</th>
+                <th style={{ padding: "12px", textAlign: "left", color: '#ffffff', backgroundColor: '#00A651', borderBottom: '2px solid #008f44', fontWeight: 600, whiteSpace: 'nowrap' }}>ผู้ขอรับบริการ</th>
               </tr>
             </thead>
             <tbody>
@@ -379,7 +379,17 @@ export default function AcademicTab({
                   <td style={{ whiteSpace: "normal", padding: "12px", color: "#0f172a", lineHeight: "1.5", fontWeight: 400 }}>{item.name}</td>
                   <td style={{ padding: "12px", color: "#0f172a", fontWeight: 400 }}>{item.head !== "nan" ? item.head.replace("\n", " ") : "-"}</td>
                   <td style={{ padding: "12px", textAlign: "right", fontWeight: 600, color: "#006838" }}>
-                    {(item.budget || 0).toLocaleString()} ฿
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                      <span>{(item.budget || 0).toLocaleString()} ฿</span>
+                      {Number(item.budget) > 0 && (
+                        <span
+                          style={{ fontSize: '10.5px', color: '#64748b', cursor: 'help' }}
+                          title={`การจัดสรรงบประมาณ (หักอัตโนมัติ 30%):\n- ค่าอำนวยการ (15%): ${Math.round(Number(item.budget) * 0.15).toLocaleString()} ฿\n- คณะ (5%): ${Math.round(Number(item.budget) * 0.05).toLocaleString()} ฿\n- ภาควิชา (5%): ${Math.round(Number(item.budget) * 0.05).toLocaleString()} ฿\n- มก. (5%): ${Math.round(Number(item.budget) * 0.05).toLocaleString()} ฿\n- คงเหลือดำเนินงาน (70%): ${Math.round(Number(item.budget) * 0.70).toLocaleString()} ฿`}
+                        >
+                          หัก 30% ({Math.round(Number(item.budget) * 0.30).toLocaleString()} ฿)
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td style={{ padding: "12px", color: "#0f172a", fontWeight: 400 }}>{item.client !== "nan" ? item.client.replace("\n", " ") : "-"}</td>
                 </tr>

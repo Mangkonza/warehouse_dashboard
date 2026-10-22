@@ -74,7 +74,7 @@ export const DEPARTMENT_ABBR_MAP: Record<string, string> = {
 };
 
 export const getDepartmentAbbr = (dept: string): string => {
-  if (!dept || dept === '-' || dept === 'nan') return '-';
+  if (!dept || dept === '-' || dept === 'nan' || dept === 'ü' || dept === 'P') return '-';
   const clean = String(dept).trim();
 
   // 1. Direct match
@@ -82,18 +82,23 @@ export const getDepartmentAbbr = (dept: string): string => {
     return DEPARTMENT_ABBR_MAP[clean];
   }
 
-  // 2. Keyword-based matching to ensure full coverage of variations
-  if (clean.includes('อาหาร')) return 'FE';
-  if (clean.includes('เกษตร')) return 'ABE';
-  if (clean.includes('คอมพิวเตอร์') || clean.includes('คอม')) return 'CPE';
-  if (clean.includes('ชลประทาน')) return 'IRE';
-  if (clean.includes('อุตสาหการ')) return 'IE';
-  if (clean.includes('เครื่องกล')) return 'ME';
-  if (clean.includes('โยธา')) return 'CE';
-  if (clean.includes('พลังงาน') || clean.includes('สิ่งแวดล้อม')) return 'EEEC';
-  if (clean.includes('ประตู') || clean.includes('ผนังกระจก') || clean.includes('TDW')) return 'TDW';
-  if (clean.includes('เครื่องจักรกล')) return 'NAMC';
-  if (clean.includes('เลขานุการ') || clean.includes('สำนักงาน')) return 'OFFICE';
+  // 2. Multi-department and Keyword-based matching
+  const found: string[] = [];
+  if (clean.includes('โยธา') || clean.includes('CE')) found.push('CE');
+  if (clean.includes('อาหาร') || clean.includes('FE')) found.push('FE');
+  if (clean.includes('เกษตร') || clean.includes('ABE')) found.push('ABE');
+  if (clean.includes('คอมพิวเตอร์') || clean.includes('คอม') || clean.includes('CPE')) found.push('CPE');
+  if (clean.includes('ชลประทาน') || clean.includes('IRE')) found.push('IRE');
+  if (clean.includes('อุตสาหการ') || clean.includes('IE')) found.push('IE');
+  if (clean.includes('เครื่องกล') || clean.includes('ME')) found.push('ME');
+  if (clean.includes('พลังงาน') || clean.includes('สิ่งแวดล้อม') || clean.includes('EEEC')) found.push('EEEC');
+  if (clean.includes('ประตู') || clean.includes('ผนังกระจก') || clean.includes('TDW')) found.push('TDW');
+  if (clean.includes('เครื่องจักรกล') || clean.includes('NAMC')) found.push('NAMC');
+  if (clean.includes('เลขานุการ') || clean.includes('สำนักงาน') || clean.includes('OFFICE')) found.push('OFFICE');
+
+  if (found.length > 0) {
+    return found.join(', ');
+  }
 
   // 3. Fallback check for map keys
   for (const [k, v] of Object.entries(DEPARTMENT_ABBR_MAP)) {
@@ -102,13 +107,15 @@ export const getDepartmentAbbr = (dept: string): string => {
     }
   }
 
+  if (clean.length <= 2) return '-';
+
   return clean.replace('ภาควิชา', '').replace('ศูนย์', '');
 };
 
 export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
   monitoring: {
     key: 'monitoring',
-    title: '⏱️ ติดตามสถานะโครงการ',
+    title: 'ติดตามสถานะโครงการ',
     titleEn: 'Project Monitoring & Timeline',
     icon: 'fa-clock',
     color: '#0284c7',
@@ -125,7 +132,7 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
     title: 'โครงการวิจัย',
     titleEn: 'Research Projects',
     icon: 'fa-flask',
-    color: '#00a859',
+    color: '#00A651',
     description: 'จัดการโครงการวิจัย ทุนวิจัย และหัวหน้าโครงการ',
     primaryKey: 'id',
     nameKey: 'name',
@@ -168,27 +175,56 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
     titleEn: 'Academic Projects',
     icon: 'fa-graduation-cap',
     color: '#1565c0',
-    description: 'จัดการงานพัฒนาวิชาการ บริการวิชาชีพ และผู้ว่าจ้าง',
+    description: 'จัดการงานพัฒนาวิชาการ บริการวิชาชีพ การบูรณาการ และการจัดสรรงบประมาณ',
     primaryKey: 'name',
     nameKey: 'name',
+    departmentKey: 'department',
     personKey: 'head',
     columns: [
-      { key: 'month', label: 'ช่วงเวลา\nเดือน', type: 'badge', width: '10%', align: 'center', placeholder: 'เช่น ม.ค. 67' },
-      { key: 'name', label: 'ชื่อโครงการพัฒนาวิชาการ', type: 'text', width: '33%', required: true, placeholder: 'ชื่อโครงการพัฒนาวิชาการ' },
-      { key: 'head', label: 'หัวหน้าโครงการ', type: 'text', width: '18%', required: true, autocomplete: 'personnel', placeholder: 'พิมพ์ค้นหาชื่ออาจารย์...' },
-      { key: 'client', label: 'ผู้ขอรับบริการ / ว่าจ้าง', type: 'text', width: '18%', placeholder: 'หน่วยงานผู้ว่าจ้าง' },
-      { key: 'budget', label: 'งบประมาณ\n(บาท)', type: 'currency', width: '16%', align: 'right', placeholder: '0' },
+      { key: 'name', label: 'ชื่อโครงการพัฒนาวิชาการ', type: 'text', width: '24%', required: true, placeholder: 'ชื่อโครงการพัฒนาวิชาการ' },
+      { key: 'head', label: 'หัวหน้าโครงการ', type: 'text', width: '13%', required: true, autocomplete: 'personnel', placeholder: 'พิมพ์ค้นหาชื่ออาจารย์...' },
+      { key: 'co_members', label: 'ผู้ร่วมโครงการ', type: 'academic_members', width: '10%', align: 'center' },
+      { key: 'department', label: 'ภาควิชา', type: 'badge', width: '9%', autocomplete: 'department', selectOptions: DEPARTMENTS },
+      { key: 'client', label: 'ผู้ขอรับบริการ / ว่าจ้าง', type: 'text', width: '11%', placeholder: 'หน่วยงานผู้ว่าจ้าง' },
+      { key: 'budget', label: 'งบประมาณรวม (บาท)', type: 'academic_budget', width: '12%', align: 'right', placeholder: '0' },
+      { key: 'timeline', label: 'ระยะเวลาดำเนินการ', type: 'academic_timeline', width: '11%', align: 'center', required: true },
+      { key: 'characteristics', label: 'ลักษณะโครงการ', type: 'academic_character', width: '10%', align: 'center' },
     ],
     templateSampleRows: [
-      { month: 'ม.ค. 67', name: 'โครงการตรวจประเมินคุณภาพน้ำและระบบบำบัดน้ำเสียอุตสาหกรรม', head: 'ผศ.นงลักษณ์ เล็กรุ่งเรืองกิจ', client: 'กรมโรงงานอุตสาหกรรม', budget: 450000 },
-      { month: 'ก.พ. 67', name: 'การให้คำปรึกษาการออกแบบโรงเรือนอัจฉริยะ', head: 'รศ.ดร.ประเทือง อุษาบริสุทธิ์', client: 'บริษัท เกษตรพัฒนา จำกัด', budget: 280000 },
+      {
+        name: 'โครงการตรวจประเมินคุณภาพน้ำและระบบบำบัดน้ำเสียอุตสาหกรรม',
+        head: 'ผศ.นงลักษณ์ เล็กรุ่งเรืองกิจ',
+        co_members_internal: 2,
+        co_members_external: 1,
+        department: 'ภาควิชาวิศวกรรมชลประทาน',
+        client: 'กรมโรงงานอุตสาหกรรม',
+        budget: 450000,
+        start_date: '2025-01-01',
+        end_date: '2025-06-30',
+        characteristics: ['สอดคล้องกับนโยบายชาติ'],
+        research_projects: [{ code: 'R-68-001', name: 'การวิจัยการบำบัดน้ำเสียอัจฉริยะ' }],
+        patent_integration: '2301004567 ระบบควบคุมระบบปรับอากาศ',
+      },
+      {
+        name: 'การให้คำปรึกษาการออกแบบโรงเรือนอัจฉริยะ',
+        head: 'รศ.ดร.ประเทือง อุษาบริสุทธิ์',
+        co_members_internal: 1,
+        co_members_external: 0,
+        department: 'ภาควิชาวิศวกรรมการเกษตร',
+        client: 'บริษัท เกษตรพัฒนา จำกัด',
+        budget: 280000,
+        start_date: '2025-02-01',
+        end_date: '2025-07-31',
+        characteristics: ['เพิ่มมูลค่า'],
+        research_projects: [{ code: '02206231', name: 'การเกษตรแม่นยำและการควบคุมสิ่งแวดล้อม' }],
+      },
     ],
-    searchFields: ['name', 'head', 'client', 'month'],
+    searchFields: ['name', 'head', 'client', 'department', 'month'],
   },
 
   service: {
     key: 'service',
-    title: 'กิจกรรมบริการวิชาการ',
+    title: 'งานบริการวิชาการ',
     titleEn: 'Academic Services',
     icon: 'fa-hands-helping',
     color: '#e65100',
@@ -199,7 +235,7 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
     personKey: 'person',
     columns: [
       { key: 'date', label: 'วันที่จัดกิจกรรม', type: 'date', width: '11%', align: 'center', placeholder: 'ปปปป-ดด-วว' },
-      { key: 'name', label: 'ชื่อกิจกรรมบริการวิชาการ', type: 'text', width: '33%', required: true, placeholder: 'ชื่อกิจกรรมหรือหลักสูตรอบรม' },
+      { key: 'name', label: 'ชื่องานบริการวิชาการ', type: 'text', width: '33%', required: true, placeholder: 'ชื่อกิจกรรมหรือหลักสูตรอบรม' },
       { key: 'person', label: 'ผู้รับผิดชอบ', type: 'text', width: '18%', required: true, autocomplete: 'personnel', placeholder: 'พิมพ์ค้นหาชื่ออาจารย์...' },
       { key: 'department', label: 'ภาควิชา / ศูนย์', type: 'badge', width: '15%', autocomplete: 'department', selectOptions: DEPARTMENTS },
       { key: 'target_group', label: 'กลุ่มเป้าหมาย / ผู้เข้าร่วม', type: 'text', width: '14%', placeholder: 'เช่น เกษตรกร, บุคคลทั่วไป' },
@@ -213,7 +249,7 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
 
   publications: {
     key: 'publications',
-    title: 'ผลงานตีพิมพ์',
+    title: 'ผลงานตีพิมพ์ทางวิชาการ',
     titleEn: 'Publications',
     icon: 'fa-book-open',
     color: '#2e7d32',
@@ -223,7 +259,7 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
     departmentKey: 'department',
     personKey: 'owner',
     columns: [
-      { key: 'name', label: 'ชื่อผลงานตีพิมพ์', type: 'text', width: '28%', required: true, placeholder: 'ชื่อบทความหรือผลงานตีพิมพ์' },
+      { key: 'name', label: 'ชื่อผลงานตีพิมพ์ทางวิชาการ', type: 'text', width: '28%', required: true, placeholder: 'ชื่อบทความหรือผลงานตีพิมพ์' },
       { key: 'owner', label: 'เจ้าของผลงาน / ผู้ประพันธ์', type: 'text', width: '15%', required: true, autocomplete: 'personnel', placeholder: 'พิมพ์ค้นหาชื่ออาจารย์...' },
       { key: 'department', label: 'ภาควิชา', type: 'badge', width: '12%', autocomplete: 'department', selectOptions: DEPARTMENTS },
       { key: 'level', label: 'ระดับ / ควอร์ไทล์', type: 'quartile', width: '12%', align: 'center' },
@@ -240,7 +276,7 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
 
   ip: {
     key: 'ip',
-    title: 'ทรัพย์สินทางปัญญา',
+    title: 'งานทรัพย์สินทางปัญญา',
     titleEn: 'Intellectual Property',
     icon: 'fa-certificate',
     color: '#6a1b9a',
@@ -250,19 +286,18 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
     departmentKey: 'department',
     personKey: 'creator',
     columns: [
-      { key: 'req_no', label: 'เลขที่คำขอ / ทะเบียน', type: 'text', width: '12%', align: 'center', placeholder: 'เช่น 2301001234' },
-      { key: 'name', label: 'ชื่อผลงาน / การประดิษฐ์', type: 'text', width: '32%', required: true, placeholder: 'ชื่อการประดิษฐ์หรือผลงาน' },
-      { key: 'creator', label: 'ผู้ประดิษฐ์ / ผู้สร้างสรรค์', type: 'text', width: '17%', required: true, autocomplete: 'personnel', placeholder: 'พิมพ์ค้นหาชื่ออาจารย์...' },
-      { key: 'department', label: 'ภาควิชา', type: 'badge', width: '16%', autocomplete: 'department', selectOptions: DEPARTMENTS },
-      { key: 'type', label: 'ประเภททรัพย์สินทางปัญญา', type: 'badge', width: '8%', align: 'center', placeholder: 'เช่น อนุสิทธิบัตร, สิทธิบัตร' },
+      { key: 'req_no', label: 'เลขที่คำขอ / ทะเบียน', type: 'text', width: '15%', align: 'center', placeholder: 'เช่น 2301001234' },
+      { key: 'name', label: 'ชื่อผลงาน / การประดิษฐ์', type: 'text', width: '38%', required: true, placeholder: 'ชื่อการประดิษฐ์หรือผลงาน' },
+      { key: 'department', label: 'ภาควิชาที่ประดิษฐ์', type: 'badge', width: '18%', align: 'center', autocomplete: 'department', selectOptions: DEPARTMENTS },
+      { key: 'type', label: 'ประเภททรัพย์สินทางปัญญา', type: 'badge', width: '14%', align: 'center', placeholder: 'เช่น อนุสิทธิบัตร, สิทธิบัตร' },
       { 
         key: 'status', 
         label: 'สถานะคำขอ', 
         type: 'badge', 
-        width: '6%', 
+        width: '15%', 
         align: 'center',
         badgeColorMap: (val) => {
-          if (String(val).includes('รับจดทะเบียน') || String(val).includes('ออกสิทธิบัตร')) {
+          if (String(val).includes('รับจดทะเบียน') || String(val).includes('ออกสิทธิบัตร') || String(val).includes('ได้รับความคุ้มครอง')) {
             return { bg: '#e8f5e9', text: '#2e7d32', border: '#a5d6a7' };
           }
           if (String(val).includes('ยื่นคำขอ') || String(val).includes('ประกาศโฆษณา')) {
@@ -273,8 +308,8 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
       },
     ],
     templateSampleRows: [
-      { req_no: '2403000123', name: 'อุปกรณ์วัดความชื้นในเมล็ดพืชแบบพกพาด้วยคลื่นความถี่สูง', creator: 'ผศ.ดร.วันรัฐ อับดุลลากาซิม', department: 'ภาควิชาวิศวกรรมการเกษตร', type: 'อนุสิทธิบัตร', status: 'ยื่นคำขอแล้ว' },
-      { req_no: '2301004567', name: 'ระบบควบคุมระบบปรับอากาศประหยัดพลังงานอัตโนมัติ', creator: 'รศ.ดร.ศิวลักษณ์ ปฐวีรัตน์', department: 'ภาควิชาวิศวกรรมคอมพิวเตอร์', type: 'สิทธิบัตรการประดิษฐ์', status: 'ประกาศโฆษณา' },
+      { req_no: '2403000123', name: 'อุปกรณ์วัดความชื้นในเมล็ดพืชแบบพกพาด้วยคลื่นความถี่สูง', department: 'ภาควิชาวิศวกรรมเกษตร', type: 'อนุสิทธิบัตร', status: 'ยื่นคำขอแล้ว' },
+      { req_no: '2301004567', name: 'ระบบควบคุมระบบปรับอากาศประหยัดพลังงานอัตโนมัติ', department: 'ภาควิชาวิศวกรรมคอมพิวเตอร์', type: 'สิทธิบัตรการประดิษฐ์', status: 'ได้รับความคุ้มครองแล้ว' },
     ],
     searchFields: ['name', 'creator', 'department', 'type', 'req_no', 'status'],
   },
@@ -307,7 +342,7 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
 
   kpi: {
     key: 'kpi',
-    title: 'ตัวชี้วัดยุทธศาสตร์ (KPI)',
+    title: 'ตัวชี้วัดตามแผนยุทธศาสตร์',
     titleEn: 'Strategic KPIs',
     icon: 'fa-bullseye',
     color: '#059669',

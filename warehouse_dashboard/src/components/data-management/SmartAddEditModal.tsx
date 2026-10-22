@@ -20,6 +20,7 @@ import { MultiMemberSelector } from './MultiMemberSelector';
 import { SDGTagSelector } from './SDGTagSelector';
 import { JournalQuartileSelector } from './JournalQuartileSelector';
 import { STATUS_LABELS } from '../../lib/projectMonitoringEngine';
+import { AcademicProjectForm } from './AcademicProjectForm';
 
 const getCategoryIcon = (key: string) => {
   switch (key) {
@@ -104,13 +105,44 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
     e.preventDefault();
     setErrorMsg('');
 
-    // ตรวจสอบ required fields
-    for (const col of config.columns) {
-      if (col.required) {
-        const val = formData[col.key];
-        if (!val || String(val).trim() === '') {
-          setErrorMsg(`กรุณากรอกข้อมูล "${col.label}"`);
-          return;
+    if (config.key === 'academic') {
+      if (!formData.name || !String(formData.name).trim()) {
+        setErrorMsg('กรุณากรอก "ชื่อโครงการพัฒนาวิชาการ"');
+        return;
+      }
+      if (!formData.head || !String(formData.head).trim()) {
+        setErrorMsg('กรุณากรอก "หัวหน้าโครงการ"');
+        return;
+      }
+      if (!formData.start_date) {
+        setErrorMsg('กรุณาระบุ "วันที่เริ่มต้นดำเนินการ"');
+        return;
+      }
+      if (!formData.end_date) {
+        setErrorMsg('กรุณาระบุ "วันที่สิ้นสุดดำเนินการ"');
+        return;
+      }
+      if (formData.start_date && formData.end_date && formData.end_date < formData.start_date) {
+        setErrorMsg('"วันที่สิ้นสุดดำเนินการ" ต้องไม่เกิดขึ้นก่อน "วันที่เริ่มต้นดำเนินการ"');
+        return;
+      }
+      if (
+        formData.integration_start_date &&
+        formData.integration_end_date &&
+        formData.integration_end_date < formData.integration_start_date
+      ) {
+        setErrorMsg('"วันที่สิ้นสุดนำไปบูรณาการ" ต้องไม่เกิดขึ้นก่อน "วันที่เริ่มต้นนำไปบูรณาการ"');
+        return;
+      }
+    } else {
+      // ตรวจสอบ required fields
+      for (const col of config.columns) {
+        if (col.required) {
+          const val = formData[col.key];
+          if (!val || String(val).trim() === '') {
+            setErrorMsg(`กรุณากรอกข้อมูล "${col.label}"`);
+            return;
+          }
         }
       }
     }
@@ -141,7 +173,7 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
           backgroundColor: '#ffffff',
           borderRadius: '16px',
           width: '100%',
-          maxWidth: '620px',
+          maxWidth: config.key === 'academic' ? '820px' : '620px',
           maxHeight: '90vh',
           display: 'flex',
           flexDirection: 'column',
@@ -153,7 +185,7 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
         <div
           style={{
             padding: '20px 24px',
-            backgroundColor: '#00a859',
+            backgroundColor: '#00A651',
             color: '#ffffff',
             display: 'flex',
             alignItems: 'center',
@@ -209,7 +241,14 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
               </div>
             )}
 
-            {editableCols.map((col) => {
+            {config.key === 'academic' ? (
+              <AcademicProjectForm
+                formData={formData}
+                onChange={handleFieldChange}
+                setFormData={setFormData}
+              />
+            ) : (
+              editableCols.map((col) => {
               const val = formData[col.key] !== undefined ? formData[col.key] : '';
 
               return (
@@ -273,7 +312,7 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
                                 gap: '6px',
                                 padding: '6px 12px',
                                 borderRadius: '6px',
-                                backgroundColor: '#00a859',
+                                backgroundColor: '#00A651',
                                 color: '#ffffff',
                                 border: 'none',
                                 fontSize: '12.5px',
@@ -481,7 +520,7 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
                   )}
                 </div>
               );
-            })}
+            }))}
           </div>
 
           {/* Modal Footer */}
@@ -517,12 +556,12 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
                 padding: '10px 24px',
                 borderRadius: '8px',
                 border: 'none',
-                backgroundColor: '#00a859',
+                backgroundColor: '#00A651',
                 color: '#ffffff',
                 fontSize: '14px',
                 fontWeight: 600,
                 cursor: 'pointer',
-                boxShadow: '0 2px 6px rgba(0, 168, 89, 0.3)',
+                boxShadow: '0 2px 6px rgba(0, 166, 81, 0.3)',
               }}
             >
               <FaSave style={{ marginRight: '6px' }} />

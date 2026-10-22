@@ -14,7 +14,6 @@ import {
   FaFileAlt,
   FaUsers,
   FaClock,
-  FaLeaf,
 } from 'react-icons/fa';
 import { calculateProjectTimeline, STATUS_LABELS } from '../../lib/projectMonitoringEngine';
 import { SDGS_DATA } from '../../config/sdgConfig';
@@ -148,15 +147,46 @@ export const DataTable: React.FC<DataTableProps> = ({
         let text = '#475569';
         let border = '#e2e8f0';
 
+        if (col.key === 'department') {
+          let deptText = String(rawVal ?? '');
+          if ((!deptText || deptText === 'ü' || deptText === 'P' || deptText === '-' || deptText === 'nan') && (item as any)?.creator) {
+            deptText = String((item as any).creator);
+          }
+          const abbr = getDepartmentAbbr(deptText);
+          const abbrList = abbr === '-' ? ['-'] : abbr.split(',').map((s: string) => s.trim()).filter(Boolean);
+
+          return (
+            <div style={{ display: 'inline-flex', gap: '4px', justifyContent: col.align === 'center' ? 'center' : 'flex-start', flexWrap: 'wrap', alignItems: 'center' }}>
+              {abbrList.map((ab: string, idx: number) => (
+                <span
+                  key={idx}
+                  style={{
+                    display: 'inline-block',
+                    padding: '2px 10px',
+                    borderRadius: '12px',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    fontFamily: "'Kanit', sans-serif",
+                    backgroundColor: ab === '-' ? '#94a3b8' : '#990000',
+                    color: '#ffffff',
+                    border: `1px solid ${ab === '-' ? '#94a3b8' : '#990000'}`,
+                    whiteSpace: 'nowrap',
+                    cursor: 'default',
+                  }}
+                  title={deptText}
+                >
+                  {ab}
+                </span>
+              ))}
+            </div>
+          );
+        }
+
         if (col.badgeColorMap) {
           const colors = col.badgeColorMap(rawVal);
           bg = colors.bg;
           text = colors.text;
           border = colors.border || border;
-        } else if (col.key === 'department') {
-          bg = '#fbf0f1';
-          text = '#72242B';
-          border = '#e8b3b9';
         } else if (col.key === 'type' || col.key === 'month') {
           bg = '#eff6ff';
           text = '#1d4ed8';
@@ -182,7 +212,7 @@ export const DataTable: React.FC<DataTableProps> = ({
             }}
             title={String(rawVal)}
           >
-            {col.key === 'department' ? getDepartmentAbbr(String(rawVal)) : String(rawVal).replace('ภาควิชา', '')}
+            {String(rawVal).replace('ภาควิชา', '')}
           </span>
         );
 
@@ -273,10 +303,11 @@ export const DataTable: React.FC<DataTableProps> = ({
           <span
             style={{
               display: 'inline-block',
-              padding: '2px 8px',
+              padding: '2px 10px',
               borderRadius: '12px',
-              fontSize: '11px',
-              fontWeight: 700,
+              fontSize: '13px',
+              fontWeight: 600,
+              fontFamily: "'Kanit', sans-serif",
               backgroundColor: tierStyle.bg,
               color: tierStyle.text,
               border: `1px solid ${tierStyle.border}`,
@@ -317,6 +348,207 @@ export const DataTable: React.FC<DataTableProps> = ({
             <FaUsers style={{ fontSize: '11px' }} />
             {count} ท่าน {hasExternal && '(ภายนอก)'}
           </span>
+        );
+      }
+
+      case 'academic_members': {
+        const inCount = Number(item.co_members_internal) || 0;
+        const outCount = Number(item.co_members_external) || 0;
+        const totalCo = inCount + outCount;
+        if (inCount === 0 && outCount === 0) {
+          return <span style={{ color: '#94a3b8', fontSize: '12px' }}>-</span>;
+        }
+        return (
+          <div
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap', justifyContent: 'center' }}
+            title={`ผู้ร่วมโครงการรวม ${totalCo} คน (ภายใน: ${inCount} คน, ภายนอก: ${outCount} คน)`}
+          >
+            {inCount > 0 && (
+              <span
+                style={{
+                  padding: '2px 7px',
+                  borderRadius: '10px',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  backgroundColor: '#e0f2fe',
+                  color: '#0369a1',
+                  border: '1px solid #bae6fd',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                ใน {inCount} คน
+              </span>
+            )}
+            {outCount > 0 && (
+              <span
+                style={{
+                  padding: '2px 7px',
+                  borderRadius: '10px',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  backgroundColor: '#fef3c7',
+                  color: '#b45309',
+                  border: '1px solid #fde68a',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                นอก {outCount} คน
+              </span>
+            )}
+          </div>
+        );
+      }
+
+      case 'academic_budget': {
+        const b = Number(rawVal !== undefined && rawVal !== null && rawVal !== '' ? rawVal : item.budget || 0);
+        if (isNaN(b) || b === 0) return <span style={{ color: '#94a3b8', fontSize: '13px' }}>-</span>;
+        const mgt = Math.round(b * 0.15);
+        const fac = Math.round(b * 0.05);
+        const dep = Math.round(b * 0.05);
+        const ku = Math.round(b * 0.05);
+        const rem = b - (mgt + fac + dep + ku);
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '1px' }}>
+            <span style={{ fontWeight: 700, color: '#059669', fontFamily: 'monospace', fontSize: '13.5px', whiteSpace: 'nowrap' }}>
+              {b.toLocaleString()}
+            </span>
+            <span
+              style={{
+                fontSize: '10.5px',
+                color: '#64748b',
+                cursor: 'help',
+                whiteSpace: 'nowrap',
+              }}
+              title={`การจัดสรรงบประมาณ (หักอัตโนมัติ 30%):\n- ค่าอำนวยการ (15%): ${mgt.toLocaleString()} บาท\n- คณะ (5%): ${fac.toLocaleString()} บาท\n- ภาควิชา (5%): ${dep.toLocaleString()} บาท\n- มก. (5%): ${ku.toLocaleString()} บาท\n- งบดำเนินงานคงเหลือ (70%): ${rem.toLocaleString()} บาท`}
+            >
+              หัก 30% ({ (mgt + fac + dep + ku).toLocaleString() })
+            </span>
+          </div>
+        );
+      }
+
+      case 'academic_timeline': {
+        const start = item.start_date ? String(item.start_date).substring(0, 10) : '';
+        const end = item.end_date ? String(item.end_date).substring(0, 10) : '';
+        if (start && end) {
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+              <span style={{ fontSize: '11.5px', color: '#1e293b', whiteSpace: 'nowrap', fontFamily: 'monospace' }}>
+                {start}
+              </span>
+              <span style={{ fontSize: '10px', color: '#64748b', whiteSpace: 'nowrap' }}>
+                ถึง {end}
+              </span>
+            </div>
+          );
+        }
+        if (item.month && item.month !== '-' && item.month !== 'nan') {
+          return (
+            <span
+              style={{
+                display: 'inline-block',
+                padding: '2px 8px',
+                borderRadius: '6px',
+                fontSize: '12px',
+                fontWeight: 500,
+                backgroundColor: '#eff6ff',
+                color: '#1d4ed8',
+                border: '1px solid #bfdbfe',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {item.month}
+            </span>
+          );
+        }
+        return <span style={{ color: '#cbd5e1' }}>-</span>;
+      }
+
+      case 'academic_character': {
+        const chars = Array.isArray(rawVal)
+          ? rawVal
+          : typeof rawVal === 'string' && rawVal
+          ? rawVal.split(',').map((s) => s.trim()).filter(Boolean)
+          : [];
+        if (chars.length === 0) return <span style={{ color: '#cbd5e1' }}>-</span>;
+        return (
+          <div style={{ display: 'inline-flex', gap: '4px', flexWrap: 'wrap', justifyContent: 'center' }}>
+            {chars.map((c: string, idx: number) => {
+              const isPolicy = c.includes('นโยบาย');
+              return (
+                <span
+                  key={idx}
+                  style={{
+                    padding: '2px 6px',
+                    borderRadius: '8px',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    backgroundColor: isPolicy ? '#ecfdf5' : '#f5f3ff',
+                    color: isPolicy ? '#047857' : '#6d28d9',
+                    border: `1px solid ${isPolicy ? '#a7f3d0' : '#ddd6fe'}`,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {c}
+                </span>
+              );
+            })}
+          </div>
+        );
+      }
+
+      case 'academic_integration': {
+        const resList = Array.isArray(item.research_projects) ? item.research_projects : [];
+        const patent = item.patent_integration ? String(item.patent_integration).trim() : '';
+        if (resList.length === 0 && !patent) {
+          return <span style={{ color: '#cbd5e1' }}>-</span>;
+        }
+        const resTooltip = resList.map((r: any) => `[${r.code}] ${r.name}`).join('\n');
+        const fullTooltip = [
+          resList.length > 0 ? `โครงการวิจัย (${resList.length} รายการ):\n${resTooltip}` : '',
+          patent ? `สิทธิบัตร:\n${patent}` : '',
+          item.integration_start_date ? `ช่วงบูรณาการ: ${item.integration_start_date} ถึง ${item.integration_end_date || '-'}` : '',
+        ]
+          .filter(Boolean)
+          .join('\n\n');
+
+        return (
+          <div style={{ display: 'inline-flex', gap: '4px', flexWrap: 'wrap', justifyContent: 'center' }} title={fullTooltip}>
+            {resList.length > 0 && (
+              <span
+                style={{
+                  padding: '2px 6px',
+                  borderRadius: '8px',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  backgroundColor: '#eff6ff',
+                  color: '#1d4ed8',
+                  border: '1px solid #bfdbfe',
+                  whiteSpace: 'nowrap',
+                  cursor: 'help',
+                }}
+              >
+                วิจัย ({resList.length})
+              </span>
+            )}
+            {patent && (
+              <span
+                style={{
+                  padding: '2px 6px',
+                  borderRadius: '8px',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  backgroundColor: '#fdf4ff',
+                  color: '#86198f',
+                  border: '1px solid #f0abfc',
+                  whiteSpace: 'nowrap',
+                  cursor: 'help',
+                }}
+              >
+                สิทธิบัตร
+              </span>
+            )}
+          </div>
         );
       }
 
@@ -370,7 +602,7 @@ export const DataTable: React.FC<DataTableProps> = ({
                       background: 'none',
                       border: `1px solid ${isExpanded ? '#bbf7d0' : '#e2e8f0'}`,
                       backgroundColor: isExpanded ? '#f0fdf4' : '#f8fafc',
-                      color: isExpanded ? '#00a859' : '#0284c7',
+                      color: isExpanded ? '#00A651' : '#0284c7',
                       fontSize: '11px',
                       fontWeight: 500,
                       borderRadius: '4px',
@@ -400,7 +632,7 @@ export const DataTable: React.FC<DataTableProps> = ({
                       alignItems: 'center',
                     }}
                     title="เปิดหน้าต่างป๊อปอัปดูชื่อฉบับเต็ม"
-                    onMouseEnter={(e) => (e.currentTarget.style.color = '#00a859')}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = '#00A651')}
                     onMouseLeave={(e) => (e.currentTarget.style.color = '#94a3b8')}
                   >
                     <FaExpandAlt />
@@ -460,7 +692,7 @@ export const DataTable: React.FC<DataTableProps> = ({
                   display: 'inline-flex',
                   alignItems: 'center',
                   fontSize: '10.5px',
-                  color: isExpanded ? '#00a859' : '#0284c7',
+                  color: isExpanded ? '#00A651' : '#0284c7',
                   backgroundColor: isExpanded ? '#f0fdf4' : '#f8fafc',
                   border: `1px solid ${isExpanded ? '#bbf7d0' : '#e2e8f0'}`,
                   borderRadius: '3px',
@@ -485,7 +717,7 @@ export const DataTable: React.FC<DataTableProps> = ({
       <table
         style={{
           width: '100%',
-          minWidth: '1050px',
+          minWidth: categoryKey === 'research' ? '1320px' : '1100px',
           tableLayout: 'fixed',
           borderCollapse: 'collapse',
           textAlign: 'left',
@@ -493,18 +725,20 @@ export const DataTable: React.FC<DataTableProps> = ({
         }}
       >
         <thead>
-          <tr style={{ backgroundColor: '#00a859' }}>
+          <tr style={{ backgroundColor: '#00A651' }}>
             <th
               style={{
                 width: '4%',
+                minWidth: '42px',
                 textAlign: 'center',
                 padding: '12px 6px',
                 color: '#ffffff',
                 fontWeight: 600,
                 fontSize: '13px',
-                backgroundColor: '#00a859',
-                borderBottom: '2px solid #008f4c',
+                backgroundColor: '#00A651',
+                borderBottom: '2px solid #008f44',
                 verticalAlign: 'middle',
+                whiteSpace: 'nowrap',
               }}
             >
               #
@@ -515,42 +749,35 @@ export const DataTable: React.FC<DataTableProps> = ({
                 style={{
                   width: col.width || 'auto',
                   textAlign: col.align || 'left',
-                  padding: col.type === 'avatar' ? '10px 4px' : '10px 8px',
+                  padding: col.type === 'avatar' ? '10px 4px' : '11px 10px',
                   color: '#ffffff',
                   fontWeight: 600,
                   fontSize: '13px',
-                  backgroundColor: '#00a859',
-                  whiteSpace: 'normal', // รองรับการขึ้นบรรทัดใหม่ 2 บรรทัด ไม่ตัดคำเป็น ...
-                  lineHeight: '1.25',
+                  backgroundColor: '#00A651',
+                  whiteSpace: 'nowrap', // หัวตารางทุกหน้ามีบรรทัดเดียวเสมอ เพื่อความ Consistent
+                  lineHeight: '1.2',
                   verticalAlign: 'middle',
-                  wordBreak: 'break-word',
-                  borderBottom: '2px solid #008f4c',
+                  borderBottom: '2px solid #008f44',
                 }}
                 title={col.key === 'image_url' ? 'รูปภาพประจำตัว / รูปโปรไฟล์' : col.label.replace('\n', ' ')}
               >
-                {col.label.includes('\n') ? (
-                  col.label.split('\n').map((line, lIdx) => (
-                    <div key={lIdx} style={{ lineHeight: '1.2' }}>
-                      {line}
-                    </div>
-                  ))
-                ) : (
-                  col.label
-                )}
+                {col.label.replace('\n', ' ')}
               </th>
             ))}
             {!readOnly && (
               <th
                 style={{
                   width: '5%',
+                  minWidth: '70px',
                   textAlign: 'center',
                   padding: '12px 6px',
                   color: '#ffffff',
                   fontWeight: 600,
                   fontSize: '13px',
-                  backgroundColor: '#00a859',
-                  borderBottom: '2px solid #008f4c',
+                  backgroundColor: '#00A651',
+                  borderBottom: '2px solid #008f44',
                   verticalAlign: 'middle',
+                  whiteSpace: 'nowrap',
                 }}
               >
                 จัดการ
@@ -687,7 +914,7 @@ export const DataTable: React.FC<DataTableProps> = ({
             {/* Header Modal สีเขียว KU */}
             <div
               style={{
-                backgroundColor: '#00a859',
+                backgroundColor: '#00A651',
                 padding: '16px 20px',
                 color: '#ffffff',
                 display: 'flex',
@@ -755,7 +982,7 @@ export const DataTable: React.FC<DataTableProps> = ({
                     </span>
                   )}
                   {modalDetail.rowItem.department && (
-                    <span style={{ padding: '4px 10px', backgroundColor: '#f0fdf4', borderRadius: '6px', color: '#166534' }}>
+                    <span style={{ padding: '3px 10px', backgroundColor: '#990000', borderRadius: '12px', color: '#ffffff', border: '1px solid #990000', fontSize: '13px', fontWeight: 600, fontFamily: "'Kanit', sans-serif" }}>
                       ภาควิชา: <strong>{getDepartmentAbbr(modalDetail.rowItem.department)}</strong>
                     </span>
                   )}
@@ -793,14 +1020,14 @@ export const DataTable: React.FC<DataTableProps> = ({
                   borderRadius: '8px',
                   border: '1px solid #cbd5e1',
                   backgroundColor: '#ffffff',
-                  color: hasCopied ? '#00a859' : '#334155',
+                  color: hasCopied ? '#00A651' : '#334155',
                   fontWeight: 500,
                   fontSize: '13px',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
                 }}
               >
-                {hasCopied ? <FaCheck style={{ color: '#00a859' }} /> : <FaCopy />}
+                {hasCopied ? <FaCheck style={{ color: '#00A651' }} /> : <FaCopy />}
                 <span>{hasCopied ? 'คัดลอกสำเร็จแล้ว' : 'คัดลอกข้อความ'}</span>
               </button>
               <button
@@ -810,7 +1037,7 @@ export const DataTable: React.FC<DataTableProps> = ({
                   padding: '7px 18px',
                   borderRadius: '8px',
                   border: 'none',
-                  backgroundColor: '#00a859',
+                  backgroundColor: '#00A651',
                   color: '#ffffff',
                   fontWeight: 600,
                   fontSize: '13px',
