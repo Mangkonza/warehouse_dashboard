@@ -1,35 +1,11 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { apiFetch } from './api';
-
-export interface User {
-  id: string;
-  nontriAccount: string;
-  email?: string;
-  nameTh: string;
-  departmentName?: string;
-  facultyName?: string;
-  typePerson?: string;
-  role: 'admin' | 'viewer';
-}
-
-interface AuthContextType {
-  user: User | null;
-  token: string | null;
-  isLoading: boolean;
-  isAdmin: boolean;
-  loginWithMock: (role: 'admin' | 'viewer') => Promise<void>;
-  loginWithCredentials: (username: string, password: string, otp?: string) => Promise<{ success: boolean; error?: string }>;
-  logout: () => void;
-  openLoginModal: () => void;
-  closeLoginModal: () => void;
-  isLoginModalOpen: boolean;
-}
+import { apiFetch } from '@/lib/api';
+import { User, AuthContextType } from '../types/auth';
+import { ADMIN_ACCOUNTS, ADMIN_TEST_CREDENTIALS, SESSION_STORAGE_KEYS } from '../constants/authConfig';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-const ADMIN_ACCOUNTS = ['b6520503525', 'b6400000000', 'admin.eng', 'admin', 'test_admin'];
 
 export const isAccountAdmin = (u: User | null): boolean => {
   if (!u) return false;
@@ -45,8 +21,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
 
   useEffect(() => {
-    const savedToken = localStorage.getItem('ku_token');
-    const savedUser = localStorage.getItem('ku_user');
+    const savedToken = localStorage.getItem(SESSION_STORAGE_KEYS.token);
+    const savedUser = localStorage.getItem(SESSION_STORAGE_KEYS.user);
 
     if (savedToken && savedUser) {
       try {
@@ -55,7 +31,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (isAccountAdmin(parsed)) {
           parsed.role = 'admin';
           parsed.typePerson = 'ผู้ดูแลระบบ';
-          localStorage.setItem('ku_user', JSON.stringify(parsed));
+          localStorage.setItem(SESSION_STORAGE_KEYS.user, JSON.stringify(parsed));
         }
         setUser(parsed);
       } catch (e) {
@@ -76,8 +52,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (res.token && res.user) {
         setToken(res.token);
         setUser(res.user);
-        localStorage.setItem('ku_token', res.token);
-        localStorage.setItem('ku_user', JSON.stringify(res.user));
+        localStorage.setItem(SESSION_STORAGE_KEYS.token, res.token);
+        localStorage.setItem(SESSION_STORAGE_KEYS.user, JSON.stringify(res.user));
         setIsLoginModalOpen(false);
       }
     } catch (err) {
@@ -99,12 +75,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const normalizedPass = String(password).trim();
       const normalizedOtp = otp ? String(otp).trim() : '';
 
-      // ตรวจสอบเงื่อนไข Admin: username: Admin, password: Admin, otp: 111111
-      if (normalizedUser.toLowerCase() === 'admin') {
-        if (normalizedPass.toLowerCase() !== 'admin') {
+      // SECURITY: Local fallback check matching existing behavior
+      if (normalizedUser.toLowerCase() === ADMIN_TEST_CREDENTIALS.username) {
+        if (normalizedPass.toLowerCase() !== ADMIN_TEST_CREDENTIALS.password) {
           return { success: false, error: 'รหัสผ่านไม่ถูกต้อง (รหัสผ่านคือ Admin)' };
         }
-        if (normalizedOtp && normalizedOtp !== '111111') {
+        if (normalizedOtp && normalizedOtp !== ADMIN_TEST_CREDENTIALS.otp) {
           return { success: false, error: 'รหัส One-time code (OTP) ไม่ถูกต้อง (ระบุ: 111111)' };
         }
       }
@@ -124,14 +100,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
           setToken(res.token);
           setUser(res.user);
-          localStorage.setItem('ku_token', res.token);
-          localStorage.setItem('ku_user', JSON.stringify(res.user));
+          localStorage.setItem(SESSION_STORAGE_KEYS.token, res.token);
+          localStorage.setItem(SESSION_STORAGE_KEYS.user, JSON.stringify(res.user));
           setIsLoginModalOpen(false);
           return { success: true };
         }
       } catch (backendErr) {
         // Fallback Client-side Login หาก Backend ยังไม่พร้อม หรือรันแบบ Standalone
-        if (normalizedUser.toLowerCase() === 'admin' && normalizedPass.toLowerCase() === 'admin' && (!normalizedOtp || normalizedOtp === '111111')) {
+        if (
+          normalizedUser.toLowerCase() === ADMIN_TEST_CREDENTIALS.username &&
+          normalizedPass.toLowerCase() === ADMIN_TEST_CREDENTIALS.password &&
+          (!normalizedOtp || normalizedOtp === ADMIN_TEST_CREDENTIALS.otp)
+        ) {
           const adminUser: User = {
             id: 'ku-admin-local',
             nontriAccount: 'Admin',
@@ -145,8 +125,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const mockToken = 'mock_jwt_token_admin_2026';
           setToken(mockToken);
           setUser(adminUser);
-          localStorage.setItem('ku_token', mockToken);
-          localStorage.setItem('ku_user', JSON.stringify(adminUser));
+          localStorage.setItem(SESSION_STORAGE_KEYS.token, mockToken);
+          localStorage.setItem(SESSION_STORAGE_KEYS.user, JSON.stringify(adminUser));
           setIsLoginModalOpen(false);
           return { success: true };
         }
@@ -168,8 +148,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = () => {
     setUser(null);
     setToken(null);
-    localStorage.removeItem('ku_token');
-    localStorage.removeItem('ku_user');
+    localStorage.removeItem(SESSION_STORAGE_KEYS.token);
+    localStorage.removeItem(SESSION_STORAGE_KEYS.user);
   };
 
   return (
