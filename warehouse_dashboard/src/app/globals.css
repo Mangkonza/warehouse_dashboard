@@ -76,7 +76,14 @@
   font-display: swap;
 }
 
-:root{--font-kanit:'Kanit',sans-serif;--ku:#006838;--ku-d:#004d2a;--ku-l:#00914d;--ku-a:#00b35b;--ku-p:#e8f5e9;--ku-bg:#f5faf7;--w:#fff;--g2:#e2e8f0;--g3:#cbd5e1;--g6:#1e293b;--g8:#0f172a;--sh-s:0 1px 3px rgba(0,104,56,.08);--sh-m:0 4px 12px rgba(0,104,56,.12);--sh-l:0 8px 30px rgba(0,104,56,.15);--r:16px;--t:all .3s cubic-bezier(.4,0,.2,1)}
+@theme {
+  --color-primary-green: #00A651;
+  --color-brand: #00A651;
+  --color-brand-dark: #008f44;
+  --color-brand-light: #f0fbf5;
+}
+
+:root{--font-kanit:'Kanit',sans-serif;--ku:#00A651;--ku-d:#008f44;--ku-l:#00A651;--ku-a:#00c862;--brand-green:#00A651;--ku-p:#e8f5e9;--ku-bg:#f5faf7;--w:#fff;--g2:#e2e8f0;--g3:#cbd5e1;--g6:#1e293b;--g8:#0f172a;--sh-s:0 1px 3px rgba(0,166,81,.08);--sh-m:0 4px 12px rgba(0,166,81,.12);--sh-l:0 8px 30px rgba(0,166,81,.15);--r:16px;--t:all .3s cubic-bezier(.4,0,.2,1)}
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;font-family:'Kanit',sans-serif}
 body,button,input,select,textarea{font-family:'Kanit',sans-serif}
 body{background:var(--w);color:#0f172a;overflow-x:hidden;min-height:100vh}
@@ -116,7 +123,7 @@ body{background:var(--w);color:#0f172a;overflow-x:hidden;min-height:100vh}
 .table-scroll{overflow-x:auto;max-height:380px;overflow-y:auto}
 table{width:100%;border-collapse:collapse;font-size:13px}
 thead th, table th, .glass-table th {
-  background: linear-gradient(180deg, #005a30 0%, #004d2a 100%) !important;
+  background: #00A651 !important;
   color: #ffffff !important;
   padding: 11px 12px !important;
   text-align: left;
@@ -126,15 +133,14 @@ thead th, table th, .glass-table th {
   z-index: 2;
   font-size: 13px !important;
   white-space: nowrap;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4) !important;
-  border-bottom: 2px solid #00361d !important;
+  border-bottom: 2px solid #008f44 !important;
 }
 tbody tr{transition:var(--t)}
 tbody tr:nth-child(even){background:var(--ku-bg)}
 tbody tr:hover{background:var(--ku-p)}
 tbody td{padding:10px 12px;border-bottom:1px solid var(--g2);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#0f172a}
 .budget-cell{font-weight:600;color:var(--ku-d);text-align:right}
-.badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.badge{display:inline-block;padding:2px 10px;border-radius:12px;font-size:13px;font-weight:600}
 .badge-q1{background:#c8e6c9;color:#1b5e20}
 .badge-q2{background:#dcedc8;color:#33691e}
 .badge-tci{background:#fff9c4;color:#f57f17}
@@ -255,22 +261,22 @@ tbody td{padding:10px 12px;border-bottom:1px solid var(--g2);max-width:220px;ove
 
 .glass-btn:hover {
   background: linear-gradient(135deg, #ffffff 0%, rgba(240, 253, 244, 0.95) 100%);
-  border-color: rgba(0, 168, 89, 0.4);
-  color: #006838;
-  box-shadow: 0 4px 16px rgba(0, 104, 56, 0.12);
+  border-color: rgba(0, 166, 81, 0.4);
+  color: #008f44;
+  box-shadow: 0 4px 16px rgba(0, 166, 81, 0.12);
 }
 
 .glass-btn-primary {
-  background: linear-gradient(135deg, #00a859 0%, #006838 100%);
+  background: linear-gradient(135deg, #00A651 0%, #008f44 100%);
   color: #ffffff !important;
   border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 4px 18px rgba(0, 168, 89, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 18px rgba(0, 166, 81, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
 .glass-btn-primary:hover {
-  background: linear-gradient(135deg, #00c868 0%, #007a42 100%);
+  background: linear-gradient(135deg, #00c862 0%, #008f44 100%);
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 168, 89, 0.45);
+  box-shadow: 0 8px 24px rgba(0, 166, 81, 0.45);
 }
 
 .glass-input {
@@ -287,8 +293,8 @@ tbody td{padding:10px 12px;border-bottom:1px solid var(--g2);max-width:220px;ove
 
 .glass-input:focus {
   background: rgba(255, 255, 255, 0.95);
-  border-color: #00a859;
-  box-shadow: 0 0 0 3px rgba(0, 168, 89, 0.15);
+  border-color: #00A651;
+  box-shadow: 0 0 0 3px rgba(0, 166, 81, 0.15);
 }
 
 /* Glowing Status Badges */
@@ -345,4 +351,4 @@ tbody td{padding:10px 12px;border-bottom:1px solid var(--g2);max-width:220px;ove
   display: inline-flex;
   align-items: center;
   gap: 5px;
-}
+}

@@ -110,7 +110,7 @@ export const SmartExcelImportModal: React.FC<SmartExcelImportModalProps> = ({
         <div
           style={{
             padding: '20px 24px',
-            backgroundColor: '#00a859',
+            backgroundColor: '#00A651',
             color: '#ffffff',
             display: 'flex',
             alignItems: 'center',
@@ -157,7 +157,7 @@ export const SmartExcelImportModal: React.FC<SmartExcelImportModalProps> = ({
                 onDrop={handleDrop}
                 onClick={() => fileInputRef.current?.click()}
                 style={{
-                  border: isDragging ? '2px dashed #00a859' : '2px dashed #94a3b8',
+                  border: isDragging ? '2px dashed #00A651' : '2px dashed #94a3b8',
                   borderRadius: '12px',
                   padding: '48px 24px',
                   textAlign: 'center',
@@ -177,7 +177,7 @@ export const SmartExcelImportModal: React.FC<SmartExcelImportModalProps> = ({
                     }
                   }}
                 />
-                <FaCloudUploadAlt style={{ fontSize: '48px', color: '#00a859', marginBottom: '14px' }} />
+                <FaCloudUploadAlt style={{ fontSize: '48px', color: '#00A651', marginBottom: '14px' }} />
                 <h4 style={{ margin: '0 0 8px 0', fontSize: '16px', color: '#1e293b' }}>
                   คลิกเพื่อเลือกไฟล์ หรือลากไฟล์ Excel (.xlsx, .xls) มาวางที่นี่
                 </h4>
@@ -195,7 +195,7 @@ export const SmartExcelImportModal: React.FC<SmartExcelImportModalProps> = ({
                   style={{
                     background: 'none',
                     border: 'none',
-                    color: '#00a859',
+                    color: '#00A651',
                     fontWeight: 600,
                     textDecoration: 'underline',
                     cursor: 'pointer',
@@ -209,7 +209,7 @@ export const SmartExcelImportModal: React.FC<SmartExcelImportModalProps> = ({
             </div>
           ) : isProcessing ? (
             <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-              <FaSpinner style={{ fontSize: '40px', color: '#00a859', marginBottom: '16px', animation: 'spin 1s linear infinite' }} />
+              <FaSpinner style={{ fontSize: '40px', color: '#00A651', marginBottom: '16px', animation: 'spin 1s linear infinite' }} />
               <div style={{ fontSize: '16px', fontWeight: 600, color: '#1e293b' }}>
                 กำลังตรวจสอบและประมวลผลข้อมูล...
               </div>
@@ -229,7 +229,7 @@ export const SmartExcelImportModal: React.FC<SmartExcelImportModalProps> = ({
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <FaFileExcel style={{ color: '#00a859', fontSize: '20px' }} />
+                  <FaFileExcel style={{ color: '#00A651', fontSize: '20px' }} />
                   <div>
                     <span style={{ fontWeight: 600, fontSize: '14px', color: '#1e293b' }}>
                       {file.name}
@@ -272,8 +272,8 @@ export const SmartExcelImportModal: React.FC<SmartExcelImportModalProps> = ({
                         style={{
                           padding: '6px 14px',
                           borderRadius: '6px',
-                          border: activeSheetIndex === idx ? '1px solid #00a859' : '1px solid #cbd5e1',
-                          backgroundColor: activeSheetIndex === idx ? '#00a859' : '#ffffff',
+                          border: activeSheetIndex === idx ? '1px solid #00A651' : '1px solid #cbd5e1',
+                          backgroundColor: activeSheetIndex === idx ? '#00A651' : '#ffffff',
                           color: activeSheetIndex === idx ? '#ffffff' : '#334155',
                           fontSize: '12.5px',
                           fontWeight: 500,
@@ -308,19 +308,19 @@ export const SmartExcelImportModal: React.FC<SmartExcelImportModalProps> = ({
                     </div>
                   </div>
                   <div style={{ padding: '10px 14px', backgroundColor: '#f0fdf4', borderRadius: '8px', border: '1px solid #bbf7d0' }}>
-                    <div style={{ fontSize: '11px', color: '#166534' }}>✅ แถวสมบูรณ์</div>
+                    <div style={{ fontSize: '11px', color: '#166534' }}>แถวสมบูรณ์</div>
                     <div style={{ fontSize: '18px', fontWeight: 700, color: '#166534' }}>
                       {currentSheet.validRows} แถว
                     </div>
                   </div>
                   <div style={{ padding: '10px 14px', backgroundColor: '#fffbeb', borderRadius: '8px', border: '1px solid #fde68a' }}>
-                    <div style={{ fontSize: '11px', color: '#854d0e' }}>⚠️ มีคำเตือน / Auto-matched</div>
+                    <div style={{ fontSize: '11px', color: '#854d0e' }}>มีคำเตือน / Auto-matched</div>
                     <div style={{ fontSize: '18px', fontWeight: 700, color: '#854d0e' }}>
                       {currentSheet.warningRows} แถว
                     </div>
                   </div>
                   <div style={{ padding: '10px 14px', backgroundColor: '#fef2f2', borderRadius: '8px', border: '1px solid #fecaca' }}>
-                    <div style={{ fontSize: '11px', color: '#991b1b' }}>❌ มีข้อผิดพลาด (ข้าม)</div>
+                    <div style={{ fontSize: '11px', color: '#991b1b' }}>มีข้อผิดพลาด (ข้าม)</div>
                     <div style={{ fontSize: '18px', fontWeight: 700, color: '#991b1b' }}>
                       {currentSheet.errorRows} แถว
                     </div>
@@ -359,13 +359,13 @@ export const SmartExcelImportModal: React.FC<SmartExcelImportModalProps> = ({
 
                   <div style={{ maxHeight: '240px', overflowY: 'auto' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px' }}>
-                      <thead style={{ backgroundColor: '#f1f5f9', position: 'sticky', top: 0, zIndex: 1 }}>
+                      <thead style={{ backgroundColor: '#00A651', color: '#ffffff', borderBottom: '2px solid #008f44', position: 'sticky', top: 0, zIndex: 1 }}>
                         <tr>
-                          <th style={{ width: '50px', padding: '8px', textAlign: 'center' }}>แถว</th>
-                          <th style={{ width: '90px', padding: '8px', textAlign: 'center' }}>สถานะ</th>
-                          <th style={{ padding: '8px 12px', textAlign: 'left' }}>ชื่อรายการ / โครงการ</th>
-                          <th style={{ padding: '8px 12px', textAlign: 'left' }}>อาจารย์ / ผู้รับผิดชอบ</th>
-                          <th style={{ padding: '8px 12px', textAlign: 'left' }}>รายละเอียดการตรวจสอบ</th>
+                          <th style={{ width: '50px', padding: '8px', textAlign: 'center', whiteSpace: 'nowrap' }}>แถว</th>
+                          <th style={{ width: '90px', padding: '8px', textAlign: 'center', whiteSpace: 'nowrap' }}>สถานะ</th>
+                          <th style={{ padding: '8px 12px', textAlign: 'left', whiteSpace: 'nowrap' }}>ชื่อรายการ / โครงการ</th>
+                          <th style={{ padding: '8px 12px', textAlign: 'left', whiteSpace: 'nowrap' }}>อาจารย์ / ผู้รับผิดชอบ</th>
+                          <th style={{ padding: '8px 12px', textAlign: 'left', whiteSpace: 'nowrap' }}>รายละเอียดการตรวจสอบ</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -494,12 +494,12 @@ export const SmartExcelImportModal: React.FC<SmartExcelImportModalProps> = ({
                 padding: '10px 24px',
                 borderRadius: '8px',
                 border: 'none',
-                backgroundColor: '#00a859',
+                backgroundColor: '#00A651',
                 color: '#ffffff',
                 fontSize: '14px',
                 fontWeight: 600,
                 cursor: 'pointer',
-                boxShadow: '0 2px 6px rgba(0, 168, 89, 0.3)',
+                boxShadow: '0 2px 6px rgba(0, 166, 81, 0.3)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',

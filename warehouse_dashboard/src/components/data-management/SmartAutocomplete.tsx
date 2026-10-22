@@ -110,7 +110,7 @@ export const SmartAutocomplete: React.FC<SmartAutocompleteProps> = ({
               padding: '6px 12px',
               fontSize: '11px',
               fontWeight: 600,
-              color: '#00a859',
+              color: '#00A651',
               backgroundColor: '#f0fdf4',
               borderBottom: '1px solid #dcfce7',
             }}

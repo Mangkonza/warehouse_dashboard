@@ -50,21 +50,21 @@ export const TopSegmentedTabs: React.FC<TopSegmentedTabsProps> = ({
               alignItems: 'center',
               gap: '8px',
               padding: '9px 16px',
-              border: isActive ? '1px solid #00a859' : '1px solid #e2e8f0',
+              border: isActive ? '1px solid #00A651' : '1px solid #e2e8f0',
               borderRadius: '8px',
               cursor: 'pointer',
-              backgroundColor: isActive ? '#00a859' : '#ffffff',
+              backgroundColor: isActive ? '#00A651' : '#ffffff',
               color: isActive ? '#ffffff' : '#475569',
               fontWeight: isActive ? 600 : 500,
               fontSize: '13.5px',
               whiteSpace: 'nowrap',
               transition: 'all 0.15s ease',
-              boxShadow: isActive ? '0 2px 6px rgba(0, 168, 89, 0.22)' : '0 1px 2px rgba(0, 0, 0, 0.03)',
+              boxShadow: isActive ? '0 2px 6px rgba(0, 166, 81, 0.22)' : '0 1px 2px rgba(0, 0, 0, 0.03)',
             }}
             onMouseEnter={(e) => {
               if (!isActive) {
-                e.currentTarget.style.borderColor = '#00a859';
-                e.currentTarget.style.color = '#00a859';
+                e.currentTarget.style.borderColor = '#00A651';
+                e.currentTarget.style.color = '#00A651';
                 e.currentTarget.style.backgroundColor = '#f0fbf5';
               }
             }}

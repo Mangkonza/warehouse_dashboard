@@ -3,7 +3,7 @@
 import React, { useMemo } from 'react';
 import { SDGS_DATA, SDGItem } from '../../config/sdgConfig';
 import { detectSDGsFromText } from '../../lib/sdgEngine';
-import { FaLeaf, FaMagic, FaCheck } from 'react-icons/fa';
+import { FaMagic, FaCheck } from 'react-icons/fa';
 
 interface SDGTagSelectorProps {
   selectedSDGs: string[]; // e.g. ['SDG 6', 'SDG 9']
@@ -42,7 +42,6 @@ export const SDGTagSelector: React.FC<SDGTagSelectorProps> = ({
     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <label style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <FaLeaf style={{ color: '#00a859' }} />
           เป้าหมายการพัฒนาที่ยั่งยืน (SDGs) & เกณฑ์มหาวิทยาลัยสีเขียว (UI GreenMetric)
         </label>
         <span style={{ fontSize: '11.5px', color: '#64748b' }}>เลือกได้หลายเป้าหมาย</span>

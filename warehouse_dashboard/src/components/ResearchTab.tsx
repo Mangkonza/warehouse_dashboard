@@ -67,7 +67,7 @@ export default function ResearchTab({ timeFilter }: { timeFilter?: TimeFilterSta
     const UI_PALETTE = ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF", "#FF9F40", "#8AC926"];
     
     // ==========================================
-    // ⚙️ Logic คำนวณข้อมูลกราฟจาก JSON 
+    // Logic คำนวณข้อมูลกราฟจาก JSON 
     // ==========================================
     const M = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค."];
     const monthMatchers = [

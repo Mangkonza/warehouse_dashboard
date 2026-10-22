@@ -69,12 +69,12 @@ export const JournalQuartileSelector: React.FC<JournalQuartileSelectorProps> = (
             issue: meta.issue,
           });
         }
-        setDoiFeedback(`✅ ดึงข้อมูลสำเร็จ: วารสาร "${meta.journal || 'ไม่ระบุ'}"`);
+        setDoiFeedback(`ดึงข้อมูลสำเร็จ: วารสาร "${meta.journal || 'ไม่ระบุ'}"`);
       } else {
-        setDoiFeedback('⚠️ ไม่พบข้อมูล DOI นี้ในฐานข้อมูล CrossRef หรือเครือข่ายอ้างอิง');
+        setDoiFeedback('ไม่พบข้อมูล DOI นี้ในฐานข้อมูล CrossRef หรือเครือข่ายอ้างอิง');
       }
     } catch {
-      setDoiFeedback('❌ เกิดข้อผิดพลาดในการเชื่อมต่อ DOI API');
+      setDoiFeedback('เกิดข้อผิดพลาดในการเชื่อมต่อ DOI API');
     } finally {
       setIsLoadingDoi(false);
     }
@@ -119,7 +119,7 @@ export const JournalQuartileSelector: React.FC<JournalQuartileSelectorProps> = (
       {/* DOI Auto Lookup Box */}
       <div style={{ marginTop: '4px', padding: '10px 14px', borderRadius: '12px', background: '#f8fafc', border: '1px solid #e2e8f0' }}>
         <div style={{ fontSize: '11.5px', color: '#64748b', fontWeight: 600, marginBottom: '6px' }}>
-          💡 ค้นหาข้อมูลอัตโนมัติจากหมายเลข DOI (Auto Fetch via CrossRef):
+          ค้นหาข้อมูลอัตโนมัติจากหมายเลข DOI (Auto Fetch via CrossRef):
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <input
@@ -143,7 +143,7 @@ export const JournalQuartileSelector: React.FC<JournalQuartileSelectorProps> = (
         </div>
 
         {doiFeedback && (
-          <div style={{ fontSize: '11.5px', marginTop: '6px', color: doiFeedback.startsWith('✅') ? '#059669' : '#b45309' }}>
+          <div style={{ fontSize: '11.5px', marginTop: '6px', color: doiFeedback.includes('สำเร็จ') ? '#059669' : '#b45309' }}>
             {doiFeedback}
           </div>
         )}

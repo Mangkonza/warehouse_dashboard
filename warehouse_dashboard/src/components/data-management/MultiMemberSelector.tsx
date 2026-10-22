@@ -111,7 +111,7 @@ export const MultiMemberSelector: React.FC<MultiMemberSelectorProps> = ({
                   borderRadius: '12px',
                   fontSize: '11px',
                   fontWeight: 700,
-                  background: mem.role === 'PI' ? '#00a859' : '#e2e8f0',
+                  background: mem.role === 'PI' ? '#00A651' : '#e2e8f0',
                   color: mem.role === 'PI' ? '#fff' : '#475569',
                 }}
               >
@@ -155,7 +155,7 @@ export const MultiMemberSelector: React.FC<MultiMemberSelectorProps> = ({
       {/* Add New Member Input Area */}
       <div style={{ padding: '14px', borderRadius: '14px', background: 'rgba(241, 245, 249, 0.7)', border: '1px dashed #cbd5e1' }}>
         <div style={{ fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <FaUserPlus style={{ color: '#00a859' }} /> เพิ่มผู้ร่วมดำเนินงาน / สมาชิกโครงการใหม่
+          <FaUserPlus style={{ color: '#00A651' }} /> เพิ่มผู้ร่วมดำเนินงาน / สมาชิกโครงการใหม่
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px', marginBottom: '10px' }}>

@@ -81,9 +81,9 @@ export const TimeFilterModal: React.FC<TimeFilterModalProps> = ({
     height: '42px',
     padding: '0 16px',
     borderRadius: '7px',
-    border: isSelected ? '1.5px solid #00a859' : '1.5px solid transparent',
+    border: isSelected ? '1.5px solid #00A651' : '1.5px solid transparent',
     backgroundColor: isSelected ? '#ffffff' : '#f3f4f6',
-    color: isSelected ? '#00a859' : '#1e293b',
+    color: isSelected ? '#00A651' : '#1e293b',
     fontWeight: isSelected ? 600 : 500,
     fontSize: '15px',
     cursor: 'pointer',
@@ -141,7 +141,7 @@ export const TimeFilterModal: React.FC<TimeFilterModalProps> = ({
                 height: '36px',
                 borderRadius: '8px',
                 backgroundColor: '#e8f5e9',
-                color: '#00a859',
+                color: '#00A651',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -199,7 +199,7 @@ export const TimeFilterModal: React.FC<TimeFilterModalProps> = ({
                 fontWeight: activeTabMode === 'academic' ? 700 : 500,
                 border: 'none',
                 backgroundColor: activeTabMode === 'academic' ? '#ffffff' : 'transparent',
-                color: activeTabMode === 'academic' ? '#00a859' : '#64748b',
+                color: activeTabMode === 'academic' ? '#00A651' : '#64748b',
                 boxShadow: activeTabMode === 'academic' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
@@ -222,7 +222,7 @@ export const TimeFilterModal: React.FC<TimeFilterModalProps> = ({
                 fontWeight: activeTabMode === 'fiscal' ? 700 : 500,
                 border: 'none',
                 backgroundColor: activeTabMode === 'fiscal' ? '#ffffff' : 'transparent',
-                color: activeTabMode === 'fiscal' ? '#00a859' : '#64748b',
+                color: activeTabMode === 'fiscal' ? '#00A651' : '#64748b',
                 boxShadow: activeTabMode === 'fiscal' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
@@ -245,7 +245,7 @@ export const TimeFilterModal: React.FC<TimeFilterModalProps> = ({
                 fontWeight: activeTabMode === 'manual' ? 700 : 500,
                 border: 'none',
                 backgroundColor: activeTabMode === 'manual' ? '#ffffff' : 'transparent',
-                color: activeTabMode === 'manual' ? '#00a859' : '#64748b',
+                color: activeTabMode === 'manual' ? '#00A651' : '#64748b',
                 boxShadow: activeTabMode === 'manual' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
@@ -447,19 +447,19 @@ export const TimeFilterModal: React.FC<TimeFilterModalProps> = ({
                         }
                       }}
                       style={{
-                        backgroundColor: draft.manualMonths.length === 12 ? '#00a859' : '#ffffff',
-                        border: draft.manualMonths.length === 12 ? '1px solid #008f4c' : '1px solid #cbd5e1',
-                        color: draft.manualMonths.length === 12 ? '#ffffff' : '#00a859',
+                        backgroundColor: draft.manualMonths.length === 12 ? '#00A651' : '#ffffff',
+                        border: draft.manualMonths.length === 12 ? '1px solid #008f44' : '1px solid #cbd5e1',
+                        color: draft.manualMonths.length === 12 ? '#ffffff' : '#00A651',
                         fontSize: '12px',
                         cursor: 'pointer',
                         fontWeight: 600,
                         padding: '4px 12px',
                         borderRadius: '6px',
                         transition: 'all 0.15s ease',
-                        boxShadow: draft.manualMonths.length === 12 ? '0 1px 3px rgba(0, 168, 89, 0.25)' : 'none',
+                        boxShadow: draft.manualMonths.length === 12 ? '0 1px 3px rgba(0, 166, 81, 0.25)' : 'none',
                       }}
                     >
-                      {draft.manualMonths.length === 12 ? '✓ เลือกครบทุกเดือนแล้ว' : 'เลือกทุกเดือน'}
+                      {draft.manualMonths.length === 12 ? 'เลือกครบทุกเดือนแล้ว' : 'เลือกทุกเดือน'}
                     </button>
                   </div>
 
@@ -545,12 +545,12 @@ export const TimeFilterModal: React.FC<TimeFilterModalProps> = ({
                 padding: '8px 22px',
                 borderRadius: '8px',
                 border: 'none',
-                backgroundColor: '#00a859',
+                backgroundColor: '#00A651',
                 color: '#ffffff',
                 fontSize: '13.5px',
                 fontWeight: 600,
                 cursor: 'pointer',
-                boxShadow: '0 2px 6px rgba(0, 168, 89, 0.25)',
+                boxShadow: '0 2px 6px rgba(0, 166, 81, 0.25)',
               }}
             >
               ตกลง

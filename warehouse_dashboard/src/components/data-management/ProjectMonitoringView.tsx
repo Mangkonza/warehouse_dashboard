@@ -170,7 +170,7 @@ export const ProjectMonitoringView: React.FC<ProjectMonitoringViewProps> = ({
           style={{
             padding: '16px 20px',
             cursor: 'pointer',
-            border: statusFilter === 'all' ? '2px solid #00a859' : undefined,
+            border: statusFilter === 'all' ? '2px solid #00A651' : undefined,
           }}
         >
           <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>โครงการทั้งหมด</div>
@@ -386,7 +386,7 @@ export const ProjectMonitoringView: React.FC<ProjectMonitoringViewProps> = ({
               {/* Row 3: Meta (Head, Dept, Budget, Dates) */}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', fontSize: '13px', color: '#475569' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <FaUserTie style={{ color: '#00a859' }} />
+                  <FaUserTie style={{ color: '#00A651' }} />
                   <span>หัวหน้าโครงการ: <strong>{item.head || item.person || '-'}</strong></span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -416,7 +416,7 @@ export const ProjectMonitoringView: React.FC<ProjectMonitoringViewProps> = ({
                         width: `${tl.progress_percent}%`,
                         background: tl.is_overdue
                           ? '#ef4444'
-                          : 'linear-gradient(90deg, #00a859 0%, #00c868 100%)',
+                          : 'linear-gradient(90deg, #00A651 0%, #00c862 100%)',
                         borderRadius: '4px',
                       }}
                     />
