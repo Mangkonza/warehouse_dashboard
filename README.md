@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# วิธีการรันระบบ (Quick Start Guide)
 
-## Getting Started
+## สิ่งที่ต้องมีก่อนเริ่ม (Prerequisites)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (ติดตั้งและเปิดใช้งานอยู่)
+- [Node.js](https://nodejs.org/) (เวอร์ชัน 18+ หรือ 20+)
 
-First, run the development server:
+---
+
+## ขั้นตอนที่ 1: Build และเปิดใช้งาน Database Container ใน Docker
+เริ่มต้นด้วยการรันฐานข้อมูล PostgreSQL พร้อมโหลดโครงสร้างและข้อมูลตั้งต้นอัตโนมัติ:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+docker compose up -d
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+> **คำสั่งตรวจสอบสถานะ Container:**
+> ```bash
+> docker ps
+> ```
+> จะเห็น Container `ku_warehouse_db` กำลังทำงานที่พอร์ต `5432`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## ขั้นตอนที่ 2: รัน Backend API
+เปิด Terminal แรก แล้วทำตามขั้นตอนดังนี้:
 
-## Learn More
+1. เข้าไปยังโฟลเดอร์ `backend`:
+   ```bash
+   cd backend
+   ```
+2. ติดตั้ง Dependencies:
+   ```bash
+   npm install
+   ```
+3. เริ่มต้นรันเซิร์ฟเวอร์ Backend (ไฟล์ `.env` มีการตั้งค่าพร้อมใช้งานอยู่แล้ว):
+   ```bash
+   npm run dev
+   ```
+   > Backend API จะทำงานที่: `http://localhost:8000`
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## ขั้นตอนที่ 3: รัน Frontend Dashboard
+เปิด Terminal อีกหน้าต่าง แล้วทำตามขั้นตอนดังนี้:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. เข้าไปยังโฟลเดอร์ `warehouse_dashboard`:
+   ```bash
+   cd warehouse_dashboard
+   ```
+2. ติดตั้ง Dependencies:
+   ```bash
+   npm install
+   ```
+3. เริ่มต้นรันเซิร์ฟเวอร์ Frontend (ไฟล์ `.env` และ `.env.local` มีการตั้งค่าพร้อมใช้งานอยู่แล้ว):
+   ```bash
+   npm run dev
+   ```
+   > เข้าใช้งานหน้าเว็บผ่านเบราว์เซอร์ที่: `http://localhost:3000`
