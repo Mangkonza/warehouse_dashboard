@@ -50,7 +50,7 @@ function extractNumber(val: any): number {
 /**
  * สกัดค่า Dimension จากแถวข้อมูล
  */
-function extractDimensionValue(row: Record<string, any>, dimField: string): string {
+export function extractDimensionValue(row: Record<string, any>, dimField: string): string {
   // 1. หมวดหมู่ SDG
   if (dimField === 'sdg_code') {
     if (row.sdg_code) return String(row.sdg_code);

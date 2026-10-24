@@ -42,14 +42,9 @@ export function ResearchTable({
           gap: '10px',
         }}
       >
-        <div>
-          <h3 style={{ margin: 0 }}>
-            <FaTable style={{ color: '#00A651', marginRight: '8px' }} /> ตารางโครงการวิจัย ({filteredData.length} โครงการ)
-          </h3>
-          <span style={{ fontSize: '11.5px', color: '#64748b' }}>
-            คลิกที่แถวโครงการเพื่อดูรายละเอียดข้อมูลฉบับเต็ม
-          </span>
-        </div>
+        <h3 style={{ margin: 0 }}>
+          <FaTable style={{ color: '#00A651', marginRight: '8px' }} /> โครงการวิจัย ({filteredData.length})
+        </h3>
 
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
           {selectedFund !== 'all' && onFundChange && (

@@ -13,4 +13,5 @@ export * from './select';
 export * from './textarea';
 export * from './tooltip';
 export * from './RecordDetailDrawer';
+export * from '../data-display/DrillDownProjectDrawer';
 export { MoneyInput, CurrencyInput } from '../form/MoneyInput';

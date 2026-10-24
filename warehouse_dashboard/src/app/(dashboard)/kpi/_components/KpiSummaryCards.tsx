@@ -74,11 +74,11 @@ export function KpiSummaryCards({
         </div>
         <div>
           <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>
-            คะแนนความสำเร็จเฉลี่ย (ทั้งหมด)
+            คะแนนความสำเร็จเฉลี่ย
           </div>
           <div style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a' }}>{stats.avgScore}%</div>
           <div style={{ fontSize: '11.5px', color: '#059669', fontWeight: 600 }}>
-            รวม {stats.total} ตัวชี้วัด • คลิกแสดงทั้งหมด
+            รวม {stats.total} ตัวชี้วัด
           </div>
         </div>
       </div>
@@ -109,7 +109,7 @@ export function KpiSummaryCards({
           </div>
           <div style={{ fontSize: '24px', fontWeight: 800, color: '#059669' }}>{stats.achieved} ข้อ</div>
           <div style={{ fontSize: '11.5px', color: '#64748b' }}>
-            คิดเป็น {stats.total ? Math.round((stats.achieved / stats.total) * 100) : 0}% • คลิกเพื่อกรอง
+            {stats.total ? Math.round((stats.achieved / stats.total) * 100) : 0}% ของทั้งหมด
           </div>
         </div>
       </div>
@@ -139,7 +139,9 @@ export function KpiSummaryCards({
             เป็นไปตามเป้า (70 - 99%)
           </div>
           <div style={{ fontSize: '24px', fontWeight: 800, color: '#0284c7' }}>{stats.onTrack} ข้อ</div>
-          <div style={{ fontSize: '11.5px', color: '#64748b' }}>กำลังดำเนินงาน • คลิกเพื่อกรอง</div>
+          <div style={{ fontSize: '11.5px', color: '#64748b' }}>
+            {stats.total ? Math.round((stats.onTrack / stats.total) * 100) : 0}% ของทั้งหมด
+          </div>
         </div>
       </div>
 
@@ -171,7 +173,7 @@ export function KpiSummaryCards({
             {stats.atRisk + stats.behind} ข้อ
           </div>
           <div style={{ fontSize: '11.5px', color: '#b91c1c', fontWeight: 600 }}>
-            คลิกเพื่อกรองเฉพาะข้อที่ต้องเร่งรัด
+            {stats.total ? Math.round(((stats.atRisk + stats.behind) / stats.total) * 100) : 0}% ของทั้งหมด
           </div>
         </div>
       </div>

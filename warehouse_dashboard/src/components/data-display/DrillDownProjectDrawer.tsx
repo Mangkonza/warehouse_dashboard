@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { FaTimes, FaSearch, FaFolderOpen, FaChevronRight } from 'react-icons/fa';
+import { FaTimes, FaSearch, FaFolderOpen } from 'react-icons/fa';
 import { DepartmentBadge } from '@/components/ui/department-badge';
-import { RecordDetailDrawer, formatMoney, formatDateBE } from '@/components/ui/RecordDetailDrawer';
+import { formatMoney, formatDateBE } from '@/components/ui/RecordDetailDrawer';
 import { CATEGORIES_CONFIG } from '@/config/dataManagementConfig';
 import { CategoryKey } from '@/types/dataManagement';
 import { extractItemBudget } from '@/lib/sdgEngine';
+import { autoDetectJournalRanking, JOURNAL_TIER_STYLES } from '@/config/journalRankingConfig';
 
 export interface DrillDownProjectDrawerProps {
   isOpen: boolean;
@@ -28,25 +29,23 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
   items,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedRecordIndex, setSelectedRecordIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (!isOpen) {
       setSearchTerm('');
-      setSelectedRecordIndex(null);
     }
   }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && selectedRecordIndex === null) {
+      if (e.key === 'Escape') {
         onClose();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose, selectedRecordIndex]);
+  }, [isOpen, onClose]);
 
   const filteredItems = useMemo(() => {
     const list = items || [];
@@ -57,7 +56,8 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
       const person = String(it.head || it.owner || it.person || it.creator || '').toLowerCase();
       const dept = String(it.department || '').toLowerCase();
       const id = String(it.id || it.record_number || it.req_no || '').toLowerCase();
-      return name.includes(q) || person.includes(q) || dept.includes(q) || id.includes(q);
+      const extra = String(it.fund_source || it.client || it.journal || it.location || '').toLowerCase();
+      return name.includes(q) || person.includes(q) || dept.includes(q) || id.includes(q) || extra.includes(q);
     });
   }, [items, searchTerm]);
 
@@ -78,12 +78,12 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
     return categoryKey;
   };
 
-  const activeDetailItem =
-    selectedRecordIndex !== null && selectedRecordIndex < filteredItems.length
-      ? filteredItems[selectedRecordIndex]
-      : null;
-
-  const activeDetailCategory = activeDetailItem ? resolveItemCategory(activeDetailItem) : categoryKey;
+  const cleanText = (val: any): string => {
+    if (val === undefined || val === null) return '';
+    const str = String(val).replace(/[\r\n]+/g, ' ').trim();
+    if (!str || str === 'nan' || str === 'NaT' || str === '-') return '';
+    return str;
+  };
 
   return (
     <>
@@ -111,7 +111,7 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
           right: 0,
           bottom: 0,
           width: '100%',
-          maxWidth: '640px',
+          maxWidth: '680px',
           backgroundColor: '#ffffff',
           boxShadow: '-12px 0 32px rgba(15, 23, 42, 0.16)',
           zIndex: 9991,
@@ -220,7 +220,6 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
             borderBottom: '1px solid #e2e8f0',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
             gap: '10px',
           }}
         >
@@ -240,7 +239,7 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="ค้นหาชื่อโครงการ, หัวหน้าโครงการ, หน่วยงาน..."
+              placeholder="ค้นหาชื่อโครงการ, หัวหน้าโครงการ, แหล่งทุน, วารสาร, หน่วยงาน..."
               style={{
                 border: 'none',
                 outline: 'none',
@@ -268,12 +267,9 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
               </button>
             )}
           </div>
-          <span style={{ fontSize: '11.5px', color: '#64748b', whiteSpace: 'nowrap' }}>
-            คลิกที่รายการเพื่อดูข้อมูลครบทุกฟิลด์
-          </span>
         </div>
 
-        {/* Scrollable Project List */}
+        {/* Scrollable Self-Contained Project Cards */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '14px 20px', backgroundColor: '#ffffff' }}>
           {filteredItems.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '48px 16px', color: '#94a3b8' }}>
@@ -281,137 +277,153 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
               <div style={{ fontSize: '13.5px' }}>ไม่พบรายการข้อมูลในหมวดนี้</div>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {filteredItems.map((item, idx) => {
-                const itemName = String(item.name || item.title || item.topic_title || '-').replace(/[\r\n]+/g, ' ').trim();
-                const personName = item.head || item.owner || item.person || item.creator || '-';
+                const itemName = cleanText(item.name || item.title || item.topic_title) || '-';
+                const personName = cleanText(item.head || item.owner || item.person || item.creator);
                 const personLabel =
                   item.owner !== undefined
                     ? 'เจ้าของผลงาน'
                     : item.creator !== undefined
                     ? 'ผู้ประดิษฐ์'
                     : item.person !== undefined
-                    ? 'ชื่อ - นามสกุล'
+                    ? 'ผู้ดำเนินการ'
                     : 'หัวหน้าโครงการ';
-                const deptVal = item.department || (Array.isArray(item.departments) ? item.departments.join(', ') : '');
+                const deptVal = cleanText(
+                  item.department || (Array.isArray(item.departments) ? item.departments.join(', ') : '')
+                );
                 const budgetVal = extractItemBudget(item);
                 const cat = resolveItemCategory(item);
                 const catConfig = CATEGORIES_CONFIG[cat];
-                const codeOrDate =
-                  item.id && item.id !== 'nan'
-                    ? `รหัส: ${item.id}`
-                    : item.record_number && item.record_number !== 'nan'
-                    ? `เลขระเบียน: ${item.record_number}`
-                    : item.date
-                    ? formatDateBE(item.date)
+
+                // สร้างรายการข้อมูลสำคัญตามหมวดหมู่ (ครบในการ์ดเดียว ไม่ต้องกดเปิดลิ้นชักซ้อน)
+                const detailChips: { label: string; value: string }[] = [];
+
+                if (cat === 'research') {
+                  const idVal = cleanText(item.id);
+                  const fundVal = cleanText(item.fund_source);
+                  const startVal = cleanText(item.start_date) ? formatDateBE(item.start_date) : '';
+                  const endVal = cleanText(item.end_date) ? formatDateBE(item.end_date) : '';
+                  const periodVal = startVal && endVal ? `${startVal} – ${endVal}` : startVal || endVal;
+                  const teamVal = cleanText(item.team);
+
+                  if (idVal) detailChips.push({ label: 'รหัส', value: idVal });
+                  if (fundVal) detailChips.push({ label: 'แหล่งทุน', value: fundVal });
+                  if (periodVal && periodVal !== '-') detailChips.push({ label: 'ระยะเวลาสัญญา', value: periodVal });
+                  if (teamVal) detailChips.push({ label: 'ผู้ร่วมวิจัย', value: teamVal });
+                } else if (cat === 'academic') {
+                  const recNo = cleanText(item.record_number || item.id);
+                  const clientVal = cleanText(item.client);
+                  const startVal = cleanText(item.start_date) ? formatDateBE(item.start_date) : '';
+                  const endVal = cleanText(item.end_date) ? formatDateBE(item.end_date) : '';
+                  const periodVal = startVal && endVal ? `${startVal} – ${endVal}` : startVal || endVal;
+
+                  if (recNo) detailChips.push({ label: 'เลขระเบียน', value: recNo });
+                  if (clientVal) detailChips.push({ label: 'ผู้ว่าจ้าง', value: clientVal });
+                  if (periodVal && periodVal !== '-') detailChips.push({ label: 'ระยะเวลาสัญญา', value: periodVal });
+                } else if (cat === 'publications') {
+                  const typeVal = cleanText(item.type);
+                  const levelVal = cleanText(item.level);
+                  const journalVal = cleanText(item.journal);
+                  const monthVal = cleanText(item.month);
+                  const fyVal = cleanText(item.fiscal_year_be);
+
+                  if (typeVal) detailChips.push({ label: 'ชนิดผลงาน', value: typeVal });
+                  if (levelVal) detailChips.push({ label: 'ระดับ', value: levelVal });
+                  if (journalVal) detailChips.push({ label: 'วารสาร/แหล่งตีพิมพ์', value: journalVal });
+                  if (monthVal || fyVal) {
+                    detailChips.push({
+                      label: 'ช่วงเวลา',
+                      value: `${monthVal ? `เดือน${monthVal} ` : ''}${fyVal ? `ปีงบ ${fyVal}` : ''}`.trim(),
+                    });
+                  }
+                } else if (cat === 'service') {
+                  const srvType = cleanText(item._resolvedType || item.service_type);
+                  const locVal = cleanText(item.location);
+                  const dateVal = cleanText(item.date) ? formatDateBE(item.date) : '';
+
+                  if (srvType) detailChips.push({ label: 'ประเภทบริการ', value: srvType });
+                  if (locVal) detailChips.push({ label: 'สถานที่/หน่วยงาน', value: locVal });
+                  if (dateVal && dateVal !== '-') detailChips.push({ label: 'วันที่ดำเนินการ', value: dateVal });
+                } else if (cat === 'ip') {
+                  const ipType = cleanText(item.type);
+                  const reqNo = cleanText(item.req_no || item.application_number || item.registration_number);
+                  const fileDate = cleanText(item.filing_date || item.date)
+                    ? formatDateBE(item.filing_date || item.date)
                     : '';
+
+                  if (ipType) detailChips.push({ label: 'ประเภท', value: ipType });
+                  if (reqNo) detailChips.push({ label: 'เลขที่คำขอ/ทะเบียน', value: reqNo });
+                  if (fileDate && fileDate !== '-') detailChips.push({ label: 'วันที่ยื่นขอ', value: fileDate });
+                }
+
+                // ตรวจสอบ Tier วารสารสำหรับหมวดผลงานตีพิมพ์
+                const detectedTier =
+                  cat === 'publications'
+                    ? item._detectedTier || autoDetectJournalRanking(item.journal || '', item.level || '')
+                    : null;
+                const tierStyle =
+                  detectedTier && JOURNAL_TIER_STYLES[detectedTier as keyof typeof JOURNAL_TIER_STYLES]
+                    ? JOURNAL_TIER_STYLES[detectedTier as keyof typeof JOURNAL_TIER_STYLES]
+                    : null;
 
                 return (
                   <div
                     key={item._id || `${itemName}_${idx}`}
-                    onClick={() => setSelectedRecordIndex(idx)}
                     style={{
-                      padding: '12px 14px',
+                      padding: '13px 16px',
                       borderRadius: '10px',
                       border: '1px solid #e2e8f0',
                       backgroundColor: idx % 2 === 1 ? '#fafcfb' : '#ffffff',
-                      cursor: 'pointer',
-                      transition: 'all 0.15s ease',
                       display: 'flex',
-                      alignItems: 'flex-start',
-                      justifyContent: 'space-between',
-                      gap: '12px',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = '#f0fbf5';
-                      e.currentTarget.style.borderColor = '#00A651';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = idx % 2 === 1 ? '#fafcfb' : '#ffffff';
-                      e.currentTarget.style.borderColor = '#e2e8f0';
+                      flexDirection: 'column',
+                      gap: '8px',
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', minWidth: 0, flex: 1 }}>
-                      <span
-                        style={{
-                          minWidth: '24px',
-                          height: '24px',
-                          borderRadius: '6px',
-                          backgroundColor: '#f1f5f9',
-                          color: '#64748b',
-                          fontSize: '11.5px',
-                          fontWeight: 600,
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flexShrink: 0,
-                          marginTop: '1px',
-                        }}
-                      >
-                        {idx + 1}
-                      </span>
+                    {/* แถวบน: ลำดับ + ชื่อโครงการ/ผลงาน + งบประมาณ */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        justifyContent: 'space-between',
+                        gap: '12px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', minWidth: 0, flex: 1 }}>
+                        <span
+                          style={{
+                            minWidth: '24px',
+                            height: '24px',
+                            borderRadius: '6px',
+                            backgroundColor: '#f1f5f9',
+                            color: '#64748b',
+                            fontSize: '11.5px',
+                            fontWeight: 600,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0,
+                            marginTop: '1px',
+                          }}
+                        >
+                          {idx + 1}
+                        </span>
 
-                      <div style={{ minWidth: 0, flex: 1 }}>
-                        {/* ชื่อรายการ: fontWeight 400 ไม่ตัวหนา ตามมาตรฐานหน้า /manage */}
                         <div
                           style={{
                             fontSize: '13.5px',
                             fontWeight: 400,
                             color: '#0f172a',
                             lineHeight: 1.45,
-                            marginBottom: '6px',
                             wordBreak: 'break-word',
+                            flex: 1,
                           }}
                         >
                           {itemName}
                         </div>
-
-                        <div
-                          style={{
-                            display: 'flex',
-                            flexWrap: 'wrap',
-                            alignItems: 'center',
-                            gap: '6px',
-                            fontSize: '12px',
-                            color: '#64748b',
-                          }}
-                        >
-                          {catConfig && (
-                            <span
-                              style={{
-                                padding: '1px 7px',
-                                borderRadius: '6px',
-                                fontSize: '11px',
-                                fontWeight: 600,
-                                backgroundColor: `${catConfig.color}14`,
-                                color: catConfig.color,
-                                border: `1px solid ${catConfig.color}35`,
-                              }}
-                            >
-                              {catConfig.title}
-                            </span>
-                          )}
-                          {deptVal && <DepartmentBadge value={String(deptVal)} />}
-                          {personName && personName !== '-' && (
-                            <span style={{ color: '#334155' }}>
-                              {personLabel}: {personName}
-                            </span>
-                          )}
-                          {codeOrDate && <span style={{ color: '#94a3b8' }}>({codeOrDate})</span>}
-                        </div>
                       </div>
-                    </div>
 
-                    <div
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'flex-end',
-                        gap: '4px',
-                        flexShrink: 0,
-                      }}
-                    >
-                      {budgetVal > 0 ? (
+                      {budgetVal > 0 && (
                         <span
                           style={{
                             fontSize: '13px',
@@ -419,25 +431,86 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
                             color: '#059669',
                             fontFamily: 'monospace',
                             whiteSpace: 'nowrap',
+                            flexShrink: 0,
                           }}
                         >
                           {formatMoney(budgetVal)} บาท
                         </span>
-                      ) : (
-                        <span style={{ fontSize: '12px', color: '#94a3b8' }}>-</span>
                       )}
-                      <span
+                    </div>
+
+                    {/* แถวกลาง: ป้ายกำกับพันธกิจ + ภาควิชา + เจ้าของโครงการ */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        alignItems: 'center',
+                        gap: '6px',
+                        paddingLeft: '34px',
+                        fontSize: '12px',
+                        color: '#64748b',
+                      }}
+                    >
+                      {catConfig && (
+                        <span
+                          style={{
+                            padding: '1px 7px',
+                            borderRadius: '6px',
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            backgroundColor: `${catConfig.color}14`,
+                            color: catConfig.color,
+                            border: `1px solid ${catConfig.color}35`,
+                          }}
+                        >
+                          {catConfig.title}
+                        </span>
+                      )}
+                      {tierStyle && detectedTier && (
+                        <span
+                          style={{
+                            padding: '1px 7px',
+                            borderRadius: '6px',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            backgroundColor: tierStyle.bg,
+                            color: tierStyle.text,
+                            border: `1px solid ${tierStyle.border}`,
+                          }}
+                        >
+                          {detectedTier}
+                        </span>
+                      )}
+                      {deptVal && <DepartmentBadge value={deptVal} />}
+                      {personName && (
+                        <span style={{ color: '#334155' }}>
+                          {personLabel}: <strong style={{ fontWeight: 500, color: '#0f172a' }}>{personName}</strong>
+                        </span>
+                      )}
+                    </div>
+
+                    {/* แถวล่าง: ข้อมูลสำคัญเฉพาะหมวดหมู่ (แหล่งทุน / ผู้ว่าจ้าง / วารสาร / ระยะเวลาสัญญา) */}
+                    {detailChips.length > 0 && (
+                      <div
                         style={{
-                          fontSize: '11px',
-                          color: '#0284c7',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '3px',
+                          marginLeft: '34px',
+                          paddingTop: '7px',
+                          borderTop: '1px dashed #e2e8f0',
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          gap: '6px 14px',
+                          fontSize: '12px',
+                          color: '#475569',
                         }}
                       >
-                        ดูรายละเอียด <FaChevronRight style={{ fontSize: '9px' }} />
-                      </span>
-                    </div>
+                        {detailChips.map((chip, cIdx) => (
+                          <div key={cIdx} style={{ display: 'inline-flex', alignItems: 'baseline', gap: '4px' }}>
+                            <span style={{ color: '#64748b', fontWeight: 500 }}>{chip.label}:</span>
+                            <span style={{ color: '#1e293b' }}>{chip.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -480,29 +553,6 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
           </button>
         </div>
       </div>
-
-      {/* RecordDetailDrawer จากหน้า /manage สำหรับเจาะลึกรายโครงการ */}
-      <RecordDetailDrawer
-        isOpen={selectedRecordIndex !== null && Boolean(activeDetailItem)}
-        onClose={() => setSelectedRecordIndex(null)}
-        item={activeDetailItem}
-        config={CATEGORIES_CONFIG[activeDetailCategory]}
-        onPrev={() => {
-          if (selectedRecordIndex !== null && selectedRecordIndex > 0) {
-            setSelectedRecordIndex(selectedRecordIndex - 1);
-          }
-        }}
-        onNext={() => {
-          if (selectedRecordIndex !== null && selectedRecordIndex < filteredItems.length - 1) {
-            setSelectedRecordIndex(selectedRecordIndex + 1);
-          }
-        }}
-        hasPrev={selectedRecordIndex !== null && selectedRecordIndex > 0}
-        hasNext={selectedRecordIndex !== null && selectedRecordIndex < filteredItems.length - 1}
-        currentIndex={selectedRecordIndex ?? 0}
-        totalInPage={filteredItems.length}
-        readOnly={true}
-      />
     </>
   );
 };

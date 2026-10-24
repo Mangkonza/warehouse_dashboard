@@ -1,10 +1,9 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { FaTable, FaPlus, FaEdit, FaTrashAlt, FaCalendarAlt, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
-import { SearchInput, DepartmentBadge, DepartmentSelect, ConfirmActionModal, RecordDetailDrawer } from '@/components/ui';
+import { FaTable, FaCalendarAlt } from 'react-icons/fa';
+import { SearchInput, DepartmentBadge, DepartmentSelect, RecordDetailDrawer } from '@/components/ui';
 import { JOURNAL_TIER_STYLES } from '@/config/journalRankingConfig';
-import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -13,7 +12,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { PublicationItem } from '../_hooks/usePublicationsData';
-import { PublicationForm } from '@/components/form/PublicationForm';
 
 interface PublicationsTableProps {
   filteredData: PublicationItem[];
@@ -26,8 +24,6 @@ interface PublicationsTableProps {
   fiscalYearFilter?: string;
   onFiscalYearChange?: (value: string) => void;
   availableFiscalYears?: string[];
-  onSave?: (item: Record<string, any>, isNew: boolean) => Promise<{ success: boolean; error?: string }>;
-  onDelete?: (id: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 const THAI_MONTH_ORDER: Record<string, number> = {
@@ -46,25 +42,8 @@ export function PublicationsTable({
   fiscalYearFilter = 'all',
   onFiscalYearChange,
   availableFiscalYears = [],
-  onSave,
-  onDelete,
 }: PublicationsTableProps) {
-  // Modal states
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<PublicationItem | null>(null);
   const [selectedDetailItem, setSelectedDetailItem] = useState<PublicationItem | null>(null);
-  const [formData, setFormData] = useState<Record<string, any>>({});
-  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<PublicationItem | null>(null);
-
-  // Toast state
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
-
-  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3500);
-  };
 
   // Group filtered data by month
   const groupedData = useMemo(() => {
@@ -91,190 +70,11 @@ export function PublicationsTable({
     }));
   }, [filteredData]);
 
-  // Handle open add modal
-  const handleOpenAdd = () => {
-    setEditingItem(null);
-    setFormData({
-      name: '',
-      type: 'ตีพิมพ์',
-      level: 'นานาชาติ',
-      budget: 0,
-      owner: '',
-      department: '',
-      journal: '',
-      volume: '',
-      issue: '',
-      page_start: '',
-      page_end: '',
-      co_authors_foreign: [],
-      co_authors_domestic: [],
-      remarks: '',
-      month: 'ม.ค.',
-      month_year: '2025-01',
-      fiscal_year_be: 2568,
-    });
-    setFormErrors({});
-    setIsModalOpen(true);
-  };
-
-  // Handle open edit modal
-  const handleOpenEdit = (item: PublicationItem) => {
-    setEditingItem(item);
-    setFormData({
-      ...item,
-      co_authors_foreign: Array.isArray(item.co_authors_foreign) ? [...item.co_authors_foreign] : [],
-      co_authors_domestic: Array.isArray(item.co_authors_domestic) ? [...item.co_authors_domestic] : [],
-    });
-    setFormErrors({});
-    setIsModalOpen(true);
-  };
-
-  const handleFieldChange = (key: string, val: any) => {
-    setFormData((prev) => ({
-      ...prev,
-      [key]: val,
-    }));
-    if (formErrors[key]) {
-      setFormErrors((prev) => {
-        const next = { ...prev };
-        delete next[key];
-        return next;
-      });
-    }
-  };
-
-  // Form submit
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const errs: Record<string, string> = {};
-
-    if (!formData.name || !String(formData.name).trim()) {
-      errs.name = 'กรุณากรอกชื่อผลงานทางวิชาการ';
-    }
-    if (!formData.type || !String(formData.type).trim()) {
-      errs.type = 'กรุณาเลือกชนิดของผลงาน';
-    }
-    if (!formData.level || !String(formData.level).trim()) {
-      errs.level = 'กรุณาเลือกระดับ';
-    }
-    if (!formData.owner || !String(formData.owner).trim()) {
-      errs.owner = 'กรุณาระบุเจ้าของผลงาน';
-    }
-    if (!formData.department || !String(formData.department).trim()) {
-      errs.department = 'กรุณาระบุสังกัดภาควิชา/สาขาวิชา';
-    }
-    if (formData.budget !== undefined && formData.budget !== null && formData.budget !== '') {
-      const bNum = parseFloat(formData.budget);
-      if (isNaN(bNum) || bNum < 0) {
-        errs.budget = 'จำนวนเงินสนับสนุนต้องเป็นตัวเลขที่ไม่ติดลบ';
-      }
-    }
-    if (formData.type !== 'เตรียมความพร้อมจดอนุสิทธิบัตร') {
-      const pStart = String(formData.page_start || '').trim();
-      const pEnd = String(formData.page_end || '').trim();
-      if (pStart && pEnd) {
-        const numStart = parseInt(pStart, 10);
-        const numEnd = parseInt(pEnd, 10);
-        if (!isNaN(numStart) && !isNaN(numEnd) && numEnd < numStart) {
-          errs.pages = 'หน้าสิ้นสุดต้องมากกว่าหรือเท่ากับหน้าเริ่มต้น';
-        }
-      }
-    }
-
-    if (Object.keys(errs).length > 0) {
-      setFormErrors(errs);
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const isNew = !editingItem;
-      if (onSave) {
-        const res = await onSave(formData, isNew);
-        if (res.success) {
-          showToast(isNew ? 'เพิ่มผลงานทางวิชาการสำเร็จ' : 'แก้ไขข้อมูลสำเร็จ', 'success');
-          setIsModalOpen(false);
-        } else {
-          showToast(res.error || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล', 'error');
-        }
-      } else {
-        // Direct API call
-        const method = isNew ? 'POST' : 'PUT';
-        const res = await fetch('/api/data/publications', {
-          method,
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData),
-        });
-        const json = await res.json();
-        if (json.status === 'success') {
-          showToast(isNew ? 'เพิ่มผลงานทางวิชาการสำเร็จ' : 'แก้ไขข้อมูลสำเร็จ', 'success');
-          setIsModalOpen(false);
-          if (typeof window !== 'undefined') {
-            window.dispatchEvent(new Event('ku_data_updated'));
-          }
-        } else {
-          showToast(json.message || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล', 'error');
-        }
-      }
-    } catch (err: any) {
-      showToast(err?.message || 'เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์', 'error');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // Delete confirm
-  const handleConfirmDelete = async () => {
-    if (!deleteTarget) return;
-    const targetId = deleteTarget._id || deleteTarget.id;
-    if (!targetId) return;
-
-    try {
-      if (onDelete) {
-        const res = await onDelete(targetId);
-        if (res.success) {
-          showToast('ลบรายการสำเร็จ', 'success');
-        } else {
-          showToast(res.error || 'เกิดข้อผิดพลาดในการลบรายการ', 'error');
-        }
-      } else {
-        const res = await fetch(`/api/data/publications?id=${targetId}`, { method: 'DELETE' });
-        const json = await res.json();
-        if (json.status === 'success') {
-          showToast('ลบรายการสำเร็จ', 'success');
-          if (typeof window !== 'undefined') {
-            window.dispatchEvent(new Event('ku_data_updated'));
-          }
-        } else {
-          showToast(json.message || 'เกิดข้อผิดพลาดในการลบรายการ', 'error');
-        }
-      }
-    } catch (err: any) {
-      showToast(err?.message || 'เกิดข้อผิดพลาดในการลบรายการ', 'error');
-    } finally {
-      setDeleteTarget(null);
-    }
-  };
-
   // Running sequence counter across groups
   let globalIndex = 0;
 
   return (
     <div className="table-card relative">
-      {/* Toast Notification */}
-      {toast && (
-        <div
-          className={`fixed bottom-6 right-6 z-50 px-4 py-3 rounded-lg shadow-lg flex items-center gap-2.5 text-sm font-semibold transition-all ${
-            toast.type === 'success'
-              ? 'bg-emerald-600 text-white'
-              : 'bg-red-600 text-white'
-          }`}
-        >
-          {toast.type === 'success' ? <FaCheckCircle /> : <FaExclamationTriangle />}
-          <span>{toast.message}</span>
-        </div>
-      )}
-
       {/* Header & Controls Bar */}
       <div
         style={{
@@ -286,15 +86,13 @@ export function PublicationsTable({
           gap: '12px',
         }}
       >
-        <div className="flex items-center gap-3">
-          <h3 style={{ margin: 0 }} className="text-base font-bold text-slate-800 flex items-center">
-            <FaTable style={{ color: '#00A651', marginRight: '8px' }} />
-            รายละเอียดผลงานตีพิมพ์ทางวิชาการ
-            <span className="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-[#00A651] border border-emerald-200">
-              {filteredData.length} เรื่อง
-            </span>
-          </h3>
-        </div>
+        <h3 style={{ margin: 0 }} className="text-base font-bold text-slate-800 flex items-center">
+          <FaTable style={{ color: '#00A651', marginRight: '8px' }} />
+          ผลงานตีพิมพ์ทางวิชาการ
+          <span className="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-[#00A651] border border-emerald-200">
+            {filteredData.length} เรื่อง
+          </span>
+        </h3>
 
         {/* Filter & Action Controls */}
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -376,16 +174,6 @@ export function PublicationsTable({
               ล้างตัวกรอง
             </button>
           )}
-
-          {/* Add Button */}
-          <Button
-            type="button"
-            onClick={handleOpenAdd}
-            className="h-8 px-3.5 bg-[#00A651] hover:bg-[#008a43] text-white text-xs font-semibold rounded-md shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer"
-          >
-            <FaPlus className="text-[11px]" />
-            <span>เพิ่มผลงานทางวิชาการ</span>
-          </Button>
         </div>
       </div>
 
@@ -403,13 +191,12 @@ export function PublicationsTable({
               <th style={{ width: '130px' }}>ผู้ร่วม</th>
               <th style={{ width: '100px', textAlign: 'left' }}>สังกัดภาควิชา/สาขาวิชา</th>
               <th style={{ width: '160px' }}>รายละเอียดวารสาร/การประชุม</th>
-              <th style={{ width: '80px', textAlign: 'center' }}>การจัดการ</th>
             </tr>
           </thead>
           <tbody>
             {filteredData.length === 0 ? (
               <tr>
-                <td colSpan={10} className="text-center py-8 text-slate-400 text-xs italic">
+                <td colSpan={9} className="text-center py-8 text-slate-400 text-xs italic">
                   ไม่พบข้อมูลผลงานตีพิมพ์ทางวิชาการตามเงื่อนไขที่เลือก
                 </td>
               </tr>
@@ -418,7 +205,7 @@ export function PublicationsTable({
                 <React.Fragment key={group.month}>
                   {/* Month Group Header */}
                   <tr className="bg-slate-100/80 border-y border-slate-200">
-                    <td colSpan={10} className="py-2 px-3 font-bold text-xs text-slate-700">
+                    <td colSpan={9} className="py-2 px-3 font-bold text-xs text-slate-700">
                       <div className="flex items-center gap-2">
                         <FaCalendarAlt className="text-[#00A651]" />
                         <span>เดือน {group.month}</span>
@@ -531,26 +318,6 @@ export function PublicationsTable({
                             </div>
                           )}
                         </td>
-                        <td style={{ textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
-                          <div className="flex items-center justify-center gap-1">
-                            <button
-                              type="button"
-                              onClick={() => handleOpenEdit(item)}
-                              className="size-7 rounded-md text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 flex items-center justify-center transition-colors cursor-pointer"
-                              title="แก้ไขข้อมูล"
-                            >
-                              <FaEdit style={{ fontSize: '13px' }} />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setDeleteTarget(item)}
-                              className="size-7 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 flex items-center justify-center transition-colors cursor-pointer"
-                              title="ลบข้อมูล"
-                            >
-                              <FaTrashAlt style={{ fontSize: '12px' }} />
-                            </button>
-                          </div>
-                        </td>
                       </tr>
                     );
                   })}
@@ -560,137 +327,6 @@ export function PublicationsTable({
           </tbody>
         </table>
       </div>
-
-      {/* Add / Edit Modal */}
-      {isModalOpen && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            backdropFilter: 'blur(3px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 10000,
-            padding: '16px',
-          }}
-        >
-          <div
-            style={{
-              backgroundColor: '#ffffff',
-              borderRadius: '16px',
-              width: '100%',
-              maxWidth: '880px',
-              maxHeight: '90vh',
-              display: 'flex',
-              flexDirection: 'column',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
-              overflow: 'hidden',
-            }}
-          >
-            {/* Modal Header */}
-            <div
-              style={{
-                padding: '18px 24px',
-                backgroundColor: '#00A651',
-                color: '#ffffff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 700 }}>
-                {editingItem ? 'แก้ไขข้อมูล: ผลงานตีพิมพ์ทางวิชาการ' : 'เพิ่มข้อมูล: ผลงานตีพิมพ์ทางวิชาการ'}
-              </h3>
-              <button
-                type="button"
-                onClick={() => {
-                  if (confirm('คุณต้องการปิดโดยไม่บันทึกการเปลี่ยนแปลงหรือไม่?')) {
-                    setIsModalOpen(false);
-                  }
-                }}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#ffffff',
-                  fontSize: '22px',
-                  cursor: 'pointer',
-                  padding: '4px',
-                  lineHeight: 1,
-                  opacity: 0.85,
-                }}
-              >
-                &times;
-              </button>
-            </div>
-
-            {/* Modal Form Body */}
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', flex: 1, overflowY: 'auto' }}>
-              <div style={{ padding: '20px 24px', flex: 1 }}>
-                <PublicationForm
-                  formData={formData}
-                  onChange={handleFieldChange}
-                  setFormData={setFormData}
-                  isEdit={Boolean(editingItem)}
-                  errors={formErrors}
-                />
-              </div>
-
-              {/* Modal Footer */}
-              <div
-                style={{
-                  padding: '14px 24px',
-                  backgroundColor: '#f8fafc',
-                  borderTop: '1px solid #e2e8f0',
-                  display: 'flex',
-                  justifyContent: 'flex-end',
-                  gap: '10px',
-                }}
-              >
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    if (confirm('คุณต้องการยกเลิกโดยไม่บันทึกการเปลี่ยนแปลงหรือไม่?')) {
-                      setIsModalOpen(false);
-                    }
-                  }}
-                  disabled={isSubmitting}
-                  className="h-9 px-4 text-xs font-semibold text-slate-700 bg-white"
-                >
-                  ยกเลิก
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="h-9 px-5 text-xs font-semibold text-white bg-[#00A651] hover:bg-[#008a43] shadow-xs cursor-pointer flex items-center gap-1.5"
-                >
-                  {isSubmitting ? (
-                    <span>กำลังบันทึก...</span>
-                  ) : (
-                    <span>{editingItem ? 'บันทึกการเปลี่ยนแปลง' : 'บันทึกข้อมูล'}</span>
-                  )}
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Delete Confirmation Modal */}
-      {deleteTarget && (
-        <ConfirmActionModal
-          isOpen={Boolean(deleteTarget)}
-          title="ยืนยันการลบผลงานตีพิมพ์ทางวิชาการ"
-          message={`คุณแน่ใจหรือไม่ว่าต้องการลบผลงาน "${deleteTarget.name}"? การดำเนินการนี้ไม่สามารถเรียกคืนได้`}
-          confirmText="ลบรายการ"
-          cancelText="ยกเลิก"
-          type="danger"
-          onConfirm={handleConfirmDelete}
-          onCancel={() => setDeleteTarget(null)}
-        />
-      )}
 
       {/* Record Detail Drawer */}
       <RecordDetailDrawer

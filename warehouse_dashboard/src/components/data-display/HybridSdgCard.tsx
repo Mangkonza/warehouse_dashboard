@@ -27,8 +27,7 @@ export interface HybridSdgCardProps {
 }
 
 export const HybridSdgCard: React.FC<HybridSdgCardProps> = ({
-  title = 'การวิเคราะห์ความสอดคล้องกับเป้าหมายการพัฒนาที่ยั่งยืน (UN SDGs & UI GreenMetric)',
-  subtitle = 'สลับมุมมองได้ 3 ระดับ: เป้าหมายหลักที่มีผลงานจริง • แยกตามหมวดหมู่ยุทธศาสตร์ • ครบ 17 เป้าหมายเพื่อหาช่องว่าง (Gap Analysis)',
+  title = 'เป้าหมายการพัฒนาที่ยั่งยืน (UN SDGs)',
   items,
   categoryKey = 'research',
   unitLabel = 'รายการ',
@@ -129,11 +128,8 @@ export const HybridSdgCard: React.FC<HybridSdgCardProps> = ({
                 border: '1px solid #a7f3d0',
               }}
             >
-              ครอบคลุม {summary.coveredCount} / 17 เป้าหมาย
+              {summary.coveredCount} / 17 เป้าหมาย
             </span>
-          </div>
-          <div style={{ fontSize: '12px', color: '#64748b', marginTop: '3px' }}>
-            {subtitle}
           </div>
         </div>
 
@@ -156,12 +152,12 @@ export const HybridSdgCard: React.FC<HybridSdgCardProps> = ({
             },
             {
               key: 'cluster' as SdgViewMode,
-              label: 'แยกตามหมวดหมู่ (4 ด้าน)',
+              label: '4 หมวดหมู่',
               icon: <FaLayerGroup style={{ fontSize: '11px' }} />,
             },
             {
               key: 'matrix17' as SdgViewMode,
-              label: 'ครบ 17 ข้อ (หาช่องว่าง)',
+              label: 'ครบ 17 ข้อ',
               icon: <FaThLarge style={{ fontSize: '11px' }} />,
             },
           ].map((tab) => {
@@ -280,7 +276,7 @@ export const HybridSdgCard: React.FC<HybridSdgCardProps> = ({
                           </span>
                         </div>
 
-                        {/* Right: Count + Budget + Drill-down link */}
+                        {/* Right: Count + Budget */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                           <span style={{ fontSize: '13px', color: '#1e293b', fontWeight: 600 }}>
                             {entry.count.toLocaleString()} {unitLabel}{' '}
@@ -301,18 +297,6 @@ export const HybridSdgCard: React.FC<HybridSdgCardProps> = ({
                               {formatMoney(entry.budget)} บาท
                             </span>
                           )}
-                          <span
-                            style={{
-                              fontSize: '11.5px',
-                              color: '#0284c7',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '3px',
-                              whiteSpace: 'nowrap',
-                            }}
-                          >
-                            ดูรายชื่อ <FaChevronRight style={{ fontSize: '9px' }} />
-                          </span>
                         </div>
                       </div>
 
@@ -469,17 +453,13 @@ export const HybridSdgCard: React.FC<HybridSdgCardProps> = ({
                     </div>
                   </div>
 
-                  <div style={{ fontSize: '12px', color: '#64748b', margin: '6px 0 10px 0', lineHeight: 1.4 }}>
-                    {entry.cluster.descriptionTh}
-                  </div>
-
                   <div
                     style={{
                       height: '6px',
                       backgroundColor: '#f1f5f9',
                       borderRadius: '999px',
                       overflow: 'hidden',
-                      marginBottom: '8px',
+                      margin: '10px 0 8px 0',
                     }}
                   >
                     <div
@@ -492,20 +472,11 @@ export const HybridSdgCard: React.FC<HybridSdgCardProps> = ({
                     />
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
-                    {showBudget && entry.budget > 0 ? (
-                      <span style={{ color: '#059669', fontWeight: 600, fontFamily: 'monospace' }}>
-                        งบรวม: {formatMoney(entry.budget)} บาท
-                      </span>
-                    ) : (
-                      <span style={{ color: '#94a3b8' }}>-</span>
-                    )}
-                    {entry.count > 0 && (
-                      <span style={{ color: '#0284c7', fontSize: '11.5px' }}>
-                        คลิกดูรายชื่อ ({entry.count}) ▸
-                      </span>
-                    )}
-                  </div>
+                  {showBudget && entry.budget > 0 && (
+                    <div style={{ fontSize: '12px', color: '#059669', fontWeight: 600, fontFamily: 'monospace' }}>
+                      {formatMoney(entry.budget)} บาท
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -521,7 +492,7 @@ export const HybridSdgCard: React.FC<HybridSdgCardProps> = ({
             }}
           >
             <div style={{ fontSize: '13px', fontWeight: 600, color: '#1e293b', marginBottom: '10px' }}>
-              การเชื่อมโยงเกณฑ์มหาวิทยาลัยสีเขียว (UI GreenMetric World University Rankings)
+              เกณฑ์มหาวิทยาลัยสีเขียว (UI GreenMetric)
             </div>
             <div
               style={{
@@ -603,13 +574,12 @@ export const HybridSdgCard: React.FC<HybridSdgCardProps> = ({
             }}
           >
             <span>
-              <strong>สรุปช่องว่างเชิงยุทธศาสตร์ (Gap Analysis):</strong> มีผลงานรองรับแล้ว{' '}
-              <strong style={{ color: '#00A651' }}>{summary.coveredCount} เป้าหมาย</strong> • ยังไม่มีโครงการ{' '}
+              มีผลงาน <strong style={{ color: '#00A651' }}>{summary.coveredCount} เป้าหมาย</strong> • ยังว่าง{' '}
               <strong style={{ color: '#dc2626' }}>{summary.gapSDGs.length} เป้าหมาย</strong>
             </span>
             {summary.gapSDGs.length > 0 && (
               <span style={{ color: '#64748b' }}>
-                เป้าหมายที่ยังว่าง: {summary.gapSDGs.map((g) => g.sdg.code).join(', ')}
+                ว่าง: {summary.gapSDGs.map((g) => g.sdg.code).join(', ')}
               </span>
             )}
           </div>
@@ -670,19 +640,13 @@ export const HybridSdgCard: React.FC<HybridSdgCardProps> = ({
                     </div>
                   </div>
 
-                  <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '4px', fontSize: '11px' }}>
-                    {hasData ? (
-                      showBudget && entry.budget > 0 ? (
-                        <span style={{ color: '#059669', fontFamily: 'monospace', fontWeight: 600 }}>
-                          {formatMoney(entry.budget)} บาท
-                        </span>
-                      ) : (
-                        <span style={{ color: '#0284c7' }}>คลิกดูรายชื่อ ▸</span>
-                      )
-                    ) : (
-                      <span style={{ color: '#94a3b8' }}>ยังไม่มีโครงการ (Gap)</span>
-                    )}
-                  </div>
+                  {hasData && showBudget && entry.budget > 0 && (
+                    <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '4px', fontSize: '11px' }}>
+                      <span style={{ color: '#059669', fontFamily: 'monospace', fontWeight: 600 }}>
+                        {formatMoney(entry.budget)} บาท
+                      </span>
+                    </div>
+                  )}
                 </div>
               );
             })}

@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Chart from 'chart.js/auto';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { FaChartBar, FaChartPie } from 'react-icons/fa';
 import { ResearchItem } from '../_hooks/useResearchData';
 import { getDepartment, getDepartmentColor } from '@/lib/departments';
-import { formatTopItemsForTooltip } from '@/lib/chartTooltipHelper';
+import { formatTopItemsForTooltip, getClickedChartElement } from '@/lib/chartTooltipHelper';
 import { HybridSdgCard } from '@/components/data-display';
+import { DrillDownProjectDrawer } from '@/components/ui';
 
 interface ResearchChartsProps {
   validData: ResearchItem[];
@@ -23,6 +24,19 @@ export function ResearchCharts({
   onSelectFund,
 }: ResearchChartsProps) {
   const chartInstances = useRef<Chart[]>([]);
+  const [drillDown, setDrillDown] = useState<{
+    isOpen: boolean;
+    title: string;
+    subtitle: string;
+    accentColor: string;
+    items: ResearchItem[];
+  }>({
+    isOpen: false,
+    title: '',
+    subtitle: '',
+    accentColor: '#00A651',
+    items: [],
+  });
 
   useEffect(() => {
     chartInstances.current.forEach((c) => c.destroy());
@@ -99,11 +113,20 @@ export function ResearchCharts({
         responsive: true,
         maintainAspectRatio: false,
         indexAxis: 'y',
-        onClick: (_e: any, elements: any[]) => {
-          if (elements.length > 0 && onSelectDept) {
-            const idx = elements[0].index;
-            const d = sortedDepts[idx];
-            if (d) onSelectDept(d.code);
+        onClick: (event: any, elements: any[], chart: any) => {
+          const hit = getClickedChartElement(event, elements, chart, 'y');
+          if (hit) {
+            const d = sortedDepts[hit.index];
+            if (d) {
+              if (onSelectDept) onSelectDept(d.code);
+              setDrillDown({
+                isOpen: true,
+                title: `โครงการวิจัย: ภาควิชา${d.name} (${d.code})`,
+                subtitle: `รวม ${d.count} โครงการ • งบประมาณรวม ${d.budget.toLocaleString('th-TH')} บาท`,
+                accentColor: getDepartmentColor(d.code),
+                items: d.items,
+              });
+            }
           }
         },
         plugins: {
@@ -161,11 +184,20 @@ export function ResearchCharts({
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        onClick: (_e: any, elements: any[]) => {
-          if (elements.length > 0 && onSelectFund) {
-            const idx = elements[0].index;
-            const f = sortedFunds[idx];
-            if (f) onSelectFund(f.name);
+        onClick: (event: any, elements: any[], chart: any) => {
+          const hit = getClickedChartElement(event, elements, chart, 'nearest');
+          if (hit) {
+            const f = sortedFunds[hit.index];
+            if (f) {
+              if (onSelectFund) onSelectFund(f.name);
+              setDrillDown({
+                isOpen: true,
+                title: `โครงการวิจัยตามแหล่งทุน: ${f.name}`,
+                subtitle: `รวม ${f.count} โครงการ • งบประมาณรวม ${f.budget.toLocaleString('th-TH')} บาท`,
+                accentColor: UI_PALETTE[hit.index % UI_PALETTE.length] || '#00A651',
+                items: f.items,
+              });
+            }
           }
         },
         plugins: {
@@ -207,28 +239,18 @@ export function ResearchCharts({
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '16px' }}>
       <div className="chart-grid">
         <div className="chart-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <h3 style={{ margin: 0 }}>
-              <FaChartBar style={{ color: '#00A651' }} /> งบประมาณและจำนวนโครงการวิจัยตามภาควิชา
-            </h3>
-            <span style={{ fontSize: '11.5px', color: '#00A651', fontWeight: 600 }}>
-              💡 คลิกแท่งกราฟเพื่อกรองตาราง
-            </span>
-          </div>
+          <h3>
+            <FaChartBar style={{ color: '#00A651' }} /> งบประมาณและจำนวนโครงการวิจัยตามภาควิชา
+          </h3>
           <div className="chart-wrapper" style={{ cursor: 'pointer' }}>
             <canvas id="c_re_dept" />
           </div>
         </div>
 
         <div className="chart-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <h3 style={{ margin: 0 }}>
-              <FaChartPie style={{ color: '#00A651' }} /> สัดส่วนงบประมาณตามแหล่งทุนวิจัย
-            </h3>
-            <span style={{ fontSize: '11.5px', color: '#00A651', fontWeight: 600 }}>
-              💡 คลิกส่วนกราฟเพื่อกรองแหล่งทุน
-            </span>
-          </div>
+          <h3>
+            <FaChartPie style={{ color: '#00A651' }} /> สัดส่วนงบประมาณตามแหล่งทุนวิจัย
+          </h3>
           <div className="chart-wrapper" style={{ cursor: 'pointer' }}>
             <canvas id="c_re_fund" />
           </div>
@@ -238,7 +260,17 @@ export function ResearchCharts({
       <HybridSdgCard
         items={validData}
         categoryKey="research"
-        title="การวิเคราะห์โครงการวิจัยตามเป้าหมายการพัฒนาที่ยั่งยืน (UN SDGs & UI GreenMetric)"
+        title="เป้าหมายการพัฒนาที่ยั่งยืน (UN SDGs)"
+      />
+
+      <DrillDownProjectDrawer
+        isOpen={drillDown.isOpen}
+        onClose={() => setDrillDown((prev) => ({ ...prev, isOpen: false }))}
+        title={drillDown.title}
+        subtitle={drillDown.subtitle}
+        accentColor={drillDown.accentColor}
+        items={drillDown.items}
+        categoryKey="research"
       />
     </div>
   );

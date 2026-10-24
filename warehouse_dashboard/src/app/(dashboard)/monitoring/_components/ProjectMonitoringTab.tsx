@@ -3,8 +3,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { calculateProjectTimeline, STATUS_LABELS } from '@/lib/projectMonitoringEngine';
 import { ProjectExtensionRecord, ProjectStatus, ProjectTimelineInfo } from '@/types/projectMonitoring';
-import { ProjectExtensionModal } from '@/features/monitoring/components/ProjectExtensionModal';
-import { ConfirmActionModal } from '@/components/ui/ConfirmActionModal';
 import {
   Select,
   SelectContent,
@@ -12,11 +10,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { getCachedCategoryData, fetchCategoryData, saveCategoryRecord } from '@/lib/dataService';
+import { getCachedCategoryData, fetchCategoryData } from '@/lib/dataService';
 import rawResearch from '@/data/research.json';
 import rawAcademic from '@/data/academic.json';
 import { DEPARTMENTS, getDepartmentAbbr } from '@/config/dataManagementConfig';
-import { DepartmentBadge, DepartmentSelect } from '@/components/ui';
+import { DepartmentBadge, DepartmentSelect, RecordDetailDrawer } from '@/components/ui';
 import { getDepartment } from '@/lib/departments';
 import { isTestRecord } from '@/lib/sdgEngine';
 import { TimeFilterBar, useTimeFilter } from '@/features/time-filter';
@@ -95,29 +93,10 @@ export default function ProjectMonitoringTab({
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [deptFilter, setDeptFilter] = useState<string>('all');
-
-  // Extension Modal & Confirm Modal Target
-  const [extensionTarget, setExtensionTarget] = useState<{
+  const [selectedDetailTarget, setSelectedDetailTarget] = useState<{
     item: Record<string, any>;
     category: 'research' | 'academic';
   } | null>(null);
-
-  const [confirmModal, setConfirmModal] = useState<{
-    isOpen: boolean;
-    title: string;
-    message: string;
-    detail?: string;
-    confirmText?: string;
-    type?: 'danger' | 'warning' | 'success';
-    onConfirm: () => void;
-  } | null>(null);
-
-  const [toastMessage, setToastMessage] = useState<string>('');
-
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(''), 3500);
-  };
 
   // 4. Compute Timelines for Research Projects (กรองข้อมูลทดสอบออกในหน่วยความจำ)
   const processedResearch = useMemo(() => {
@@ -252,213 +231,10 @@ export default function ProjectMonitoringTab({
     });
   }, [currentDataset, statusFilter, deptFilter, searchTerm]);
 
-  // 8. Handler: Save Extension Request
-  const handleSaveExtension = async (
-    updatedItem: Record<string, any>,
-    newExtension: ProjectExtensionRecord
-  ) => {
-    if (!extensionTarget) return;
-    const cat = extensionTarget.category;
-
-    await saveCategoryRecord(cat, updatedItem, false);
-
-    if (cat === 'research') {
-      setResearchList((prev) =>
-        prev.map((item) =>
-          (item._id && item._id === updatedItem._id) || (item.id && item.id === updatedItem.id)
-            ? updatedItem
-            : item
-        )
-      );
-    } else {
-      setAcademicList((prev) =>
-        prev.map((item) =>
-          (item._id && item._id === updatedItem._id) || (item.name && item.name === updatedItem.name)
-            ? updatedItem
-            : item
-        )
-      );
-    }
-
-    showToast(
-      `บันทึกคำขอขยายเวลาโครงการ (${cat === 'research' ? 'โครงการวิจัย' : 'โครงการพัฒนาวิชาการ'}) ${
-        newExtension.duration_months
-      } เดือน เรียบร้อยแล้ว`
-    );
-  };
-
-  // 9. Handler: Mark Project as Completed / Closed
-  const handleMarkCompleted = async (item: Record<string, any>, cat: 'research' | 'academic') => {
-    const todayStr = new Date().toISOString().split('T')[0];
-    const updated: any = {
-      ...item,
-      status: 'completed',
-      closed_date: todayStr,
-      is_completed: true,
-    };
-
-    await saveCategoryRecord(cat, updated, false);
-
-    if (cat === 'research') {
-      setResearchList((prev) =>
-        prev.map((p: any) =>
-          (p._id && p._id === updated._id) || (p.id && p.id === updated.id) ? updated : p
-        )
-      );
-    } else {
-      setAcademicList((prev) =>
-        prev.map((p: any) =>
-          (p._id && p._id === updated._id) || (p.name && p.name === updated.name) ? updated : p
-        )
-      );
-    }
-
-    showToast(`บันทึกปิดโครงการ / ส่งมอบงานเรียบร้อยแล้ว (${item.name || item.id || ''})`);
-  };
-
-  const requestCloseProject = (item: Record<string, any>, cat: 'research' | 'academic') => {
-    const isRes = cat === 'research';
-    setConfirmModal({
-      isOpen: true,
-      title: isRes ? 'ยืนยันการปิดโครงการวิจัย?' : 'ยืนยันการส่งมอบงานโครงการพัฒนาวิชาการ?',
-      message: isRes
-        ? 'คุณต้องการเปลี่ยนสถานะโครงการเป็น "ปิดโครงการแล้ว" ใช่หรือไม่? ระบบจะบันทึกวันที่ปัจจุบันเป็นวันเสร็จสิ้นโครงการอย่างสมบูรณ์'
-        : 'คุณต้องการบันทึกการส่งมอบงานงวดสุดท้ายและปิดโครงการพัฒนาวิชาการนี้ใช่หรือไม่?',
-      detail: `โครงการ: ${item.name || item.id || ''}`,
-      confirmText: isRes ? 'ยืนยันปิดโครงการวิจัย' : 'ยืนยันส่งมอบงาน/ปิดโครงการ',
-      type: 'success',
-      onConfirm: () => {
-        handleMarkCompleted(item, cat);
-        setConfirmModal(null);
-      },
-    });
-  };
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {/* Toast Notification */}
-      {toastMessage && (
-        <div
-          style={{
-            position: 'fixed',
-            top: '60px',
-            right: '24px',
-            backgroundColor: '#00A651',
-            color: '#ffffff',
-            padding: '12px 20px',
-            borderRadius: '8px',
-            boxShadow: '0 4px 12px rgba(0, 166, 81, 0.35)',
-            fontSize: '13.5px',
-            fontWeight: 600,
-            zIndex: 9999,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-          }}
-        >
-          <FaCheckCircle />
-          <span>{toastMessage}</span>
-        </div>
-      )}
-
-      {/* Top Banner Header */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '14px',
-          backgroundColor: '#ffffff',
-          padding: '18px 24px',
-          borderRadius: '12px',
-          border: '1px solid #e2e8f0',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-        }}
-      >
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div
-              style={{
-                width: '38px',
-                height: '38px',
-                borderRadius: '10px',
-                backgroundColor: '#f0fbf5',
-                color: '#00A651',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '18px',
-              }}
-            >
-              <FaClock />
-            </div>
-            <div>
-              <h1 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: '#0f172a' }}>
-                ระบบติดตามสถานะโครงการ (Project Monitoring & Timeline)
-              </h1>
-              <p style={{ margin: '2px 0 0 0', fontSize: '13px', color: '#64748b' }}>
-                ติดตามกรอบเวลาสัญญา งวดงาน การขอขยายเวลา และสถานะการส่งมอบงาน แยกตามประเภทโครงการ
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          {onNavigateToManage && (
-            <button
-              onClick={onNavigateToManage}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '9px 16px',
-                backgroundColor: '#ffffff',
-                border: '1px solid #00A651',
-                borderRadius: '8px',
-                color: '#00A651',
-                fontSize: '13px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#f0fbf5';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#ffffff';
-              }}
-            >
-              <FaDatabase style={{ fontSize: '12px' }} />
-              <span>ไปที่ระบบจัดการข้อมูล</span>
-            </button>
-          )}
-
-          {goBack && (
-            <button
-              onClick={goBack}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '9px 16px',
-                backgroundColor: '#f1f5f9',
-                border: '1px solid #cbd5e1',
-                borderRadius: '8px',
-                color: '#475569',
-                fontSize: '13px',
-                fontWeight: 500,
-                cursor: 'pointer',
-              }}
-            >
-              <span>กลับสู่ภาพรวม</span>
-            </button>
-          )}
-        </div>
-      </div>
-
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       {/* Time Filter Bar */}
-      <TimeFilterBar />
+      <TimeFilterBar totalCount={filteredList.length} />
 
       {/* ========================================================================= */}
       {/* แท็บสลับแยกระหว่าง: โครงการวิจัย vs โครงการพัฒนาวิชาการ vs ทั้งหมด */}
@@ -865,10 +641,7 @@ export default function ProjectMonitoringTab({
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 4px' }}>
           <div style={{ fontSize: '13.5px', fontWeight: 600, color: '#475569' }}>
-            พบทั้งหมด <strong style={{ color: '#00A651' }}>{filteredList.length}</strong> รายการ
-          </div>
-          <div style={{ fontSize: '12px', color: '#64748b' }}>
-            แสดงผลตามกรอบเวลาสัญญาและประวัติการขยายเวลา (ระเบียบ มก.)
+            ทั้งหมด <strong style={{ color: '#00A651' }}>{filteredList.length}</strong> โครงการ
           </div>
         </div>
 
@@ -899,6 +672,7 @@ export default function ProjectMonitoringTab({
             return (
               <div
                 key={item._uniqueKey || idx}
+                onClick={() => setSelectedDetailTarget({ item, category: cat })}
                 style={{
                   backgroundColor: '#ffffff',
                   borderRadius: '12px',
@@ -909,6 +683,8 @@ export default function ProjectMonitoringTab({
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '12px',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
                 }}
               >
                 {/* Header Row: Category Badge, Code/ID, Status, and Overdue Badge */}
@@ -1146,96 +922,20 @@ export default function ProjectMonitoringTab({
                     ))}
                   </div>
                 )}
-
-                {/* Action Buttons Row */}
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'flex-end',
-                    gap: '10px',
-                    paddingTop: '6px',
-                    borderTop: '1px solid #f1f5f9',
-                  }}
-                >
-                  {tl.status !== 'completed' && (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => setExtensionTarget({ item, category: cat })}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          padding: '7px 14px',
-                          borderRadius: '6px',
-                          border: '1px solid #d97706',
-                          backgroundColor: '#fffbeb',
-                          color: '#b45309',
-                          fontSize: '12.5px',
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                        }}
-                      >
-                        <FaClock style={{ fontSize: '11px' }} />
-                        <span>บันทึกขอขยายเวลา</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => requestCloseProject(item, cat)}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          padding: '7px 14px',
-                          borderRadius: '6px',
-                          border: 'none',
-                          backgroundColor: '#00A651',
-                          color: '#ffffff',
-                          fontSize: '12.5px',
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                        }}
-                      >
-                        <FaCheck style={{ fontSize: '11px' }} />
-                        <span>{isResearch ? 'บันทึกปิดโครงการ' : 'บันทึกส่งมอบงาน/ปิดโครงการ'}</span>
-                      </button>
-                    </>
-                  )}
-                </div>
               </div>
             );
           })
         )}
       </div>
 
-      {/* Extension Modal */}
-      {extensionTarget && (
-        <ProjectExtensionModal
-          isOpen={Boolean(extensionTarget)}
-          onClose={() => setExtensionTarget(null)}
-          projectItem={extensionTarget.item}
-          onSaveExtension={(updatedItem, newExt) => {
-            handleSaveExtension(updatedItem, newExt);
-            setExtensionTarget(null);
-          }}
-        />
-      )}
-
-      {/* Confirmation Modal */}
-      {confirmModal && (
-        <ConfirmActionModal
-          isOpen={confirmModal.isOpen}
-          onCancel={() => setConfirmModal(null)}
-          title={confirmModal.title}
-          message={confirmModal.message}
-          detail={confirmModal.detail}
-          confirmText={confirmModal.confirmText}
-          type={confirmModal.type}
-          onConfirm={confirmModal.onConfirm}
-        />
-      )}
+      {/* Record Detail Drawer (Read-Only) */}
+      <RecordDetailDrawer
+        isOpen={Boolean(selectedDetailTarget)}
+        onClose={() => setSelectedDetailTarget(null)}
+        categoryKey={selectedDetailTarget?.category || 'research'}
+        record={selectedDetailTarget?.item || null}
+        readOnly={true}
+      />
     </div>
   );
 }

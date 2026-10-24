@@ -68,22 +68,6 @@ export const OverviewHeaderToolbar: React.FC<OverviewHeaderToolbarProps> = ({
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
         <button
-          onClick={onSnapshot}
-          className="glass-btn"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '8px 14px',
-            fontSize: '12.5px',
-          }}
-          title="บันทึกภาพรวมผลงานของงวดรายงานนี้"
-        >
-          <FaCamera style={{ fontSize: '12px', color: '#00A651' }} />
-          <span>บันทึก Snapshot งวดรายงาน</span>
-        </button>
-
-        <button
           onClick={onExportMaster}
           style={{
             display: 'inline-flex',

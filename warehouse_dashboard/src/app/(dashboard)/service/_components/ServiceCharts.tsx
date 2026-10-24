@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Chart from 'chart.js/auto';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { FaChartLine, FaChartBar, FaChartPie } from 'react-icons/fa';
 import { ServiceItem } from '../_hooks/useServiceData';
 import { getDepartment, getDepartmentColor } from '@/lib/departments';
-import { formatTopItemsForTooltip } from '@/lib/chartTooltipHelper';
+import { formatTopItemsForTooltip, getClickedChartElement } from '@/lib/chartTooltipHelper';
 import { HybridSdgCard } from '@/components/data-display';
+import { DrillDownProjectDrawer } from '@/components/ui';
 
 interface ServiceChartsProps {
   validData: ServiceItem[];
@@ -23,6 +24,19 @@ export function ServiceCharts({
   onSelectPerson,
 }: ServiceChartsProps) {
   const chartInstances = useRef<Chart[]>([]);
+  const [drillDown, setDrillDown] = useState<{
+    isOpen: boolean;
+    title: string;
+    subtitle: string;
+    accentColor: string;
+    items: ServiceItem[];
+  }>({
+    isOpen: false,
+    title: '',
+    subtitle: '',
+    accentColor: '#e65100',
+    items: [],
+  });
 
   useEffect(() => {
     chartInstances.current.forEach((c) => c.destroy());
@@ -130,6 +144,22 @@ export function ServiceCharts({
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        onClick: (event: any, elements: any[], chart: any) => {
+          const hit = getClickedChartElement(event, elements, chart, 'x');
+          if (hit) {
+            const mIdx = M_INDICES[hit.index];
+            const bucket = mIdx !== undefined ? monthBuckets[mIdx] : undefined;
+            if (bucket && bucket.items.length > 0) {
+              setDrillDown({
+                isOpen: true,
+                title: `งานบริการวิชาการประจำเดือน ${M_LABELS[hit.index]}`,
+                subtitle: `รวม ${bucket.items.length} กิจกรรม`,
+                accentColor: C_SRV,
+                items: bucket.items,
+              });
+            }
+          }
+        },
         plugins: {
           legend: { display: false },
           datalabels: { align: 'top', anchor: 'end', color: C_SRV, font: { weight: 'bold' } },
@@ -166,11 +196,20 @@ export function ServiceCharts({
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        onClick: (_e: any, elements: any[]) => {
-          if (elements.length > 0 && onSelectType) {
-            const idx = elements[0].index;
-            const t = sortedTypes[idx];
-            if (t) onSelectType(t.name);
+        onClick: (event: any, elements: any[], chart: any) => {
+          const hit = getClickedChartElement(event, elements, chart, 'x');
+          if (hit) {
+            const t = sortedTypes[hit.index];
+            if (t) {
+              if (onSelectType) onSelectType(t.name);
+              setDrillDown({
+                isOpen: true,
+                title: `งานบริการวิชาการประเภท: ${t.name}`,
+                subtitle: `รวม ${t.count} กิจกรรม`,
+                accentColor: TYPE_COLOR_MAP[t.name] || C_SRV,
+                items: t.items,
+              });
+            }
           }
         },
         plugins: {
@@ -211,11 +250,20 @@ export function ServiceCharts({
         responsive: true,
         maintainAspectRatio: false,
         indexAxis: 'y',
-        onClick: (_e: any, elements: any[]) => {
-          if (elements.length > 0 && onSelectPerson) {
-            const idx = elements[0].index;
-            const p = sortedPersons[idx];
-            if (p) onSelectPerson(p.name);
+        onClick: (event: any, elements: any[], chart: any) => {
+          const hit = getClickedChartElement(event, elements, chart, 'y');
+          if (hit) {
+            const p = sortedPersons[hit.index];
+            if (p) {
+              if (onSelectPerson) onSelectPerson(p.name);
+              setDrillDown({
+                isOpen: true,
+                title: `งานบริการวิชาการของ: ${p.name}`,
+                subtitle: `รวม ${p.count} กิจกรรม`,
+                accentColor: '#00A651',
+                items: p.items,
+              });
+            }
           }
         },
         plugins: {
@@ -255,11 +303,20 @@ export function ServiceCharts({
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        onClick: (_e: any, elements: any[]) => {
-          if (elements.length > 0 && onSelectDept) {
-            const idx = elements[0].index;
-            const d = sortedDepts[idx];
-            if (d) onSelectDept(d.code);
+        onClick: (event: any, elements: any[], chart: any) => {
+          const hit = getClickedChartElement(event, elements, chart, 'nearest');
+          if (hit) {
+            const d = sortedDepts[hit.index];
+            if (d) {
+              if (onSelectDept) onSelectDept(d.code);
+              setDrillDown({
+                isOpen: true,
+                title: `งานบริการวิชาการ: ภาควิชา${d.name} (${d.code})`,
+                subtitle: `รวม ${d.count} กิจกรรม`,
+                accentColor: getDepartmentColor(d.code),
+                items: d.items,
+              });
+            }
           }
         },
         plugins: {
@@ -303,22 +360,17 @@ export function ServiceCharts({
       <div className="chart-grid">
         <div className="chart-card">
           <h3>
-            <FaChartLine style={{ color: '#e65100' }} /> จำนวนงานบริการวิชาการรายเดือน (ข้อมูลจริง)
+            <FaChartLine style={{ color: '#e65100' }} /> จำนวนงานบริการวิชาการรายเดือน
           </h3>
-          <div className="chart-wrapper">
+          <div className="chart-wrapper" style={{ cursor: 'pointer' }}>
             <canvas id="c_sv_monthly" />
           </div>
         </div>
 
         <div className="chart-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <h3 style={{ margin: 0 }}>
-              <FaChartBar style={{ color: '#e65100' }} /> จำแนกตามประเภทงานบริการวิชาการ
-            </h3>
-            <span style={{ fontSize: '11.5px', color: '#00A651', fontWeight: 600 }}>
-              💡 คลิกแท่งกราฟเพื่อกรองประเภท
-            </span>
-          </div>
+          <h3>
+            <FaChartBar style={{ color: '#e65100' }} /> จำแนกตามประเภทงานบริการวิชาการ
+          </h3>
           <div className="chart-wrapper" style={{ cursor: 'pointer' }}>
             <canvas id="c_sv_type" />
           </div>
@@ -327,28 +379,18 @@ export function ServiceCharts({
 
       <div className="chart-grid">
         <div className="chart-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <h3 style={{ margin: 0 }}>
-              <FaChartBar style={{ color: '#00A651' }} /> บุคลากรที่ให้บริการวิชาการสูงสุด (Top Contributors)
-            </h3>
-            <span style={{ fontSize: '11.5px', color: '#00A651', fontWeight: 600 }}>
-              💡 คลิกแท่งกราฟเพื่อกรองรายชื่อ
-            </span>
-          </div>
+          <h3>
+            <FaChartBar style={{ color: '#00A651' }} /> บุคลากรที่ให้บริการวิชาการสูงสุด (Top Contributors)
+          </h3>
           <div className="chart-wrapper" style={{ cursor: 'pointer' }}>
             <canvas id="c_sv_top" />
           </div>
         </div>
 
         <div className="chart-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <h3 style={{ margin: 0 }}>
-              <FaChartPie style={{ color: '#e65100' }} /> สัดส่วนงานบริการวิชาการตามภาควิชา/ศูนย์ฯ
-            </h3>
-            <span style={{ fontSize: '11.5px', color: '#00A651', fontWeight: 600 }}>
-              💡 คลิกส่วนกราฟเพื่อกรองภาควิชา
-            </span>
-          </div>
+          <h3>
+            <FaChartPie style={{ color: '#e65100' }} /> สัดส่วนงานบริการวิชาการตามภาควิชา/ศูนย์ฯ
+          </h3>
           <div className="chart-wrapper" style={{ cursor: 'pointer' }}>
             <canvas id="c_sv_dept" />
           </div>
@@ -358,7 +400,17 @@ export function ServiceCharts({
       <HybridSdgCard
         items={validData}
         categoryKey="service"
-        title="การวิเคราะห์งานบริการวิชาการตามเป้าหมายการพัฒนาที่ยั่งยืน (UN SDGs & UI GreenMetric)"
+        title="เป้าหมายการพัฒนาที่ยั่งยืน (UN SDGs)"
+      />
+
+      <DrillDownProjectDrawer
+        isOpen={drillDown.isOpen}
+        onClose={() => setDrillDown((prev) => ({ ...prev, isOpen: false }))}
+        title={drillDown.title}
+        subtitle={drillDown.subtitle}
+        accentColor={drillDown.accentColor}
+        items={drillDown.items}
+        categoryKey="service"
       />
     </div>
   );

@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import { FaGraduationCap, FaCoins, FaHandHoldingUsd, FaUsers } from 'react-icons/fa';
 import { useTimeFilter, TimeFilterBar } from '@/features/time-filter';
-import { KpiGrid, DecisionBox } from '@/components/data-display';
+import { KpiGrid } from '@/components/data-display';
 import { useAcademicData } from '../_hooks/useAcademicData';
 import { AcademicCharts } from './AcademicCharts';
 import { AcademicTable } from './AcademicTable';
@@ -29,18 +29,6 @@ export function AcademicView() {
 
   const budgetMillions = (totalBudgetAll / 1000000).toFixed(2);
   const allocMillions = (totalAllocated15 / 1000000).toFixed(2);
-
-  const topClientInfo = useMemo(() => {
-    const map: Record<string, number> = {};
-    validData.forEach((item) => {
-      const c = String(item.client || '').replace('\n', ' ').trim();
-      if (c && c !== 'nan' && c !== '-') {
-        map[c] = (map[c] || 0) + (Number(item.budget) || 0);
-      }
-    });
-    const sorted = Object.entries(map).sort((a, b) => b[1] - a[1]);
-    return sorted[0] || null;
-  }, [validData]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -81,23 +69,6 @@ export function AcademicView() {
               subtext: `งบดำเนินงานคงเหลือ 85% (${(totalAllocRemaining / 1000000).toFixed(2)} ล้านบาท)`,
               accentColor: '#0284c7',
             },
-          ]}
-        />
-
-        <DecisionBox
-          title="ข้อมูลสนับสนุนการตัดสินใจผู้บริหาร — โครงการพัฒนาวิชาการ"
-          items={[
-            <>
-              <strong>มูลค่าการจัดสรรรายได้เข้าส่วนงาน (15%):</strong> สร้างรายได้เข้าคณะ ภาควิชา และมหาวิทยาลัยรวม{' '}
-              <strong>{totalAllocated15.toLocaleString('th-TH', { maximumFractionDigits: 0 })} บาท</strong> (ส่วนละ{' '}
-              {(totalAllocFaculty).toLocaleString('th-TH', { maximumFractionDigits: 0 })} บาท)
-            </>,
-            <>
-              <strong>ผู้ขอรับบริการหลัก:</strong>{' '}
-              {topClientInfo
-                ? `${topClientInfo[0]} มูลค่า ${(topClientInfo[1] / 1000000).toFixed(2)} ล้านบาท`
-                : 'หน่วยงานภาครัฐและเอกชน'}
-            </>,
           ]}
         />
 

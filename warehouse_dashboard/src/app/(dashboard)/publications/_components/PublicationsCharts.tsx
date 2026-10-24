@@ -1,14 +1,15 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Chart from 'chart.js/auto';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { FaChartBar, FaChartLine, FaChartPie } from 'react-icons/fa';
 import { PublicationItem } from '../_hooks/usePublicationsData';
 import { getDepartment, getDepartmentColor } from '@/lib/departments';
 import { JOURNAL_TIER_STYLES } from '@/config/journalRankingConfig';
-import { formatTopItemsForTooltip } from '@/lib/chartTooltipHelper';
+import { formatTopItemsForTooltip, getClickedChartElement } from '@/lib/chartTooltipHelper';
 import { HybridSdgCard } from '@/components/data-display';
+import { DrillDownProjectDrawer } from '@/components/ui';
 
 interface PublicationsChartsProps {
   validData: PublicationItem[];
@@ -22,6 +23,19 @@ export function PublicationsCharts({
   onSelectLevel,
 }: PublicationsChartsProps) {
   const chartInstances = useRef<Chart[]>([]);
+  const [drillDown, setDrillDown] = useState<{
+    isOpen: boolean;
+    title: string;
+    subtitle: string;
+    accentColor: string;
+    items: PublicationItem[];
+  }>({
+    isOpen: false,
+    title: '',
+    subtitle: '',
+    accentColor: '#2e7d32',
+    items: [],
+  });
 
   useEffect(() => {
     chartInstances.current.forEach((c) => c.destroy());
@@ -123,6 +137,22 @@ export function PublicationsCharts({
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        onClick: (event: any, elements: any[], chart: any) => {
+          const hit = getClickedChartElement(event, elements, chart, 'x');
+          if (hit) {
+            const m = M[hit.index];
+            const bucket = monthBuckets[m];
+            if (bucket && bucket.items.length > 0) {
+              setDrillDown({
+                isOpen: true,
+                title: `ผลงานตีพิมพ์ทางวิชาการประจำเดือน ${m}`,
+                subtitle: `รวม ${bucket.items.length} เรื่อง • เงินสนับสนุนรวม ${bucket.budget.toLocaleString('th-TH')} บาท`,
+                accentColor: C_PUB,
+                items: bucket.items,
+              });
+            }
+          }
+        },
         plugins: {
           datalabels: {
             color: '#fff',
@@ -170,6 +200,22 @@ export function PublicationsCharts({
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        onClick: (event: any, elements: any[], chart: any) => {
+          const hit = getClickedChartElement(event, elements, chart, 'x');
+          if (hit) {
+            const m = M[hit.index];
+            const bucket = monthBuckets[m];
+            if (bucket && bucket.items.length > 0) {
+              setDrillDown({
+                isOpen: true,
+                title: `เงินสนับสนุนการตีพิมพ์ประจำเดือน ${m}`,
+                subtitle: `รวม ${bucket.items.length} เรื่อง • เงินสนับสนุนรวม ${bucket.budget.toLocaleString('th-TH')} บาท`,
+                accentColor: C_PUB,
+                items: bucket.items,
+              });
+            }
+          }
+        },
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -216,11 +262,21 @@ export function PublicationsCharts({
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        onClick: (_e: any, elements: any[]) => {
-          if (elements.length > 0 && onSelectLevel) {
-            const idx = elements[0].index;
+        onClick: (event: any, elements: any[], chart: any) => {
+          const hit = getClickedChartElement(event, elements, chart, 'nearest');
+          if (hit) {
+            const idx = hit.index;
             const filterMap = ['Q1', 'Q2', 'TCI', 'อนุสิทธิบัตร'];
-            onSelectLevel(filterMap[idx] || 'all');
+            if (onSelectLevel) onSelectLevel(filterMap[idx] || 'all');
+            const key = tierKeys[idx];
+            const items = key ? tierGroups[key] : [];
+            setDrillDown({
+              isOpen: true,
+              title: `ผลงานตีพิมพ์ระดับ ${tierLabels[idx] || ''}`,
+              subtitle: `รวม ${items.length} เรื่อง`,
+              accentColor: TIER_COLORS[idx] || C_PUB,
+              items,
+            });
           }
         },
         plugins: {
@@ -265,11 +321,20 @@ export function PublicationsCharts({
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        onClick: (_e: any, elements: any[]) => {
-          if (elements.length > 0 && onSelectDept) {
-            const idx = elements[0].index;
-            const d = sortedDepts[idx];
-            if (d) onSelectDept(d.code);
+        onClick: (event: any, elements: any[], chart: any) => {
+          const hit = getClickedChartElement(event, elements, chart, 'x');
+          if (hit) {
+            const d = sortedDepts[hit.index];
+            if (d) {
+              if (onSelectDept) onSelectDept(d.code);
+              setDrillDown({
+                isOpen: true,
+                title: `ผลงานตีพิมพ์ทางวิชาการ: ภาควิชา${d.name} (${d.code})`,
+                subtitle: `รวม ${d.count} เรื่อง`,
+                accentColor: getDepartmentColor(d.code),
+                items: d.items,
+              });
+            }
           }
         },
         plugins: {
@@ -315,7 +380,7 @@ export function PublicationsCharts({
           <h3>
             <FaChartBar style={{ color: '#2e7d32' }} /> จำนวนผลงานตีพิมพ์ทางวิชาการรายเดือน (แยกระดับคุณภาพ)
           </h3>
-          <div className="chart-wrapper">
+          <div className="chart-wrapper" style={{ cursor: 'pointer' }}>
             <canvas id="c_pub_monthly" />
           </div>
         </div>
@@ -323,7 +388,7 @@ export function PublicationsCharts({
           <h3>
             <FaChartLine style={{ color: '#2e7d32' }} /> เงินสนับสนุนการตีพิมพ์รายเดือน (บาท)
           </h3>
-          <div className="chart-wrapper">
+          <div className="chart-wrapper" style={{ cursor: 'pointer' }}>
             <canvas id="c_pub_bud" />
           </div>
         </div>
@@ -331,27 +396,17 @@ export function PublicationsCharts({
 
       <div className="chart-grid">
         <div className="chart-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <h3 style={{ margin: 0 }}>
-              <FaChartPie style={{ color: '#2e7d32' }} /> สัดส่วนผลงานตามระดับฐานข้อมูลวารสาร
-            </h3>
-            <span style={{ fontSize: '11.5px', color: '#00A651', fontWeight: 600 }}>
-              💡 คลิกส่วนกราฟเพื่อกรองระดับ
-            </span>
-          </div>
+          <h3>
+            <FaChartPie style={{ color: '#2e7d32' }} /> สัดส่วนผลงานตามระดับฐานข้อมูลวารสาร
+          </h3>
           <div className="chart-wrapper" style={{ cursor: 'pointer' }}>
             <canvas id="c_pub_level" />
           </div>
         </div>
         <div className="chart-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <h3 style={{ margin: 0 }}>
-              <FaChartBar style={{ color: '#2e7d32' }} /> จำนวนผลงานตีพิมพ์ตามภาควิชา
-            </h3>
-            <span style={{ fontSize: '11.5px', color: '#00A651', fontWeight: 600 }}>
-              💡 คลิกแท่งกราฟเพื่อกรองภาควิชา
-            </span>
-          </div>
+          <h3>
+            <FaChartBar style={{ color: '#2e7d32' }} /> จำนวนผลงานตีพิมพ์ตามภาควิชา
+          </h3>
           <div className="chart-wrapper" style={{ cursor: 'pointer' }}>
             <canvas id="c_pub_dept" />
           </div>
@@ -361,7 +416,17 @@ export function PublicationsCharts({
       <HybridSdgCard
         items={validData}
         categoryKey="publications"
-        title="การวิเคราะห์ผลงานตีพิมพ์ทางวิชาการตามเป้าหมายการพัฒนาที่ยั่งยืน (UN SDGs & UI GreenMetric)"
+        title="เป้าหมายการพัฒนาที่ยั่งยืน (UN SDGs)"
+      />
+
+      <DrillDownProjectDrawer
+        isOpen={drillDown.isOpen}
+        onClose={() => setDrillDown((prev) => ({ ...prev, isOpen: false }))}
+        title={drillDown.title}
+        subtitle={drillDown.subtitle}
+        accentColor={drillDown.accentColor}
+        items={drillDown.items}
+        categoryKey="publications"
       />
     </div>
   );

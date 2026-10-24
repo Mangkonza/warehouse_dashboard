@@ -18,7 +18,7 @@ export function formatTopItemsForTooltip(
   const {
     maxItems = 3,
     showBudget = true,
-    clickHint = 'คลิกที่กราฟเพื่อดูรายการในกลุ่มนี้',
+    clickHint = '',
   } = options;
 
   if (!items || items.length === 0) return [];
@@ -47,4 +47,42 @@ export function formatTopItemsForTooltip(
   }
 
   return lines;
+}
+
+/**
+ * ดึง index และ datasetIndex จากการคลิกบน Chart.js
+ * รองรับทั้งการคลิกบนแท่งกราฟโดยตรง และการคลิกบริเวณตัวเลข/แถวของแท่งกราฟที่มีขนาดเล็ก (intersect: false fallback)
+ */
+export function getClickedChartElement(
+  event: any,
+  elements: any[],
+  chart: any,
+  mode: 'x' | 'y' | 'nearest' = 'nearest'
+): { index: number; datasetIndex: number } | null {
+  if (elements && elements.length > 0) {
+    return {
+      index: elements[0].index,
+      datasetIndex: elements[0].datasetIndex ?? 0,
+    };
+  }
+  if (chart && event) {
+    try {
+      const nativeEvent = event.native || event;
+      const found = chart.getElementsAtEventForMode(
+        nativeEvent,
+        mode,
+        { intersect: false },
+        true
+      );
+      if (found && found.length > 0) {
+        return {
+          index: found[0].index,
+          datasetIndex: found[0].datasetIndex ?? 0,
+        };
+      }
+    } catch {
+      // ignore fallback errors
+    }
+  }
+  return null;
 }
