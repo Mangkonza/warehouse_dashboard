@@ -6,7 +6,6 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from '@/components/ui/select';
 import { CATEGORY_NAMES } from '../_hooks/useKpiData';
 
@@ -16,6 +15,14 @@ interface KpiFilterBarProps {
   selectedStatus: string;
   onSelectStatus: (status: string) => void;
 }
+
+const STATUS_LABELS: Record<string, string> = {
+  all: 'ทุกสถานะ',
+  achieved: 'บรรลุเป้าหมาย (≥ 100%)',
+  on_track: 'เป็นไปตามเป้า (70–99%)',
+  at_risk: 'เฝ้าระวัง (40–69%)',
+  behind: 'ต้องเร่งรัด (< 40%)',
+};
 
 export function KpiFilterBar({
   selectedCategory,
@@ -72,14 +79,14 @@ export function KpiFilterBar({
           สถานะ:
         </span>
         <Select value={selectedStatus} onValueChange={(val) => onSelectStatus(val ?? 'all')}>
-          <SelectTrigger className="h-8 text-xs min-w-[140px] bg-white">
-            <SelectValue placeholder="ทุกสถานะ" />
+          <SelectTrigger className="h-8 text-xs min-w-[140px] bg-white text-slate-800">
+            <span>{STATUS_LABELS[selectedStatus] || 'ทุกสถานะ'}</span>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">ทุกสถานะ</SelectItem>
             <SelectItem value="achieved">บรรลุเป้าหมาย (≥ 100%)</SelectItem>
-            <SelectItem value="on_track">เป็นไปตามเป้า (70-99%)</SelectItem>
-            <SelectItem value="at_risk">เฝ้าระวัง (40-69%)</SelectItem>
+            <SelectItem value="on_track">เป็นไปตามเป้า (70–99%)</SelectItem>
+            <SelectItem value="at_risk">เฝ้าระวัง (40–69%)</SelectItem>
             <SelectItem value="behind">ต้องเร่งรัด (&lt; 40%)</SelectItem>
           </SelectContent>
         </Select>
