@@ -395,14 +395,14 @@ export default function ProjectMonitoringTab({
           style={{
             padding: '14px 18px',
             borderRadius: '10px',
-            backgroundColor: '#ffffff',
-            border: statusFilter === 'all' ? '2px solid #00A651' : '1px solid #e2e8f0',
+            backgroundColor: statusFilter === 'all' ? '#f0fbf5' : '#ffffff',
+            border: statusFilter === 'all' ? '2px solid #00A651' : '1.5px solid #00A65155',
             cursor: 'pointer',
             boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
             transition: 'all 0.15s ease',
           }}
         >
-          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>
+          <div style={{ fontSize: '12.5px', color: '#334155', fontWeight: 600 }}>
             {activeProjectType === 'research'
               ? 'โครงการวิจัยทั้งหมด'
               : activeProjectType === 'academic'
@@ -420,16 +420,15 @@ export default function ProjectMonitoringTab({
           style={{
             padding: '14px 18px',
             borderRadius: '10px',
-            backgroundColor: '#ffffff',
-            border: statusFilter === 'active' ? '2px solid #059669' : '1px solid #e2e8f0',
+            backgroundColor: statusFilter === 'active' ? '#ecfdf5' : '#ffffff',
+            border: statusFilter === 'active' ? '2px solid #059669' : '1.5px solid #05966955',
             cursor: 'pointer',
             boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
             transition: 'all 0.15s ease',
           }}
         >
-          <div style={{ fontSize: '12px', color: '#059669', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#059669' }} />
-            <span>ตามกำหนดสัญญา</span>
+          <div style={{ fontSize: '12.5px', color: '#059669', fontWeight: 600 }}>
+            ตามกำหนดสัญญา
           </div>
           <div style={{ fontSize: '22px', fontWeight: 800, color: '#059669', marginTop: '4px' }}>
             {stats.onTrack} <span style={{ fontSize: '13px', fontWeight: 500 }}>โครงการ</span>
@@ -442,16 +441,15 @@ export default function ProjectMonitoringTab({
           style={{
             padding: '14px 18px',
             borderRadius: '10px',
-            backgroundColor: '#ffffff',
-            border: statusFilter === 'expiring_soon' ? '2px solid #ea580c' : '1px solid #e2e8f0',
+            backgroundColor: statusFilter === 'expiring_soon' ? '#fff7ed' : '#ffffff',
+            border: statusFilter === 'expiring_soon' ? '2px solid #ea580c' : '1.5px solid #ea580c55',
             cursor: 'pointer',
             boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
             transition: 'all 0.15s ease',
           }}
         >
-          <div style={{ fontSize: '12px', color: '#ea580c', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ea580c' }} />
-            <span>ใกล้ครบกำหนด (≤ 90 วัน)</span>
+          <div style={{ fontSize: '12.5px', color: '#ea580c', fontWeight: 600 }}>
+            ใกล้ครบกำหนดสัญญา (&le; 90 วัน)
           </div>
           <div style={{ fontSize: '22px', fontWeight: 800, color: '#ea580c', marginTop: '4px' }}>
             {stats.expiringSoon} <span style={{ fontSize: '13px', fontWeight: 500 }}>โครงการ</span>
@@ -464,16 +462,15 @@ export default function ProjectMonitoringTab({
           style={{
             padding: '14px 18px',
             borderRadius: '10px',
-            backgroundColor: '#ffffff',
-            border: statusFilter === 'extension_requested' ? '2px solid #d97706' : '1px solid #e2e8f0',
+            backgroundColor: statusFilter === 'extension_requested' ? '#fffbeb' : '#ffffff',
+            border: statusFilter === 'extension_requested' ? '2px solid #d97706' : '1.5px solid #d9770655',
             cursor: 'pointer',
             boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
             transition: 'all 0.15s ease',
           }}
         >
-          <div style={{ fontSize: '12px', color: '#d97706', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#d97706' }} />
-            <span>ยื่นขอขยายเวลา</span>
+          <div style={{ fontSize: '12.5px', color: '#d97706', fontWeight: 600 }}>
+            ยื่นขอขยายเวลา
           </div>
           <div style={{ fontSize: '22px', fontWeight: 800, color: '#d97706', marginTop: '4px' }}>
             {stats.extensionReq} <span style={{ fontSize: '13px', fontWeight: 500 }}>โครงการ</span>
@@ -486,16 +483,15 @@ export default function ProjectMonitoringTab({
           style={{
             padding: '14px 18px',
             borderRadius: '10px',
-            backgroundColor: '#ffffff',
-            border: statusFilter === 'extended' ? '2px solid #b45309' : '1px solid #e2e8f0',
+            backgroundColor: statusFilter === 'extended' ? '#fffbeb' : '#ffffff',
+            border: statusFilter === 'extended' ? '2px solid #b45309' : '1.5px solid #b4530955',
             cursor: 'pointer',
             boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
             transition: 'all 0.15s ease',
           }}
         >
-          <div style={{ fontSize: '12px', color: '#b45309', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#b45309' }} />
-            <span>อนุมัติขยายเวลาแล้ว</span>
+          <div style={{ fontSize: '12.5px', color: '#b45309', fontWeight: 600 }}>
+            อนุมัติขยายเวลาแล้ว
           </div>
           <div style={{ fontSize: '22px', fontWeight: 800, color: '#b45309', marginTop: '4px' }}>
             {stats.extended} <span style={{ fontSize: '13px', fontWeight: 500 }}>โครงการ</span>
@@ -508,16 +504,15 @@ export default function ProjectMonitoringTab({
           style={{
             padding: '14px 18px',
             borderRadius: '10px',
-            backgroundColor: '#ffffff',
-            border: statusFilter === 'delayed' ? '2px solid #dc2626' : '1px solid #e2e8f0',
+            backgroundColor: statusFilter === 'delayed' ? '#fef2f2' : '#ffffff',
+            border: statusFilter === 'delayed' ? '2px solid #dc2626' : '1.5px solid #dc262655',
             cursor: 'pointer',
             boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
             transition: 'all 0.15s ease',
           }}
         >
-          <div style={{ fontSize: '12px', color: '#dc2626', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#dc2626' }} />
-            <span>ล่าช้ากว่ากำหนด</span>
+          <div style={{ fontSize: '12.5px', color: '#dc2626', fontWeight: 600 }}>
+            ล่าช้ากว่ากำหนดสัญญา
           </div>
           <div style={{ fontSize: '22px', fontWeight: 800, color: '#dc2626', marginTop: '4px' }}>
             {stats.delayed} <span style={{ fontSize: '13px', fontWeight: 500 }}>โครงการ</span>
@@ -530,8 +525,8 @@ export default function ProjectMonitoringTab({
           style={{
             padding: '14px 18px',
             borderRadius: '10px',
-            backgroundColor: '#ffffff',
-            border: statusFilter === 'completed' ? '2px solid #475569' : '1px solid #e2e8f0',
+            backgroundColor: statusFilter === 'completed' ? '#f8fafc' : '#ffffff',
+            border: statusFilter === 'completed' ? '2px solid #475569' : '1.5px solid #94a3b855',
             cursor: 'pointer',
             boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
             transition: 'all 0.15s ease',

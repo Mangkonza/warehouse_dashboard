@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { FaChartLine, FaCheckCircle, FaClock, FaExclamationCircle } from 'react-icons/fa';
 
 interface OverallStats {
   total: number;
@@ -28,14 +27,16 @@ export function KpiSummaryCards({
     return {
       backgroundColor: isActive ? '#f0fbf5' : '#ffffff',
       borderRadius: '12px',
-      padding: '18px 20px',
-      border: isActive ? `2px solid ${activeColor}` : '1px solid #e2e8f0',
-      boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+      padding: '16px 18px',
+      border: isActive ? `2px solid ${activeColor}` : `1.5px solid ${activeColor}`,
+      boxShadow: isActive ? `0 4px 12px ${activeColor}25` : '0 1px 3px rgba(0,0,0,0.03)',
       display: 'flex',
-      alignItems: 'center',
-      gap: '16px',
+      flexDirection: 'column' as const,
+      justifyContent: 'space-between',
+      gap: '8px',
       cursor: onSelectStatus ? 'pointer' : 'default',
-      transition: 'all 0.15s ease',
+      transition: 'all 0.18s ease',
+      minHeight: '110px',
     };
   };
 
@@ -49,7 +50,7 @@ export function KpiSummaryCards({
       style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-        gap: '16px',
+        gap: '14px',
       }}
     >
       {/* Card 1: ความสำเร็จรวม */}
@@ -57,27 +58,21 @@ export function KpiSummaryCards({
         onClick={() => handleToggle('all')}
         style={getCardStyle('all', '#00A651')}
       >
-        <div
-          style={{
-            width: '48px',
-            height: '48px',
-            borderRadius: '12px',
-            backgroundColor: '#f0fdf4',
-            color: '#16a34a',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '22px',
-          }}
-        >
-          <FaChartLine />
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+          <div style={{ fontSize: '13px', color: '#334155', fontWeight: 600 }}>
+            คะแนนความสำเร็จ KPI เฉลี่ย
+          </div>
+          {selectedStatus === 'all' && (
+            <span style={{ fontSize: '11px', color: '#00A651', fontWeight: 700, backgroundColor: '#f0fbf5', padding: '1px 7px', borderRadius: '999px', border: '1px solid #00A65130' }}>
+              เลือกอยู่
+            </span>
+          )}
         </div>
         <div>
-          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>
-            คะแนนความสำเร็จเฉลี่ย
+          <div style={{ fontSize: '25px', fontWeight: 800, color: '#0f172a', lineHeight: 1.15 }}>
+            {stats.avgScore}%
           </div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a' }}>{stats.avgScore}%</div>
-          <div style={{ fontSize: '11.5px', color: '#059669', fontWeight: 600 }}>
+          <div style={{ fontSize: '12px', color: '#059669', fontWeight: 600, marginTop: '4px' }}>
             รวม {stats.total} ตัวชี้วัด
           </div>
         </div>
@@ -88,27 +83,21 @@ export function KpiSummaryCards({
         onClick={() => handleToggle('achieved')}
         style={getCardStyle('achieved', '#059669')}
       >
-        <div
-          style={{
-            width: '48px',
-            height: '48px',
-            borderRadius: '12px',
-            backgroundColor: '#ecfdf5',
-            color: '#059669',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '22px',
-          }}
-        >
-          <FaCheckCircle />
-        </div>
-        <div>
-          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+          <div style={{ fontSize: '13px', color: '#334155', fontWeight: 600 }}>
             บรรลุเป้าหมาย (≥ 100%)
           </div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#059669' }}>{stats.achieved} ข้อ</div>
-          <div style={{ fontSize: '11.5px', color: '#64748b' }}>
+          {selectedStatus === 'achieved' && (
+            <span style={{ fontSize: '11px', color: '#059669', fontWeight: 700, backgroundColor: '#ecfdf5', padding: '1px 7px', borderRadius: '999px', border: '1px solid #05966930' }}>
+              เลือกอยู่
+            </span>
+          )}
+        </div>
+        <div>
+          <div style={{ fontSize: '25px', fontWeight: 800, color: '#059669', lineHeight: 1.15 }}>
+            {stats.achieved} ข้อ
+          </div>
+          <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
             {stats.total ? Math.round((stats.achieved / stats.total) * 100) : 0}% ของทั้งหมด
           </div>
         </div>
@@ -119,27 +108,21 @@ export function KpiSummaryCards({
         onClick={() => handleToggle('on_track')}
         style={getCardStyle('on_track', '#0284c7')}
       >
-        <div
-          style={{
-            width: '48px',
-            height: '48px',
-            borderRadius: '12px',
-            backgroundColor: '#f0f9ff',
-            color: '#0284c7',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '22px',
-          }}
-        >
-          <FaClock />
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+          <div style={{ fontSize: '13px', color: '#334155', fontWeight: 600 }}>
+            เป็นไปตามเป้า (70–99%)
+          </div>
+          {selectedStatus === 'on_track' && (
+            <span style={{ fontSize: '11px', color: '#0284c7', fontWeight: 700, backgroundColor: '#f0f9ff', padding: '1px 7px', borderRadius: '999px', border: '1px solid #0284c730' }}>
+              เลือกอยู่
+            </span>
+          )}
         </div>
         <div>
-          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>
-            เป็นไปตามเป้า (70 - 99%)
+          <div style={{ fontSize: '25px', fontWeight: 800, color: '#0284c7', lineHeight: 1.15 }}>
+            {stats.onTrack} ข้อ
           </div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#0284c7' }}>{stats.onTrack} ข้อ</div>
-          <div style={{ fontSize: '11.5px', color: '#64748b' }}>
+          <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
             {stats.total ? Math.round((stats.onTrack / stats.total) * 100) : 0}% ของทั้งหมด
           </div>
         </div>
@@ -150,29 +133,21 @@ export function KpiSummaryCards({
         onClick={() => handleToggle('risk_or_behind')}
         style={getCardStyle('risk_or_behind', '#dc2626')}
       >
-        <div
-          style={{
-            width: '48px',
-            height: '48px',
-            borderRadius: '12px',
-            backgroundColor: '#fef2f2',
-            color: '#dc2626',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '22px',
-          }}
-        >
-          <FaExclamationCircle />
-        </div>
-        <div>
-          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+          <div style={{ fontSize: '13px', color: '#334155', fontWeight: 600 }}>
             เฝ้าระวัง & ต้องเร่งรัด (&lt; 70%)
           </div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#dc2626' }}>
+          {selectedStatus === 'risk_or_behind' && (
+            <span style={{ fontSize: '11px', color: '#dc2626', fontWeight: 700, backgroundColor: '#fef2f2', padding: '1px 7px', borderRadius: '999px', border: '1px solid #dc262630' }}>
+              เลือกอยู่
+            </span>
+          )}
+        </div>
+        <div>
+          <div style={{ fontSize: '25px', fontWeight: 800, color: '#dc2626', lineHeight: 1.15 }}>
             {stats.atRisk + stats.behind} ข้อ
           </div>
-          <div style={{ fontSize: '11.5px', color: '#b91c1c', fontWeight: 600 }}>
+          <div style={{ fontSize: '12px', color: '#b91c1c', fontWeight: 600, marginTop: '4px' }}>
             {stats.total ? Math.round(((stats.atRisk + stats.behind) / stats.total) * 100) : 0}% ของทั้งหมด
           </div>
         </div>

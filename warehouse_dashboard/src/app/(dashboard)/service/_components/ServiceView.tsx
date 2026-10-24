@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { FaHandsHelping, FaUserCheck, FaChalkboardTeacher, FaBuilding } from 'react-icons/fa';
 import { useTimeFilter, TimeFilterBar } from '@/features/time-filter';
 import { KpiGrid } from '@/components/data-display';
 import { useServiceData } from '../_hooks/useServiceData';
@@ -36,28 +35,24 @@ export function ServiceView() {
         <KpiGrid
           items={[
             {
-              icon: <FaHandsHelping />,
               value: `${validData.length} ครั้ง`,
-              label: 'งานบริการวิชาการทั้งหมด',
+              label: 'กิจกรรมบริการวิชาการทั้งหมด',
               accentColor: '#e65100',
             },
             {
-              icon: <FaUserCheck />,
               value: `${uniquePersons.size} ท่าน`,
-              label: 'บุคลากรผู้ให้บริการวิชาการ',
+              label: 'อาจารย์และบุคลากรผู้ให้บริการ',
               subtext: `เฉลี่ย ${uniquePersons.size > 0 ? (validData.length / uniquePersons.size).toFixed(1) : 0} ครั้ง/ท่าน`,
               accentColor: '#00A651',
             },
             {
-              icon: <FaChalkboardTeacher />,
               value: `${uniqueTargets.size} หน่วยงาน`,
-              label: 'กลุ่มเป้าหมายผู้รับบริการ',
+              label: 'กลุ่มเป้าหมายและชุมชนผู้รับบริการ',
               accentColor: '#0284c7',
             },
             {
-              icon: <FaBuilding />,
               value: `${uniqueDepts.size || 7} ภาควิชา`,
-              label: 'ภาควิชา/ศูนย์ฯ ที่ร่วมดำเนินการ',
+              label: 'ภาควิชาและศูนย์ที่ร่วมดำเนินการ',
               accentColor: '#6a1b9a',
             },
           ]}

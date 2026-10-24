@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { FaCertificate, FaCheckCircle, FaMoneyBillWave, FaBuilding } from 'react-icons/fa';
 import { useTimeFilter, TimeFilterBar } from '@/features/time-filter';
 import { KpiGrid } from '@/components/data-display';
 import { useIPData } from '../_hooks/useIPData';
@@ -40,29 +39,25 @@ export function IPView() {
         <KpiGrid
           items={[
             {
-              icon: <FaCertificate />,
               value: `${validIpData.length} รายการ`,
-              label: 'งานทรัพย์สินทางปัญญาทั้งหมด',
+              label: 'ทรัพย์สินทางปัญญาทั้งหมด',
               subtext: `อนุสิทธิบัตร ${pettyPatentCount} • สิทธิบัตร ${patentCount}`,
               accentColor: '#6a1b9a',
             },
             {
-              icon: <FaCheckCircle />,
               value: `${protectedCount} รายการ`,
-              label: 'ได้รับความคุ้มครองแล้ว',
+              label: 'ได้รับการจดทะเบียน / คุ้มครองแล้ว',
               subtext: `อยู่ระหว่างยื่นคำขอ ${pendingCount} รายการ`,
               accentColor: '#00A651',
             },
             {
-              icon: <FaBuilding />,
               value: `${uniqueDeptCount} ภาควิชา`,
-              label: 'ภาควิชาที่มีผลงาน IP',
+              label: 'ภาควิชาที่มีการยื่นทรัพย์สินทางปัญญา',
               accentColor: '#0284c7',
             },
             {
-              icon: <FaMoneyBillWave />,
               value: `${totalSupportAmount.toLocaleString('th-TH')} บาท`,
-              label: 'งบสนับสนุนค่าธรรมเนียม/รางวัล',
+              label: 'งบสนับสนุนรางวัลและค่าธรรมเนียม',
               accentColor: '#059669',
             },
           ]}

@@ -3,7 +3,7 @@
 import React, { ReactNode } from 'react';
 
 export interface KpiCardItem {
-  icon: ReactNode;
+  icon?: ReactNode;
   value: ReactNode;
   label: ReactNode;
   subtext?: ReactNode;
@@ -17,7 +17,6 @@ export interface KpiCardProps extends KpiCardItem {
 }
 
 export function KpiCard({
-  icon,
   value,
   label,
   subtext,
@@ -34,73 +33,89 @@ export function KpiCard({
         backgroundColor: '#ffffff',
         borderRadius: '12px',
         padding: '16px 18px',
-        border: '1px solid #e2e8f0',
-        borderTop: `3px solid ${accentColor}`,
+        border: `1.5px solid ${accentColor}`,
         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
         cursor: onClick ? 'pointer' : 'default',
-        transition: 'all 0.15s ease',
+        transition: 'all 0.18s cubic-bezier(0.4, 0, 0.2, 1)',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        position: 'relative',
+        minHeight: '110px',
         ...style,
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+      {/* 1. Header Row (หัวเรื่องอยู่บนสุด อ่านแล้วรู้ทันทีว่าเป็นข้อมูลอะไร ไม่ใช้ icon หรือ emoji) */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          gap: '8px',
+          marginBottom: '8px',
+        }}
+      >
         <div
-          className="kpi-icon"
+          className="kpi-label"
           style={{
-            width: '36px',
-            height: '36px',
-            backgroundColor: `${accentColor}14`,
-            color: accentColor,
-            borderRadius: '8px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '15px',
-            marginBottom: 0,
+            fontSize: '13px',
+            fontWeight: 600,
+            color: '#334155',
+            lineHeight: 1.35,
+            letterSpacing: '0.1px',
           }}
         >
-          {icon}
+          {label}
         </div>
         {onClick && (
-          <span style={{ fontSize: '11px', color: '#0284c7', fontWeight: 500 }}>
+          <span
+            style={{
+              fontSize: '11px',
+              color: accentColor,
+              fontWeight: 600,
+              whiteSpace: 'nowrap',
+              backgroundColor: `${accentColor}12`,
+              padding: '2px 8px',
+              borderRadius: '999px',
+              border: `1px solid ${accentColor}30`,
+              flexShrink: 0,
+            }}
+          >
             คลิกดูรายการ ▸
           </span>
         )}
       </div>
-      <div
-        className="kpi-value"
-        style={{
-          fontSize: '23px',
-          fontWeight: 700,
-          color: '#1e293b',
-          lineHeight: 1.15,
-          fontVariantNumeric: 'tabular-nums',
-        }}
-      >
-        {value}
-      </div>
-      <div
-        className="kpi-label"
-        style={{
-          fontSize: '13px',
-          fontWeight: 600,
-          color: '#334155',
-          marginTop: '4px',
-        }}
-      >
-        {label}
-      </div>
-      {subtext && (
+
+      {/* 2. Main Value (ตัวเลขสถิติสำคัญ แสดงผลชัดเจน) */}
+      <div>
         <div
+          className="kpi-value"
           style={{
-            fontSize: '11.5px',
-            color: '#64748b',
-            marginTop: '4px',
-            lineHeight: 1.35,
+            fontSize: '25px',
+            fontWeight: 800,
+            color: '#0f172a',
+            lineHeight: 1.15,
+            fontVariantNumeric: 'tabular-nums',
           }}
         >
-          {subtext}
+          {value}
         </div>
-      )}
+
+        {/* 3. Subtext (ข้อมูลประกอบย่อย) */}
+        {subtext && (
+          <div
+            className="kpi-subtext"
+            style={{
+              fontSize: '12px',
+              color: '#64748b',
+              marginTop: '6px',
+              lineHeight: 1.4,
+            }}
+          >
+            {subtext}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -113,7 +128,15 @@ export interface KpiGridProps {
 
 export function KpiGrid({ items, className = '', style }: KpiGridProps) {
   return (
-    <div className={`kpi-grid ${className}`.trim()} style={style}>
+    <div
+      className={`kpi-grid ${className}`.trim()}
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+        gap: '14px',
+        ...style,
+      }}
+    >
       {items.map((item, index) => (
         <KpiCard key={index} {...item} />
       ))}
