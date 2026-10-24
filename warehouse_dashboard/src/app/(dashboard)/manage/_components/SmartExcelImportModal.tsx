@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useRef } from 'react';
 import { CategoryKey, SheetParseResult } from '@/types/dataManagement';
@@ -74,6 +74,29 @@ export const SmartExcelImportModal: React.FC<SmartExcelImportModalProps> = ({
     }
 
     onCommitImport(usableRows, importMode, currentSheet.categoryKey);
+    onClose();
+  };
+
+  const handleCommitAllSheets = () => {
+    let importedAny = false;
+    // Group rows by categoryKey so multi-sheet monthly files or multi-category workbooks import cleanly
+    const grouped: Partial<Record<CategoryKey, Record<string, any>[]>> = {};
+    for (const sh of sheets) {
+      const usable = sh.rows.filter((r) => r.status !== 'error').map((r) => r.data);
+      if (usable.length > 0) {
+        grouped[sh.categoryKey] = [...(grouped[sh.categoryKey] || []), ...usable];
+        importedAny = true;
+      }
+    }
+    if (!importedAny) {
+      alert('ไม่มีแถวข้อมูลที่สมบูรณ์พร้อมนำเข้า');
+      return;
+    }
+    for (const [catKey, rows] of Object.entries(grouped)) {
+      if (rows && rows.length > 0) {
+        onCommitImport(rows, importMode, catKey as CategoryKey);
+      }
+    }
     onClose();
   };
 
@@ -486,29 +509,53 @@ export const SmartExcelImportModal: React.FC<SmartExcelImportModalProps> = ({
           </button>
 
           {file && (
-            <button
-              type="button"
-              onClick={handleCommit}
-              disabled={!currentSheet || currentSheet.validRows + currentSheet.warningRows === 0}
-              style={{
-                padding: '10px 24px',
-                borderRadius: '8px',
-                border: 'none',
-                backgroundColor: '#00A651',
-                color: '#ffffff',
-                fontSize: '14px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                boxShadow: '0 2px 6px rgba(0, 166, 81, 0.3)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                opacity: !currentSheet || currentSheet.validRows + currentSheet.warningRows === 0 ? 0.5 : 1,
-              }}
-            >
-              <FaCheckCircle style={{ fontSize: '15px' }} />
-              <span>ยืนยันบันทึกข้อมูลเข้าสู่ระบบ</span>
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              {sheets.length > 1 && (
+                <button
+                  type="button"
+                  onClick={handleCommitAllSheets}
+                  style={{
+                    padding: '10px 18px',
+                    borderRadius: '8px',
+                    border: '1px solid #00A651',
+                    backgroundColor: '#f0fdf4',
+                    color: '#008f44',
+                    fontSize: '13.5px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  <FaCheckCircle style={{ fontSize: '14px' }} />
+                  <span>นำเข้าทุกแผ่นงาน ({sheets.length} Sheets)</span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={handleCommit}
+                disabled={!currentSheet || currentSheet.validRows + currentSheet.warningRows === 0}
+                style={{
+                  padding: '10px 24px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  backgroundColor: '#00A651',
+                  color: '#ffffff',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 6px rgba(0, 166, 81, 0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  opacity: !currentSheet || currentSheet.validRows + currentSheet.warningRows === 0 ? 0.5 : 1,
+                }}
+              >
+                <FaCheckCircle style={{ fontSize: '15px' }} />
+                <span>ยืนยันบันทึกแผ่นงานนี้</span>
+              </button>
+            </div>
           )}
         </div>
       </div>

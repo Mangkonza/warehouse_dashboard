@@ -3,11 +3,11 @@
 import * as React from 'react';
 import { ArrowRight, AlertCircle, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { DatePicker } from '@/components/ui/date-picker';
+import { DatePicker, parseDate } from '@/components/ui/date-picker';
 
 export interface DateRangeBEValue {
-  start?: string | null; // ISO YYYY-MM-DD
-  end?: string | null;   // ISO YYYY-MM-DD
+  start?: string | null; // ISO YYYY-MM-DD (พ.ศ.)
+  end?: string | null;   // ISO YYYY-MM-DD (พ.ศ.)
 }
 
 export interface DateRangePickerBEProps {
@@ -22,9 +22,9 @@ export interface DateRangePickerBEProps {
 
 export function calculateDaysDiff(start?: string | null, end?: string | null): number | null {
   if (!start || !end) return null;
-  const sDate = new Date(start);
-  const eDate = new Date(end);
-  if (isNaN(sDate.getTime()) || isNaN(eDate.getTime())) return null;
+  const sDate = parseDate(start);
+  const eDate = parseDate(end);
+  if (!sDate || !eDate || isNaN(sDate.getTime()) || isNaN(eDate.getTime())) return null;
   const diffTime = eDate.getTime() - sDate.getTime();
   if (diffTime < 0) return null;
   return Math.round(diffTime / (1000 * 60 * 60 * 24)) + 1; // inclusive days

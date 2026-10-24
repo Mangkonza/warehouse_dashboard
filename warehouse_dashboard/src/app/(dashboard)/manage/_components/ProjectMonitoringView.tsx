@@ -5,7 +5,7 @@ import { calculateProjectTimeline, STATUS_LABELS } from '@/lib/projectMonitoring
 import { ProjectExtensionRecord, ProjectStatus, ProjectTimelineInfo } from '@/types/projectMonitoring';
 import { ProjectExtensionModal } from '@/features/monitoring/components/ProjectExtensionModal';
 import { ConfirmActionModal } from '@/components/ui/ConfirmActionModal';
-import { DepartmentBadge, DepartmentSelect } from '@/components/ui';
+import { DepartmentBadge, DepartmentSelect, formatDateBE } from '@/components/ui';
 import { getDepartment } from '@/lib/departments';
 import {
   Select,
@@ -115,7 +115,8 @@ export const ProjectMonitoringView: React.FC<ProjectMonitoringViewProps> = ({
 
   // Handle Mark as Completed
   const handleMarkCompleted = (item: Record<string, any>) => {
-    const todayStr = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const todayStr = `${now.getFullYear() + 543}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     const updated = {
       ...item,
       status: 'completed',
@@ -401,7 +402,7 @@ export const ProjectMonitoringView: React.FC<ProjectMonitoringViewProps> = ({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <FaCalendarAlt style={{ color: '#7c3aed' }} />
                   <span>
-                    ช่วงสัญญา: {tl.start_date} <FaArrowRight style={{ fontSize: '10px', margin: '0 4px' }} /> {tl.end_date}
+                    ช่วงสัญญา: {formatDateBE(tl.start_date)} <FaArrowRight style={{ fontSize: '10px', margin: '0 4px' }} /> {formatDateBE(tl.end_date)}
                   </span>
                 </div>
               </div>

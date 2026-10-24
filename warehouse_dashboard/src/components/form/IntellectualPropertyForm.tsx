@@ -204,58 +204,34 @@ export function IntellectualPropertyForm({
           required
           error={errors.type}
         >
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-            {/* Option: อนุสิทธิบัตร */}
-            <button
-              type="button"
-              onClick={() => onChange('type', 'อนุสิทธิบัตร')}
-              className={cn(
-                'flex items-center gap-3 p-3.5 rounded-xl border text-left cursor-pointer transition-all select-none',
-                formData.type === 'อนุสิทธิบัตร'
-                  ? 'border-[#00A651] bg-emerald-50/60 ring-2 ring-[#00A651]/20'
-                  : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50'
-              )}
-            >
-              <div
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+            {(['อนุสิทธิบัตร', 'สิทธิบัตร', 'ลิขสิทธิ์'] as const).map((ipType) => (
+              <button
+                key={ipType}
+                type="button"
+                onClick={() => onChange('type', ipType)}
                 className={cn(
-                  'size-5 rounded flex items-center justify-center border transition-colors shrink-0',
-                  formData.type === 'อนุสิทธิบัตร'
-                    ? 'border-[#00A651] bg-[#00A651] text-white'
-                    : 'border-slate-300 bg-white'
+                  'flex items-center gap-3 p-3.5 rounded-xl border text-left cursor-pointer transition-all select-none',
+                  formData.type === ipType
+                    ? 'border-[#00A651] bg-emerald-50/60 ring-2 ring-[#00A651]/20'
+                    : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50'
                 )}
               >
-                {formData.type === 'อนุสิทธิบัตร' && <Check className="size-3.5 stroke-[3]" />}
-              </div>
-              <div>
-                <span className="text-sm font-semibold text-slate-800">อนุสิทธิบัตร</span>
-              </div>
-            </button>
-
-            {/* Option: สิทธิบัตร */}
-            <button
-              type="button"
-              onClick={() => onChange('type', 'สิทธิบัตร')}
-              className={cn(
-                'flex items-center gap-3 p-3.5 rounded-xl border text-left cursor-pointer transition-all select-none',
-                formData.type === 'สิทธิบัตร'
-                  ? 'border-[#00A651] bg-emerald-50/60 ring-2 ring-[#00A651]/20'
-                  : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50'
-              )}
-            >
-              <div
-                className={cn(
-                  'size-5 rounded flex items-center justify-center border transition-colors shrink-0',
-                  formData.type === 'สิทธิบัตร'
-                    ? 'border-[#00A651] bg-[#00A651] text-white'
-                    : 'border-slate-300 bg-white'
-                )}
-              >
-                {formData.type === 'สิทธิบัตร' && <Check className="size-3.5 stroke-[3]" />}
-              </div>
-              <div>
-                <span className="text-sm font-semibold text-slate-800">สิทธิบัตร</span>
-              </div>
-            </button>
+                <div
+                  className={cn(
+                    'size-5 rounded flex items-center justify-center border transition-colors shrink-0',
+                    formData.type === ipType
+                      ? 'border-[#00A651] bg-[#00A651] text-white'
+                      : 'border-slate-300 bg-white'
+                  )}
+                >
+                  {formData.type === ipType && <Check className="size-3.5 stroke-[3]" />}
+                </div>
+                <div>
+                  <span className="text-sm font-semibold text-slate-800">{ipType}</span>
+                </div>
+              </button>
+            ))}
           </div>
         </FormField>
       </div>
@@ -278,29 +254,24 @@ export function IntellectualPropertyForm({
             />
           </FormField>
 
-          {/* เลขที่คำขอ (10 digits) */}
+          {/* เลขที่คำขอ */}
           <FormField
-            label="เลขที่คำขอ"
+            label="เลขที่คำขอ (เช่น 2503001568 หรือ 462895)"
             error={errors.application_number}
           >
             <div className="relative">
               <input
                 type="text"
-                inputMode="numeric"
-                maxLength={10}
+                maxLength={20}
+                placeholder="ระบุเลขที่คำขอ..."
                 value={formData.application_number || ''}
-                onChange={(e) => handle10DigitChange('application_number', e.target.value)}
-                onKeyDown={handleKeyDown10Digits}
-                onPaste={(e) => handlePasteDigits('application_number', e)}
+                onChange={(e) => onChange('application_number', e.target.value.trim())}
                 className={cn(
                   'w-full h-10 px-3 font-mono text-sm rounded-lg border border-slate-300 bg-white shadow-2xs transition-colors',
                   'focus:outline-none focus:ring-2 focus:ring-[#00A651]/20 focus:border-[#00A651]',
                   errors.application_number && 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
                 )}
               />
-              <span className="absolute right-3 top-2.5 text-xs text-slate-400 font-mono select-none">
-                {(formData.application_number || '').length}/10
-              </span>
             </div>
           </FormField>
         </div>
@@ -313,29 +284,24 @@ export function IntellectualPropertyForm({
         </h4>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* เลขที่ (10 digits) */}
+          {/* เลขที่ทะเบียน */}
           <FormField
-            label="เลขที่"
+            label="เลขที่ทะเบียน (เช่น 27126, ว1.012364, WO 2025/...)"
             error={errors.registration_number}
           >
             <div className="relative">
               <input
                 type="text"
-                inputMode="numeric"
-                maxLength={10}
+                maxLength={25}
+                placeholder="ระบุเลขที่อนุสิทธิบัตร/สิทธิบัตร/ลิขสิทธิ์..."
                 value={formData.registration_number || ''}
-                onChange={(e) => handle10DigitChange('registration_number', e.target.value)}
-                onKeyDown={handleKeyDown10Digits}
-                onPaste={(e) => handlePasteDigits('registration_number', e)}
+                onChange={(e) => onChange('registration_number', e.target.value)}
                 className={cn(
                   'w-full h-10 px-3 font-mono text-sm rounded-lg border border-slate-300 bg-white shadow-2xs transition-colors',
                   'focus:outline-none focus:ring-2 focus:ring-[#00A651]/20 focus:border-[#00A651]',
                   errors.registration_number && 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
                 )}
               />
-              <span className="absolute right-3 top-2.5 text-xs text-slate-400 font-mono select-none">
-                {(formData.registration_number || '').length}/10
-              </span>
             </div>
           </FormField>
 

@@ -32,7 +32,7 @@ export interface MonthYearPickerProps {
   size?: 'default' | 'sm';
 }
 
-/** Formats YYYY-MM to Thai Buddhist Era string, e.g. "ต.ค. 2569" */
+/** Formats YYYY-MM (BE or CE) to Thai Buddhist Era string, e.g. "ต.ค. 2569" */
 export function formatMonthYearBE(ymStr?: string | null): string {
   if (!ymStr) return '';
   const parts = ymStr.split('-');
@@ -40,7 +40,7 @@ export function formatMonthYearBE(ymStr?: string | null): string {
   const year = parseInt(parts[0], 10);
   const month = parseInt(parts[1], 10) - 1;
   if (isNaN(year) || isNaN(month) || month < 0 || month > 11) return ymStr;
-  const yearBE = year + 543;
+  const yearBE = year < 2400 ? year + 543 : year;
   return `${THAI_MONTHS_SHORT[month]} ${yearBE}`;
 }
 
@@ -56,14 +56,15 @@ export function MonthYearPicker({
 }: MonthYearPickerProps) {
   const [open, setOpen] = React.useState(false);
 
-  // Parse current value
+  // Parse current value (normalize internal viewYear to CE so +543 display logic is consistent)
   const parsed = React.useMemo(() => {
     if (!value) return null;
     const parts = value.split('-');
     if (parts.length >= 2) {
-      const y = parseInt(parts[0], 10);
+      let y = parseInt(parts[0], 10);
       const m = parseInt(parts[1], 10);
       if (!isNaN(y) && !isNaN(m)) {
+        if (y >= 2400) y -= 543;
         return { year: y, month: m };
       }
     }
@@ -90,7 +91,8 @@ export function MonthYearPicker({
 
   const handleSelectMonth = (monthIndex: number) => {
     const m = String(monthIndex + 1).padStart(2, '0');
-    const nextVal = `${viewYear}-${m}`;
+    const yearBE = viewYear < 2400 ? viewYear + 543 : viewYear;
+    const nextVal = `${yearBE}-${m}`;
     onChange(nextVal);
     setOpen(false);
   };

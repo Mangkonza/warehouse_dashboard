@@ -14,7 +14,7 @@ import { getCachedCategoryData, fetchCategoryData } from '@/lib/dataService';
 import rawResearch from '@/data/research.json';
 import rawAcademic from '@/data/academic.json';
 import { DEPARTMENTS, getDepartmentAbbr } from '@/config/dataManagementConfig';
-import { DepartmentBadge, DepartmentSelect, RecordDetailDrawer } from '@/components/ui';
+import { DepartmentBadge, DepartmentSelect, RecordDetailDrawer, formatDateBE } from '@/components/ui';
 import { getDepartment } from '@/lib/departments';
 import { isTestRecord } from '@/lib/sdgEngine';
 import { TimeFilterBar, useTimeFilter } from '@/features/time-filter';
@@ -871,11 +871,11 @@ export default function ProjectMonitoringTab({
                   <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                     <span style={{ color: '#64748b' }}>กรอบเวลาสัญญา: </span>
                     <strong style={{ color: '#1e293b', fontFamily: 'monospace' }}>
-                      {tl.start_date || '-'} ถึง {tl.current_end_date || '-'}
+                      {formatDateBE(tl.start_date)} ถึง {formatDateBE(tl.current_end_date || tl.end_date)}
                     </strong>
                     {tl.is_extended && (
                       <span style={{ fontSize: '11.5px', color: '#b45309', fontWeight: 600 }}>
-                        (ขยายเวลาจากเดิม {tl.original_end_date})
+                        (ขยายเวลาจากเดิม {formatDateBE(tl.original_end_date)})
                       </span>
                     )}
                   </div>

@@ -1,419 +1,3599 @@
 [
   {
-    "id": "วศ.กพส. 1/2569",
-    "name": "test",
-    "head": "Test1",
-    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
-    "status": "",
-    "sdg_code": "",
-    "members": "",
-    "budget_internal": 12000,
-    "budget_external": 50,
-    "fund_source": "test",
-    "trl_outputs": [],
-    "project_nature": [],
+    "id": "วศ.กพส. 1/2568",
+    "name": "การใช้แอปพลิเคชั่นไลน์เพื่อการสื่อสารภายในคณะวิศวกรรมศาสตร์ กำแพงแสน",
+    "name_en": "",
+    "head": "นางสาวอรุณรัตน์ บุญปองหา",
+    "head_id": 17,
+    "department": "ภาควิชาวิศวกรรมเกษตร",
+    "departments": [
+      "ภาควิชาวิศวกรรมเกษตร"
+    ],
+    "co_researchers": [],
+    "members": [
+      {
+        "role": "PI",
+        "name": "นางสาวอรุณรัตน์ บุญปองหา",
+        "organization": "ภาควิชาวิศวกรรมเกษตร",
+        "affiliation_type": "eng_kps"
+      }
+    ],
     "collaboration_type": [],
-    "name_en": "test",
+    "collaboration_domestic": "-",
+    "collaboration_foreign": "-",
+    "project_nature": [],
+    "budget_internal": 20000.0,
+    "budget_external": 0.0,
+    "budget_total": 20000.0,
+    "fund_source": "คณะวิศวกรรมศาสตร์ กำแพงแสน",
     "fund_type": "ภายใน",
-    "start_date": "2026-10",
-    "end_date": "2027-10",
-    "head_id": 305,
+    "start_date": "2568-01-01",
+    "end_date": "2568-12-31",
+    "duration": "12 เดือน",
+    "fiscal_year_be": 2568,
+    "integration_teaching": "-",
+    "integration_research_teaching": "-",
+    "integration_service_project": "-",
+    "teaching_courses": [],
+    "applied_courses": [],
+    "trl": null,
+    "trl_outputs": [],
+    "remarks": "-",
+    "status": "active",
+    "sdg_code": "SDG 2",
+    "updatedAt": "2026-10-24T20:21:53.613601+00:00",
+    "_id": "research_วศ.กพส. 1/2568"
+  },
+  {
+    "id": "วศ.กพส. 2/2568",
+    "name": "การศึกษาความสามารถของระบบเสริมการระบายอากาศของบ้านจัดสรรขนาด 140 ตารางเมตร",
+    "name_en": "",
+    "head": "นายวัชมา โพธิ์ทอง",
+    "head_id": 247,
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
     "departments": [
       "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร"
     ],
-    "co_researchers": [
+    "co_researchers": [],
+    "members": [
       {
-        "name": "test test",
-        "department": "ภาควิชาวิศวกรรมเกษตร",
-        "isExternal": false,
-        "role": "ผู้ร่วมวิจัย",
-        "contributionPercent": null,
-        "id": "1111",
-        "person_id": 306
-      },
-      {
-        "name": "Test1",
-        "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
-        "isExternal": false,
-        "role": "ผู้ร่วมวิจัย",
-        "contributionPercent": null,
-        "id": "122",
-        "person_id": 305
+        "role": "PI",
+        "name": "นายวัชมา โพธิ์ทอง",
+        "organization": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+        "affiliation_type": "eng_kps"
       }
     ],
-    "_id": "วก.วศ.กพส. 1/2568",
-    "updatedAt": "2026-10-23T09:14:03.737Z"
+    "collaboration_type": [],
+    "collaboration_domestic": "-",
+    "collaboration_foreign": "-",
+    "project_nature": [],
+    "budget_internal": 20000.0,
+    "budget_external": 0.0,
+    "budget_total": 20000.0,
+    "fund_source": "คณะวิศวกรรมศาสตร์ กำแพงแสน",
+    "fund_type": "ภายใน",
+    "start_date": "2568-01-01",
+    "end_date": "2568-06-30",
+    "duration": "6 เดือน",
+    "fiscal_year_be": 2568,
+    "integration_teaching": "-",
+    "integration_research_teaching": "01208496 เรื่องเฉพาะทางวิศวกรรม เครื่องกล",
+    "integration_service_project": "-",
+    "teaching_courses": [],
+    "applied_courses": [
+      {
+        "code": "01208496",
+        "name": "เรื่องเฉพาะทางวิศวกรรม เครื่องกล",
+        "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร"
+      }
+    ],
+    "trl": null,
+    "trl_outputs": [],
+    "remarks": "-",
+    "status": "active",
+    "sdg_code": "SDG 4",
+    "updatedAt": "2026-10-24T20:21:53.613766+00:00",
+    "_id": "research_วศ.กพส. 2/2568"
   },
   {
-    "id": "วศ.กพส.\n1/2568",
-    "name": "การใช้แอปพลิเคชั่นไลน์เพื่อการสื่อสารภายในคณะวิศวกรรมศาสตร์ กำแพงแสน",
-    "head": "นางสาวอรุณรัตน์ บุญปองหา",
-    "department": "ภาควิชา\nวิศวกรรมเกษตร",
-    "budget_internal": 20000,
-    "budget_external": "-",
-    "fund_source": "คณะวิศวกรรมศาสตร์\nกำแพงแสน",
-    "start_date": "12 เดือน",
-    "_id": "research_วศ.กพส.\n1/2568",
-    "head_id": 17
-  },
-  {
-    "id": "วศ.กพส.\n2/2568",
-    "name": "การศึกษาความสามารถของระบบเสริมการระบายอากาศของบ้านจัดสรรขนาด 140 ตารางเมตร",
-    "head": "ผศ.ดร.วัชมา โพธิ์ทอง",
-    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
-    "budget_internal": 20000,
-    "budget_external": "-",
-    "fund_source": "คณะวิศวกรรมศาสตร์\nกำแพงแสน",
-    "start_date": "6 เดือน",
-    "_id": "research_วศ.กพส.\n2/2568",
-    "head_id": 108
-  },
-  {
-    "id": "วศ.กพส.\n3/2568",
+    "id": "วศ.กพส. 3/2568",
     "name": "การพัฒนาเว็บไซต์ Eng Connect ด้วยการเพิ่มการแสดงผลการวิเคราะห์เชิงสถิติและการทำเหมืองข้อความ",
-    "head": "ผศ.ดร.ศศรส ใจจิตร์",
-    "department": "ภาควิชา\nวิศวกรรมอุตสาหการ",
-    "budget_internal": 20000,
-    "budget_external": "-",
-    "fund_source": "คณะวิศวกรรมศาสตร์\nกำแพงแสน",
-    "start_date": "12 เดือน",
-    "_id": "research_วศ.กพส.\n3/2568",
-    "head_id": 130
+    "name_en": "",
+    "head": "รศ.ดร.ศศรส ใจจิตร์",
+    "head_id": 130,
+    "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+    "departments": [
+      "ภาควิชาวิศวกรรมอุตสาหการ"
+    ],
+    "co_researchers": [],
+    "members": [
+      {
+        "role": "PI",
+        "name": "รศ.ดร.ศศรส ใจจิตร์",
+        "organization": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "affiliation_type": "eng_kps"
+      }
+    ],
+    "collaboration_type": [],
+    "collaboration_domestic": "-",
+    "collaboration_foreign": "-",
+    "project_nature": [],
+    "budget_internal": 20000.0,
+    "budget_external": 0.0,
+    "budget_total": 20000.0,
+    "fund_source": "คณะวิศวกรรมศาสตร์ กำแพงแสน",
+    "fund_type": "ภายใน",
+    "start_date": "2568-01-01",
+    "end_date": "2568-12-31",
+    "duration": "12 เดือน",
+    "fiscal_year_be": 2568,
+    "integration_teaching": "-",
+    "integration_research_teaching": "-",
+    "integration_service_project": "-",
+    "teaching_courses": [],
+    "applied_courses": [],
+    "trl": null,
+    "trl_outputs": [],
+    "remarks": "-",
+    "status": "active",
+    "sdg_code": "SDG 9",
+    "updatedAt": "2026-10-24T20:21:53.613867+00:00",
+    "_id": "research_วศ.กพส. 3/2568"
   },
   {
-    "id": "วศ.กพส.\n4/2568",
+    "id": "วศ.กพส. 4/2568",
     "name": "การปรับปรุงความแม่นยำของสินค้าคงคลัง : กรณีศึกษาคลังสินค้าอุปกรณ์กีฬา",
-    "head": "ผศ.ดร.ภัทรพงษ์  ภาคภูมิ",
-    "department": "ภาควิชา\nวิศวกรรมอุตสาหการ",
-    "budget_internal": 20000,
-    "budget_external": "-",
-    "fund_source": "คณะวิศวกรรมศาสตร์\nกำแพงแสน",
-    "start_date": "6 เดือน",
-    "_id": "research_วศ.กพส.\n4/2568",
-    "head_id": 129
+    "name_en": "",
+    "head": "ผศ.ดร.ภัทรพงษ์ ภาคภูมิ",
+    "head_id": 129,
+    "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+    "departments": [
+      "ภาควิชาวิศวกรรมอุตสาหการ"
+    ],
+    "co_researchers": [],
+    "members": [
+      {
+        "role": "PI",
+        "name": "ผศ.ดร.ภัทรพงษ์ ภาคภูมิ",
+        "organization": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "affiliation_type": "eng_kps"
+      }
+    ],
+    "collaboration_type": [],
+    "collaboration_domestic": "-",
+    "collaboration_foreign": "-",
+    "project_nature": [],
+    "budget_internal": 20000.0,
+    "budget_external": 0.0,
+    "budget_total": 20000.0,
+    "fund_source": "คณะวิศวกรรมศาสตร์ กำแพงแสน",
+    "fund_type": "ภายใน",
+    "start_date": "2568-01-01",
+    "end_date": "2568-06-30",
+    "duration": "6 เดือน",
+    "fiscal_year_be": 2568,
+    "integration_teaching": "-",
+    "integration_research_teaching": "02206232 เรียนรู้และฝึกฝนการสร้างแบบจำลองและการคำนวณค่าพารามิเตอร์ต่างๆ",
+    "integration_service_project": "-",
+    "teaching_courses": [],
+    "applied_courses": [
+      {
+        "code": "02206232",
+        "name": "เรียนรู้และฝึกฝนการสร้างแบบจำลองและการคำนวณค่าพารามิเตอร์ต่างๆ",
+        "department": "ภาควิชาวิศวกรรมอุตสาหการ"
+      }
+    ],
+    "trl": null,
+    "trl_outputs": [],
+    "remarks": "-",
+    "status": "active",
+    "sdg_code": "SDG 4",
+    "updatedAt": "2026-10-24T20:21:53.613966+00:00",
+    "_id": "research_วศ.กพส. 4/2568"
   },
   {
-    "id": "วศ.กพส.\n5/2568",
+    "id": "วศ.กพส. 5/2568",
     "name": "การไพโรไลซีสร่วมระหว่างพลาสติกและถ่านไฮโดรชาร์จากพลาสติก",
-    "head": "ผศ.สวัสดิ์  ภูมิสวัสดิ์",
-    "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
-    "budget_internal": 40000,
-    "budget_external": "-",
-    "fund_source": "คณะวิศวกรรมศาสตร์\nกำแพงแสน",
-    "start_date": "12 เดือน",
-    "_id": "research_วศ.กพส.\n5/2568",
-    "head_id": 101
+    "name_en": "",
+    "head": "ผศ.สวัสดิ์ ภูมิสวัสดิ์",
+    "head_id": 101,
+    "department": "ภาควิชาวิศวกรรมเครื่องกล",
+    "departments": [
+      "ภาควิชาวิศวกรรมเครื่องกล"
+    ],
+    "co_researchers": [],
+    "members": [
+      {
+        "role": "PI",
+        "name": "ผศ.สวัสดิ์ ภูมิสวัสดิ์",
+        "organization": "ภาควิชาวิศวกรรมเครื่องกล",
+        "affiliation_type": "eng_kps"
+      }
+    ],
+    "collaboration_type": [],
+    "collaboration_domestic": "-",
+    "collaboration_foreign": "-",
+    "project_nature": [],
+    "budget_internal": 40000.0,
+    "budget_external": 0.0,
+    "budget_total": 40000.0,
+    "fund_source": "คณะวิศวกรรมศาสตร์ กำแพงแสน",
+    "fund_type": "ภายใน",
+    "start_date": "2568-01-01",
+    "end_date": "2568-12-31",
+    "duration": "12 เดือน",
+    "fiscal_year_be": 2568,
+    "integration_teaching": "-",
+    "integration_research_teaching": "01208448 พลังงานทดแทนเบื้องต้น",
+    "integration_service_project": "-",
+    "teaching_courses": [],
+    "applied_courses": [
+      {
+        "code": "01208448",
+        "name": "พลังงานทดแทนเบื้องต้น",
+        "department": "ภาควิชาวิศวกรรมเครื่องกล"
+      }
+    ],
+    "trl": null,
+    "trl_outputs": [],
+    "remarks": "-",
+    "status": "active",
+    "sdg_code": "SDG 13",
+    "updatedAt": "2026-10-24T20:21:53.614062+00:00",
+    "_id": "research_วศ.กพส. 5/2568"
   },
   {
-    "id": "วศ.กพส.\n6/2568",
+    "id": "วศ.กพส. 6/2568",
     "name": "Establishing an optimal base-stock level for a periodic review system with a partial replenishment in the face of supply disruption",
-    "head": "ผศ.ดร.จิรเกียรติ  ทรายทอง",
-    "department": "ภาควิชา\nวิศวกรรมอุตสาหการ",
-    "budget_internal": 2000,
-    "budget_external": "-",
-    "fund_source": "คณะวิศวกรรมศาสตร์\nกำแพงแสน",
-    "start_date": "12 เดือน",
-    "_id": "research_วศ.กพส.\n6/2568",
-    "head_id": 125
+    "name_en": "",
+    "head": "ผศ.ดร.จิรเกียรติ ทรายทอง",
+    "head_id": 125,
+    "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+    "departments": [
+      "ภาควิชาวิศวกรรมอุตสาหการ"
+    ],
+    "co_researchers": [],
+    "members": [
+      {
+        "role": "PI",
+        "name": "ผศ.ดร.จิรเกียรติ ทรายทอง",
+        "organization": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "affiliation_type": "eng_kps"
+      }
+    ],
+    "collaboration_type": [],
+    "collaboration_domestic": "-",
+    "collaboration_foreign": "-",
+    "project_nature": [],
+    "budget_internal": 2000.0,
+    "budget_external": 0.0,
+    "budget_total": 2000.0,
+    "fund_source": "คณะวิศวกรรมศาสตร์ กำแพงแสน",
+    "fund_type": "ภายใน",
+    "start_date": "2568-01-01",
+    "end_date": "2568-12-31",
+    "duration": "12 เดือน",
+    "fiscal_year_be": 2568,
+    "integration_teaching": "02206231 ความน่าจะเป็นและสถิติวิศวกรรม",
+    "integration_research_teaching": "02206231 ความน่าจะเป็นและสถิติวิศวกรรม, 02206498 ปัญหาพิเศษ",
+    "integration_service_project": "-",
+    "teaching_courses": [
+      {
+        "code": "02206231",
+        "name": "ความน่าจะเป็นและสถิติวิศวกรรม",
+        "department": "ภาควิชาวิศวกรรมอุตสาหการ"
+      }
+    ],
+    "applied_courses": [
+      {
+        "code": "02206231",
+        "name": "ความน่าจะเป็นและสถิติวิศวกรรม, 02206498 ปัญหาพิเศษ",
+        "department": "ภาควิชาวิศวกรรมอุตสาหการ"
+      }
+    ],
+    "trl": null,
+    "trl_outputs": [],
+    "remarks": "-",
+    "status": "active",
+    "sdg_code": "SDG 9",
+    "updatedAt": "2026-10-24T20:21:53.614157+00:00",
+    "_id": "research_วศ.กพส. 6/2568"
   },
   {
-    "id": "",
+    "id": "วศ.กพส. 68-01",
     "name": "การออกแบบวางระบบ และทดสอประสิทธิภาพ ระบบการผลิตน้ำดื่ม พระพิรุณตามมาตรฐานกระทรวงสาธารณสุข",
-    "head": "รศ.เชาว์ อินทร์ประสิทธิ์",
-    "department": "ภาควิชา\nวิศวกรรมการอาหาร",
-    "budget_internal": "-",
-    "budget_external": 3707000,
-    "fund_source": "ทุนสนับสนุนการวิจัย \nวิทยาเขตกำแพงแสน \nประจำปีงบประมาณ 2568",
-    "start_date": "1968-01-01 00:00:00",
-    "_id": "research_idx_6",
-    "head_id": null
+    "name_en": "",
+    "head": "รศ.เชาว์ อินทร์ประสิทธิ์",
+    "head_id": null,
+    "department": "ภาควิชาวิศวกรรมการอาหาร",
+    "departments": [
+      "ภาควิชาวิศวกรรมการอาหาร",
+      "สำนักงานเลขานุการ"
+    ],
+    "co_researchers": [
+      {
+        "id": "68",
+        "name": "อ.ดร.สยุมพร รัตนพันธ์",
+        "department": "ภาควิชาวิศวกรรมการอาหาร",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "67",
+        "name": "อ.ธิติพงศ์ โพธิสุทธิ์",
+        "department": "ภาควิชาวิศวกรรมการอาหาร",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นางสาวนันทนัช อนันทาวุฒิ",
+        "department": "ภาควิชาวิศวกรรมการอาหาร",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นายศักดิ์ชาย ทองเนื้องาม",
+        "department": "ภาควิชาวิศวกรรมการอาหาร",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นางสาวลลิตา ออมสิน",
+        "department": "ภาควิชาวิศวกรรมการอาหาร",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นางสวาขนิษฐา ออมสิน",
+        "department": "ภาควิชาวิศวกรรมการอาหาร",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "279",
+        "name": "นางสาวอรุณี สุขศรี",
+        "department": "สำนักงานเลขานุการ",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "285",
+        "name": "นางสาวปฐมาภรณ์ อุ่นเรือน",
+        "department": "สำนักงานเลขานุการ",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นายภคพล จั่นคำ",
+        "department": "ภาควิชาวิศวกรรมการอาหาร",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นายภูฟ้า โรจนประชานารถ",
+        "department": "ภาควิชาวิศวกรรมการอาหาร",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นายปิยวัฒน์ กนกวรกาญจน์",
+        "department": "ภาควิชาวิศวกรรมการอาหาร",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นายศักดิ์นริทร์ เสือคำราม",
+        "department": "ภาควิชาวิศวกรรมการอาหาร",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      }
+    ],
+    "members": [
+      {
+        "role": "PI",
+        "name": "รศ.เชาว์ อินทร์ประสิทธิ์",
+        "organization": "ภาควิชาวิศวกรรมการอาหาร",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "อ.ดร.สยุมพร รัตนพันธ์",
+        "organization": "ภาควิชาวิศวกรรมการอาหาร",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "อ.ธิติพงศ์ โพธิสุทธิ์",
+        "organization": "ภาควิชาวิศวกรรมการอาหาร",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นางสาวนันทนัช อนันทาวุฒิ",
+        "organization": "ภาควิชาวิศวกรรมการอาหาร",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายศักดิ์ชาย ทองเนื้องาม",
+        "organization": "ภาควิชาวิศวกรรมการอาหาร",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นางสาวลลิตา ออมสิน",
+        "organization": "ภาควิชาวิศวกรรมการอาหาร",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นางสวาขนิษฐา ออมสิน",
+        "organization": "ภาควิชาวิศวกรรมการอาหาร",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นางสาวอรุณี สุขศรี",
+        "organization": "สำนักงานเลขานุการ",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นางสาวปฐมาภรณ์ อุ่นเรือน",
+        "organization": "สำนักงานเลขานุการ",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายภคพล จั่นคำ",
+        "organization": "ภาควิชาวิศวกรรมการอาหาร",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายภูฟ้า โรจนประชานารถ",
+        "organization": "ภาควิชาวิศวกรรมการอาหาร",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายปิยวัฒน์ กนกวรกาญจน์",
+        "organization": "ภาควิชาวิศวกรรมการอาหาร",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายศักดิ์นริทร์ เสือคำราม",
+        "organization": "ภาควิชาวิศวกรรมการอาหาร",
+        "affiliation_type": "eng_kps"
+      }
+    ],
+    "collaboration_type": [],
+    "collaboration_domestic": "-",
+    "collaboration_foreign": "-",
+    "project_nature": [],
+    "budget_internal": 0.0,
+    "budget_external": 3707000.0,
+    "budget_total": 3707000.0,
+    "fund_source": "ทุนสนับสนุนการวิจัย วิทยาเขตกำแพงแสน ประจำปีงบประมาณ 2568",
+    "fund_type": "ภายนอก",
+    "start_date": "2568-01-01",
+    "end_date": "2569-01-01",
+    "duration": "2568-01-01 ถึง 2569-01-01",
+    "fiscal_year_be": 2568,
+    "integration_teaching": "-",
+    "integration_research_teaching": "-",
+    "integration_service_project": "-",
+    "teaching_courses": [],
+    "applied_courses": [],
+    "trl": null,
+    "trl_outputs": [],
+    "remarks": "-",
+    "status": "active",
+    "sdg_code": "SDG 6",
+    "updatedAt": "2026-10-24T20:21:53.617035+00:00",
+    "_id": "research_วศ.กพส. 68-01"
   },
   {
-    "id": "",
-    "name": "การพัฒนาเทคโนโลยีดิจิทัลแพลตฟอร์มของการรวบรวมใบอ้อยเพื่อลดต้นทุนโลจิสติกส์ และส่งเสริมการใช้ประโยชน์พลังงานทดแทนในอุตสาหกรรมอ้อยและน้ำตาลทราย",
-    "head": "รศ.ดร.กิตติพงษ์ ลาลุน",
-    "department": "ภาควิชา\nวิศวกรรมอุตสาหการ",
-    "budget_internal": "-",
-    "budget_external": 6543600,
+    "id": "วศ.กพส. 68-02",
+    "name": "การพัฒนาเทคโนโลยีดิจิทัลแพลตฟอร์มของการรวบรวมใบอ้อยเพื่อลดต้นทุน โลจิสติกส์ และส่งเสริมการใช้ประโยชน์พลังงานทดแทนในอุตสาหกรรมอ้อยและน้ำตาลทราย",
+    "name_en": "",
+    "head": "รศ.ดร.กิตติพงษ์ ลาลุน",
+    "head_id": null,
+    "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+    "departments": [
+      "ภาควิชาวิศวกรรมอุตสาหการ"
+    ],
+    "co_researchers": [
+      {
+        "id": "",
+        "name": "ศ.ดร.กาญจนา เศรษฐนันท์",
+        "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "ศ.ดร.ระพีพันธ์ ปิตาคะโส",
+        "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "ผศ.ดร.จุฬาพร เบญจปิยะพร",
+        "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "ผศ.ดร.ฉัตรชัย เบญจปิยะพร",
+        "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "ผศ.ดร.ฐิติพงศ์ จำรัส",
+        "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "122",
+        "name": "ผศ.ดร.อธิวัฒน์ บุญมี",
+        "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "ผศ.ดร.ก้องกิดากร วรสาร",
+        "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "ดร.ณัฐพล โสกุดเลาะ",
+        "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      }
+    ],
+    "members": [
+      {
+        "role": "PI",
+        "name": "รศ.ดร.กิตติพงษ์ ลาลุน",
+        "organization": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ศ.ดร.กาญจนา เศรษฐนันท์",
+        "organization": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ศ.ดร.ระพีพันธ์ ปิตาคะโส",
+        "organization": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.ดร.จุฬาพร เบญจปิยะพร",
+        "organization": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.ดร.ฉัตรชัย เบญจปิยะพร",
+        "organization": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.ดร.ฐิติพงศ์ จำรัส",
+        "organization": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.ดร.อธิวัฒน์ บุญมี",
+        "organization": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.ดร.ก้องกิดากร วรสาร",
+        "organization": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ดร.ณัฐพล โสกุดเลาะ",
+        "organization": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "affiliation_type": "eng_kps"
+      }
+    ],
+    "collaboration_type": [],
+    "collaboration_domestic": "-",
+    "collaboration_foreign": "-",
+    "project_nature": [],
+    "budget_internal": 0.0,
+    "budget_external": 6543600.0,
+    "budget_total": 6543600.0,
     "fund_source": "หน่วยบริหารและจัดการทุนด้านการเพิ่มความสามารถในการแข่งขันของประเทศ (บพข.) ร่วมกับ บริษัท อินโนวาเทค เอ็นเนอร์ยี่ จำกัด",
-    "start_date": "1967-09-01 00:00:00",
-    "_id": "research_idx_7",
-    "head_id": null
+    "fund_type": "ภายนอก",
+    "start_date": "2567-09-01",
+    "end_date": "2568-09-01",
+    "duration": "2567-09-01 ถึง 2568-09-01",
+    "fiscal_year_be": 2567,
+    "integration_teaching": "-",
+    "integration_research_teaching": "-",
+    "integration_service_project": "-",
+    "teaching_courses": [],
+    "applied_courses": [],
+    "trl": null,
+    "trl_outputs": [],
+    "remarks": "-",
+    "status": "active",
+    "sdg_code": "SDG 6",
+    "updatedAt": "2026-10-24T20:21:53.617222+00:00",
+    "_id": "research_วศ.กพส. 68-02"
   },
   {
-    "id": "",
+    "id": "วศ.กพส. 68-03",
     "name": "ระบบการให้น้ำอย่างแม่นยำในสวนมะม่วงน้ำดอกไม้สีทองเพื่อการส่งออกจังหวัดขอนแก่นและจังหวัดชัยภูมิ",
-    "head": "รศ.ดร.รณฤทธิ์  ฤทธิรณ",
-    "department": "ภาควิชา\nวิศวกรรมการอาหาร",
-    "budget_internal": 0,
-    "budget_external": 7658000,
-    "fund_source": "สำนักงานการวิจัย\nแห่งชาติ (วช.)",
-    "start_date": "1968-05-01 00:00:00",
-    "_id": "research_idx_8",
-    "head_id": 62
-  },
-  {
-    "id": "วศ.กพส.\n7/2568",
-    "name": "การศึกษาคุณลักษณะการถ่ายเทความร้อนและการไหลของการหล่อเย็นภายในใบกังหันก๊าซ (Study of heat transfer and flow characteristics of cooling inside gas turbine blades)",
-    "head": "ผศ.ดร.คมกฤษณ์  ชัยโย",
-    "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
-    "budget_internal": 40000,
-    "budget_external": "-",
-    "fund_source": "คณะวิศวกรรมศาสตร์ กำแพงแสน",
-    "start_date": "1968-06-01 00:00:00",
-    "_id": "research_วศ.กพส.\n7/2568",
-    "head_id": 111
-  },
-  {
-    "id": "วศ.กพส.\n8/2568",
-    "name": "การผลิตเชื้อเพลิงทอริไฟด์จาก\nกากกาแฟ",
-    "head": "รศ.วิจิตรา  ภูมิสวัสดิ์",
-    "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
-    "budget_internal": 40000,
-    "budget_external": "-",
-    "fund_source": "คณะวิศวกรรมศาสตร์ กำแพงแสน",
-    "start_date": "1968-06-01 00:00:00",
-    "_id": "research_วศ.กพส.\n8/2568",
-    "head_id": 106
-  },
-  {
-    "id": "วศ.กพส.\n9/2568",
-    "name": "การพัฒนาระบบอัตโนมัติสำหรับงานบริการการศึกษาของนิสิตภาควิชาวิศวกรรมเกษตร คณะวิศวกรรมศาสตร์ กำแพงแสน ผ่านไลน์แอปพริเคชันแชทบอท",
-    "head": "นางพีรดา จิตตา",
-    "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
-    "budget_internal": 20000,
-    "budget_external": "-",
-    "fund_source": "คณะวิศวกรรมศาสตร์ กำแพงแสน",
-    "start_date": "1968-06-01 00:00:00",
-    "_id": "research_วศ.กพส.\n9/2568",
-    "head_id": 18
-  },
-  {
-    "id": "วศ.กพส.\nบ.1/2568",
-    "name": "การอบรมการผลิตกาบกล้วยและถ้วยจากกาบกล้วยและใบไม้เพื่อสร้างมูลค่าเพิ่มจากวัสดุธรรมชาติและลดขยะต้นทาง 2568",
-    "head": "ผศ.นงลักษณ์ เล็กรุ่งเรืองกิจ",
-    "department": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
-    "budget_internal": 30000,
-    "budget_external": "-",
-    "fund_source": "คณะวิศวกรรมศาสตร์ กำแพงแสน",
-    "start_date": "1968-06-15 00:00:00",
-    "_id": "research_วศ.กพส.\nบ.1/2568",
-    "head_id": 2
-  },
-  {
-    "id": "",
-    "name": "การประยุกต์ใช้ระบบการจำลองแบบอัตโนมัติสำหรับคาดการณ์ปริมาณความต้องการน้ำชลประทานและปริมาณน้ำท่าผิวดินเพื่อสนับสนุนการบริหารจัดการน้ำในพื้นที่ลุ่มน้ำแม่กลอง",
-    "head": "ผศ.ดร.ไชยาพงษ์ เทพประสิทธิ์",
-    "department": "ภาควิชา\nวิศวกรรมชลประทาน",
-    "budget_internal": 0,
-    "budget_external": 1000000,
-    "fund_source": "สำนักงาน\nการวิจัยแห่งชาติ (วช.)",
-    "start_date": "1968-06-01 00:00:00",
-    "_id": "research_idx_13",
-    "head_id": 28
-  },
-  {
-    "id": "",
-    "name": "การพัฒนาเครื่องวิเคราะห์คุณภาพกากน้ำตาลแลพน้ำเชื่อม แบบพกพาด้วยเทคนิค NIR",
-    "head": "รศ.ดร.รณฤทธิ์  ฤทธิรณ",
-    "department": "ภาควิชา\nวิศวกรรมการอาหาร",
-    "budget_internal": "-",
-    "budget_external": 2500000,
-    "fund_source": "บริษัท มิตรผลวิจัย พัฒนาอ้อยและน้ำตาล จำกัด",
-    "start_date": "1968-03-01 00:00:00",
-    "_id": "research_idx_14",
-    "head_id": 62
-  },
-  {
-    "id": "",
-    "name": "การพัฒนาเครื่องวิเคราะห์สีน้ำเชื่อมแบบพกพา สำหรับตรวจวัดคุณภาพในกระบวนการผลิต",
-    "head": "รศ.ดร.รณฤทธิ์  ฤทธิรณ",
-    "department": "ภาควิชา\nวิศวกรรมการอาหาร",
-    "budget_internal": "-",
-    "budget_external": 300000,
-    "fund_source": "บริษัท มิตรผลวิจัย พัฒนาอ้อยและน้ำตาล จำกัด",
-    "start_date": "1968-03-01 00:00:00",
-    "_id": "research_idx_15",
-    "head_id": 62
-  },
-  {
-    "id": "YF(KU)\n37.68",
-    "name": "โมเดลคอมพิวเตอร์สำหรับบริหารจัดการฟาร์มโคนม",
-    "head": "อ.ธีรวัฒน์ หวายฤทธิ์",
-    "department": "ภาควิชา\nวิศวกรรมคอมพิวเตอร์",
-    "budget_internal": 300000,
-    "budget_external": 0,
-    "fund_source": "ทุนอุดหนุนวิจัยเพื่อพัฒนานักวิจัยรุ่นใหม่ มก. ปี 2568",
-    "start_date": "1968-07-01 00:00:00",
-    "_id": "research_YF(KU)\n37.68",
-    "head_id": 152
-  },
-  {
-    "id": "",
-    "name": "โครงการประมวลความรู้และจัดทำข้อเสนอการบริหารจัดการน้ำลุ่มน้ำแม่กลอง โดยใช้ประโยชน์จากผลงานวิจัย ระยะที่ 2",
-    "head": "รศ.ดร.บัญชา ขวัญยืน",
-    "department": "ภาควิชา\nวิศวกรรมชลประทาน",
-    "budget_internal": "-",
-    "budget_external": 969000,
-    "fund_source": "สำนักงานการวิจัย\nแห่งชาติ (วช.)",
-    "start_date": "1968-07-01 00:00:00",
-    "_id": "research_idx_17",
-    "head_id": 34
-  },
-  {
-    "id": "PRP\n6805031920",
-    "name": "การพัฒนาพื้นที่เพื่อเตรียมความพร้อมรับมือกับปัญหาภัยแล้งและปัญหาอุทกภัยในพื้นที่เสี่ยงภัยที่มีความสำคัญทางเศรษฐกิจและสังคม",
-    "head": "รศ.ดร.สมชาย ดอนเจดีย์",
-    "department": "ภาควิชา\nวิศวกรรมชลประทาน",
-    "budget_internal": "-",
-    "budget_external": 14500000,
-    "fund_source": "สำนักงานพัฒนาการวิจัยการเกษตร (องค์การมหาชน)",
-    "start_date": "1968-07-25 00:00:00",
-    "_id": "research_PRP\n6805031920",
-    "head_id": 37
-  },
-  {
-    "id": "วศ.กพส.\nบ.2/2568",
-    "name": "การอบรมและสาธิตการใช้เตาประหยัดพลังงานและเตาเบ๊บซี เพื่อเพิ่มมูลค่าน้ำมันพืชใช้แล้วและวัสดุเหลือใช้ทางการเกษตรให้เป็นเชื้อเพลิงความร้อน พ.ศ. 2568",
-    "head": "นายภัทรพล  ชูราศรี",
-    "department": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
-    "budget_internal": 30000,
-    "budget_external": 0,
-    "fund_source": "คณะวิศวกรรมศาสตร์ กำแพงแสน",
-    "start_date": "2025-08-15 00:00:00",
-    "_id": "research_วศ.กพส.\nบ.2/2568",
-    "head_id": 167
-  },
-  {
-    "id": "วศ.กพส.\n10/2568",
-    "name": "การวิเคราะห์โครงสร้างจุลภาคของคอนกรีตรีไซเคิลที่ผสมขยะพลาสติกด้วยกล้องจุลทรรศน์อิเล็กตรอนแบบส่องกราด (SEM)",
-    "head": "รศ.กฤษณะ  จันทรโชติ",
-    "department": "ภาควิชา\nวิศวกรรมโยธา",
-    "budget_internal": 40000,
-    "budget_external": 0,
-    "fund_source": "คณะวิศวกรรมศาสตร์ กำแพงแสน",
-    "start_date": "2025-08-18 00:00:00",
-    "_id": "research_วศ.กพส.\n10/2568",
-    "head_id": 88
-  },
-  {
-    "id": "วศ.กพส.\nบ.3/2568",
-    "name": "การฝึกอบรมเชิงปฏิบัติการการผลิตกระถางเพาะชำจากวัสดุธรรมชาติด้วยเครื่องอัดกระถางแบบมือโยกและไฮดรอลิกเพื่อส่งเสริมเศรษฐกิจหมุนเวียนในระดับชุมชน พ.ศ. 2568",
-    "head": "นายรัตนศักดิ์ ทรัพย์เย็น",
-    "department": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
-    "budget_internal": 30000,
-    "budget_external": 0,
-    "fund_source": "คณะวิศวกรรมศาสตร์ กำแพงแสน",
-    "start_date": "2025-09-15 00:00:00",
-    "_id": "research_วศ.กพส.\nบ.3/2568",
-    "head_id": 166
-  },
-  {
-    "id": "",
-    "name": "ศึกษาวิจัยการวิเคราะห์จุดอ่อน\nเชิงระบบด้านความมั่นคงปลอดภัยไชเบอร์ของภาครัฐและกรอบแนวทางการยกระดับขีดความสามารถ",
-    "head": "ผศ.ดร.ไชยาพงษ์ เทพประสิทธิ์",
-    "department": "ภาควิชา\nวิศวกรรมชลประทาน",
-    "budget_internal": "-",
-    "budget_external": 14000000,
-    "fund_source": "สำนักงานการวิจัย\nแห่งชาติ(วช.)",
-    "start_date": "2568-11-01 00:00:00",
-    "_id": "research_idx_22",
-    "head_id": 28
-  },
-  {
-    "id": "",
-    "name": "การพัฒนาสมบัติทางกลและความทนทานของมอร์ต้าร์ที่รักษาการเสื่อมสภาพด้วยตัวเองโดยการใช้สารสร้างผลึกชนิดต่างๆ",
-    "head": "ผศ.ดร.เพ็ญพิชชา สนิทอินทร์",
-    "department": "ภาควิชา\nวิศวกรรมโยธา",
-    "budget_internal": "-",
-    "budget_external": 600000,
-    "fund_source": "สำนักงานการวิจัย\nแห่งชาติ(วช.)",
-    "start_date": "2026-03-01 00:00:00",
-    "_id": "research_idx_23",
-    "head_id": 80
-  },
-  {
-    "id": "",
-    "name": "ศึกษาวิจัยและสาธิตริเริ่มระบบช่วยติดสินใจเพื่อการพยากรณ์น้ำและควบคุมเครื่องสูบน้ำแบบอัตโนมัติเพื่อป้องกันน้ำท่วมเมืองเชียงใหม่",
-    "head": "รศ.ดร.วิษุวัฒก์ แต้สมบัติ",
-    "department": "ภาควิชา\nวิศวกรรมชลประทาน",
-    "budget_internal": "-",
-    "budget_external": 16050200,
-    "fund_source": "สำนักงานเร่งรัดการวิจัยและนวัตกรรมเพื่อเพิ่มความสามารถการแข่งขันและการพัฒนาพื้นที่ (องค์การมหาชน) \nกับ\nบริษัทโอทีเอส เซอร์วิสแอนด์ ซัพพลาย จำกัด",
-    "start_date": "1 ปี",
-    "_id": "research_idx_24",
-    "head_id": 38
-  },
-  {
-    "id": "",
-    "name": "ระบบสนับสนุนการตัดสินใจสำหรับการออกแบบและการเพิ่มประสิทธิภาพอย่างยั่งยืนของเครือข่ายโซ่อุปทานหลังการเก็บเกี่ยวมะพร้าว",
-    "head": "ผศ.ดร.ชัยมงคล ลิ้มเพียรชอบ",
-    "department": "ภาควิชา\nวิศวกรรมอุตสาหการ",
-    "budget_internal": 20000,
-    "budget_external": "-",
-    "fund_source": "ทุนอุดหนุนการวิจัย คณะวิศวกรรมศาสตร์ กำแพงแสน ประจำปีงบประมาณ 2569",
-    "start_date": "2569-03-03 00:00:00",
-    "_id": "research_idx_25",
-    "head_id": 127
-  },
-  {
-    "id": "",
-    "name": "การพัฒนาและถ่ายทอดเทคโนโลยีนวัตกรรมระบบควบคุมความปลอดภัยสำหรับปั้นจั่น(เครน)เหนือศีรษะด้วยเทคโนโลยี LiDAR เพื่อยกระดับความปลอดภัยของผู้ปฏิบัติงานและลดความเสี่ยงต่อสาธารณชน",
-    "head": "อ.ดร.ณัฐพงษ์ สุขสบาย",
-    "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
-    "budget_internal": "-",
-    "budget_external": 1628000,
-    "fund_source": "สำนักงานการวิจัย\nแห่งชาติ (วช)",
-    "start_date": "1969-03-03 00:00:00",
-    "_id": "research_idx_26",
-    "head_id": 112
-  },
-  {
-    "id": "",
-    "name": "การพัฒนาพื้นที่เพื่อเตรียมความ\nพร้อมรับมือกับปัญหาภัยแล้งและ\nปัญหาอุทกภัย ในพื้นที่เสี่ยงภัยที่มี\nความสำคัญทางเศรษฐกิจและ\nสังคม ปีที่ 2",
-    "head": "รศ.ดร.สมชาย ดอนเจดีย์",
-    "department": "ภาควิชา\nวิศวกรรมชลประทาน",
-    "budget_internal": "-",
-    "budget_external": 9478000,
-    "fund_source": "สำนักงานพัฒนาการวิจัย\nการเกษตร(สวก.)",
-    "start_date": "-",
-    "_id": "research_idx_27",
-    "head_id": 37
-  },
-  {
-    "id": "",
-    "name": "การใช้เทคโนโลยีจัดการน้ำ-ปุ๋ยและจัดการผลิตมะม่วงน้ำดอกไม้สีทองที่เหมาะสมในพื้นที่ประสบภัยแล้งจังหวัดขอนแก่นและชัยภูมิเพื่อการส่งออกและผลิตนอกฤดู",
+    "name_en": "",
     "head": "รศ.ดร.รณฤทธิ์ ฤทธิรณ",
-    "department": "ภาควิชา\nวิศวกรรมการอาหาร",
-    "budget_internal": "-",
-    "budget_external": 6857000,
-    "fund_source": "สำนักงานการวิจัยแห่งชาติ(วช.)",
-    "start_date": "2569-04-04 00:00:00",
-    "_id": "research_idx_28",
-    "head_id": 62
+    "head_id": 62,
+    "department": "ภาควิชาวิศวกรรมการอาหาร",
+    "departments": [
+      "ภาควิชาวิศวกรรมการอาหาร",
+      "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+      "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม"
+    ],
+    "co_researchers": [
+      {
+        "id": "",
+        "name": "รศ.ดร.พีระศักดิ์ ฉายประสาท",
+        "department": "ภาควิชาวิศวกรรมการอาหาร",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "192",
+        "name": "นายสุภัทร์ รัตนะโสภณชัย",
+        "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "159",
+        "name": "ผศ.บุญมา ป้านประดิษฐ์",
+        "department": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "ดร.นุชนาฏ ภักดี",
+        "department": "ภาควิชาวิศวกรรมการอาหาร",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นายพุทธพงษ์ สร้อยเพชรเกษม",
+        "department": "ภาควิชาวิศวกรรมการอาหาร",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "ผศ.ดร.ศุภัชญา นามพิลา",
+        "department": "ภาควิชาวิศวกรรมการอาหาร",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "ผศ.ดร.พัชรี สุริยะ",
+        "department": "ภาควิชาวิศวกรรมการอาหาร",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นายสมยศ มีทา",
+        "department": "ภาควิชาวิศวกรรมการอาหาร",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นางนิกูล ทองดี",
+        "department": "ภาควิชาวิศวกรรมการอาหาร",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      }
+    ],
+    "members": [
+      {
+        "role": "PI",
+        "name": "รศ.ดร.รณฤทธิ์ ฤทธิรณ",
+        "organization": "ภาควิชาวิศวกรรมการอาหาร",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "รศ.ดร.พีระศักดิ์ ฉายประสาท",
+        "organization": "ภาควิชาวิศวกรรมการอาหาร",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายสุภัทร์ รัตนะโสภณชัย",
+        "organization": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.บุญมา ป้านประดิษฐ์",
+        "organization": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ดร.นุชนาฏ ภักดี",
+        "organization": "ภาควิชาวิศวกรรมการอาหาร",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายพุทธพงษ์ สร้อยเพชรเกษม",
+        "organization": "ภาควิชาวิศวกรรมการอาหาร",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.ดร.ศุภัชญา นามพิลา",
+        "organization": "ภาควิชาวิศวกรรมการอาหาร",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.ดร.พัชรี สุริยะ",
+        "organization": "ภาควิชาวิศวกรรมการอาหาร",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายสมยศ มีทา",
+        "organization": "ภาควิชาวิศวกรรมการอาหาร",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นางนิกูล ทองดี",
+        "organization": "ภาควิชาวิศวกรรมการอาหาร",
+        "affiliation_type": "eng_kps"
+      }
+    ],
+    "collaboration_type": [],
+    "collaboration_domestic": "-",
+    "collaboration_foreign": "-",
+    "project_nature": [],
+    "budget_internal": 0.0,
+    "budget_external": 7658000.0,
+    "budget_total": 7658000.0,
+    "fund_source": "สำนักงานการวิจัย แห่งชาติ (วช.)",
+    "fund_type": "ภายนอก",
+    "start_date": "2568-05-01",
+    "end_date": "2569-05-01",
+    "duration": "2568-05-01 ถึง 2569-05-01",
+    "fiscal_year_be": 2568,
+    "integration_teaching": "-",
+    "integration_research_teaching": "-",
+    "integration_service_project": "-",
+    "teaching_courses": [],
+    "applied_courses": [],
+    "trl": null,
+    "trl_outputs": [],
+    "remarks": "-",
+    "status": "active",
+    "sdg_code": "SDG 6",
+    "updatedAt": "2026-10-24T20:21:53.617429+00:00",
+    "_id": "research_วศ.กพส. 68-03"
   },
   {
-    "id": "",
-    "name": "การพัฒนาระบบสารสนเทศเพื่อ\nปรับปรุงกระบวนการติดตามและ\nวิเคราะห์ผลการดำเนินโครงการที่\nเชื่อมโยงกับแผนยุทธศาสตร์ด้าน\nกิจการนิสิต: กรณีศึกษา \nมหาวิทยาลัยเกษตรศาสตร์ \nวิทยาเขตกำแพงแสน",
-    "head": "ผศ.อธิวัฒน์ บุญมี",
-    "department": "ภาควิชา\nวิศวกรรมอุตสาหการ",
-    "budget_internal": 20000,
-    "budget_external": "-",
-    "fund_source": "ทุนอุดหนุนการวิจัย \nคณะวิศวกรรมศาสตร์ กำแพงแสน ประจำปีงบประมาณ 2569",
-    "start_date": "2569-04-04 00:00:00",
-    "_id": "research_idx_29",
-    "head_id": 122
+    "id": "วศ.กพส. 7/2568",
+    "name": "การศึกษาคุณลักษณะการถ่ายเทความร้อนและการไหลของการหล่อเย็นภายในใบกังหันก๊าซ (Study of heat transfer and flow characteristics of cooling inside gas turbine blades)",
+    "name_en": "",
+    "head": "ผศ.ดร.คมกฤษณ์ ชัยโย",
+    "head_id": 111,
+    "department": "ภาควิชาวิศวกรรมเครื่องกล",
+    "departments": [
+      "ภาควิชาวิศวกรรมเครื่องกล"
+    ],
+    "co_researchers": [],
+    "members": [
+      {
+        "role": "PI",
+        "name": "ผศ.ดร.คมกฤษณ์ ชัยโย",
+        "organization": "ภาควิชาวิศวกรรมเครื่องกล",
+        "affiliation_type": "eng_kps"
+      }
+    ],
+    "collaboration_type": [],
+    "collaboration_domestic": "-",
+    "collaboration_foreign": "-",
+    "project_nature": [],
+    "budget_internal": 40000.0,
+    "budget_external": 0.0,
+    "budget_total": 40000.0,
+    "fund_source": "คณะวิศวกรรมศาสตร์ กำแพงแสน",
+    "fund_type": "ภายใน",
+    "start_date": "2568-06-01",
+    "end_date": "2569-06-01",
+    "duration": "2568-06-01 ถึง 2569-06-01",
+    "fiscal_year_be": 2568,
+    "integration_teaching": "01208341 การออกแบบระบบทางความร้อน",
+    "integration_research_teaching": "-",
+    "integration_service_project": "-",
+    "teaching_courses": [
+      {
+        "code": "01208341",
+        "name": "การออกแบบระบบทางความร้อน",
+        "department": "ภาควิชาวิศวกรรมเครื่องกล"
+      }
+    ],
+    "applied_courses": [],
+    "trl": 1,
+    "trl_outputs": [
+      {
+        "name": "TRL1 ดำเนินโครงการเสร็จไป TRL3",
+        "trl": 1
+      }
+    ],
+    "remarks": "-",
+    "status": "active",
+    "sdg_code": "SDG 7",
+    "updatedAt": "2026-10-24T20:21:53.617509+00:00",
+    "_id": "research_วศ.กพส. 7/2568"
   },
   {
-    "id": "",
-    "name": "ศึกษาวิจัยและสาธิตเริ่มระบบช่วยตัดสินใจเพื่อการพยากรณ์น้ำและควบคุมเครื่องสูบน้ำแบบอัตโนมัติเพื่อป้องกันน้ำท่วมเมืองเชียงใหม่",
+    "id": "วศ.กพส. 8/2568",
+    "name": "การผลิตเชื้อเพลิงทอริไฟด์จาก กากกาแฟ",
+    "name_en": "",
+    "head": "รศ.วิจิตรา ภูมิสวัสดิ์",
+    "head_id": 106,
+    "department": "ภาควิชาวิศวกรรมเครื่องกล",
+    "departments": [
+      "ภาควิชาวิศวกรรมเครื่องกล"
+    ],
+    "co_researchers": [],
+    "members": [
+      {
+        "role": "PI",
+        "name": "รศ.วิจิตรา ภูมิสวัสดิ์",
+        "organization": "ภาควิชาวิศวกรรมเครื่องกล",
+        "affiliation_type": "eng_kps"
+      }
+    ],
+    "collaboration_type": [],
+    "collaboration_domestic": "-",
+    "collaboration_foreign": "-",
+    "project_nature": [],
+    "budget_internal": 40000.0,
+    "budget_external": 0.0,
+    "budget_total": 40000.0,
+    "fund_source": "คณะวิศวกรรมศาสตร์ กำแพงแสน",
+    "fund_type": "ภายใน",
+    "start_date": "2568-06-01",
+    "end_date": "2569-06-01",
+    "duration": "2568-06-01 ถึง 2569-06-01",
+    "fiscal_year_be": 2568,
+    "integration_teaching": "01204448 พลังงานทดแทน เบื้องต้น",
+    "integration_research_teaching": "-",
+    "integration_service_project": "-",
+    "teaching_courses": [
+      {
+        "code": "01204448",
+        "name": "พลังงานทดแทน เบื้องต้น",
+        "department": "ภาควิชาวิศวกรรมเครื่องกล"
+      }
+    ],
+    "applied_courses": [],
+    "trl": null,
+    "trl_outputs": [],
+    "remarks": "-",
+    "status": "active",
+    "sdg_code": "SDG 7",
+    "updatedAt": "2026-10-24T20:21:53.617560+00:00",
+    "_id": "research_วศ.กพส. 8/2568"
+  },
+  {
+    "id": "วศ.กพส. 9/2568",
+    "name": "การพัฒนาระบบอัตโนมัติสำหรับงานบริการการศึกษาของนิสิตภาควิชาวิศวกรรมเกษตร คณะวิศวกรรมศาสตร์ กำแพงแสน ผ่านไลน์แอปพริเคชันแชทบอท",
+    "name_en": "",
+    "head": "นางสาวพีรดา แจ้งศรี",
+    "head_id": 18,
+    "department": "ภาควิชาวิศวกรรมเครื่องกล",
+    "departments": [
+      "ภาควิชาวิศวกรรมเครื่องกล"
+    ],
+    "co_researchers": [],
+    "members": [
+      {
+        "role": "PI",
+        "name": "นางสาวพีรดา แจ้งศรี",
+        "organization": "ภาควิชาวิศวกรรมเครื่องกล",
+        "affiliation_type": "eng_kps"
+      }
+    ],
+    "collaboration_type": [],
+    "collaboration_domestic": "-",
+    "collaboration_foreign": "-",
+    "project_nature": [],
+    "budget_internal": 20000.0,
+    "budget_external": 0.0,
+    "budget_total": 20000.0,
+    "fund_source": "คณะวิศวกรรมศาสตร์ กำแพงแสน",
+    "fund_type": "ภายใน",
+    "start_date": "2568-06-01",
+    "end_date": "2570-06-01",
+    "duration": "2568-06-01 ถึง 2570-06-01",
+    "fiscal_year_be": 2568,
+    "integration_teaching": "-",
+    "integration_research_teaching": "-",
+    "integration_service_project": "-",
+    "teaching_courses": [],
+    "applied_courses": [],
+    "trl": null,
+    "trl_outputs": [],
+    "remarks": "-",
+    "status": "active",
+    "sdg_code": "SDG 2",
+    "updatedAt": "2026-10-24T20:21:53.617621+00:00",
+    "_id": "research_วศ.กพส. 9/2568"
+  },
+  {
+    "id": "วศ.กพส. บ.1/2568",
+    "name": "การอบรมการผลิตกาบกล้วยและถ้วยจากกาบกล้วยและใบไม้เพื่อสร้างมูลค่าเพิ่มจากวัสดุธรรมชาติและลดขยะต้นทาง 2568",
+    "name_en": "",
+    "head": "ผศ.นงลักษณ์ เล็กรุ่งเรืองกิจ",
+    "head_id": 2,
+    "department": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+    "departments": [
+      "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+      "สำนักงานเลขานุการ"
+    ],
+    "co_researchers": [
+      {
+        "id": "164",
+        "name": "นายอรรถวุทธิ์ รื่นเริงใจ",
+        "department": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "280",
+        "name": "นายวีระพงษ์ กระแสธีป",
+        "department": "สำนักงานเลขานุการ",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นางสาวธันยพร โส๊ะอ้น",
+        "department": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "165",
+        "name": "นางเนตรนภา วิชานงค์",
+        "department": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      }
+    ],
+    "members": [
+      {
+        "role": "PI",
+        "name": "ผศ.นงลักษณ์ เล็กรุ่งเรืองกิจ",
+        "organization": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายอรรถวุทธิ์ รื่นเริงใจ",
+        "organization": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายวีระพงษ์ กระแสธีป",
+        "organization": "สำนักงานเลขานุการ",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นางสาวธันยพร โส๊ะอ้น",
+        "organization": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นางเนตรนภา วิชานงค์",
+        "organization": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+        "affiliation_type": "eng_kps"
+      }
+    ],
+    "collaboration_type": [],
+    "collaboration_domestic": "-",
+    "collaboration_foreign": "-",
+    "project_nature": [],
+    "budget_internal": 30000.0,
+    "budget_external": 0.0,
+    "budget_total": 30000.0,
+    "fund_source": "คณะวิศวกรรมศาสตร์ กำแพงแสน",
+    "fund_type": "ภายใน",
+    "start_date": "2568-06-15",
+    "end_date": "2568-12-14",
+    "duration": "2568-06-15 ถึง 2568-12-14",
+    "fiscal_year_be": 2568,
+    "integration_teaching": "02201495 การเตรียมโครงงานวิศวกรรม 02201499 วิชาโครงงานวิศวกรรม",
+    "integration_research_teaching": "-",
+    "integration_service_project": "มีการนำความรู้จากการวิจัยเรื่อง เครื่องผลิตถ้วยใบไม้เพื่อการผลิตระดับชุมชน",
+    "teaching_courses": [
+      {
+        "code": "02201495",
+        "name": "การเตรียมโครงงานวิศวกรรม 02201499 วิชาโครงงานวิศวกรรม",
+        "department": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม"
+      }
+    ],
+    "applied_courses": [],
+    "trl": null,
+    "trl_outputs": [],
+    "remarks": "-",
+    "status": "active",
+    "sdg_code": "SDG 7",
+    "updatedAt": "2026-10-24T20:21:53.617712+00:00",
+    "_id": "research_วศ.กพส. บ.1/2568"
+  },
+  {
+    "id": "วศ.กพส. 68-04",
+    "name": "การประยุกต์ใช้ระบบการจำลองแบบอัตโนมัติสำหรับคาดการณ์ปริมาณความต้องการน้ำชลประทานและปริมาณน้ำท่าผิวดินเพื่อสนับสนุนการบริหารจัดการน้ำในพื้นที่ลุ่มน้ำแม่กลอง",
+    "name_en": "",
+    "head": "ผศ.ดร.ไชยาพงษ์ เทพประสิทธิ์",
+    "head_id": 28,
+    "department": "ภาควิชาวิศวกรรมชลประทาน",
+    "departments": [
+      "ภาควิชาวิศวกรรมชลประทาน"
+    ],
+    "co_researchers": [
+      {
+        "id": "42",
+        "name": "ผศ.ดร.จุติเทพ วงษ์เพ็ชร์",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "31",
+        "name": "ผศ.ดร.ชูพันธุ์ ชมภูจันทร์",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "43",
+        "name": "ผศ.ดร.เกศวรา สิทธิโชค",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "32",
+        "name": "ผศ.ดร.ทรงศักดิ์ ภัทราวุฒิชัย",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นางสาวกาญจนาวรรณ นิลกลัด",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นายพัลลภ สุวรรณมาลัย",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นายนิพัทธ์ ทองประไพ",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "46",
+        "name": "อ.พลเพชร สมานมิตร",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "50",
+        "name": "นางสาวณัฐธยาน์ นามอินทร์",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "51",
+        "name": "นายธีรศักดิ์ ซ้ายอ่อน",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      }
+    ],
+    "members": [
+      {
+        "role": "PI",
+        "name": "ผศ.ดร.ไชยาพงษ์ เทพประสิทธิ์",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.ดร.จุติเทพ วงษ์เพ็ชร์",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.ดร.ชูพันธุ์ ชมภูจันทร์",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.ดร.เกศวรา สิทธิโชค",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.ดร.ทรงศักดิ์ ภัทราวุฒิชัย",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นางสาวกาญจนาวรรณ นิลกลัด",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายพัลลภ สุวรรณมาลัย",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายนิพัทธ์ ทองประไพ",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "อ.พลเพชร สมานมิตร",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นางสาวณัฐธยาน์ นามอินทร์",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายธีรศักดิ์ ซ้ายอ่อน",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      }
+    ],
+    "collaboration_type": [],
+    "collaboration_domestic": "-",
+    "collaboration_foreign": "-",
+    "project_nature": [],
+    "budget_internal": 0.0,
+    "budget_external": 1000000.0,
+    "budget_total": 1000000.0,
+    "fund_source": "สำนักงาน การวิจัยแห่งชาติ (วช.)",
+    "fund_type": "ภายนอก",
+    "start_date": "2568-06-01",
+    "end_date": "2569-06-01",
+    "duration": "2568-06-01 ถึง 2569-06-01",
+    "fiscal_year_be": 2568,
+    "integration_teaching": "-",
+    "integration_research_teaching": "-",
+    "integration_service_project": "-",
+    "teaching_courses": [],
+    "applied_courses": [],
+    "trl": null,
+    "trl_outputs": [],
+    "remarks": "-",
+    "status": "active",
+    "sdg_code": "SDG 6",
+    "updatedAt": "2026-10-24T20:21:53.617856+00:00",
+    "_id": "research_วศ.กพส. 68-04"
+  },
+  {
+    "id": "วศ.กพส. 68-05",
+    "name": "การพัฒนาเครื่องวิเคราะห์คุณภาพกากน้ำตาลแลพน้ำเชื่อม แบบพกพาด้วยเทคนิค NIR",
+    "name_en": "",
+    "head": "รศ.ดร.รณฤทธิ์ ฤทธิรณ",
+    "head_id": 62,
+    "department": "ภาควิชาวิศวกรรมการอาหาร",
+    "departments": [
+      "ภาควิชาวิศวกรรมการอาหาร"
+    ],
+    "co_researchers": [
+      {
+        "id": "",
+        "name": "ดร.สุรีพร ณรงค์วงศ์วัฒนา",
+        "department": "ภาควิชาวิศวกรรมการอาหาร",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "อ.ดร.ยุรนันท์ บรรทัดจันทร์",
+        "department": "ภาควิชาวิศวกรรมการอาหาร",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      }
+    ],
+    "members": [
+      {
+        "role": "PI",
+        "name": "รศ.ดร.รณฤทธิ์ ฤทธิรณ",
+        "organization": "ภาควิชาวิศวกรรมการอาหาร",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ดร.สุรีพร ณรงค์วงศ์วัฒนา",
+        "organization": "ภาควิชาวิศวกรรมการอาหาร",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "อ.ดร.ยุรนันท์ บรรทัดจันทร์",
+        "organization": "ภาควิชาวิศวกรรมการอาหาร",
+        "affiliation_type": "eng_kps"
+      }
+    ],
+    "collaboration_type": [],
+    "collaboration_domestic": "-",
+    "collaboration_foreign": "-",
+    "project_nature": [],
+    "budget_internal": 0.0,
+    "budget_external": 2500000.0,
+    "budget_total": 2500000.0,
+    "fund_source": "บริษัท มิตรผลวิจัย พัฒนาอ้อยและน้ำตาล จำกัด",
+    "fund_type": "ภายนอก",
+    "start_date": "2568-03-01",
+    "end_date": "2568-06-01",
+    "duration": "2568-03-01 ถึง 2568-06-01",
+    "fiscal_year_be": 2568,
+    "integration_teaching": "-",
+    "integration_research_teaching": "-",
+    "integration_service_project": "-",
+    "teaching_courses": [],
+    "applied_courses": [],
+    "trl": null,
+    "trl_outputs": [],
+    "remarks": "-",
+    "status": "active",
+    "sdg_code": "SDG 6",
+    "updatedAt": "2026-10-24T20:21:53.617939+00:00",
+    "_id": "research_วศ.กพส. 68-05"
+  },
+  {
+    "id": "วศ.กพส. 68-06",
+    "name": "การพัฒนาเครื่องวิเคราะห์สีน้ำเชื่อมแบบพกพา สำหรับตรวจวัดคุณภาพในกระบวนการผลิต",
+    "name_en": "",
+    "head": "รศ.ดร.รณฤทธิ์ ฤทธิรณ",
+    "head_id": 62,
+    "department": "ภาควิชาวิศวกรรมการอาหาร",
+    "departments": [
+      "ภาควิชาวิศวกรรมการอาหาร"
+    ],
+    "co_researchers": [
+      {
+        "id": "",
+        "name": "ดร.สุรีพร ณรงค์วงศ์วัฒนา",
+        "department": "ภาควิชาวิศวกรรมการอาหาร",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "อ.ดร.ยุรนันท์ บรรทัดจันทร์",
+        "department": "ภาควิชาวิศวกรรมการอาหาร",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      }
+    ],
+    "members": [
+      {
+        "role": "PI",
+        "name": "รศ.ดร.รณฤทธิ์ ฤทธิรณ",
+        "organization": "ภาควิชาวิศวกรรมการอาหาร",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ดร.สุรีพร ณรงค์วงศ์วัฒนา",
+        "organization": "ภาควิชาวิศวกรรมการอาหาร",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "อ.ดร.ยุรนันท์ บรรทัดจันทร์",
+        "organization": "ภาควิชาวิศวกรรมการอาหาร",
+        "affiliation_type": "eng_kps"
+      }
+    ],
+    "collaboration_type": [],
+    "collaboration_domestic": "-",
+    "collaboration_foreign": "-",
+    "project_nature": [],
+    "budget_internal": 0.0,
+    "budget_external": 300000.0,
+    "budget_total": 300000.0,
+    "fund_source": "บริษัท มิตรผลวิจัย พัฒนาอ้อยและน้ำตาล จำกัด",
+    "fund_type": "ภายนอก",
+    "start_date": "2568-03-01",
+    "end_date": "2568-06-01",
+    "duration": "2568-03-01 ถึง 2568-06-01",
+    "fiscal_year_be": 2568,
+    "integration_teaching": "-",
+    "integration_research_teaching": "-",
+    "integration_service_project": "-",
+    "teaching_courses": [],
+    "applied_courses": [],
+    "trl": null,
+    "trl_outputs": [],
+    "remarks": "-",
+    "status": "active",
+    "sdg_code": "SDG 6",
+    "updatedAt": "2026-10-24T20:21:53.618018+00:00",
+    "_id": "research_วศ.กพส. 68-06"
+  },
+  {
+    "id": "YF(KU) 37.68",
+    "name": "โมเดลคอมพิวเตอร์สำหรับบริหารจัดการฟาร์มโคนม",
+    "name_en": "",
+    "head": "อ.ธีรวัฒน์ หวายฤทธิ์",
+    "head_id": 152,
+    "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+    "departments": [
+      "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+      "ภาควิชาวิศวกรรมการอาหาร"
+    ],
+    "co_researchers": [
+      {
+        "id": "139",
+        "name": "ผศ.ดร.วรัญญา อรรถเสนา",
+        "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "143",
+        "name": "ผศ.ดร.บุญรัตน์ เผดิมรอด",
+        "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "น.สพ.ดร.ศุภชาติ ปานเนียม",
+        "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "63",
+        "name": "รศ.อมรเดช พุทธิพิพัฒน์ขจร",
+        "department": "ภาควิชาวิศวกรรมการอาหาร",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "144",
+        "name": "รศ.ดร.อมรฤทธิ์ พุทธิพิพัฒน์ขจร",
+        "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "142",
+        "name": "อ.ร้อยโทอนุมัติ อิงคนินันท์",
+        "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "141",
+        "name": "ผศ.ดร.พิเชษฐ์ สืบสายพรหม",
+        "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "146",
+        "name": "รศ.ดร.ฐิติพงษ์ สถิรเมธีกุล",
+        "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "(Mentor)",
+        "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      }
+    ],
+    "members": [
+      {
+        "role": "PI",
+        "name": "อ.ธีรวัฒน์ หวายฤทธิ์",
+        "organization": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.ดร.วรัญญา อรรถเสนา",
+        "organization": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.ดร.บุญรัตน์ เผดิมรอด",
+        "organization": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "น.สพ.ดร.ศุภชาติ ปานเนียม",
+        "organization": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "รศ.อมรเดช พุทธิพิพัฒน์ขจร",
+        "organization": "ภาควิชาวิศวกรรมการอาหาร",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "รศ.ดร.อมรฤทธิ์ พุทธิพิพัฒน์ขจร",
+        "organization": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "อ.ร้อยโทอนุมัติ อิงคนินันท์",
+        "organization": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.ดร.พิเชษฐ์ สืบสายพรหม",
+        "organization": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "รศ.ดร.ฐิติพงษ์ สถิรเมธีกุล",
+        "organization": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "(Mentor)",
+        "organization": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+        "affiliation_type": "eng_kps"
+      }
+    ],
+    "collaboration_type": [],
+    "collaboration_domestic": "-",
+    "collaboration_foreign": "-",
+    "project_nature": [],
+    "budget_internal": 300000.0,
+    "budget_external": 0.0,
+    "budget_total": 300000.0,
+    "fund_source": "ทุนอุดหนุนวิจัยเพื่อพัฒนานักวิจัยรุ่นใหม่ มก. ปี 2568",
+    "fund_type": "ภายใน",
+    "start_date": "2568-07-01",
+    "end_date": "2569-07-01",
+    "duration": "2568-07-01 ถึง 2569-07-01",
+    "fiscal_year_be": 2568,
+    "integration_teaching": "มีการบูรณาการองค์ความรู้ข้ามศาสตร์ระหว่างคณะวิศวกรรมศาสตร์ กำแพงแสน และคณะสัตวแพทยศาสตร์ มหาวิทยาลัยเกษตรศาสตร์",
+    "integration_research_teaching": "-",
+    "integration_service_project": "-",
+    "teaching_courses": [],
+    "applied_courses": [],
+    "trl": 1,
+    "trl_outputs": [
+      {
+        "name": "1) แอปพลิเคชันเพื่อการจัดการโคนมระดับฝูง TRL4 2) ต้นแบบอุปกรณ์ตรวจวัดพฤติกรรมโคนมรายตัวแบบทันที TRL7 + Heat detection24Hr. 100% 3) ต้นแบบเครื่องตรวจสอบสภาพอากาศในฟาร์มโคนม TRL7 + ขาย 4) ต้นแบบเครื่องวัดองค์ประกอบน้ำนมดิบด้วยเทคนิค NIRS TRL4",
+        "trl": 1
+      }
+    ],
+    "remarks": "-",
+    "status": "active",
+    "sdg_code": "SDG 9",
+    "updatedAt": "2026-10-24T20:21:53.618172+00:00",
+    "_id": "research_YF(KU) 37.68"
+  },
+  {
+    "id": "วศ.กพส. 68-07",
+    "name": "โครงการประมวลความรู้และจัดทำข้อเสนอการบริหารจัดการน้ำลุ่มน้ำแม่กลอง โดยใช้ประโยชน์จากผลงานวิจัย ระยะที่ 2",
+    "name_en": "",
+    "head": "รศ.ดร.บัญชา ขวัญยืน",
+    "head_id": 34,
+    "department": "ภาควิชาวิศวกรรมชลประทาน",
+    "departments": [
+      "ภาควิชาวิศวกรรมชลประทาน"
+    ],
+    "co_researchers": [
+      {
+        "id": "42",
+        "name": "ผศ.ดร.จุติเทพ วงษ์เพ็ชร์",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "46",
+        "name": "อ.พลเพชร สมานมิตร",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      }
+    ],
+    "members": [
+      {
+        "role": "PI",
+        "name": "รศ.ดร.บัญชา ขวัญยืน",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.ดร.จุติเทพ วงษ์เพ็ชร์",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "อ.พลเพชร สมานมิตร",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      }
+    ],
+    "collaboration_type": [],
+    "collaboration_domestic": "-",
+    "collaboration_foreign": "-",
+    "project_nature": [],
+    "budget_internal": 0.0,
+    "budget_external": 969000.0,
+    "budget_total": 969000.0,
+    "fund_source": "สำนักงานการวิจัย แห่งชาติ (วช.)",
+    "fund_type": "ภายนอก",
+    "start_date": "2568-07-01",
+    "end_date": "2569-07-01",
+    "duration": "2568-07-01 ถึง 2569-07-01",
+    "fiscal_year_be": 2568,
+    "integration_teaching": "-",
+    "integration_research_teaching": "-",
+    "integration_service_project": "-",
+    "teaching_courses": [],
+    "applied_courses": [],
+    "trl": null,
+    "trl_outputs": [],
+    "remarks": "-",
+    "status": "active",
+    "sdg_code": "SDG 6",
+    "updatedAt": "2026-10-24T20:21:53.618225+00:00",
+    "_id": "research_วศ.กพส. 68-07"
+  },
+  {
+    "id": "PRP 6805031920",
+    "name": "การพัฒนาพื้นที่เพื่อเตรียมความพร้อมรับมือกับปัญหาภัยแล้งและปัญหาอุทกภัยในพื้นที่เสี่ยงภัยที่มีความสำคัญทางเศรษฐกิจและสังคม",
+    "name_en": "",
+    "head": "รศ.ดร.สมชาย ดอนเจดีย์",
+    "head_id": 163,
+    "department": "ภาควิชาวิศวกรรมชลประทาน",
+    "departments": [
+      "ภาควิชาวิศวกรรมชลประทาน",
+      "ภาควิชาวิศวกรรมเกษตร",
+      "ภาควิชาวิศวกรรมอุตสาหการ",
+      "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+      "สำนักงานเลขานุการ"
+    ],
+    "co_researchers": [
+      {
+        "id": "15",
+        "name": "อ.ดร.ชัยยะ จันทรา",
+        "department": "ภาควิชาวิศวกรรมเกษตร",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "33",
+        "name": "รศ.ดร.วราวุธ วุฒิวณิชย์",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "39",
+        "name": "ผศ.นิมิตร เฉิดฉันท์พิพัฒน์",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "130",
+        "name": "รศ.ดร.ศศรส ใจจิตร์",
+        "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นายสรายุทธ อิ่มใจ",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "43",
+        "name": "ผศ.ดร.เกศวรา สิทธิโชค",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "รศ.ดร.จุฑา พิชิตลำเค็ญ",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "42",
+        "name": "ผศ.ดร.จุติเทพ วงษ์เพ็ชร์",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "141",
+        "name": "ผศ.ดร.พิเชษฐ์ สืบสายพรหม",
+        "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นายวิเนตร แสนหาญ",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นายปรเมศวร์ จอนแจ้ง",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นายรสุ สืบสหการ",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นางสาวลพรรณพลอย ชาวเรือ",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "267",
+        "name": "นายณัฐพล เสรีเผ่าวงษ์",
+        "department": "สำนักงานเลขานุการ",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "280",
+        "name": "นายวีระพงษ์ กระแสธีป",
+        "department": "สำนักงานเลขานุการ",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นางสาวอรุณมณี นราวิริยะกุล",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นายณัฐพล วุฒิจันทร์",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นายเลอบุญ อุดมทรัพย์",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      }
+    ],
+    "members": [
+      {
+        "role": "PI",
+        "name": "รศ.ดร.สมชาย ดอนเจดีย์",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "อ.ดร.ชัยยะ จันทรา",
+        "organization": "ภาควิชาวิศวกรรมเกษตร",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "รศ.ดร.วราวุธ วุฒิวณิชย์",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.นิมิตร เฉิดฉันท์พิพัฒน์",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "รศ.ดร.ศศรส ใจจิตร์",
+        "organization": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายสรายุทธ อิ่มใจ",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.ดร.เกศวรา สิทธิโชค",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "รศ.ดร.จุฑา พิชิตลำเค็ญ",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.ดร.จุติเทพ วงษ์เพ็ชร์",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.ดร.พิเชษฐ์ สืบสายพรหม",
+        "organization": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายวิเนตร แสนหาญ",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายปรเมศวร์ จอนแจ้ง",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายรสุ สืบสหการ",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นางสาวลพรรณพลอย ชาวเรือ",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายณัฐพล เสรีเผ่าวงษ์",
+        "organization": "สำนักงานเลขานุการ",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายวีระพงษ์ กระแสธีป",
+        "organization": "สำนักงานเลขานุการ",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นางสาวอรุณมณี นราวิริยะกุล",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายณัฐพล วุฒิจันทร์",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายเลอบุญ อุดมทรัพย์",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      }
+    ],
+    "collaboration_type": [],
+    "collaboration_domestic": "-",
+    "collaboration_foreign": "-",
+    "project_nature": [],
+    "budget_internal": 0.0,
+    "budget_external": 14500000.0,
+    "budget_total": 14500000.0,
+    "fund_source": "สำนักงานพัฒนาการวิจัยการเกษตร (องค์การมหาชน)",
+    "fund_type": "ภายนอก",
+    "start_date": "2568-07-25",
+    "end_date": "2569-07-24",
+    "duration": "2568-07-25 ถึง 2569-07-24",
+    "fiscal_year_be": 2568,
+    "integration_teaching": "-",
+    "integration_research_teaching": "-",
+    "integration_service_project": "-",
+    "teaching_courses": [],
+    "applied_courses": [],
+    "trl": null,
+    "trl_outputs": [],
+    "remarks": "-",
+    "status": "active",
+    "sdg_code": "SDG 6",
+    "updatedAt": "2026-10-24T20:21:53.618480+00:00",
+    "_id": "research_PRP 6805031920"
+  },
+  {
+    "id": "วศ.กพส. บ.2/2568",
+    "name": "การอบรมและสาธิตการใช้เตาประหยัดพลังงานและเตาเบ๊บซี เพื่อเพิ่มมูลค่าน้ำมันพืชใช้แล้วและวัสดุเหลือใช้ทางการเกษตรให้เป็นเชื้อเพลิงความร้อน พ.ศ. 2568",
+    "name_en": "",
+    "head": "นายภัทรพล ชูราศรี",
+    "head_id": 167,
+    "department": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+    "departments": [
+      "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+      "ภาควิชาวิศวกรรมเกษตร",
+      "ภาควิชาวิศวกรรมเกษตร, ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ",
+      "สำนักงานเลขานุการ"
+    ],
+    "co_researchers": [
+      {
+        "id": "2",
+        "name": "ผศ.นงลักษณ์ เล็กรุ่งเรืองกิจ",
+        "department": "ภาควิชาวิศวกรรมเกษตร",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "254",
+        "name": "นายจิรัฐ มั่นเกษม",
+        "department": "ภาควิชาวิศวกรรมเกษตร, ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "280",
+        "name": "นายวีระพงษ์ กระแสธีป",
+        "department": "สำนักงานเลขานุการ",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นางสาวธันยพร โส๊ะอ้น",
+        "department": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "165",
+        "name": "นางเนตรนภา วิชานงค์",
+        "department": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "166",
+        "name": "นายรัตนศักดิ์ ทรัพย์เย็น",
+        "department": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      }
+    ],
+    "members": [
+      {
+        "role": "PI",
+        "name": "นายภัทรพล ชูราศรี",
+        "organization": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.นงลักษณ์ เล็กรุ่งเรืองกิจ",
+        "organization": "ภาควิชาวิศวกรรมเกษตร",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายจิรัฐ มั่นเกษม",
+        "organization": "ภาควิชาวิศวกรรมเกษตร, ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายวีระพงษ์ กระแสธีป",
+        "organization": "สำนักงานเลขานุการ",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นางสาวธันยพร โส๊ะอ้น",
+        "organization": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นางเนตรนภา วิชานงค์",
+        "organization": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายรัตนศักดิ์ ทรัพย์เย็น",
+        "organization": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+        "affiliation_type": "eng_kps"
+      }
+    ],
+    "collaboration_type": [],
+    "collaboration_domestic": "-",
+    "collaboration_foreign": "-",
+    "project_nature": [],
+    "budget_internal": 30000.0,
+    "budget_external": 0.0,
+    "budget_total": 30000.0,
+    "fund_source": "คณะวิศวกรรมศาสตร์ กำแพงแสน",
+    "fund_type": "ภายใน",
+    "start_date": "2568-08-15",
+    "end_date": "2568-08-14",
+    "duration": "2568-08-15 ถึง 2568-08-14",
+    "fiscal_year_be": 2568,
+    "integration_teaching": "-",
+    "integration_research_teaching": "-",
+    "integration_service_project": "-",
+    "teaching_courses": [],
+    "applied_courses": [],
+    "trl": null,
+    "trl_outputs": [],
+    "remarks": "-",
+    "status": "active",
+    "sdg_code": "SDG 6",
+    "updatedAt": "2026-10-24T20:21:53.618586+00:00",
+    "_id": "research_วศ.กพส. บ.2/2568"
+  },
+  {
+    "id": "วศ.กพส. 10/2568",
+    "name": "การวิเคราะห์โครงสร้างจุลภาคของคอนกรีตรีไซเคิลที่ผสมขยะพลาสติกด้วยกล้องจุลทรรศน์อิเล็กตรอนแบบส่องกราด (SEM)",
+    "name_en": "",
+    "head": "รศ.กฤษณะ จันทรโชติ",
+    "head_id": 88,
+    "department": "ภาควิชาวิศวกรรมโยธา",
+    "departments": [
+      "ภาควิชาวิศวกรรมโยธา"
+    ],
+    "co_researchers": [],
+    "members": [
+      {
+        "role": "PI",
+        "name": "รศ.กฤษณะ จันทรโชติ",
+        "organization": "ภาควิชาวิศวกรรมโยธา",
+        "affiliation_type": "eng_kps"
+      }
+    ],
+    "collaboration_type": [],
+    "collaboration_domestic": "-",
+    "collaboration_foreign": "-",
+    "project_nature": [],
+    "budget_internal": 40000.0,
+    "budget_external": 0.0,
+    "budget_total": 40000.0,
+    "fund_source": "คณะวิศวกรรมศาสตร์ กำแพงแสน",
+    "fund_type": "ภายใน",
+    "start_date": "2568-08-18",
+    "end_date": "2569-08-17",
+    "duration": "2568-08-18 ถึง 2569-08-17",
+    "fiscal_year_be": 2568,
+    "integration_teaching": "-",
+    "integration_research_teaching": "-",
+    "integration_service_project": "-",
+    "teaching_courses": [],
+    "applied_courses": [],
+    "trl": null,
+    "trl_outputs": [],
+    "remarks": "-",
+    "status": "active",
+    "sdg_code": "SDG 13",
+    "updatedAt": "2026-10-24T20:21:53.618629+00:00",
+    "_id": "research_วศ.กพส. 10/2568"
+  },
+  {
+    "id": "วศ.กพส. บ.3/2568",
+    "name": "การฝึกอบรมเชิงปฏิบัติการการผลิตกระถางเพาะชำจากวัสดุธรรมชาติด้วยเครื่องอัดกระถางแบบมือโยกและไฮดรอลิกเพื่อส่งเสริมเศรษฐกิจหมุนเวียนในระดับชุมชน พ.ศ. 2568",
+    "name_en": "",
+    "head": "นายรัตนศักดิ์ ทรัพย์เย็น",
+    "head_id": 166,
+    "department": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+    "departments": [
+      "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+      "ภาควิชาวิศวกรรมเกษตร",
+      "ภาควิชาวิศวกรรมเกษตร, ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ",
+      "สำนักงานเลขานุการ"
+    ],
+    "co_researchers": [
+      {
+        "id": "2",
+        "name": "ผศ.นงลักษณ์ เล็กรุ่งเรืองกิจ",
+        "department": "ภาควิชาวิศวกรรมเกษตร",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "254",
+        "name": "นายจิรัฐ มั่นเกษม",
+        "department": "ภาควิชาวิศวกรรมเกษตร, ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "280",
+        "name": "นายวีระพงษ์ กระแสธีป",
+        "department": "สำนักงานเลขานุการ",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นางสาวธันยพร โส๊ะอ้น",
+        "department": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "165",
+        "name": "นางเนตรนภา วิชานงค์",
+        "department": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "167",
+        "name": "นายภัทรพล ชูราศรี",
+        "department": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      }
+    ],
+    "members": [
+      {
+        "role": "PI",
+        "name": "นายรัตนศักดิ์ ทรัพย์เย็น",
+        "organization": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.นงลักษณ์ เล็กรุ่งเรืองกิจ",
+        "organization": "ภาควิชาวิศวกรรมเกษตร",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายจิรัฐ มั่นเกษม",
+        "organization": "ภาควิชาวิศวกรรมเกษตร, ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายวีระพงษ์ กระแสธีป",
+        "organization": "สำนักงานเลขานุการ",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นางสาวธันยพร โส๊ะอ้น",
+        "organization": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นางเนตรนภา วิชานงค์",
+        "organization": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายภัทรพล ชูราศรี",
+        "organization": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+        "affiliation_type": "eng_kps"
+      }
+    ],
+    "collaboration_type": [],
+    "collaboration_domestic": "-",
+    "collaboration_foreign": "-",
+    "project_nature": [],
+    "budget_internal": 30000.0,
+    "budget_external": 0.0,
+    "budget_total": 30000.0,
+    "fund_source": "คณะวิศวกรรมศาสตร์ กำแพงแสน",
+    "fund_type": "ภายใน",
+    "start_date": "2568-09-15",
+    "end_date": "2569-02-14",
+    "duration": "2568-09-15 ถึง 2569-02-14",
+    "fiscal_year_be": 2568,
+    "integration_teaching": "-",
+    "integration_research_teaching": "-",
+    "integration_service_project": "-",
+    "teaching_courses": [],
+    "applied_courses": [],
+    "trl": null,
+    "trl_outputs": [],
+    "remarks": "-",
+    "status": "active",
+    "sdg_code": "SDG 7",
+    "updatedAt": "2026-10-24T20:21:53.618987+00:00",
+    "_id": "research_วศ.กพส. บ.3/2568"
+  },
+  {
+    "id": "วศ.กพส. 1/2569",
+    "name": "การพัฒนาเทคนิคการปรับแก้การสะท้อนแสงสำหรับการสร้างภาพไฮเปอร์สเปกทรัลอินฟราเรดย่านใกล้ของมะพร้าวน้ำหอม",
+    "name_en": "",
+    "head": "ศ.ดร.อนุพันธ์ เทอดวงศ์วรกุล",
+    "head_id": null,
+    "department": "ภาควิชาวิศวกรรมเกษตร",
+    "departments": [
+      "ภาควิชาวิศวกรรมเกษตร"
+    ],
+    "co_researchers": [],
+    "members": [
+      {
+        "role": "PI",
+        "name": "ศ.ดร.อนุพันธ์ เทอดวงศ์วรกุล",
+        "organization": "ภาควิชาวิศวกรรมเกษตร",
+        "affiliation_type": "eng_kps"
+      }
+    ],
+    "collaboration_type": [],
+    "collaboration_domestic": "-",
+    "collaboration_foreign": "-",
+    "project_nature": [],
+    "budget_internal": 20000.0,
+    "budget_external": 0.0,
+    "budget_total": 20000.0,
+    "fund_source": "คณะวิศวกรรมศาสตร์ กำแพงแสน",
+    "fund_type": "ภายใน",
+    "start_date": "2568-11-01",
+    "end_date": "2569-10-31",
+    "duration": "2568-11-01 ถึง 2569-10-31",
+    "fiscal_year_be": 2569,
+    "integration_teaching": "02201567 Multivariate data analysis for agricultural engineering research",
+    "integration_research_teaching": "-",
+    "integration_service_project": "-",
+    "teaching_courses": [
+      {
+        "code": "02201567",
+        "name": "Multivariate data analysis for agricultural engineering research",
+        "department": "ภาควิชาวิศวกรรมเกษตร"
+      }
+    ],
+    "applied_courses": [],
+    "trl": 2,
+    "trl_outputs": [
+      {
+        "name": "ก่อน = 2 หลัง = 4",
+        "trl": 2
+      }
+    ],
+    "remarks": "-",
+    "status": "active",
+    "sdg_code": "SDG 6",
+    "updatedAt": "2026-10-24T20:21:53.619208+00:00",
+    "_id": "research_วศ.กพส. 1/2569"
+  },
+  {
+    "id": "วศ.กพส. 2-2569",
+    "name": "การเพิ่มประสิทธิภาพของกระพ้อลำเลียงสำหรับการขนถ่ายข้าวเปลือกโดยใช้การจำลองดีอีเอ็ม",
+    "name_en": "",
+    "head": "รศ.ดร.ปรีดา ปรากฏมาก",
+    "head_id": 110,
+    "department": "ภาควิชาวิศวกรรมเครื่องกล",
+    "departments": [
+      "ภาควิชาวิศวกรรมเครื่องกล"
+    ],
+    "co_researchers": [],
+    "members": [
+      {
+        "role": "PI",
+        "name": "รศ.ดร.ปรีดา ปรากฏมาก",
+        "organization": "ภาควิชาวิศวกรรมเครื่องกล",
+        "affiliation_type": "eng_kps"
+      }
+    ],
+    "collaboration_type": [],
+    "collaboration_domestic": "-",
+    "collaboration_foreign": "-",
+    "project_nature": [],
+    "budget_internal": 38600.0,
+    "budget_external": 0.0,
+    "budget_total": 38600.0,
+    "fund_source": "คณะวิศวกรรมศาสตร์ กำแพงแสน",
+    "fund_type": "ภายใน",
+    "start_date": "2568-11-01",
+    "end_date": "2569-10-31",
+    "duration": "2568-11-01 ถึง 2569-10-31",
+    "fiscal_year_be": 2569,
+    "integration_teaching": "02228556 แบบจำลอง CFD-DEM สำหรับวิศวกรรมเครื่องกลและพลังงาน",
+    "integration_research_teaching": "การใช้ซอฟต์แวร์สาธารณะ Liggghts สำหรับจำลองการขนถ่ายวัสดุ",
+    "integration_service_project": "-",
+    "teaching_courses": [
+      {
+        "code": "02228556",
+        "name": "แบบจำลอง CFD-DEM สำหรับวิศวกรรมเครื่องกลและพลังงาน",
+        "department": "ภาควิชาวิศวกรรมเครื่องกล"
+      }
+    ],
+    "applied_courses": [],
+    "trl": 1,
+    "trl_outputs": [
+      {
+        "name": "ก่อน = 1 หลัง = 2",
+        "trl": 1
+      }
+    ],
+    "remarks": "-",
+    "status": "active",
+    "sdg_code": "SDG 2",
+    "updatedAt": "2026-10-24T20:21:53.619372+00:00",
+    "_id": "research_วศ.กพส. 2-2569"
+  },
+  {
+    "id": "วศ.กพส. 68-08",
+    "name": "ศึกษาวิจัยการวิเคราะห์จุดอ่อนเชิงระบบ ด้านความมั่นคงปลอดภัยไชเบอร์ของ ภาคครัฐและกรอบแนวทางการยกระดับ ขีดความสามารถ",
+    "name_en": "",
+    "head": "ผศ.ดร.ไชยาพงษ์ เทพประสิทธิ์",
+    "head_id": 28,
+    "department": "ภาควิชาวิศวกรรมชลประทาน",
+    "departments": [
+      "ภาควิชาวิศวกรรมชลประทาน",
+      "ภาควิชาวิศวกรรมคอมพิวเตอร์"
+    ],
+    "co_researchers": [
+      {
+        "id": "150",
+        "name": "ผศ.ดร.กายรัฐ เจริญราษฎร์",
+        "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "32",
+        "name": "ผศ.ดร.ทรงศักดิ์ ภัทราวุฒิชัย",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "43",
+        "name": "ผศ.ดร.เกศวรา สิทธิโชค",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "40",
+        "name": "ผศ.ดร.นิธิรัชต์ สงวนเดือน",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "42",
+        "name": "ผศ.ดร.จุติเทพ วงษ์เพ็ชร์",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      }
+    ],
+    "members": [
+      {
+        "role": "PI",
+        "name": "ผศ.ดร.ไชยาพงษ์ เทพประสิทธิ์",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.ดร.กายรัฐ เจริญราษฎร์",
+        "organization": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.ดร.ทรงศักดิ์ ภัทราวุฒิชัย",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.ดร.เกศวรา สิทธิโชค",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.ดร.นิธิรัชต์ สงวนเดือน",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.ดร.จุติเทพ วงษ์เพ็ชร์",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      }
+    ],
+    "collaboration_type": [],
+    "collaboration_domestic": "-",
+    "collaboration_foreign": "-",
+    "project_nature": [],
+    "budget_internal": 0.0,
+    "budget_external": 14000000.0,
+    "budget_total": 14000000.0,
+    "fund_source": "สำนักงานการวิจัย แห่งชาติ(วช.)",
+    "fund_type": "ภายนอก",
+    "start_date": "2568-11-11",
+    "end_date": "2569-11-11",
+    "duration": "2568-11-11 ถึง 2569-11-11",
+    "fiscal_year_be": 2569,
+    "integration_teaching": "-",
+    "integration_research_teaching": "-",
+    "integration_service_project": "-",
+    "teaching_courses": [],
+    "applied_courses": [],
+    "trl": null,
+    "trl_outputs": [],
+    "remarks": "-",
+    "status": "active",
+    "sdg_code": "SDG 6",
+    "updatedAt": "2026-10-24T20:21:53.619466+00:00",
+    "_id": "research_วศ.กพส. 68-08"
+  },
+  {
+    "id": "วศ.กพส. 69-01",
+    "name": "ศึกษาวิจัยการวิเคราะห์จุดอ่อน เชิงระบบด้านความมั่นคงปลอดภัยไชเบอร์ของภาครัฐและกรอบแนวทางการยกระดับขีดความสามารถ",
+    "name_en": "",
+    "head": "ผศ.ดร.ไชยาพงษ์ เทพประสิทธิ์",
+    "head_id": 28,
+    "department": "ภาควิชาวิศวกรรมชลประทาน",
+    "departments": [
+      "ภาควิชาวิศวกรรมชลประทาน",
+      "ภาควิชาวิศวกรรมคอมพิวเตอร์"
+    ],
+    "co_researchers": [
+      {
+        "id": "150",
+        "name": "ผศ.ดร.กายรัฐ เจริญราษฎร์",
+        "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "32",
+        "name": "ผศ.ดร.ทรงศักดิ์ ภัทราวุฒิชัย",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "43",
+        "name": "ผศ.ดร.เกศวรา สิทธิโชค",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "40",
+        "name": "ผศ.ดร.นิธิรัชต์ สงวนเดือน",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "42",
+        "name": "ผศ.ดร.จุติเทพ วงษ์เพ็ชร์",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      }
+    ],
+    "members": [
+      {
+        "role": "PI",
+        "name": "ผศ.ดร.ไชยาพงษ์ เทพประสิทธิ์",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.ดร.กายรัฐ เจริญราษฎร์",
+        "organization": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.ดร.ทรงศักดิ์ ภัทราวุฒิชัย",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.ดร.เกศวรา สิทธิโชค",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.ดร.นิธิรัชต์ สงวนเดือน",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.ดร.จุติเทพ วงษ์เพ็ชร์",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      }
+    ],
+    "collaboration_type": [],
+    "collaboration_domestic": "-",
+    "collaboration_foreign": "-",
+    "project_nature": [],
+    "budget_internal": 0.0,
+    "budget_external": 14000000.0,
+    "budget_total": 14000000.0,
+    "fund_source": "สำนักงานการวิจัย แห่งชาติ(วช.)",
+    "fund_type": "ภายนอก",
+    "start_date": "2568-11-01",
+    "end_date": "2569-11-01",
+    "duration": "2568-11-01 ถึง 2569-11-01",
+    "fiscal_year_be": 2569,
+    "integration_teaching": "-",
+    "integration_research_teaching": "-",
+    "integration_service_project": "-",
+    "teaching_courses": [],
+    "applied_courses": [],
+    "trl": null,
+    "trl_outputs": [],
+    "remarks": "-",
+    "status": "active",
+    "sdg_code": "SDG 6",
+    "updatedAt": "2026-10-24T20:21:53.675962+00:00",
+    "_id": "research_วศ.กพส. 69-01"
+  },
+  {
+    "id": "วศ.กพส. 69-02",
+    "name": "การพัฒนาสมบัติทางกลและความทนทานของมอร์ต้าร์ที่รักษาการเสื่อมสภาพด้วยตัวเองโดยการใช้สารสร้างผลึกชนิดต่างๆ",
+    "name_en": "",
+    "head": "ผศ.ดร.เพ็ญพิชชา สนิทอินทร์",
+    "head_id": 80,
+    "department": "ภาควิชาวิศวกรรมโยธา",
+    "departments": [
+      "ภาควิชาวิศวกรรมโยธา",
+      "ภาควิชาวิศวกรรมเกษตร, ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ"
+    ],
+    "co_researchers": [
+      {
+        "id": "253",
+        "name": "นายสุบรรณ สนิทอินทร์",
+        "department": "ภาควิชาวิศวกรรมเกษตร, ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      }
+    ],
+    "members": [
+      {
+        "role": "PI",
+        "name": "ผศ.ดร.เพ็ญพิชชา สนิทอินทร์",
+        "organization": "ภาควิชาวิศวกรรมโยธา",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายสุบรรณ สนิทอินทร์",
+        "organization": "ภาควิชาวิศวกรรมเกษตร, ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ",
+        "affiliation_type": "eng_kps"
+      }
+    ],
+    "collaboration_type": [],
+    "collaboration_domestic": "-",
+    "collaboration_foreign": "-",
+    "project_nature": [],
+    "budget_internal": 0.0,
+    "budget_external": 600000.0,
+    "budget_total": 600000.0,
+    "fund_source": "สำนักงานการวิจัย แห่งชาติ(วช.)",
+    "fund_type": "ภายนอก",
+    "start_date": "2569-03-01",
+    "end_date": "2571-03-01",
+    "duration": "2569-03-01 ถึง 2571-03-01",
+    "fiscal_year_be": 2569,
+    "integration_teaching": "-",
+    "integration_research_teaching": "-",
+    "integration_service_project": "-",
+    "teaching_courses": [],
+    "applied_courses": [],
+    "trl": null,
+    "trl_outputs": [],
+    "remarks": "-",
+    "status": "active",
+    "sdg_code": "SDG 9",
+    "updatedAt": "2026-10-24T20:21:53.676025+00:00",
+    "_id": "research_วศ.กพส. 69-02"
+  },
+  {
+    "id": "วศ.กพส. 69-03",
+    "name": "ศึกษาวิจัยและสาธิตริเริ่มระบบช่วยติดสินใจเพื่อการพยากรณ์น้ำและควบคุมเครื่องสูบน้ำแบบอัตโนมัติเพื่อป้องกันน้ำท่วมเมืองเชียงใหม่",
+    "name_en": "",
     "head": "รศ.ดร.วิษุวัฒก์ แต้สมบัติ",
-    "department": "ภาควิชา\nวิศวกรรมชลประทาน",
-    "budget_internal": 0,
-    "budget_external": 18000200,
+    "head_id": 38,
+    "department": "ภาควิชาวิศวกรรมชลประทาน",
+    "departments": [
+      "ภาควิชาวิศวกรรมชลประทาน"
+    ],
+    "co_researchers": [
+      {
+        "id": "",
+        "name": "คณะวิศวกรรมศาสตร์",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "กำแพงแสน",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      }
+    ],
+    "members": [
+      {
+        "role": "PI",
+        "name": "รศ.ดร.วิษุวัฒก์ แต้สมบัติ",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "คณะวิศวกรรมศาสตร์",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "กำแพงแสน",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      }
+    ],
+    "collaboration_type": [],
+    "collaboration_domestic": "-",
+    "collaboration_foreign": "-",
+    "project_nature": [],
+    "budget_internal": 0.0,
+    "budget_external": 16050200.0,
+    "budget_total": 16050200.0,
+    "fund_source": "สำนักงานเร่งรัดการวิจัยและนวัตกรรมเพื่อเพิ่มความสามารถการแข่งขันและการพัฒนาพื้นที่ (องค์การมหาชน) กับ บริษัทโอทีเอส เซอร์วิสแอนด์ ซัพพลาย จำกัด",
+    "fund_type": "ภายนอก",
+    "start_date": "",
+    "end_date": "",
+    "duration": "",
+    "fiscal_year_be": 2569,
+    "integration_teaching": "-",
+    "integration_research_teaching": "-",
+    "integration_service_project": "-",
+    "teaching_courses": [],
+    "applied_courses": [],
+    "trl": null,
+    "trl_outputs": [],
+    "remarks": "-",
+    "status": "active",
+    "sdg_code": "SDG 6",
+    "updatedAt": "2026-10-24T20:21:53.737272+00:00",
+    "_id": "research_วศ.กพส. 69-03"
+  },
+  {
+    "id": "วศ.กพส. 69-04",
+    "name": "ระบบสนับสนุนการตัดสินใจสำหรับการออกแบบและการเพิ่มประสิทธิภาพอย่างยั่งยืนของเครือข่ายโซ่อุปทานหลังการเก็บเกี่ยวมะพร้าว",
+    "name_en": "",
+    "head": "ผศ.ดร.ชัยมงคล ลิ้มเพียรชอบ",
+    "head_id": 127,
+    "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+    "departments": [
+      "ภาควิชาวิศวกรรมอุตสาหการ"
+    ],
+    "co_researchers": [
+      {
+        "id": "",
+        "name": "คณะวิศวกรรมศาสตร์",
+        "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "กำแพงแสน",
+        "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      }
+    ],
+    "members": [
+      {
+        "role": "PI",
+        "name": "ผศ.ดร.ชัยมงคล ลิ้มเพียรชอบ",
+        "organization": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "คณะวิศวกรรมศาสตร์",
+        "organization": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "กำแพงแสน",
+        "organization": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "affiliation_type": "eng_kps"
+      }
+    ],
+    "collaboration_type": [],
+    "collaboration_domestic": "-",
+    "collaboration_foreign": "-",
+    "project_nature": [],
+    "budget_internal": 20000.0,
+    "budget_external": 0.0,
+    "budget_total": 20000.0,
+    "fund_source": "ทุนอุดหนุนการวิจัย คณะวิศวกรรมศาสตร์ กำแพงแสน ประจำปีงบประมาณ 2569",
+    "fund_type": "ภายใน",
+    "start_date": "2569-03-03",
+    "end_date": "2570-03-03",
+    "duration": "2569-03-03 ถึง 2570-03-03",
+    "fiscal_year_be": 2569,
+    "integration_teaching": "-",
+    "integration_research_teaching": "-",
+    "integration_service_project": "-",
+    "teaching_courses": [],
+    "applied_courses": [],
+    "trl": null,
+    "trl_outputs": [],
+    "remarks": "-",
+    "status": "active",
+    "sdg_code": "SDG 9",
+    "updatedAt": "2026-10-24T20:21:53.737379+00:00",
+    "_id": "research_วศ.กพส. 69-04"
+  },
+  {
+    "id": "วศ.กพส. 69-05",
+    "name": "การพัฒนาและถ่ายทอดเทคโนโลยีนวัตกรรมระบบควบคุมความปลอดภัยสำหรับปั้นจั่น(เครน)เหนือศีรษะด้วยเทคโนโลยี LiDAR เพื่อยกระดับความปลอดภัยของผู้ปฏิบัติงานและลดความเสี่ยงต่อสาธารณชน",
+    "name_en": "",
+    "head": "อ.ดร.ณัฐพงษ์ สุขสบาย",
+    "head_id": 112,
+    "department": "ภาควิชาวิศวกรรมเครื่องกล",
+    "departments": [
+      "ภาควิชาวิศวกรรมเครื่องกล",
+      "ภาควิชาวิศวกรรมเกษตร, ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ"
+    ],
+    "co_researchers": [
+      {
+        "id": "103",
+        "name": "ผศ.ดร.ธนา ชีพสมทรง",
+        "department": "ภาควิชาวิศวกรรมเครื่องกล",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "262",
+        "name": "นายสัญญา เอกจีน",
+        "department": "ภาควิชาวิศวกรรมเกษตร, ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      }
+    ],
+    "members": [
+      {
+        "role": "PI",
+        "name": "อ.ดร.ณัฐพงษ์ สุขสบาย",
+        "organization": "ภาควิชาวิศวกรรมเครื่องกล",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.ดร.ธนา ชีพสมทรง",
+        "organization": "ภาควิชาวิศวกรรมเครื่องกล",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายสัญญา เอกจีน",
+        "organization": "ภาควิชาวิศวกรรมเกษตร, ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ",
+        "affiliation_type": "eng_kps"
+      }
+    ],
+    "collaboration_type": [],
+    "collaboration_domestic": "-",
+    "collaboration_foreign": "-",
+    "project_nature": [],
+    "budget_internal": 0.0,
+    "budget_external": 1628000.0,
+    "budget_total": 1628000.0,
+    "fund_source": "สำนักงานการวิจัย แห่งชาติ (วช)",
+    "fund_type": "ภายนอก",
+    "start_date": "2569-03-03",
+    "end_date": "2570-03-03",
+    "duration": "2569-03-03 ถึง 2570-03-03",
+    "fiscal_year_be": 2569,
+    "integration_teaching": "-",
+    "integration_research_teaching": "-",
+    "integration_service_project": "-",
+    "teaching_courses": [],
+    "applied_courses": [],
+    "trl": null,
+    "trl_outputs": [],
+    "remarks": "-",
+    "status": "active",
+    "sdg_code": "SDG 3",
+    "updatedAt": "2026-10-24T20:21:53.737468+00:00",
+    "_id": "research_วศ.กพส. 69-05"
+  },
+  {
+    "id": "วศ.กพส. 69-06",
+    "name": "การพัฒนาพื้นที่เพื่อเตรียมความ พร้อมรับมือกับปัญหาภัยแล้งและ ปัญหาอุทกภัย ในพื้นที่เสี่ยงภัยที่มี ความสำคัญทางเศรษฐกิจและ สังคม ปีที่ 2",
+    "name_en": "",
+    "head": "รศ.ดร.สมชาย ดอนเจดีย์",
+    "head_id": 163,
+    "department": "ภาควิชาวิศวกรรมชลประทาน",
+    "departments": [
+      "ภาควิชาวิศวกรรมชลประทาน",
+      "ภาควิชาวิศวกรรมเกษตร",
+      "ภาควิชาวิศวกรรมอุตสาหการ",
+      "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+      "ภาควิชาวิศวกรรมโยธา",
+      "ภาควิชาวิศวกรรมเกษตร, ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ",
+      "สำนักงานเลขานุการ"
+    ],
+    "co_researchers": [
+      {
+        "id": "33",
+        "name": "รศ.ดร.วราวุธ วุฒิวณิชย์",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "15",
+        "name": "อ.ดร.ชัยยะ จันทรา",
+        "department": "ภาควิชาวิศวกรรมเกษตร",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "39",
+        "name": "ผศ.นิมิตร เฉิดฉันท์พิพัฒน์",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "130",
+        "name": "รศ.ดร.ศศรส ใจจิตร์",
+        "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "43",
+        "name": "ผศ.ดร.เกศวรา สิทธิโชค",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นายสรายุทธ อิ่มใจ",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "รศ.จุฑา พิชิตลำเค็ญ",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "141",
+        "name": "ผศ.ดร.พิเชษฐ์ สืบสายพรหม",
+        "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "ผศ.วิเนตร แสนหาญ",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นายรสุ สืบสหการ",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "86",
+        "name": "รศ.ดร.สิรัญญา ทองชาติ",
+        "department": "ภาควิชาวิศวกรรมโยธา",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "251",
+        "name": "นายธนัญกรณ์ ใจผ่อง",
+        "department": "ภาควิชาวิศวกรรมเกษตร, ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นางสาวลพรรณพลอย ชาวเรือ",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "252",
+        "name": "นายทิตินัย เทียนแย้ม",
+        "department": "ภาควิชาวิศวกรรมเกษตร, ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "257",
+        "name": "นางสาวพัชรียา ไวภารา",
+        "department": "ภาควิชาวิศวกรรมเกษตร, ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นายปรเมศวร์ จอนแจ้ง",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นายประเสริฐ ล่ำภากร",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "280",
+        "name": "นายวีระพงษ์ กระแสธีป",
+        "department": "สำนักงานเลขานุการ",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "264",
+        "name": "นางสาวศศิธร ชลรัตน์อมฤต",
+        "department": "สำนักงานเลขานุการ",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "295",
+        "name": "นายมาโนช ทองดอนเหมือน",
+        "department": "สำนักงานเลขานุการ",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "135",
+        "name": "นางสาวภัคจิรา สุขเกตุ",
+        "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นายณัฐพล วุฒิจันทร์",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นายเลอบุญ อุดมทรัพย์",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      }
+    ],
+    "members": [
+      {
+        "role": "PI",
+        "name": "รศ.ดร.สมชาย ดอนเจดีย์",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "รศ.ดร.วราวุธ วุฒิวณิชย์",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "อ.ดร.ชัยยะ จันทรา",
+        "organization": "ภาควิชาวิศวกรรมเกษตร",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.นิมิตร เฉิดฉันท์พิพัฒน์",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "รศ.ดร.ศศรส ใจจิตร์",
+        "organization": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.ดร.เกศวรา สิทธิโชค",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายสรายุทธ อิ่มใจ",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "รศ.จุฑา พิชิตลำเค็ญ",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.ดร.พิเชษฐ์ สืบสายพรหม",
+        "organization": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.วิเนตร แสนหาญ",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายรสุ สืบสหการ",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "รศ.ดร.สิรัญญา ทองชาติ",
+        "organization": "ภาควิชาวิศวกรรมโยธา",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายธนัญกรณ์ ใจผ่อง",
+        "organization": "ภาควิชาวิศวกรรมเกษตร, ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นางสาวลพรรณพลอย ชาวเรือ",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายทิตินัย เทียนแย้ม",
+        "organization": "ภาควิชาวิศวกรรมเกษตร, ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นางสาวพัชรียา ไวภารา",
+        "organization": "ภาควิชาวิศวกรรมเกษตร, ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายปรเมศวร์ จอนแจ้ง",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายประเสริฐ ล่ำภากร",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายวีระพงษ์ กระแสธีป",
+        "organization": "สำนักงานเลขานุการ",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นางสาวศศิธร ชลรัตน์อมฤต",
+        "organization": "สำนักงานเลขานุการ",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายมาโนช ทองดอนเหมือน",
+        "organization": "สำนักงานเลขานุการ",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นางสาวภัคจิรา สุขเกตุ",
+        "organization": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายณัฐพล วุฒิจันทร์",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายเลอบุญ อุดมทรัพย์",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      }
+    ],
+    "collaboration_type": [],
+    "collaboration_domestic": "-",
+    "collaboration_foreign": "-",
+    "project_nature": [],
+    "budget_internal": 0.0,
+    "budget_external": 9478000.0,
+    "budget_total": 9478000.0,
+    "fund_source": "สำนักงานพัฒนาการวิจัย การเกษตร(สวก.)",
+    "fund_type": "ภายนอก",
+    "start_date": "",
+    "end_date": "2570-04-04",
+    "duration": "",
+    "fiscal_year_be": 2569,
+    "integration_teaching": "-",
+    "integration_research_teaching": "-",
+    "integration_service_project": "-",
+    "teaching_courses": [],
+    "applied_courses": [],
+    "trl": null,
+    "trl_outputs": [],
+    "remarks": "-",
+    "status": "active",
+    "sdg_code": "SDG 6",
+    "updatedAt": "2026-10-24T20:21:53.787655+00:00",
+    "_id": "research_วศ.กพส. 69-06"
+  },
+  {
+    "id": "วศ.กพส. 69-07",
+    "name": "การใช้เทคโนโลยีจัดการน้ำ-ปุ๋ยและจัดการผลิตมะม่วงน้ำดอกไม้สีทองที่เหมาะสมในพื้นที่ประสบภัยแล้งจังหวัดขอนแก่นและชัยภูมิเพื่อการส่งออกและผลิตนอกฤดู",
+    "name_en": "",
+    "head": "รศ.ดร.รณฤทธิ์ ฤทธิรณ",
+    "head_id": 62,
+    "department": "ภาควิชาวิศวกรรมการอาหาร",
+    "departments": [
+      "ภาควิชาวิศวกรรมการอาหาร",
+      "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+      "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม"
+    ],
+    "co_researchers": [
+      {
+        "id": "",
+        "name": "รศ.ดร.พีระศักดิ์ ฉายประสาท",
+        "department": "ภาควิชาวิศวกรรมการอาหาร",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "192",
+        "name": "นายสุภัทร์ รัตนะโสภณชัย",
+        "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "159",
+        "name": "ผศ.บุญมา ป้านประดิษฐ์",
+        "department": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "ผศ.ดร.ศุภัชญา นามพิลา",
+        "department": "ภาควิชาวิศวกรรมการอาหาร",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "ผศ.ดร.พัชรี สุริยะ",
+        "department": "ภาควิชาวิศวกรรมการอาหาร",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "ดร.นุชนาฏ ภักดี",
+        "department": "ภาควิชาวิศวกรรมการอาหาร",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นายพุทธพงษ์ สร้อยเพชรเกษม",
+        "department": "ภาควิชาวิศวกรรมการอาหาร",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นายสมยศ มีทา",
+        "department": "ภาควิชาวิศวกรรมการอาหาร",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นายนิกูล ทองดี",
+        "department": "ภาควิชาวิศวกรรมการอาหาร",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      }
+    ],
+    "members": [
+      {
+        "role": "PI",
+        "name": "รศ.ดร.รณฤทธิ์ ฤทธิรณ",
+        "organization": "ภาควิชาวิศวกรรมการอาหาร",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "รศ.ดร.พีระศักดิ์ ฉายประสาท",
+        "organization": "ภาควิชาวิศวกรรมการอาหาร",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายสุภัทร์ รัตนะโสภณชัย",
+        "organization": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.บุญมา ป้านประดิษฐ์",
+        "organization": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.ดร.ศุภัชญา นามพิลา",
+        "organization": "ภาควิชาวิศวกรรมการอาหาร",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.ดร.พัชรี สุริยะ",
+        "organization": "ภาควิชาวิศวกรรมการอาหาร",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ดร.นุชนาฏ ภักดี",
+        "organization": "ภาควิชาวิศวกรรมการอาหาร",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายพุทธพงษ์ สร้อยเพชรเกษม",
+        "organization": "ภาควิชาวิศวกรรมการอาหาร",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายสมยศ มีทา",
+        "organization": "ภาควิชาวิศวกรรมการอาหาร",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายนิกูล ทองดี",
+        "organization": "ภาควิชาวิศวกรรมการอาหาร",
+        "affiliation_type": "eng_kps"
+      }
+    ],
+    "collaboration_type": [],
+    "collaboration_domestic": "-",
+    "collaboration_foreign": "-",
+    "project_nature": [],
+    "budget_internal": 0.0,
+    "budget_external": 6857000.0,
+    "budget_total": 6857000.0,
+    "fund_source": "สำนักงานการวิจัยแห่งชาติ(วช.)",
+    "fund_type": "ภายนอก",
+    "start_date": "2569-04-04",
+    "end_date": "2570-04-04",
+    "duration": "2569-04-04 ถึง 2570-04-04",
+    "fiscal_year_be": 2569,
+    "integration_teaching": "-",
+    "integration_research_teaching": "-",
+    "integration_service_project": "-",
+    "teaching_courses": [],
+    "applied_courses": [],
+    "trl": null,
+    "trl_outputs": [],
+    "remarks": "-",
+    "status": "active",
+    "sdg_code": "SDG 6",
+    "updatedAt": "2026-10-24T20:21:53.787852+00:00",
+    "_id": "research_วศ.กพส. 69-07"
+  },
+  {
+    "id": "วศ.กพส. 69-08",
+    "name": "การพัฒนาระบบสารสนเทศเพื่อ ปรับปรุงกระบวนการติดตามและ วิเคราะห์ผลการดำเนินโครงการที่ เชื่อมโยงกับแผนยุทธศาสตร์ด้าน กิจการนิสิต: กรณีศึกษา มหาวิทยาลัยเกษตรศาสตร์ วิทยาเขตกำแพงแสน",
+    "name_en": "",
+    "head": "ผศ.ดร.อธิวัฒน์ บุญมี",
+    "head_id": 122,
+    "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+    "departments": [
+      "ภาควิชาวิศวกรรมอุตสาหการ",
+      "สำนักงานเลขานุการ"
+    ],
+    "co_researchers": [
+      {
+        "id": "132",
+        "name": "ผศ.ดร.วรญา เนื่องมัจฉา",
+        "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "292",
+        "name": "นางนภัสวรรณ คำฝั้น",
+        "department": "สำนักงานเลขานุการ",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นายพีระภัทร ตามประดิษฐ์",
+        "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นางบังอร บรรณจิรกุล",
+        "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นางสาวแพรว เกียรติกำจาย",
+        "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นางสาวพริม เกียรติกำจาย",
+        "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      }
+    ],
+    "members": [
+      {
+        "role": "PI",
+        "name": "ผศ.ดร.อธิวัฒน์ บุญมี",
+        "organization": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.ดร.วรญา เนื่องมัจฉา",
+        "organization": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นางนภัสวรรณ คำฝั้น",
+        "organization": "สำนักงานเลขานุการ",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายพีระภัทร ตามประดิษฐ์",
+        "organization": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นางบังอร บรรณจิรกุล",
+        "organization": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นางสาวแพรว เกียรติกำจาย",
+        "organization": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นางสาวพริม เกียรติกำจาย",
+        "organization": "ภาควิชาวิศวกรรมอุตสาหการ",
+        "affiliation_type": "eng_kps"
+      }
+    ],
+    "collaboration_type": [],
+    "collaboration_domestic": "-",
+    "collaboration_foreign": "-",
+    "project_nature": [],
+    "budget_internal": 20000.0,
+    "budget_external": 0.0,
+    "budget_total": 20000.0,
+    "fund_source": "ทุนอุดหนุนการวิจัย คณะวิศวกรรมศาสตร์ กำแพงแสน ประจำปีงบประมาณ 2569",
+    "fund_type": "ภายใน",
+    "start_date": "2569-04-04",
+    "end_date": "2570-04-04",
+    "duration": "2569-04-04 ถึง 2570-04-04",
+    "fiscal_year_be": 2569,
+    "integration_teaching": "-",
+    "integration_research_teaching": "-",
+    "integration_service_project": "-",
+    "teaching_courses": [],
+    "applied_courses": [],
+    "trl": null,
+    "trl_outputs": [],
+    "remarks": "-",
+    "status": "active",
+    "sdg_code": "SDG 2",
+    "updatedAt": "2026-10-24T20:21:53.787983+00:00",
+    "_id": "research_วศ.กพส. 69-08"
+  },
+  {
+    "id": "วศ.กพส. 69-09",
+    "name": "ศึกษาวิจัยและสาธิตเริ่มระบบช่วยตัดสินใจเพื่อการพยากรณ์น้ำและควบคุมเครื่องสูบน้ำแบบอัตโนมัติเพื่อป้องกันน้ำท่วมเมืองเชียงใหม่",
+    "name_en": "",
+    "head": "รศ.ดร.วิษุวัฒก์ แต้สมบัติ",
+    "head_id": 38,
+    "department": "ภาควิชาวิศวกรรมชลประทาน",
+    "departments": [
+      "ภาควิชาวิศวกรรมชลประทาน"
+    ],
+    "co_researchers": [
+      {
+        "id": "28",
+        "name": "ผศ.ดร.ไชยาพงษ์ เทพประสิทธิ์",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "43",
+        "name": "ผศ.ดร.เกศวรา สิทธิโชค",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นายคมสันต์ ไชโย",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นายปรีชา ชิวสันติกานต์",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "นายธีรัตน์ พันธุประกิจ",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      },
+      {
+        "id": "",
+        "name": "น.ส.มนทิรา ชนินทร์โชดึก",
+        "department": "ภาควิชาวิศวกรรมชลประทาน",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย"
+      }
+    ],
+    "members": [
+      {
+        "role": "PI",
+        "name": "รศ.ดร.วิษุวัฒก์ แต้สมบัติ",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.ดร.ไชยาพงษ์ เทพประสิทธิ์",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "ผศ.ดร.เกศวรา สิทธิโชค",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายคมสันต์ ไชโย",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายปรีชา ชิวสันติกานต์",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "นายธีรัตน์ พันธุประกิจ",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      },
+      {
+        "role": "Co-PI",
+        "name": "น.ส.มนทิรา ชนินทร์โชดึก",
+        "organization": "ภาควิชาวิศวกรรมชลประทาน",
+        "affiliation_type": "eng_kps"
+      }
+    ],
+    "collaboration_type": [],
+    "collaboration_domestic": "-",
+    "collaboration_foreign": "-",
+    "project_nature": [],
+    "budget_internal": 0.0,
+    "budget_external": 18000200.0,
+    "budget_total": 18000200.0,
     "fund_source": "หน่วยบริหารและจัดการทุนด้านการเพิ่มความสามารถในการแข่งขันของประเทศ(บพช)",
-    "start_date": "2569-05-05 00:00:00",
-    "_id": "research_idx_30",
-    "head_id": 38
+    "fund_type": "ภายนอก",
+    "start_date": "2569-05-05",
+    "end_date": "2570-04-04",
+    "duration": "2569-05-05 ถึง 2570-04-04",
+    "fiscal_year_be": 2569,
+    "integration_teaching": "-",
+    "integration_research_teaching": "-",
+    "integration_service_project": "-",
+    "teaching_courses": [],
+    "applied_courses": [],
+    "trl": null,
+    "trl_outputs": [],
+    "remarks": "-",
+    "status": "active",
+    "sdg_code": "SDG 6",
+    "updatedAt": "2026-10-24T20:21:53.828406+00:00",
+    "_id": "research_วศ.กพส. 69-09"
   }
 ]

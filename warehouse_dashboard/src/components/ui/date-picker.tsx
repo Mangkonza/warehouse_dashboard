@@ -13,16 +13,18 @@ import {
 import type { DateRange } from 'react-day-picker';
 
 /**
- * Converts a Date or ISO date string (YYYY-MM-DD) to a standard JavaScript Date (Gregorian)
+ * Converts a Date or ISO date string (YYYY-MM-DD in BE 25xx or CE 20xx) to a standard JavaScript Date
  */
 export function parseDate(val?: Date | string | null): Date | undefined {
   if (!val) return undefined;
   if (val instanceof Date) return isNaN(val.getTime()) ? undefined : val;
 
-  // Handle standard YYYY-MM-DD strings explicitly to avoid timezone shift
+  // Handle standard YYYY-MM-DD strings explicitly (supports both П.ศ. 25xx and ค.ศ. 20xx)
   const parts = String(val).trim().split('-');
   if (parts.length === 3) {
-    const y = parseInt(parts[0], 10);
+    let y = parseInt(parts[0], 10);
+    if (y >= 2400) y -= 543;
+    else if (y >= 1955 && y <= 1985) y += 57;
     const m = parseInt(parts[1], 10) - 1;
     const d = parseInt(parts[2], 10);
     const dateObj = new Date(y, m, d);
@@ -34,11 +36,12 @@ export function parseDate(val?: Date | string | null): Date | undefined {
 }
 
 /**
- * Formats a Date object to standard Gregorian ISO date string (YYYY-MM-DD)
+ * Formats a Date object to Buddhist Era ISO date string (YYYY-MM-DD in พ.ศ., e.g. 2568-01-07)
  */
 export function formatDateToIso(date?: Date): string {
   if (!date || isNaN(date.getTime())) return '';
-  const y = date.getFullYear();
+  const rawY = date.getFullYear();
+  const y = rawY < 2400 ? rawY + 543 : rawY;
   const m = String(date.getMonth() + 1).padStart(2, '0');
   const d = String(date.getDate()).padStart(2, '0');
   return `${y}-${m}-${d}`;

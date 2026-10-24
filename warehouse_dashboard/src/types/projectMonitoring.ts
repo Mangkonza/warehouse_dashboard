@@ -57,6 +57,8 @@ export interface ProjectTimelineInfo {
   start_date: string;                 // วันเริ่มต้นสัญญา (YYYY-MM-DD)
   end_date: string;                   // วันสิ้นสุดสัญญาปัจจุบัน
   original_end_date: string;          // วันสิ้นสุดสัญญาเดิม
+  current_end_date?: string;          // วันสิ้นสุดปัจจุบัน (รวมการขยายเวลา)
+  is_extended?: boolean;
   closed_date?: string;               // วันปิดโครงการจริง
   duration_months: number;            // ระยะเวลารวม (เดือน)
   days_remaining: number;             // จำนวนวันคงเหลือ (- คือเกินกำหนด)

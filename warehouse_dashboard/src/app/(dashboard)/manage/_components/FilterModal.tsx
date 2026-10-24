@@ -23,12 +23,14 @@ interface FilterModalProps {
   selectedImageStatus: 'all' | 'has_image' | 'no_image';
   selectedSubFilter: string;
   selectedCompleteness?: 'all' | 'complete' | 'incomplete';
+  selectedYear?: string;
   onApply: (filters: {
     selectedDept: string;
     selectedRole: string;
     selectedImageStatus: 'all' | 'has_image' | 'no_image';
     selectedSubFilter: string;
     selectedCompleteness?: 'all' | 'complete' | 'incomplete';
+    selectedYear?: string;
   }) => void;
   onReset: () => void;
 }
@@ -43,6 +45,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
   selectedImageStatus,
   selectedSubFilter,
   selectedCompleteness = 'all',
+  selectedYear = '',
   onApply,
   onReset,
 }) => {
@@ -52,6 +55,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
   const [draftImageStatus, setDraftImageStatus] = useState(selectedImageStatus);
   const [draftSubFilter, setDraftSubFilter] = useState(selectedSubFilter);
   const [draftCompleteness, setDraftCompleteness] = useState<'all' | 'complete' | 'incomplete'>(selectedCompleteness);
+  const [draftYear, setDraftYear] = useState(selectedYear);
 
   useEffect(() => {
     if (isOpen) {
@@ -60,8 +64,9 @@ export const FilterModal: React.FC<FilterModalProps> = ({
       setDraftImageStatus(selectedImageStatus);
       setDraftSubFilter(selectedSubFilter);
       setDraftCompleteness(selectedCompleteness);
+      setDraftYear(selectedYear);
     }
-  }, [isOpen, selectedDept, selectedRole, selectedImageStatus, selectedSubFilter, selectedCompleteness]);
+  }, [isOpen, selectedDept, selectedRole, selectedImageStatus, selectedSubFilter, selectedCompleteness, selectedYear]);
 
   if (!isOpen) return null;
 
@@ -72,6 +77,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
       selectedImageStatus: draftImageStatus,
       selectedSubFilter: draftSubFilter,
       selectedCompleteness: draftCompleteness,
+      selectedYear: draftYear,
     });
     onClose();
   };
@@ -82,6 +88,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
     setDraftImageStatus('all');
     setDraftSubFilter('');
     setDraftCompleteness('all');
+    setDraftYear('');
     onReset();
     onClose();
   };
@@ -91,7 +98,8 @@ export const FilterModal: React.FC<FilterModalProps> = ({
     (draftRole ? 1 : 0) +
     (draftImageStatus !== 'all' ? 1 : 0) +
     (draftSubFilter ? 1 : 0) +
-    (draftCompleteness !== 'all' ? 1 : 0);
+    (draftCompleteness !== 'all' ? 1 : 0) +
+    (draftYear ? 1 : 0);
 
   return (
     <div
@@ -172,6 +180,26 @@ export const FilterModal: React.FC<FilterModalProps> = ({
               className="w-full"
             />
           </div>
+
+          {/* 1.5 Fiscal Year Filter (for project/work categories) */}
+          {activeCategory !== 'personnel' && activeCategory !== 'kpi' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>
+                ปีงบประมาณ (พ.ศ.)
+              </label>
+              <Select value={draftYear || '__all__'} onValueChange={(val) => setDraftYear(val === '__all__' ? '' : (val ?? ''))}>
+                <SelectTrigger className="w-full bg-white text-slate-800">
+                  <SelectValue placeholder="ทุกปีงบประมาณ" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__all__">ทุกปีงบประมาณ</SelectItem>
+                  <SelectItem value="2569">ปีงบประมาณ 2569</SelectItem>
+                  <SelectItem value="2568">ปีงบประมาณ 2568</SelectItem>
+                  <SelectItem value="before_2568">สะสมก่อนปี 2568</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* 2. Personnel Category Filters */}
           {activeCategory === 'personnel' && (
@@ -317,22 +345,46 @@ export const FilterModal: React.FC<FilterModalProps> = ({
             </div>
           )}
 
+          {/* 3.5 Academic Services Category Filter */}
+          {activeCategory === 'service' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>
+                ประเภทงานบริการวิชาการ
+              </label>
+              <Select value={draftSubFilter || '__all__'} onValueChange={(val) => setDraftSubFilter(val === '__all__' ? '' : (val ?? ''))}>
+                <SelectTrigger className="w-full bg-white text-slate-800">
+                  <SelectValue placeholder="ทุกประเภทงานบริการวิชาการ" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__all__">ทุกประเภทงานบริการวิชาการ</SelectItem>
+                  <SelectItem value="วิทยากร/อาจารย์พิเศษ">วิทยากร/อาจารย์พิเศษ</SelectItem>
+                  <SelectItem value="วิชาการ">วิชาการ</SelectItem>
+                  <SelectItem value="วิชาชีพ">วิชาชีพ</SelectItem>
+                  <SelectItem value="ผู้ทรงคุณวุฒิ">ผู้ทรงคุณวุฒิ</SelectItem>
+                  <SelectItem value="วิทยานิพนธ์ภายนอก">วิทยานิพนธ์ภายนอก</SelectItem>
+                  <SelectItem value="ศึกษาดูงาน วศ.กพส.">ศึกษาดูงาน วศ.กพส.</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           {/* 4. Publications Category Filter */}
           {activeCategory === 'publications' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <label style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>
-                ระดับและฐานข้อมูลวารสาร
+                ชนิดผลงานและระดับวารสาร
               </label>
               <Select value={draftSubFilter || '__all__'} onValueChange={(val) => setDraftSubFilter(val === '__all__' ? '' : (val ?? ''))}>
                 <SelectTrigger className="w-full bg-white text-slate-800">
-                  <SelectValue placeholder="ทุกระดับ / ฐานข้อมูล" />
+                  <SelectValue placeholder="ทุกระดับ / ชนิดผลงาน" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__all__">ทุกระดับ / ฐานข้อมูล</SelectItem>
-                  <SelectItem value="q1">เฉพาะนานาชาติ Q1</SelectItem>
-                  <SelectItem value="q2">เฉพาะนานาชาติ Q2</SelectItem>
+                  <SelectItem value="__all__">ทุกระดับ / ชนิดผลงาน</SelectItem>
                   <SelectItem value="inter">วารสารนานาชาติทั้งหมด</SelectItem>
                   <SelectItem value="tci">วารสารระดับชาติ / TCI</SelectItem>
+                  <SelectItem value="published">ตีพิมพ์แล้ว</SelectItem>
+                  <SelectItem value="prep_pub">เตรียมความพร้อมตีพิมพ์</SelectItem>
+                  <SelectItem value="prep_pat">เตรียมความพร้อมจดอนุสิทธิบัตร</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -350,9 +402,10 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__all__">ทุกสถานะและประเภท</SelectItem>
-                  <SelectItem value="granted">ออกสิทธิบัตร / รับจดทะเบียนแล้ว</SelectItem>
-                  <SelectItem value="patent">สิทธิบัตรการประดิษฐ์</SelectItem>
+                  <SelectItem value="granted">ได้รับความคุ้มครองแล้ว</SelectItem>
+                  <SelectItem value="patent">สิทธิบัตร</SelectItem>
                   <SelectItem value="petty">อนุสิทธิบัตร</SelectItem>
+                  <SelectItem value="copyright">ลิขสิทธิ์</SelectItem>
                 </SelectContent>
               </Select>
             </div>

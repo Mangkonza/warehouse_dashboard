@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { FilterModal } from './FilterModal';
-import { downloadExcelTemplate, exportTableToExcel } from '@/lib/etlEngine';
+import { downloadExcelTemplate, exportTableToExcel, exportMonthlyExecutiveMasterExcel } from '@/lib/etlEngine';
 import {
   FaCheckCircle,
   FaArrowLeft,
@@ -174,6 +174,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
   const [selectedImageStatus, setSelectedImageStatus] = useState<'all' | 'has_image' | 'no_image'>('all');
   const [selectedCompleteness, setSelectedCompleteness] = useState<'all' | 'complete' | 'incomplete'>('all');
   const [selectedSubFilter, setSelectedSubFilter] = useState('');
+  const [selectedYear, setSelectedYear] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [personnelViewMode, setPersonnelViewMode] = useState<'grid' | 'table'>(resolveInitialPersonnelViewMode);
@@ -301,6 +302,22 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
         if (selectedCompleteness === 'complete' && isIncomplete) return false;
       }
 
+      // 3.5 Fiscal Year Filter
+      if (selectedYear && activeCategory !== 'personnel' && activeCategory !== 'kpi') {
+        const itemFy = Number(item.fiscal_year_be) || (() => {
+          const dStr = String(item.start_date || item.date || item.filing_date || item.protection_start || '');
+          const m = dStr.match(/^(\d{4})/);
+          if (!m) return 2568;
+          const yr = parseInt(m[1], 10);
+          return yr >= 2400 ? yr : yr + 543;
+        })();
+        if (selectedYear === 'before_2568') {
+          if (itemFy >= 2568) return false;
+        } else if (String(itemFy) !== selectedYear) {
+          return false;
+        }
+      }
+
       // 4. Dynamic SubFilter for other categories
       if (selectedSubFilter) {
         if (activeCategory === 'research') {
@@ -310,18 +327,27 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
             const tot = (Number(item.budget_internal) || 0) + (Number(item.budget_external) || 0);
             if (tot < 1000000) return false;
           }
+        } else if (activeCategory === 'service') {
+          const sType = String(item.service_type || item.service_category || '').trim();
+          if (sType !== selectedSubFilter) return false;
         } else if (activeCategory === 'publications') {
           const lvl = String(item.level || '').toLowerCase();
-          if (selectedSubFilter === 'q1' && !lvl.includes('q1')) return false;
-          if (selectedSubFilter === 'q2' && !lvl.includes('q2')) return false;
+          const pType = String(item.type || '');
+          const q = String(item.quartile || '').toLowerCase();
+          if (selectedSubFilter === 'q1' && !lvl.includes('q1') && q !== 'q1') return false;
+          if (selectedSubFilter === 'q2' && !lvl.includes('q2') && q !== 'q2') return false;
           if (selectedSubFilter === 'inter' && !lvl.includes('นานาชาติ')) return false;
-          if (selectedSubFilter === 'tci' && !lvl.includes('tci') && !lvl.includes('ระดับชาติ')) return false;
+          if (selectedSubFilter === 'tci' && !lvl.includes('tci') && !lvl.includes('ชาติ')) return false;
+          if (selectedSubFilter === 'published' && pType !== 'ตีพิมพ์') return false;
+          if (selectedSubFilter === 'prep_pub' && pType !== 'เตรียมความพร้อมตีพิมพ์') return false;
+          if (selectedSubFilter === 'prep_pat' && pType !== 'เตรียมความพร้อมจดอนุสิทธิบัตร') return false;
         } else if (activeCategory === 'ip') {
           const stat = String(item.status || '').toLowerCase();
-          const type = String(item.type || '').toLowerCase();
-          if (selectedSubFilter === 'granted' && !stat.includes('จดทะเบียน') && !stat.includes('สิทธิบัตร')) return false;
-          if (selectedSubFilter === 'patent' && !type.includes('สิทธิบัตรการประดิษฐ์')) return false;
-          if (selectedSubFilter === 'petty' && !type.includes('อนุสิทธิบัตร')) return false;
+          const type = String(item.type || '');
+          if (selectedSubFilter === 'granted' && !stat.includes('คุ้มครอง') && !stat.includes('จดทะเบียน') && !item.registration_number) return false;
+          if (selectedSubFilter === 'patent' && type !== 'สิทธิบัตร') return false;
+          if (selectedSubFilter === 'petty' && type !== 'อนุสิทธิบัตร') return false;
+          if (selectedSubFilter === 'copyright' && type !== 'ลิขสิทธิ์') return false;
         } else if (activeCategory === 'academic') {
           const chars = Array.isArray(item.characteristics)
             ? item.characteristics.join(' ')
@@ -356,6 +382,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
     selectedImageStatus,
     selectedCompleteness,
     selectedSubFilter,
+    selectedYear,
     searchTerm,
     currentConfig,
     activeCategory,
@@ -392,6 +419,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
     setSelectedImageStatus('all');
     setSelectedCompleteness('all');
     setSelectedSubFilter('');
+    setSelectedYear('');
 
     try {
       localStorage.setItem(LS_MANAGE_TAB_KEY, key);
@@ -420,6 +448,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
     setSelectedImageStatus('all');
     setSelectedCompleteness('all');
     setSelectedSubFilter('');
+    setSelectedYear('');
     setCurrentPage(1);
   };
 
@@ -429,7 +458,8 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
     selectedRole ||
     selectedImageStatus !== 'all' ||
     selectedCompleteness !== 'all' ||
-    selectedSubFilter
+    selectedSubFilter ||
+    selectedYear
   );
 
   const activeFilterCount =
@@ -437,7 +467,8 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
     (selectedRole ? 1 : 0) +
     (selectedImageStatus !== 'all' ? 1 : 0) +
     (selectedCompleteness !== 'all' ? 1 : 0) +
-    (selectedSubFilter ? 1 : 0);
+    (selectedSubFilter ? 1 : 0) +
+    (selectedYear ? 1 : 0);
 
   // CRUD Operations
   const handleSaveItem = async (record: Record<string, any>) => {
@@ -584,6 +615,29 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
             จัดการและนำเข้าข้อมูลโครงการวิจัย โครงการพัฒนาวิชาการ ผลงานตีพิมพ์ทางวิชาการ งานบริการวิชาการ งานทรัพย์สินทางปัญญา และฐานข้อมูลบุคลากร
           </div>
         </div>
+        <button
+          type="button"
+          onClick={() => exportMonthlyExecutiveMasterExcel(datasets)}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '7px',
+            padding: '8px 14px',
+            backgroundColor: '#f0fdf4',
+            border: '1px solid #86efac',
+            borderRadius: '8px',
+            color: '#15803d',
+            fontSize: '12.5px',
+            fontWeight: 600,
+            cursor: 'pointer',
+            whiteSpace: 'nowrap',
+            transition: 'all 0.15s ease',
+          }}
+          title="ส่งออกรายงานรวม 5 หมวดและสรุปภาพรวมผู้บริหารเป็นไฟล์ Excel เล่มเดียว"
+        >
+          <FaDownload style={{ fontSize: '12px' }} />
+          <span>ส่งออกรายงานผู้บริหาร 5 หมวด (.xlsx)</span>
+        </button>
       </div>
 
       {/* 2. Top Segmented Horizontal Tabs */}
@@ -1197,12 +1251,14 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
         selectedImageStatus={selectedImageStatus}
         selectedSubFilter={selectedSubFilter}
         selectedCompleteness={selectedCompleteness}
+        selectedYear={selectedYear}
         onApply={(filters) => {
           setSelectedDept(filters.selectedDept);
           setSelectedRole(filters.selectedRole);
           setSelectedImageStatus(filters.selectedImageStatus);
           setSelectedSubFilter(filters.selectedSubFilter);
           setSelectedCompleteness(filters.selectedCompleteness || 'all');
+          setSelectedYear(filters.selectedYear || '');
           setCurrentPage(1);
         }}
         onReset={handleResetFilters}

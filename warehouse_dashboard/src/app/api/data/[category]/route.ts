@@ -314,25 +314,25 @@ export async function POST(
       }
 
       const type = String(body.type || '').trim();
-      if (!type || (type !== 'อนุสิทธิบัตร' && type !== 'สิทธิบัตร')) {
+      if (!type || !['อนุสิทธิบัตร', 'สิทธิบัตร', 'ลิขสิทธิ์'].includes(type)) {
         return NextResponse.json(
-          { status: 'error', message: 'กรุณาเลือกประเภททรัพย์สินทางปัญญา (อนุสิทธิบัตร หรือ สิทธิบัตร)' },
+          { status: 'error', message: 'กรุณาเลือกประเภททรัพย์สินทางปัญญา (อนุสิทธิบัตร, สิทธิบัตร หรือ ลิขสิทธิ์)' },
           { status: 422 }
         );
       }
 
       const appNo = String(body.application_number || '').trim();
-      if (appNo && !/^\d{10}$/.test(appNo)) {
+      if (appNo && appNo.length > 25) {
         return NextResponse.json(
-          { status: 'error', message: 'เลขที่คำขอต้องมี 10 หลักและเป็นตัวเลขเท่านั้น' },
+          { status: 'error', message: 'เลขที่คำขอต้องไม่เกิน 25 ตัวอักษร' },
           { status: 422 }
         );
       }
 
       const regNo = String(body.registration_number || '').trim();
-      if (regNo && !/^\d{10}$/.test(regNo)) {
+      if (regNo && regNo.length > 25) {
         return NextResponse.json(
-          { status: 'error', message: 'เลขที่ต้องมี 10 หลักและเป็นตัวเลขเท่านั้น' },
+          { status: 'error', message: 'เลขที่ทะเบียนต้องไม่เกิน 25 ตัวอักษร' },
           { status: 422 }
         );
       }
@@ -632,25 +632,25 @@ export async function PUT(
       }
 
       const type = String(body.type || '').trim();
-      if (!type || (type !== 'อนุสิทธิบัตร' && type !== 'สิทธิบัตร')) {
+      if (!type || !['อนุสิทธิบัตร', 'สิทธิบัตร', 'ลิขสิทธิ์'].includes(type)) {
         return NextResponse.json(
-          { status: 'error', message: 'กรุณาเลือกประเภททรัพย์สินทางปัญญา (อนุสิทธิบัตร หรือ สิทธิบัตร)' },
+          { status: 'error', message: 'กรุณาเลือกประเภททรัพย์สินทางปัญญา (อนุสิทธิบัตร, สิทธิบัตร หรือ ลิขสิทธิ์)' },
           { status: 422 }
         );
       }
 
       const appNo = String(body.application_number || '').trim();
-      if (appNo && !/^\d{10}$/.test(appNo)) {
+      if (appNo && appNo.length > 25) {
         return NextResponse.json(
-          { status: 'error', message: 'เลขที่คำขอต้องมี 10 หลักและเป็นตัวเลขเท่านั้น' },
+          { status: 'error', message: 'เลขที่คำขอต้องไม่เกิน 25 ตัวอักษร' },
           { status: 422 }
         );
       }
 
       const regNo = String(body.registration_number || '').trim();
-      if (regNo && !/^\d{10}$/.test(regNo)) {
+      if (regNo && regNo.length > 25) {
         return NextResponse.json(
-          { status: 'error', message: 'เลขที่ต้องมี 10 หลักและเป็นตัวเลขเท่านั้น' },
+          { status: 'error', message: 'เลขที่ทะเบียนต้องไม่เกิน 25 ตัวอักษร' },
           { status: 422 }
         );
       }

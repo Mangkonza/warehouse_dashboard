@@ -24,6 +24,7 @@ export const TopSegmentedTabs: React.FC<TopSegmentedTabsProps> = ({
     'publications',
     'ip',
     'personnel',
+    'monitoring',
     'kpi',
   ];
 

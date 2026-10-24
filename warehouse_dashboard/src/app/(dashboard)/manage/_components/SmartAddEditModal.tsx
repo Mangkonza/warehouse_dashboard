@@ -262,15 +262,15 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
         return;
       }
       if (!formData.type || !String(formData.type).trim()) {
-        setErrorMsg('กรุณาเลือก "ประเภททรัพย์สินทางปัญญา" (อนุสิทธิบัตร หรือ สิทธิบัตร)');
+        setErrorMsg('กรุณาเลือก "ประเภททรัพย์สินทางปัญญา" (อนุสิทธิบัตร, สิทธิบัตร หรือ ลิขสิทธิ์)');
         return;
       }
-      if (formData.application_number && String(formData.application_number).length !== 10) {
-        setErrorMsg('"เลขที่คำขอ" ต้องมี 10 หลัก');
+      if (formData.application_number && String(formData.application_number).trim().length > 25) {
+        setErrorMsg('"เลขที่คำขอ" ต้องไม่เกิน 25 ตัวอักษร');
         return;
       }
-      if (formData.registration_number && String(formData.registration_number).length !== 10) {
-        setErrorMsg('"เลขที่" ต้องมี 10 หลัก');
+      if (formData.registration_number && String(formData.registration_number).trim().length > 25) {
+        setErrorMsg('"เลขที่ทะเบียน" ต้องไม่เกิน 25 ตัวอักษร');
         return;
       }
       if (formData.protection_start && formData.protection_end && formData.protection_end < formData.protection_start) {

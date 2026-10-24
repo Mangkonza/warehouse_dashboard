@@ -5,11 +5,11 @@ import { matchPerson, normalizePersonName } from './personnelService';
 
 // Sheet name mapping keywords
 const SHEET_NAME_KEYWORDS: Record<CategoryKey, string[]> = {
-  monitoring: ['ติดตาม', 'monitoring', 'ติดตามโครงการ', 'กำหนดการ'],
-  research: ['วิจัย', 'โครงการวิจัย', 'research'],
-  academic: ['พัฒนาวิชาการ', 'วิชาการ', 'academic'],
-  service: ['บริการวิชาการ', 'บริการ', 'service', 'กิจกรรม'],
-  publications: ['ผลงานตีพิมพ์', 'ตีพิมพ์', 'publication', 'publications', 'วารสาร'],
+  monitoring: ['ติดตามโครงการ', 'ติดตาม', 'monitoring', 'กำหนดการ'],
+  research: ['โครงการวิจัย', 'งานวิจัย', 'วิจัย', 'research'],
+  academic: ['โครงการพัฒนาวิชาการ', 'พัฒนาวิชาการ', 'academic'],
+  service: ['บริการวิชาการ', 'งานบริการ', 'บริการ', 'service', 'กิจกรรม'],
+  publications: ['ผลงานทางวิชาการ', 'ผลงานตีพิมพ์', 'ตีพิมพ์', 'publication', 'publications', 'วารสาร', 'scopus', 'wos', 'บทความ'],
   ip: ['ทรัพย์สินทางปัญญา', 'ทรัพย์สิน', 'ip', 'สิทธิบัตร', 'อนุสิทธิบัตร', 'ลิขสิทธิ์'],
   personnel: ['บุคลากร', 'อาจารย์', 'personnel', 'faculty', 'เจ้าหน้าที่'],
   kpi: ['ตัวชี้วัด', 'kpi', 'ยุทธศาสตร์', 'เป้าหมาย'],
@@ -76,39 +76,75 @@ export function parseBudget(val: any): number {
   return isNaN(num) ? 0 : num;
 }
 
+const THAI_MONTH_MAP: Record<string, number> = {
+  'ม.ค.': 1, 'มกราคม': 1,
+  'ก.พ.': 2, 'กุมภาพันธ์': 2,
+  'มี.ค.': 3, 'มีนาคม': 3,
+  'เม.ย.': 4, 'เมษายน': 4,
+  'พ.ค.': 5, 'พฤษภาคม': 5,
+  'มิ.ย.': 6, 'มิถุนายน': 6,
+  'ก.ค.': 7, 'กรกฎาคม': 7,
+  'ส.ค.': 8, 'สิงหาคม': 8,
+  'ก.ย.': 9, 'กันยายน': 9,
+  'ต.ค.': 10, 'ตุลาคม': 10,
+  'พ.ย.': 11, 'พฤศจิกายน': 11,
+  'ธ.ค.': 12, 'ธันวาคม': 12,
+};
+
+function fixExcelYearBE(y: number): number {
+  if (y >= 2400) return y;
+  if (y >= 1955 && y <= 1985) return y + 600; // 1968 -> 2568, 1969 -> 2569
+  if (y >= 1986 && y < 2400) return y + 543;  // 2025 -> 2568
+  if (y >= 40 && y < 100) return 2500 + y;
+  if (y >= 0 && y < 40) return 2000 + y + 543;
+  return y;
+}
+
 /**
- * แปลงวันที่หรือปี พ.ศ. เป็น ค.ศ. (ลบ 543) และจัดรูปแบบ
+ * แปลงวันที่หรือปีให้เป็น พ.ศ. ทั้งหมด (YYYY-MM-DD ในรูปแบบ พ.ศ. เช่น 2568-01-07)
  */
 export function parseDateOrYear(val: any): string {
   if (!val) return '';
   
   // กรณีเป็นตัวเลข Serial Date ของ Excel
-  if (typeof val === 'number' && val > 30000 && val < 60000) {
+  if (typeof val === 'number' && val > 15000 && val < 80000) {
     const utcDays = Math.floor(val - 25569);
     const utcValue = utcDays * 86400;
     const dateInfo = new Date(utcValue * 1000);
-    const year = dateInfo.getFullYear();
-    const month = String(dateInfo.getMonth() + 1).padStart(2, '0');
-    const day = String(dateInfo.getDate()).padStart(2, '0');
+    const year = fixExcelYearBE(dateInfo.getUTCFullYear());
+    const month = String(dateInfo.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(dateInfo.getUTCDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   }
 
   let str = cleanText(val);
   if (!str) return '';
 
-  // ตรวจจับปี พ.ศ. 256x หรือ 25xx แล้วแปลงเป็น ค.ศ.
-  const beYearMatch = str.match(/\b(25[4-8][0-9])\b/);
-  if (beYearMatch) {
-    const beYear = parseInt(beYearMatch[1], 10);
-    const ceYear = beYear - 543;
-    str = str.replace(beYearMatch[1], String(ceYear));
+  // รูปแบบ YYYY-MM-DD
+  const isoMatch = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoMatch) {
+    const yr = fixExcelYearBE(parseInt(isoMatch[1], 10));
+    return `${yr}-${isoMatch[2]}-${isoMatch[3]}`;
+  }
+
+  // รูปแบบวันที่ภาษาไทย เช่น "8 มี.ค. 66", "14-20 ม.ค.-69"
+  for (const [mKey, mNum] of Object.entries(THAI_MONTH_MAP)) {
+    if (str.includes(mKey)) {
+      const nums = str.match(/\d+/g);
+      if (nums && nums.length >= 2) {
+        const day = Math.min(31, Math.max(1, parseInt(nums[0], 10)));
+        const yr = fixExcelYearBE(parseInt(nums[nums.length - 1], 10));
+        return `${yr}-${String(mNum).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      }
+    }
   }
 
   // รูปแบบ DD/MM/YYYY
-  const dmyMatch = str.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/);
+  const dmyMatch = str.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$/);
   if (dmyMatch) {
     const [, d, m, y] = dmyMatch;
-    return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+    const yr = fixExcelYearBE(parseInt(y, 10));
+    return `${yr}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
   }
 
   return str.substring(0, 10);
@@ -162,11 +198,20 @@ function findMatchingColumnKey(header: string, validColumns: ColumnDef[]): strin
  */
 export function detectCategoryFromSheetName(sheetName: string, fallback: CategoryKey): CategoryKey {
   const norm = sheetName.toLowerCase().trim();
+  
+  // สร้างรายการ (keyword, categoryKey) แล้วเรียงตามความยาวจากมากไปน้อย
+  // เพื่อให้คำที่เจาะจงกว่า (เช่น 'บริการวิชาการ', 'ผลงานทางวิชาการ') จับคู่ได้ก่อนคำทั่วไป
+  const entries: { kw: string; cat: CategoryKey }[] = [];
   for (const [catKey, keywords] of Object.entries(SHEET_NAME_KEYWORDS)) {
     for (const kw of keywords) {
-      if (norm.includes(kw.toLowerCase())) {
-        return catKey as CategoryKey;
-      }
+      entries.push({ kw: kw.toLowerCase(), cat: catKey as CategoryKey });
+    }
+  }
+  entries.sort((a, b) => b.kw.length - a.kw.length);
+
+  for (const item of entries) {
+    if (norm.includes(item.kw)) {
+      return item.cat;
     }
   }
   return fallback;
@@ -217,6 +262,41 @@ export function transformAndValidateRow(
         break;
       default:
         data[col.key] = cleanText(rawVal);
+    }
+  }
+
+  // รองรับ Checkmark ('P', 'ü', '✓') จากไฟล์รายงานของคณะฯ สำหรับหมวดงานบริการวิชาการ และ ทรัพย์สินทางปัญญา
+  const isCheckmark = (v: any) => {
+    const s = cleanText(v);
+    return s === 'P' || s === 'p' || s === 'ü' || s === '✓' || s === '✔' || s === '/' || s === 'ใช่';
+  };
+
+  if (categoryKey === 'service' && !data.service_type) {
+    const serviceTypes = ['วิทยากร/อาจารย์พิเศษ', 'วิชาการ', 'วิชาชีพ', 'ผู้ทรงคุณวุฒิ', 'วิทยานิพนธ์ภายนอก', 'ศึกษาดูงาน วศ.กพส.'];
+    for (const [rk, rv] of Object.entries(rawRow)) {
+      if (isCheckmark(rv)) {
+        const matchedType = serviceTypes.find((st) => rk.includes(st) || (st === 'ศึกษาดูงาน วศ.กพส.' && rk.includes('ศึกษาดูงาน')));
+        if (matchedType) {
+          data.service_type = matchedType;
+          break;
+        }
+      }
+    }
+    if (!data.service_type) data.service_type = 'วิชาการ';
+  }
+
+  if (categoryKey === 'ip') {
+    if (!data.title && data.name) data.title = data.name;
+    if (!data.name && data.title) data.name = data.title;
+    if (!data.type || isCheckmark(data.type)) {
+      for (const [rk, rv] of Object.entries(rawRow)) {
+        if (isCheckmark(rv)) {
+          if (rk.includes('อนุสิทธิบัตร')) { data.type = 'อนุสิทธิบัตร'; break; }
+          if (rk.includes('สิทธิบัตร')) { data.type = 'สิทธิบัตร'; break; }
+          if (rk.includes('ลิขสิทธิ์')) { data.type = 'ลิขสิทธิ์'; break; }
+        }
+      }
+      if (!data.type || isCheckmark(data.type)) data.type = 'อนุสิทธิบัตร';
     }
   }
 
@@ -275,6 +355,83 @@ export function transformAndValidateRow(
 }
 
 /**
+ * แปลง Worksheet ที่อาจมีหัวตารางหลายชั้น (Multi-row Header ของคณะฯ) หรือหัวตารางชั้นเดียวให้เป็น Array ของ Object
+ */
+function extractNormalizedRowsFromSheet(worksheet: XLSX.WorkSheet): Record<string, any>[] {
+  const matrix = XLSX.utils.sheet_to_json<any[]>(worksheet, { header: 1, defval: '' });
+  if (!matrix || matrix.length === 0) return [];
+
+  // ค้นหาแถวเริ่มต้นของ Header (มีคำว่า "ลำดับ" หรือตรงกับชื่อคอลัมน์หลัก)
+  let headerRowIdx = 0;
+  for (let r = 0; r < Math.min(8, matrix.length); r++) {
+    const rowCells = (matrix[r] || []).map((c) => cleanText(c));
+    if (rowCells.some((c) => c.includes('ลำดับ') || c === 'ชื่อโครงการ' || c === 'ชื่อผลงานทางวิชาการ' || c === 'ชื่อ-นามสกุล')) {
+      headerRowIdx = r;
+      break;
+    }
+  }
+
+  // ตรวจสอบว่าแถวถัดไปเป็น Sub-header (เช่น เซลล์แรกว่าง แต่เซลล์ถัดไปมีคำว่า ภายใน/ภายนอก, ต่างชาติ/ภายในประเทศ, เริ่มต้น/สิ้นสุด)
+  let headerRowCount = 1;
+  for (let offset = 1; offset <= 2; offset++) {
+    const nextRow = matrix[headerRowIdx + offset];
+    if (!nextRow) break;
+    const c0 = cleanText(nextRow[0]);
+    const c1 = cleanText(nextRow[1]);
+    const nonEmptyOthers = nextRow.slice(2).filter((x) => cleanText(x) !== '').length;
+    if (!c0 && !c1 && nonEmptyOthers > 0) {
+      headerRowCount++;
+    } else {
+      break;
+    }
+  }
+
+  const maxCols = Math.max(...matrix.slice(headerRowIdx, headerRowIdx + headerRowCount).map((r) => r.length), 0);
+  const headers: string[] = [];
+  let lastParent = '';
+
+  for (let c = 0; c < maxCols; c++) {
+    const topVal = cleanText(matrix[headerRowIdx]?.[c]);
+    if (topVal) lastParent = topVal;
+
+    const subParts: string[] = [];
+    for (let h = 1; h < headerRowCount; h++) {
+      const sv = cleanText(matrix[headerRowIdx + h]?.[c]);
+      if (sv && sv !== topVal) subParts.push(sv);
+    }
+
+    if (subParts.length > 0) {
+      const subJoined = subParts.join(' ');
+      // หากมีชื่อเฉพาะใน sub-header เช่น อนุสิทธิบัตร, สิทธิบัตร, วันที่ยื่นคำขอ, เลขที่คำขอ ให้ใช้คำนั้นโดยตรงหรือต่อท้าย parent
+      if (['ภายใน', 'ภายนอก', 'เริ่มต้น', 'สิ้นสุด', 'ออกให้', 'หมดอายุ'].includes(subJoined)) {
+        headers.push(`${lastParent} ${subJoined}`.trim());
+      } else {
+        headers.push(subJoined);
+      }
+    } else {
+      headers.push(topVal || `col_${c}`);
+    }
+  }
+
+  const dataRows: Record<string, any>[] = [];
+  for (let r = headerRowIdx + headerRowCount; r < matrix.length; r++) {
+    const rowArr = matrix[r];
+    if (!rowArr || rowArr.every((cell) => cleanText(cell) === '')) continue;
+
+    // ข้ามแถวคั่นเดือนที่มีเฉพาะวันที่ในคอลัมน์แรกแต่ไม่มีชื่อรายการในคอลัมน์ที่ 2
+    if (cleanText(rowArr[1]) === '' && cleanText(rowArr[2]) === '') continue;
+
+    const obj: Record<string, any> = {};
+    for (let c = 0; c < headers.length; c++) {
+      obj[headers[c]] = rowArr[c] !== undefined ? rowArr[c] : '';
+    }
+    dataRows.push(obj);
+  }
+
+  return dataRows;
+}
+
+/**
  * อ่านไฟล์ Excel (ArrayBuffer) และประมวลผล Sheet ทั้งหมด
  */
 export function parseExcelFile(
@@ -290,7 +447,7 @@ export function parseExcelFile(
 
   for (const sName of sheetNames) {
     const worksheet = workbook.Sheets[sName];
-    const rawRows: Record<string, any>[] = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+    const rawRows: Record<string, any>[] = extractNormalizedRowsFromSheet(worksheet);
 
     // ข้าม sheet ว่าง
     if (!rawRows || rawRows.length === 0) continue;
@@ -358,7 +515,12 @@ export function downloadExcelTemplate(categoryKey: CategoryKey) {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, config.title.substring(0, 31));
 
-  XLSX.writeFile(wb, `Template_${config.key}_${config.title}.xlsx`);
+  const filename = `Template_${config.key}_${config.title}.xlsx`;
+  if (typeof window !== 'undefined') {
+    XLSX.writeFile(wb, filename);
+  } else {
+    return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+  }
 }
 
 /**
@@ -386,7 +548,11 @@ export function exportTableToExcel(data: any[], categoryKey: CategoryKey, fileNa
   XLSX.utils.book_append_sheet(wb, ws, config.title.substring(0, 31));
 
   const outName = fileName || `Export_${config.key}_${new Date().toISOString().substring(0, 10)}.xlsx`;
-  XLSX.writeFile(wb, outName);
+  if (typeof window !== 'undefined') {
+    XLSX.writeFile(wb, outName);
+  } else {
+    return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+  }
 }
 
 /**
@@ -430,15 +596,24 @@ export function exportMonthlyExecutiveMasterExcel(
     );
   }
 
+  const sumResearchBudget = (datasets.research || []).reduce(
+    (acc, r) => acc + (Number(r.budget_total) || (Number(r.budget_internal) || 0) + (Number(r.budget_external) || 0) || Number(r.budget) || 0),
+    0
+  );
+  const sumAcademicBudget = (datasets.academic || []).reduce((acc, r) => acc + (Number(r.budget) || 0), 0);
+  const sumPubBudget = (datasets.publications || []).reduce((acc, r) => acc + (Number(r.budget) || 0), 0);
+  const sumServiceAttendees = (datasets.service || []).reduce((acc, r) => acc + (Number(r.attendees_count) || 0), 0);
+  const sumIpSupport = (datasets.ip || []).reduce((acc, r) => acc + (Number(r.support_amount) || 0), 0);
+
   summaryRows.push(
     { A: '', B: '', C: '', D: '', E: '' },
     { A: '=== 2. สรุปภาพรวมปริมาณผลงานแยกตามหมวด ===', B: '', C: '', D: '', E: '' },
     { A: 'หมวดหมู่ภารกิจ', B: 'จำนวนรายการทั้งหมด', C: 'งบประมาณ/มูลค่ารวม (บาท)', D: 'หมายเหตุ', E: '' },
-    { A: '1. โครงการวิจัย', B: (datasets.research || []).length, C: '104,480,000 บาท', D: 'ทุนภายนอก 99%', E: '' },
-    { A: '2. โครงการพัฒนาวิชาการ', B: (datasets.academic || []).length, C: '2,450,000 บาท', D: 'อบรม/สัมมนา', E: '' },
-    { A: '3. ผลงานตีพิมพ์ทางวิชาการ', B: (datasets.publications || []).length, C: 'เงินสนับสนุน มก.', D: 'Scopus Q1/Q2', E: '' },
-    { A: '4. งานบริการวิชาการ', B: (datasets.service || []).length, C: 'รายได้รวม', D: 'ผู้ทรงคุณวุฒิ/ที่ปรึกษา', E: '' },
-    { A: '5. งานทรัพย์สินทางปัญญา', B: (datasets.ip || []).length, C: 'เงินรางวัลสนับสนุน', D: 'สิทธิบัตรการประดิษฐ์', E: '' }
+    { A: '1. โครงการวิจัย', B: (datasets.research || []).length, C: `${sumResearchBudget.toLocaleString()} บาท`, D: 'ทุนภายในและภายนอก', E: '' },
+    { A: '2. โครงการพัฒนาวิชาการ', B: (datasets.academic || []).length, C: `${sumAcademicBudget.toLocaleString()} บาท`, D: 'บริการวิชาการสร้างรายได้', E: '' },
+    { A: '3. ผลงานตีพิมพ์ทางวิชาการ', B: (datasets.publications || []).length, C: `${sumPubBudget.toLocaleString()} บาท`, D: 'เงินสนับสนุนตีพิมพ์', E: '' },
+    { A: '4. งานบริการวิชาการ', B: (datasets.service || []).length, C: `ผู้เข้าร่วมรวม ${sumServiceAttendees.toLocaleString()} คน`, D: 'วิทยากร/ผู้ทรงคุณวุฒิ/วิชาชีพ', E: '' },
+    { A: '5. งานทรัพย์สินทางปัญญา', B: (datasets.ip || []).length, C: `${sumIpSupport.toLocaleString()} บาท`, D: 'สิทธิบัตร/อนุสิทธิบัตร/ลิขสิทธิ์', E: '' }
   );
 
   const wsSummary = XLSX.utils.json_to_sheet(summaryRows, { skipHeader: true });
@@ -482,7 +657,12 @@ export function exportMonthlyExecutiveMasterExcel(
   });
 
   const safePeriod = periodLabel.replace(/[\/\\?%*:|"<>]/g, '_');
-  XLSX.writeFile(wb, `รายงานสรุปผู้บริหาร5หมวด_${safePeriod}.xlsx`);
+  const filename = `รายงานสรุปผู้บริหาร5หมวด_${safePeriod}.xlsx`;
+  if (typeof window !== 'undefined') {
+    XLSX.writeFile(wb, filename);
+  } else {
+    return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+  }
 }
 
 /**

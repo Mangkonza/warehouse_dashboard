@@ -1,11 +1,33 @@
 import { ProjectExtensionRecord, ProjectStatus, ProjectTimelineInfo } from '../types/projectMonitoring';
 
+function parseAnyDateToJSDate(raw: string): Date {
+  const s = String(raw || '').trim();
+  const isoMatch = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (isoMatch) {
+    let y = parseInt(isoMatch[1], 10);
+    if (y >= 2400) y -= 543;
+    else if (y >= 1955 && y <= 1985) y += 57;
+    const m = parseInt(isoMatch[2], 10) - 1;
+    const d = parseInt(isoMatch[3], 10);
+    return new Date(y, m, d);
+  }
+  const dmyMatch = s.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})/);
+  if (dmyMatch) {
+    const d = parseInt(dmyMatch[1], 10);
+    const m = parseInt(dmyMatch[2], 10) - 1;
+    let y = parseInt(dmyMatch[3], 10);
+    if (y >= 2400) y -= 543;
+    return new Date(y, m, d);
+  }
+  return new Date(s);
+}
+
 /**
  * คำนวณข้อมูลเวลาและการติดตามผลของโครงการ (Project Timeline & Monitoring Calculation)
  * แก้ไขตาม GAP Analysis 1.1: ป้องกันไม่ให้โครงการที่ไม่มีวันที่หรืออยู่ในกรอบปีงบประมาณถูกตีเป็น "ล่าช้า"
  */
 export function calculateProjectTimeline(item: Record<string, any>, referenceDateStr?: string): ProjectTimelineInfo {
-  const today = referenceDateStr ? new Date(referenceDateStr) : new Date();
+  const today = referenceDateStr ? parseAnyDateToJSDate(referenceDateStr) : new Date();
 
   // 1. ดึงปีงบประมาณ หรือสกัดจากรหัสโครงการ
   let fiscalYear = Number(item.fiscal_year_be || item.fiscal_year);
@@ -13,7 +35,7 @@ export function calculateProjectTimeline(item: Record<string, any>, referenceDat
     const codeMatch = String(item.id || '').match(/25[6-7][0-9]/);
     fiscalYear = codeMatch ? parseInt(codeMatch[0], 10) : 2568;
   }
-  const fiscalYearCe = fiscalYear - 543;
+  const fiscalYearCe = fiscalYear >= 2400 ? fiscalYear - 543 : fiscalYear;
 
   // 2. ตรวจสอบว่ามีข้อมูลวันเริ่มและวันสิ้นสุดสัญญาจริงหรือไม่
   const rawStart = String(item.start_date || '').trim();
@@ -37,7 +59,7 @@ export function calculateProjectTimeline(item: Record<string, any>, referenceDat
   // 4. กำหนดวันเริ่มต้นโครงการ (Start Date)
   let startDate: Date;
   if (hasExplicitStartDate) {
-    startDate = new Date(rawStart);
+    startDate = parseAnyDateToJSDate(rawStart);
   } else {
     // กำหนดวันเริ่มต้นตามต้นปีงบประมาณของโครงการ (1 ต.ค. ของปีก่อนหน้า)
     startDate = new Date(fiscalYearCe - 1, 9, 1);
@@ -46,7 +68,7 @@ export function calculateProjectTimeline(item: Record<string, any>, referenceDat
   // 5. กำหนดวันสิ้นสุดเดิม (Original End Date)
   let originalEndDate: Date;
   if (hasExplicitEndDate) {
-    originalEndDate = new Date(rawEnd);
+    originalEndDate = parseAnyDateToJSDate(rawEnd);
   } else {
     originalEndDate = new Date(startDate);
     originalEndDate.setMonth(originalEndDate.getMonth() + durationMonths);
@@ -60,7 +82,7 @@ export function calculateProjectTimeline(item: Record<string, any>, referenceDat
   if (approvedExtensions.length > 0) {
     const latestExtension = approvedExtensions[approvedExtensions.length - 1];
     if (latestExtension.extended_end_date) {
-      currentEndDate = new Date(latestExtension.extended_end_date);
+      currentEndDate = parseAnyDateToJSDate(latestExtension.extended_end_date);
     }
   }
 
@@ -98,15 +120,18 @@ export function calculateProjectTimeline(item: Record<string, any>, referenceDat
 
   const formatDate = (d: Date) => {
     if (isNaN(d.getTime())) return '';
-    const year = d.getFullYear();
+    const rawYear = d.getFullYear();
+    const yearBE = rawYear < 2400 ? rawYear + 543 : rawYear;
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    return `${yearBE}-${month}-${day}`;
   };
 
   return {
     start_date: hasExplicitStartDate ? formatDate(startDate) : (rawStart || formatDate(startDate)),
     end_date: formatDate(currentEndDate),
+    current_end_date: formatDate(currentEndDate),
+    is_extended: approvedExtensions.length > 0,
     original_end_date: formatDate(originalEndDate),
     closed_date: item.closed_date ? String(item.closed_date) : undefined,
     duration_months: durationMonths,
@@ -131,15 +156,16 @@ export function createExtensionRequest(
   }
 ): ProjectExtensionRecord {
   const currentTimeline = calculateProjectTimeline(item);
-  const currentEnd = new Date(currentTimeline.end_date);
+  const currentEnd = parseAnyDateToJSDate(currentTimeline.end_date);
   const newEnd = new Date(currentEnd);
   newEnd.setMonth(newEnd.getMonth() + params.durationMonths);
 
   const formatDate = (d: Date) => {
-    const year = d.getFullYear();
+    const rawYear = d.getFullYear();
+    const yearBE = rawYear < 2400 ? rawYear + 543 : rawYear;
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    return `${yearBE}-${month}-${day}`;
   };
 
   const todayStr = formatDate(new Date());
