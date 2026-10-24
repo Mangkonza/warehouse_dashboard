@@ -1,0 +1,3042 @@
+[
+  {
+    "id": "PER-001",
+    "name": "นายชวลิต แซ่จัน",
+    "clean_name": "ชวลิต แซ่จัน",
+    "title_th": "นาย",
+    "position": "พนักงานทั่วไป",
+    "department": "ภาควิชาวิศวกรรมการเกษตร",
+    "email": "fengcls@ku.ac.th",
+    "image_url": ""
+  },
+  {
+    "id": "PER-002",
+    "name": "ผศ.นงลักษณ์  เล็กรุ่งเรืองกิจ",
+    "clean_name": "นงลักษณ์ เล็กรุ่งเรืองกิจ",
+    "title_th": "ผศ.",
+    "position": "หัวหน้าภาค",
+    "department": "ภาควิชาวิศวกรรมการเกษตร",
+    "email": "fengnllg@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมการเกษตร/ผศ.นงลักษณ์  เล็กรุ่งเรืองกิจ.jpg"
+  },
+  {
+    "id": "PER-003",
+    "name": "นายธงชัย แสงจันทร์",
+    "clean_name": "ธงชัย แสงจันทร์",
+    "title_th": "นาย",
+    "position": "พนักงานห้องปฏิบัติการ",
+    "department": "ภาควิชาวิศวกรรมการเกษตร",
+    "email": "fengths@ku.ac.th",
+    "image_url": ""
+  },
+  {
+    "id": "PER-004",
+    "name": "ผศ.ดร.วันรัฐ  อับดุลลากาซิม",
+    "clean_name": "วันรัฐ อับดุลลากาซิม",
+    "title_th": "ผศ.ดร.",
+    "position": "ประธานหลักสูตร วศ.ม. (วิศวกรรมเกษตร) และประธานหลักสูตร วศ.ด. (วิศวกรรมเกษตร)",
+    "department": "ภาควิชาวิศวกรรมการเกษตร",
+    "email": "fengwra@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมการเกษตร/ผศ.ดร.วันรัฐ  อับดุลลากาซิม.jpg"
+  },
+  {
+    "id": "PER-005",
+    "name": "รศ.ดร.แก้วกานต์  พวงสมบัติ",
+    "clean_name": "แก้วกานต์ พวงสมบัติ",
+    "title_th": "รศ.ดร.",
+    "position": "คณาจารย์/บุคลากร",
+    "department": "ภาควิชาวิศวกรรมการเกษตร",
+    "email": "fengkkb@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมการเกษตร/รศ.ดร.แก้วกานต์  พวงสมบัติ.jpg"
+  },
+  {
+    "id": "PER-006",
+    "name": "รศ.ดร. ศิวลักษณ์ ปฐวีรัตน์",
+    "clean_name": "ศิวลักษณ์ ปฐวีรัตน์",
+    "title_th": "รศ.ดร.",
+    "position": "ประธานหลักสูตร วศ.บ. (วิศวกรรมวิศวกรรมนวัตกรรมเพื่อการเกษตรและอุตสาหกรรม)",
+    "department": "ภาควิชาวิศวกรรมการเกษตร",
+    "email": "fengslp@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมการเกษตร/รศ.ดร. ศิวลักษณ์ ปฐวีรัตน์.jpg"
+  },
+  {
+    "id": "PER-007",
+    "name": "รศ.ดร.สิรินาฏ  น้อยพิทักษ์",
+    "clean_name": "สิรินาฏ น้อยพิทักษ์",
+    "title_th": "รศ.ดร.",
+    "position": "คณาจารย์/บุคลากร",
+    "department": "ภาควิชาวิศวกรรมการเกษตร",
+    "email": "fengsnn@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมการเกษตร/รศ.ดร.สิรินาฏ  น้อยพิทักษ์.jpg"
+  },
+  {
+    "id": "PER-008",
+    "name": "รศ.ดร.ประเทือง อุษาบริสุทธิ์",
+    "clean_name": "ประเทือง อุษาบริสุทธิ์",
+    "title_th": "รศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมการเกษตร",
+    "email": "fengptu@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมการเกษตร/รศ.ดร.ประเทือง อุษาบริสุทธิ์.jpg"
+  },
+  {
+    "id": "PER-009",
+    "name": "ผศ.ศุภชัย  กุลมุติวัฒน์",
+    "clean_name": "ศุภชัย กุลมุติวัฒน์",
+    "title_th": "ผศ.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมการเกษตร",
+    "email": "fengsck@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมการเกษตร/ผศ.ศุภชัย  กุลมุติวัฒน์.jpg"
+  },
+  {
+    "id": "PER-010",
+    "name": "รศ.ดร.วัชรพล ชยประเสริฐ",
+    "clean_name": "วัชรพล ชยประเสริฐ",
+    "title_th": "รศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมการเกษตร",
+    "email": "fengwpc@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมการเกษตร/รศ.ดร.วัชรพล ชยประเสริฐ.jpg"
+  },
+  {
+    "id": "PER-011",
+    "name": "ผศ.ดร.ศิริศักดิ์  เชิดเกียรติพล",
+    "clean_name": "ศิริศักดิ์ เชิดเกียรติพล",
+    "title_th": "ผศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมการเกษตร",
+    "email": "fengsrcp@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมการเกษตร/ผศ.ดร.ศิริศักดิ์  เชิดเกียรติพล.jpg"
+  },
+  {
+    "id": "PER-012",
+    "name": "ผศ.ดร.ภวินท์  ธัญภัทรานนท์",
+    "clean_name": "ภวินท์ ธัญภัทรานนท์",
+    "title_th": "ผศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมการเกษตร",
+    "email": "fengpwt@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมการเกษตร/ผศ.ดร.ภวินท์  ธัญภัทรานนท์.jpg"
+  },
+  {
+    "id": "PER-013",
+    "name": "รศ.ดร.พิมพ์พรรณ  ปรืองาม",
+    "clean_name": "พิมพ์พรรณ ปรืองาม",
+    "title_th": "รศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมการเกษตร",
+    "email": "fengpppn@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมการเกษตร/รศ.ดร.พิมพ์พรรณ  ปรืองาม.jpg"
+  },
+  {
+    "id": "PER-014",
+    "name": "ผศ.ดร.อาทิตย์  พวงสมบัติ",
+    "clean_name": "อาทิตย์ พวงสมบัติ",
+    "title_th": "ผศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมการเกษตร",
+    "email": "fengatp@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมการเกษตร/ผศ.ดร.อาทิตย์  พวงสมบัติ.jpg"
+  },
+  {
+    "id": "PER-015",
+    "name": "อ.ดร.ชัยยะ จันทรา",
+    "clean_name": "ดร.ชัยยะ จันทรา",
+    "title_th": "อ.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมการเกษตร",
+    "email": "fengcyj@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมการเกษตร/อ.ดร.ชัยยะ จันทรา.jpg"
+  },
+  {
+    "id": "PER-016",
+    "name": "ผศ.ดร.วัชรชาญ สุขเจริญวิภารัตน์",
+    "clean_name": "วัชรชาญ สุขเจริญวิภารัตน์",
+    "title_th": "ผศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมการเกษตร",
+    "email": "fengwhs@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมการเกษตร/ผศ.ดร.วัชรชาญ สุขเจริญวิภารัตน์.jpg"
+  },
+  {
+    "id": "PER-017",
+    "name": "นางสาวอรุณรัตน์ บุญปองหา",
+    "clean_name": "อรุณรัตน์ บุญปองหา",
+    "title_th": "นางสาว",
+    "position": "ชำนาญการ",
+    "department": "ภาควิชาวิศวกรรมการเกษตร",
+    "email": "fengndb@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมการเกษตร/นางสาวอรุณรัตน์ บุญปองหา.jpg"
+  },
+  {
+    "id": "PER-018",
+    "name": "นางสาวพีรดา แจ้งศรี",
+    "clean_name": "พีรดา แจ้งศรี",
+    "title_th": "นางสาว",
+    "position": "ชำนาญการ",
+    "department": "ภาควิชาวิศวกรรมการเกษตร",
+    "email": "fengpdj@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมการเกษตร/นางสาวพีรดา แจ้งศรี.jpg"
+  },
+  {
+    "id": "PER-019",
+    "name": "นางสาวรัตนาภรณ์ สระทองอ้อย",
+    "clean_name": "รัตนาภรณ์ สระทองอ้อย",
+    "title_th": "นางสาว",
+    "position": "เจ้าหน้าที่บริหารงานทั่วไป",
+    "department": "ภาควิชาวิศวกรรมการเกษตร",
+    "email": "fengrosa@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมการเกษตร/นางสาวรัตนาภรณ์ สระทองอ้อย.jpg"
+  },
+  {
+    "id": "PER-020",
+    "name": "นายภธร จันทรอุดม",
+    "clean_name": "ภธร จันทรอุดม",
+    "title_th": "นาย",
+    "position": "ปฏิบัติการ",
+    "department": "ภาควิชาวิศวกรรมการเกษตร",
+    "email": "patara.jh@ku.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมการเกษตร/นายภธร จันทรอุดม.jpg"
+  },
+  {
+    "id": "PER-021",
+    "name": "นายเจนวิทย์ จิตรใจเย็น",
+    "clean_name": "เจนวิทย์ จิตรใจเย็น",
+    "title_th": "นาย",
+    "position": "ปฏิบัติการ",
+    "department": "ภาควิชาวิศวกรรมการเกษตร",
+    "email": "janwit.ji@ku.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมการเกษตร/นายเจนวิทย์ จิตรใจเย็น.jpg"
+  },
+  {
+    "id": "PER-022",
+    "name": "นายศักดา จันทร์ทอง",
+    "clean_name": "ศักดา จันทร์ทอง",
+    "title_th": "นาย",
+    "position": "ชำนาญงานพิเศษ",
+    "department": "ภาควิชาวิศวกรรมการเกษตร",
+    "email": "fengsdc@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมการเกษตร/นายศักดา จันทร์ทอง.jpg"
+  },
+  {
+    "id": "PER-023",
+    "name": "นายชัชวาล ตาก้อง",
+    "clean_name": "ชัชวาล ตาก้อง",
+    "title_th": "นาย",
+    "position": "ปฏิบัติงาน",
+    "department": "ภาควิชาวิศวกรรมการเกษตร",
+    "email": "chatchawan.tak@ku.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมการเกษตร/นายชัชวาล ตาก้อง.jpg"
+  },
+  {
+    "id": "PER-024",
+    "name": "นางสาวจักจั่น นาฟาง",
+    "clean_name": "จักจั่น นาฟาง",
+    "title_th": "นางสาว",
+    "position": "แม่บ้านประจำภาควิชา",
+    "department": "ภาควิชาวิศวกรรมการเกษตร",
+    "email": "ไม่พบอีเมล",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมการเกษตร/นางสาวจักจั่น นาฟาง.jpg"
+  },
+  {
+    "id": "PER-025",
+    "name": "นางสาวศิรประภา เชียงเงาะ",
+    "clean_name": "ศิรประภา เชียงเงาะ",
+    "title_th": "นางสาว",
+    "position": "แม่บ้านประจำภาควิชา",
+    "department": "ภาควิชาวิศวกรรมการเกษตร",
+    "email": "fengths@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมการเกษตร/นางสาวศิรประภา เชียงเงาะ.jpg"
+  },
+  {
+    "id": "PER-026",
+    "name": "นายณัฐพล เสรีเผ่าวงษ์",
+    "clean_name": "ณัฐพล เสรีเผ่าวงษ์",
+    "title_th": "นาย",
+    "position": "ปฏิบัติการ",
+    "department": "ภาควิชาวิศวกรรมชลประทาน",
+    "email": "fengnpse@ku.ac.th",
+    "image_url": ""
+  },
+  {
+    "id": "PER-027",
+    "name": "นายธงชัย แสงจันทร์",
+    "clean_name": "ธงชัย แสงจันทร์",
+    "title_th": "นาย",
+    "position": "พนักงานห้องปฏิบัติการ",
+    "department": "ภาควิชาวิศวกรรมชลประทาน",
+    "email": "fengths@ku.ac.th",
+    "image_url": ""
+  },
+  {
+    "id": "PER-028",
+    "name": "ผศ.ดร.ไชยาพงษ์ เทพประสิทธิ์",
+    "clean_name": "ไชยาพงษ์ เทพประสิทธิ์",
+    "title_th": "ผศ.ดร.",
+    "position": "หัวหน้าภาควิชา",
+    "department": "ภาควิชาวิศวกรรมชลประทาน",
+    "email": "fengcpth@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมชลประทาน/ผศ.ดร.ไชยาพงษ์ เทพประสิทธิ์.jpg"
+  },
+  {
+    "id": "PER-029",
+    "name": "นายชวลิต แซ่จัน",
+    "clean_name": "ชวลิต แซ่จัน",
+    "title_th": "นาย",
+    "position": "พนักงานทั่วไป",
+    "department": "ภาควิชาวิศวกรรมชลประทาน",
+    "email": "fengcls@ku.ac.th",
+    "image_url": ""
+  },
+  {
+    "id": "PER-030",
+    "name": "นายแสง ทินวงษ์ปาน",
+    "clean_name": "แสง ทินวงษ์ปาน",
+    "title_th": "นาย",
+    "position": "พนักงานทั่วไป",
+    "department": "ภาควิชาวิศวกรรมชลประทาน",
+    "email": "fengset@ku.ac.th",
+    "image_url": ""
+  },
+  {
+    "id": "PER-031",
+    "name": "ผศ.ดร.ชูพันธุ์ ชมภูจันทร์",
+    "clean_name": "ชูพันธุ์ ชมภูจันทร์",
+    "title_th": "ผศ.ดร.",
+    "position": "รองหัวหน้าภาควิชา",
+    "department": "ภาควิชาวิศวกรรมชลประทาน",
+    "email": "fengcpcc@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมชลประทาน/ผศ.ดร.ชูพันธุ์ ชมภูจันทร์.jpg"
+  },
+  {
+    "id": "PER-032",
+    "name": "ผศ.ดร.ทรงศักดิ์ ภัทราวุฒิชัย",
+    "clean_name": "ทรงศักดิ์ ภัทราวุฒิชัย",
+    "title_th": "ผศ.ดร.",
+    "position": "รองหัวหน้าภาควิชา",
+    "department": "ภาควิชาวิศวกรรมชลประทาน",
+    "email": "songsak.pu@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมชลประทาน/ผศ.ดร.ทรงศักดิ์ ภัทราวุฒิชัย.jpg"
+  },
+  {
+    "id": "PER-033",
+    "name": "รศ.ดร.วราวุธ  วุฒิวณิชย์",
+    "clean_name": "วราวุธ วุฒิวณิชย์",
+    "title_th": "รศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมชลประทาน",
+    "email": "fengvwv@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมชลประทาน/รศ.ดร.วราวุธ  วุฒิวณิชย์.jpg"
+  },
+  {
+    "id": "PER-034",
+    "name": "รศ.ดร.บัญชา ขวัญยืน",
+    "clean_name": "บัญชา ขวัญยืน",
+    "title_th": "รศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมชลประทาน",
+    "email": "fengbak@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมชลประทาน/รศ.ดร.บัญชา ขวัญยืน.jpg"
+  },
+  {
+    "id": "PER-035",
+    "name": "รศ.ดร.เอกสิทธิ์ โฆสิตสกุลชัย",
+    "clean_name": "เอกสิทธิ์ โฆสิตสกุลชัย",
+    "title_th": "รศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมชลประทาน",
+    "email": "fengesk@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมชลประทาน/รศ.ดร.เอกสิทธิ์ โฆสิตสกุลชัย.jpg"
+  },
+  {
+    "id": "PER-036",
+    "name": "รศ.ดร.ชัยศรี สุขสาโรจน์",
+    "clean_name": "ชัยศรี สุขสาโรจน์",
+    "title_th": "รศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมชลประทาน",
+    "email": "fengcss@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมชลประทาน/รศ.ดร.ชัยศรี สุขสาโรจน์.jpg"
+  },
+  {
+    "id": "PER-037",
+    "name": "รศ.ดร.สมชาย ดอนเจดีย์",
+    "clean_name": "สมชาย ดอนเจดีย์",
+    "title_th": "รศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมชลประทาน",
+    "email": "fengscd@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมชลประทาน/รศ.ดร.สมชาย ดอนเจดีย์.jpg"
+  },
+  {
+    "id": "PER-038",
+    "name": "รศ.ดร.วิษุวัฒก์ แต้สมบัติ",
+    "clean_name": "วิษุวัฒก์ แต้สมบัติ",
+    "title_th": "รศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมชลประทาน",
+    "email": "fengwwt@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมชลประทาน/รศ.ดร.วิษุวัฒก์ แต้สมบัติ.jpg"
+  },
+  {
+    "id": "PER-039",
+    "name": "ผศ.นิมิตร เฉิดฉันท์พิพัฒน์",
+    "clean_name": "นิมิตร เฉิดฉันท์พิพัฒน์",
+    "title_th": "ผศ.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมชลประทาน",
+    "email": "fengnmc@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมชลประทาน/ผศ.นิมิตร เฉิดฉันท์พิพัฒน์.jpg"
+  },
+  {
+    "id": "PER-040",
+    "name": "ผศ.ดร.นิธิรัชต์ สงวนเดือน",
+    "clean_name": "นิธิรัชต์ สงวนเดือน",
+    "title_th": "ผศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมชลประทาน",
+    "email": "fengntr@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมชลประทาน/ผศ.ดร.นิธิรัชต์ สงวนเดือน.jpg"
+  },
+  {
+    "id": "PER-041",
+    "name": "ผศ.ดร.จิระกานต์ ศิริวิชญ์ไมตรี",
+    "clean_name": "จิระกานต์ ศิริวิชญ์ไมตรี",
+    "title_th": "ผศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมชลประทาน",
+    "email": "fengcrk@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมชลประทาน/ผศ.ดร.จิระกานต์ ศิริวิชญ์ไมตรี.jpg"
+  },
+  {
+    "id": "PER-042",
+    "name": "ผศ.ดร.จุติเทพ วงษ์เพ็ชร์",
+    "clean_name": "จุติเทพ วงษ์เพ็ชร์",
+    "title_th": "ผศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมชลประทาน",
+    "email": "fengjtv@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมชลประทาน/ผศ.ดร.จุติเทพ วงษ์เพ็ชร์.jpg"
+  },
+  {
+    "id": "PER-043",
+    "name": "ผศ.ดร.เกศวรา สิทธิโชค",
+    "clean_name": "เกศวรา สิทธิโชค",
+    "title_th": "ผศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมชลประทาน",
+    "email": "fengkrs@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมชลประทาน/ผศ.ดร.เกศวรา สิทธิโชค.jpg"
+  },
+  {
+    "id": "PER-044",
+    "name": "ผศ.ดร.ศศิวิมล ขาวโกมล",
+    "clean_name": "ศศิวิมล ขาวโกมล",
+    "title_th": "ผศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมชลประทาน",
+    "email": "fengsmk@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมชลประทาน/ผศ.ดร.ศศิวิมล ขาวโกมล.jpg"
+  },
+  {
+    "id": "PER-045",
+    "name": "อ.ดร.ธัญดร ออกวะลา",
+    "clean_name": "ดร.ธัญดร ออกวะลา",
+    "title_th": "อ.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมชลประทาน",
+    "email": "fengtdo@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมชลประทาน/อ.ดร.ธัญดร ออกวะลา.jpg"
+  },
+  {
+    "id": "PER-046",
+    "name": "อ.พลเพชร สมานมิตร",
+    "clean_name": "พลเพชร สมานมิตร",
+    "title_th": "อ.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมชลประทาน",
+    "email": "fengpes@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมชลประทาน/อ.พลเพชร สมานมิตร.jpg"
+  },
+  {
+    "id": "PER-047",
+    "name": "นายเอนก ไกรรอด",
+    "clean_name": "เอนก ไกรรอด",
+    "title_th": "นาย",
+    "position": "ปฏิบัติการ",
+    "department": "ภาควิชาวิศวกรรมชลประทาน",
+    "email": "fengankr@ku.ac.th",
+    "image_url": ""
+  },
+  {
+    "id": "PER-048",
+    "name": "นางสาวลักษณา ทรัพย์เย็น",
+    "clean_name": "ลักษณา ทรัพย์เย็น",
+    "title_th": "นางสาว",
+    "position": "ชำนาญการ",
+    "department": "ภาควิชาวิศวกรรมชลประทาน",
+    "email": "fenglnn@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมชลประทาน/นางสาวลักษณา ทรัพย์เย็น.jpg"
+  },
+  {
+    "id": "PER-049",
+    "name": "นางสาวสุกัญญา จำปาอ่อน",
+    "clean_name": "สุกัญญา จำปาอ่อน",
+    "title_th": "นางสาว",
+    "position": "ชำนาญการ",
+    "department": "ภาควิชาวิศวกรรมชลประทาน",
+    "email": "fengsnpi@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมชลประทาน/นางสาวสุกัญญา จำปาอ่อน.jpg"
+  },
+  {
+    "id": "PER-050",
+    "name": "นางสาวณัฐธยาน์ นามอินทร์",
+    "clean_name": "ณัฐธยาน์ นามอินทร์",
+    "title_th": "นางสาว",
+    "position": "ปฏิบัติการ",
+    "department": "ภาควิชาวิศวกรรมชลประทาน",
+    "email": "fengnan@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมชลประทาน/นางสาวณัฐธยาน์ นามอินทร์.jpg"
+  },
+  {
+    "id": "PER-051",
+    "name": "นายธีรศักดิ์ ซ้ายอ่อน",
+    "clean_name": "ธีรศักดิ์ ซ้ายอ่อน",
+    "title_th": "นาย",
+    "position": "ปฏิบัติการ",
+    "department": "ภาควิชาวิศวกรรมชลประทาน",
+    "email": "fengtssa@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมชลประทาน/นายธีรศักดิ์ ซ้ายอ่อน.jpg"
+  },
+  {
+    "id": "PER-052",
+    "name": "นางสาวสุภาพร  พัฒนแก้ว",
+    "clean_name": "สุภาพร พัฒนแก้ว",
+    "title_th": "นางสาว",
+    "position": "ปฏิบัติงาน",
+    "department": "ภาควิชาวิศวกรรมชลประทาน",
+    "email": "supaporn.patta@ku.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมชลประทาน/นางสาวสุภาพร  พัฒนแก้ว.jpg"
+  },
+  {
+    "id": "PER-053",
+    "name": "นายธนกร ทองดอนใหม่",
+    "clean_name": "ธนกร ทองดอนใหม่",
+    "title_th": "นาย",
+    "position": "ปฏิบัติงาน",
+    "department": "ภาควิชาวิศวกรรมชลประทาน",
+    "email": "fengtot@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมชลประทาน/นายธนกร ทองดอนใหม่.jpg"
+  },
+  {
+    "id": "PER-054",
+    "name": "นายชรัตน์ แก่นประกอบ",
+    "clean_name": "ชรัตน์ แก่นประกอบ",
+    "title_th": "นาย",
+    "position": "-",
+    "department": "ภาควิชาวิศวกรรมชลประทาน",
+    "email": "fengcuk@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมชลประทาน/นายชรัตน์ แก่นประกอบ.jpg"
+  },
+  {
+    "id": "PER-055",
+    "name": "นางสาววนิดา สระทองพลอย",
+    "clean_name": "วนิดา สระทองพลอย",
+    "title_th": "นางสาว",
+    "position": "ดูแลอาคารและสถานที่",
+    "department": "ภาควิชาวิศวกรรมชลประทาน",
+    "email": "ไม่พบอีเมล",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมชลประทาน/นางสาววนิดา สระทองพลอย.jpg"
+  },
+  {
+    "id": "PER-056",
+    "name": "นายธนกร  แก่นประกอบ",
+    "clean_name": "ธนกร แก่นประกอบ",
+    "title_th": "นาย",
+    "position": "-",
+    "department": "ภาควิชาวิศวกรรมชลประทาน",
+    "email": "ไม่พบอีเมล",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมชลประทาน/นายธนกร  แก่นประกอบ.jpg"
+  },
+  {
+    "id": "PER-057",
+    "name": "นายธงชัย แสงจันทร์",
+    "clean_name": "ธงชัย แสงจันทร์",
+    "title_th": "นาย",
+    "position": "พนักงานห้องปฏิบัติการ",
+    "department": "ภาควิชาวิศวกรรมอาหาร",
+    "email": "fengths@ku.ac.th",
+    "image_url": ""
+  },
+  {
+    "id": "PER-058",
+    "name": "รศ.ดร.กอบศักดิ์ กาญจนาพงศ์กุล",
+    "clean_name": "กอบศักดิ์ กาญจนาพงศ์กุล",
+    "title_th": "รศ.ดร.",
+    "position": "หัวหน้าภาค",
+    "department": "ภาควิชาวิศวกรรมอาหาร",
+    "email": "fengkska@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมอาหาร/รศ.ดร.กอบศักดิ์ กาญจนาพงศ์กุล.jpg"
+  },
+  {
+    "id": "PER-059",
+    "name": "นายชวลิต แซ่จัน",
+    "clean_name": "ชวลิต แซ่จัน",
+    "title_th": "นาย",
+    "position": "พนักงานทั่วไป",
+    "department": "ภาควิชาวิศวกรรมอาหาร",
+    "email": "fengcls@ku.ac.th",
+    "image_url": ""
+  },
+  {
+    "id": "PER-060",
+    "name": "ผศ.ดร.วงศ์ผกา วงศ์รัตน์",
+    "clean_name": "วงศ์ผกา วงศ์รัตน์",
+    "title_th": "ผศ.ดร.",
+    "position": "ประธานหลักสูตร ป.โท",
+    "department": "ภาควิชาวิศวกรรมอาหาร",
+    "email": "fengwkw@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมอาหาร/ผศ.ดร.วงศ์ผกา วงศ์รัตน์.jpg"
+  },
+  {
+    "id": "PER-061",
+    "name": "อ.ดร.กฤษณันท์ มะลิทอง",
+    "clean_name": "ดร.กฤษณันท์ มะลิทอง",
+    "title_th": "อ.",
+    "position": "รองหัวหน้าภาค",
+    "department": "ภาควิชาวิศวกรรมอาหาร",
+    "email": "fengknma@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมอาหาร/อ.ดร.กฤษณันท์ มะลิทอง.jpg"
+  },
+  {
+    "id": "PER-062",
+    "name": "รศ.ดร.รณฤทธิ์ ฤทธิรณ",
+    "clean_name": "รณฤทธิ์ ฤทธิรณ",
+    "title_th": "รศ.ดร.",
+    "position": "ประธานหลักสูตร ป.เอก",
+    "department": "ภาควิชาวิศวกรรมอาหาร",
+    "email": "fengror@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมอาหาร/รศ.ดร.รณฤทธิ์ ฤทธิรณ.jpg"
+  },
+  {
+    "id": "PER-063",
+    "name": "รศ.อมรเดช พุทธิพิพัฒน์ขจร",
+    "clean_name": "อมรเดช พุทธิพิพัฒน์ขจร",
+    "title_th": "รศ.",
+    "position": "ประธานหลักสูตร ป.ตรี",
+    "department": "ภาควิชาวิศวกรรมอาหาร",
+    "email": "fengadp@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมอาหาร/รศ.อมรเดช พุทธิพิพัฒน์ขจร.jpg"
+  },
+  {
+    "id": "PER-064",
+    "name": "รศ.ดร.สุกัญญา วิชชุกิจ",
+    "clean_name": "สุกัญญา วิชชุกิจ",
+    "title_th": "รศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมอาหาร",
+    "email": "fengskw@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมอาหาร/รศ.ดร.สุกัญญา วิชชุกิจ.jpg"
+  },
+  {
+    "id": "PER-065",
+    "name": "ผศ.ดร.อังคณา อ.สุวรรณ",
+    "clean_name": "อังคณา อ.สุวรรณ",
+    "title_th": "ผศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมอาหาร",
+    "email": "fengaao@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมอาหาร/ผศ.ดร.อังคณา อ.สุวรรณ.jpg"
+  },
+  {
+    "id": "PER-066",
+    "name": "ผศ.เมลดา เฟื่องฟู",
+    "clean_name": "เมลดา เฟื่องฟู",
+    "title_th": "ผศ.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมอาหาร",
+    "email": "fengmdf@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมอาหาร/ผศ.เมลดา เฟื่องฟู.jpg"
+  },
+  {
+    "id": "PER-067",
+    "name": "อ.ธิติพงศ์ โพธิสุทธิ์",
+    "clean_name": "ธิติพงศ์ โพธิสุทธิ์",
+    "title_th": "อ.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมอาหาร",
+    "email": "fengttp@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมอาหาร/อ.ธิติพงศ์ โพธิสุทธิ์.jpg"
+  },
+  {
+    "id": "PER-068",
+    "name": "อ.ดร.สยุมพร รัตนพันธ์",
+    "clean_name": "ดร.สยุมพร รัตนพันธ์",
+    "title_th": "อ.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมอาหาร",
+    "email": "fengsypr@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมอาหาร/อ.ดร.สยุมพร รัตนพันธ์.jpg"
+  },
+  {
+    "id": "PER-069",
+    "name": "อ.ดร.กรณ์อัฐชญา วีณุตตรานนท์",
+    "clean_name": "ดร.กรณ์อัฐชญา วีณุตตรานนท์",
+    "title_th": "อ.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมอาหาร",
+    "email": "fengkav@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมอาหาร/อ.ดร.กรณ์อัฐชญา วีณุตตรานนท์.jpg"
+  },
+  {
+    "id": "PER-070",
+    "name": "นางสาววันวิสาข์ ใจตรง",
+    "clean_name": "วันวิสาข์ ใจตรง",
+    "title_th": "นางสาว",
+    "position": "เจ้าหน้าที่บริหารงานทั่วไป ชำนาญการ",
+    "department": "ภาควิชาวิศวกรรมอาหาร",
+    "email": "fengwsj@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมอาหาร/นางสาววันวิสาข์ ใจตรง.jpg"
+  },
+  {
+    "id": "PER-071",
+    "name": "นางสาววริศรา สมตน",
+    "clean_name": "วริศรา สมตน",
+    "title_th": "นางสาว",
+    "position": "เจ้าหน้าที่บริหารงานทั่วไป",
+    "department": "ภาควิชาวิศวกรรมอาหาร",
+    "email": "fengwaso@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมอาหาร/นางสาววริศรา สมตน.jpg"
+  },
+  {
+    "id": "PER-072",
+    "name": "นางสาวคนิจฐา บุญเฟื่อง",
+    "clean_name": "คนิจฐา บุญเฟื่อง",
+    "title_th": "นางสาว",
+    "position": "นักวิทยาศาสตร์ ชำนาญการ",
+    "department": "ภาควิชาวิศวกรรมอาหาร",
+    "email": "fengktb@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมอาหาร/นางสาวคนิจฐา บุญเฟื่อง.jpg"
+  },
+  {
+    "id": "PER-073",
+    "name": "นายวุฒิชัย พูลลาภวิวัฒน์",
+    "clean_name": "วุฒิชัย พูลลาภวิวัฒน์",
+    "title_th": "นาย",
+    "position": "ช่างเทคนิค",
+    "department": "ภาควิชาวิศวกรรมอาหาร",
+    "email": "fengwcpw@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมอาหาร/นายวุฒิชัย พูลลาภวิวัฒน์.jpg"
+  },
+  {
+    "id": "PER-074",
+    "name": "นายภูมิพัฒน์ โทจันทร์",
+    "clean_name": "ภูมิพัฒน์ โทจันทร์",
+    "title_th": "นาย",
+    "position": "วิศวกรไฟฟ้า",
+    "department": "ภาควิชาวิศวกรรมอาหาร",
+    "email": "fengppt@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมอาหาร/นายภูมิพัฒน์ โทจันทร์.jpg"
+  },
+  {
+    "id": "PER-075",
+    "name": "นางอุบล พรมชาติ",
+    "clean_name": "อุบล พรมชาติ",
+    "title_th": "นาง",
+    "position": "พนักงานสถานที่",
+    "department": "ภาควิชาวิศวกรรมอาหาร",
+    "email": "fengobp@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมอาหาร/นางอุบล พรมชาติ.jpg"
+  },
+  {
+    "id": "PER-076",
+    "name": "รศ.ดร.ปนัดดา กสิกิจวิวัฒน์",
+    "clean_name": "ปนัดดา กสิกิจวิวัฒน์",
+    "title_th": "รศ.ดร.",
+    "position": "หัวหน้าภาค",
+    "department": "ภาควิชาวิศวกรรมโยธา",
+    "email": "fengpak@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมโยธา/รศ.ดร.ปนัดดา กสิกิจวิวัฒน์.jpg"
+  },
+  {
+    "id": "PER-077",
+    "name": "ผศ.ดร.การันต์ คล้ายฉ่ำ",
+    "clean_name": "การันต์ คล้ายฉ่ำ",
+    "title_th": "ผศ.ดร.",
+    "position": "รองหัวหน้าภาค และประธานหลักสูตรวิศวกรรมมหาบัณฑิต สาขาวิชาวิศวกรรมโยธา",
+    "department": "ภาควิชาวิศวกรรมโยธา",
+    "email": "karun.kl@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมโยธา/ผศ.ดร.การันต์ คล้ายฉ่ำ.jpg"
+  },
+  {
+    "id": "PER-078",
+    "name": "ผศ.ชิษณุพงศ์ สุธัมมะ",
+    "clean_name": "ชิษณุพงศ์ สุธัมมะ",
+    "title_th": "ผศ.",
+    "position": "รองหัวหน้าภาค",
+    "department": "ภาควิชาวิศวกรรมโยธา",
+    "email": "fengcpsu@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมโยธา/ผศ.ชิษณุพงศ์ สุธัมมะ.jpg"
+  },
+  {
+    "id": "PER-079",
+    "name": "รศ.ดร.วรากร ไม้เรียง",
+    "clean_name": "วรากร ไม้เรียง",
+    "title_th": "รศ.ดร.",
+    "position": "ผู้ทรงคุณวุฒิพิเศษ",
+    "department": "ภาควิชาวิศวกรรมโยธา",
+    "email": "fengwkm@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมโยธา/รศ.ดร.วรากร ไม้เรียง.jpg"
+  },
+  {
+    "id": "PER-080",
+    "name": "ผศ.ดร.เพ็ญพิชชา สนิทอินทร์",
+    "clean_name": "เพ็ญพิชชา สนิทอินทร์",
+    "title_th": "ผศ.ดร.",
+    "position": "ประธานหลักสูตรวิศวกรรมศาสตรดุษฎีบัณฑิต สาขาวิชาวิศวกรรมโยธา",
+    "department": "ภาควิชาวิศวกรรมโยธา",
+    "email": "fengppcs@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมโยธา/ผศ.ดร.เพ็ญพิชชา สนิทอินทร์.jpg"
+  },
+  {
+    "id": "PER-081",
+    "name": "รศ.ดร.นันทวัฒน์ ขมหวาน",
+    "clean_name": "นันทวัฒน์ ขมหวาน",
+    "title_th": "รศ.ดร.",
+    "position": "ประธานหลักสูตรวิศวกรรมศาสตรบัณฑิตสาขาวิศวกรรมโยธา-โครงสร้างพื้นฐาน",
+    "department": "ภาควิชาวิศวกรรมโยธา",
+    "email": "fengnwk@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมโยธา/รศ.ดร.นันทวัฒน์ ขมหวาน.jpg"
+  },
+  {
+    "id": "PER-082",
+    "name": "ผศ.ดร.สมชาย ประยงค์พันธ์",
+    "clean_name": "สมชาย ประยงค์พันธ์",
+    "title_th": "ผศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมโยธา",
+    "email": "fengscpp@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมโยธา/ผศ.ดร.สมชาย ประยงค์พันธ์.jpg"
+  },
+  {
+    "id": "PER-083",
+    "name": "ผศ.พงษ์ภวัลย์ ภัทรประภานันท์",
+    "clean_name": "พงษ์ภวัลย์ ภัทรประภานันท์",
+    "title_th": "ผศ.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมโยธา",
+    "email": "fengpwp@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมโยธา/ผศ.พงษ์ภวัลย์ ภัทรประภานันท์.jpg"
+  },
+  {
+    "id": "PER-084",
+    "name": "รศ.ดร.กมล อมรฟ้า",
+    "clean_name": "กมล อมรฟ้า",
+    "title_th": "รศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมโยธา",
+    "email": "fengkma@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมโยธา/รศ.ดร.กมล อมรฟ้า.jpg"
+  },
+  {
+    "id": "PER-085",
+    "name": "รศ.บรรพต กุลสุวรรณ",
+    "clean_name": "บรรพต กุลสุวรรณ",
+    "title_th": "รศ.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมโยธา",
+    "email": "fengbpk@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมโยธา/รศ.บรรพต กุลสุวรรณ.jpg"
+  },
+  {
+    "id": "PER-086",
+    "name": "รศ.ดร.สิรัญญา ทองชาติ",
+    "clean_name": "สิรัญญา ทองชาติ",
+    "title_th": "รศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมโยธา",
+    "email": "fengsytc@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมโยธา/รศ.ดร.สิรัญญา ทองชาติ.jpg"
+  },
+  {
+    "id": "PER-087",
+    "name": "รศ.ดร.นิภาวรรณ กุลสุวรรณ",
+    "clean_name": "นิภาวรรณ กุลสุวรรณ",
+    "title_th": "รศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมโยธา",
+    "email": "fengpnpw@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมโยธา/รศ.ดร.นิภาวรรณ กุลสุวรรณ.jpg"
+  },
+  {
+    "id": "PER-088",
+    "name": "รศ.กฤษณะ จันทรโชติ",
+    "clean_name": "กฤษณะ จันทรโชติ",
+    "title_th": "รศ.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมโยธา",
+    "email": "fengknj@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมโยธา/รศ.กฤษณะ จันทรโชติ.jpg"
+  },
+  {
+    "id": "PER-089",
+    "name": "ดร.ปาณิศา แสงแก้ว",
+    "clean_name": "ปาณิศา แสงแก้ว",
+    "title_th": "ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมโยธา",
+    "email": "fengpis@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมโยธา/ดร.ปาณิศา แสงแก้ว.jpg"
+  },
+  {
+    "id": "PER-090",
+    "name": "นายอนุพนธ์ แต่สกุล",
+    "clean_name": "อนุพนธ์ แต่สกุล",
+    "title_th": "นาย",
+    "position": "ปฏิบัติการ",
+    "department": "ภาควิชาวิศวกรรมโยธา",
+    "email": "anupon.t@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมโยธา/นายอนุพนธ์ แต่สกุล.jpg"
+  },
+  {
+    "id": "PER-091",
+    "name": "นายพนาฤทธิ์ จันทร์ทอง",
+    "clean_name": "พนาฤทธิ์ จันทร์ทอง",
+    "title_th": "นาย",
+    "position": "ปฏิบัติการ",
+    "department": "ภาควิชาวิศวกรรมโยธา",
+    "email": "fengprch@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมโยธา/นายพนาฤทธิ์ จันทร์ทอง.jpg"
+  },
+  {
+    "id": "PER-092",
+    "name": "นางสาวกัลยรัตน์ เอกจีน",
+    "clean_name": "กัลยรัตน์ เอกจีน",
+    "title_th": "นางสาว",
+    "position": "ปฏิบัติการ",
+    "department": "ภาควิชาวิศวกรรมโยธา",
+    "email": "kanyarat.eakj@ku.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมโยธา/นางสาวกัลยรัตน์ เอกจีน.jpg"
+  },
+  {
+    "id": "PER-093",
+    "name": "นางสาวศุทธศรี นราลักษณ์",
+    "clean_name": "ศุทธศรี นราลักษณ์",
+    "title_th": "นางสาว",
+    "position": "ปฏิบัติการ",
+    "department": "ภาควิชาวิศวกรรมโยธา",
+    "email": "suttasri.na@ku.th",
+    "image_url": ""
+  },
+  {
+    "id": "PER-094",
+    "name": "นางสาวสุปราณี ปุยะพันธ์",
+    "clean_name": "สุปราณี ปุยะพันธ์",
+    "title_th": "นางสาว",
+    "position": "ชำนาญการ",
+    "department": "ภาควิชาวิศวกรรมโยธา",
+    "email": "fengspn@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมโยธา/นางสาวสุปราณี ปุยะพันธ์.jpg"
+  },
+  {
+    "id": "PER-095",
+    "name": "นางสาวฐิราภร สมรรถนาวิน",
+    "clean_name": "ฐิราภร สมรรถนาวิน",
+    "title_th": "นางสาว",
+    "position": "ชำนาญการ",
+    "department": "ภาควิชาวิศวกรรมโยธา",
+    "email": "fengsmr@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมโยธา/นางสาวฐิราภร สมรรถนาวิน.jpg"
+  },
+  {
+    "id": "PER-096",
+    "name": "นางสาวศรีวรรณ น่วมปฐม",
+    "clean_name": "ศรีวรรณ น่วมปฐม",
+    "title_th": "นางสาว",
+    "position": "ปฏิบัติการ",
+    "department": "ภาควิชาวิศวกรรมโยธา",
+    "email": "fengswn@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมโยธา/นางสาวศรีวรรณ น่วมปฐม.jpg"
+  },
+  {
+    "id": "PER-097",
+    "name": "นางสาวจิราวรรณ กลับวิหค",
+    "clean_name": "จิราวรรณ กลับวิหค",
+    "title_th": "นางสาว",
+    "position": "ปฏิบัติการ",
+    "department": "ภาควิชาวิศวกรรมโยธา",
+    "email": "fengcwki@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมโยธา/นางสาวจิราวรรณ กลับวิหค.jpg"
+  },
+  {
+    "id": "PER-098",
+    "name": "นางสาววิลัย ปู่น้อย",
+    "clean_name": "วิลัย ปู่น้อย",
+    "title_th": "นางสาว",
+    "position": "ปฏิบัติงาน",
+    "department": "ภาควิชาวิศวกรรมโยธา",
+    "email": "fengwlp@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมโยธา/นางสาววิลัย ปู่น้อย.jpg"
+  },
+  {
+    "id": "PER-099",
+    "name": "ผศ.ดร.จีรชัย สุภาสุทธากูล",
+    "clean_name": "จีรชัย สุภาสุทธากูล",
+    "title_th": "ผศ.ดร.",
+    "position": "หัวหน้าภาค",
+    "department": "ภาควิชาวิศวกรรมเครื่องกล",
+    "email": "fengjcs@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมเครื่องกล/ผศ.ดร.จีรชัย สุภาสุทธากูล.jpg"
+  },
+  {
+    "id": "PER-100",
+    "name": "ผศ.ดร.ณัฐดนัย ตัณฑวิรุฬห์",
+    "clean_name": "ณัฐดนัย ตัณฑวิรุฬห์",
+    "title_th": "ผศ.ดร.",
+    "position": "และประธานหลักสูตร วศ.ม. (วิศวกรรมเครื่องกล-พลังงาน)",
+    "department": "ภาควิชาวิศวกรรมเครื่องกล",
+    "email": "fengndn@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมเครื่องกล/ผศ.ดร.ณัฐดนัย ตัณฑวิรุฬห์.jpg"
+  },
+  {
+    "id": "PER-101",
+    "name": "ผศ.สวัสดิ์ ภูมิสวัสดิ์",
+    "clean_name": "สวัสดิ์ ภูมิสวัสดิ์",
+    "title_th": "ผศ.",
+    "position": "และประธานโครงการหลักสูตรวิศวกรรมเครื่องกล (ภาคพิเศษ)",
+    "department": "ภาควิชาวิศวกรรมเครื่องกล",
+    "email": "fengswp@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมเครื่องกล/ผศ.สวัสดิ์ ภูมิสวัสดิ์.jpg"
+  },
+  {
+    "id": "PER-102",
+    "name": "ผศ.ดร.ชนมน จันทนา",
+    "clean_name": "ชนมน จันทนา",
+    "title_th": "ผศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมเครื่องกล",
+    "email": "fengcnm@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมเครื่องกล/ผศ.ดร.ชนมน จันทนา.jpg"
+  },
+  {
+    "id": "PER-103",
+    "name": "ผศ.ดร.ธนา ชีพสมทรง",
+    "clean_name": "ธนา ชีพสมทรง",
+    "title_th": "ผศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมเครื่องกล",
+    "email": "fengtnc@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมเครื่องกล/ผศ.ดร.ธนา ชีพสมทรง.jpg"
+  },
+  {
+    "id": "PER-104",
+    "name": "ผศ.ดร.หทัยเทพ วงศ์สุวรรณ",
+    "clean_name": "หทัยเทพ วงศ์สุวรรณ",
+    "title_th": "ผศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมเครื่องกล",
+    "email": "fenghtw@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมเครื่องกล/ผศ.ดร.หทัยเทพ วงศ์สุวรรณ.jpg"
+  },
+  {
+    "id": "PER-105",
+    "name": "รศ.ดร.เบญญา กสานติกุล",
+    "clean_name": "เบญญา กสานติกุล",
+    "title_th": "รศ.ดร.",
+    "position": "ประธานหลักสูตร วศ.บ. (วิศวกรรมเครื่องกล)",
+    "department": "ภาควิชาวิศวกรรมเครื่องกล",
+    "email": "fengbyk@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมเครื่องกล/รศ.ดร.เบญญา กสานติกุล.jpg"
+  },
+  {
+    "id": "PER-106",
+    "name": "รศ.วิจิตรา ภูมิสวัสดิ์",
+    "clean_name": "วิจิตรา ภูมิสวัสดิ์",
+    "title_th": "รศ.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมเครื่องกล",
+    "email": "fengwth@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมเครื่องกล/รศ.วิจิตรา ภูมิสวัสดิ์.jpg"
+  },
+  {
+    "id": "PER-107",
+    "name": "รศ.กันต์ธกรณ์ เขาทอง",
+    "clean_name": "กันต์ธกรณ์ เขาทอง",
+    "title_th": "รศ.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมเครื่องกล",
+    "email": "fengkkk@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมเครื่องกล/รศ.กันต์ธกรณ์ เขาทอง.jpg"
+  },
+  {
+    "id": "PER-108",
+    "name": "ผศ.ดร.วัชมา โพธิ์ทอง",
+    "clean_name": "วัชมา โพธิ์ทอง",
+    "title_th": "ผศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมเครื่องกล",
+    "email": "fengwmp@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมเครื่องกล/ผศ.ดร.วัชมา โพธิ์ทอง.jpg"
+  },
+  {
+    "id": "PER-109",
+    "name": "ผศ.วรพจน์ ศตเดชากุล",
+    "clean_name": "วรพจน์ ศตเดชากุล",
+    "title_th": "ผศ.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมเครื่องกล",
+    "email": "fengwpsk@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมเครื่องกล/ผศ.วรพจน์ ศตเดชากุล.jpg"
+  },
+  {
+    "id": "PER-110",
+    "name": "รศ.ดร.ปรีดา ปรากฏมาก",
+    "clean_name": "ปรีดา ปรากฏมาก",
+    "title_th": "รศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมเครื่องกล",
+    "email": "fengpdpr@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมเครื่องกล/รศ.ดร.ปรีดา ปรากฏมาก.jpg"
+  },
+  {
+    "id": "PER-111",
+    "name": "ผศ.ดร.คมกฤษณ์ ชัยโย",
+    "clean_name": "คมกฤษณ์ ชัยโย",
+    "title_th": "ผศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมเครื่องกล",
+    "email": "fengkrc@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมเครื่องกล/ผศ.ดร.คมกฤษณ์ ชัยโย.jpg"
+  },
+  {
+    "id": "PER-112",
+    "name": "อ.ดร.ณัฐพงษ์ สุขสบาย",
+    "clean_name": "ดร.ณัฐพงษ์ สุขสบาย",
+    "title_th": "อ.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมเครื่องกล",
+    "email": "nattapong.s@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมเครื่องกล/อ.ดร.ณัฐพงษ์ สุขสบาย.jpg"
+  },
+  {
+    "id": "PER-113",
+    "name": "นายเอนก ไกรรอด",
+    "clean_name": "เอนก ไกรรอด",
+    "title_th": "นาย",
+    "position": "นักวิทยาศาสตร์",
+    "department": "ภาควิชาวิศวกรรมเครื่องกล",
+    "email": "fengankr@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมเครื่องกล/นายเอนก ไกรรอด.jpg"
+  },
+  {
+    "id": "PER-114",
+    "name": "นายมานิตย์ รุ่งสว่าง",
+    "clean_name": "มานิตย์ รุ่งสว่าง",
+    "title_th": "นาย",
+    "position": "ช่างเทคนิค",
+    "department": "ภาควิชาวิศวกรรมเครื่องกล",
+    "email": "fengmnr@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมเครื่องกล/นายมานิตย์ รุ่งสว่าง.jpg"
+  },
+  {
+    "id": "PER-115",
+    "name": "นางสมบูรณ์   พรมชาติ",
+    "clean_name": "สมบูรณ์ พรมชาติ",
+    "title_th": "นาง",
+    "position": "เจ้าหน้าที่บริหารงานทั่วไป",
+    "department": "ภาควิชาวิศวกรรมเครื่องกล",
+    "email": "fengsbc@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมเครื่องกล/นางสมบูรณ์   พรมชาติ.jpg"
+  },
+  {
+    "id": "PER-116",
+    "name": "นางสาววราพร คล้ายพลอย",
+    "clean_name": "วราพร คล้ายพลอย",
+    "title_th": "นางสาว",
+    "position": "เจ้าหน้าที่บริหารงานทั่วไป",
+    "department": "ภาควิชาวิศวกรรมเครื่องกล",
+    "email": "fengwpkl@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมเครื่องกล/นางสาววราพร คล้ายพลอย.jpg"
+  },
+  {
+    "id": "PER-117",
+    "name": "นางรัชชานนท์ ชูราศรี",
+    "clean_name": "รัชชานนท์ ชูราศรี",
+    "title_th": "นาง",
+    "position": "พนักงานสถานที่",
+    "department": "ภาควิชาวิศวกรรมเครื่องกล",
+    "email": "fengrnc@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมเครื่องกล/นางรัชชานนท์ ชูราศรี.jpg"
+  },
+  {
+    "id": "PER-118",
+    "name": "นายสุทิน พรมชาติ",
+    "clean_name": "สุทิน พรมชาติ",
+    "title_th": "นาย",
+    "position": "ช่างเทคนิค",
+    "department": "ภาควิชาวิศวกรรมเครื่องกล",
+    "email": "fengstpc@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมเครื่องกล/นายสุทิน พรมชาติ.jpg"
+  },
+  {
+    "id": "PER-119",
+    "name": "นางสาวสุนิสา จ้อยร่อย",
+    "clean_name": "สุนิสา จ้อยร่อย",
+    "title_th": "นางสาว",
+    "position": "เจ้าหน้าที่บริหารงานทั่วไป",
+    "department": "ภาควิชาวิศวกรรมเครื่องกล",
+    "email": "fengssj@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมเครื่องกล/นางสาวสุนิสา จ้อยร่อย.jpg"
+  },
+  {
+    "id": "PER-120",
+    "name": "นายศักดิ์สิทธิ์ ช้างเยาว์",
+    "clean_name": "ศักดิ์สิทธิ์ ช้างเยาว์",
+    "title_th": "นาย",
+    "position": "ช่างเทคนิค",
+    "department": "ภาควิชาวิศวกรรมเครื่องกล",
+    "email": "fengssch@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมเครื่องกล/นายศักดิ์สิทธิ์ ช้างเยาว์.jpg"
+  },
+  {
+    "id": "PER-121",
+    "name": "นายธงชัย แสงจันทร์",
+    "clean_name": "ธงชัย แสงจันทร์",
+    "title_th": "นาย",
+    "position": "พนักงานห้องปฏิบัติการ",
+    "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+    "email": "fengths@ku.ac.th",
+    "image_url": ""
+  },
+  {
+    "id": "PER-122",
+    "name": "ผศ.ดร.อธิวัฒน์ บุญมี",
+    "clean_name": "อธิวัฒน์ บุญมี",
+    "title_th": "ผศ.ดร.",
+    "position": "หัวหน้าภาค",
+    "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+    "email": "fengawbo@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมอุตสาหการ/ผศ.ดร.อธิวัฒน์ บุญมี.jpg"
+  },
+  {
+    "id": "PER-123",
+    "name": "นายชวลิต แซ่จัน",
+    "clean_name": "ชวลิต แซ่จัน",
+    "title_th": "นาย",
+    "position": "พนักงานทั่วไป",
+    "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+    "email": "fengcls@ku.ac.th",
+    "image_url": ""
+  },
+  {
+    "id": "PER-124",
+    "name": "รศ.ดร.พีรยุทธ์ ชาญเศรษฐิกุล",
+    "clean_name": "พีรยุทธ์ ชาญเศรษฐิกุล",
+    "title_th": "รศ.ดร.",
+    "position": "ผู้ทรงคุณวุฒิพิเศษ",
+    "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+    "email": "@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมอุตสาหการ/รศ.ดร.พีรยุทธ์ ชาญเศรษฐิกุล.jpg"
+  },
+  {
+    "id": "PER-125",
+    "name": "ผศ.ดร.จิรเกียรติ ทรายทอง",
+    "clean_name": "จิรเกียรติ ทรายทอง",
+    "title_th": "ผศ.ดร.",
+    "position": "รองหัวหน้าภาค",
+    "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+    "email": "chirakiat.s@ku.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมอุตสาหการ/ผศ.ดร.จิรเกียรติ ทรายทอง.jpg"
+  },
+  {
+    "id": "PER-126",
+    "name": "ผศ.ปริญญา พัฒนวสันต์พร",
+    "clean_name": "ปริญญา พัฒนวสันต์พร",
+    "title_th": "ผศ.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+    "email": "fengpypa@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมอุตสาหการ/ผศ.ปริญญา พัฒนวสันต์พร.jpg"
+  },
+  {
+    "id": "PER-127",
+    "name": "ผศ.ดร.ชัยมงคล ลิ้มเพียรชอบ",
+    "clean_name": "ชัยมงคล ลิ้มเพียรชอบ",
+    "title_th": "ผศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+    "email": "fengckl@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมอุตสาหการ/ผศ.ดร.ชัยมงคล ลิ้มเพียรชอบ.jpg"
+  },
+  {
+    "id": "PER-128",
+    "name": "ผศ.ดร.อณจ ชัยมณี",
+    "clean_name": "อณจ ชัยมณี",
+    "title_th": "ผศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+    "email": "fenganc@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมอุตสาหการ/ผศ.ดร.อณจ ชัยมณี.jpg"
+  },
+  {
+    "id": "PER-129",
+    "name": "ผศ.ดร.ภัทรพงษ์ ภาคภูมิ",
+    "clean_name": "ภัทรพงษ์ ภาคภูมิ",
+    "title_th": "ผศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+    "email": "fengpppa@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมอุตสาหการ/ผศ.ดร.ภัทรพงษ์ ภาคภูมิ.jpg"
+  },
+  {
+    "id": "PER-130",
+    "name": "รศ.ดร.ศศรส ใจจิตร์",
+    "clean_name": "ศศรส ใจจิตร์",
+    "title_th": "รศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+    "email": "sasarose.j@ku.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมอุตสาหการ/รศ.ดร.ศศรส ใจจิตร์.jpg"
+  },
+  {
+    "id": "PER-131",
+    "name": "อ.ดร.ปริญญา กวีกิจบัณฑิต",
+    "clean_name": "ดร.ปริญญา กวีกิจบัณฑิต",
+    "title_th": "อ.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+    "email": "fengpnka@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมอุตสาหการ/อ.ดร.ปริญญา กวีกิจบัณฑิต.jpg"
+  },
+  {
+    "id": "PER-132",
+    "name": "ผศ.ดร.วรญา เนื่องมัจฉา",
+    "clean_name": "วรญา เนื่องมัจฉา",
+    "title_th": "ผศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+    "email": "fengwyn@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมอุตสาหการ/ผศ.ดร.วรญา เนื่องมัจฉา.jpg"
+  },
+  {
+    "id": "PER-133",
+    "name": "นางสาวกรชนก กระจ่างเย่า",
+    "clean_name": "กรชนก กระจ่างเย่า",
+    "title_th": "นางสาว",
+    "position": "ปฏิบัติการ",
+    "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+    "email": "fengknkr@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมอุตสาหการ/นางสาวกรชนก กระจ่างเย่า.jpg"
+  },
+  {
+    "id": "PER-134",
+    "name": "นางสาววิลาสินี แจ้งกระจ่าง",
+    "clean_name": "วิลาสินี แจ้งกระจ่าง",
+    "title_th": "นางสาว",
+    "position": "ปฏิบัติการ",
+    "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+    "email": "wilasinee.jang@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมอุตสาหการ/นางสาววิลาสินี แจ้งกระจ่าง.jpg"
+  },
+  {
+    "id": "PER-135",
+    "name": "นางสาวภัคจิรา สุขเกตุ",
+    "clean_name": "ภัคจิรา สุขเกตุ",
+    "title_th": "นางสาว",
+    "position": "ชำนาญการ",
+    "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+    "email": "fengpjr@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมอุตสาหการ/นางสาวภัคจิรา สุขเกตุ.jpg"
+  },
+  {
+    "id": "PER-136",
+    "name": "นางสาวอัธยา พลายภู่",
+    "clean_name": "อัธยา พลายภู่",
+    "title_th": "นางสาว",
+    "position": "ปฏิบัติการ",
+    "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+    "email": "fengayp@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมอุตสาหการ/นางสาวอัธยา พลายภู่.jpg"
+  },
+  {
+    "id": "PER-137",
+    "name": "นายแสน เทพมาลาพันธ์ศิริ",
+    "clean_name": "แสน เทพมาลาพันธ์ศิริ",
+    "title_th": "นาย",
+    "position": "ปฏิบัติงาน",
+    "department": "ภาควิชาวิศวกรรมอุตสาหการ",
+    "email": "san.t@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมอุตสาหการ/นายแสน เทพมาลาพันธ์ศิริ.jpg"
+  },
+  {
+    "id": "PER-138",
+    "name": "นายธงชัย แสงจันทร์",
+    "clean_name": "ธงชัย แสงจันทร์",
+    "title_th": "นาย",
+    "position": "พนักงานห้องปฏิบัติการ",
+    "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+    "email": "fengths@ku.ac.th",
+    "image_url": ""
+  },
+  {
+    "id": "PER-139",
+    "name": "ผศ.ดร.วรัญญา อรรถเสนา",
+    "clean_name": "วรัญญา อรรถเสนา",
+    "title_th": "ผศ.ดร.",
+    "position": "หัวหน้าภาควิชา",
+    "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+    "email": "fengvry@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมคอมพิวเตอร์/ผศ.ดร.วรัญญา อรรถเสนา.jpg"
+  },
+  {
+    "id": "PER-140",
+    "name": "นายชวลิต แซ่จัน",
+    "clean_name": "ชวลิต แซ่จัน",
+    "title_th": "นาย",
+    "position": "พนักงานทั่วไป",
+    "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+    "email": "fengcls@ku.ac.th",
+    "image_url": ""
+  },
+  {
+    "id": "PER-141",
+    "name": "ผศ.ดร.พิเชษฐ์ สืบสายพรหม",
+    "clean_name": "พิเชษฐ์ สืบสายพรหม",
+    "title_th": "ผศ.ดร.",
+    "position": "รองหัวหน้าภาควิชา",
+    "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+    "email": "fengpcsu@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมคอมพิวเตอร์/ผศ.ดร.พิเชษฐ์ สืบสายพรหม.jpg"
+  },
+  {
+    "id": "PER-142",
+    "name": "อ.ร้อยโทอนุมัติ อิงคนินันท์",
+    "clean_name": "ร้อยโทอนุมัติ อิงคนินันท์",
+    "title_th": "อ.",
+    "position": "ประธานโครงการหลักสูตร ป.ตรี",
+    "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+    "email": "fengame@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมคอมพิวเตอร์/อ.ร้อยโทอนุมัติ อิงคนินันท์.jpg"
+  },
+  {
+    "id": "PER-143",
+    "name": "ผศ.ดร.บุญรัตน์ เผดิมรอด",
+    "clean_name": "บุญรัตน์ เผดิมรอด",
+    "title_th": "ผศ.ดร.",
+    "position": "ประธานหลักสูตร ป.ตรี",
+    "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+    "email": "fengbyr@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมคอมพิวเตอร์/ผศ.ดร.บุญรัตน์ เผดิมรอด.jpg"
+  },
+  {
+    "id": "PER-144",
+    "name": "รศ.ดร.อมรฤทธิ์ พุทธิพิพัฒน์ขจร",
+    "clean_name": "อมรฤทธิ์ พุทธิพิพัฒน์ขจร",
+    "title_th": "รศ.ดร.",
+    "position": "ประธานหลักสูตร ป.โท",
+    "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+    "email": "fengarp@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมคอมพิวเตอร์/รศ.ดร.อมรฤทธิ์ พุทธิพิพัฒน์ขจร.jpg"
+  },
+  {
+    "id": "PER-145",
+    "name": "ผศ.ดร.จักกริช พฤษการ",
+    "clean_name": "จักกริช พฤษการ",
+    "title_th": "ผศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+    "email": "fengckp@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมคอมพิวเตอร์/ผศ.ดร.จักกริช พฤษการ.jpg"
+  },
+  {
+    "id": "PER-146",
+    "name": "รศ.ดร.ฐิติพงษ์ สถิรเมธีกุล",
+    "clean_name": "ฐิติพงษ์ สถิรเมธีกุล",
+    "title_th": "รศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+    "email": "thitipong.s@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมคอมพิวเตอร์/รศ.ดร.ฐิติพงษ์ สถิรเมธีกุล.jpg"
+  },
+  {
+    "id": "PER-147",
+    "name": "ผศ.ดร.เสกสรรค์ มธุลาภรังสรรค์",
+    "clean_name": "เสกสรรค์ มธุลาภรังสรรค์",
+    "title_th": "ผศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+    "email": "fengssmt@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมคอมพิวเตอร์/ผศ.ดร.เสกสรรค์ มธุลาภรังสรรค์.jpg"
+  },
+  {
+    "id": "PER-148",
+    "name": "ผศ.ดร.ดวงเพ็ญ เจตน์พิพัฒนพงษ์",
+    "clean_name": "ดวงเพ็ญ เจตน์พิพัฒนพงษ์",
+    "title_th": "ผศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+    "email": "fengdpj@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมคอมพิวเตอร์/ผศ.ดร.ดวงเพ็ญ เจตน์พิพัฒนพงษ์.jpg"
+  },
+  {
+    "id": "PER-149",
+    "name": "ผศ.ดร.ศิวดล เสถียรพัฒนากูล",
+    "clean_name": "ศิวดล เสถียรพัฒนากูล",
+    "title_th": "ผศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+    "email": "fengsds@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมคอมพิวเตอร์/ผศ.ดร.ศิวดล เสถียรพัฒนากูล.jpg"
+  },
+  {
+    "id": "PER-150",
+    "name": "ผศ.ดร.กายรัฐ เจริญราษฎร์",
+    "clean_name": "กายรัฐ เจริญราษฎร์",
+    "title_th": "ผศ.ดร.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+    "email": "fengkrj@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมคอมพิวเตอร์/ผศ.ดร.กายรัฐ เจริญราษฎร์.jpg"
+  },
+  {
+    "id": "PER-151",
+    "name": "อ.พฤษพล ตั้งสัจจะธรรม",
+    "clean_name": "พฤษพล ตั้งสัจจะธรรม",
+    "title_th": "อ.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+    "email": "pruetsaphon.t@ku.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมคอมพิวเตอร์/อ.พฤษพล ตั้งสัจจะธรรม.jpg"
+  },
+  {
+    "id": "PER-152",
+    "name": "อ.ธีรวัฒน์ หวายฤทธิ์",
+    "clean_name": "ธีรวัฒน์ หวายฤทธิ์",
+    "title_th": "อ.",
+    "position": "อาจารย์",
+    "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+    "email": "theerawat.wha@ku.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมคอมพิวเตอร์/อ.ธีรวัฒน์ หวายฤทธิ์.jpg"
+  },
+  {
+    "id": "PER-153",
+    "name": "นางสาวจุฑาทิพย์ ทรัพย์ฤทธา",
+    "clean_name": "จุฑาทิพย์ ทรัพย์ฤทธา",
+    "title_th": "นางสาว",
+    "position": "เจ้าหน้าที่บริหารงานทั่วไปชำนาญการ",
+    "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+    "email": "fengjts@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมคอมพิวเตอร์/นางสาวจุฑาทิพย์ ทรัพย์ฤทธา.jpg"
+  },
+  {
+    "id": "PER-154",
+    "name": "นางสาวมณฑิชา กิจสมสาตร์",
+    "clean_name": "มณฑิชา กิจสมสาตร์",
+    "title_th": "นางสาว",
+    "position": "เจ้าหน้าที่บริหารงานทั่วไปปฎิบัติการ",
+    "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+    "email": "fengmcn@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมคอมพิวเตอร์/นางสาวมณฑิชา กิจสมสาตร์.jpg"
+  },
+  {
+    "id": "PER-155",
+    "name": "นายเอกลักษณ์ เรืองศรี",
+    "clean_name": "เอกลักษณ์ เรืองศรี",
+    "title_th": "นาย",
+    "position": "วิศวกรชำนาญการ",
+    "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+    "email": "fengalr@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมคอมพิวเตอร์/นายเอกลักษณ์ เรืองศรี.jpg"
+  },
+  {
+    "id": "PER-156",
+    "name": "นายวรธนัท เกตุศิริ",
+    "clean_name": "วรธนัท เกตุศิริ",
+    "title_th": "นาย",
+    "position": "นักวิชาการคอมพิวเตอร์ปฏิบัติการ",
+    "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+    "email": "fengsok@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมคอมพิวเตอร์/นายวรธนัท เกตุศิริ.jpg"
+  },
+  {
+    "id": "PER-157",
+    "name": "นางสาวนนิฌา วงศ์รสกร",
+    "clean_name": "นนิฌา วงศ์รสกร",
+    "title_th": "นางสาว",
+    "position": "นักวิชาการคอมพิวเตอร์ปฏิบัติการ",
+    "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+    "email": "fengncw@ku.ac.th",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมคอมพิวเตอร์/นางสาวนนิฌา วงศ์รสกร.jpg"
+  },
+  {
+    "id": "PER-158",
+    "name": "นางสาวสุพัตรา ทองดอนแป้น",
+    "clean_name": "สุพัตรา ทองดอนแป้น",
+    "title_th": "นางสาว",
+    "position": "แม่บ้าน",
+    "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+    "email": "ไม่พบอีเมล",
+    "image_url": "/profile_images/ภาควิชาวิศวกรรมคอมพิวเตอร์/นางสาวสุพัตรา ทองดอนแป้น.jpg"
+  },
+  {
+    "id": "PER-159",
+    "name": "ผศ.บุญมา ป้านประดิษฐ์",
+    "clean_name": "บุญมา ป้านประดิษฐ์",
+    "title_th": "ผศ.",
+    "position": "ที่ปรึกษาศูนย์",
+    "department": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+    "email": "fengbop@ku.ac.th",
+    "image_url": "/profile_images/ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม/ผศ.บุญมา ป้านประดิษฐ์.jpg"
+  },
+  {
+    "id": "PER-160",
+    "name": "นายธงชัย แสงจันทร์",
+    "clean_name": "ธงชัย แสงจันทร์",
+    "title_th": "นาย",
+    "position": "พนักงานห้องปฏิบัติการ",
+    "department": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+    "email": "fengths@ku.ac.th",
+    "image_url": ""
+  },
+  {
+    "id": "PER-161",
+    "name": "นายอำพล ชุมเปีย",
+    "clean_name": "อำพล ชุมเปีย",
+    "title_th": "นาย",
+    "position": "ที่ปรึกษาศูนย์",
+    "department": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+    "email": "ไม่พบอีเมล",
+    "image_url": "/profile_images/ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม/นายอำพล ชุมเปีย.jpg"
+  },
+  {
+    "id": "PER-162",
+    "name": "นายชวลิต แซ่จัน",
+    "clean_name": "ชวลิต แซ่จัน",
+    "title_th": "นาย",
+    "position": "พนักงานทั่วไป",
+    "department": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+    "email": "fengcls@ku.ac.th",
+    "image_url": ""
+  },
+  {
+    "id": "PER-163",
+    "name": "รศ.ดร.สมชาย ดอนเจดีย์",
+    "clean_name": "สมชาย ดอนเจดีย์",
+    "title_th": "รศ.ดร.",
+    "position": "รักษาการแทนหัวหน้าศูนย์",
+    "department": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+    "email": "fengscd@ku.ac.th",
+    "image_url": ""
+  },
+  {
+    "id": "PER-164",
+    "name": "นายอรรถวุทธิ์ รื่นเริงใจ",
+    "clean_name": "อรรถวุทธิ์ รื่นเริงใจ",
+    "title_th": "นาย",
+    "position": "ชำนาญการ",
+    "department": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+    "email": "fengavr@ku.ac.th",
+    "image_url": "/profile_images/ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม/นายอรรถวุทธิ์ รื่นเริงใจ.jpg"
+  },
+  {
+    "id": "PER-165",
+    "name": "นางเนตรนภา วิชานงค์",
+    "clean_name": "เนตรนภา วิชานงค์",
+    "title_th": "นาง",
+    "position": "ชำนาญการ",
+    "department": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+    "email": "fengnpv@ku.ac.th",
+    "image_url": "/profile_images/ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม/นางเนตรนภา วิชานงค์.jpg"
+  },
+  {
+    "id": "PER-166",
+    "name": "นายรัตนศักดิ์ ทรัพย์เย็น",
+    "clean_name": "รัตนศักดิ์ ทรัพย์เย็น",
+    "title_th": "นาย",
+    "position": "ปฏิบัติการ",
+    "department": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+    "email": "fengrssa@ku.ac.th",
+    "image_url": "/profile_images/ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม/นายรัตนศักดิ์ ทรัพย์เย็น.jpg"
+  },
+  {
+    "id": "PER-167",
+    "name": "นายภัทรพล ชูราศรี",
+    "clean_name": "ภัทรพล ชูราศรี",
+    "title_th": "นาย",
+    "position": "ปฏิบัติงาน",
+    "department": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+    "email": "fengppc@ku.ac.th",
+    "image_url": "/profile_images/ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม/นายภัทรพล ชูราศรี.jpg"
+  },
+  {
+    "id": "PER-168",
+    "name": "นายสมเกียรติ อิ่มจันทร์",
+    "clean_name": "สมเกียรติ อิ่มจันทร์",
+    "title_th": "นาย",
+    "position": "ช่างฝีมือโรงงาน",
+    "department": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+    "email": "fengsii@ku.ac.th",
+    "image_url": "/profile_images/ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม/นายสมเกียรติ อิ่มจันทร์.jpg"
+  },
+  {
+    "id": "PER-169",
+    "name": "นางณีรนุช ยอดเพชร",
+    "clean_name": "ณีรนุช ยอดเพชร",
+    "title_th": "นาง",
+    "position": "พนักงานสถานที่",
+    "department": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+    "email": "fengnrn@ku.ac.th",
+    "image_url": "/profile_images/ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม/นางณีรนุช ยอดเพชร.jpg"
+  },
+  {
+    "id": "PER-170",
+    "name": "นายเจษฎาพร ด้วงแก้ว",
+    "clean_name": "เจษฎาพร ด้วงแก้ว",
+    "title_th": "นาย",
+    "position": "พนักงานทั่วไป",
+    "department": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+    "email": "fengjhd@ku.ac.th",
+    "image_url": "/profile_images/ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม/นายเจษฎาพร ด้วงแก้ว.jpg"
+  },
+  {
+    "id": "PER-171",
+    "name": "นางสาวอทิตยา แผ้วไพบูลย์",
+    "clean_name": "อทิตยา แผ้วไพบูลย์",
+    "title_th": "นางสาว",
+    "position": "พนักงานธุรการ",
+    "department": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม",
+    "email": "ไม่พบอีเมล",
+    "image_url": "/profile_images/ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม/นางสาวอทิตยา แผ้วไพบูลย์.jpg"
+  },
+  {
+    "id": "PER-172",
+    "name": "ผศ.ดร.สุวรรณ หอมหวล",
+    "clean_name": "สุวรรณ หอมหวล",
+    "title_th": "ผศ.ดร.",
+    "position": "ที่ปรึกษา",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "fengswh@ku.ac.th",
+    "image_url": "/profile_images/ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร/ผศ.ดร.สุวรรณ หอมหวล.jpg"
+  },
+  {
+    "id": "PER-173",
+    "name": "ผศ.ดร.วัชมา โพธิ์ทอง",
+    "clean_name": "วัชมา โพธิ์ทอง",
+    "title_th": "ผศ.ดร.",
+    "position": "หัวหน้าศูนย์",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "fengwmp@ku.ac.th",
+    "image_url": "/profile_images/ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร/ผศ.ดร.วัชมา โพธิ์ทอง.jpg"
+  },
+  {
+    "id": "PER-174",
+    "name": "ผศ.ดร.ศิริศักดิ์ เชิดเกียรติพล",
+    "clean_name": "ศิริศักดิ์ เชิดเกียรติพล",
+    "title_th": "ผศ.ดร.",
+    "position": "รองหัวหน้าศูนย์",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "fengsrcp@ku.ac.th",
+    "image_url": "/profile_images/ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร/ผศ.ดร.ศิริศักดิ์ เชิดเกียรติพล.jpg"
+  },
+  {
+    "id": "PER-175",
+    "name": "นางสาวปรารถนา ชุมพงศ์",
+    "clean_name": "ปรารถนา ชุมพงศ์",
+    "title_th": "นางสาว",
+    "position": "ผู้ปฏิบัติงานบริหาร",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "fengpnc@ku.ac.th",
+    "image_url": "/profile_images/ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร/นางสาวปรารถนา ชุมพงศ์.jpg"
+  },
+  {
+    "id": "PER-176",
+    "name": "นายพลากร จาดปลื้ม",
+    "clean_name": "พลากร จาดปลื้ม",
+    "title_th": "นาย",
+    "position": "ช่างเทคนิค",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "fengplkj@ku.ac.th",
+    "image_url": "/profile_images/ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร/นายพลากร จาดปลื้ม.jpg"
+  },
+  {
+    "id": "PER-177",
+    "name": "นายคมกฤช  ตั้งเพียร",
+    "clean_name": "คมกฤช ตั้งเพียร",
+    "title_th": "นาย",
+    "position": "ช่างเทคนิค",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "fengkrta@ku.ac.th",
+    "image_url": "/profile_images/ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร/นายคมกฤช  ตั้งเพียร.jpg"
+  },
+  {
+    "id": "PER-178",
+    "name": "นายสุชาติ จตุรพิธพร",
+    "clean_name": "สุชาติ จตุรพิธพร",
+    "title_th": "นาย",
+    "position": "คณาจารย์/บุคลากร",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-179",
+    "name": "นายชัยภัค ภัทรจินดา",
+    "clean_name": "ชัยภัค ภัทรจินดา",
+    "title_th": "นาย",
+    "position": "ผู้ทรงคุณวุฒิอิสระ",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-180",
+    "name": "นายสุเทพ วัฒนศัพท์",
+    "clean_name": "สุเทพ วัฒนศัพท์",
+    "title_th": "นาย",
+    "position": "ผู้แทนสานักงานมาตรฐานผลิตภัณฑ์อุตสาหกรรม",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-181",
+    "name": "นายทรงพล นพคุณ",
+    "clean_name": "ทรงพล นพคุณ",
+    "title_th": "นาย",
+    "position": "ผู้แทนสมาคมการค้าผู้ประกอบการอลูมิเนียมและกระจกไทย",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-182",
+    "name": "นายธนวัฒน์ มงคลอดิสัย",
+    "clean_name": "ธนวัฒน์ มงคลอดิสัย",
+    "title_th": "นาย",
+    "position": "ผู้แทนบริษัท พฤกษา เรียลเอสเต็ท จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-183",
+    "name": "นายธนา รัตนนาคินทร์",
+    "clean_name": "ธนา รัตนนาคินทร์",
+    "title_th": "นาย",
+    "position": "ผู้แทนบริษัท ทวีมงคลก่อสร้าง (2000) จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-184",
+    "name": "นายวรพจน์ สุดสงวน",
+    "clean_name": "วรพจน์ สุดสงวน",
+    "title_th": "นาย",
+    "position": "ผู้แทนบริษัท สโตนเฮ้นจ์ อินเตอร์ จำกัด (มหาชน)",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-185",
+    "name": "นายชูเกียรติ ธนะฤกษ์",
+    "clean_name": "ชูเกียรติ ธนะฤกษ์",
+    "title_th": "นาย",
+    "position": "ผู้แทนบริษัท สี่พระยาก่อสร้าง จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-186",
+    "name": "นายชูเกียรติ กันฉาย",
+    "clean_name": "ชูเกียรติ กันฉาย",
+    "title_th": "นาย",
+    "position": "ผู้แทนบริษัท ไทย-ออสท์ อะลูมิเนียม จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-187",
+    "name": "นายมานิตย์ ศรีแสงสังข์",
+    "clean_name": "มานิตย์ ศรีแสงสังข์",
+    "title_th": "นาย",
+    "position": "ผู้แทนบริษัท เรโปรเฮ้าส์ จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-188",
+    "name": "นายณัฐธพงษ์ ประสิทธิ์เดชสกุล",
+    "clean_name": "ณัฐธพงษ์ ประสิทธิ์เดชสกุล",
+    "title_th": "นาย",
+    "position": "ผู้แทนบริษัท โอ อาร์ เอ็ม อลูมิเนียม จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-189",
+    "name": "นางสาวน้าผึ้ง บุตรดีวงษ์",
+    "clean_name": "น้าผึ้ง บุตรดีวงษ์",
+    "title_th": "นางสาว",
+    "position": "ผู้แทนบริษัท วินเซท อลูมิเนียม จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-190",
+    "name": "นายวัชมา โพธิ์ทอง",
+    "clean_name": "วัชมา โพธิ์ทอง",
+    "title_th": "นาย",
+    "position": "ผู้แทนมหาวิทยาลัยเกษตรศาสตร์ วิทยาเขตกำแพงแสน",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-191",
+    "name": "นายอิทธิพล บารมีเกรียงไกร",
+    "clean_name": "อิทธิพล บารมีเกรียงไกร",
+    "title_th": "นาย",
+    "position": "ผู้แทนสำนักงานมาตรฐานผลิตภัณฑ์อุตสาหกรรม",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-192",
+    "name": "นายสุภัทร์ รัตนะโสภณชัย",
+    "clean_name": "สุภัทร์ รัตนะโสภณชัย",
+    "title_th": "นาย",
+    "position": "ผู้แทนสมาคมการค้าผู้ประกอบการอลูมิเนียมและกระจกไทย",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-193",
+    "name": "นางสาวพันธ์ทิพย์ เวงคกุล",
+    "clean_name": "พันธ์ทิพย์ เวงคกุล",
+    "title_th": "นางสาว",
+    "position": "ผู้แทนบริษัท พฤกษา เรียลเอสเต็ท จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-194",
+    "name": "นายวีรพงษ์ รักอักษร",
+    "clean_name": "วีรพงษ์ รักอักษร",
+    "title_th": "นาย",
+    "position": "ผู้แทนบริษัท มีนบุรีรับสร้างบ้าน (2019) จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-195",
+    "name": "นายฉัตรชาย จิตรสายธาร",
+    "clean_name": "ฉัตรชาย จิตรสายธาร",
+    "title_th": "นาย",
+    "position": "ผู้แทนบริษัท ศุภาลัย จำกัด (มหาชน)",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-196",
+    "name": "นางสาวสฤกกา พงษ์สุวรรณ",
+    "clean_name": "สฤกกา พงษ์สุวรรณ",
+    "title_th": "นางสาว",
+    "position": "ผู้แทนบริษัท ซันเคียว โฮม (ไทยแลนด์) จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-197",
+    "name": "นางชริตา คอนเอม",
+    "clean_name": "ชริตา คอนเอม",
+    "title_th": "นาง",
+    "position": "ผู้แทนบริษัท แม็กโนเลีย ควอลิตี้ ดิเวล็อปเม้นท์ จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-198",
+    "name": "นายพงศธร ไตรวิทยาศิลย์",
+    "clean_name": "พงศธร ไตรวิทยาศิลย์",
+    "title_th": "นาย",
+    "position": "ผู้แทนบริษัท โกลด์สตาร์เม็ททอล จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-199",
+    "name": "นายธีระพล อินทร",
+    "clean_name": "ธีระพล อินทร",
+    "title_th": "นาย",
+    "position": "ผู้แทนบริษัท เคเอส แมนูแฟคทอรี่ (1991) จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-200",
+    "name": "นายคมสัน พิสุทธอานนท์",
+    "clean_name": "คมสัน พิสุทธอานนท์",
+    "title_th": "นาย",
+    "position": "ผู้แทนบริษัท ซี.เอ็น. โปรเกรส อินเตอร์ กรุ๊ป จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-201",
+    "name": "นายพิพัฒน์ โกวิทคณิต",
+    "clean_name": "พิพัฒน์ โกวิทคณิต",
+    "title_th": "นาย",
+    "position": "ผู้แทนบริษัท อลูเม็ท จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-202",
+    "name": "นาย อาศิรวรรธน์ โพธิพันธุ์",
+    "clean_name": "อาศิรวรรธน์ โพธิพันธุ์",
+    "title_th": "นาย",
+    "position": "มหาวิทยาลัยเกษตรศาสตร์",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-203",
+    "name": "นาง จิราวดี  พิพัฒนาทรกุล",
+    "clean_name": "จิราวดี พิพัฒนาทรกุล",
+    "title_th": "นาง",
+    "position": "สำนักงานมาตรฐานผลิตภัณฑ์อุตสหกรรม",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-204",
+    "name": "นาย บูรณินทุ์ กัมผลพันธุ์",
+    "clean_name": "บูรณินทุ์ กัมผลพันธุ์",
+    "title_th": "นาย",
+    "position": "สมาคมอาเซียน ไวนิล เคาน์ซิล",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-205",
+    "name": "นาย ณรงค์ฤทธิ์  ศรีลาพัฒน์",
+    "clean_name": "ณรงค์ฤทธิ์ ศรีลาพัฒน์",
+    "title_th": "นาย",
+    "position": "สมาคมอาเซียน ไวนิล เคาน์ซิล",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-206",
+    "name": "นาย อดิศร แสงสุข",
+    "clean_name": "อดิศร แสงสุข",
+    "title_th": "นาย",
+    "position": "พส์เบอร์ก จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-207",
+    "name": "นางสาว นวลอนงค์ เมธาพิพัฒน์กุล",
+    "clean_name": "นวลอนงค์ เมธาพิพัฒน์กุล",
+    "title_th": "นางสาว",
+    "position": "บริษัท นวพลาสติกอุตสาหกรรม จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-208",
+    "name": "นาย อิทธิชัย โรจนนิรันด์กิจ",
+    "clean_name": "อิทธิชัย โรจนนิรันด์กิจ",
+    "title_th": "นาย",
+    "position": "บริษัท ดีคอยนิค (ประเทศไทย) จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-209",
+    "name": "นาย ธนินทร์ รัตนศิริวิไล",
+    "clean_name": "ธนินทร์ รัตนศิริวิไล",
+    "title_th": "นาย",
+    "position": "บริษัท บางกอก พีวีซี จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-210",
+    "name": "นาย สาธิต ศักดิ์พรรณทรู",
+    "clean_name": "สาธิต ศักดิ์พรรณทรู",
+    "title_th": "นาย",
+    "position": "บริษัท วินโดว์เอเชีย จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-211",
+    "name": "นาย ตวง ตัณฑเศรษฐี",
+    "clean_name": "ตวง ตัณฑเศรษฐี",
+    "title_th": "นาย",
+    "position": "บริษัท เอ อี เอเชีย จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-212",
+    "name": "นาย สุนัย ปั้นมีรส",
+    "clean_name": "สุนัย ปั้นมีรส",
+    "title_th": "นาย",
+    "position": "ผู้ออกแบบอิสระ",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-213",
+    "name": "นาย วีรพงษ์ รักอักษร",
+    "clean_name": "วีรพงษ์ รักอักษร",
+    "title_th": "นาย",
+    "position": "บริษัท แม็กโนเลีย ควอลิตี้ ดิเวล็อปเม้นท์ จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-214",
+    "name": "นาย อรุณวัฏ รัตนศึกษา",
+    "clean_name": "อรุณวัฏ รัตนศึกษา",
+    "title_th": "นาย",
+    "position": "บริษัท ศุภาลัย จำกัด (มหาชน)",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-215",
+    "name": "นาย ชัยพร ควนวิไล",
+    "clean_name": "ชัยพร ควนวิไล",
+    "title_th": "นาย",
+    "position": "บริษัท แสนสิริ จำกัด (มหาชน)",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-216",
+    "name": "นายอาศิรวรรธน์  โพธิพันธุ์",
+    "clean_name": "อาศิรวรรธน์ โพธิพันธุ์",
+    "title_th": "นาย",
+    "position": "ผู้แทนคณะสถาปัตยกรรมศาสตร์ มหาวิทยาลัยเกษตรศาสตร์",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-217",
+    "name": "นายไพศาล  หล่อพงศ์ไพบูลย์",
+    "clean_name": "ไพศาล หล่อพงศ์ไพบูลย์",
+    "title_th": "นาย",
+    "position": "ผู้แทนสานักงานมาตรฐานผลิตภัณฑ์อุตสาหกรรม",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-218",
+    "name": "นายบูรณินทุ์  กัมพลพันธ์",
+    "clean_name": "บูรณินทุ์ กัมพลพันธ์",
+    "title_th": "นาย",
+    "position": "ผู้แทนสมาคมอาเซียน ไวนิล เคาน์ซิล",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-219",
+    "name": "นายณรงค์ฤทธิ์  ศรีลาพัฒน์",
+    "clean_name": "ณรงค์ฤทธิ์ ศรีลาพัฒน์",
+    "title_th": "นาย",
+    "position": "ผู้แทนสมาคมอาเซียน ไวนิล เคาน์ซิล",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-220",
+    "name": "นายอดิศร  แสงสุข ผู้แทน",
+    "clean_name": "อดิศร แสงสุข ผู้แทน",
+    "title_th": "นาย",
+    "position": "ผู้แทนบริษัท แฮพส์เบอร์ก จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-221",
+    "name": "นายนนทภัทร  เรืองตระกูล",
+    "clean_name": "นนทภัทร เรืองตระกูล",
+    "title_th": "นาย",
+    "position": "บริษัท นวพลาสติกอุตสาหกรรม จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-222",
+    "name": "นางสาวนวลอนงค์  เมธาพิพัฒน์กุล",
+    "clean_name": "นวลอนงค์ เมธาพิพัฒน์กุล",
+    "title_th": "นางสาว",
+    "position": "ผู้แทนบริษัท นวพลาสติกอุตสาหกรรม จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-223",
+    "name": "นายมนตรา  เพิ่มทรัพย์",
+    "clean_name": "มนตรา เพิ่มทรัพย์",
+    "title_th": "นาย",
+    "position": "ผู้แทนบริษัท ดีคอยนิค (ประเทศไทย) จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-224",
+    "name": "นายอิทธิชัย  โรจนนิรันดร์กิจ",
+    "clean_name": "อิทธิชัย โรจนนิรันดร์กิจ",
+    "title_th": "นาย",
+    "position": "ผู้แทนบริษัท ดีคอยนิค (ประเทศไทย) จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-225",
+    "name": "นายธนินทร์  รัตนศิริวิไล",
+    "clean_name": "ธนินทร์ รัตนศิริวิไล",
+    "title_th": "นาย",
+    "position": "ผู้แทนบริษัท บางกอกพีวีซี จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-226",
+    "name": "นายตวง  ตัณฑเศรษฐี",
+    "clean_name": "ตวง ตัณฑเศรษฐี",
+    "title_th": "นาย",
+    "position": "ผู้แทนบริษัทวินโดว์เอเชีย จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-227",
+    "name": "นายกวิภัฎ  มลิวัลย์",
+    "clean_name": "กวิภัฎ มลิวัลย์",
+    "title_th": "นาย",
+    "position": "ผู้แทนผู้ออกแบบอิสระ",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-228",
+    "name": "นายวีรพงษ์  รักอักษร",
+    "clean_name": "วีรพงษ์ รักอักษร",
+    "title_th": "นาย",
+    "position": "ผู้แทนบริษัท เซ็นทรัลพัฒนา  จำกัด (มหาชน)",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-229",
+    "name": "นายวัฒนา  พิมพ์จุฑา",
+    "clean_name": "วัฒนา พิมพ์จุฑา",
+    "title_th": "นาย",
+    "position": "ผู้แทนบริษัท ศุภาลัย  จำกัด (มหาชน)",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-230",
+    "name": "นายมนต์เสน่ห์  พงศ์เมธินทร์",
+    "clean_name": "มนต์เสน่ห์ พงศ์เมธินทร์",
+    "title_th": "นาย",
+    "position": "ผู้แทนบริษัท แฮพส์เบอร์ก จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-231",
+    "name": "นายชัยภัค  ภัทรจินดา",
+    "clean_name": "ชัยภัค ภัทรจินดา",
+    "title_th": "นาย",
+    "position": "ผู้แทนมหาวิทยาลัยศิลปากร วิทยาเขตวังท่าพระ",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-232",
+    "name": "นายไพศาล หล่อพงศ์ไพบูลย์",
+    "clean_name": "ไพศาล หล่อพงศ์ไพบูลย์",
+    "title_th": "นาย",
+    "position": "ผู้แทนสมาคมการค้าผู้ประกอบการอลูมิเนียมและกระจกไทย ผู้ใช้",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-233",
+    "name": "นายบูรณินทุ์ กัมพลพันธ์",
+    "clean_name": "บูรณินทุ์ กัมพลพันธ์",
+    "title_th": "นาย",
+    "position": "ผู้แทนสมาคมอาเซียน ไวนิล เคาน์ซิล",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-234",
+    "name": "นายอรรถทวี ธัญญะวุฒิ",
+    "clean_name": "อรรถทวี ธัญญะวุฒิ",
+    "title_th": "นาย",
+    "position": "ผู้แทนบริษัท แมกโนเลีย ควอลิตี้ ดีเวล็อปเม้นต์ คอร์ปอเรชั่น จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-235",
+    "name": "นายธนพนธ์ วิทูรแก้วศิริ",
+    "clean_name": "ธนพนธ์ วิทูรแก้วศิริ",
+    "title_th": "นาย",
+    "position": "ผู้แทนบริษัท วินเวิร์ธ จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-236",
+    "name": "นางสาวชญาณิน จิตรานุเคราะห์",
+    "clean_name": "ชญาณิน จิตรานุเคราะห์",
+    "title_th": "นางสาว",
+    "position": "ผู้แทนบริษัท ปีเตอร์สัน 1990 จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-237",
+    "name": "นายนำชัย เงินคล้าย",
+    "clean_name": "นำชัย เงินคล้าย",
+    "title_th": "นาย",
+    "position": "ที่ปรึกษาบริษัทรับเหมาก่อสร้างโครงการ",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-238",
+    "name": "นายชนุดม โทนุสิทธิ์",
+    "clean_name": "ชนุดม โทนุสิทธิ์",
+    "title_th": "นาย",
+    "position": "ผู้แทนบริษัท วายเอชเอส อินเตอร์เนชั่นแนล จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-239",
+    "name": "นายณรงค์ฤทธิ์ ศรีลาพัฒน์",
+    "clean_name": "ณรงค์ฤทธิ์ ศรีลาพัฒน์",
+    "title_th": "นาย",
+    "position": "ผู้แทนบริษัท พรพระนคร จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-240",
+    "name": "นายเกรียงศักดิ์ แซ่ลี้",
+    "clean_name": "เกรียงศักดิ์ แซ่ลี้",
+    "title_th": "นาย",
+    "position": "ผู้แทนบริษัท แฮพส์เบอร์ก จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-241",
+    "name": "นายเจริญพงษ์ สุขสวัสดิ์",
+    "clean_name": "เจริญพงษ์ สุขสวัสดิ์",
+    "title_th": "นาย",
+    "position": "ผู้แทนบริษัท คริสตัลวิว วินโดว์แอนด์ดอร์ จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-242",
+    "name": "นายอดิศร แสงสุข",
+    "clean_name": "อดิศร แสงสุข",
+    "title_th": "นาย",
+    "position": "ผู้แทนบริษัท มาลีฟาซาดเอ็นจิเนียริ่ง เซอร์วิส จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-243",
+    "name": "นายธนา  รัตนนาคินทร์",
+    "clean_name": "ธนา รัตนนาคินทร์",
+    "title_th": "นาย",
+    "position": "ผู้แทนบริษัท นวพลาสติกอุตสาหกรรม จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-244",
+    "name": "นายศุภชัย งามใหญ่",
+    "clean_name": "ศุภชัย งามใหญ่",
+    "title_th": "นาย",
+    "position": "ผู้แทนบริษัท สโตนเฮ้นจ์ อินเตอร์ จำกัด (มหาชน)",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-245",
+    "name": "นายกัมพล ออฟูวงศ์",
+    "clean_name": "กัมพล ออฟูวงศ์",
+    "title_th": "นาย",
+    "position": "ผู้แทนบริษัท ซี.เอ็น. โปรเกรส อินเตอร์ กรุ๊ป จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-246",
+    "name": "นายพูลลาภ สุมิตรเหมาะ",
+    "clean_name": "พูลลาภ สุมิตรเหมาะ",
+    "title_th": "นาย",
+    "position": "ผู้แทนบริษัท เฟรมเทค วินโดว์ แอนด์ ดอร์ จำกัด",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-247",
+    "name": "นายวัชมา  โพธิ์ทอง",
+    "clean_name": "วัชมา โพธิ์ทอง",
+    "title_th": "นาย",
+    "position": "ผู้แทนมหาวิทยาลัยเกษตรศาสตร์ วิทยาเขตกำแพงแสน",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "email": "ไม่พบอีเมล",
+    "image_url": ""
+  },
+  {
+    "id": "PER-248",
+    "name": "นายธงชัย แสงจันทร์",
+    "clean_name": "ธงชัย แสงจันทร์",
+    "title_th": "นาย",
+    "position": "พนักงานห้องปฏิบัติการ",
+    "department": "ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ",
+    "email": "fengths@ku.ac.th",
+    "image_url": ""
+  },
+  {
+    "id": "PER-249",
+    "name": "ดร.นิติรงค์ พงษ์พานิช",
+    "clean_name": "นิติรงค์ พงษ์พานิช",
+    "title_th": "ดร.",
+    "position": "นักวิจัยชำนาญการ",
+    "department": "ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ",
+    "email": "rdinrp@ku.ac.th",
+    "image_url": "/profile_images/ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ/ดร.นิติรงค์ พงษ์พานิช.jpg"
+  },
+  {
+    "id": "PER-250",
+    "name": "นายชวลิต แซ่จัน",
+    "clean_name": "ชวลิต แซ่จัน",
+    "title_th": "นาย",
+    "position": "พนักงานทั่วไป",
+    "department": "ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ",
+    "email": "fengcls@ku.ac.th",
+    "image_url": ""
+  },
+  {
+    "id": "PER-251",
+    "name": "นายธนัญกรณ์ ใจผ่อง",
+    "clean_name": "ธนัญกรณ์ ใจผ่อง",
+    "title_th": "นาย",
+    "position": "ชำนาญการ",
+    "department": "ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ",
+    "email": "rdiwtjh@ku.ac.th",
+    "image_url": "/profile_images/ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ/นายธนัญกรณ์ ใจผ่อง.jpg"
+  },
+  {
+    "id": "PER-252",
+    "name": "นายทิตินัย เทียนแย้ม",
+    "clean_name": "ทิตินัย เทียนแย้ม",
+    "title_th": "นาย",
+    "position": "ชำนาญการ",
+    "department": "ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ",
+    "email": "rditnt@ku.ac.th",
+    "image_url": "/profile_images/ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ/นายทิตินัย เทียนแย้ม.jpg"
+  },
+  {
+    "id": "PER-253",
+    "name": "นายสุบรรณ สนิทอินทร์",
+    "clean_name": "สุบรรณ สนิทอินทร์",
+    "title_th": "นาย",
+    "position": "ปฏิบัติการ",
+    "department": "ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ",
+    "email": "kpssbsa@ku.ac.th",
+    "image_url": "/profile_images/ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ/นายสุบรรณ สนิทอินทร์.jpg"
+  },
+  {
+    "id": "PER-254",
+    "name": "นายจิรัฐ  มั่นเกษม",
+    "clean_name": "จิรัฐ มั่นเกษม",
+    "title_th": "นาย",
+    "position": "ปฏิบัติการ",
+    "department": "ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ",
+    "email": "fengjrm@ku.ac.th",
+    "image_url": "/profile_images/ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ/นายจิรัฐ  มั่นเกษม.jpg"
+  },
+  {
+    "id": "PER-255",
+    "name": "นายกิตติเดช โพธิ์นิยม",
+    "clean_name": "กิตติเดช โพธิ์นิยม",
+    "title_th": "นาย",
+    "position": "ชำนาญการ",
+    "department": "ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ",
+    "email": "rdikit@ku.ac.th",
+    "image_url": "/profile_images/ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ/นายกิตติเดช โพธิ์นิยม.jpg"
+  },
+  {
+    "id": "PER-256",
+    "name": "นางสาวทัดชาวดี นฤทุม",
+    "clean_name": "ทัดชาวดี นฤทุม",
+    "title_th": "นางสาว",
+    "position": "ชำนาญการ",
+    "department": "ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ",
+    "email": "kpstdsi@ku.ac.th",
+    "image_url": "/profile_images/ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ/นางสาวทัดชาวดี นฤทุม.jpg"
+  },
+  {
+    "id": "PER-257",
+    "name": "นางสาวพัชรียา  ไวภารา",
+    "clean_name": "พัชรียา ไวภารา",
+    "title_th": "นางสาว",
+    "position": "ปฏิบัติการ",
+    "department": "ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ",
+    "email": "fengpew@ku.ac.th",
+    "image_url": "/profile_images/ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ/นางสาวพัชรียา  ไวภารา.jpg"
+  },
+  {
+    "id": "PER-258",
+    "name": "นายประเสริฐศักดิ์ ภักดีวงศ์",
+    "clean_name": "ประเสริฐศักดิ์ ภักดีวงศ์",
+    "title_th": "นาย",
+    "position": "ชำนาญการ",
+    "department": "ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ",
+    "email": "fengpspu@ku.ac.th",
+    "image_url": "/profile_images/ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ/นายประเสริฐศักดิ์ ภักดีวงศ์.jpg"
+  },
+  {
+    "id": "PER-259",
+    "name": "นายภาณุวัฒน์  วณิชวิวัฒน์วงศ์",
+    "clean_name": "ภาณุวัฒน์ วณิชวิวัฒน์วงศ์",
+    "title_th": "นาย",
+    "position": "ปฏิบัติการ",
+    "department": "ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ",
+    "email": "phanuwat.wa@ku.th",
+    "image_url": "/profile_images/ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ/นายภาณุวัฒน์  วณิชวิวัฒน์วงศ์.jpg"
+  },
+  {
+    "id": "PER-260",
+    "name": "นางสุวรรณรัตน์ สุขเกษม",
+    "clean_name": "สุวรรณรัตน์ สุขเกษม",
+    "title_th": "นาง",
+    "position": "ส 4",
+    "department": "ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ",
+    "email": "rdisrs@ku.ac.th",
+    "image_url": "/profile_images/ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ/นางสุวรรณรัตน์ สุขเกษม.jpg"
+  },
+  {
+    "id": "PER-261",
+    "name": "นายณัฐดนัย เทพทอง",
+    "clean_name": "ณัฐดนัย เทพทอง",
+    "title_th": "นาย",
+    "position": "ผู้ช่วยช่างทั่วไป (งานโรงงาน)",
+    "department": "ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ",
+    "email": "ไม่พบอีเมล",
+    "image_url": "/profile_images/ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ/นายณัฐดนัย เทพทอง.jpg"
+  },
+  {
+    "id": "PER-262",
+    "name": "นายสัญญา เอกจีน",
+    "clean_name": "สัญญา เอกจีน",
+    "title_th": "นาย",
+    "position": "ผู้ช่วยช่างทั่วไป (งานสนาม)",
+    "department": "ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ",
+    "email": "fengths@ku.ac.th",
+    "image_url": "/profile_images/ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ/นายสัญญา เอกจีน.jpg"
+  },
+  {
+    "id": "PER-263",
+    "name": "นางสาวเพชรน้อย ยอดอยู่ดี",
+    "clean_name": "เพชรน้อย ยอดอยู่ดี",
+    "title_th": "นางสาว",
+    "position": "ชำนาญการ",
+    "department": "สำนักงานเลขานุการ",
+    "email": "fengpny@ku.ac.th",
+    "image_url": "/profile_images/สำนักงานเลขานุการ/นางสาวเพชรน้อย ยอดอยู่ดี.jpg"
+  },
+  {
+    "id": "PER-264",
+    "name": "นางสาวศศิธร ชลรัตน์อมฤต",
+    "clean_name": "ศศิธร ชลรัตน์อมฤต",
+    "title_th": "นางสาว",
+    "position": "ชำนาญการ",
+    "department": "สำนักงานเลขานุการ",
+    "email": "fengsstc@ku.ac.th",
+    "image_url": ""
+  },
+  {
+    "id": "PER-265",
+    "name": "นางสาวกุสุมา ภิญโญ",
+    "clean_name": "กุสุมา ภิญโญ",
+    "title_th": "นางสาว",
+    "position": "ปฏิบัติการ",
+    "department": "สำนักงานเลขานุการ",
+    "email": "fengkup@ku.ac.th",
+    "image_url": "/profile_images/สำนักงานเลขานุการ/นางสาวกุสุมา ภิญโญ.jpg"
+  },
+  {
+    "id": "PER-266",
+    "name": "นายประสิทธิ์ รุ่งโรจน์",
+    "clean_name": "ประสิทธิ์ รุ่งโรจน์",
+    "title_th": "นาย",
+    "position": "(พนักงานจ้างเหมา)",
+    "department": "สำนักงานเลขานุการ",
+    "email": "fengpny@ku.ac.th",
+    "image_url": "/profile_images/สำนักงานเลขานุการ/นายประสิทธิ์ รุ่งโรจน์.jpg"
+  },
+  {
+    "id": "PER-267",
+    "name": "นายณัฐพล เสรีเผ่าวงษ์",
+    "clean_name": "ณัฐพล เสรีเผ่าวงษ์",
+    "title_th": "นาย",
+    "position": "ชำนาญการ",
+    "department": "สำนักงานเลขานุการ",
+    "email": "fengnpse@ku.ac.th",
+    "image_url": ""
+  },
+  {
+    "id": "PER-268",
+    "name": "นายสาคร เขียวชะอุ่ม",
+    "clean_name": "สาคร เขียวชะอุ่ม",
+    "title_th": "นาย",
+    "position": "พนักงานทั่วไป",
+    "department": "สำนักงานเลขานุการ",
+    "email": "fengskk@ku.ac.th",
+    "image_url": "/profile_images/สำนักงานเลขานุการ/นายสาคร เขียวชะอุ่ม.jpg"
+  },
+  {
+    "id": "PER-269",
+    "name": "นายชวลิต แซ่จัน",
+    "clean_name": "ชวลิต แซ่จัน",
+    "title_th": "นาย",
+    "position": "พนักงานทั่วไป",
+    "department": "สำนักงานเลขานุการ",
+    "email": "fengcls@ku.ac.th",
+    "image_url": "/profile_images/สำนักงานเลขานุการ/นายชวลิต แซ่จัน.jpg"
+  },
+  {
+    "id": "PER-270",
+    "name": "นายวิโรจน์ ศรีมงคลชัย",
+    "clean_name": "วิโรจน์ ศรีมงคลชัย",
+    "title_th": "นาย",
+    "position": "ปฏิบัติงาน",
+    "department": "สำนักงานเลขานุการ",
+    "email": "fengvrsc@ku.ac.th",
+    "image_url": "/profile_images/สำนักงานเลขานุการ/นายวิโรจน์ ศรีมงคลชัย.jpg"
+  },
+  {
+    "id": "PER-271",
+    "name": "นายศักดิ์สิทธิ์ เหมือนประสิทธิ์",
+    "clean_name": "ศักดิ์สิทธิ์ เหมือนประสิทธิ์",
+    "title_th": "นาย",
+    "position": "ชำนาญงาน",
+    "department": "สำนักงานเลขานุการ",
+    "email": "fengssms@ku.ac.th",
+    "image_url": "/profile_images/สำนักงานเลขานุการ/นายศักดิ์สิทธิ์ เหมือนประสิทธิ์.jpg"
+  },
+  {
+    "id": "PER-272",
+    "name": "นายสมประสงค์ ชัยศิริพงษ์",
+    "clean_name": "สมประสงค์ ชัยศิริพงษ์",
+    "title_th": "นาย",
+    "position": "ปฏิบัติงาน",
+    "department": "สำนักงานเลขานุการ",
+    "email": "fengsscp@ku.ac.th",
+    "image_url": "/profile_images/สำนักงานเลขานุการ/นายสมประสงค์ ชัยศิริพงษ์.jpg"
+  },
+  {
+    "id": "PER-273",
+    "name": "นายนพเก้า ดอนเจดีย์",
+    "clean_name": "นพเก้า ดอนเจดีย์",
+    "title_th": "นาย",
+    "position": "ปฏิบัติงาน",
+    "department": "สำนักงานเลขานุการ",
+    "email": "fengnkd@ku.ac.th",
+    "image_url": "/profile_images/สำนักงานเลขานุการ/นายนพเก้า ดอนเจดีย์.jpg"
+  },
+  {
+    "id": "PER-274",
+    "name": "นายแสง ทินวงษ์ปาน",
+    "clean_name": "แสง ทินวงษ์ปาน",
+    "title_th": "นาย",
+    "position": "พนักงานทั่วไป",
+    "department": "สำนักงานเลขานุการ",
+    "email": "fengset@ku.ac.th",
+    "image_url": "/profile_images/สำนักงานเลขานุการ/นายแสง ทินวงษ์ปาน.jpg"
+  },
+  {
+    "id": "PER-275",
+    "name": "นายขจรศักดิ์  แซ่จัน",
+    "clean_name": "ขจรศักดิ์ แซ่จัน",
+    "title_th": "นาย",
+    "position": "(พนักงานจ้างเหมา)",
+    "department": "สำนักงานเลขานุการ",
+    "email": "ไม่พบอีเมล",
+    "image_url": "/profile_images/สำนักงานเลขานุการ/นายขจรศักดิ์  แซ่จัน.jpg"
+  },
+  {
+    "id": "PER-276",
+    "name": "นายภานุพงศ์ คำทองหลาง",
+    "clean_name": "ภานุพงศ์ คำทองหลาง",
+    "title_th": "นาย",
+    "position": "(พนักงานจ้างเหมา)",
+    "department": "สำนักงานเลขานุการ",
+    "email": "ไม่พบอีเมล",
+    "image_url": "/profile_images/สำนักงานเลขานุการ/นายภานุพงศ์ คำทองหลาง.jpg"
+  },
+  {
+    "id": "PER-277",
+    "name": "นางสาวกรรณิการ์ ปู่น้อย",
+    "clean_name": "กรรณิการ์ ปู่น้อย",
+    "title_th": "นางสาว",
+    "position": "ชำนาญการ",
+    "department": "สำนักงานเลขานุการ",
+    "email": "fengknk@ku.ac.th",
+    "image_url": "/profile_images/สำนักงานเลขานุการ/นางสาวกรรณิการ์ ปู่น้อย.jpg"
+  },
+  {
+    "id": "PER-278",
+    "name": "นางปนิตา มีหมู่",
+    "clean_name": "ปนิตา มีหมู่",
+    "title_th": "นาง",
+    "position": "ชำนาญการ",
+    "department": "สำนักงานเลขานุการ",
+    "email": "fengpnt@ku.ac.th",
+    "image_url": "/profile_images/สำนักงานเลขานุการ/นางปนิตา มีหมู่.jpg"
+  },
+  {
+    "id": "PER-279",
+    "name": "นางสาวอรุณี สุขศรี",
+    "clean_name": "อรุณี สุขศรี",
+    "title_th": "นางสาว",
+    "position": "ปฏิบัติการ",
+    "department": "สำนักงานเลขานุการ",
+    "email": "fengansu@ku.ac.th",
+    "image_url": "/profile_images/สำนักงานเลขานุการ/นางสาวอรุณี สุขศรี.jpg"
+  },
+  {
+    "id": "PER-280",
+    "name": "นายวีระพงษ์ กระแสธีป",
+    "clean_name": "วีระพงษ์ กระแสธีป",
+    "title_th": "นาย",
+    "position": "ปฏิบัติการ",
+    "department": "สำนักงานเลขานุการ",
+    "email": "fengwok@ku.ac.th",
+    "image_url": "/profile_images/สำนักงานเลขานุการ/นายวีระพงษ์ กระแสธีป.jpg"
+  },
+  {
+    "id": "PER-281",
+    "name": "นางสาวทศพร  เอี่ยมสะอาด",
+    "clean_name": "ทศพร เอี่ยมสะอาด",
+    "title_th": "นางสาว",
+    "position": "ปฏิบัติการ",
+    "department": "สำนักงานเลขานุการ",
+    "email": "ไม่พบอีเมล",
+    "image_url": "/profile_images/สำนักงานเลขานุการ/นางสาวทศพร  เอี่ยมสะอาด.jpg"
+  },
+  {
+    "id": "PER-282",
+    "name": "นายสุขชัย ยั่งยืน",
+    "clean_name": "สุขชัย ยั่งยืน",
+    "title_th": "นาย",
+    "position": "ชำนาญการ",
+    "department": "สำนักงานเลขานุการ",
+    "email": "fengtcy@ku.ac.th",
+    "image_url": "/profile_images/สำนักงานเลขานุการ/นายสุขชัย ยั่งยืน.jpg"
+  },
+  {
+    "id": "PER-283",
+    "name": "นางสาวปิยวรรณ จันทร์สี",
+    "clean_name": "ปิยวรรณ จันทร์สี",
+    "title_th": "นางสาว",
+    "position": "ชำนาญการ",
+    "department": "สำนักงานเลขานุการ",
+    "email": "fengpwj@ku.ac.th",
+    "image_url": "/profile_images/สำนักงานเลขานุการ/นางสาวปิยวรรณ จันทร์สี.jpg"
+  },
+  {
+    "id": "PER-284",
+    "name": "นายชนานันท์ โคตรภักดี",
+    "clean_name": "ชนานันท์ โคตรภักดี",
+    "title_th": "นาย",
+    "position": "ปฏิบัติการ",
+    "department": "สำนักงานเลขานุการ",
+    "email": "fengcnkh@ku.ac.th",
+    "image_url": "/profile_images/สำนักงานเลขานุการ/นายชนานันท์ โคตรภักดี.jpg"
+  },
+  {
+    "id": "PER-285",
+    "name": "นางสาวปฐมาภรณ์ อุ่นเรือน",
+    "clean_name": "ปฐมาภรณ์ อุ่นเรือน",
+    "title_th": "นางสาว",
+    "position": "ปฏิบัติการ",
+    "department": "สำนักงานเลขานุการ",
+    "email": "fengppo@ku.ac.th",
+    "image_url": "/profile_images/สำนักงานเลขานุการ/นางสาวปฐมาภรณ์ อุ่นเรือน.jpg"
+  },
+  {
+    "id": "PER-286",
+    "name": "นางรัตนา เขียวแก้ว",
+    "clean_name": "รัตนา เขียวแก้ว",
+    "title_th": "นาง",
+    "position": "ชำนาญงาน",
+    "department": "สำนักงานเลขานุการ",
+    "email": "fengrnkg@ku.ac.th",
+    "image_url": "/profile_images/สำนักงานเลขานุการ/นางรัตนา เขียวแก้ว.jpg"
+  },
+  {
+    "id": "PER-287",
+    "name": "นางสุกัญญา พันยุโดด",
+    "clean_name": "สุกัญญา พันยุโดด",
+    "title_th": "นาง",
+    "position": "ชำนาญการพิเศษ",
+    "department": "สำนักงานเลขานุการ",
+    "email": "fengsyp@ku.ac.th",
+    "image_url": ""
+  },
+  {
+    "id": "PER-288",
+    "name": "นางสาวธัญรดี เกษม",
+    "clean_name": "ธัญรดี เกษม",
+    "title_th": "นางสาว",
+    "position": "ปฏิบัติการ",
+    "department": "สำนักงานเลขานุการ",
+    "email": "fengtnka@ku.ac.th",
+    "image_url": "/profile_images/สำนักงานเลขานุการ/นางสาวธัญรดี เกษม.jpg"
+  },
+  {
+    "id": "PER-289",
+    "name": "นางสาวสโรชา พึ่งอุบล",
+    "clean_name": "สโรชา พึ่งอุบล",
+    "title_th": "นางสาว",
+    "position": "ปฏิบัติการ",
+    "department": "สำนักงานเลขานุการ",
+    "email": "fengscph@ku.ac.th",
+    "image_url": "/profile_images/สำนักงานเลขานุการ/นางสาวสโรชา พึ่งอุบล.jpg"
+  },
+  {
+    "id": "PER-290",
+    "name": "นางสาวพรเพ็ญ เอี่ยมทิพย์",
+    "clean_name": "พรเพ็ญ เอี่ยมทิพย์",
+    "title_th": "นางสาว",
+    "position": "ปฏิบัติการ",
+    "department": "สำนักงานเลขานุการ",
+    "email": "fengpha@ku.ac.th",
+    "image_url": "/profile_images/สำนักงานเลขานุการ/นางสาวพรเพ็ญ เอี่ยมทิพย์.jpg"
+  },
+  {
+    "id": "PER-291",
+    "name": "นางสาวนันฑริกา  มาช่วย",
+    "clean_name": "นันฑริกา มาช่วย",
+    "title_th": "นางสาว",
+    "position": "ปฏิบัติการ",
+    "department": "สำนักงานเลขานุการ",
+    "email": "nantarika.m@ku.th",
+    "image_url": "/profile_images/สำนักงานเลขานุการ/นางสาวนันฑริกา  มาช่วย.jpg"
+  },
+  {
+    "id": "PER-292",
+    "name": "นางนภัสวรรณ คำฝั้น",
+    "clean_name": "นภัสวรรณ คำฝั้น",
+    "title_th": "นาง",
+    "position": "ชำนาญการ",
+    "department": "สำนักงานเลขานุการ",
+    "email": "fengnps@ku.ac.th",
+    "image_url": ""
+  },
+  {
+    "id": "PER-293",
+    "name": "นางสาวเกวลิน อิสสะอาด",
+    "clean_name": "เกวลิน อิสสะอาด",
+    "title_th": "นางสาว",
+    "position": "ชำนาญการ",
+    "department": "สำนักงานเลขานุการ",
+    "email": "fengkri@ku.ac.th",
+    "image_url": "/profile_images/สำนักงานเลขานุการ/นางสาวเกวลิน อิสสะอาด.jpg"
+  },
+  {
+    "id": "PER-294",
+    "name": "นางสาวนุศรา สุขีวงศ์",
+    "clean_name": "นุศรา สุขีวงศ์",
+    "title_th": "นางสาว",
+    "position": "ชำนาญการ",
+    "department": "สำนักงานเลขานุการ",
+    "email": "fengnrsw@ku.ac.th",
+    "image_url": "/profile_images/สำนักงานเลขานุการ/นางสาวนุศรา สุขีวงศ์.jpg"
+  },
+  {
+    "id": "PER-295",
+    "name": "นายมาโนช ทองดอนเหมือน",
+    "clean_name": "มาโนช ทองดอนเหมือน",
+    "title_th": "นาย",
+    "position": "ชำนาญการ",
+    "department": "สำนักงานเลขานุการ",
+    "email": "fengmnt@ku.ac.th",
+    "image_url": "/profile_images/สำนักงานเลขานุการ/นายมาโนช ทองดอนเหมือน.jpg"
+  },
+  {
+    "id": "PER-296",
+    "name": "นางชุติมา  ทองสน",
+    "clean_name": "ชุติมา ทองสน",
+    "title_th": "นาง",
+    "position": "(พนักงานจ้างเหมา)",
+    "department": "สำนักงานเลขานุการ",
+    "email": "ไม่พบอีเมล",
+    "image_url": "/profile_images/สำนักงานเลขานุการ/นางชุติมา  ทองสน.jpg"
+  },
+  {
+    "id": "PER-297",
+    "name": "นางนงนาถ  คุ้มพะเนียด",
+    "clean_name": "นงนาถ คุ้มพะเนียด",
+    "title_th": "นาง",
+    "position": "(พนักงานจ้างเหมา)",
+    "department": "สำนักงานเลขานุการ",
+    "email": "ไม่พบอีเมล",
+    "image_url": "/profile_images/สำนักงานเลขานุการ/นางนงนาถ  คุ้มพะเนียด.jpg"
+  },
+  {
+    "id": "PER-298",
+    "name": "นางสาวพวงผกา  คำผาสุข",
+    "clean_name": "พวงผกา คำผาสุข",
+    "title_th": "นางสาว",
+    "position": "(พนักงานจ้างเหมา)",
+    "department": "สำนักงานเลขานุการ",
+    "email": "ไม่พบอีเมล",
+    "image_url": "/profile_images/สำนักงานเลขานุการ/นางสาวพวงผกา  คำผาสุข.jpg"
+  },
+  {
+    "id": "PER-299",
+    "name": "นางสาวละอองดาว  เสือขำ",
+    "clean_name": "ละอองดาว เสือขำ",
+    "title_th": "นางสาว",
+    "position": "(พนักงานจ้างเหมา)",
+    "department": "สำนักงานเลขานุการ",
+    "email": "ไม่พบอีเมล",
+    "image_url": "/profile_images/สำนักงานเลขานุการ/นางสาวละอองดาว  เสือขำ.jpg"
+  },
+  {
+    "id": "PER-300",
+    "name": "นางสาวจุฑาทิพย์ ทรัพย์ฤทธา",
+    "clean_name": "จุฑาทิพย์ ทรัพย์ฤทธา",
+    "title_th": "นางสาว",
+    "position": "ผู้จัดการ",
+    "department": "สำนักงานเลขานุการ",
+    "email": "fengjts@ku.ac.th",
+    "image_url": "/profile_images/สำนักงานเลขานุการ/นางสาวจุฑาทิพย์ ทรัพย์ฤทธา.jpg"
+  },
+  {
+    "id": "PER-301",
+    "name": "นางสาวทิวาทิพย์  แซ่แต้",
+    "clean_name": "ทิวาทิพย์ แซ่แต้",
+    "title_th": "นางสาว",
+    "position": "(พนักงานจ้างเหมา)",
+    "department": "สำนักงานเลขานุการ",
+    "email": "ไม่พบอีเมล",
+    "image_url": "/profile_images/สำนักงานเลขานุการ/นางสาวทิวาทิพย์  แซ่แต้.jpg"
+  },
+  {
+    "id": "PER-302",
+    "name": "นางสาวมณิสรา  วงศ์วัฒนากูล",
+    "clean_name": "มณิสรา วงศ์วัฒนากูล",
+    "title_th": "นางสาว",
+    "position": "(พนักงานจ้างเหมา)",
+    "department": "สำนักงานเลขานุการ",
+    "email": "ไม่พบอีเมล",
+    "image_url": "/profile_images/สำนักงานเลขานุการ/นางสาวมณิสรา  วงศ์วัฒนากูล.jpg"
+  },
+  {
+    "id": "PER-303",
+    "name": "นางสาวอภิชญา พรมมิ",
+    "clean_name": "อภิชญา พรมมิ",
+    "title_th": "นางสาว",
+    "position": "(พนักงานจ้างเหมา)",
+    "department": "สำนักงานเลขานุการ",
+    "email": "ไม่พบอีเมล",
+    "image_url": "/profile_images/สำนักงานเลขานุการ/นางสาวอภิชญา พรมมิ.jpg"
+  },
+  {
+    "id": "PER-304",
+    "name": "นายโชคชัย ไป๋เขียว",
+    "clean_name": "โชคชัย ไป๋เขียว",
+    "title_th": "นาย",
+    "position": "(พนักงานจ้างเหมา)",
+    "department": "สำนักงานเลขานุการ",
+    "email": "ไม่พบอีเมล",
+    "image_url": "/profile_images/สำนักงานเลขานุการ/นายโชคชัย ไป๋เขียว.jpg"
+  }
+]
