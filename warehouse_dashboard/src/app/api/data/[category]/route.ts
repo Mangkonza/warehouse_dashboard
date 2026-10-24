@@ -266,11 +266,22 @@ export async function POST(
         }
       }
 
+      if (body.has_foreign_coauthor !== undefined) {
+        body.has_foreign_coauthor = Boolean(body.has_foreign_coauthor);
+      } else if (Array.isArray(body.co_authors_foreign) && body.co_authors_foreign.length > 0) {
+        body.has_foreign_coauthor = true;
+      }
+      if (body.has_domestic_coauthor !== undefined) {
+        body.has_domestic_coauthor = Boolean(body.has_domestic_coauthor);
+      } else if (Array.isArray(body.co_authors_domestic) && body.co_authors_domestic.length > 0) {
+        body.has_domestic_coauthor = true;
+      }
+
       if (!Array.isArray(body.co_authors_foreign)) {
-        body.co_authors_foreign = typeof body.co_authors_foreign === 'string' && body.co_authors_foreign ? body.co_authors_foreign.split(',').map((s: string) => s.trim()).filter(Boolean) : [];
+        body.co_authors_foreign = typeof body.co_authors_foreign === 'string' && body.co_authors_foreign ? body.co_authors_foreign.split(',').map((s: string) => s.trim()).filter(Boolean) : (body.has_foreign_coauthor ? ['มีผู้ร่วมต่างชาติ'] : []);
       }
       if (!Array.isArray(body.co_authors_domestic)) {
-        body.co_authors_domestic = typeof body.co_authors_domestic === 'string' && body.co_authors_domestic ? body.co_authors_domestic.split(',').map((s: string) => s.trim()).filter(Boolean) : [];
+        body.co_authors_domestic = typeof body.co_authors_domestic === 'string' && body.co_authors_domestic ? body.co_authors_domestic.split(',').map((s: string) => s.trim()).filter(Boolean) : (body.has_domestic_coauthor ? ['มีผู้ร่วมภายในประเทศ'] : []);
       }
 
       body.name = name;
@@ -584,11 +595,22 @@ export async function PUT(
         }
       }
 
+      if (body.has_foreign_coauthor !== undefined) {
+        body.has_foreign_coauthor = Boolean(body.has_foreign_coauthor);
+      } else if (Array.isArray(body.co_authors_foreign) && body.co_authors_foreign.length > 0) {
+        body.has_foreign_coauthor = true;
+      }
+      if (body.has_domestic_coauthor !== undefined) {
+        body.has_domestic_coauthor = Boolean(body.has_domestic_coauthor);
+      } else if (Array.isArray(body.co_authors_domestic) && body.co_authors_domestic.length > 0) {
+        body.has_domestic_coauthor = true;
+      }
+
       if (!Array.isArray(body.co_authors_foreign)) {
-        body.co_authors_foreign = typeof body.co_authors_foreign === 'string' && body.co_authors_foreign ? body.co_authors_foreign.split(',').map((s: string) => s.trim()).filter(Boolean) : [];
+        body.co_authors_foreign = typeof body.co_authors_foreign === 'string' && body.co_authors_foreign ? body.co_authors_foreign.split(',').map((s: string) => s.trim()).filter(Boolean) : (body.has_foreign_coauthor ? ['มีผู้ร่วมต่างชาติ'] : []);
       }
       if (!Array.isArray(body.co_authors_domestic)) {
-        body.co_authors_domestic = typeof body.co_authors_domestic === 'string' && body.co_authors_domestic ? body.co_authors_domestic.split(',').map((s: string) => s.trim()).filter(Boolean) : [];
+        body.co_authors_domestic = typeof body.co_authors_domestic === 'string' && body.co_authors_domestic ? body.co_authors_domestic.split(',').map((s: string) => s.trim()).filter(Boolean) : (body.has_domestic_coauthor ? ['มีผู้ร่วมภายในประเทศ'] : []);
       }
 
       body.name = name;

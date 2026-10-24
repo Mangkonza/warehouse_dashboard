@@ -224,8 +224,8 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
       },
     ],
     templateSampleRows: [
-      { id: 'R-67-01', name: 'การพัฒนาระบบชลประทานอัจฉริยะสำหรับแปลงเกษตรแม่นยำ', head: 'ผศ.ดร.วันรัฐ อับดุลลากาซิม', department: 'ภาควิชาวิศวกรรมการเกษตร', budget_internal: 150000, budget_external: 500000, fund_source: 'วช.', status: 'active', sdg_code: 'SDG 6' },
-      { id: 'R-67-02', name: 'การประยุกต์ใช้ AI ในการวิเคราะห์โครงสร้างอาคาร', head: 'รศ.ดร.ศิวลักษณ์ ปฐวีรัตน์', department: 'ภาควิชาวิศวกรรมคอมพิวเตอร์', budget_internal: 200000, budget_external: 800000, fund_source: 'สวทช.', status: 'active', sdg_code: 'SDG 9' },
+      { id: 'R-67-01', name: 'การพัฒนาระบบชลประทานอัจฉริยะสำหรับแปลงเกษตรแม่นยำ', head: 'ผศ.ดร.วันรัฐ อับดุลลากาซิม', department: 'ภาควิชาวิศวกรรมการเกษตร', budget_internal: 150000, budget_external: 500000, fund_source: 'วช.', status: 'active' },
+      { id: 'R-67-02', name: 'การประยุกต์ใช้ AI ในการวิเคราะห์โครงสร้างอาคาร', head: 'รศ.ดร.ศิวลักษณ์ ปฐวีรัตน์', department: 'ภาควิชาวิศวกรรมคอมพิวเตอร์', budget_internal: 200000, budget_external: 800000, fund_source: 'สวทช.', status: 'active' },
     ],
     searchFields: ['id', 'name', 'head', 'department', 'fund_source', 'budget_internal', 'budget_external'],
   },

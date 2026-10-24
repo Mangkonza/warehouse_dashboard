@@ -3,16 +3,13 @@
 import React, { useState } from 'react';
 import { ColumnDef, CategoryKey } from '@/types/dataManagement';
 import { getDepartmentAbbr, CATEGORIES_CONFIG } from '@/config/dataManagementConfig';
-import { DepartmentBadge, RecordDetailDrawer, formatDateBE, formatMoney } from '@/components/ui';
+import { DepartmentBadge, RecordDetailDrawer, LevelBadge, formatDateBE, formatMoney } from '@/components/ui';
+import { getCachedEvaluations } from '@/lib/dataService';
 import {
   FaUser,
   FaEdit,
   FaTrashAlt,
   FaInbox,
-  FaExpandAlt,
-  FaCopy,
-  FaCheck,
-  FaFileAlt,
   FaUsers,
   FaClock,
 } from 'react-icons/fa';
@@ -31,6 +28,8 @@ interface DataTableProps {
   readOnly?: boolean;
   categoryKey?: string;
   currentPage?: number;
+  onRowClick?: (item: any, index: number) => void;
+  hideCheckbox?: boolean;
 }
 
 export const DataTable: React.FC<DataTableProps> = ({
@@ -42,55 +41,24 @@ export const DataTable: React.FC<DataTableProps> = ({
   readOnly = false,
   categoryKey,
   currentPage = 1,
+  onRowClick,
+  hideCheckbox = false,
 }) => {
-  // ติดตามว่าแถวใดและคอลัมน์ใดถูกคลิกเพื่อขยายดูชื่อเต็มแบบ Inline
-  const [expandedKeys, setExpandedKeys] = useState<Record<string, boolean>>({});
-
   // Drawer แสดงรายละเอียดข้อมูลแบบเต็ม (Record Detail Drawer)
   const [selectedDrawerIndex, setSelectedDrawerIndex] = useState<number | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-
-  // Modal แสดงรายละเอียดชื่อเต็มพร้อมปุ่มคัดลอก
-  const [modalDetail, setModalDetail] = useState<{
-    isOpen: boolean;
-    title: string;
-    content: string;
-    rowItem?: any;
-  } | null>(null);
-
-  const [hasCopied, setHasCopied] = useState(false);
 
   const handleRowClick = (item: any, idx: number, e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
     if (target.closest('button, a, input, select, textarea, [data-prevent-drawer="true"]')) {
       return;
     }
+    if (onRowClick) {
+      onRowClick(item, idx);
+      return;
+    }
     setSelectedDrawerIndex(idx);
     setIsDrawerOpen(true);
-  };
-
-  const toggleExpand = (key: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setExpandedKeys((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  const handleOpenModal = (title: string, content: string, rowItem: any, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setHasCopied(false);
-    setModalDetail({
-      isOpen: true,
-      title,
-      content,
-      rowItem,
-    });
-  };
-
-  const handleCopyText = (text: string) => {
-    if (navigator?.clipboard) {
-      navigator.clipboard.writeText(text);
-      setHasCopied(true);
-      setTimeout(() => setHasCopied(false), 2000);
-    }
   };
 
   const renderCell = (col: ColumnDef, item: any, itemIndex: number) => {
@@ -104,9 +72,6 @@ export const DataTable: React.FC<DataTableProps> = ({
     if (rawVal === undefined || rawVal === null || rawVal === '' || rawVal === 'nan' || rawVal === 'NaT') {
       return <span style={{ color: '#cbd5e1' }}>-</span>;
     }
-
-    const cellKey = `${item._id || item.id || 'row'}_${col.key}_${itemIndex}`;
-    const isExpanded = Boolean(expandedKeys[cellKey]);
 
     switch (col.type) {
       case 'avatar':
@@ -160,6 +125,10 @@ export const DataTable: React.FC<DataTableProps> = ({
         let bg = '#f1f5f9';
         let text = '#475569';
         let border = '#e2e8f0';
+
+        if (col.key === 'level') {
+          return <LevelBadge value={rawVal} />;
+        }
 
         if (col.key === 'department') {
           let deptText = String(rawVal ?? '');
@@ -699,83 +668,26 @@ export const DataTable: React.FC<DataTableProps> = ({
         );
 
       default:
-        // คอลัมน์ชื่อโครงการ / ชื่องาน / ชื่อผลงาน / ชื่อบุคลากร (ไม่ตัวหนา: fontWeight: 400 และคลิกดูชื่อเต็มได้)
+        // คอลัมน์ชื่อโครงการ / ชื่องาน / ชื่อผลงาน / ชื่อบุคลากร (ไม่ตัวหนา: fontWeight: 400 แสดงสูงสุด 2 บรรทัด)
         if (col.key === 'name') {
           const strVal = String(rawVal);
-          const isLong = strVal.length > 38;
-
           return (
-            <div style={{ position: 'relative' }}>
-              <div
-                onClick={isLong ? (e) => toggleExpand(cellKey, e) : undefined}
-                style={{
-                  fontSize: '13.5px',
-                  fontWeight: 400, // ไม่ตัวหนาตามคำขอของผู้ใช้
-                  color: '#0f172a',
-                  lineHeight: '1.45',
-                  display: isExpanded ? 'block' : '-webkit-box',
-                  WebkitLineClamp: isExpanded ? 'unset' : 2,
-                  WebkitBoxOrient: 'vertical',
-                  overflow: isExpanded ? 'visible' : 'hidden',
-                  whiteSpace: 'normal',
-                  wordBreak: 'break-word',
-                  cursor: isLong ? 'pointer' : 'default',
-                  transition: 'all 0.15s ease',
-                }}
-                title={isLong ? `${strVal} (คลิกเพื่อดูชื่อเต็ม)` : strVal}
-              >
-                {strVal}
-              </div>
-
-              {/* ปุ่มดูชื่อแบบเต็ม / ย่อข้อความ เมื่อข้อความยาว */}
-              {isLong && (
-                <div style={{ marginTop: '3px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <button
-                    type="button"
-                    data-prevent-drawer="true"
-                    onClick={(e) => toggleExpand(cellKey, e)}
-                    style={{
-                      background: 'none',
-                      border: `1px solid ${isExpanded ? '#bbf7d0' : '#e2e8f0'}`,
-                      backgroundColor: isExpanded ? '#f0fdf4' : '#f8fafc',
-                      color: isExpanded ? '#00A651' : '#0284c7',
-                      fontSize: '11px',
-                      fontWeight: 500,
-                      borderRadius: '4px',
-                      padding: '1px 6px',
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '2px',
-                    }}
-                    title={isExpanded ? 'คลิกเพื่อย่อข้อความ' : 'คลิกเพื่อดูชื่อเต็มในตาราง'}
-                  >
-                    <span>{isExpanded ? 'ย่อ ▴' : 'ดูเต็ม ▾'}</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    data-prevent-drawer="true"
-                    onClick={(e) => handleOpenModal(col.label.replace('\n', ' '), strVal, item, e)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: '#94a3b8',
-                      cursor: 'pointer',
-                      padding: '2px 4px',
-                      fontSize: '10px',
-                      borderRadius: '4px',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                    }}
-                    title="เปิดหน้าต่างป๊อปอัปดูชื่อฉบับเต็ม"
-                    onMouseEnter={(e) => (e.currentTarget.style.color = '#00A651')}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = '#94a3b8')}
-                  >
-                    <FaExpandAlt />
-                  </button>
-                </div>
-              )}
+            <div
+              style={{
+                fontSize: '13.5px',
+                fontWeight: 400,
+                color: '#0f172a',
+                lineHeight: '1.45',
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                whiteSpace: 'normal',
+                wordBreak: 'break-word',
+              }}
+              title={strVal}
+            >
+              {strVal}
             </div>
           );
         }
@@ -797,9 +709,8 @@ export const DataTable: React.FC<DataTableProps> = ({
           );
         }
 
-        // คอลัมน์ชื่อบุคคล / หัวหน้าโครงการ / เจ้าของผลงาน / ผู้ว่าจ้าง / คอลัมน์ข้อความทั่วไป (ไม่ตัวหนา และคลิกดูชื่อเต็มได้)
+        // คอลัมน์ชื่อบุคคล / หัวหน้าโครงการ / เจ้าของผลงาน / ผู้ว่าจ้าง / คอลัมน์ข้อความทั่วไป (ไม่ตัวหนา ตัดทอน 1 บรรทัด)
         const strVal = String(rawVal);
-        const isLongText = strVal.length > 25;
         const isIncompletePersonnel = categoryKey === 'personnel' && col.key === 'name' && (
           !item.position || !String(item.position).trim() ||
           !item.email || !String(item.email).trim() || item.email === 'ไม่พบอีเมล' ||
@@ -809,20 +720,17 @@ export const DataTable: React.FC<DataTableProps> = ({
         return (
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
             <span
-              onClick={isLongText ? (e) => toggleExpand(cellKey, e) : undefined}
               style={{
-                display: isExpanded ? 'block' : 'inline-block',
-                overflow: isExpanded ? 'visible' : 'hidden',
-                textOverflow: isExpanded ? 'clip' : 'ellipsis',
-                whiteSpace: isExpanded ? 'normal' : 'nowrap',
+                display: 'inline-block',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
                 maxWidth: '100%',
-                wordBreak: isExpanded ? 'break-word' : 'normal',
                 fontSize: '13.5px',
                 color: '#334155',
-                fontWeight: 400, // ไม่ตัวหนาตามคำขอของผู้ใช้
-                cursor: isLongText ? 'pointer' : 'default',
+                fontWeight: 400,
               }}
-              title={isLongText ? `${strVal} (คลิกเพื่อดูชื่อเต็ม)` : strVal}
+              title={strVal}
             >
               {strVal}
             </span>
@@ -841,30 +749,6 @@ export const DataTable: React.FC<DataTableProps> = ({
                 }}
               >
                 ข้อมูลไม่ครบ
-              </span>
-            )}
-
-            {isLongText && (
-              <span
-                data-prevent-drawer="true"
-                onClick={(e) => toggleExpand(cellKey, e)}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  fontSize: '10.5px',
-                  color: isExpanded ? '#00A651' : '#0284c7',
-                  backgroundColor: isExpanded ? '#f0fdf4' : '#f8fafc',
-                  border: `1px solid ${isExpanded ? '#bbf7d0' : '#e2e8f0'}`,
-                  borderRadius: '3px',
-                  padding: '0 4px',
-                  marginLeft: '4px',
-                  cursor: 'pointer',
-                  userSelect: 'none',
-                  verticalAlign: 'middle',
-                }}
-                title={isExpanded ? 'ย่อ' : 'ดูเต็ม'}
-              >
-                {isExpanded ? 'ย่อ ▴' : '...'}
               </span>
             )}
           </div>
@@ -1056,175 +940,6 @@ export const DataTable: React.FC<DataTableProps> = ({
         </tbody>
       </table>
 
-      {/* Modal หน้าต่างป๊อปอัปแสดงชื่อเต็ม (Full Title / Detail View Modal) */}
-      {modalDetail && modalDetail.isOpen && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(15, 23, 42, 0.6)',
-            backdropFilter: 'blur(3px)',
-            zIndex: 99999,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '16px',
-          }}
-          onClick={() => setModalDetail(null)}
-        >
-          <div
-            style={{
-              backgroundColor: '#ffffff',
-              borderRadius: '14px',
-              width: '100%',
-              maxWidth: '640px',
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.05)',
-              overflow: 'hidden',
-              border: '1px solid #e2e8f0',
-              animation: 'fadeIn 0.18s ease-out',
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header Modal สีเขียว KU */}
-            <div
-              style={{
-                backgroundColor: '#00A651',
-                padding: '16px 20px',
-                color: '#ffffff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <FaFileAlt style={{ fontSize: '16px' }} />
-                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600 }}>
-                  {modalDetail.title || 'รายละเอียดฉบับเต็ม'}
-                </h3>
-              </div>
-              <button
-                onClick={() => setModalDetail(null)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#ffffff',
-                  fontSize: '22px',
-                  cursor: 'pointer',
-                  padding: '0 4px',
-                  lineHeight: 1,
-                  opacity: 0.85,
-                }}
-                title="ปิดหน้าต่าง"
-              >
-                &times;
-              </button>
-            </div>
-
-            {/* Content แสดงชื่อแบบเต็ม */}
-            <div style={{ padding: '22px' }}>
-              <div
-                style={{
-                  backgroundColor: '#f8fafc',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '10px',
-                  padding: '16px 18px',
-                  fontSize: '14.5px',
-                  color: '#0f172a',
-                  lineHeight: '1.6',
-                  fontWeight: 400,
-                  wordBreak: 'break-word',
-                  whiteSpace: 'pre-wrap',
-                }}
-              >
-                {modalDetail.content}
-              </div>
-
-              {/* ป้ายข้อมูลบริบทประกอบ (ถ้ามี) */}
-              {modalDetail.rowItem && (
-                <div
-                  style={{
-                    marginTop: '16px',
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: '8px',
-                    fontSize: '12px',
-                  }}
-                >
-                  {modalDetail.rowItem.id && (
-                    <span style={{ padding: '4px 10px', backgroundColor: '#f1f5f9', borderRadius: '6px', color: '#475569' }}>
-                      รหัส: <strong>{modalDetail.rowItem.id}</strong>
-                    </span>
-                  )}
-                  {modalDetail.rowItem.department && (
-                    <span style={{ padding: '3px 10px', backgroundColor: '#990000', borderRadius: '12px', color: '#ffffff', border: '1px solid #990000', fontSize: '13px', fontWeight: 600, fontFamily: "'Kanit', sans-serif" }}>
-                      ภาควิชา: <strong>{getDepartmentAbbr(modalDetail.rowItem.department)}</strong>
-                    </span>
-                  )}
-                  {(modalDetail.rowItem.head ||
-                    modalDetail.rowItem.owner ||
-                    modalDetail.rowItem.creator ||
-                    modalDetail.rowItem.person) && (
-                    <span style={{ padding: '4px 10px', backgroundColor: '#eff6ff', borderRadius: '6px', color: '#1e40af' }}>
-                      ผู้รับผิดชอบ: <strong>{modalDetail.rowItem.head || modalDetail.rowItem.owner || modalDetail.rowItem.creator || modalDetail.rowItem.person}</strong>
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Footer Buttons */}
-            <div
-              style={{
-                padding: '12px 20px',
-                backgroundColor: '#f8fafc',
-                borderTop: '1px solid #e2e8f0',
-                display: 'flex',
-                justifyContent: 'flex-end',
-                gap: '10px',
-              }}
-            >
-              <button
-                type="button"
-                onClick={() => handleCopyText(modalDetail.content)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '7px 14px',
-                  borderRadius: '8px',
-                  border: '1px solid #cbd5e1',
-                  backgroundColor: '#ffffff',
-                  color: hasCopied ? '#00A651' : '#334155',
-                  fontWeight: 500,
-                  fontSize: '13px',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                {hasCopied ? <FaCheck style={{ color: '#00A651' }} /> : <FaCopy />}
-                <span>{hasCopied ? 'คัดลอกสำเร็จแล้ว' : 'คัดลอกข้อความ'}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setModalDetail(null)}
-                style={{
-                  padding: '7px 18px',
-                  borderRadius: '8px',
-                  border: 'none',
-                  backgroundColor: '#00A651',
-                  color: '#ffffff',
-                  fontWeight: 600,
-                  fontSize: '13px',
-                  cursor: 'pointer',
-                }}
-              >
-                ปิด
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* RecordDetailDrawer Component */}
       <RecordDetailDrawer
         isOpen={isDrawerOpen && selectedDrawerIndex !== null && selectedDrawerIndex < data.length}
@@ -1233,6 +948,7 @@ export const DataTable: React.FC<DataTableProps> = ({
           setSelectedDrawerIndex(null);
         }}
         item={selectedDrawerIndex !== null && selectedDrawerIndex < data.length ? data[selectedDrawerIndex] : null}
+        categoryKey={categoryKey}
         config={categoryKey ? CATEGORIES_CONFIG[categoryKey as CategoryKey] : undefined}
         onEdit={(item, idx) => {
           setIsDrawerOpen(false);

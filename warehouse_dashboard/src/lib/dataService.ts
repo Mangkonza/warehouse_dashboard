@@ -1,4 +1,5 @@
 'use client';
+import { EvaluationRecord } from '../types/evaluation';
 
 import { CategoryKey } from '../types/dataManagement';
 
@@ -21,15 +22,21 @@ export function getCachedCategoryData(category: string): any[] | null {
   return null;
 }
 
-export function setCachedCategoryData(category: string, data: any[]): void {
+export function setCachedCategoryData(category: string, data: any[], broadcast = false): void {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem(`${LS_PREFIX}${category}`, JSON.stringify(data));
-    window.dispatchEvent(
-      new CustomEvent('ku_data_updated', {
-        detail: { category, count: data.length },
-      })
-    );
+    const serialized = JSON.stringify(data);
+    const existing = localStorage.getItem(`${LS_PREFIX}${category}`);
+    if (existing !== serialized) {
+      localStorage.setItem(`${LS_PREFIX}${category}`, serialized);
+    }
+    if (broadcast) {
+      window.dispatchEvent(
+        new CustomEvent('ku_data_updated', {
+          detail: { category, count: data.length },
+        })
+      );
+    }
   } catch (e) {
     console.warn(`[dataService] Error writing localStorage for ${category}`, e);
   }
@@ -45,7 +52,7 @@ export async function fetchCategoryData(category: string): Promise<any[]> {
     if (res.ok) {
       const result = await res.json();
       if (result && Array.isArray(result.data)) {
-        setCachedCategoryData(category, result.data);
+        setCachedCategoryData(category, result.data, false);
         return result.data;
       }
     }
@@ -105,7 +112,7 @@ export async function saveCategoryRecord(
         }
       }
 
-      setCachedCategoryData(category, updatedList);
+      setCachedCategoryData(category, updatedList, true);
       return { success: true, data: result.data || recordToSave };
     } else {
       return {
@@ -131,7 +138,7 @@ export async function deleteCategoryRecord(
   const filtered = currentList.filter(
     (item) => item._id !== recordId && item.id !== recordId
   );
-  setCachedCategoryData(category, filtered);
+  setCachedCategoryData(category, filtered, true);
 
   // 2. Call API
   try {
@@ -158,7 +165,7 @@ export async function batchImportCategoryRecords(
     updatedAt: new Date().toISOString(),
   }));
   const combined = mode === 'append' ? [...stampedItems, ...currentList] : stampedItems;
-  setCachedCategoryData(category, combined);
+  setCachedCategoryData(category, combined, true);
 
   // 2. Call API
   try {
@@ -170,7 +177,7 @@ export async function batchImportCategoryRecords(
     if (res.ok) {
       const result = await res.json();
       if (Array.isArray(result.data)) {
-        setCachedCategoryData(category, result.data);
+        setCachedCategoryData(category, result.data, true);
         return result.data;
       }
     }
@@ -179,4 +186,123 @@ export async function batchImportCategoryRecords(
   }
 
   return combined;
+}
+
+// ==========================================
+// Evaluation Data Service Methods (การประเมิน)
+// ==========================================
+const EVAL_LS_KEY = 'ku_dw_evaluations_cache';
+
+export function getCachedEvaluations(): Record<string, EvaluationRecord> {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = localStorage.getItem(EVAL_LS_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {
+    console.warn('[dataService] Error reading evaluation cache', e);
+  }
+  return {};
+}
+
+export function setCachedEvaluations(data: Record<string, EvaluationRecord>, broadcast = false): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const serialized = JSON.stringify(data);
+    const existing = localStorage.getItem(EVAL_LS_KEY);
+    if (existing !== serialized) {
+      localStorage.setItem(EVAL_LS_KEY, serialized);
+    }
+    if (broadcast) {
+      window.dispatchEvent(
+        new CustomEvent('ku_evaluations_updated', {
+          detail: { count: Object.keys(data).length },
+        })
+      );
+    }
+  } catch (e) {
+    console.warn('[dataService] Error writing evaluation cache', e);
+  }
+}
+
+export async function fetchEvaluations(category?: string): Promise<Record<string, EvaluationRecord>> {
+  try {
+    const url = category ? `/api/evaluation?category=${encodeURIComponent(category)}` : '/api/evaluation';
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      cache: 'no-store',
+    });
+    if (res.ok) {
+      const result = await res.json();
+      if (result && Array.isArray(result.data)) {
+        const cached = getCachedEvaluations();
+        const map = { ...cached };
+        result.data.forEach((it: EvaluationRecord) => {
+          if (it && it.category && it.record_id) {
+            const key = `${it.category.toLowerCase()}_${String(it.record_id).trim()}`;
+            map[key] = it;
+          }
+        });
+        setCachedEvaluations(map, false);
+        return map;
+      }
+    }
+  } catch (err) {
+    console.warn('[dataService] Failed to fetch evaluations from API, using cache:', err);
+  }
+
+  return getCachedEvaluations();
+}
+
+export async function saveEvaluationRecord(
+  evalData: Partial<EvaluationRecord>
+): Promise<{ success: boolean; data?: EvaluationRecord; error?: string }> {
+  try {
+    const res = await fetch('/api/evaluation', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(evalData),
+    });
+
+    const result = await res.json().catch(() => ({}));
+    if (res.ok && result.data) {
+      const cached = getCachedEvaluations();
+      const key = `${result.data.category.toLowerCase()}_${String(result.data.record_id).trim()}`;
+      const updated = { ...cached, [key]: result.data };
+      setCachedEvaluations(updated, true);
+      return { success: true, data: result.data };
+    }
+    return { success: false, error: result.message || 'บันทึกการประเมินไม่สำเร็จ' };
+  } catch (err: any) {
+    console.error('[dataService] Error saving evaluation record:', err);
+    return { success: false, error: err?.message || 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้' };
+  }
+}
+
+export async function bulkSaveEvaluationRecords(
+  items: Partial<EvaluationRecord>[]
+): Promise<{ success: boolean; data?: EvaluationRecord[]; error?: string }> {
+  try {
+    const res = await fetch('/api/evaluation/bulk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items }),
+    });
+
+    const result = await res.json().catch(() => ({}));
+    if (res.ok && Array.isArray(result.data)) {
+      const cached = getCachedEvaluations();
+      const updated = { ...cached };
+      result.data.forEach((it: EvaluationRecord) => {
+        const key = `${it.category.toLowerCase()}_${String(it.record_id).trim()}`;
+        updated[key] = it;
+      });
+      setCachedEvaluations(updated, true);
+      return { success: true, data: result.data };
+    }
+    return { success: false, error: result.message || 'ประเมินรายการที่เลือกไม่สำเร็จ' };
+  } catch (err: any) {
+    console.error('[dataService] Error in bulkSaveEvaluationRecords:', err);
+    return { success: false, error: err?.message || 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้' };
+  }
 }

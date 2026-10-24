@@ -20,7 +20,35 @@
     "month_year": "2025-01",
     "fiscal_year_be": 2568,
     "owner_id": 107,
-    "person_id": 107
+    "person_id": 107,
+    "evaluation": {
+      "id": "publications_pub_001",
+      "category": "publications",
+      "record_id": "pub_001",
+      "sdg_ids": [
+        3,
+        9,
+        12
+      ],
+      "i_type": "I_SEE",
+      "journal_index": {
+        "type": "TCI",
+        "value": "TCI 1"
+      },
+      "evaluated_by": "admin",
+      "evaluated_at": "2026-10-24T20:34:58.707Z",
+      "updated_at": "2026-10-24T21:00:19.539Z"
+    },
+    "sdg_ids": [
+      3,
+      9,
+      12
+    ],
+    "i_type": "I_SEE",
+    "journal_index": {
+      "type": "TCI",
+      "value": "TCI 1"
+    }
   },
   {
     "_id": "pub_002",
@@ -43,7 +71,25 @@
     "month_year": "2025-02",
     "fiscal_year_be": 2568,
     "owner_id": 6,
-    "person_id": 6
+    "person_id": 6,
+    "evaluation": {
+      "id": "publications_pub_002",
+      "category": "publications",
+      "record_id": "pub_002",
+      "sdg_ids": [
+        7,
+        11
+      ],
+      "i_type": null,
+      "journal_index": null,
+      "updated_at": "2026-10-24T20:35:13.739Z"
+    },
+    "sdg_ids": [
+      7,
+      11
+    ],
+    "i_type": null,
+    "journal_index": null
   },
   {
     "_id": "pub_003",
@@ -66,7 +112,8 @@
     "month_year": "2025-03",
     "fiscal_year_be": 2568,
     "owner_id": 8,
-    "person_id": 8
+    "person_id": 8,
+    "evaluation": null
   },
   {
     "_id": "pub_004",
@@ -89,7 +136,8 @@
     "month_year": "2025-04",
     "fiscal_year_be": 2568,
     "owner_id": 8,
-    "person_id": 8
+    "person_id": 8,
+    "evaluation": null
   },
   {
     "_id": "pub_005",
@@ -112,7 +160,8 @@
     "month_year": "2025-05",
     "fiscal_year_be": 2568,
     "owner_id": 8,
-    "person_id": 8
+    "person_id": 8,
+    "evaluation": null
   },
   {
     "_id": "pub_006",
@@ -135,7 +184,8 @@
     "month_year": "2025-06",
     "fiscal_year_be": 2568,
     "owner_id": null,
-    "person_id": null
+    "person_id": null,
+    "evaluation": null
   },
   {
     "_id": "pub_007",
@@ -158,7 +208,8 @@
     "month_year": "2025-07",
     "fiscal_year_be": 2568,
     "owner_id": 58,
-    "person_id": 58
+    "person_id": 58,
+    "evaluation": null
   },
   {
     "_id": "pub_008",
@@ -181,7 +232,8 @@
     "month_year": "2025-08",
     "fiscal_year_be": 2568,
     "owner_id": 31,
-    "person_id": 31
+    "person_id": 31,
+    "evaluation": null
   },
   {
     "_id": "pub_009",
@@ -204,7 +256,8 @@
     "month_year": "2025-09",
     "fiscal_year_be": 2568,
     "owner_id": 85,
-    "person_id": 85
+    "person_id": 85,
+    "evaluation": null
   },
   {
     "_id": "pub_010",
@@ -227,7 +280,8 @@
     "month_year": "2025-10",
     "fiscal_year_be": 2568,
     "owner_id": 36,
-    "person_id": 36
+    "person_id": 36,
+    "evaluation": null
   },
   {
     "_id": "pub_011",
@@ -250,7 +304,8 @@
     "month_year": "2025-11",
     "fiscal_year_be": 2568,
     "owner_id": 8,
-    "person_id": 8
+    "person_id": 8,
+    "evaluation": null
   },
   {
     "_id": "pub_012",
@@ -273,7 +328,8 @@
     "month_year": "2025-12",
     "fiscal_year_be": 2568,
     "owner_id": null,
-    "person_id": null
+    "person_id": null,
+    "evaluation": null
   },
   {
     "_id": "pub_013",
@@ -296,7 +352,8 @@
     "month_year": "2025-01",
     "fiscal_year_be": 2568,
     "owner_id": 36,
-    "person_id": 36
+    "person_id": 36,
+    "evaluation": null
   },
   {
     "_id": "pub_014",
@@ -319,7 +376,8 @@
     "month_year": "2025-02",
     "fiscal_year_be": 2568,
     "owner_id": 107,
-    "person_id": 107
+    "person_id": 107,
+    "evaluation": null
   },
   {
     "_id": "pub_015",
@@ -342,7 +400,8 @@
     "month_year": "2025-03",
     "fiscal_year_be": 2568,
     "owner_id": 40,
-    "person_id": 40
+    "person_id": 40,
+    "evaluation": null
   },
   {
     "_id": "pub_016",
@@ -365,7 +424,8 @@
     "month_year": "2025-04",
     "fiscal_year_be": 2568,
     "owner_id": 81,
-    "person_id": 81
+    "person_id": 81,
+    "evaluation": null
   },
   {
     "_id": "pub_017",
@@ -388,7 +448,8 @@
     "month_year": "2025-05",
     "fiscal_year_be": 2568,
     "owner_id": 88,
-    "person_id": 88
+    "person_id": 88,
+    "evaluation": null
   },
   {
     "_id": "pub_018",
@@ -411,7 +472,8 @@
     "month_year": "2025-06",
     "fiscal_year_be": 2568,
     "owner_id": 8,
-    "person_id": 8
+    "person_id": 8,
+    "evaluation": null
   },
   {
     "_id": "pub_019",
@@ -434,7 +496,8 @@
     "month_year": "2025-07",
     "fiscal_year_be": 2568,
     "owner_id": 84,
-    "person_id": 84
+    "person_id": 84,
+    "evaluation": null
   },
   {
     "_id": "pub_020",
@@ -457,7 +520,8 @@
     "month_year": "2025-08",
     "fiscal_year_be": 2568,
     "owner_id": null,
-    "person_id": null
+    "person_id": null,
+    "evaluation": null
   },
   {
     "_id": "pub_021",
@@ -480,7 +544,8 @@
     "month_year": "2025-09",
     "fiscal_year_be": 2568,
     "owner_id": 80,
-    "person_id": 80
+    "person_id": 80,
+    "evaluation": null
   },
   {
     "_id": "pub_022",
@@ -503,7 +568,8 @@
     "month_year": "2025-10",
     "fiscal_year_be": 2568,
     "owner_id": 107,
-    "person_id": 107
+    "person_id": 107,
+    "evaluation": null
   },
   {
     "_id": "pub_023",
@@ -526,7 +592,8 @@
     "month_year": "2025-11",
     "fiscal_year_be": 2568,
     "owner_id": 81,
-    "person_id": 81
+    "person_id": 81,
+    "evaluation": null
   },
   {
     "_id": "pub_024",
@@ -549,7 +616,8 @@
     "month_year": "2025-12",
     "fiscal_year_be": 2568,
     "owner_id": 8,
-    "person_id": 8
+    "person_id": 8,
+    "evaluation": null
   },
   {
     "_id": "pub_025",
@@ -572,7 +640,8 @@
     "month_year": "2025-01",
     "fiscal_year_be": 2568,
     "owner_id": null,
-    "person_id": null
+    "person_id": null,
+    "evaluation": null
   },
   {
     "_id": "pub_026",
@@ -595,7 +664,8 @@
     "month_year": "2025-02",
     "fiscal_year_be": 2568,
     "owner_id": 60,
-    "person_id": 60
+    "person_id": 60,
+    "evaluation": null
   },
   {
     "_id": "pub_027",
@@ -618,7 +688,8 @@
     "month_year": "2025-03",
     "fiscal_year_be": 2568,
     "owner_id": 77,
-    "person_id": 77
+    "person_id": 77,
+    "evaluation": null
   },
   {
     "_id": "pub_028",
@@ -641,7 +712,8 @@
     "month_year": "2025-04",
     "fiscal_year_be": 2568,
     "owner_id": 110,
-    "person_id": 110
+    "person_id": 110,
+    "evaluation": null
   },
   {
     "_id": "pub_029",
@@ -664,7 +736,8 @@
     "month_year": "2025-05",
     "fiscal_year_be": 2568,
     "owner_id": null,
-    "person_id": null
+    "person_id": null,
+    "evaluation": null
   },
   {
     "_id": "pub_030",
@@ -687,7 +760,8 @@
     "month_year": "2025-06",
     "fiscal_year_be": 2568,
     "owner_id": 81,
-    "person_id": 81
+    "person_id": 81,
+    "evaluation": null
   },
   {
     "_id": "pub_031",
@@ -710,7 +784,8 @@
     "month_year": "2025-07",
     "fiscal_year_be": 2568,
     "owner_id": null,
-    "person_id": null
+    "person_id": null,
+    "evaluation": null
   },
   {
     "_id": "pub_032",
@@ -733,7 +808,8 @@
     "month_year": "2025-08",
     "fiscal_year_be": 2568,
     "owner_id": 37,
-    "person_id": 37
+    "person_id": 37,
+    "evaluation": null
   },
   {
     "_id": "pub_033",
@@ -756,7 +832,8 @@
     "month_year": "2025-09",
     "fiscal_year_be": 2568,
     "owner_id": null,
-    "person_id": null
+    "person_id": null,
+    "evaluation": null
   },
   {
     "_id": "pub_034",
@@ -779,7 +856,8 @@
     "month_year": "2025-10",
     "fiscal_year_be": 2568,
     "owner_id": 130,
-    "person_id": 130
+    "person_id": 130,
+    "evaluation": null
   },
   {
     "_id": "pub_035",
@@ -802,7 +880,8 @@
     "month_year": "2025-11",
     "fiscal_year_be": 2568,
     "owner_id": 110,
-    "person_id": 110
+    "person_id": 110,
+    "evaluation": null
   },
   {
     "_id": "pub_036",
@@ -825,7 +904,8 @@
     "month_year": "2025-12",
     "fiscal_year_be": 2568,
     "owner_id": 110,
-    "person_id": 110
+    "person_id": 110,
+    "evaluation": null
   },
   {
     "_id": "pub_037",
@@ -848,7 +928,8 @@
     "month_year": "2025-01",
     "fiscal_year_be": 2568,
     "owner_id": 110,
-    "person_id": 110
+    "person_id": 110,
+    "evaluation": null
   },
   {
     "_id": "pub_038",
@@ -871,7 +952,8 @@
     "month_year": "2025-02",
     "fiscal_year_be": 2568,
     "owner_id": 28,
-    "person_id": 28
+    "person_id": 28,
+    "evaluation": null
   },
   {
     "_id": "pub_039",
@@ -894,7 +976,8 @@
     "month_year": "2025-03",
     "fiscal_year_be": 2568,
     "owner_id": 33,
-    "person_id": 33
+    "person_id": 33,
+    "evaluation": null
   },
   {
     "_id": "pub_040",
@@ -917,7 +1000,8 @@
     "month_year": "2025-04",
     "fiscal_year_be": 2568,
     "owner_id": 78,
-    "person_id": 78
+    "person_id": 78,
+    "evaluation": null
   },
   {
     "_id": "pub_041",
@@ -940,7 +1024,8 @@
     "month_year": "2025-05",
     "fiscal_year_be": 2568,
     "owner_id": 87,
-    "person_id": 87
+    "person_id": 87,
+    "evaluation": null
   },
   {
     "_id": "pub_042",
@@ -963,7 +1048,8 @@
     "month_year": "2025-06",
     "fiscal_year_be": 2568,
     "owner_id": 11,
-    "person_id": 11
+    "person_id": 11,
+    "evaluation": null
   },
   {
     "_id": "pub_043",
@@ -986,7 +1072,8 @@
     "month_year": "2025-07",
     "fiscal_year_be": 2568,
     "owner_id": 11,
-    "person_id": 11
+    "person_id": 11,
+    "evaluation": null
   },
   {
     "_id": "pub_044",
@@ -1009,7 +1096,8 @@
     "month_year": "2025-08",
     "fiscal_year_be": 2568,
     "owner_id": 11,
-    "person_id": 11
+    "person_id": 11,
+    "evaluation": null
   },
   {
     "_id": "pub_045",
@@ -1032,7 +1120,8 @@
     "month_year": "2025-09",
     "fiscal_year_be": 2568,
     "owner_id": 107,
-    "person_id": 107
+    "person_id": 107,
+    "evaluation": null
   },
   {
     "_id": "pub_046",
@@ -1055,7 +1144,8 @@
     "month_year": "2025-10",
     "fiscal_year_be": 2568,
     "owner_id": 36,
-    "person_id": 36
+    "person_id": 36,
+    "evaluation": null
   },
   {
     "_id": "pub_047",
@@ -1078,7 +1168,8 @@
     "month_year": "2025-11",
     "fiscal_year_be": 2568,
     "owner_id": 7,
-    "person_id": 7
+    "person_id": 7,
+    "evaluation": null
   },
   {
     "_id": "pub_048",
@@ -1101,7 +1192,8 @@
     "month_year": "2025-12",
     "fiscal_year_be": 2568,
     "owner_id": 8,
-    "person_id": 8
+    "person_id": 8,
+    "evaluation": null
   },
   {
     "_id": "pub_049",
@@ -1124,7 +1216,8 @@
     "month_year": "2025-01",
     "fiscal_year_be": 2568,
     "owner_id": 110,
-    "person_id": 110
+    "person_id": 110,
+    "evaluation": null
   },
   {
     "_id": "pub_050",
@@ -1147,7 +1240,8 @@
     "month_year": "2025-02",
     "fiscal_year_be": 2568,
     "owner_id": 80,
-    "person_id": 80
+    "person_id": 80,
+    "evaluation": null
   },
   {
     "_id": "pub_051",
@@ -1170,7 +1264,8 @@
     "month_year": "2025-03",
     "fiscal_year_be": 2568,
     "owner_id": 28,
-    "person_id": 28
+    "person_id": 28,
+    "evaluation": null
   },
   {
     "_id": "pub_052",
@@ -1193,7 +1288,8 @@
     "month_year": "2025-04",
     "fiscal_year_be": 2568,
     "owner_id": 110,
-    "person_id": 110
+    "person_id": 110,
+    "evaluation": null
   },
   {
     "_id": "pub_053",
@@ -1216,7 +1312,8 @@
     "month_year": "2025-05",
     "fiscal_year_be": 2568,
     "owner_id": 125,
-    "person_id": 125
+    "person_id": 125,
+    "evaluation": null
   },
   {
     "_id": "pub_054",
@@ -1239,7 +1336,8 @@
     "month_year": "2025-06",
     "fiscal_year_be": 2568,
     "owner_id": 8,
-    "person_id": 8
+    "person_id": 8,
+    "evaluation": null
   },
   {
     "_id": "pub_055",
@@ -1262,7 +1360,8 @@
     "month_year": "2025-07",
     "fiscal_year_be": 2568,
     "owner_id": 8,
-    "person_id": 8
+    "person_id": 8,
+    "evaluation": null
   },
   {
     "_id": "pub_056",
@@ -1285,7 +1384,8 @@
     "month_year": "2025-08",
     "fiscal_year_be": 2568,
     "owner_id": 128,
-    "person_id": 128
+    "person_id": 128,
+    "evaluation": null
   },
   {
     "_id": "pub_057",
@@ -1308,7 +1408,8 @@
     "month_year": "2025-09",
     "fiscal_year_be": 2568,
     "owner_id": 110,
-    "person_id": 110
+    "person_id": 110,
+    "evaluation": null
   },
   {
     "_id": "pub_058",
@@ -1331,7 +1432,8 @@
     "month_year": "2025-10",
     "fiscal_year_be": 2568,
     "owner_id": null,
-    "person_id": null
+    "person_id": null,
+    "evaluation": null
   },
   {
     "_id": "pub_059",
@@ -1354,7 +1456,8 @@
     "month_year": "2025-11",
     "fiscal_year_be": 2568,
     "owner_id": null,
-    "person_id": null
+    "person_id": null,
+    "evaluation": null
   },
   {
     "_id": "pub_060",
@@ -1377,7 +1480,8 @@
     "month_year": "2025-12",
     "fiscal_year_be": 2568,
     "owner_id": 81,
-    "person_id": 81
+    "person_id": 81,
+    "evaluation": null
   },
   {
     "_id": "pub_061",
@@ -1400,7 +1504,8 @@
     "month_year": "2025-01",
     "fiscal_year_be": 2568,
     "owner_id": 144,
-    "person_id": 144
+    "person_id": 144,
+    "evaluation": null
   },
   {
     "_id": "pub_062",
@@ -1423,7 +1528,8 @@
     "month_year": "2025-02",
     "fiscal_year_be": 2568,
     "owner_id": 131,
-    "person_id": 131
+    "person_id": 131,
+    "evaluation": null
   },
   {
     "_id": "pub_063",
@@ -1446,7 +1552,8 @@
     "month_year": "2025-03",
     "fiscal_year_be": 2568,
     "owner_id": 44,
-    "person_id": 44
+    "person_id": 44,
+    "evaluation": null
   },
   {
     "_id": "pub_064",
@@ -1469,7 +1576,8 @@
     "month_year": "2025-04",
     "fiscal_year_be": 2568,
     "owner_id": 31,
-    "person_id": 31
+    "person_id": 31,
+    "evaluation": null
   },
   {
     "_id": "pub_065",
@@ -1492,7 +1600,8 @@
     "month_year": "2025-05",
     "fiscal_year_be": 2568,
     "owner_id": null,
-    "person_id": null
+    "person_id": null,
+    "evaluation": null
   },
   {
     "_id": "pub_066",
@@ -1515,7 +1624,8 @@
     "month_year": "2025-06",
     "fiscal_year_be": 2568,
     "owner_id": 31,
-    "person_id": 31
+    "person_id": 31,
+    "evaluation": null
   },
   {
     "_id": "pub_067",
@@ -1538,7 +1648,8 @@
     "month_year": "2025-07",
     "fiscal_year_be": 2568,
     "owner_id": 31,
-    "person_id": 31
+    "person_id": 31,
+    "evaluation": null
   },
   {
     "_id": "pub_068",
@@ -1561,7 +1672,8 @@
     "month_year": "2025-08",
     "fiscal_year_be": 2568,
     "owner_id": 78,
-    "person_id": 78
+    "person_id": 78,
+    "evaluation": null
   },
   {
     "_id": "pub_069",
@@ -1584,7 +1696,8 @@
     "month_year": "2025-09",
     "fiscal_year_be": 2568,
     "owner_id": 78,
-    "person_id": 78
+    "person_id": 78,
+    "evaluation": null
   },
   {
     "_id": "pub_070",
@@ -1607,7 +1720,8 @@
     "month_year": "2025-10",
     "fiscal_year_be": 2568,
     "owner_id": 5,
-    "person_id": 5
+    "person_id": 5,
+    "evaluation": null
   },
   {
     "_id": "pub_071",
@@ -1630,7 +1744,8 @@
     "month_year": "2025-11",
     "fiscal_year_be": 2568,
     "owner_id": 44,
-    "person_id": 44
+    "person_id": 44,
+    "evaluation": null
   },
   {
     "_id": "pub_072",
@@ -1653,7 +1768,8 @@
     "month_year": "2025-12",
     "fiscal_year_be": 2568,
     "owner_id": 58,
-    "person_id": 58
+    "person_id": 58,
+    "evaluation": null
   },
   {
     "_id": "pub_073",
@@ -1676,7 +1792,8 @@
     "month_year": "2025-01",
     "fiscal_year_be": 2568,
     "owner_id": 13,
-    "person_id": 13
+    "person_id": 13,
+    "evaluation": null
   },
   {
     "_id": "pub_074",
@@ -1699,7 +1816,8 @@
     "month_year": "2025-02",
     "fiscal_year_be": 2568,
     "owner_id": null,
-    "person_id": null
+    "person_id": null,
+    "evaluation": null
   },
   {
     "_id": "pub_075",
@@ -1722,7 +1840,8 @@
     "month_year": "2025-03",
     "fiscal_year_be": 2568,
     "owner_id": 42,
-    "person_id": 42
+    "person_id": 42,
+    "evaluation": null
   },
   {
     "_id": "pub_076",
@@ -1745,7 +1864,8 @@
     "month_year": "2025-04",
     "fiscal_year_be": 2568,
     "owner_id": 36,
-    "person_id": 36
+    "person_id": 36,
+    "evaluation": null
   },
   {
     "_id": "pub_077",
@@ -1768,7 +1888,8 @@
     "month_year": "2025-05",
     "fiscal_year_be": 2568,
     "owner_id": 33,
-    "person_id": 33
+    "person_id": 33,
+    "evaluation": null
   },
   {
     "_id": "pub_078",
@@ -1791,7 +1912,8 @@
     "month_year": "2025-06",
     "fiscal_year_be": 2568,
     "owner_id": null,
-    "person_id": null
+    "person_id": null,
+    "evaluation": null
   },
   {
     "_id": "pub_079",
@@ -1814,7 +1936,8 @@
     "month_year": "2025-07",
     "fiscal_year_be": 2568,
     "owner_id": 80,
-    "person_id": 80
+    "person_id": 80,
+    "evaluation": null
   },
   {
     "_id": "pub_080",
@@ -1837,7 +1960,8 @@
     "month_year": "2025-08",
     "fiscal_year_be": 2568,
     "owner_id": 110,
-    "person_id": 110
+    "person_id": 110,
+    "evaluation": null
   },
   {
     "_id": "pub_081",
@@ -1860,7 +1984,8 @@
     "month_year": "2025-09",
     "fiscal_year_be": 2568,
     "owner_id": 32,
-    "person_id": 32
+    "person_id": 32,
+    "evaluation": null
   },
   {
     "_id": "pub_082",
@@ -1883,7 +2008,8 @@
     "month_year": "2025-10",
     "fiscal_year_be": 2568,
     "owner_id": 254,
-    "person_id": 254
+    "person_id": 254,
+    "evaluation": null
   },
   {
     "_id": "pub_083",
@@ -1906,6 +2032,7 @@
     "month_year": "2025-11",
     "fiscal_year_be": 2568,
     "owner_id": 33,
-    "person_id": 33
+    "person_id": 33,
+    "evaluation": null
   }
 ]

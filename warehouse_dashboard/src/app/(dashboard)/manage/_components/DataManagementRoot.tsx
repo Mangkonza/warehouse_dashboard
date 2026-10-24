@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { CategoryKey, PersonnelRecord } from '@/types/dataManagement';
 import { CATEGORIES_CONFIG, DEPARTMENTS, getDepartmentAbbr } from '@/config/dataManagementConfig';
 import { TopSegmentedTabs } from './TopSegmentedTabs';
@@ -48,10 +49,13 @@ import { ProjectMonitoringView } from './ProjectMonitoringView';
 import {
   getCachedCategoryData,
   fetchCategoryData,
+  fetchEvaluations,
   saveCategoryRecord,
   deleteCategoryRecord,
   batchImportCategoryRecords,
+  bulkSaveEvaluationRecords,
 } from '@/lib/dataService';
+import { isEvaluated, parseSdgNumber } from '@/types/evaluation';
 
 interface DataManagementRootProps {
   goBack: () => void;
@@ -60,7 +64,7 @@ interface DataManagementRootProps {
 
 const sanitizeDataset = (items: any[], categoryKey: string) => {
   return items
-    .filter((i: any) => i.name && i.name !== 'nan' && i.name !== 'NaT' && i.name !== 'เรื่อง')
+    .filter((i: any) => i && i.name && i.name !== 'nan' && i.name !== 'NaT' && i.name !== 'เรื่อง')
     .map((item: any, idx: number) => {
       const cleaned: any = { ...item };
       Object.keys(cleaned).forEach((k) => {
@@ -68,8 +72,10 @@ const sanitizeDataset = (items: any[], categoryKey: string) => {
           cleaned[k] = '';
         }
       });
-      const baseId = cleaned.id && cleaned.id !== '' && cleaned.id !== 'nan' ? cleaned.id : idx + 1;
-      cleaned._id = `${categoryKey}_${baseId}_${idx}`;
+      if (!cleaned._id) {
+        const baseId = cleaned.id && cleaned.id !== '' && cleaned.id !== 'nan' ? cleaned.id : idx + 1;
+        cleaned._id = `${categoryKey}_${baseId}_${idx}`;
+      }
       return cleaned;
     });
 };
@@ -136,6 +142,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
   goBack,
   onNavigateToMonitoring,
 }) => {
+  const router = useRouter();
   // Datasets state with sanitized data and stable unique IDs
   const [datasets, setDatasets] = useState<Record<CategoryKey, any[]>>(() => ({
     monitoring: getInitialDataset('research', rawResearch),
@@ -148,24 +155,101 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
     kpi: [],
   }));
 
-  // Synchronize with server on mount
-  React.useEffect(() => {
-    const categories: CategoryKey[] = ['research', 'academic', 'service', 'publications', 'ip', 'personnel'];
-    categories.forEach(async (cat) => {
-      try {
-        const fresh = await fetchCategoryData(cat);
-        if (fresh && Array.isArray(fresh) && fresh.length > 0) {
-          setDatasets((prev) => ({
-            ...prev,
-            [cat]: fresh,
-            ...(cat === 'research' ? { monitoring: fresh } : {}),
-          }));
+  // Synchronize with server on mount, tab focus, and evaluation updates
+  const isSyncingRef = React.useRef(false);
+  const lastSyncTimeRef = React.useRef(0);
+  const abortControllerRef = React.useRef<AbortController | null>(null);
+
+  const syncServerData = React.useCallback(async (force = false) => {
+    const now = Date.now();
+    // Throttle: avoid syncing more often than once every 2 seconds unless forced (initial mount)
+    if (!force && now - lastSyncTimeRef.current < 2000) {
+      return;
+    }
+    // In-flight guard: avoid duplicate concurrent syncs
+    if (isSyncingRef.current) {
+      return;
+    }
+
+    isSyncingRef.current = true;
+    lastSyncTimeRef.current = now;
+
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    try {
+      // 1. Fetch latest evaluations into cache (read-only, does not broadcast event)
+      await fetchEvaluations().catch(() => {});
+      if (controller.signal.aborted) return;
+
+      // 2. Fetch fresh category data for all categories
+      const categories: CategoryKey[] = ['research', 'academic', 'service', 'publications', 'ip', 'personnel'];
+      const updates: Partial<Record<CategoryKey, any[]>> = {};
+
+      for (const cat of categories) {
+        if (controller.signal.aborted) return;
+        try {
+          const fresh = await fetchCategoryData(cat);
+          if (fresh && Array.isArray(fresh) && fresh.length > 0) {
+            updates[cat] = fresh;
+          }
+        } catch (err) {
+          console.warn(`[DataManagement] Error syncing ${cat}:`, err);
         }
-      } catch (err) {
-        console.warn(`[DataManagement] Error syncing ${cat}:`, err);
       }
-    });
+
+      if (controller.signal.aborted) return;
+
+      // Only setState once, and only if data actually changed
+      if (Object.keys(updates).length > 0) {
+        setDatasets((prev) => {
+          let hasAnyDiff = false;
+          for (const [k, newVal] of Object.entries(updates)) {
+            const currentVal = prev[k as CategoryKey];
+            if (!currentVal || currentVal.length !== newVal.length || JSON.stringify(currentVal) !== JSON.stringify(newVal)) {
+              hasAnyDiff = true;
+              break;
+            }
+          }
+          if (!hasAnyDiff) return prev;
+
+          const next = { ...prev, ...updates };
+          if (updates.research) {
+            next.monitoring = updates.research;
+          }
+          return next;
+        });
+      }
+    } finally {
+      isSyncingRef.current = false;
+    }
   }, []);
+
+  React.useEffect(() => {
+    // Initial mount sync (force = true)
+    syncServerData(true);
+
+    const handleFocus = () => {
+      syncServerData(false);
+    };
+    const handleEvalUpdate = () => {
+      syncServerData(false);
+    };
+
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('ku_evaluations_updated', handleEvalUpdate);
+
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('ku_evaluations_updated', handleEvalUpdate);
+    };
+  }, [syncServerData]);
 
   const [activeCategory, setActiveCategory] = useState<CategoryKey>(resolveInitialCategory);
   const [searchTerm, setSearchTerm] = useState('');
@@ -221,10 +305,15 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
 
   // Toast Notification
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastAction, setToastAction] = useState<{ label: string; onClick: () => void } | null>(null);
 
-  const showToast = (msg: string) => {
+  const showToast = (msg: string, action?: { label: string; onClick: () => void }) => {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3500);
+    setToastAction(action || null);
+    setTimeout(() => {
+      setToastMessage(null);
+      setToastAction(null);
+    }, action ? 6000 : 3500);
   };
 
   const currentConfig = CATEGORIES_CONFIG[activeCategory];
@@ -522,12 +611,78 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
         ...(resolvedCategory === 'research' ? { monitoring: updated } : {}),
       };
     });
+    // Extract optional evaluation fields and report unevaluated count
+    let unevaluatedCount = 0;
+    const evalItems: any[] = [];
+
+    sanitizedImported.forEach((row) => {
+      let sdgs: number[] = [];
+      const rawSdg = row.sdg_code || row.sdgs || row.sdg;
+      if (rawSdg) {
+        if (Array.isArray(rawSdg)) sdgs = rawSdg.map(parseSdgNumber).filter((n): n is number => n !== null);
+        else if (typeof rawSdg === 'string') sdgs = rawSdg.split(',').map(parseSdgNumber).filter((n): n is number => n !== null);
+      }
+      let iType: any = null;
+      if (row.i_type === 'I_AM' || row.i_type === 'I_SEE') iType = row.i_type;
+      else if (row.i_type === 'I am') iType = 'I_AM';
+      else if (row.i_type === 'I see') iType = 'I_SEE';
+
+      let journalIndex: any = null;
+      const rawTier = row.quartile || row.tier || row.journal_tier;
+      if (rawTier) {
+        const clean = String(rawTier).trim();
+        if (clean.includes('Q1')) journalIndex = { type: 'Q', value: 'Q1' };
+        else if (clean.includes('Q2')) journalIndex = { type: 'Q', value: 'Q2' };
+        else if (clean.includes('Q3')) journalIndex = { type: 'Q', value: 'Q3' };
+        else if (clean.includes('Q4')) journalIndex = { type: 'Q', value: 'Q4' };
+        else if (clean.includes('TCI 1') || clean.includes('TCI1')) journalIndex = { type: 'TCI', value: 'TCI 1' };
+        else if (clean.includes('TCI 2') || clean.includes('TCI2')) journalIndex = { type: 'TCI', value: 'TCI 2' };
+        else if (clean.includes('TCI 3') || clean.includes('TCI3')) journalIndex = { type: 'TCI', value: 'TCI 3' };
+      }
+
+      if (sdgs.length > 0 || iType || journalIndex) {
+        evalItems.push({
+          category: resolvedCategory,
+          record_id: row._id,
+          sdg_ids: sdgs,
+          i_type: iType,
+          journal_index: journalIndex,
+        });
+      }
+
+      if (!isEvaluated(resolvedCategory, { sdg_ids: sdgs, i_type: iType, journal_index: journalIndex })) {
+        unevaluatedCount++;
+      }
+
+      delete row.sdg_code;
+      delete row.sdgs;
+      delete row.sdg;
+      delete row.i_type;
+      delete row.quartile;
+      delete row.tier;
+      delete row.journal_tier;
+    });
+
+    if (evalItems.length > 0) {
+      await bulkSaveEvaluationRecords(evalItems);
+    }
+
     setCurrentPage(1);
-    showToast(
-      `นำเข้าข้อมูลเข้าหมวด ${CATEGORIES_CONFIG[targetCategory].title} สำเร็จ (${importedRows.length} รายการ - ${
-        mode === 'append' ? 'โหมดต่อท้าย' : 'โหมดเขียนทับ'
-      })`
-    );
+    if (unevaluatedCount > 0) {
+      showToast(
+        `นำเข้าข้อมูลสำเร็จ ${importedRows.length} รายการ (ยังไม่ประเมิน ${unevaluatedCount} รายการ)`,
+        {
+          label: 'ไปที่หน้าการประเมิน',
+          onClick: () => router.push(`/evaluation?category=${resolvedCategory}&status=unevaluated`),
+        }
+      );
+    } else {
+      showToast(
+        `นำเข้าข้อมูลเข้าหมวด ${CATEGORIES_CONFIG[targetCategory].title} สำเร็จ (${importedRows.length} รายการ - ${
+          mode === 'append' ? 'โหมดต่อท้าย' : 'โหมดเขียนทับ'
+        })`
+      );
+    }
   };
 
   return (
@@ -554,6 +709,24 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
         >
           <FaCheckCircle style={{ fontSize: '16px' }} />
           <span>{toastMessage}</span>
+          {toastAction && (
+            <button
+              onClick={toastAction.onClick}
+              style={{
+                marginLeft: '8px',
+                padding: '4px 10px',
+                borderRadius: '6px',
+                backgroundColor: '#ffffff',
+                color: '#00A651',
+                border: 'none',
+                fontWeight: 700,
+                fontSize: '12px',
+                cursor: 'pointer',
+              }}
+            >
+              {toastAction.label}
+            </button>
+          )}
         </div>
       )}
 

@@ -1,0 +1,111 @@
+{
+  "research_วศ.กพส. 1/2569": {
+    "id": "research_วศ.กพส. 1/2569",
+    "category": "research",
+    "record_id": "วศ.กพส. 1/2569",
+    "sdg_ids": [
+      7,
+      9,
+      13
+    ],
+    "i_type": "I_AM",
+    "journal_index": null,
+    "evaluated_by": "admin",
+    "evaluated_at": "2026-10-24T21:00:19.475Z",
+    "updated_at": "2026-10-24T21:10:33.976Z"
+  },
+  "research_วศ.กพส.\n1/2568": {
+    "id": "research_วศ.กพส.\n1/2568",
+    "category": "research",
+    "record_id": "วศ.กพส.\n1/2568",
+    "sdg_ids": [
+      11,
+      13
+    ],
+    "i_type": "I_SEE",
+    "journal_index": null,
+    "evaluated_by": "admin",
+    "evaluated_at": "2026-10-24T20:36:46.502Z",
+    "updated_at": "2026-10-24T20:36:46.502Z"
+  },
+  "publications_pub_001": {
+    "id": "publications_pub_001",
+    "category": "publications",
+    "record_id": "pub_001",
+    "sdg_ids": [
+      3,
+      9,
+      12
+    ],
+    "i_type": "I_SEE",
+    "journal_index": {
+      "type": "TCI",
+      "value": "TCI 1"
+    },
+    "evaluated_by": "admin",
+    "evaluated_at": "2026-10-24T20:34:58.707Z",
+    "updated_at": "2026-10-24T21:00:19.539Z"
+  },
+  "publications_pub_002": {
+    "id": "publications_pub_002",
+    "category": "publications",
+    "record_id": "pub_002",
+    "sdg_ids": [
+      7,
+      11
+    ],
+    "i_type": null,
+    "journal_index": null,
+    "updated_at": "2026-10-24T20:35:13.739Z"
+  },
+  "research_วศ.กพส.\n2/2568": {
+    "id": "research_วศ.กพส.\n2/2568",
+    "category": "research",
+    "record_id": "วศ.กพส.\n2/2568",
+    "sdg_ids": [],
+    "i_type": null,
+    "journal_index": null,
+    "updated_at": "2026-10-24T20:37:20.426Z"
+  },
+  "academic_academic_idx_0": {
+    "id": "academic_academic_idx_0",
+    "category": "academic",
+    "record_id": "academic_idx_0",
+    "sdg_ids": [
+      4,
+      11
+    ],
+    "i_type": "I_SEE",
+    "journal_index": null,
+    "evaluated_by": "admin",
+    "evaluated_at": "2026-10-24T20:50:50.558Z",
+    "updated_at": "2026-10-24T21:00:19.510Z"
+  },
+  "service_service_1792829081701": {
+    "id": "service_service_1792829081701",
+    "category": "service",
+    "record_id": "service_1792829081701",
+    "sdg_ids": [
+      1,
+      2
+    ],
+    "i_type": "I_AM",
+    "journal_index": null,
+    "evaluated_by": "admin",
+    "evaluated_at": "2026-10-24T21:00:19.604Z",
+    "updated_at": "2026-10-24T21:00:19.604Z"
+  },
+  "ip_ip_1": {
+    "id": "ip_ip_1",
+    "category": "ip",
+    "record_id": "ip_1",
+    "sdg_ids": [
+      9
+    ],
+    "i_type": "I_AM",
+    "journal_index": null,
+    "evaluated_by": "admin",
+    "evaluated_at": "2026-10-24T21:00:19.682Z",
+    "updated_at": "2026-10-24T21:00:19.682Z"
+  }
+}

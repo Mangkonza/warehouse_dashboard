@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { FaTable, FaCalendarAlt } from 'react-icons/fa';
-import { SearchInput, DepartmentBadge, DepartmentSelect, RecordDetailDrawer } from '@/components/ui';
+import { SearchInput, DepartmentBadge, DepartmentSelect, RecordDetailDrawer, LevelBadge } from '@/components/ui';
 import { JOURNAL_TIER_STYLES } from '@/config/journalRankingConfig';
 import {
   Select,
@@ -251,15 +251,7 @@ export function PublicationsTable({
                         </td>
                         <td style={{ textAlign: 'center' }}>
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
-                            <span
-                              className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${
-                                item.level === 'นานาชาติ'
-                                  ? 'bg-purple-50 text-purple-800 border border-purple-200'
-                                  : 'bg-slate-100 text-slate-700 border border-slate-200'
-                              }`}
-                            >
-                              {item.level || '-'}
-                            </span>
+                            <LevelBadge value={item.level} />
                             {item._detectedTier && JOURNAL_TIER_STYLES[item._detectedTier] && (
                               <span
                                 style={{

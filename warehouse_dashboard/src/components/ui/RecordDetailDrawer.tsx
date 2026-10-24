@@ -4,6 +4,10 @@ import React, { useEffect, useRef } from 'react';
 import { CategoryConfig, CategoryKey } from '@/types/dataManagement';
 import { CATEGORIES_CONFIG } from '@/config/dataManagementConfig';
 import { DepartmentBadge } from '@/components/ui/department-badge';
+import { EvaluationTags, LevelBadge, RecordEvaluationTags, getItemEvaluation } from '@/components/ui/evaluation-tag';
+import { Drawer } from '@/components/ui/Drawer';
+import { getCachedEvaluations } from '@/lib/dataService';
+import { EvaluationValue, isEvaluated } from '@/types/evaluation';
 import {
   FaTimes,
   FaChevronLeft,
@@ -84,6 +88,7 @@ export interface RecordDetailDrawerProps {
   record?: Record<string, any> | null;
   config?: CategoryConfig;
   categoryKey?: CategoryKey | string;
+  evaluation?: EvaluationValue | null;
   onEdit?: (item: any, index: number) => void;
   onDelete?: (item: any, index: number) => void;
   onPrev?: () => void;
@@ -102,6 +107,7 @@ export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
   record,
   config: configProp,
   categoryKey,
+  evaluation: evaluationProp,
   onEdit,
   onDelete,
   onPrev,
@@ -120,6 +126,37 @@ export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
       : undefined);
   const drawerRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
+
+  const lastItemRef = useRef<Record<string, any> | null>(item);
+  if (item) {
+    lastItemRef.current = item;
+  }
+  const displayItem = item || lastItemRef.current;
+
+  const [evalRecord, setEvalRecord] = React.useState<EvaluationValue | null>(() => {
+    if (evaluationProp !== undefined && evaluationProp !== null) return evaluationProp;
+    if (!item || !categoryKey) return null;
+    return getItemEvaluation(item, String(categoryKey));
+  });
+
+  React.useEffect(() => {
+    if (evaluationProp !== undefined && evaluationProp !== null) {
+      setEvalRecord(evaluationProp);
+      return;
+    }
+    if (!displayItem || !categoryKey) {
+      setEvalRecord(null);
+      return;
+    }
+    setEvalRecord(getItemEvaluation(displayItem, String(categoryKey)));
+
+    const handleUpdate = () => {
+      setEvalRecord(getItemEvaluation(displayItem, String(categoryKey)));
+    };
+    window.addEventListener('ku_evaluations_updated', handleUpdate);
+    return () => window.removeEventListener('ku_evaluations_updated', handleUpdate);
+  }, [displayItem, categoryKey, evaluationProp]);
 
   // Focus trap and Esc key handler
   useEffect(() => {
@@ -128,7 +165,7 @@ export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
     const previouslyFocusedElement = document.activeElement as HTMLElement | null;
 
     const timer = setTimeout(() => {
-      closeButtonRef.current?.focus();
+      closeButtonRef.current?.focus({ preventScroll: true });
     }, 50);
 
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -167,28 +204,43 @@ export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
       clearTimeout(timer);
       window.removeEventListener('keydown', handleKeyDown);
       if (previouslyFocusedElement && typeof previouslyFocusedElement.focus === 'function') {
-        previouslyFocusedElement.focus();
+        previouslyFocusedElement.focus({ preventScroll: true });
       }
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen || !item) return null;
+  // Scroll body back to top when switching records via Prev/Next
+  useEffect(() => {
+    if (bodyRef.current) {
+      bodyRef.current.scrollTop = 0;
+    }
+  }, [displayItem?.id, displayItem?._id, currentIndex]);
+
+  if (!displayItem) return null;
 
   // Title of the record
   const recordTitle = String(
-    item.name || item.title || item.topic_title || item.id || 'รายละเอียด'
+    displayItem.name || displayItem.title || displayItem.topic_title || displayItem.id || 'รายละเอียด'
   ).replace(/[\r\n]+/g, ' ').trim();
 
   // Helper to render field value
   const renderFieldValue = (field: any) => {
-    const rawVal = field.getValue ? field.getValue(item) : item[field.key];
+    const rawVal = field.getValue ? field.getValue(displayItem) : displayItem[field.key];
 
     if (field.format) {
-      return <span>{field.format(rawVal, item)}</span>;
+      return <span>{field.format(rawVal, displayItem)}</span>;
     }
 
     if (rawVal === undefined || rawVal === null || rawVal === '' || rawVal === 'nan' || rawVal === 'NaT') {
       return <span className="text-slate-400 font-normal">-</span>;
+    }
+
+    if (field.key === 'level') {
+      return (
+        <div className="pt-0.5">
+          <LevelBadge value={String(rawVal)} />
+        </div>
+      );
     }
 
     switch (field.type) {
@@ -217,7 +269,7 @@ export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
 
       case 'person': {
         const personName = String(rawVal).replace(/[\r\n]+/g, ' ').trim();
-        const dept = item.department || item.head_dept || item.person_dept;
+        const dept = displayItem.department || displayItem.head_dept || displayItem.person_dept;
         return (
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-slate-800 font-normal text-[13.5px]">{personName}</span>
@@ -229,6 +281,36 @@ export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
       }
 
       case 'person_list': {
+        // For publications co-authors (ต่างชาติ / ภายในประเทศ): display status มี / ไม่มี
+        if (field.key === 'co_authors_foreign' || field.key === 'co_authors_domestic') {
+          const isForeign = field.key === 'co_authors_foreign';
+          const hasCoAuthor = isForeign
+            ? Boolean(
+                displayItem.has_foreign_coauthor ??
+                displayItem.has_international_coauthor ??
+                ((Array.isArray(rawVal) && rawVal.length > 0 && rawVal[0] !== '') ||
+                (typeof rawVal === 'string' && rawVal.trim() !== '' && rawVal !== '-' && rawVal !== 'nan'))
+              )
+            : Boolean(
+                displayItem.has_domestic_coauthor ??
+                ((Array.isArray(rawVal) && rawVal.length > 0 && rawVal[0] !== '') ||
+                (typeof rawVal === 'string' && rawVal.trim() !== '' && rawVal !== '-' && rawVal !== 'nan'))
+              );
+
+          return (
+            <div className="pt-0.5">
+              <span
+                className={
+                  hasCoAuthor
+                    ? "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"
+                    : "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-500 border border-slate-200"
+                }
+              >
+                {hasCoAuthor ? 'มี' : 'ไม่มี'}
+              </span>
+            </div>
+          );
+        }
         // Co-researchers, inventors, co-authors
         if (Array.isArray(rawVal) && rawVal.length > 0) {
           return (
@@ -333,152 +415,158 @@ export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
   // Group definitions from category config
   const detailGroups = config?.detailGroups || [];
 
-  return (
-    <>
-      {/* Backdrop overlay */}
-      <div
-        className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 transition-opacity duration-200"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-
-      {/* Drawer panel */}
-      <div
-        ref={drawerRef}
-        role="dialog"
-        aria-modal="true"
-        aria-label="รายละเอียดรายการ"
-        className="fixed inset-y-0 right-0 z-50 w-full sm:w-[560px] max-w-full bg-white shadow-2xl flex flex-col h-full transform transition-transform duration-300 ease-out"
-      >
-        {/* Header */}
-        <div className="border-b border-slate-200 bg-white px-5 py-4 shrink-0">
-          <div className="flex items-center justify-between gap-3 mb-2">
-            {/* Previous and Next Navigation */}
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={onPrev}
-                disabled={!hasPrev}
-                title="รายการก่อนหน้า"
-                className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-xs"
-              >
-                <FaChevronLeft />
-              </button>
-              {totalInPage > 0 && (
-                <span className="text-xs font-medium text-slate-500 px-2 select-none">
-                  {currentIndex + 1} / {totalInPage}
-                </span>
-              )}
-              <button
-                type="button"
-                onClick={onNext}
-                disabled={!hasNext}
-                title="รายการถัดไป"
-                className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-xs"
-              >
-                <FaChevronRight />
-              </button>
-            </div>
-
-            {/* Actions: Edit, Delete, Close */}
-            <div className="flex items-center gap-1.5">
-              {!readOnly && onEdit && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    onEdit(item, currentIndex);
-                    onClose();
-                  }}
-                  title="แก้ไขข้อมูล"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 transition-colors"
-                >
-                  <FaEdit className="text-amber-600" />
-                  <span>แก้ไข</span>
-                </button>
-              )}
-
-              {!readOnly && onDelete && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    onDelete(item, currentIndex);
-                    onClose();
-                  }}
-                  title="ลบรายการ"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-rose-50 text-rose-800 border border-rose-200 hover:bg-rose-100 transition-colors"
-                >
-                  <FaTrashAlt className="text-rose-600" />
-                  <span>ลบ</span>
-                </button>
-              )}
-
-              <button
-                ref={closeButtonRef}
-                type="button"
-                onClick={onClose}
-                title="ปิดหน้าต่าง"
-                className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors ml-1"
-              >
-                <FaTimes className="text-base" />
-              </button>
-            </div>
-          </div>
-
-          {/* Record Title: truncated to two lines */}
-          <h3
-            className="text-[15px] font-bold text-slate-900 leading-snug line-clamp-2"
-            title={recordTitle}
+    const headerSlot = (
+    <div className="border-b border-slate-200 bg-white px-5 py-4 shrink-0">
+      <div className="flex items-center justify-between gap-3 mb-2">
+        {/* Previous and Next Navigation */}
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={onPrev}
+            disabled={!hasPrev}
+            title="รายการก่อนหน้า"
+            className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-xs cursor-pointer"
           >
-            {recordTitle}
-          </h3>
+            <FaChevronLeft />
+          </button>
+          {totalInPage > 0 && (
+            <span className="text-xs font-medium text-slate-500 px-2 select-none">
+              {currentIndex + 1} / {totalInPage}
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={onNext}
+            disabled={!hasNext}
+            title="รายการถัดไป"
+            className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-xs cursor-pointer"
+          >
+            <FaChevronRight />
+          </button>
         </div>
 
-        {/* Body content */}
-        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
-          {detailGroups.length > 0 ? (
-            detailGroups.map((group, gIdx) => {
-              const isUngrouped = !group.groupLabel;
-              return (
-                <div key={gIdx} className={isUngrouped ? '' : 'pt-2'}>
-                  {/* Parent Group Header (only if groupLabel exists) */}
-                  {!isUngrouped && (
-                    <div className="flex items-center gap-2 mb-3 pb-1 border-b border-slate-200">
-                      <span className="w-1.5 h-3.5 bg-[#00A651] rounded-full" />
-                      <h4 className="text-xs font-bold text-slate-700 tracking-wide">
-                        {group.groupLabel}
-                      </h4>
-                    </div>
-                  )}
-
-                  {/* 2-column grid of fields */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-3.5">
-                    {group.fields.map((f, fIdx) => {
-                      const isSpanFull = f.span === 2 || f.type === 'person_list' || f.type === 'list';
-                      return (
-                        <div
-                          key={fIdx}
-                          className={isSpanFull ? 'sm:col-span-2' : 'sm:col-span-1'}
-                        >
-                          <span className="block text-[12px] font-medium text-slate-500 mb-0.5">
-                            {f.label}
-                          </span>
-                          <div className="text-slate-800">
-                            {renderFieldValue(f)}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })
-          ) : (
-            <div className="text-center py-10 text-slate-400 text-sm">
-              ไม่มีข้อมูลรายละเอียด
-            </div>
+        {/* Actions: Edit, Delete, Close */}
+        <div className="flex items-center gap-1.5">
+          {!readOnly && onEdit && (
+            <button
+              type="button"
+              onClick={() => {
+                onEdit(displayItem, currentIndex);
+                onClose();
+              }}
+              title="แก้ไขข้อมูล"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 transition-colors cursor-pointer"
+            >
+              <FaEdit className="text-amber-600" />
+              <span>แก้ไข</span>
+            </button>
           )}
+
+          {!readOnly && onDelete && (
+            <button
+              type="button"
+              onClick={() => {
+                onDelete(displayItem, currentIndex);
+                onClose();
+              }}
+              title="ลบรายการ"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-rose-50 text-rose-800 border border-rose-200 hover:bg-rose-100 transition-colors cursor-pointer"
+            >
+              <FaTrashAlt className="text-rose-600" />
+              <span>ลบ</span>
+            </button>
+          )}
+
+          <button
+            ref={closeButtonRef}
+            type="button"
+            onClick={onClose}
+            title="ปิดหน้าต่าง"
+            className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors ml-1 cursor-pointer"
+          >
+            <FaTimes className="text-base" />
+          </button>
         </div>
       </div>
-    </>
+
+      {/* Record Title: truncated to two lines */}
+      <h3
+        className="text-[15px] font-bold text-slate-900 leading-snug line-clamp-2"
+        title={recordTitle}
+      >
+        {recordTitle}
+      </h3>
+    </div>
+  );
+
+  return (
+    <Drawer
+      isOpen={isOpen && !!item}
+      onClose={onClose}
+      width="w-full sm:w-[560px]"
+      headerSlot={headerSlot}
+      bodyRef={bodyRef}
+      aria-label="รายละเอียดรายการ"
+    >
+      <div className="px-6 py-5 space-y-6">
+        {/* Evaluation Block at top of scrollable body before first group/field */}
+        {categoryKey && ['research', 'academic', 'publications', 'service', 'ip'].includes(String(categoryKey).toLowerCase()) && isEvaluated(String(categoryKey), evalRecord) && (
+          <div className="pb-4 border-b border-slate-100">
+            <span className="block text-[12px] font-medium text-slate-500 mb-1.5">
+              ผลการประเมิน
+            </span>
+            <RecordEvaluationTags
+              category={String(categoryKey)}
+              item={displayItem}
+              evaluation={evalRecord}
+              className="mt-0"
+              wrap={true}
+            />
+          </div>
+        )}
+        {detailGroups.length > 0 ? (
+          detailGroups.map((group, gIdx) => {
+            const isUngrouped = !group.groupLabel;
+            return (
+              <div key={gIdx} className={isUngrouped ? '' : 'pt-2'}>
+                {/* Parent Group Header (only if groupLabel exists) */}
+                {!isUngrouped && (
+                  <div className="flex items-center gap-2 mb-3 pb-1 border-b border-slate-200">
+                    <span className="w-1.5 h-3.5 bg-[#00A651] rounded-full" />
+                    <h4 className="text-xs font-bold text-slate-700 tracking-wide">
+                      {group.groupLabel}
+                    </h4>
+                  </div>
+                )}
+
+                {/* 2-column grid of fields */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-3.5">
+                  {group.fields.map((f, fIdx) => {
+                    const isSpanFull = f.span === 2 || f.type === 'person_list' || f.type === 'list';
+                    return (
+                      <div
+                        key={fIdx}
+                        className={isSpanFull ? 'sm:col-span-2' : 'sm:col-span-1'}
+                      >
+                        <span className="block text-[12px] font-medium text-slate-500 mb-0.5">
+                          {f.label}
+                        </span>
+                        <div className="text-slate-800">
+                          {renderFieldValue(f)}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })
+        ) : (
+          <div className="text-center py-10 text-slate-400 text-sm">
+            ไม่มีข้อมูลรายละเอียด
+          </div>
+        )}
+      </div>
+    </Drawer>
   );
 };

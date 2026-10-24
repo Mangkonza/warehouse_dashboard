@@ -17,6 +17,7 @@ import {
   FaBullseye,
   FaChartLine,
   FaClock,
+  FaClipboardCheck,
   FaUserCog,
   FaUser,
 } from 'react-icons/fa';
@@ -134,6 +135,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     { id: 'overview', label: 'แดชบอร์ด ภาพรวม', path: '/overview', icon: <FaThLarge />, group: 'มุมมองบริหารและยุทธศาสตร์' },
     { id: 'kpi', label: 'ตัวชี้วัดตามแผนยุทธศาสตร์', path: '/kpi', icon: <FaBullseye />, group: 'มุมมองบริหารและยุทธศาสตร์' },
     { id: 'monitoring', label: 'ติดตามสถานะโครงการ', path: '/monitoring', icon: <FaClock />, group: 'มุมมองบริหารและยุทธศาสตร์' },
+    { id: 'evaluation', label: 'การประเมิน', path: '/evaluation', icon: <FaClipboardCheck />, group: 'มุมมองบริหารและยุทธศาสตร์' },
     { id: 'research', label: 'โครงการวิจัย', path: '/research', icon: <FaFlask />, group: 'พันธกิจหลัก 5 ด้าน' },
     { id: 'academic', label: 'โครงการพัฒนาวิชาการ', path: '/academic', icon: <FaGraduationCap />, group: 'พันธกิจหลัก 5 ด้าน' },
     { id: 'publications', label: 'ผลงานตีพิมพ์ทางวิชาการ', path: '/publications', icon: <FaBook />, group: 'พันธกิจหลัก 5 ด้าน' },

@@ -1,55 +1,52 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { calculateProjectTimeline, STATUS_LABELS } from '@/lib/projectMonitoringEngine';
 import { ProjectExtensionRecord, ProjectStatus, ProjectTimelineInfo } from '@/types/projectMonitoring';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { getCachedCategoryData, fetchCategoryData } from '@/lib/dataService';
-import rawResearch from '@/data/research.json';
-import rawAcademic from '@/data/academic.json';
-import { DEPARTMENTS, getDepartmentAbbr } from '@/config/dataManagementConfig';
+import { TopSegmentedTabs, TabItem } from '@/components/ui/TopSegmentedTabs';
 import { DepartmentBadge, DepartmentSelect, RecordDetailDrawer } from '@/components/ui';
+import { ProjectExtensionModal } from '@/features/monitoring/components/ProjectExtensionModal';
+import {
+  getCachedCategoryData,
+  fetchCategoryData,
+  saveCategoryRecord,
+  getCachedEvaluations,
+  fetchEvaluations,
+} from '@/lib/dataService';
+import { isEvaluated, EvaluationRecord } from '@/types/evaluation';
+import { formatDateBE } from '@/components/ui/RecordDetailDrawer';
 import { getDepartment } from '@/lib/departments';
 import { isTestRecord } from '@/lib/sdgEngine';
 import { TimeFilterBar, useTimeFilter } from '@/features/time-filter';
+import rawResearch from '@/data/research.json';
+import rawAcademic from '@/data/academic.json';
 import {
-  FaClock,
-  FaFlask,
-  FaGraduationCap,
-  FaThLarge,
   FaSearch,
-  FaFilter,
-  FaPlus,
-  FaHistory,
-  FaCheck,
-  FaArrowRight,
-  FaUserTie,
+  FaCalendarAlt,
   FaBuilding,
-  FaDatabase,
-  FaHandshake,
-  FaCoins,
+  FaChevronLeft,
+  FaChevronRight,
   FaCheckCircle,
   FaExclamationCircle,
+  FaClock,
+  FaArrowRight,
   FaRedo,
+  FaHistory,
+  FaExternalLinkAlt,
+  FaEye,
+  FaPlus,
 } from 'react-icons/fa';
 
-export type MonitoringProjectType = 'research' | 'academic' | 'all';
+export type MonitoringTabKey = 'research' | 'academic';
 
 interface ProjectMonitoringTabProps {
   goBack?: () => void;
   onNavigateToManage?: () => void;
 }
 
-export default function ProjectMonitoringTab({
-  goBack,
-  onNavigateToManage,
-}: ProjectMonitoringTabProps) {
+export default function ProjectMonitoringTab({}: ProjectMonitoringTabProps) {
+  const router = useRouter();
   const { filterProjectsByTime } = useTimeFilter();
 
   // 1. Datasets State
@@ -60,86 +57,139 @@ export default function ProjectMonitoringTab({
     return getCachedCategoryData('academic') || rawAcademic;
   });
 
-  // 2. Fetch fresh data on mount and listen to updates
-  useEffect(() => {
-    const loadFresh = async () => {
-      try {
-        const freshRes = await fetchCategoryData('research');
-        if (freshRes && Array.isArray(freshRes) && freshRes.length > 0) {
-          setResearchList(freshRes);
-        }
-        const freshAca = await fetchCategoryData('academic');
-        if (freshAca && Array.isArray(freshAca) && freshAca.length > 0) {
-          setAcademicList(freshAca);
-        }
-      } catch (err) {
-        console.warn('[ProjectMonitoringTab] Sync error:', err);
-      }
-    };
-    loadFresh();
+  // 2. Evaluations State
+  const [evalMap, setEvalMap] = useState<Record<string, EvaluationRecord>>(() => {
+    return getCachedEvaluations();
+  });
 
-    const handleUpdate = () => {
+  // 3. Tab State: exactly two tabs (research & academic)
+  const [activeTab, setActiveTab] = useState<MonitoringTabKey>('research');
+
+  // 4. Filters & Search State
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [deptFilter, setDeptFilter] = useState<string>('all');
+
+  // 5. Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
+
+  // 6. Modals & Drawer State
+  const [selectedDetailTarget, setSelectedDetailTarget] = useState<{
+    item: Record<string, any>;
+    category: MonitoringTabKey;
+  } | null>(null);
+  const [extensionTarget, setExtensionTarget] = useState<Record<string, any> | null>(null);
+
+  // 7. Toast Notification
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = useCallback((msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 3500);
+  }, []);
+
+  // Sync data on mount
+  useEffect(() => {
+    let isMounted = true;
+
+    // Load category data
+    fetchCategoryData('research').then((freshRes) => {
+      if (isMounted && Array.isArray(freshRes) && freshRes.length > 0) {
+        setResearchList(freshRes);
+      }
+    });
+
+    fetchCategoryData('academic').then((freshAca) => {
+      if (isMounted && Array.isArray(freshAca) && freshAca.length > 0) {
+        setAcademicList(freshAca);
+      }
+    });
+
+    // Load evaluation data
+    fetchEvaluations().then((evalData) => {
+      if (isMounted && evalData) {
+        setEvalMap(evalData);
+      }
+    });
+
+    const handleDataUpdate = () => {
       const r = getCachedCategoryData('research');
       if (r && Array.isArray(r)) setResearchList(r);
       const a = getCachedCategoryData('academic');
       if (a && Array.isArray(a)) setAcademicList(a);
     };
-    window.addEventListener('ku_data_updated', handleUpdate);
-    return () => window.removeEventListener('ku_data_updated', handleUpdate);
+
+    const handleEvalUpdate = () => {
+      setEvalMap(getCachedEvaluations());
+    };
+
+    window.addEventListener('ku_data_updated', handleDataUpdate);
+    window.addEventListener('ku_evaluations_updated', handleEvalUpdate);
+
+    return () => {
+      isMounted = false;
+      window.removeEventListener('ku_data_updated', handleDataUpdate);
+      window.removeEventListener('ku_evaluations_updated', handleEvalUpdate);
+    };
   }, []);
 
-  // 3. Tab & Filter State (แยกโครงการวิจัย และ โครงการพัฒนาวิชาการ)
-  const [activeProjectType, setActiveProjectType] = useState<MonitoringProjectType>('research');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [deptFilter, setDeptFilter] = useState<string>('all');
-  const [selectedDetailTarget, setSelectedDetailTarget] = useState<{
-    item: Record<string, any>;
-    category: 'research' | 'academic';
-  } | null>(null);
+  // Helper to check evaluation status
+  const checkIsProjectEvaluated = useCallback(
+    (category: MonitoringTabKey, project: any): boolean => {
+      const recordId = String(project.id || project._id || project.name || '').trim();
+      const key = `${category}_${recordId}`;
+      return isEvaluated(category, evalMap[key]);
+    },
+    [evalMap]
+  );
 
-  // 4. Compute Timelines for Research Projects (กรองข้อมูลทดสอบออกในหน่วยความจำ)
+  // 8. Processed Research Projects with Live Timelines
   const processedResearch = useMemo(() => {
     const clean = researchList.filter(
       (p) => !isTestRecord(p) && p.name && p.name !== 'nan' && p.name !== 'NaT' && p.name !== 'เรื่อง'
     );
     const timeFiltered = filterProjectsByTime(clean, 'start_date');
     return timeFiltered.map((p, idx) => {
-      const timeline = calculateProjectTimeline(p);
+      const isEval = checkIsProjectEvaluated('research', p);
+      const timeline = calculateProjectTimeline(p, undefined, isEval);
       return {
         ...p,
         _projectCategory: 'research' as const,
         _uniqueKey: `research_${p.id || p._id || idx}`,
         _timeline: timeline,
+        _isEvaluated: isEval,
       };
     });
-  }, [researchList, filterProjectsByTime]);
+  }, [researchList, filterProjectsByTime, checkIsProjectEvaluated]);
 
-  // 5. Compute Timelines for Academic Development Projects (กรองข้อมูลทดสอบออกในหน่วยความจำ)
+  // 9. Processed Academic Projects with Live Timelines
   const processedAcademic = useMemo(() => {
     const clean = academicList.filter(
       (p) => !isTestRecord(p) && p.name && p.name !== 'nan' && p.name !== 'NaT' && p.name !== 'เรื่อง'
     );
     const timeFiltered = filterProjectsByTime(clean, 'start_date');
     return timeFiltered.map((p, idx) => {
-      const timeline = calculateProjectTimeline(p);
+      const isEval = checkIsProjectEvaluated('academic', p);
+      const timeline = calculateProjectTimeline(p, undefined, isEval);
       return {
         ...p,
         _projectCategory: 'academic' as const,
         _uniqueKey: `academic_${p._id || p.name || idx}`,
         _timeline: timeline,
+        _isEvaluated: isEval,
       };
     });
-  }, [academicList, filterProjectsByTime]);
+  }, [academicList, filterProjectsByTime, checkIsProjectEvaluated]);
 
-  // Combined Dataset
+  // Active dataset according to activeTab
   const currentDataset = useMemo(() => {
-    if (activeProjectType === 'research') return processedResearch;
-    if (activeProjectType === 'academic') return processedAcademic;
-    return [...processedResearch, ...processedAcademic];
-  }, [activeProjectType, processedResearch, processedAcademic]);
+    return activeTab === 'research' ? processedResearch : processedAcademic;
+  }, [activeTab, processedResearch, processedAcademic]);
 
-  // 6. Statistics Calculation for the currently active project type
+  // 10. Summary Statistics for active tab
   const stats = useMemo(() => {
     let total = currentDataset.length;
     let onTrack = 0;
@@ -147,14 +197,15 @@ export default function ProjectMonitoringTab({
     let extensionReq = 0;
     let extended = 0;
     let delayed = 0;
-    let completed = 0;
+    let waitingEval = 0;
+    let evaluated = 0;
 
     currentDataset.forEach((p) => {
       const st = p._timeline.status;
       const days = p._timeline.days_remaining;
       const isOverdue = p._timeline.is_overdue;
 
-      if (st !== 'completed' && !isOverdue && days >= 0 && days <= 90) {
+      if (st !== 'completed' && st !== 'waiting_eval' && st !== 'evaluated' && !isOverdue && days >= 0 && days <= 90) {
         expiringSoon++;
       }
 
@@ -162,19 +213,22 @@ export default function ProjectMonitoringTab({
       else if (st === 'extension_requested') extensionReq++;
       else if (st === 'extended') extended++;
       else if (st === 'delayed') delayed++;
-      else if (st === 'completed') completed++;
+      else if (st === 'waiting_eval') waitingEval++;
+      else if (st === 'evaluated') evaluated++;
     });
 
-    return { total, onTrack, expiringSoon, extensionReq, extended, delayed, completed };
+    return { total, onTrack, expiringSoon, extensionReq, extended, delayed, waitingEval, evaluated };
   }, [currentDataset]);
 
-  // 7. Filtered Projects List (เรียงลำดับตามความเร่งด่วน: ล่าช้า -> ใกล้ครบกำหนด -> ขอขยายเวลา -> ตามกำหนด -> ปิดโครงการแล้ว)
+  // 11. Filtered Projects List
   const filteredList = useMemo(() => {
     const filtered = currentDataset.filter((p) => {
       // Status Filter
       if (statusFilter === 'expiring_soon') {
         const isExpiring =
           p._timeline.status !== 'completed' &&
+          p._timeline.status !== 'waiting_eval' &&
+          p._timeline.status !== 'evaluated' &&
           !p._timeline.is_overdue &&
           p._timeline.days_remaining >= 0 &&
           p._timeline.days_remaining <= 90;
@@ -182,6 +236,7 @@ export default function ProjectMonitoringTab({
       } else if (statusFilter !== 'all' && p._timeline.status !== statusFilter) {
         return false;
       }
+
       // Department Filter
       if (deptFilter !== 'all') {
         const itemDept = getDepartment(p.department);
@@ -190,6 +245,7 @@ export default function ProjectMonitoringTab({
           return false;
         }
       }
+
       // Search Term
       if (searchTerm.trim()) {
         const q = searchTerm.toLowerCase();
@@ -214,13 +270,21 @@ export default function ProjectMonitoringTab({
     const getUrgencyRank = (p: any): number => {
       const st = p._timeline.status;
       if (st === 'delayed') return 1;
-      if (st !== 'completed' && !p._timeline.is_overdue && p._timeline.days_remaining >= 0 && p._timeline.days_remaining <= 90) {
+      if (
+        st !== 'completed' &&
+        st !== 'waiting_eval' &&
+        st !== 'evaluated' &&
+        !p._timeline.is_overdue &&
+        p._timeline.days_remaining >= 0 &&
+        p._timeline.days_remaining <= 90
+      ) {
         return 2;
       }
       if (st === 'extension_requested') return 3;
       if (st === 'extended') return 4;
-      if (st === 'active') return 5;
-      return 6;
+      if (st === 'waiting_eval') return 5;
+      if (st === 'active') return 6;
+      return 7;
     };
 
     return [...filtered].sort((a, b) => {
@@ -231,169 +295,196 @@ export default function ProjectMonitoringTab({
     });
   }, [currentDataset, statusFilter, deptFilter, searchTerm]);
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      {/* Time Filter Bar */}
-      <TimeFilterBar totalCount={filteredList.length} />
+  // Tab switch handler
+  const handleTabChange = (key: string) => {
+    setActiveTab(key as MonitoringTabKey);
+    setCurrentPage(1);
+    setStatusFilter('all');
+    setDeptFilter('all');
+    setSearchTerm('');
+  };
 
-      {/* ========================================================================= */}
-      {/* แท็บสลับแยกระหว่าง: โครงการวิจัย vs โครงการพัฒนาวิชาการ vs ทั้งหมด */}
-      {/* ========================================================================= */}
+  // Pagination Slice
+  const totalItems = filteredList.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
+  const validCurrentPage = Math.min(currentPage, totalPages);
+  const startIndex = (validCurrentPage - 1) * itemsPerPage;
+  const pageItems = useMemo(() => {
+    return filteredList.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredList, startIndex, itemsPerPage]);
+
+  // Extension Save Handler
+  const handleSaveExtension = async (
+    updatedItem: Record<string, any>,
+    newExtension: ProjectExtensionRecord
+  ) => {
+    const isResearch = activeTab === 'research';
+    const cat = isResearch ? 'research' : 'academic';
+
+    // Reopening if was closed
+    const itemToSave: Record<string, any> = {
+      ...updatedItem,
+      closed_date: undefined,
+      status: 'extension_requested',
+    };
+
+    const res = await saveCategoryRecord(cat, itemToSave, false);
+    if (res.success) {
+      if (isResearch) {
+        setResearchList((prev) =>
+          prev.map((p) =>
+            p.id === itemToSave.id || p._id === itemToSave._id ? { ...p, ...itemToSave } : p
+          )
+        );
+      } else {
+        setAcademicList((prev) =>
+          prev.map((p) =>
+            p._id === itemToSave._id || p.name === itemToSave.name ? { ...p, ...itemToSave } : p
+          )
+        );
+      }
+      setExtensionTarget(null);
+      showToast('บันทึกเรียบร้อย');
+    } else {
+      alert(res.error || 'เกิดข้อผิดพลาดในการบันทึกคำขอขยายเวลา');
+    }
+  };
+
+  // Manual Close / Reopen Project
+  const handleToggleCloseProject = async (item: any) => {
+    const isResearch = activeTab === 'research';
+    const cat = isResearch ? 'research' : 'academic';
+    const isClosed = Boolean(
+      item.closed_date ||
+      item.is_completed ||
+      item.status === 'completed' ||
+      item.status === 'waiting_eval' ||
+      item.status === 'evaluated'
+    );
+
+    let updatedItem: Record<string, any>;
+    if (isClosed) {
+      // Reopen project
+      updatedItem = {
+        ...item,
+        closed_date: undefined,
+        status: 'active',
+      };
+    } else {
+      // Close project
+      updatedItem = {
+        ...item,
+        closed_date: new Date().toISOString(),
+        status: 'completed',
+      };
+    }
+
+    const res = await saveCategoryRecord(cat, updatedItem, false);
+    if (res.success) {
+      if (isResearch) {
+        setResearchList((prev) =>
+          prev.map((p) =>
+            p.id === updatedItem.id || p._id === updatedItem._id ? { ...p, ...updatedItem } : p
+          )
+        );
+      } else {
+        setAcademicList((prev) =>
+          prev.map((p) =>
+            p._id === updatedItem._id || p.name === updatedItem.name ? { ...p, ...updatedItem } : p
+          )
+        );
+      }
+      showToast('บันทึกเรียบร้อย');
+    } else {
+      alert(res.error || 'เกิดข้อผิดพลาดในการปรับปรุงสถานะโครงการ');
+    }
+  };
+
+  // Tabs configuration (exactly two tabs)
+  const tabsConfig: TabItem<MonitoringTabKey>[] = [
+    { key: 'research', label: 'โครงการวิจัย', count: processedResearch.length },
+    { key: 'academic', label: 'โครงการพัฒนาวิชาการ', count: processedAcademic.length },
+  ];
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
+      {/* Toast Alert */}
+      {toastMessage && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: '24px',
+            right: '24px',
+            backgroundColor: '#00A651',
+            color: '#ffffff',
+            padding: '10px 18px',
+            borderRadius: '8px',
+            boxShadow: '0 8px 24px rgba(0, 166, 81, 0.3)',
+            zIndex: 99999,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            fontWeight: 500,
+            fontSize: '13px',
+          }}
+        >
+          <FaCheckCircle style={{ fontSize: '16px' }} />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
+      {/* 1. Header Standard Shell */}
       <div
         style={{
           display: 'flex',
+          justifyContent: 'space-between',
           alignItems: 'center',
+          flexWrap: 'wrap',
           gap: '8px',
-          backgroundColor: '#ffffff',
-          padding: '8px 12px',
-          borderRadius: '12px',
-          border: '1px solid #e2e8f0',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
-          overflowX: 'auto',
+          paddingBottom: '2px',
         }}
       >
-        {/* แท็บ 1: โครงการวิจัย */}
-        <button
-          onClick={() => {
-            setActiveProjectType('research');
-            setStatusFilter('all');
-          }}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '10px 20px',
-            borderRadius: '8px',
-            fontSize: '14px',
-            fontWeight: activeProjectType === 'research' ? 700 : 500,
-            cursor: 'pointer',
-            border: activeProjectType === 'research' ? '1px solid #00A651' : '1px solid transparent',
-            backgroundColor: activeProjectType === 'research' ? '#00A651' : '#ffffff',
-            color: activeProjectType === 'research' ? '#ffffff' : '#475569',
-            boxShadow:
-              activeProjectType === 'research'
-                ? '0 2px 6px rgba(0, 166, 81, 0.25)'
-                : 'none',
-            transition: 'all 0.15s ease',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          <FaFlask style={{ fontSize: '14px' }} />
-          <span>โครงการวิจัย</span>
-          <span
+        <div>
+          <h2
             style={{
-              padding: '2px 8px',
-              borderRadius: '12px',
-              fontSize: '11.5px',
+              margin: 0,
+              fontSize: '20px',
               fontWeight: 700,
-              backgroundColor: activeProjectType === 'research' ? 'rgba(255,255,255,0.25)' : '#f1f5f9',
-              color: activeProjectType === 'research' ? '#ffffff' : '#64748b',
+              color: '#1e293b',
+              letterSpacing: '-0.3px',
             }}
           >
-            {processedResearch.length} โครงการ
-          </span>
-        </button>
-
-        {/* แท็บ 2: โครงการพัฒนาวิชาการ */}
-        <button
-          onClick={() => {
-            setActiveProjectType('academic');
-            setStatusFilter('all');
-          }}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '10px 20px',
-            borderRadius: '8px',
-            fontSize: '14px',
-            fontWeight: activeProjectType === 'academic' ? 700 : 500,
-            cursor: 'pointer',
-            border: activeProjectType === 'academic' ? '1px solid #00A651' : '1px solid transparent',
-            backgroundColor: activeProjectType === 'academic' ? '#00A651' : '#ffffff',
-            color: activeProjectType === 'academic' ? '#ffffff' : '#475569',
-            boxShadow:
-              activeProjectType === 'academic'
-                ? '0 2px 6px rgba(0, 166, 81, 0.25)'
-                : 'none',
-            transition: 'all 0.15s ease',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          <FaGraduationCap style={{ fontSize: '15px' }} />
-          <span>โครงการพัฒนาวิชาการ</span>
-          <span
-            style={{
-              padding: '2px 8px',
-              borderRadius: '12px',
-              fontSize: '11.5px',
-              fontWeight: 700,
-              backgroundColor: activeProjectType === 'academic' ? 'rgba(255,255,255,0.25)' : '#f1f5f9',
-              color: activeProjectType === 'academic' ? '#ffffff' : '#64748b',
-            }}
-          >
-            {processedAcademic.length} โครงการ
-          </span>
-        </button>
-
-        {/* แท็บ 3: ทั้งหมด */}
-        <button
-          onClick={() => {
-            setActiveProjectType('all');
-            setStatusFilter('all');
-          }}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '10px 20px',
-            borderRadius: '8px',
-            fontSize: '14px',
-            fontWeight: activeProjectType === 'all' ? 700 : 500,
-            cursor: 'pointer',
-            border: activeProjectType === 'all' ? '1px solid #00A651' : '1px solid transparent',
-            backgroundColor: activeProjectType === 'all' ? '#00A651' : '#ffffff',
-            color: activeProjectType === 'all' ? '#ffffff' : '#475569',
-            boxShadow:
-              activeProjectType === 'all'
-                ? '0 2px 6px rgba(0, 166, 81, 0.25)'
-                : 'none',
-            transition: 'all 0.15s ease',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          <FaThLarge style={{ fontSize: '13px' }} />
-          <span>ภาพรวมโครงการทั้งหมด</span>
-          <span
-            style={{
-              padding: '2px 8px',
-              borderRadius: '12px',
-              fontSize: '11.5px',
-              fontWeight: 700,
-              backgroundColor: activeProjectType === 'all' ? 'rgba(255,255,255,0.25)' : '#f1f5f9',
-              color: activeProjectType === 'all' ? '#ffffff' : '#64748b',
-            }}
-          >
-            {processedResearch.length + processedAcademic.length} โครงการ
-          </span>
-        </button>
+            ติดตามสถานะโครงการ
+          </h2>
+          <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+            ติดตามกำหนดการ วันเริ่ม-สิ้นสุด การขอขยายเวลา และสถานะการดำเนินงานตามระเบียบ มก.
+          </div>
+        </div>
       </div>
 
-      {/* ========================================================================= */}
-      {/* การ์ดสถิติสถานะโครงการ 6 การ์ด (คลิกเพื่อกรองสถานะได้) */}
-      {/* ========================================================================= */}
+      {/* Time Filter Bar */}
+      <TimeFilterBar totalCount={filteredList.length} />
+
+      {/* 2. Top Segmented Horizontal Tabs (2 Tabs Only) */}
+      <TopSegmentedTabs<MonitoringTabKey>
+        activeCategory={activeTab}
+        onSelectCategory={handleTabChange}
+        tabs={tabsConfig}
+      />
+
+      {/* 3. Status Summary Cards (Clickable to Filter) */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
-          gap: '12px',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(145px, 1fr))',
+          gap: '10px',
         }}
       >
         {/* ทั้งหมด */}
         <div
           onClick={() => setStatusFilter('all')}
           style={{
-            padding: '14px 18px',
+            padding: '12px 14px',
             borderRadius: '10px',
             backgroundColor: '#ffffff',
             border: statusFilter === 'all' ? '2px solid #00A651' : '1px solid #e2e8f0',
@@ -402,23 +493,17 @@ export default function ProjectMonitoringTab({
             transition: 'all 0.15s ease',
           }}
         >
-          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>
-            {activeProjectType === 'research'
-              ? 'โครงการวิจัยทั้งหมด'
-              : activeProjectType === 'academic'
-              ? 'โครงการพัฒนาวิชาการทั้งหมด'
-              : 'โครงการทั้งหมด'}
-          </div>
-          <div style={{ fontSize: '22px', fontWeight: 800, color: '#0f172a', marginTop: '4px' }}>
-            {stats.total} <span style={{ fontSize: '13px', fontWeight: 500 }}>โครงการ</span>
+          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>ทั้งหมด</div>
+          <div style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>
+            {stats.total}
           </div>
         </div>
 
-        {/* กำลังดำเนินการ (ตามกำหนด) */}
+        {/* ตามกำหนดสัญญา */}
         <div
           onClick={() => setStatusFilter('active')}
           style={{
-            padding: '14px 18px',
+            padding: '12px 14px',
             borderRadius: '10px',
             backgroundColor: '#ffffff',
             border: statusFilter === 'active' ? '2px solid #059669' : '1px solid #e2e8f0',
@@ -427,20 +512,20 @@ export default function ProjectMonitoringTab({
             transition: 'all 0.15s ease',
           }}
         >
-          <div style={{ fontSize: '12px', color: '#059669', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#059669' }} />
+          <div style={{ fontSize: '12px', color: '#059669', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#059669' }} />
             <span>ตามกำหนดสัญญา</span>
           </div>
-          <div style={{ fontSize: '22px', fontWeight: 800, color: '#059669', marginTop: '4px' }}>
-            {stats.onTrack} <span style={{ fontSize: '13px', fontWeight: 500 }}>โครงการ</span>
+          <div style={{ fontSize: '20px', fontWeight: 800, color: '#059669', marginTop: '2px' }}>
+            {stats.onTrack}
           </div>
         </div>
 
-        {/* ใกล้ครบกำหนด (≤ 90 วัน) */}
+        {/* ใกล้ครบกำหนด */}
         <div
           onClick={() => setStatusFilter('expiring_soon')}
           style={{
-            padding: '14px 18px',
+            padding: '12px 14px',
             borderRadius: '10px',
             backgroundColor: '#ffffff',
             border: statusFilter === 'expiring_soon' ? '2px solid #ea580c' : '1px solid #e2e8f0',
@@ -449,12 +534,12 @@ export default function ProjectMonitoringTab({
             transition: 'all 0.15s ease',
           }}
         >
-          <div style={{ fontSize: '12px', color: '#ea580c', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ea580c' }} />
-            <span>ใกล้ครบกำหนด (≤ 90 วัน)</span>
+          <div style={{ fontSize: '12px', color: '#ea580c', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#ea580c' }} />
+            <span>ใกล้ครบกำหนด</span>
           </div>
-          <div style={{ fontSize: '22px', fontWeight: 800, color: '#ea580c', marginTop: '4px' }}>
-            {stats.expiringSoon} <span style={{ fontSize: '13px', fontWeight: 500 }}>โครงการ</span>
+          <div style={{ fontSize: '20px', fontWeight: 800, color: '#ea580c', marginTop: '2px' }}>
+            {stats.expiringSoon}
           </div>
         </div>
 
@@ -462,7 +547,7 @@ export default function ProjectMonitoringTab({
         <div
           onClick={() => setStatusFilter('extension_requested')}
           style={{
-            padding: '14px 18px',
+            padding: '12px 14px',
             borderRadius: '10px',
             backgroundColor: '#ffffff',
             border: statusFilter === 'extension_requested' ? '2px solid #d97706' : '1px solid #e2e8f0',
@@ -471,12 +556,12 @@ export default function ProjectMonitoringTab({
             transition: 'all 0.15s ease',
           }}
         >
-          <div style={{ fontSize: '12px', color: '#d97706', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#d97706' }} />
+          <div style={{ fontSize: '12px', color: '#d97706', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#d97706' }} />
             <span>ยื่นขอขยายเวลา</span>
           </div>
-          <div style={{ fontSize: '22px', fontWeight: 800, color: '#d97706', marginTop: '4px' }}>
-            {stats.extensionReq} <span style={{ fontSize: '13px', fontWeight: 500 }}>โครงการ</span>
+          <div style={{ fontSize: '20px', fontWeight: 800, color: '#d97706', marginTop: '2px' }}>
+            {stats.extensionReq}
           </div>
         </div>
 
@@ -484,7 +569,7 @@ export default function ProjectMonitoringTab({
         <div
           onClick={() => setStatusFilter('extended')}
           style={{
-            padding: '14px 18px',
+            padding: '12px 14px',
             borderRadius: '10px',
             backgroundColor: '#ffffff',
             border: statusFilter === 'extended' ? '2px solid #b45309' : '1px solid #e2e8f0',
@@ -493,20 +578,20 @@ export default function ProjectMonitoringTab({
             transition: 'all 0.15s ease',
           }}
         >
-          <div style={{ fontSize: '12px', color: '#b45309', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#b45309' }} />
-            <span>อนุมัติขยายเวลาแล้ว</span>
+          <div style={{ fontSize: '12px', color: '#b45309', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#b45309' }} />
+            <span>อยู่ระหว่างขยายเวลา</span>
           </div>
-          <div style={{ fontSize: '22px', fontWeight: 800, color: '#b45309', marginTop: '4px' }}>
-            {stats.extended} <span style={{ fontSize: '13px', fontWeight: 500 }}>โครงการ</span>
+          <div style={{ fontSize: '20px', fontWeight: 800, color: '#b45309', marginTop: '2px' }}>
+            {stats.extended}
           </div>
         </div>
 
-        {/* ล่าช้ากว่ากำหนด */}
+        {/* เกินกำหนดสัญญา */}
         <div
           onClick={() => setStatusFilter('delayed')}
           style={{
-            padding: '14px 18px',
+            padding: '12px 14px',
             borderRadius: '10px',
             backgroundColor: '#ffffff',
             border: statusFilter === 'delayed' ? '2px solid #dc2626' : '1px solid #e2e8f0',
@@ -515,427 +600,589 @@ export default function ProjectMonitoringTab({
             transition: 'all 0.15s ease',
           }}
         >
-          <div style={{ fontSize: '12px', color: '#dc2626', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#dc2626' }} />
-            <span>ล่าช้ากว่ากำหนด</span>
+          <div style={{ fontSize: '12px', color: '#dc2626', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#dc2626' }} />
+            <span>เกินกำหนดสัญญา</span>
           </div>
-          <div style={{ fontSize: '22px', fontWeight: 800, color: '#dc2626', marginTop: '4px' }}>
-            {stats.delayed} <span style={{ fontSize: '13px', fontWeight: 500 }}>โครงการ</span>
+          <div style={{ fontSize: '20px', fontWeight: 800, color: '#dc2626', marginTop: '2px' }}>
+            {stats.delayed}
           </div>
         </div>
 
-        {/* ปิดโครงการแล้ว / ส่งมอบงานแล้ว */}
+        {/* รอประเมิน */}
         <div
-          onClick={() => setStatusFilter('completed')}
+          onClick={() => setStatusFilter('waiting_eval')}
           style={{
-            padding: '14px 18px',
+            padding: '12px 14px',
             borderRadius: '10px',
             backgroundColor: '#ffffff',
-            border: statusFilter === 'completed' ? '2px solid #475569' : '1px solid #e2e8f0',
+            border: statusFilter === 'waiting_eval' ? '2px solid #d97706' : '1px solid #e2e8f0',
             cursor: 'pointer',
             boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
             transition: 'all 0.15s ease',
           }}
         >
-          <div style={{ fontSize: '12px', color: '#475569', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#475569' }} />
-            <span>ปิดโครงการแล้ว</span>
+          <div style={{ fontSize: '12px', color: '#d97706', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#d97706' }} />
+            <span>รอประเมิน</span>
           </div>
-          <div style={{ fontSize: '22px', fontWeight: 800, color: '#475569', marginTop: '4px' }}>
-            {stats.completed} <span style={{ fontSize: '13px', fontWeight: 500 }}>โครงการ</span>
+          <div style={{ fontSize: '20px', fontWeight: 800, color: '#d97706', marginTop: '2px' }}>
+            {stats.waitingEval}
+          </div>
+        </div>
+
+        {/* ประเมินแล้ว */}
+        <div
+          onClick={() => setStatusFilter('evaluated')}
+          style={{
+            padding: '12px 14px',
+            borderRadius: '10px',
+            backgroundColor: '#ffffff',
+            border: statusFilter === 'evaluated' ? '2px solid #059669' : '1px solid #e2e8f0',
+            cursor: 'pointer',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          <div style={{ fontSize: '12px', color: '#059669', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#059669' }} />
+            <span>ประเมินแล้ว</span>
+          </div>
+          <div style={{ fontSize: '20px', fontWeight: 800, color: '#059669', marginTop: '2px' }}>
+            {stats.evaluated}
           </div>
         </div>
       </div>
 
-      {/* ========================================================================= */}
-      {/* แถบค้นหาและตัวกรองภาควิชา */}
-      {/* ========================================================================= */}
+      {/* 4. Main Card Container (Toolbar + Table + Pagination) */}
       <div
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '12px',
           backgroundColor: '#ffffff',
-          padding: '14px 20px',
-          borderRadius: '10px',
+          borderRadius: '12px',
           border: '1px solid #e2e8f0',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+          overflow: 'hidden',
         }}
       >
-        <div style={{ position: 'relative', flex: 1, minWidth: '280px' }}>
-          <FaSearch
+        {/* Toolbar */}
+        <div
+          style={{
+            padding: '14px 20px',
+            backgroundColor: '#ffffff',
+            borderBottom: '1px solid #e2e8f0',
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: '12px',
+          }}
+        >
+          {/* Search Box */}
+          <div
             style={{
-              position: 'absolute',
-              left: '14px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              color: '#94a3b8',
-            }}
-          />
-          <input
-            type="text"
-            placeholder={
-              activeProjectType === 'research'
-                ? 'ค้นหาชื่อโครงการวิจัย, หัวหน้าโครงการ, รหัสโครงการ, แหล่งทุน...'
-                : activeProjectType === 'academic'
-                ? 'ค้นหาชื่อโครงการพัฒนาวิชาการ, หัวหน้าโครงการ, ผู้ว่าจ้าง/ผู้ขอรับบริการ...'
-                : 'ค้นหาโครงการวิจัยหรือโครงการพัฒนาวิชาการ...'
-            }
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '9px 12px 9px 38px',
-              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              backgroundColor: '#ffffff',
               border: '1px solid #cbd5e1',
-              fontSize: '13.5px',
-              outline: 'none',
-              fontFamily: 'inherit',
+              borderRadius: '8px',
+              padding: '7px 12px',
+              width: '100%',
+              maxWidth: '280px',
+              minWidth: '200px',
             }}
-          />
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-          {/* Department Filter */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <FaBuilding style={{ color: '#64748b', fontSize: '13px' }} />
-            <DepartmentSelect
-              value={deptFilter}
-              onChange={setDeptFilter}
-              allowAll
-              allLabel="ทุกภาควิชา / ศูนย์"
-              allValue="all"
-              size="sm"
-              className="w-[200px]"
+          >
+            <FaSearch style={{ color: '#94a3b8', marginRight: '8px', fontSize: '13px', flexShrink: 0 }} />
+            <input
+              type="text"
+              placeholder="ค้นหาชื่อโครงการ, รหัส, หัวหน้า..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+              style={{
+                border: 'none',
+                background: 'none',
+                outline: 'none',
+                width: '100%',
+                fontSize: '13px',
+                fontFamily: 'inherit',
+                color: '#1e293b',
+              }}
             />
           </div>
 
-          {(statusFilter !== 'all' || deptFilter !== 'all' || searchTerm) && (
-            <button
-              onClick={() => {
-                setStatusFilter('all');
-                setDeptFilter('all');
-                setSearchTerm('');
+          {/* Filters: Department & Status Dropdown */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <FaBuilding style={{ color: '#64748b', fontSize: '13px' }} />
+              <DepartmentSelect
+                value={deptFilter}
+                onChange={(val) => {
+                  setDeptFilter(val);
+                  setCurrentPage(1);
+                }}
+                allowAll
+                allLabel="ทุกภาควิชา / ศูนย์"
+                allValue="all"
+                size="sm"
+                className="w-[190px]"
+              />
+            </div>
+
+            {/* Status Filter Dropdown */}
+            <select
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setCurrentPage(1);
               }}
               style={{
-                padding: '6px 12px',
+                border: '1px solid #cbd5e1',
                 borderRadius: '8px',
-                border: '1px solid #fecaca',
-                backgroundColor: '#fee2e2',
-                color: '#b91c1c',
-                fontSize: '12px',
-                fontWeight: 600,
+                padding: '7px 12px',
+                fontSize: '13px',
+                backgroundColor: '#ffffff',
+                color: '#1e293b',
                 cursor: 'pointer',
+                outline: 'none',
               }}
             >
-              ล้างตัวกรอง
-            </button>
-          )}
-        </div>
-      </div>
+              <option value="all">สถานะ: ทั้งหมด</option>
+              <option value="active">กำลังดำเนินการตามแผน</option>
+              <option value="expiring_soon">ใกล้ครบกำหนด (≤ 90 วัน)</option>
+              <option value="extension_requested">ยื่นขอขยายเวลา</option>
+              <option value="extended">อยู่ระหว่างขยายเวลา</option>
+              <option value="delayed">เกินกำหนดสัญญา</option>
+              <option value="waiting_eval">รอประเมิน</option>
+              <option value="evaluated">ประเมินแล้ว</option>
+              <option value="proposed">รออนุมัติโครงการ</option>
+              <option value="completed">ปิดโครงการแล้ว</option>
+              <option value="cancelled">ยกเลิกโครงการ</option>
+            </select>
 
-      {/* ========================================================================= */}
-      {/* รายการโครงการ (Project Timeline Cards) */}
-      {/* ========================================================================= */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 4px' }}>
-          <div style={{ fontSize: '13.5px', fontWeight: 600, color: '#475569' }}>
-            ทั้งหมด <strong style={{ color: '#00A651' }}>{filteredList.length}</strong> โครงการ
-          </div>
-        </div>
-
-        {filteredList.length === 0 ? (
-          <div
-            style={{
-              padding: '48px',
-              textAlign: 'center',
-              backgroundColor: '#ffffff',
-              borderRadius: '12px',
-              border: '1px solid #e2e8f0',
-              color: '#94a3b8',
-            }}
-          >
-            <FaClock style={{ fontSize: '32px', marginBottom: '8px' }} />
-            <div style={{ fontSize: '15px', fontWeight: 600, color: '#64748b' }}>
-              ไม่พบข้อมูลโครงการตามเงื่อนไขที่เลือก
-            </div>
-          </div>
-        ) : (
-          filteredList.map((item, idx) => {
-            const tl = item._timeline;
-            const statusInfo = (STATUS_LABELS as Record<string, any>)[tl.status] || STATUS_LABELS.active;
-            const isResearch = item._projectCategory === 'research';
-            const cat = isResearch ? 'research' : 'academic';
-            const extensions: ProjectExtensionRecord[] = Array.isArray(item.extensions) ? item.extensions : [];
-
-            return (
-              <div
-                key={item._uniqueKey || idx}
-                onClick={() => setSelectedDetailTarget({ item, category: cat })}
+            {(statusFilter !== 'all' || deptFilter !== 'all' || searchTerm) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setStatusFilter('all');
+                  setDeptFilter('all');
+                  setSearchTerm('');
+                  setCurrentPage(1);
+                }}
                 style={{
-                  backgroundColor: '#ffffff',
-                  borderRadius: '12px',
-                  border: '1px solid #e2e8f0',
-                  borderLeft: `5px solid ${statusInfo.color}`,
-                  padding: '18px 22px',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '12px',
+                  padding: '6px 12px',
+                  borderRadius: '8px',
+                  border: '1px solid #fecaca',
+                  backgroundColor: '#fee2e2',
+                  color: '#b91c1c',
+                  fontSize: '12px',
+                  fontWeight: 600,
                   cursor: 'pointer',
-                  transition: 'all 0.15s ease',
                 }}
               >
-                {/* Header Row: Category Badge, Code/ID, Status, and Overdue Badge */}
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    flexWrap: 'wrap',
-                    gap: '10px',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                    {/* Category Label Badge */}
-                    <span
-                      style={{
-                        padding: '3px 10px',
-                        borderRadius: '6px',
-                        fontSize: '11.5px',
-                        fontWeight: 700,
-                        backgroundColor: isResearch ? '#eff6ff' : '#f5f3ff',
-                        color: isResearch ? '#1d4ed8' : '#6d28d9',
-                        border: isResearch ? '1px solid #bfdbfe' : '1px solid #ddd6fe',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '5px',
-                      }}
-                    >
-                      {isResearch ? <FaFlask style={{ fontSize: '11px' }} /> : <FaGraduationCap style={{ fontSize: '12px' }} />}
-                      <span>{isResearch ? 'โครงการวิจัย' : 'โครงการพัฒนาวิชาการ'}</span>
-                    </span>
+                ล้างตัวกรอง
+              </button>
+            )}
+          </div>
+        </div>
 
-                    {/* Research Project Code */}
-                    {isResearch && item.id && (
-                      <span
-                        style={{
-                          padding: '3px 9px',
-                          borderRadius: '6px',
-                          fontSize: '12px',
-                          fontWeight: 700,
-                          backgroundColor: '#f1f5f9',
-                          color: '#334155',
-                          fontFamily: 'monospace',
-                        }}
-                      >
-                        {item.id}
-                      </span>
-                    )}
+        {/* Table */}
+        <div style={{ overflowX: 'auto', width: '100%' }}>
+          <table
+            style={{
+              width: '100%',
+              borderCollapse: 'collapse',
+              textAlign: 'left',
+              fontSize: '13px',
+            }}
+          >
+            <thead>
+              <tr
+                style={{
+                  backgroundColor: '#f8fafc',
+                  borderBottom: '1px solid #e2e8f0',
+                  color: '#475569',
+                  fontWeight: 600,
+                  fontSize: '12px',
+                }}
+              >
+                <th style={{ width: '55px', padding: '12px 10px', textAlign: 'center' }}>
+                  ลำดับที่
+                </th>
 
-                    {/* Status Badge */}
-                    <span
-                      style={{
-                        padding: '3px 10px',
-                        borderRadius: '20px',
-                        fontSize: '12px',
-                        fontWeight: 600,
-                        backgroundColor: statusInfo.bg,
-                        color: statusInfo.color,
-                        border: `1px solid ${statusInfo.border}`,
-                      }}
-                    >
-                      {statusInfo.labelTh}
-                    </span>
-                  </div>
+                {/* Research only: รหัสโครงการ */}
+                {activeTab === 'research' && (
+                  <th style={{ width: '110px', padding: '12px 10px', textAlign: 'center' }}>
+                    รหัสโครงการ
+                  </th>
+                )}
 
-                  {/* Remaining / Overdue Indicator */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span
-                      style={{
-                        fontSize: '12.5px',
-                        fontWeight: 700,
-                        color: tl.is_overdue ? '#dc2626' : '#059669',
-                      }}
-                    >
-                      {tl.status === 'completed'
-                        ? 'ปิดโครงการสมบูรณ์แล้ว'
-                        : tl.is_overdue
-                        ? `เกินกำหนดสัญญา ${Math.abs(tl.days_remaining)} วัน`
-                        : `เหลือเวลา ${tl.days_remaining} วัน`}
-                    </span>
-                  </div>
-                </div>
+                <th style={{ minWidth: '240px', padding: '12px 12px' }}>
+                  ชื่อโครงการ
+                </th>
 
-                {/* Project Title */}
-                <div style={{ fontSize: '14.5px', fontWeight: 400, color: '#1e293b', lineHeight: '1.45' }}>
-                  {item.name}
-                </div>
+                <th style={{ width: '160px', padding: '12px 10px' }}>
+                  หัวหน้าโครงการ
+                </th>
 
-                {/* Metadata Grid */}
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                    gap: '10px 16px',
-                    fontSize: '13px',
-                    color: '#475569',
-                    backgroundColor: '#f8fafc',
-                    padding: '12px 16px',
-                    borderRadius: '8px',
-                  }}
-                >
-                  {/* หัวหน้าโครงการ */}
-                  <div>
-                    <span style={{ color: '#64748b' }}>หัวหน้าโครงการ: </span>
-                    <span style={{ color: '#1e293b', fontWeight: 400 }}>{item.head || item.person || '-'}</span>
-                  </div>
+                <th style={{ width: '140px', padding: '12px 10px', textAlign: 'center' }}>
+                  สถานะ
+                </th>
 
-                  {/* ภาควิชา */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ color: '#64748b' }}>ภาควิชา: </span>
-                    <DepartmentBadge value={item.department} />
-                  </div>
+                <th style={{ width: '140px', padding: '12px 10px', textAlign: 'center' }}>
+                  วันที่สิ้นสุด
+                </th>
 
-                  {/* ข้อมูลเฉพาะ: โครงการวิจัย vs โครงการพัฒนาวิชาการ */}
-                  {isResearch ? (
-                    <>
-                      <div>
-                        <span style={{ color: '#64748b' }}>แหล่งทุน: </span>
-                        <span style={{ color: '#1e293b', fontWeight: 400 }}>{item.fund_source || '-'}</span>
-                      </div>
-                      <div>
-                        <span style={{ color: '#64748b' }}>งบประมาณรวม: </span>
-                        <span style={{ color: '#059669', fontFamily: 'monospace', fontWeight: 600 }}>
-                          {(item.budget_total || item.budget_internal || 0).toLocaleString()} บาท
-                        </span>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div>
-                        <span style={{ color: '#64748b' }}>ผู้ว่าจ้าง / ผู้ขอรับบริการ: </span>
-                        <span style={{ color: '#1e293b', fontWeight: 400 }}>{item.client || '-'}</span>
-                      </div>
-                      <div>
-                        <span style={{ color: '#64748b' }}>งบประมาณรวม: </span>
-                        <span style={{ color: '#059669', fontFamily: 'monospace', fontWeight: 600 }}>
-                          {(Number(item.budget) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท
-                        </span>
-                        {Number(item.budget) > 0 && (() => {
-                          const b = Number(item.budget) || 0;
-                          const facP = item.percent_faculty !== undefined && item.percent_faculty !== null ? Number(item.percent_faculty) : 5;
-                          const depP = item.percent_dept !== undefined && item.percent_dept !== null ? Number(item.percent_dept) : 5;
-                          const kuP = item.percent_ku !== undefined && item.percent_ku !== null ? Number(item.percent_ku) : 5;
-                          const totalP = facP + depP + kuP;
-                          const facAmt = item.alloc_faculty !== undefined && item.alloc_faculty !== null && item.alloc_faculty !== '' ? Number(item.alloc_faculty) : (b * facP) / 100;
-                          const depAmt = item.alloc_dept !== undefined && item.alloc_dept !== null && item.alloc_dept !== '' ? Number(item.alloc_dept) : (b * depP) / 100;
-                          const kuAmt = item.alloc_ku !== undefined && item.alloc_ku !== null && item.alloc_ku !== '' ? Number(item.alloc_ku) : (b * kuP) / 100;
-                          const totalDeduct = facAmt + depAmt + kuAmt;
-                          return (
-                            <span style={{ fontSize: '11px', color: '#64748b', marginLeft: '6px' }}>
-                              (หัก {totalP}%: {totalDeduct.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท)
-                            </span>
-                          );
-                        })()}
-                      </div>
-                    </>
-                  )}
+                <th style={{ width: '140px', padding: '12px 10px', textAlign: 'center' }}>
+                  การขยายเวลา
+                </th>
 
-                  {/* ข้อมูลผู้ร่วมโครงการ (ถ้าเป็น academic) */}
-                  {!isResearch && (item.co_members_internal || item.co_members_external) ? (
-                    <div>
-                      <span style={{ color: '#64748b' }}>ผู้ร่วมโครงการ: </span>
-                      <span style={{ fontSize: '12px', fontWeight: 600, color: '#0369a1' }}>
-                        ใน {item.co_members_internal || 0} คน
-                      </span>{' '}
-                      |{' '}
-                      <span style={{ fontSize: '12px', fontWeight: 600, color: '#b45309' }}>
-                        นอก {item.co_members_external || 0} คน
-                      </span>
-                    </div>
-                  ) : null}
+                <th style={{ width: '160px', padding: '12px 10px', textAlign: 'center' }}>
+                  จัดการ
+                </th>
+              </tr>
+            </thead>
 
-                  {/* ลักษณะโครงการ (ถ้าเป็น academic) */}
-                  {!isResearch && item.characteristics && (
-                    <div>
-                      <span style={{ color: '#64748b' }}>ลักษณะ: </span>
-                      <span style={{ fontSize: '12px', fontWeight: 600, color: '#059669' }}>
-                        {Array.isArray(item.characteristics) ? item.characteristics.join(', ') : item.characteristics}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* กรอบเวลาสัญญา */}
-                  <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                    <span style={{ color: '#64748b' }}>กรอบเวลาสัญญา: </span>
-                    <strong style={{ color: '#1e293b', fontFamily: 'monospace' }}>
-                      {tl.start_date || '-'} ถึง {tl.current_end_date || '-'}
-                    </strong>
-                    {tl.is_extended && (
-                      <span style={{ fontSize: '11.5px', color: '#b45309', fontWeight: 600 }}>
-                        (ขยายเวลาจากเดิม {tl.original_end_date})
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Timeline Progress Bar */}
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11.5px', color: '#64748b', marginBottom: '4px' }}>
-                    <span>ความก้าวหน้าตามกรอบเวลาสัญญา</span>
-                    <span>{tl.progress_percent}%</span>
-                  </div>
-                  <div style={{ width: '100%', height: '6px', borderRadius: '4px', backgroundColor: '#e2e8f0', overflow: 'hidden' }}>
-                    <div
-                      style={{
-                        width: `${tl.progress_percent}%`,
-                        height: '100%',
-                        backgroundColor: statusInfo.color,
-                        borderRadius: '4px',
-                        transition: 'width 0.3s ease',
-                      }}
-                    />
-                  </div>
-                </div>
-
-                {/* Extension History Box (ถ้ามีประวัติการขอขยายเวลา) */}
-                {extensions.length > 0 && (
-                  <div
+            <tbody>
+              {pageItems.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={activeTab === 'research' ? 8 : 7}
                     style={{
-                      padding: '10px 14px',
-                      borderRadius: '8px',
-                      backgroundColor: '#fffbeb',
-                      border: '1px solid #fef3c7',
-                      fontSize: '12.5px',
+                      textAlign: 'center',
+                      padding: '48px 16px',
+                      color: '#94a3b8',
+                      fontSize: '13px',
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, color: '#92400e', marginBottom: '4px' }}>
-                      <FaHistory style={{ fontSize: '11px' }} />
-                      <span>ประวัติการขอขยายเวลา ({extensions.length} ครั้ง):</span>
-                    </div>
-                    {extensions.map((ext: any, extIdx: number) => (
-                      <div key={ext.id || extIdx} style={{ color: '#78350f', marginLeft: '16px', lineHeight: '1.4' }}>
-                        • ครั้งที่ {ext.round || ext.extension_number || extIdx + 1}: ขยาย {ext.duration_months} เดือน (ถึง {ext.extended_end_date}) — เหตุผล: {ext.reason_detail}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
-          })
-        )}
+                    ไม่พบข้อมูลโครงการตามเงื่อนไขที่เลือก
+                  </td>
+                </tr>
+              ) : (
+                pageItems.map((item, rowIdx) => {
+                  const tl = item._timeline;
+                  const statusInfo = (STATUS_LABELS as Record<string, any>)[tl.status] || STATUS_LABELS.active;
+                  const actualRowNo = startIndex + rowIdx + 1;
+                  const extensions: ProjectExtensionRecord[] = Array.isArray(item.extensions) ? item.extensions : [];
+                  const isClosed = Boolean(
+                    item.closed_date ||
+                    item.is_completed ||
+                    item.status === 'completed' ||
+                    item.status === 'waiting_eval' ||
+                    item.status === 'evaluated'
+                  );
+                  const isWaitingEval = tl.status === 'waiting_eval';
+                  const recordId = String(item.id || item._id || item.name || '').trim();
+
+                  return (
+                    <tr
+                      key={item._uniqueKey || rowIdx}
+                      style={{
+                        borderBottom: '1px solid #f1f5f9',
+                        backgroundColor: rowIdx % 2 === 0 ? '#ffffff' : '#fafbfc',
+                        transition: 'background-color 0.12s',
+                      }}
+                    >
+                      {/* ลำดับที่ */}
+                      <td style={{ padding: '10px 10px', textAlign: 'center', color: '#64748b' }}>
+                        {actualRowNo}
+                      </td>
+
+                      {/* รหัสโครงการ (Research only) */}
+                      {activeTab === 'research' && (
+                        <td style={{ padding: '10px 10px', textAlign: 'center', fontFamily: 'monospace', fontWeight: 600, color: '#334155' }}>
+                          {item.id || '-'}
+                        </td>
+                      )}
+
+                      {/* ชื่อโครงการ */}
+                      <td style={{ padding: '10px 12px' }}>
+                        <div
+                          onClick={() => setSelectedDetailTarget({ item, category: activeTab })}
+                          className="font-semibold text-slate-800 hover:text-[#00A651] cursor-pointer line-clamp-2"
+                          title={item.name}
+                        >
+                          {item.name || '-'}
+                        </div>
+                        <div className="flex items-center gap-1.5 mt-1">
+                          <DepartmentBadge value={item.department} />
+                          {item.fund_source && (
+                            <span className="text-[11px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+                              {item.fund_source}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* หัวหน้าโครงการ */}
+                      <td style={{ padding: '10px 10px', color: '#334155' }}>
+                        {item.head || item.person || '-'}
+                      </td>
+
+                      {/* สถานะ */}
+                      <td style={{ padding: '10px 10px', textAlign: 'center' }}>
+                        <span
+                          style={{
+                            display: 'inline-block',
+                            padding: '3px 9px',
+                            borderRadius: '999px',
+                            fontSize: '11.5px',
+                            fontWeight: 700,
+                            color: statusInfo.color,
+                            backgroundColor: statusInfo.bg,
+                            border: `1px solid ${statusInfo.border}`,
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {statusInfo.labelTh}
+                        </span>
+                      </td>
+
+                      {/* วันที่สิ้นสุด */}
+                      <td style={{ padding: '10px 10px', textAlign: 'center' }}>
+                        <div style={{ fontWeight: 600, color: '#1e293b' }}>
+                          {formatDateBE(tl.end_date)}
+                        </div>
+                        {tl.is_overdue && (
+                          <span
+                            style={{
+                              display: 'inline-block',
+                              fontSize: '10.5px',
+                              fontWeight: 700,
+                              color: '#dc2626',
+                              backgroundColor: '#fee2e2',
+                              padding: '1px 6px',
+                              borderRadius: '4px',
+                              marginTop: '2px',
+                            }}
+                          >
+                            เกินกำหนด {Math.abs(tl.days_remaining)} วัน
+                          </span>
+                        )}
+                        {!tl.is_overdue && !isClosed && tl.days_remaining <= 90 && tl.days_remaining >= 0 && (
+                          <span
+                            style={{
+                              display: 'inline-block',
+                              fontSize: '10.5px',
+                              fontWeight: 700,
+                              color: '#d97706',
+                              backgroundColor: '#fef3c7',
+                              padding: '1px 6px',
+                              borderRadius: '4px',
+                              marginTop: '2px',
+                            }}
+                          >
+                            เหลือ {tl.days_remaining} วัน
+                          </span>
+                        )}
+                      </td>
+
+                      {/* การขยายเวลา */}
+                      <td style={{ padding: '10px 10px', textAlign: 'center' }}>
+                        <div className="flex flex-col items-center gap-1">
+                          {extensions.length > 0 ? (
+                            <span className="text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                              ขอขยาย {extensions.length} ครั้ง
+                            </span>
+                          ) : (
+                            <span className="text-slate-400 text-xs">-</span>
+                          )}
+
+                          <button
+                            type="button"
+                            onClick={() => setExtensionTarget(item)}
+                            title="ยื่นขอขยายระยะเวลาโครงการ"
+                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-md transition-colors cursor-pointer"
+                          >
+                            <FaPlus className="text-[9px]" />
+                            <span>ขอขยายเวลา</span>
+                          </button>
+                        </div>
+                      </td>
+
+                      {/* จัดการ */}
+                      <td style={{ padding: '10px 10px', textAlign: 'center' }}>
+                        <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                          {/* Direct action if รอประเมิน */}
+                          {isWaitingEval && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                router.push(
+                                  `/evaluation?category=${activeTab}&id=${encodeURIComponent(recordId)}`
+                                );
+                              }}
+                              title="ไปที่หน้าการประเมินโครงการนี้"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-[#00A651] text-white hover:bg-[#008f45] transition-colors cursor-pointer shadow-xs"
+                            >
+                              <span>การประเมิน</span>
+                              <FaArrowRight className="text-[10px]" />
+                            </button>
+                          )}
+
+                          {/* Toggle Close / Reopen */}
+                          <button
+                            type="button"
+                            onClick={() => handleToggleCloseProject(item)}
+                            title={isClosed ? 'เปิดโครงการใหม่' : 'ปิดโครงการ'}
+                            className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
+                              isClosed
+                                ? 'bg-sky-50 text-sky-800 border border-sky-200 hover:bg-sky-100'
+                                : 'bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200'
+                            }`}
+                          >
+                            <FaRedo className="text-[10px]" />
+                            <span>{isClosed ? 'เปิดโครงการใหม่' : 'ปิดโครงการ'}</span>
+                          </button>
+
+                          {/* Details Button */}
+                          <button
+                            type="button"
+                            onClick={() => setSelectedDetailTarget({ item, category: activeTab })}
+                            title="ดูรายละเอียดโครงการ"
+                            className="inline-flex items-center justify-center w-7 h-7 text-xs font-semibold rounded-lg bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100 transition-colors cursor-pointer"
+                          >
+                            <FaEye />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* 5. Pagination Footer */}
+        <div
+          style={{
+            padding: '12px 20px',
+            backgroundColor: '#ffffff',
+            borderTop: '1px solid #e2e8f0',
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: '12px',
+            fontSize: '13px',
+            color: '#64748b',
+          }}
+        >
+          <div>
+            แสดง{' '}
+            <span style={{ fontWeight: 600, color: '#1e293b' }}>
+              {totalItems === 0 ? 0 : startIndex + 1}
+            </span>{' '}
+            -{' '}
+            <span style={{ fontWeight: 600, color: '#1e293b' }}>
+              {Math.min(startIndex + itemsPerPage, totalItems)}
+            </span>{' '}
+            จากทั้งหมด{' '}
+            <span style={{ fontWeight: 600, color: '#1e293b' }}>
+              {totalItems.toLocaleString()}
+            </span>{' '}
+            รายการ
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>รายการต่อหน้า:</span>
+              <select
+                value={itemsPerPage}
+                onChange={(e) => {
+                  setItemsPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                style={{
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '6px',
+                  padding: '4px 8px',
+                  fontSize: '12px',
+                  backgroundColor: '#ffffff',
+                  color: '#1e293b',
+                  cursor: 'pointer',
+                }}
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage <= 1}
+                title="ก่อนหน้า"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '6px',
+                  border: '1px solid #cbd5e1',
+                  backgroundColor: '#ffffff',
+                  color: currentPage <= 1 ? '#cbd5e1' : '#475569',
+                  cursor: currentPage <= 1 ? 'not-allowed' : 'pointer',
+                }}
+              >
+                <FaChevronLeft style={{ fontSize: '11px' }} />
+              </button>
+
+              <span style={{ fontSize: '12px', fontWeight: 600, color: '#334155', padding: '0 4px' }}>
+                {currentPage} / {totalPages}
+              </span>
+
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage >= totalPages}
+                title="ถัดไป"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '6px',
+                  border: '1px solid #cbd5e1',
+                  backgroundColor: '#ffffff',
+                  color: currentPage >= totalPages ? '#cbd5e1' : '#475569',
+                  cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer',
+                }}
+              >
+                <FaChevronRight style={{ fontSize: '11px' }} />
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Record Detail Drawer (Read-Only) */}
-      <RecordDetailDrawer
-        isOpen={Boolean(selectedDetailTarget)}
-        onClose={() => setSelectedDetailTarget(null)}
-        categoryKey={selectedDetailTarget?.category || 'research'}
-        record={selectedDetailTarget?.item || null}
-        readOnly={true}
-      />
+      {/* Record Detail Drawer */}
+      {selectedDetailTarget && (
+        <RecordDetailDrawer
+          isOpen={true}
+          onClose={() => setSelectedDetailTarget(null)}
+          item={selectedDetailTarget.item}
+          categoryKey={selectedDetailTarget.category}
+          readOnly={false}
+        />
+      )}
+
+      {/* Project Extension Modal */}
+      {extensionTarget && (
+        <ProjectExtensionModal
+          isOpen={true}
+          onClose={() => setExtensionTarget(null)}
+          projectItem={extensionTarget}
+          onSaveExtension={handleSaveExtension}
+        />
+      )}
     </div>
   );
 }

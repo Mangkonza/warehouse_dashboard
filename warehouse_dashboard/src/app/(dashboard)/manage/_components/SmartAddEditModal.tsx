@@ -642,23 +642,7 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
                       placeholder="วว/ดด/ปปปป (พ.ศ.)"
                       className="w-full"
                     />
-                  ) : col.type === 'sdg' ? (
-                    <SDGTagSelector
-                      selectedSDGs={typeof val === 'string' ? val.split(',').map((s) => s.trim()).filter(Boolean) : Array.isArray(val) ? val : []}
-                      onChange={(sdgs) => handleFieldChange(col.key, sdgs.join(', '))}
-                      projectTitle={formData.name || ''}
-                      department={formData.department || ''}
-                    />
-                  ) : col.type === 'quartile' ? (
-                    <JournalQuartileSelector
-                      value={val}
-                      onChange={(q) => handleFieldChange(col.key, q)}
-                      journalName={formData.journal || ''}
-                      onJournalMetadataFetched={(meta) => {
-                        if (meta.journal) handleFieldChange('journal', meta.journal);
-                        if (meta.title && !formData.name) handleFieldChange('name', meta.title);
-                      }}
-                    />
+
                   ) : col.type === 'members' ? (
                     <MultiMemberSelector
                       members={

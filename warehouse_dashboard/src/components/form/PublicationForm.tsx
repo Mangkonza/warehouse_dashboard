@@ -64,45 +64,41 @@ export function PublicationForm({
     setOwnerSearch('');
   };
 
-  // Co-authors arrays
-  const foreignCoAuthors: string[] = Array.isArray(formData.co_authors_foreign)
-    ? formData.co_authors_foreign
-    : [];
+  // Boolean co-authors flags
+  const hasForeignCoAuthor = Boolean(
+    formData.has_foreign_coauthor ??
+    formData.has_international_coauthor ??
+    (Array.isArray(formData.co_authors_foreign) && formData.co_authors_foreign.length > 0)
+  );
 
-  const domesticCoAuthors: string[] = Array.isArray(formData.co_authors_domestic)
-    ? formData.co_authors_domestic
-    : [];
+  const hasDomesticCoAuthor = Boolean(
+    formData.has_domestic_coauthor ??
+    (Array.isArray(formData.co_authors_domestic) && formData.co_authors_domestic.length > 0)
+  );
 
-  const handleAddForeignCoAuthor = () => {
-    onChange('co_authors_foreign', [...foreignCoAuthors, '']);
+  const handleToggleForeign = (checked: boolean) => {
+    onChange('has_foreign_coauthor', checked);
+    onChange('has_international_coauthor', checked);
+    if (!checked) {
+      onChange('co_authors_foreign', []);
+    } else {
+      const prev = Array.isArray(formData.co_authors_foreign) && formData.co_authors_foreign.length > 0
+        ? formData.co_authors_foreign
+        : ['มีผู้ร่วมต่างชาติ'];
+      onChange('co_authors_foreign', prev);
+    }
   };
 
-  const handleUpdateForeignCoAuthor = (index: number, val: string) => {
-    const next = [...foreignCoAuthors];
-    next[index] = val;
-    onChange('co_authors_foreign', next);
-  };
-
-  const handleRemoveForeignCoAuthor = (index: number) => {
-    const next = [...foreignCoAuthors];
-    next.splice(index, 1);
-    onChange('co_authors_foreign', next);
-  };
-
-  const handleAddDomesticCoAuthor = () => {
-    onChange('co_authors_domestic', [...domesticCoAuthors, '']);
-  };
-
-  const handleUpdateDomesticCoAuthor = (index: number, val: string) => {
-    const next = [...domesticCoAuthors];
-    next[index] = val;
-    onChange('co_authors_domestic', next);
-  };
-
-  const handleRemoveDomesticCoAuthor = (index: number) => {
-    const next = [...domesticCoAuthors];
-    next.splice(index, 1);
-    onChange('co_authors_domestic', next);
+  const handleToggleDomestic = (checked: boolean) => {
+    onChange('has_domestic_coauthor', checked);
+    if (!checked) {
+      onChange('co_authors_domestic', []);
+    } else {
+      const prev = Array.isArray(formData.co_authors_domestic) && formData.co_authors_domestic.length > 0
+        ? formData.co_authors_domestic
+        : ['มีผู้ร่วมภายในประเทศ'];
+      onChange('co_authors_domestic', prev);
+    }
   };
 
   // Handle Type Change
@@ -291,102 +287,40 @@ export function PublicationForm({
           />
         </FormField>
 
-        {/* 6. ผู้ร่วม (2 กลุ่ม: ต่างชาติ / ภายในประเทศ) */}
-        <div className="space-y-3 pt-1">
+        {/* 6. ผู้ร่วม (2 เช็คบ็อกซ์: ต่างชาติ / ภายในประเทศ) */}
+        <div className="space-y-2 pt-1">
           <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
             ผู้ร่วม
           </label>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {/* ต่างชาติ */}
-            <div className="p-3.5 rounded-lg border border-slate-200 bg-slate-50/50 space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-700">ต่างชาติ</span>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleAddForeignCoAuthor}
-                  className="h-7 px-2 text-xs text-[#00A651] border-emerald-200 hover:bg-emerald-50"
-                >
-                  <Plus className="size-3.5 mr-1" />
-                  เพิ่ม
-                </Button>
+            <label className="flex items-center gap-3 p-3.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition-colors cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={hasForeignCoAuthor}
+                onChange={(e) => handleToggleForeign(e.target.checked)}
+                className="size-4.5 rounded text-[#00A651] focus:ring-[#00A651] border-slate-300 cursor-pointer accent-[#00A651]"
+              />
+              <div className="flex flex-col">
+                <span className="text-sm font-semibold text-slate-800">มีผู้ร่วมต่างชาติ</span>
+                <span className="text-[11.5px] text-slate-500">ติ๊กเลือกหากผลงานนี้มีผู้ร่วมงานจากต่างประเทศ</span>
               </div>
-
-              {foreignCoAuthors.length === 0 ? (
-                <div className="text-xs text-slate-400 py-2 text-center border border-dashed border-slate-200 rounded-md">
-                  ไม่มีผู้ร่วมต่างชาติ
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {foreignCoAuthors.map((author, idx) => (
-                    <div key={idx} className="flex items-center gap-1.5">
-                      <input
-                        type="text"
-                        value={author}
-                        onChange={(e) => handleUpdateForeignCoAuthor(idx, e.target.value)}
-                        className="flex-1 h-8 px-2.5 rounded-md border border-slate-300 text-xs bg-white outline-none focus:border-[#00A651]"
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => handleRemoveForeignCoAuthor(idx)}
-                        className="size-7 text-slate-400 hover:text-red-500"
-                      >
-                        <Trash2 className="size-3.5" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            </label>
 
             {/* ภายในประเทศ */}
-            <div className="p-3.5 rounded-lg border border-slate-200 bg-slate-50/50 space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-700">ภายในประเทศ</span>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleAddDomesticCoAuthor}
-                  className="h-7 px-2 text-xs text-[#00A651] border-emerald-200 hover:bg-emerald-50"
-                >
-                  <Plus className="size-3.5 mr-1" />
-                  เพิ่ม
-                </Button>
+            <label className="flex items-center gap-3 p-3.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition-colors cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={hasDomesticCoAuthor}
+                onChange={(e) => handleToggleDomestic(e.target.checked)}
+                className="size-4.5 rounded text-[#00A651] focus:ring-[#00A651] border-slate-300 cursor-pointer accent-[#00A651]"
+              />
+              <div className="flex flex-col">
+                <span className="text-sm font-semibold text-slate-800">มีผู้ร่วมภายในประเทศ</span>
+                <span className="text-[11.5px] text-slate-500">ติ๊กเลือกหากผลงานนี้มีผู้ร่วมงานภายในประเทศ</span>
               </div>
-
-              {domesticCoAuthors.length === 0 ? (
-                <div className="text-xs text-slate-400 py-2 text-center border border-dashed border-slate-200 rounded-md">
-                  ไม่มีผู้ร่วมภายในประเทศ
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {domesticCoAuthors.map((author, idx) => (
-                    <div key={idx} className="flex items-center gap-1.5">
-                      <input
-                        type="text"
-                        value={author}
-                        onChange={(e) => handleUpdateDomesticCoAuthor(idx, e.target.value)}
-                        className="flex-1 h-8 px-2.5 rounded-md border border-slate-300 text-xs bg-white outline-none focus:border-[#00A651]"
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => handleRemoveDomesticCoAuthor(idx)}
-                        className="size-7 text-slate-400 hover:text-red-500"
-                      >
-                        <Trash2 className="size-3.5" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            </label>
           </div>
         </div>
 

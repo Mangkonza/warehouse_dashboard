@@ -29,6 +29,9 @@ export interface PublicationItem {
   remarks?: string;
   co_authors_foreign?: string[];
   co_authors_domestic?: string[];
+  has_foreign_coauthor?: boolean;
+  has_domestic_coauthor?: boolean;
+  has_international_coauthor?: boolean;
   _detectedTier?: string;
   [key: string]: any;
 }

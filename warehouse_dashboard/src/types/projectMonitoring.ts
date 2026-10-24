@@ -6,6 +6,8 @@ export type ProjectStatus =
   | 'delayed'             // เกินกำหนด / ล่าช้ากว่าแผน (Overdue)
   | 'submitted'           // ส่งรายงานฉบับสมบูรณ์ / รอตรวจรับ
   | 'completed'           // ปิดโครงการเสร็จสมบูรณ์
+  | 'waiting_eval'        // รอประเมิน
+  | 'evaluated'           // ประเมินแล้ว
   | 'cancelled';          // ยกเลิก / ยุติโครงการ
 
 export type MemberRole = 'PI' | 'Co-PI' | 'RA' | 'Advisor';

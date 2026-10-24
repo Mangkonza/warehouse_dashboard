@@ -39,7 +39,25 @@
     "req_no": "2303000652 / 0000022823",
     "status": "ได้รับความคุ้มครองแล้ว",
     "person_id": 81,
-    "updatedAt": "2026-10-24T06:17:23.531Z"
+    "updatedAt": "2026-10-24T06:17:23.531Z",
+    "evaluation": {
+      "id": "ip_ip_1",
+      "category": "ip",
+      "record_id": "ip_1",
+      "sdg_ids": [
+        9
+      ],
+      "i_type": "I_AM",
+      "journal_index": null,
+      "evaluated_by": "admin",
+      "evaluated_at": "2026-10-24T21:00:19.682Z",
+      "updated_at": "2026-10-24T21:00:19.682Z"
+    },
+    "sdg_ids": [
+      9
+    ],
+    "i_type": "I_AM",
+    "journal_index": null
   },
   {
     "_id": "ip_2",
@@ -80,7 +98,8 @@
     "req_no": "2303003816 / 0000024730",
     "status": "ได้รับความคุ้มครองแล้ว",
     "person_id": null,
-    "updatedAt": "2026-10-24T06:17:23.534Z"
+    "updatedAt": "2026-10-24T06:17:23.534Z",
+    "evaluation": null
   },
   {
     "_id": "ip_3",
@@ -121,7 +140,8 @@
     "req_no": "2203002402 / 0000024939",
     "status": "ได้รับความคุ้มครองแล้ว",
     "person_id": null,
-    "updatedAt": "2026-10-24T06:17:23.535Z"
+    "updatedAt": "2026-10-24T06:17:23.535Z",
+    "evaluation": null
   },
   {
     "_id": "ip_4",
@@ -154,7 +174,8 @@
     "req_no": "2303003200 / 0000024938",
     "status": "ได้รับความคุ้มครองแล้ว",
     "person_id": 6,
-    "updatedAt": "2026-10-24T06:17:23.535Z"
+    "updatedAt": "2026-10-24T06:17:23.535Z",
+    "evaluation": null
   },
   {
     "_id": "ip_5",
@@ -187,7 +208,8 @@
     "req_no": "2203002196 / 0000024733",
     "status": "ได้รับความคุ้มครองแล้ว",
     "person_id": 10,
-    "updatedAt": "2026-10-24T06:17:23.535Z"
+    "updatedAt": "2026-10-24T06:17:23.535Z",
+    "evaluation": null
   },
   {
     "_id": "ip_6",
@@ -220,7 +242,8 @@
     "req_no": "0000002025 / 0000755541",
     "status": "ได้รับความคุ้มครองแล้ว",
     "person_id": 81,
-    "updatedAt": "2026-10-24T06:17:23.535Z"
+    "updatedAt": "2026-10-24T06:17:23.535Z",
+    "evaluation": null
   },
   {
     "_id": "ip_7",
@@ -286,7 +309,8 @@
     "req_no": "2303002822 / 0000025468",
     "status": "ได้รับความคุ้มครองแล้ว",
     "person_id": 8,
-    "updatedAt": "2026-10-24T06:17:23.536Z"
+    "updatedAt": "2026-10-24T06:17:23.536Z",
+    "evaluation": null
   },
   {
     "_id": "ip_8",
@@ -352,7 +376,8 @@
     "req_no": "2303002824 / 0000025469",
     "status": "ได้รับความคุ้มครองแล้ว",
     "person_id": 8,
-    "updatedAt": "2026-10-24T06:17:23.536Z"
+    "updatedAt": "2026-10-24T06:17:23.536Z",
+    "evaluation": null
   },
   {
     "_id": "ip_9",
@@ -385,7 +410,8 @@
     "req_no": "2503004483",
     "status": "ยื่นคำขอแล้ว",
     "person_id": 8,
-    "updatedAt": "2026-10-24T06:17:23.537Z"
+    "updatedAt": "2026-10-24T06:17:23.537Z",
+    "evaluation": null
   },
   {
     "_id": "ip_10",
@@ -418,7 +444,8 @@
     "req_no": "2567-06-17",
     "status": "ยื่นคำขอแล้ว",
     "person_id": null,
-    "updatedAt": "2026-10-24T06:17:23.537Z"
+    "updatedAt": "2026-10-24T06:17:23.537Z",
+    "evaluation": null
   },
   {
     "_id": "ip_11",
@@ -451,6 +478,7 @@
     "req_no": "1968-04-29",
     "status": "ยื่นคำขอแล้ว",
     "person_id": null,
-    "updatedAt": "2026-10-24T06:17:23.537Z"
+    "updatedAt": "2026-10-24T06:17:23.537Z",
+    "evaluation": null
   }
 ]

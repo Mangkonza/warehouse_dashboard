@@ -3,6 +3,7 @@
 import React from 'react';
 import { getDepartment } from '@/lib/departments';
 import { cn } from '@/lib/utils';
+import { BADGE_BASE_CLASSES } from '@/components/ui/badge-base';
 
 export interface DepartmentBadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   value?: string | null;
@@ -21,7 +22,7 @@ export function DepartmentBadge({
     return (
       <span
         className={cn(
-          "inline-flex items-center justify-center min-w-[56px] px-3 py-[3px] rounded-full text-[12.5px] font-bold text-white whitespace-nowrap bg-slate-400 select-none",
+          cn(BADGE_BASE_CLASSES, "text-white bg-slate-400"),
           className
         )}
         title="ไม่ระบุสังกัด"
@@ -59,7 +60,7 @@ export function DepartmentBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center justify-center min-w-[56px] px-3 py-[3px] rounded-full text-[12.5px] font-bold text-white whitespace-nowrap select-none cursor-default shadow-xs",
+        cn(BADGE_BASE_CLASSES, "text-white"),
         className
       )}
       style={{
