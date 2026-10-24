@@ -2,7 +2,8 @@
 
 import React, { useState, useMemo } from 'react';
 import { FaTable, FaPlus, FaEdit, FaTrashAlt, FaCalendarAlt, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
-import { SearchInput, DepartmentBadge, ConfirmActionModal } from '@/components/ui';
+import { SearchInput, DepartmentBadge, DepartmentSelect, ConfirmActionModal, RecordDetailDrawer } from '@/components/ui';
+import { JOURNAL_TIER_STYLES } from '@/config/journalRankingConfig';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -20,6 +21,8 @@ interface PublicationsTableProps {
   onSearchChange: (value: string) => void;
   levelFilter: string;
   onLevelChange: (value: string) => void;
+  selectedDept?: string;
+  onDeptChange?: (value: string) => void;
   fiscalYearFilter?: string;
   onFiscalYearChange?: (value: string) => void;
   availableFiscalYears?: string[];
@@ -38,6 +41,8 @@ export function PublicationsTable({
   onSearchChange,
   levelFilter,
   onLevelChange,
+  selectedDept = 'all',
+  onDeptChange,
   fiscalYearFilter = 'all',
   onFiscalYearChange,
   availableFiscalYears = [],
@@ -47,6 +52,7 @@ export function PublicationsTable({
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<PublicationItem | null>(null);
+  const [selectedDetailItem, setSelectedDetailItem] = useState<PublicationItem | null>(null);
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -294,22 +300,39 @@ export function PublicationsTable({
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
           {/* Search by title */}
           <SearchInput
-            placeholder="ค้นหาชื่อผลงาน..."
+            placeholder="ค้นหาชื่อผลงาน, ผู้แต่ง, วารสาร..."
             value={searchTerm}
             onChange={onSearchChange}
-            width="170px"
+            width="190px"
             style={{ padding: '6px 10px' }}
           />
 
-          {/* Level Filter */}
+          {/* Department Filter */}
+          {onDeptChange && (
+            <DepartmentSelect
+              value={selectedDept}
+              onChange={onDeptChange}
+              allowAll
+              allLabel="ทุกภาควิชา"
+              allValue="all"
+              size="sm"
+              className="w-[155px]"
+            />
+          )}
+
+          {/* Level / Tier Filter */}
           <Select value={levelFilter} onValueChange={(val) => onLevelChange(val ?? 'all')}>
-            <SelectTrigger className="h-8 text-xs min-w-[120px] bg-white border-slate-300">
+            <SelectTrigger className="h-8 text-xs min-w-[130px] bg-white border-slate-300">
               <SelectValue placeholder="ทุกระดับ" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">ทุกระดับ</SelectItem>
-              <SelectItem value="ชาติ">ชาติ</SelectItem>
-              <SelectItem value="นานาชาติ">นานาชาติ</SelectItem>
+              <SelectItem value="all">ทุกระดับ / ทุกฐานข้อมูล</SelectItem>
+              <SelectItem value="Q1">Scopus Q1</SelectItem>
+              <SelectItem value="Q2">Scopus Q2-Q4</SelectItem>
+              <SelectItem value="TCI">TCI (ระดับชาติ)</SelectItem>
+              <SelectItem value="นานาชาติ">ระดับนานาชาติ</SelectItem>
+              <SelectItem value="ชาติ">ระดับชาติ</SelectItem>
+              <SelectItem value="อนุสิทธิบัตร">เตรียมความพร้อมจดอนุสิทธิบัตร</SelectItem>
             </SelectContent>
           </Select>
 
@@ -328,6 +351,30 @@ export function PublicationsTable({
                 ))}
               </SelectContent>
             </Select>
+          )}
+
+          {(searchTerm.trim() !== '' || levelFilter !== 'all' || selectedDept !== 'all' || fiscalYearFilter !== 'all') && (
+            <button
+              type="button"
+              onClick={() => {
+                onSearchChange('');
+                onLevelChange('all');
+                if (onDeptChange) onDeptChange('all');
+                if (onFiscalYearChange) onFiscalYearChange('all');
+              }}
+              style={{
+                padding: '5px 10px',
+                borderRadius: '6px',
+                border: '1px solid #fca5a5',
+                backgroundColor: '#fee2e2',
+                color: '#b91c1c',
+                fontSize: '11.5px',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              ล้างตัวกรอง
+            </button>
           )}
 
           {/* Add Button */}
@@ -390,11 +437,16 @@ export function PublicationsTable({
                     const hasCoAuthors = fAuthors.length > 0 || dAuthors.length > 0;
 
                     return (
-                      <tr key={item._id || item.id || globalIndex} className="hover:bg-slate-50/80 transition-colors">
+                      <tr
+                        key={item._id || item.id || globalIndex}
+                        onClick={() => setSelectedDetailItem(item)}
+                        style={{ cursor: 'pointer' }}
+                        className="hover:bg-[#f0fbf5] transition-colors"
+                      >
                         <td style={{ textAlign: 'center', fontWeight: 600, color: '#64748b' }}>
                           {globalIndex}
                         </td>
-                        <td style={{ whiteSpace: 'normal', minWidth: '240px', fontWeight: 600, color: '#1e293b' }}>
+                        <td style={{ whiteSpace: 'normal', minWidth: '240px', fontWeight: 400, color: '#0f172a' }}>
                           {item.name}
                         </td>
                         <td>
@@ -411,24 +463,43 @@ export function PublicationsTable({
                           </span>
                         </td>
                         <td style={{ textAlign: 'center' }}>
-                          <span
-                            className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${
-                              item.level === 'นานาชาติ'
-                                ? 'bg-purple-50 text-purple-800 border border-purple-200'
-                                : 'bg-slate-100 text-slate-700 border border-slate-200'
-                            }`}
-                          >
-                            {item.level || '-'}
-                          </span>
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
+                            <span
+                              className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${
+                                item.level === 'นานาชาติ'
+                                  ? 'bg-purple-50 text-purple-800 border border-purple-200'
+                                  : 'bg-slate-100 text-slate-700 border border-slate-200'
+                              }`}
+                            >
+                              {item.level || '-'}
+                            </span>
+                            {item._detectedTier && JOURNAL_TIER_STYLES[item._detectedTier] && (
+                              <span
+                                style={{
+                                  fontSize: '10.5px',
+                                  fontWeight: 700,
+                                  padding: '1px 6px',
+                                  borderRadius: '6px',
+                                  backgroundColor: JOURNAL_TIER_STYLES[item._detectedTier].bg,
+                                  color: JOURNAL_TIER_STYLES[item._detectedTier].text,
+                                  border: `1px solid ${JOURNAL_TIER_STYLES[item._detectedTier].border}`,
+                                }}
+                              >
+                                {item._detectedTier}
+                              </span>
+                            )}
+                          </div>
                         </td>
-                        <td style={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 700, color: '#0f172a' }}>
-                          {Number(item.budget || 0).toLocaleString('en-US', {
+                        <td style={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 600, color: '#059669' }}>
+                          {Number(item.budget || 0).toLocaleString('th-TH', {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
                           })}{' '}
-                          <span className="text-[11px] text-slate-500 font-normal">บาท</span>
+                          บาท
                         </td>
-                        <td>{item.owner && item.owner !== 'nan' ? item.owner : '-'}</td>
+                        <td style={{ fontWeight: 400, color: '#334155' }}>
+                          {item.owner && item.owner !== 'nan' ? item.owner : '-'}
+                        </td>
                         <td>
                           {hasCoAuthors ? (
                             <div className="text-[11px] leading-tight space-y-0.5">
@@ -460,7 +531,7 @@ export function PublicationsTable({
                             </div>
                           )}
                         </td>
-                        <td style={{ textAlign: 'center' }}>
+                        <td style={{ textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center justify-center gap-1">
                             <button
                               type="button"
@@ -620,6 +691,15 @@ export function PublicationsTable({
           onCancel={() => setDeleteTarget(null)}
         />
       )}
+
+      {/* Record Detail Drawer */}
+      <RecordDetailDrawer
+        isOpen={Boolean(selectedDetailItem)}
+        onClose={() => setSelectedDetailItem(null)}
+        categoryKey="publications"
+        record={selectedDetailItem}
+        readOnly={true}
+      />
     </div>
   );
 }

@@ -3,14 +3,28 @@
 import React, { useEffect, useRef } from 'react';
 import Chart from 'chart.js/auto';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
-import { FaChartLine, FaChartPie, FaChartBar, FaGlobe } from 'react-icons/fa';
+import { FaChartLine, FaChartPie, FaChartBar } from 'react-icons/fa';
 import { AcademicItem } from '../_hooks/useAcademicData';
+import { formatTopItemsForTooltip } from '@/lib/chartTooltipHelper';
+import { HybridSdgCard } from '@/components/data-display';
 
 interface AcademicChartsProps {
   validData: AcademicItem[];
+  totalAllocFaculty: number;
+  totalAllocDept: number;
+  totalAllocKu: number;
+  totalAllocRemaining: number;
+  onSelectClient?: (clientName: string) => void;
 }
 
-export function AcademicCharts({ validData }: AcademicChartsProps) {
+export function AcademicCharts({
+  validData,
+  totalAllocFaculty,
+  totalAllocDept,
+  totalAllocKu,
+  totalAllocRemaining,
+  onSelectClient,
+}: AcademicChartsProps) {
   const chartInstances = useRef<Chart[]>([]);
 
   useEffect(() => {
@@ -23,15 +37,16 @@ export function AcademicCharts({ validData }: AcademicChartsProps) {
     Chart.defaults.color = '#0f172a';
 
     const C_ACA = '#1565c0';
-    const UI_PALETTE = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'];
+    const ALLOC_COLORS = ['#0284c7', '#00A651', '#059669', '#6a1b9a'];
 
     const M = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.'];
-    const monthlyCount = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    const monthlyBudget = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    const clientBudget: Record<string, number> = {};
+    const monthlyCount = Array(M.length).fill(0);
+    const monthlyBudget = Array(M.length).fill(0);
+    const monthlyItems: AcademicItem[][] = Array.from({ length: M.length }, () => []);
+    const clientGroups: Record<string, { name: string; budget: number; count: number; items: AcademicItem[] }> = {};
 
     validData.forEach((item) => {
-      const budget = typeof item.budget === 'number' ? item.budget : 0;
+      const budget = typeof item.budget === 'number' ? item.budget : Number(item.budget) || 0;
 
       // Group by month
       const mStr = String(item.month || '').trim();
@@ -56,34 +71,23 @@ export function AcademicCharts({ validData }: AcademicChartsProps) {
         const idx = monthMap[mStr];
         monthlyCount[idx]++;
         monthlyBudget[idx] += budget / 1000000;
+        monthlyItems[idx].push(item);
       }
 
       // Group by client
       let client = String(item.client || '').replace('\n', ' ').trim();
       if (!client || client === '-' || client === 'nan') client = 'หน่วยงานภายใน/อื่นๆ';
-      clientBudget[client] = (clientBudget[client] || 0) + budget / 1000000;
+      if (!clientGroups[client]) {
+        clientGroups[client] = { name: client, budget: 0, count: 0, items: [] };
+      }
+      clientGroups[client].budget += budget;
+      clientGroups[client].count += 1;
+      clientGroups[client].items.push(item);
     });
 
-    // Top 5 clients
-    const sortedClients = Object.entries(clientBudget).sort((a, b) => b[1] - a[1]).slice(0, 5);
-    const clientLabels = sortedClients.map((c) => c[0]);
-    const clientData = sortedClients.map((c) => c[1]);
-
-    const pieDatalabels = {
-      color: '#fff',
-      anchor: 'center' as const,
-      align: 'center' as const,
-      textStrokeColor: 'rgba(0,0,0,0.6)',
-      textStrokeWidth: 2,
-      font: { weight: 'bold' as const, size: 12 },
-      formatter: (value: any, context: any) => {
-        if (value === 0) return '';
-        const sum = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
-        const p = ((value * 100) / sum).toFixed(1) + '%';
-        return value.toLocaleString('en-US') + '\n(' + p + ')';
-      },
-      textAlign: 'center' as const,
-    };
+    const sortedClients = Object.values(clientGroups).sort((a, b) => b.budget - a.budget).slice(0, 6);
+    const clientLabels = sortedClients.map((c) => (c.name.length > 34 ? c.name.slice(0, 34) + '…' : c.name));
+    const clientData = sortedClients.map((c) => Number((c.budget / 1000000).toFixed(2)));
 
     const createChart = (id: string, config: any) => {
       const canvas = document.getElementById(id) as HTMLCanvasElement;
@@ -93,7 +97,7 @@ export function AcademicCharts({ validData }: AcademicChartsProps) {
       }
     };
 
-    // 1. Monthly count
+    // 1. Monthly count + budget combined or side-by-side with Rich Tooltips
     createChart('c_ac_cnt', {
       type: 'line',
       data: {
@@ -118,6 +122,14 @@ export function AcademicCharts({ validData }: AcademicChartsProps) {
         plugins: {
           legend: { display: false },
           datalabels: { align: 'top', anchor: 'end', color: C_ACA, font: { weight: 'bold' } },
+          tooltip: {
+            callbacks: {
+              afterBody: (items: any) => {
+                const idx = items[0]?.dataIndex;
+                return idx !== undefined ? formatTopItemsForTooltip(monthlyItems[idx], { maxItems: 3, showBudget: true }) : [];
+              },
+            },
+          },
         },
         scales: {
           y: { beginAtZero: true, grace: '20%', ticks: { stepSize: 1 }, title: { display: true, text: 'จำนวนโครงการ' } },
@@ -134,11 +146,11 @@ export function AcademicCharts({ validData }: AcademicChartsProps) {
           {
             label: 'ล้านบาท',
             data: monthlyBudget,
-            borderColor: C_ACA,
-            backgroundColor: 'rgba(21, 101, 192, 0.1)',
+            borderColor: '#00A651',
+            backgroundColor: 'rgba(0, 166, 81, 0.1)',
             fill: true,
             tension: 0.4,
-            pointBackgroundColor: C_ACA,
+            pointBackgroundColor: '#00A651',
             pointRadius: 5,
             pointHoverRadius: 7,
           },
@@ -149,11 +161,19 @@ export function AcademicCharts({ validData }: AcademicChartsProps) {
         maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
-          tooltip: { callbacks: { label: (c: any) => c.raw.toFixed(2) + ' ล้านบาท' } },
+          tooltip: {
+            callbacks: {
+              label: (c: any) => ` งบประมาณ: ${c.raw.toFixed(2)} ล้านบาท`,
+              afterBody: (items: any) => {
+                const idx = items[0]?.dataIndex;
+                return idx !== undefined ? formatTopItemsForTooltip(monthlyItems[idx], { maxItems: 3, showBudget: true }) : [];
+              },
+            },
+          },
           datalabels: {
             align: 'top',
             anchor: 'end',
-            color: C_ACA,
+            color: '#00A651',
             font: { weight: 'bold' },
             formatter: (v: any) => (v > 0 ? v.toFixed(1) : ''),
           },
@@ -164,122 +184,105 @@ export function AcademicCharts({ validData }: AcademicChartsProps) {
       },
     });
 
-    // 3. Allocation doughnut
+    // 3. Real Allocation Doughnut from actual budget records
+    const allocValues = [
+      Number((totalAllocRemaining / 1000000).toFixed(2)),
+      Number((totalAllocFaculty / 1000000).toFixed(2)),
+      Number((totalAllocDept / 1000000).toFixed(2)),
+      Number((totalAllocKu / 1000000).toFixed(2)),
+    ];
     createChart('c_ac_alloc', {
       type: 'doughnut',
       data: {
-        labels: ['งบดำเนินงานคงเหลือ (85%)', 'คณะ (5%)', 'ภาควิชา (5%)', 'มก. (5%)'],
-        datasets: [{ data: [85, 5, 5, 5], backgroundColor: UI_PALETTE.slice(0, 4) }],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          datalabels: pieDatalabels as any,
-          legend: { position: 'bottom', labels: { padding: 8 } },
-        },
-      },
-    });
-
-    // 4. Client bar
-    createChart('c_ac_client', {
-      type: 'bar',
-      data: { labels: clientLabels, datasets: [{ label: 'ล้านบาท', data: clientData, backgroundColor: C_ACA, borderRadius: 8 }] },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        indexAxis: 'y',
-        plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: (c: any) => c.raw.toFixed(2) + ' ล้านบาท' } },
-          datalabels: { display: false },
-        },
-        scales: { x: { beginAtZero: true, grace: '20%', title: { display: true, text: 'ล้านบาท' } } },
-      },
-    });
-
-    // 5. Diverging SDG
-    const sdgLabels = ['SDG 6', 'SDG 9', 'SDG 13', 'SDG 2', 'SDG 8'];
-    const rawSDGCount = [4, 5, 3, 2, 1];
-    const rawSDGBudget = [50.39, 16.27, 43.53, 6.88, 1.63];
-
-    const maxBudget = Math.max(...rawSDGBudget);
-    const maxCount = Math.max(...rawSDGCount);
-    const scaleRatio = maxBudget / maxCount;
-    const scaledCountData = rawSDGCount.map((v) => -(v * scaleRatio));
-
-    createChart('c_ac_sdg_combined', {
-      type: 'bar',
-      data: {
-        labels: sdgLabels,
+        labels: ['งบดำเนินงานคงเหลือ (85%)', 'จัดสรรคณะ (5%)', 'จัดสรรภาควิชา (5%)', 'จัดสรรมก. (5%)'],
         datasets: [
           {
-            label: 'งบประมาณ (ล้านบาท)',
-            data: rawSDGBudget.map((v) => -v),
-            backgroundColor: '#f4511e',
-            borderRadius: 4,
-            barPercentage: 0.7,
-          },
-          {
-            label: 'จำนวนโครงการ',
-            data: scaledCountData.map((v) => Math.abs(v)),
-            backgroundColor: '#1565c0',
-            borderRadius: 4,
-            barPercentage: 0.7,
+            data: allocValues.some((v) => v > 0) ? allocValues : [85, 5, 5, 5],
+            backgroundColor: ALLOC_COLORS,
+            borderWidth: 2,
+            borderColor: '#ffffff',
           },
         ],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        indexAxis: 'y',
         plugins: {
-          legend: { position: 'bottom' },
+          datalabels: {
+            color: '#fff',
+            font: { weight: 'bold', size: 11 },
+            formatter: (v: number) => (v > 0 ? `${v}M` : ''),
+          },
+          legend: { position: 'bottom', labels: { padding: 8, font: { size: 11.5 } } },
           tooltip: {
             callbacks: {
+              label: (c: any) => ` ${c.label}: ${c.raw.toFixed(2)} ล้านบาท`,
+            },
+          },
+        },
+      },
+    });
+
+    // 4. Client bar with Rich Tooltips + Click-to-Filter
+    createChart('c_ac_client', {
+      type: 'bar',
+      data: {
+        labels: clientLabels,
+        datasets: [{ label: 'ล้านบาท', data: clientData, backgroundColor: C_ACA, borderRadius: 8 }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: 'y',
+        onClick: (_e: any, elements: any[]) => {
+          if (elements.length > 0 && onSelectClient) {
+            const idx = elements[0].index;
+            const cl = sortedClients[idx];
+            if (cl) onSelectClient(cl.name);
+          }
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              title: (items: any) => {
+                const idx = items[0]?.dataIndex;
+                return sortedClients[idx]?.name || items[0]?.label;
+              },
               label: (c: any) => {
-                if (c.datasetIndex === 1) return 'จำนวนโครงการ: ' + rawSDGCount[c.dataIndex] + ' โครงการ';
-                return 'งบประมาณ: ' + rawSDGBudget[c.dataIndex].toFixed(2) + ' ล้านบาท';
+                const cl = sortedClients[c.dataIndex];
+                return ` งบประมาณรวม: ${c.raw.toFixed(2)} ล้านบาท (${cl?.count || 0} โครงการ)`;
+              },
+              afterBody: (items: any) => {
+                const idx = items[0]?.dataIndex;
+                const cl = sortedClients[idx];
+                return cl ? formatTopItemsForTooltip(cl.items, { maxItems: 3, showBudget: true }) : [];
               },
             },
           },
           datalabels: {
-            color: '#424242',
+            anchor: 'end',
+            align: 'right',
+            color: '#1e293b',
             font: { weight: 'bold', size: 11 },
-            anchor: (c: any) => (c.datasetIndex === 0 ? 'start' : 'end'),
-            align: (c: any) => (c.datasetIndex === 0 ? 'left' : 'right'),
-            formatter: (value: any, c: any) => {
-              if (c.datasetIndex === 1) return rawSDGCount[c.dataIndex] + ' โครงการ';
-              return rawSDGBudget[c.dataIndex].toFixed(2) + ' ลบ.';
-            },
+            formatter: (v: number) => `${v.toFixed(2)}M`,
           },
         },
-        scales: {
-          x: {
-            stacked: true,
-            ticks: { display: false },
-            grid: { drawBorder: false, drawTicks: false },
-            title: { display: true, text: '← งบประมาณ (ล้านบาท) | จำนวนโครงการ →', font: { weight: 'bold' }, padding: 10 },
-          },
-          y: {
-            stacked: true,
-            ticks: { font: { weight: 'bold' } },
-          },
-        },
+        scales: { x: { beginAtZero: true, grace: '25%', title: { display: true, text: 'ล้านบาท' } } },
       },
     });
 
     return () => {
       chartInstances.current.forEach((c) => c.destroy());
     };
-  }, [validData]);
+  }, [validData, totalAllocFaculty, totalAllocDept, totalAllocKu, totalAllocRemaining, onSelectClient]);
 
   return (
-    <>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '16px' }}>
       <div className="chart-grid">
         <div className="chart-card">
           <h3>
-            <FaChartLine style={{ color: '#1565c0' }} /> จำนวนโครงการรายเดือน (ข้อมูลจริง)
+            <FaChartLine style={{ color: '#1565c0' }} /> จำนวนโครงการพัฒนาวิชาการรายเดือน
           </h3>
           <div className="chart-wrapper">
             <canvas id="c_ac_cnt" />
@@ -287,7 +290,7 @@ export function AcademicCharts({ validData }: AcademicChartsProps) {
         </div>
         <div className="chart-card">
           <h3>
-            <FaChartLine style={{ color: '#1565c0' }} /> งบประมาณรายเดือน (ล้านบาท) (ข้อมูลจริง)
+            <FaChartLine style={{ color: '#00A651' }} /> งบประมาณโครงการพัฒนาวิชาการรายเดือน (ล้านบาท)
           </h3>
           <div className="chart-wrapper">
             <canvas id="c_ac_bud" />
@@ -298,29 +301,32 @@ export function AcademicCharts({ validData }: AcademicChartsProps) {
       <div className="chart-grid">
         <div className="chart-card">
           <h3>
-            <FaChartPie style={{ color: '#1565c0' }} /> สัดส่วนการจัดสรรงบ
+            <FaChartPie style={{ color: '#1565c0' }} /> สัดส่วนการจัดสรรงบประมาณจริง (85% : 5% : 5% : 5%)
           </h3>
           <div className="chart-wrapper">
             <canvas id="c_ac_alloc" />
           </div>
         </div>
         <div className="chart-card">
-          <h3>
-            <FaChartBar style={{ color: '#1565c0' }} /> Top ผู้ขอรับบริการ
-          </h3>
-          <div className="chart-wrapper">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <h3 style={{ margin: 0 }}>
+              <FaChartBar style={{ color: '#1565c0' }} /> หน่วยงานผู้ขอรับบริการหลัก (Top Clients)
+            </h3>
+            <span style={{ fontSize: '11.5px', color: '#00A651', fontWeight: 600 }}>
+              💡 คลิกแท่งกราฟเพื่อกรองตาราง
+            </span>
+          </div>
+          <div className="chart-wrapper" style={{ cursor: 'pointer' }}>
             <canvas id="c_ac_client" />
           </div>
         </div>
-        <div className="chart-card" style={{ gridColumn: 'span 2' }}>
-          <h3>
-            <FaGlobe style={{ color: '#1565c0' }} /> จำนวนและงบประมาณตาม SDGs (Diverging Chart)
-          </h3>
-          <div className="chart-wrapper">
-            <canvas id="c_ac_sdg_combined" />
-          </div>
-        </div>
       </div>
-    </>
+
+      <HybridSdgCard
+        items={validData}
+        categoryKey="academic"
+        title="การวิเคราะห์โครงการพัฒนาวิชาการตามเป้าหมายการพัฒนาที่ยั่งยืน (UN SDGs & UI GreenMetric)"
+      />
+    </div>
   );
 }

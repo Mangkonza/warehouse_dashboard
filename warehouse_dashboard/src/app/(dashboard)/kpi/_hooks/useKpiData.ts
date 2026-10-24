@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { KPIItem, KPIComputedResult, KPICategory } from '@/types/kpi';
 import { getStoredKPIs, evaluateAllKPIs } from '@/lib/kpiEngine';
+import { getCachedCategoryData } from '@/lib/dataService';
 import { apiFetch } from '@/lib/api';
 import { TimeFilterState, itemMatchesTimeFilter } from '@/types/timeFilter';
 
@@ -33,14 +34,14 @@ export function useKpiData(timeFilter?: TimeFilterState) {
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const [datasets, setDatasets] = useState<Record<string, any[]>>({
-    research: rawResearch,
-    academic: rawAcademic,
-    publications: rawPublications,
-    service: rawServices,
-    ip: rawIP,
-    personnel: rawPersonnel,
-  });
+  const [datasets, setDatasets] = useState<Record<string, any[]>>(() => ({
+    research: getCachedCategoryData('research') || rawResearch,
+    academic: getCachedCategoryData('academic') || rawAcademic,
+    publications: getCachedCategoryData('publications') || rawPublications,
+    service: getCachedCategoryData('service') || rawServices,
+    ip: getCachedCategoryData('ip') || rawIP,
+    personnel: getCachedCategoryData('personnel') || rawPersonnel,
+  }));
 
   const loadLiveData = async () => {
     setIsRefreshing(true);
@@ -53,7 +54,14 @@ export function useKpiData(timeFilter?: TimeFilterState) {
         apiFetch<any[]>('/dashboard/ip'),
       ]);
 
-      const newDatasets = { ...datasets };
+      const newDatasets = {
+        research: getCachedCategoryData('research') || rawResearch,
+        academic: getCachedCategoryData('academic') || rawAcademic,
+        publications: getCachedCategoryData('publications') || rawPublications,
+        service: getCachedCategoryData('service') || rawServices,
+        ip: getCachedCategoryData('ip') || rawIP,
+        personnel: getCachedCategoryData('personnel') || rawPersonnel,
+      };
       if (resRes.status === 'fulfilled' && resRes.value.data) newDatasets.research = resRes.value.data;
       if (acaRes.status === 'fulfilled' && acaRes.value.data) newDatasets.academic = acaRes.value.data;
       if (pubRes.status === 'fulfilled' && pubRes.value.data) newDatasets.publications = pubRes.value.data;
@@ -75,12 +83,22 @@ export function useKpiData(timeFilter?: TimeFilterState) {
 
     const handleKpiUpdate = () => {
       setKpiList(getStoredKPIs());
+      setDatasets({
+        research: getCachedCategoryData('research') || rawResearch,
+        academic: getCachedCategoryData('academic') || rawAcademic,
+        publications: getCachedCategoryData('publications') || rawPublications,
+        service: getCachedCategoryData('service') || rawServices,
+        ip: getCachedCategoryData('ip') || rawIP,
+        personnel: getCachedCategoryData('personnel') || rawPersonnel,
+      });
     };
 
     window.addEventListener('kpi_updated', handleKpiUpdate);
+    window.addEventListener('ku_data_updated', handleKpiUpdate);
     window.addEventListener('storage', handleKpiUpdate);
     return () => {
       window.removeEventListener('kpi_updated', handleKpiUpdate);
+      window.removeEventListener('ku_data_updated', handleKpiUpdate);
       window.removeEventListener('storage', handleKpiUpdate);
     };
   }, []);
@@ -121,7 +139,13 @@ export function useKpiData(timeFilter?: TimeFilterState) {
   const filteredKPIs = useMemo(() => {
     return computedKPIs.filter((item) => {
       if (selectedCategory !== 'all' && item.kpi.category !== selectedCategory) return false;
-      if (selectedStatus !== 'all' && item.status !== selectedStatus) return false;
+      if (selectedStatus !== 'all') {
+        if (selectedStatus === 'risk_or_behind') {
+          if (item.status !== 'at_risk' && item.status !== 'behind') return false;
+        } else if (item.status !== selectedStatus) {
+          return false;
+        }
+      }
       return true;
     });
   }, [computedKPIs, selectedCategory, selectedStatus]);

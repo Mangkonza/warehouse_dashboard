@@ -9,6 +9,7 @@ export interface SidebarMenuItem {
   label: string;
   path: string;
   icon: React.ReactNode;
+  group?: string;
 }
 
 export interface SidebarProps {
@@ -116,69 +117,99 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* 2. Navigation items list */}
       <nav style={{ padding: '10px 0', flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
-        {menuItems.map((item) => {
+        {menuItems.map((item, idx) => {
           const isActive = activePath === item.path || activePath === `/${item.id}`;
+          const prevGroup = idx > 0 ? menuItems[idx - 1].group : undefined;
+          const showGroupHeader = item.group && item.group !== prevGroup;
+
           return (
-            <button
-              key={item.id}
-              onClick={() => onNavigate(item.path)}
-              style={{
-                position: 'relative',
-                width: '100%',
-                height: '46px',
-                display: 'flex',
-                alignItems: 'center',
-                border: 'none',
-                backgroundColor: isActive ? THEME_COLORS.primary : 'transparent',
-                color: isActive ? '#ffffff' : '#94a3b8',
-                fontWeight: isActive ? 700 : 500,
-                fontSize: '13.5px',
-                cursor: 'pointer',
-                textAlign: 'left',
-                transition: 'background 0.15s, color 0.15s',
-                padding: 0,
-                whiteSpace: 'nowrap',
-              }}
-              onMouseOver={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.backgroundColor = THEME_COLORS.sidebarHover;
-                  e.currentTarget.style.color = '#ffffff';
-                }
-              }}
-              onMouseOut={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                  e.currentTarget.style.color = '#94a3b8';
-                }
-              }}
-            >
-              <div
+            <React.Fragment key={item.id}>
+              {showGroupHeader && (
+                isExpanded ? (
+                  <div
+                    style={{
+                      padding: idx === 0 ? '4px 18px 4px 20px' : '12px 18px 4px 20px',
+                      fontSize: '10.5px',
+                      fontWeight: 600,
+                      color: '#64748b',
+                      letterSpacing: '0.4px',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {item.group}
+                  </div>
+                ) : (
+                  idx > 0 && (
+                    <div
+                      style={{
+                        height: '1px',
+                        backgroundColor: '#2d343c',
+                        margin: '6px 14px',
+                      }}
+                    />
+                  )
+                )
+              )}
+              <button
+                onClick={() => onNavigate(item.path)}
                 style={{
-                  width: '70px',
-                  height: '46px',
+                  position: 'relative',
+                  width: '100%',
+                  height: '44px',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                  fontSize: '16px',
+                  border: 'none',
+                  backgroundColor: isActive ? THEME_COLORS.primary : 'transparent',
+                  color: isActive ? '#ffffff' : '#94a3b8',
+                  fontWeight: isActive ? 700 : 500,
+                  fontSize: '13.5px',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  transition: 'background 0.15s, color 0.15s',
+                  padding: 0,
+                  whiteSpace: 'nowrap',
+                }}
+                onMouseOver={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.backgroundColor = THEME_COLORS.sidebarHover;
+                    e.currentTarget.style.color = '#ffffff';
+                  }
+                }}
+                onMouseOut={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = '#94a3b8';
+                  }
                 }}
               >
-                {item.icon}
-              </div>
+                <div
+                  style={{
+                    width: '70px',
+                    height: '44px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    fontSize: '16px',
+                  }}
+                >
+                  {item.icon}
+                </div>
 
-              <div
-                style={{
-                  opacity: isExpanded ? 1 : 0,
-                  visibility: isExpanded ? 'visible' : 'hidden',
-                  transition: 'opacity 0.2s ease',
-                  paddingRight: '16px',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}
-              >
-                {item.label}
-              </div>
-            </button>
+                <div
+                  style={{
+                    opacity: isExpanded ? 1 : 0,
+                    visibility: isExpanded ? 'visible' : 'hidden',
+                    transition: 'opacity 0.2s ease',
+                    paddingRight: '16px',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {item.label}
+                </div>
+              </button>
+            </React.Fragment>
           );
         })}
 

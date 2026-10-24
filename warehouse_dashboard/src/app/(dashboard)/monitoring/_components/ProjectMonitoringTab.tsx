@@ -18,6 +18,8 @@ import rawAcademic from '@/data/academic.json';
 import { DEPARTMENTS, getDepartmentAbbr } from '@/config/dataManagementConfig';
 import { DepartmentBadge, DepartmentSelect } from '@/components/ui';
 import { getDepartment } from '@/lib/departments';
+import { isTestRecord } from '@/lib/sdgEngine';
+import { TimeFilterBar, useTimeFilter } from '@/features/time-filter';
 import {
   FaClock,
   FaFlask,
@@ -50,6 +52,8 @@ export default function ProjectMonitoringTab({
   goBack,
   onNavigateToManage,
 }: ProjectMonitoringTabProps) {
+  const { filterProjectsByTime } = useTimeFilter();
+
   // 1. Datasets State
   const [researchList, setResearchList] = useState<any[]>(() => {
     return getCachedCategoryData('research') || rawResearch;
@@ -115,9 +119,13 @@ export default function ProjectMonitoringTab({
     setTimeout(() => setToastMessage(''), 3500);
   };
 
-  // 4. Compute Timelines for Research Projects
+  // 4. Compute Timelines for Research Projects (กรองข้อมูลทดสอบออกในหน่วยความจำ)
   const processedResearch = useMemo(() => {
-    return researchList.map((p, idx) => {
+    const clean = researchList.filter(
+      (p) => !isTestRecord(p) && p.name && p.name !== 'nan' && p.name !== 'NaT' && p.name !== 'เรื่อง'
+    );
+    const timeFiltered = filterProjectsByTime(clean, 'start_date');
+    return timeFiltered.map((p, idx) => {
       const timeline = calculateProjectTimeline(p);
       return {
         ...p,
@@ -126,11 +134,15 @@ export default function ProjectMonitoringTab({
         _timeline: timeline,
       };
     });
-  }, [researchList]);
+  }, [researchList, filterProjectsByTime]);
 
-  // 5. Compute Timelines for Academic Development Projects
+  // 5. Compute Timelines for Academic Development Projects (กรองข้อมูลทดสอบออกในหน่วยความจำ)
   const processedAcademic = useMemo(() => {
-    return academicList.map((p, idx) => {
+    const clean = academicList.filter(
+      (p) => !isTestRecord(p) && p.name && p.name !== 'nan' && p.name !== 'NaT' && p.name !== 'เรื่อง'
+    );
+    const timeFiltered = filterProjectsByTime(clean, 'start_date');
+    return timeFiltered.map((p, idx) => {
       const timeline = calculateProjectTimeline(p);
       return {
         ...p,
@@ -139,7 +151,7 @@ export default function ProjectMonitoringTab({
         _timeline: timeline,
       };
     });
-  }, [academicList]);
+  }, [academicList, filterProjectsByTime]);
 
   // Combined Dataset
   const currentDataset = useMemo(() => {
@@ -152,6 +164,7 @@ export default function ProjectMonitoringTab({
   const stats = useMemo(() => {
     let total = currentDataset.length;
     let onTrack = 0;
+    let expiringSoon = 0;
     let extensionReq = 0;
     let extended = 0;
     let delayed = 0;
@@ -159,6 +172,13 @@ export default function ProjectMonitoringTab({
 
     currentDataset.forEach((p) => {
       const st = p._timeline.status;
+      const days = p._timeline.days_remaining;
+      const isOverdue = p._timeline.is_overdue;
+
+      if (st !== 'completed' && !isOverdue && days >= 0 && days <= 90) {
+        expiringSoon++;
+      }
+
       if (st === 'active') onTrack++;
       else if (st === 'extension_requested') extensionReq++;
       else if (st === 'extended') extended++;
@@ -166,14 +186,21 @@ export default function ProjectMonitoringTab({
       else if (st === 'completed') completed++;
     });
 
-    return { total, onTrack, extensionReq, extended, delayed, completed };
+    return { total, onTrack, expiringSoon, extensionReq, extended, delayed, completed };
   }, [currentDataset]);
 
-  // 7. Filtered Projects List
+  // 7. Filtered Projects List (เรียงลำดับตามความเร่งด่วน: ล่าช้า -> ใกล้ครบกำหนด -> ขอขยายเวลา -> ตามกำหนด -> ปิดโครงการแล้ว)
   const filteredList = useMemo(() => {
-    return currentDataset.filter((p) => {
+    const filtered = currentDataset.filter((p) => {
       // Status Filter
-      if (statusFilter !== 'all' && p._timeline.status !== statusFilter) {
+      if (statusFilter === 'expiring_soon') {
+        const isExpiring =
+          p._timeline.status !== 'completed' &&
+          !p._timeline.is_overdue &&
+          p._timeline.days_remaining >= 0 &&
+          p._timeline.days_remaining <= 90;
+        if (!isExpiring) return false;
+      } else if (statusFilter !== 'all' && p._timeline.status !== statusFilter) {
         return false;
       }
       // Department Filter
@@ -203,6 +230,25 @@ export default function ProjectMonitoringTab({
         }
       }
       return true;
+    });
+
+    const getUrgencyRank = (p: any): number => {
+      const st = p._timeline.status;
+      if (st === 'delayed') return 1;
+      if (st !== 'completed' && !p._timeline.is_overdue && p._timeline.days_remaining >= 0 && p._timeline.days_remaining <= 90) {
+        return 2;
+      }
+      if (st === 'extension_requested') return 3;
+      if (st === 'extended') return 4;
+      if (st === 'active') return 5;
+      return 6;
+    };
+
+    return [...filtered].sort((a, b) => {
+      const rankA = getUrgencyRank(a);
+      const rankB = getUrgencyRank(b);
+      if (rankA !== rankB) return rankA - rankB;
+      return (a._timeline.days_remaining ?? 9999) - (b._timeline.days_remaining ?? 9999);
     });
   }, [currentDataset, statusFilter, deptFilter, searchTerm]);
 
@@ -411,6 +457,9 @@ export default function ProjectMonitoringTab({
         </div>
       </div>
 
+      {/* Time Filter Bar */}
+      <TimeFilterBar />
+
       {/* ========================================================================= */}
       {/* แท็บสลับแยกระหว่าง: โครงการวิจัย vs โครงการพัฒนาวิชาการ vs ทั้งหมด */}
       {/* ========================================================================= */}
@@ -611,6 +660,28 @@ export default function ProjectMonitoringTab({
           </div>
         </div>
 
+        {/* ใกล้ครบกำหนด (≤ 90 วัน) */}
+        <div
+          onClick={() => setStatusFilter('expiring_soon')}
+          style={{
+            padding: '14px 18px',
+            borderRadius: '10px',
+            backgroundColor: '#ffffff',
+            border: statusFilter === 'expiring_soon' ? '2px solid #ea580c' : '1px solid #e2e8f0',
+            cursor: 'pointer',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          <div style={{ fontSize: '12px', color: '#ea580c', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ea580c' }} />
+            <span>ใกล้ครบกำหนด (≤ 90 วัน)</span>
+          </div>
+          <div style={{ fontSize: '22px', fontWeight: 800, color: '#ea580c', marginTop: '4px' }}>
+            {stats.expiringSoon} <span style={{ fontSize: '13px', fontWeight: 500 }}>โครงการ</span>
+          </div>
+        </div>
+
         {/* ยื่นขอขยายเวลา */}
         <div
           onClick={() => setStatusFilter('extension_requested')}
@@ -772,12 +843,13 @@ export default function ProjectMonitoringTab({
                 setSearchTerm('');
               }}
               style={{
-                padding: '8px 14px',
+                padding: '6px 12px',
                 borderRadius: '8px',
-                border: '1px dashed #cbd5e1',
-                backgroundColor: 'transparent',
-                color: '#64748b',
-                fontSize: '12.5px',
+                border: '1px solid #fecaca',
+                backgroundColor: '#fee2e2',
+                color: '#b91c1c',
+                fontSize: '12px',
+                fontWeight: 600,
                 cursor: 'pointer',
               }}
             >
@@ -921,7 +993,7 @@ export default function ProjectMonitoringTab({
                 </div>
 
                 {/* Project Title */}
-                <div style={{ fontSize: '15px', fontWeight: 600, color: '#0f172a', lineHeight: '1.45' }}>
+                <div style={{ fontSize: '14.5px', fontWeight: 400, color: '#1e293b', lineHeight: '1.45' }}>
                   {item.name}
                 </div>
 
@@ -941,7 +1013,7 @@ export default function ProjectMonitoringTab({
                   {/* หัวหน้าโครงการ */}
                   <div>
                     <span style={{ color: '#64748b' }}>หัวหน้าโครงการ: </span>
-                    <strong style={{ color: '#1e293b' }}>{item.head || item.person || '-'}</strong>
+                    <span style={{ color: '#1e293b', fontWeight: 400 }}>{item.head || item.person || '-'}</span>
                   </div>
 
                   {/* ภาควิชา */}
@@ -955,26 +1027,26 @@ export default function ProjectMonitoringTab({
                     <>
                       <div>
                         <span style={{ color: '#64748b' }}>แหล่งทุน: </span>
-                        <strong style={{ color: '#1e293b' }}>{item.fund_source || '-'}</strong>
+                        <span style={{ color: '#1e293b', fontWeight: 400 }}>{item.fund_source || '-'}</span>
                       </div>
                       <div>
-                        <span style={{ color: '#64748b' }}>งบประมาณ: </span>
-                        <strong style={{ color: '#006838', fontFamily: 'monospace' }}>
+                        <span style={{ color: '#64748b' }}>งบประมาณรวม: </span>
+                        <span style={{ color: '#059669', fontFamily: 'monospace', fontWeight: 600 }}>
                           {(item.budget_total || item.budget_internal || 0).toLocaleString()} บาท
-                        </strong>
+                        </span>
                       </div>
                     </>
                   ) : (
                     <>
                       <div>
                         <span style={{ color: '#64748b' }}>ผู้ว่าจ้าง / ผู้ขอรับบริการ: </span>
-                        <strong style={{ color: '#1e293b' }}>{item.client || '-'}</strong>
+                        <span style={{ color: '#1e293b', fontWeight: 400 }}>{item.client || '-'}</span>
                       </div>
                       <div>
                         <span style={{ color: '#64748b' }}>งบประมาณรวม: </span>
-                        <strong style={{ color: '#006838', fontFamily: 'monospace' }}>
+                        <span style={{ color: '#059669', fontFamily: 'monospace', fontWeight: 600 }}>
                           {(Number(item.budget) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท
-                        </strong>
+                        </span>
                         {Number(item.budget) > 0 && (() => {
                           const b = Number(item.budget) || 0;
                           const facP = item.percent_faculty !== undefined && item.percent_faculty !== null ? Number(item.percent_faculty) : 5;

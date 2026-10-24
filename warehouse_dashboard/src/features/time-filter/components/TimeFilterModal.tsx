@@ -5,8 +5,9 @@ import {
   TimeFilterState,
   AcademicSemester,
   FiscalQuarter,
+  getTimeFilterLabel,
 } from '@/types/timeFilter';
-import { FaCalendarAlt, FaTimes, FaUndo } from 'react-icons/fa';
+import { FaCalendarAlt, FaTimes, FaUndo, FaCheckCircle } from 'react-icons/fa';
 import { AVAILABLE_YEARS } from '../constants/timeFilterPresets';
 
 interface TimeFilterModalProps {
@@ -74,20 +75,27 @@ export const TimeFilterModal: React.FC<TimeFilterModalProps> = ({
     onClose();
   };
 
-  const buttonStyle = (isSelected: boolean, width?: string) => ({
-    minWidth: width || '86px',
+  const buttonStyle = (isSelected: boolean): React.CSSProperties => ({
+    width: '100%',
+    maxWidth: '100%',
+    minWidth: '0px',
     height: '42px',
-    padding: '0 16px',
-    borderRadius: '7px',
-    border: isSelected ? '1.5px solid #00A651' : '1.5px solid transparent',
-    backgroundColor: isSelected ? '#ffffff' : '#f3f4f6',
-    color: isSelected ? '#00A651' : '#1e293b',
-    fontWeight: isSelected ? 600 : 500,
-    fontSize: '15px',
+    padding: '0 10px',
+    borderRadius: '8px',
+    border: isSelected ? '1.5px solid #00A651' : '1px solid #e2e8f0',
+    backgroundColor: isSelected ? '#f0fbf5' : '#f8fafc',
+    color: isSelected ? '#00A651' : '#334155',
+    fontWeight: isSelected ? 600 : 400,
+    fontSize: '13.5px',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    boxSizing: 'border-box',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    boxShadow: isSelected ? '0 1px 2px rgba(0, 166, 81, 0.12)' : 'none',
     transition: 'all 0.15s ease',
   });
 
@@ -118,13 +126,14 @@ export const TimeFilterModal: React.FC<TimeFilterModalProps> = ({
           border: '1px solid #e2e8f0',
           display: 'flex',
           flexDirection: 'column',
+          overflow: 'hidden',
           animation: 'modalFadeIn 0.2s ease-out',
         }}
       >
         {/* Modal Header */}
         <div
           style={{
-            padding: '18px 24px',
+            padding: '16px 24px',
             borderBottom: '1px solid #e2e8f0',
             display: 'flex',
             justifyContent: 'space-between',
@@ -138,7 +147,8 @@ export const TimeFilterModal: React.FC<TimeFilterModalProps> = ({
                 width: '36px',
                 height: '36px',
                 borderRadius: '8px',
-                backgroundColor: '#e8f5e9',
+                backgroundColor: '#f0fbf5',
+                border: '1px solid #bbf7d0',
                 color: '#00A651',
                 display: 'flex',
                 alignItems: 'center',
@@ -149,9 +159,12 @@ export const TimeFilterModal: React.FC<TimeFilterModalProps> = ({
               <FaCalendarAlt />
             </div>
             <div>
-              <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#0f172a', margin: 0 }}>
+              <h3 style={{ fontSize: '16.5px', fontWeight: 700, color: '#0f172a', margin: 0 }}>
                 เลือกช่วงเวลาการแสดงผล
               </h3>
+              <div style={{ fontSize: '12px', color: '#059669', fontWeight: 500, marginTop: '2px' }}>
+                กำลังเลือก: {getTimeFilterLabel(draft)}
+              </div>
             </div>
           </div>
 
@@ -254,15 +267,22 @@ export const TimeFilterModal: React.FC<TimeFilterModalProps> = ({
           </div>
 
           {/* กล่องแสดงเนื้อหาตัวเลือกที่มีความสูงคงที่ */}
-          <div style={{ minHeight: '345px', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ minHeight: '320px', width: '100%', display: 'flex', flexDirection: 'column' }}>
             {/* 1. โหมดปีการศึกษา */}
             {activeTabMode === 'academic' && (
-              <div>
-                <div style={{ marginBottom: '14px' }}>
-                  <h4 style={{ fontSize: '15px', fontWeight: 600, color: '#1e293b', margin: '0 0 10px 0' }}>
+              <div style={{ width: '100%' }}>
+                <div style={{ marginBottom: '14px', width: '100%' }}>
+                  <h4 style={{ fontSize: '14px', fontWeight: 600, color: '#1e293b', margin: '0 0 10px 0' }}>
                     ปีการศึกษา
                   </h4>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(3, calc((100% - 20px) / 3))',
+                      gap: '10px',
+                      width: '100%',
+                    }}
+                  >
                     {AVAILABLE_YEARS.map((yr) => (
                       <button
                         key={yr}
@@ -285,15 +305,22 @@ export const TimeFilterModal: React.FC<TimeFilterModalProps> = ({
 
                 <div style={{ borderBottom: '1px solid #f1f3f5', margin: '14px 0' }}></div>
 
-                <div>
-                  <h4 style={{ fontSize: '15px', fontWeight: 600, color: '#1e293b', margin: '0 0 10px 0' }}>
+                <div style={{ width: '100%' }}>
+                  <h4 style={{ fontSize: '14px', fontWeight: 600, color: '#1e293b', margin: '0 0 10px 0' }}>
                     ภาคการศึกษา
                   </h4>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'calc(50% - 5px) calc(50% - 5px)',
+                      gap: '10px',
+                      width: '100%',
+                    }}
+                  >
                     {[
-                      { key: 'first', label: 'ภาคต้น' },
-                      { key: 'second', label: 'ภาคปลาย' },
-                      { key: 'summer', label: 'ภาคฤดูร้อน' },
+                      { key: 'first', label: 'ภาคต้น (มิ.ย. – ต.ค.)' },
+                      { key: 'second', label: 'ภาคปลาย (พ.ย. – มี.ค.)' },
+                      { key: 'summer', label: 'ภาคฤดูร้อน (เม.ย. – พ.ค.)' },
                       { key: 'all', label: 'ทุกภาคการศึกษา' },
                     ].map((sem) => (
                       <button
@@ -306,7 +333,7 @@ export const TimeFilterModal: React.FC<TimeFilterModalProps> = ({
                             academicSemester: sem.key as AcademicSemester,
                           })
                         }
-                        style={buttonStyle(draft.academicSemester === sem.key, '100%')}
+                        style={buttonStyle(draft.academicSemester === sem.key)}
                       >
                         {sem.label}
                       </button>
@@ -318,12 +345,19 @@ export const TimeFilterModal: React.FC<TimeFilterModalProps> = ({
 
             {/* 2. โหมดปีงบประมาณ */}
             {activeTabMode === 'fiscal' && (
-              <div>
-                <div style={{ marginBottom: '14px' }}>
-                  <h4 style={{ fontSize: '15px', fontWeight: 600, color: '#1e293b', margin: '0 0 10px 0' }}>
+              <div style={{ width: '100%' }}>
+                <div style={{ marginBottom: '14px', width: '100%' }}>
+                  <h4 style={{ fontSize: '14px', fontWeight: 600, color: '#1e293b', margin: '0 0 10px 0' }}>
                     ปีงบประมาณ
                   </h4>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(3, calc((100% - 20px) / 3))',
+                      gap: '10px',
+                      width: '100%',
+                    }}
+                  >
                     {AVAILABLE_YEARS.map((yr) => (
                       <button
                         key={yr}
@@ -346,45 +380,52 @@ export const TimeFilterModal: React.FC<TimeFilterModalProps> = ({
 
                 <div style={{ borderBottom: '1px solid #f1f3f5', margin: '14px 0' }}></div>
 
-                <div>
-                  <h4 style={{ fontSize: '15px', fontWeight: 600, color: '#1e293b', margin: '0 0 10px 0' }}>
+                <div style={{ width: '100%' }}>
+                  <h4 style={{ fontSize: '14px', fontWeight: 600, color: '#1e293b', margin: '0 0 10px 0' }}>
                     ไตรมาส
                   </h4>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'calc(50% - 5px) calc(50% - 5px)',
+                      gap: '10px',
+                      width: '100%',
+                    }}
+                  >
                     <button
                       type="button"
                       onClick={() => setDraft({ ...draft, mode: 'fiscal', fiscalQuarter: 'q1' })}
-                      style={buttonStyle(draft.fiscalQuarter === 'q1', '100%')}
+                      style={buttonStyle(draft.fiscalQuarter === 'q1')}
                     >
-                      ไตรมาส 1 (ต.ค. - ธ.ค.)
+                      ไตรมาส 1 (ต.ค. – ธ.ค.)
                     </button>
                     <button
                       type="button"
                       onClick={() => setDraft({ ...draft, mode: 'fiscal', fiscalQuarter: 'q2' })}
-                      style={buttonStyle(draft.fiscalQuarter === 'q2', '100%')}
+                      style={buttonStyle(draft.fiscalQuarter === 'q2')}
                     >
-                      ไตรมาส 2 (ม.ค. - มี.ค.)
+                      ไตรมาส 2 (ม.ค. – มี.ค.)
                     </button>
                     <button
                       type="button"
                       onClick={() => setDraft({ ...draft, mode: 'fiscal', fiscalQuarter: 'q3' })}
-                      style={buttonStyle(draft.fiscalQuarter === 'q3', '100%')}
+                      style={buttonStyle(draft.fiscalQuarter === 'q3')}
                     >
-                      ไตรมาส 3 (เม.ย. - มิ.ย.)
+                      ไตรมาส 3 (เม.ย. – มิ.ย.)
                     </button>
                     <button
                       type="button"
                       onClick={() => setDraft({ ...draft, mode: 'fiscal', fiscalQuarter: 'q4' })}
-                      style={buttonStyle(draft.fiscalQuarter === 'q4', '100%')}
+                      style={buttonStyle(draft.fiscalQuarter === 'q4')}
                     >
-                      ไตรมาส 4 (ก.ค. - ก.ย.)
+                      ไตรมาส 4 (ก.ค. – ก.ย.)
                     </button>
                   </div>
-                  <div style={{ marginTop: '10px' }}>
+                  <div style={{ marginTop: '10px', width: '100%' }}>
                     <button
                       type="button"
                       onClick={() => setDraft({ ...draft, mode: 'fiscal', fiscalQuarter: 'all' })}
-                      style={buttonStyle(draft.fiscalQuarter === 'all', '100%')}
+                      style={buttonStyle(draft.fiscalQuarter === 'all')}
                     >
                       ทั้งปีงบประมาณ
                     </button>
@@ -395,12 +436,19 @@ export const TimeFilterModal: React.FC<TimeFilterModalProps> = ({
 
             {/* 3. โหมดกำหนดเดือนเอง */}
             {activeTabMode === 'manual' && (
-              <div>
-                <div style={{ marginBottom: '14px' }}>
-                  <h4 style={{ fontSize: '15px', fontWeight: 600, color: '#1e293b', margin: '0 0 10px 0' }}>
+              <div style={{ width: '100%' }}>
+                <div style={{ marginBottom: '14px', width: '100%' }}>
+                  <h4 style={{ fontSize: '14px', fontWeight: 600, color: '#1e293b', margin: '0 0 10px 0' }}>
                     เลือกปี พ.ศ.
                   </h4>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(3, calc((100% - 20px) / 3))',
+                      gap: '10px',
+                      width: '100%',
+                    }}
+                  >
                     {AVAILABLE_YEARS.map((yr) => (
                       <button
                         key={yr}
@@ -423,9 +471,9 @@ export const TimeFilterModal: React.FC<TimeFilterModalProps> = ({
 
                 <div style={{ borderBottom: '1px solid #f1f3f5', margin: '14px 0' }}></div>
 
-                <div>
+                <div style={{ width: '100%' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                    <h4 style={{ fontSize: '15px', fontWeight: 600, color: '#1e293b', margin: 0 }}>
+                    <h4 style={{ fontSize: '14px', fontWeight: 600, color: '#1e293b', margin: 0 }}>
                       เลือกเดือน
                     </h4>
                     <button
@@ -458,7 +506,14 @@ export const TimeFilterModal: React.FC<TimeFilterModalProps> = ({
                     </button>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(4, calc((100% - 24px) / 4))',
+                      gap: '8px',
+                      width: '100%',
+                    }}
+                  >
                     {MONTH_NAMES.map((m) => {
                       const isSelected = draft.manualMonths.includes(m.num);
                       return (
@@ -471,7 +526,7 @@ export const TimeFilterModal: React.FC<TimeFilterModalProps> = ({
                               : [...draft.manualMonths, m.num].sort((a, b) => a - b);
                             setDraft({ ...draft, mode: 'manual', manualMonths: updated });
                           }}
-                          style={buttonStyle(isSelected, '100%')}
+                          style={buttonStyle(isSelected)}
                         >
                           {m.name}
                         </button>

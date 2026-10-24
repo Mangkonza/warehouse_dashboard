@@ -1,4 +1,5 @@
 import { CategoryConfig, CategoryKey } from '../types/dataManagement';
+export type { CategoryConfig, CategoryKey };
 
 export const CANONICAL_DEPARTMENTS = [
   'ภาควิชาวิศวกรรมเกษตร',

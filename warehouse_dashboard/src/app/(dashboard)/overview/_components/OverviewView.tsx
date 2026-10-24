@@ -1,17 +1,18 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useTimeFilter } from '@/features/time-filter';
-import { useOverviewData } from '../_hooks/useOverviewData';
+import { TimeFilterBar, useTimeFilter } from '@/features/time-filter';
+import { useOverviewData, OverviewKpiScore } from '../_hooks/useOverviewData';
 import { OverviewHeaderToolbar } from './OverviewHeaderToolbar';
 import { KpiScorecardGrid } from './KpiScorecardGrid';
 import { BurnupCard } from './BurnupCard';
 import { ActionListCard } from './ActionListCard';
 import { PerspectiveSection } from './PerspectiveSection';
+import { DrillDownProjectDrawer } from '@/components/data-display';
 import { FaCheckCircle } from 'react-icons/fa';
 
 export function OverviewView() {
-  const { timeFilter } = useTimeFilter();
+  const { timeFilter, setTimeFilter, resetTimeFilter } = useTimeFilter();
   const {
     isLiveFromDb,
     isRefreshing,
@@ -20,12 +21,17 @@ export function OverviewView() {
     departmentStats,
     actionList,
     validResearch,
+    validAcademic,
+    validPub,
+    validService,
+    validIP,
     fetchLiveData,
     handleExportMaster,
     handleSnapshot,
   } = useOverviewData(timeFilter);
 
   const [selectedBurnupKpi, setSelectedBurnupKpi] = useState('external_budget');
+  const [drillDownKpi, setDrillDownKpi] = useState<OverviewKpiScore | null>(null);
 
   const selectedKpi = kpiScorecard.find((k) => k.id === selectedBurnupKpi) || kpiScorecard[0];
 
@@ -55,7 +61,7 @@ export function OverviewView() {
         </div>
       )}
 
-      {/* 1. Header Toolbar */}
+      {/* 1. Header Toolbar + TimeFilterBar */}
       <OverviewHeaderToolbar
         isLiveFromDb={isLiveFromDb}
         isRefreshing={isRefreshing}
@@ -64,11 +70,19 @@ export function OverviewView() {
         onExportMaster={handleExportMaster}
       />
 
+      <TimeFilterBar
+        value={timeFilter}
+        onChange={setTimeFilter}
+        onReset={resetTimeFilter}
+        totalCount={validResearch.length + validAcademic.length + validPub.length + validService.length + validIP.length}
+      />
+
       {/* 2. Core Strategic KPI Scorecard Cards */}
       <KpiScorecardGrid
         scorecards={kpiScorecard}
         selectedBurnupId={selectedBurnupKpi}
         onSelectKpi={setSelectedBurnupKpi}
+        onDrillDownKpi={(kpi) => setDrillDownKpi(kpi)}
       />
 
       {/* 3. Middle Row: Burn-up Chart + Early Warning Action List */}
@@ -81,6 +95,21 @@ export function OverviewView() {
       <PerspectiveSection
         departmentStats={departmentStats}
         validResearch={validResearch}
+        validAcademic={validAcademic}
+        validPub={validPub}
+        validService={validService}
+        validIP={validIP}
+      />
+
+      {/* KPI Scorecard Drill-Down Drawer */}
+      <DrillDownProjectDrawer
+        isOpen={Boolean(drillDownKpi)}
+        onClose={() => setDrillDownKpi(null)}
+        title={drillDownKpi ? `${drillDownKpi.code}: ${drillDownKpi.title}` : ''}
+        subtitle={drillDownKpi ? `ผลงานจริง ${drillDownKpi.actualFormatted} / เป้าหมาย ${drillDownKpi.targetFormatted} (${drillDownKpi.percent}%)` : ''}
+        accentColor={drillDownKpi?.status.color || '#00A651'}
+        categoryKey={drillDownKpi?.categoryKey || 'research'}
+        items={drillDownKpi?.items || []}
       />
     </div>
   );

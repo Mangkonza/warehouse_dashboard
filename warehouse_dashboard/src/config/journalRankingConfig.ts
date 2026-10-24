@@ -63,7 +63,7 @@ export const KNOWN_JOURNALS_INDEX: JournalIndexEntry[] = [
   { title: 'วารสารวิศวกรรมฟาร์ม', normalizedTitle: 'วารสารวิศวกรรมฟาร์ม', tier: 'TCI 2', database: 'TCI' },
 ];
 
-export const JOURNAL_TIER_STYLES: Record<JournalTier, { bg: string; text: string; border: string; glow: string }> = {
+export const JOURNAL_TIER_STYLES: Record<string, { bg: string; text: string; border: string; glow: string }> = {
   'Scopus Q1': { bg: '#ecfdf5', text: '#059669', border: '#a7f3d0', glow: 'rgba(16, 185, 129, 0.25)' },
   'Scopus Q2': { bg: '#eff6ff', text: '#2563eb', border: '#bfdbfe', glow: 'rgba(37, 99, 235, 0.25)' },
   'Scopus Q3': { bg: '#fefce8', text: '#ca8a04', border: '#fef08a', glow: 'rgba(202, 138, 4, 0.25)' },
@@ -73,3 +73,50 @@ export const JOURNAL_TIER_STYLES: Record<JournalTier, { bg: string; text: string
   'International Conference': { bg: '#f0fdfa', text: '#0d9488', border: '#99f6e4', glow: 'rgba(13, 148, 136, 0.25)' },
   'National Conference': { bg: '#f8fafc', text: '#475569', border: '#e2e8f0', glow: 'rgba(71, 85, 105, 0.25)' },
 };
+
+export function autoDetectJournalRanking(journalName?: string, levelHint?: string): string {
+  const clean = String(journalName || '')
+    .toLowerCase()
+    .replace(/[,\.:;\(\)\[\]"']/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const lvl = String(levelHint || '').toLowerCase();
+
+  for (const entry of KNOWN_JOURNALS_INDEX) {
+    if (
+      clean &&
+      (clean === entry.normalizedTitle ||
+        clean.includes(entry.normalizedTitle) ||
+        entry.normalizedTitle.includes(clean))
+    ) {
+      return entry.tier;
+    }
+  }
+
+  const combined = `${clean} ${lvl}`;
+  if (combined.includes('q1') || combined.includes('quartile 1')) return 'Scopus Q1';
+  if (combined.includes('q2') || combined.includes('quartile 2')) return 'Scopus Q2';
+  if (combined.includes('q3') || combined.includes('quartile 3')) return 'Scopus Q3';
+  if (combined.includes('q4') || combined.includes('quartile 4')) return 'Scopus Q4';
+  if (
+    combined.includes('tci 2') ||
+    combined.includes('tci2') ||
+    combined.includes('tci กลุ่ม 2') ||
+    combined.includes('tci กลุ่มที่ 2')
+  ) {
+    return 'TCI 2';
+  }
+  if (
+    combined.includes('tci 1') ||
+    combined.includes('tci1') ||
+    combined.includes('tci กลุ่ม 1') ||
+    combined.includes('tci กลุ่มที่ 1') ||
+    combined.includes('tci')
+  ) {
+    return 'TCI 1';
+  }
+  if (combined.includes('scopus') || combined.includes('นานาชาติ') || combined.includes('international')) {
+    return 'Scopus Q2';
+  }
+  return 'TCI 1';
+}
