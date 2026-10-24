@@ -1,10 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
-import { FaTable, FaFilter, FaPlus, FaEdit, FaTrashAlt, FaTimes } from 'react-icons/fa';
-import { SearchInput, DepartmentBadge, DepartmentSelect, ConfirmActionModal, RecordDetailDrawer } from '@/components/ui';
-import { deleteCategoryRecord } from '@/lib/dataService';
+import { FaTable, FaFilter, FaTimes } from 'react-icons/fa';
+import { SearchInput, DepartmentBadge, DepartmentSelect, RecordDetailDrawer } from '@/components/ui';
 import { IPItem } from '../_hooks/useIPData';
 
 interface IPTableProps {
@@ -30,30 +28,9 @@ export function IPTable({
   typeFilter = 'all',
   onTypeChange,
 }: IPTableProps) {
-  const [deleteTarget, setDeleteTarget] = useState<IPItem | null>(null);
   const [selectedRecord, setSelectedRecord] = useState<IPItem | null>(null);
-  const [, setIsDeleting] = useState(false);
 
   const hasActiveFilter = deptFilter !== 'all' || typeFilter !== 'all' || searchTerm.trim() !== '';
-
-  const handleDelete = async () => {
-    if (!deleteTarget) return;
-    setIsDeleting(true);
-    try {
-      const targetId = deleteTarget._id || deleteTarget.id || deleteTarget.name;
-      if (targetId) {
-        await deleteCategoryRecord('ip', String(targetId));
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new Event('ku_data_updated'));
-        }
-      }
-    } catch (err) {
-      console.error('Failed to delete IP:', err);
-    } finally {
-      setIsDeleting(false);
-      setDeleteTarget(null);
-    }
-  };
 
   return (
     <div className="table-card">
@@ -82,12 +59,9 @@ export function IPTable({
               }}
             >
               {filteredIpData.length}
-              {totalCount && totalCount !== filteredIpData.length ? ` จาก ${totalCount}` : ''} รายการ
+              {totalCount && totalCount !== filteredIpData.length ? ` / ${totalCount}` : ''} รายการ
             </span>
           </h3>
-          <span style={{ fontSize: '11.5px', color: '#64748b' }}>
-            คลิกที่แถวรายการเพื่อดูรายละเอียดผู้ประดิษฐ์และเลขทะเบียนฉบับเต็ม
-          </span>
         </div>
 
         {/* Search, Dept Filter, and Add Button */}
@@ -155,27 +129,6 @@ export function IPTable({
               ล้างตัวกรอง
             </button>
           )}
-
-          <Link
-            href="/ip/new"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '7px 14px',
-              borderRadius: '8px',
-              backgroundColor: '#00A651',
-              color: '#ffffff',
-              fontSize: '13px',
-              fontWeight: 600,
-              textDecoration: 'none',
-              boxShadow: '0 2px 6px rgba(0, 166, 81, 0.25)',
-              transition: 'background-color 0.2s ease',
-            }}
-          >
-            <FaPlus style={{ fontSize: '11px' }} />
-            <span>เพิ่มงานทรัพย์สินทางปัญญา</span>
-          </Link>
         </div>
       </div>
 
@@ -191,19 +144,17 @@ export function IPTable({
               <th>เลขที่คำขอ / เลขที่</th>
               <th style={{ textAlign: 'center' }}>สถานะ</th>
               <th style={{ textAlign: 'right' }}>คณะฯ สนับสนุน</th>
-              <th style={{ width: '85px', textAlign: 'center' }}>จัดการ</th>
             </tr>
           </thead>
           <tbody>
             {filteredIpData.length === 0 ? (
               <tr>
-                <td colSpan={9} style={{ textAlign: 'center', padding: '30px', color: '#64748b' }}>
+                <td colSpan={8} style={{ textAlign: 'center', padding: '30px', color: '#64748b' }}>
                   ไม่พบข้อมูลที่ตรงกับเงื่อนไขการค้นหา
                 </td>
               </tr>
             ) : (
               filteredIpData.map((item, index) => {
-                const itemId = encodeURIComponent(String(item._id || item.id || item.name || index));
                 const supportVal = item.support_amount !== undefined && item.support_amount !== null ? Number(item.support_amount) : 0;
                 const depts = Array.from(
                   new Set(
@@ -287,38 +238,6 @@ export function IPTable({
                     <td className="budget-cell">
                       {supportVal > 0 ? `${supportVal.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท` : '-'}
                     </td>
-                    <td style={{ textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
-                      <div style={{ display: 'inline-flex', gap: '6px', alignItems: 'center' }}>
-                        <Link
-                          href={`/ip/${itemId}/edit`}
-                          style={{
-                            color: '#00A651',
-                            padding: '4px',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                          }}
-                          title="แก้ไขข้อมูล"
-                        >
-                          <FaEdit />
-                        </Link>
-                        <button
-                          type="button"
-                          onClick={() => setDeleteTarget(item)}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            color: '#dc2626',
-                            cursor: 'pointer',
-                            padding: '4px',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                          }}
-                          title="ลบข้อมูล"
-                        >
-                          <FaTrashAlt />
-                        </button>
-                      </div>
-                    </td>
                   </tr>
                 );
               })
@@ -326,18 +245,6 @@ export function IPTable({
           </tbody>
         </table>
       </div>
-
-      <ConfirmActionModal
-        isOpen={Boolean(deleteTarget)}
-        type="danger"
-        title="ยืนยันการลบรายการ?"
-        message={`คุณต้องการลบข้อมูลทรัพย์สินทางปัญญา "${deleteTarget?.title || deleteTarget?.name || ''}" ใช่หรือไม่?`}
-        detail="การดำเนินการนี้จะไม่สามารถย้อนกลับได้"
-        confirmText="ยืนยันการลบ"
-        cancelText="ยกเลิก"
-        onConfirm={handleDelete}
-        onCancel={() => setDeleteTarget(null)}
-      />
 
       <RecordDetailDrawer
         isOpen={Boolean(selectedRecord)}

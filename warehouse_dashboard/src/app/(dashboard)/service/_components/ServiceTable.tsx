@@ -64,15 +64,10 @@ export function ServiceTable({
           gap: '10px',
         }}
       >
-        <div>
-          <h3 style={{ margin: 0 }}>
-            <FaTable style={{ color: '#e65100', marginRight: '8px' }} /> ตารางงานบริการวิชาการ ({filteredData.length}
-            {totalCount && totalCount !== filteredData.length ? ` จาก ${totalCount}` : ''} รายการ)
-          </h3>
-          <span style={{ fontSize: '11.5px', color: '#64748b' }}>
-            คลิกที่แถวรายการเพื่อดูรายละเอียดงานบริการวิชาการฉบับเต็ม
-          </span>
-        </div>
+        <h3 style={{ margin: 0 }}>
+          <FaTable style={{ color: '#e65100', marginRight: '8px' }} /> งานบริการวิชาการ ({filteredData.length}
+          {totalCount && totalCount !== filteredData.length ? ` / ${totalCount}` : ''})
+        </h3>
 
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
           {selectedType !== 'all' && onTypeChange && (

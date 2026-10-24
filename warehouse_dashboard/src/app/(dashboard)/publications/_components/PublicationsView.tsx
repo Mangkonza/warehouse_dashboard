@@ -1,13 +1,12 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import { FaBookOpen, FaTrophy, FaGlobeAmericas, FaAward, FaCoins } from 'react-icons/fa';
 import { useTimeFilter, TimeFilterBar } from '@/features/time-filter';
-import { KpiGrid, DecisionBox } from '@/components/data-display';
+import { KpiGrid } from '@/components/data-display';
 import { usePublicationsData } from '../_hooks/usePublicationsData';
 import { PublicationsCharts } from './PublicationsCharts';
 import { PublicationsTable } from './PublicationsTable';
-import { getDepartment } from '@/lib/departments';
 
 export function PublicationsView() {
   const { timeFilter, setTimeFilter, resetTimeFilter } = useTimeFilter();
@@ -30,31 +29,7 @@ export function PublicationsView() {
     fiscalYearFilter,
     setFiscalYearFilter,
     availableFiscalYears,
-    savePublication,
-    deletePublication,
   } = usePublicationsData(timeFilter);
-
-  const decisionInsights = useMemo(() => {
-    const deptCounts: Record<string, number> = {};
-    validData.forEach((p) => {
-      const d = getDepartment(p.department).name;
-      deptCounts[d] = (deptCounts[d] || 0) + 1;
-    });
-    const topDept = Object.entries(deptCounts).sort((a, b) => b[1] - a[1])[0];
-    const intlPct = validData.length > 0 ? Math.round((internationalCount / validData.length) * 100) : 0;
-
-    return [
-      <>
-        <strong>สัดส่วนผลงานตีพิมพ์ระดับนานาชาติ:</strong> คิดเป็น <strong>{intlPct}%</strong> ({internationalCount} เรื่อง) โดยอยู่ในระดับ{' '}
-        <strong>Scopus Q1 จำนวน {q1Count} เรื่อง</strong> และ <strong>Scopus Q2-Q4 จำนวน {q2Count} เรื่อง</strong>
-      </>,
-      <>
-        <strong>ภาควิชาที่ผลิตผลงานตีพิมพ์สูงสุด:</strong>{' '}
-        {topDept ? `${topDept[0]} (${topDept[1]} เรื่อง)` : '-'} • ใช้งบสนับสนุนการตีพิมพ์รวมทั้งสิ้น{' '}
-        <strong>{totalSupportBudget.toLocaleString('th-TH')} บาท</strong>
-      </>,
-    ];
-  }, [validData, internationalCount, q1Count, q2Count, totalSupportBudget]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -79,7 +54,7 @@ export function PublicationsView() {
               icon: <FaTrophy />,
               value: `${q1Count} เรื่อง`,
               label: 'ระดับ Scopus Q1',
-              subtext: 'คลิกเพื่อกรองเฉพาะ Q1',
+              subtext: `${validData.length > 0 ? Math.round((q1Count / validData.length) * 100) : 0}% ของทั้งหมด`,
               accentColor: '#059669',
               onClick: () => setLevelFilter(levelFilter === 'Q1' ? 'all' : 'Q1'),
             },
@@ -87,7 +62,7 @@ export function PublicationsView() {
               icon: <FaGlobeAmericas />,
               value: `${q2Count} เรื่อง`,
               label: 'ระดับ Scopus Q2 - Q4',
-              subtext: 'วารสารวิชาการนานาชาติ',
+              subtext: `${validData.length > 0 ? Math.round((q2Count / validData.length) * 100) : 0}% ของทั้งหมด`,
               accentColor: '#2563eb',
               onClick: () => setLevelFilter(levelFilter === 'Q2' ? 'all' : 'Q2'),
             },
@@ -109,11 +84,6 @@ export function PublicationsView() {
           ]}
         />
 
-        <DecisionBox
-          title="ข้อมูลสนับสนุนการตัดสินใจผู้บริหาร — ผลงานตีพิมพ์ทางวิชาการ"
-          items={decisionInsights}
-        />
-
         <PublicationsCharts
           validData={validData}
           onSelectDept={(dept) => setSelectedDept(dept === selectedDept ? 'all' : dept)}
@@ -131,8 +101,6 @@ export function PublicationsView() {
           fiscalYearFilter={fiscalYearFilter}
           onFiscalYearChange={setFiscalYearFilter}
           availableFiscalYears={availableFiscalYears}
-          onSave={savePublication}
-          onDelete={deletePublication}
         />
       </div>
     </div>

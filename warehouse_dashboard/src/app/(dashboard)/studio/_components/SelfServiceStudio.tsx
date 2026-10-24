@@ -5,7 +5,12 @@ import Chart from 'chart.js/auto';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { FACT_DOMAINS_CONFIG } from '@/config/analyticsMetadata';
 import { AnalyticsQuery, ChartType, FactDomainId, AggregationType } from '@/types/analyticsBuilder';
-import { executeAnalyticsQuery } from '@/lib/analyticsEngine';
+import { executeAnalyticsQuery, extractDimensionValue } from '@/lib/analyticsEngine';
+import { getClickedChartElement, formatTopItemsForTooltip } from '@/lib/chartTooltipHelper';
+import { DrillDownProjectDrawer } from '@/components/ui';
+import { CategoryKey } from '@/config/dataManagementConfig';
+import { isTestRecord } from '@/lib/sdgEngine';
+import { getDepartment } from '@/lib/departments';
 import {
   Select,
   SelectContent,
@@ -131,6 +136,17 @@ export default function SelfServiceStudio() {
 
   const chartRef = useRef<HTMLCanvasElement | null>(null);
   const chartInstance = useRef<Chart | null>(null);
+  const [drillDown, setDrillDown] = useState<{
+    isOpen: boolean;
+    title: string;
+    subtitle: string;
+    items: any[];
+  }>({
+    isOpen: false,
+    title: '',
+    subtitle: '',
+    items: [],
+  });
 
   // Map fact domain to raw dataset and apply global Time Filter
   const currentDataset = useMemo(() => {
@@ -152,6 +168,40 @@ export default function SelfServiceStudio() {
   }, [query.factDomain, filterProjectsByTime]);
 
   const currentDomainDef = FACT_DOMAINS_CONFIG[query.factDomain];
+
+  const openCategoryDrillDown = (primaryLabel: string, secondaryLabel?: string) => {
+    const primaryDimDef =
+      currentDomainDef.dimensions.find((d) => d.id === query.primaryDimensionId) ||
+      currentDomainDef.dimensions[0];
+    const secondaryDimDef = query.secondaryDimensionId
+      ? currentDomainDef.dimensions.find((d) => d.id === query.secondaryDimensionId)
+      : undefined;
+
+    const matching = currentDataset.filter((r: any) => {
+      if (isTestRecord(r) || !r.name || r.name === 'nan' || r.name === 'NaT' || r.name === 'เรื่อง') {
+        return false;
+      }
+      if (query.selectedDept && query.selectedDept !== 'all') {
+        const targetCode = getDepartment(query.selectedDept).code;
+        const rowCode = getDepartment(r.department).code;
+        if (targetCode !== '-' && rowCode !== targetCode && !extractDimensionValue(r, 'department').includes(query.selectedDept)) {
+          return false;
+        }
+      }
+      if (extractDimensionValue(r, primaryDimDef.field) !== primaryLabel) return false;
+      if (secondaryDimDef && secondaryLabel && extractDimensionValue(r, secondaryDimDef.field) !== secondaryLabel) {
+        return false;
+      }
+      return true;
+    });
+
+    setDrillDown({
+      isOpen: true,
+      title: `${currentDomainDef.nameTh}: ${primaryLabel}${secondaryLabel ? ` (${secondaryLabel})` : ''}`,
+      subtitle: `รวม ${matching.length.toLocaleString('th-TH')} รายการ`,
+      items: matching,
+    });
+  };
 
   // Execute Real Analytics Query
   const aggregatedData = useMemo(() => {
@@ -180,6 +230,20 @@ export default function SelfServiceStudio() {
     let options: any = {
       responsive: true,
       maintainAspectRatio: false,
+      onClick: (event: any, elements: any[], chart: any) => {
+        const mode = activeChartType === 'horizontal_bar' ? 'y' : 'nearest';
+        const hit = getClickedChartElement(event, elements, chart, mode);
+        if (hit) {
+          const primaryLabel = aggregatedData.labels[hit.index];
+          const secondaryLabel =
+            query.secondaryDimensionId && aggregatedData.datasets[hit.datasetIndex]
+              ? aggregatedData.datasets[hit.datasetIndex].label
+              : undefined;
+          if (primaryLabel) {
+            openCategoryDrillDown(primaryLabel, secondaryLabel);
+          }
+        }
+      },
       plugins: {
         legend: {
           display:
@@ -390,89 +454,52 @@ export default function SelfServiceStudio() {
   };
 
   return (
-    <div className="liquid-glass-bg" style={{ padding: '24px 32px 60px' }}>
-      {/* 1. Header & Domain Capsule */}
-      <div style={{ marginBottom: '20px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
-          <div>
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '6px 14px',
-                borderRadius: '9999px',
-                background: 'rgba(0, 168, 89, 0.12)',
-                border: '1px solid rgba(0, 168, 89, 0.28)',
-                color: '#006838',
-                fontSize: '12.5px',
-                fontWeight: 700,
-                marginBottom: '8px',
-              }}
-            >
-              <FaMagic /> สตูดิโอวิเคราะห์ข้อมูลแบบบริการตนเอง (Self-Service BI Studio)
-            </div>
-            <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.5px' }}>
-              ศูนย์วิเคราะห์และออกแบบมิติมุมมองข้อมูล คณะวิศวกรรมศาสตร์
-            </h1>
-            <p style={{ fontSize: '13.5px', color: '#64748b', marginTop: '4px' }}>
-              กำหนดแกน X, แกน Y, มิติย่อยจัดกลุ่ม และเลือกรูปแบบกราฟที่เหมาะสมจากคลัง 16 รูปแบบได้อย่างอิสระ
-            </p>
-          </div>
-
-          {/* Quick Domain Selector Pills */}
-          <div className="liquid-glass-dock" style={{ display: 'flex', padding: '6px', gap: '6px', flexWrap: 'wrap' }}>
-            {(Object.keys(FACT_DOMAINS_CONFIG) as FactDomainId[]).map((dId) => {
-              const def = FACT_DOMAINS_CONFIG[dId];
-              const isActive = query.factDomain === dId;
-              return (
-                <button
-                  key={dId}
-                  onClick={() => handleDomainChange(dId)}
-                  type="button"
-                  style={{
-                    padding: '8px 14px',
-                    borderRadius: '9999px',
-                    fontSize: '12.5px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '7px',
-                    border: 'none',
-                    cursor: 'pointer',
-                    background: isActive ? '#00a859' : 'transparent',
-                    color: isActive ? '#ffffff' : '#475569',
-                    fontWeight: isActive ? 700 : 500,
-                    boxShadow: isActive ? '0 4px 12px rgba(0, 168, 89, 0.35)' : 'none',
-                    transition: 'all 0.18s ease',
-                  }}
-                >
-                  <span>{getDomainIcon(dId)}</span>
-                  <span>{def.nameTh}</span>
-                </button>
-              );
-            })}
-          </div>
+    <div className="liquid-glass-bg" style={{ padding: '16px 24px 48px' }}>
+      {/* 1. Quick Domain Selector Pills */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
+        <div className="liquid-glass-dock" style={{ display: 'flex', padding: '6px', gap: '6px', flexWrap: 'wrap' }}>
+          {(Object.keys(FACT_DOMAINS_CONFIG) as FactDomainId[]).map((dId) => {
+            const def = FACT_DOMAINS_CONFIG[dId];
+            const isActive = query.factDomain === dId;
+            return (
+              <button
+                key={dId}
+                onClick={() => handleDomainChange(dId)}
+                type="button"
+                style={{
+                  padding: '8px 14px',
+                  borderRadius: '9999px',
+                  fontSize: '12.5px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '7px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  background: isActive ? '#00a859' : 'transparent',
+                  color: isActive ? '#ffffff' : '#475569',
+                  fontWeight: isActive ? 700 : 500,
+                  boxShadow: isActive ? '0 4px 12px rgba(0, 168, 89, 0.35)' : 'none',
+                  transition: 'all 0.18s ease',
+                }}
+              >
+                <span>{getDomainIcon(dId)}</span>
+                <span>{def.nameTh}</span>
+              </button>
+            );
+          })}
         </div>
+        <span style={{ fontSize: '12.5px', color: '#64748b', fontWeight: 600 }}>
+          {currentDomainDef.nameTh}: <strong style={{ color: '#00A651' }}>{aggregatedData.count}</strong> รายการ
+        </span>
       </div>
 
       {/* Global Time Filter Bar */}
       <div style={{ marginBottom: '16px' }}>
-        <TimeFilterBar />
+        <TimeFilterBar totalCount={aggregatedData.count} />
       </div>
 
-      {/* 2. Visual Query Builder Panel (Apple iOS Liquid Glass Surface - No Bounce) */}
-      <div className="glass-card" style={{ padding: '20px 24px', marginBottom: '22px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', borderBottom: '1px solid rgba(226, 232, 240, 0.7)', paddingBottom: '12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <FaSlidersH style={{ color: '#00a859', fontSize: '18px' }} />
-            <h3 style={{ fontSize: '15.5px', fontWeight: 700, color: '#0f172a' }}>
-              กำหนดแกนและตัวแปรในการวิเคราะห์ (Axis & Query Configuration)
-            </h3>
-          </div>
-          <span style={{ fontSize: '12px', color: '#64748b' }}>
-            ฐานข้อมูล: <strong>{currentDomainDef.nameTh}</strong> ({aggregatedData.count} รายการ)
-          </span>
-        </div>
+      {/* 2. Visual Query Builder Panel */}
+      <div className="glass-card" style={{ padding: '18px 20px', marginBottom: '18px' }}>
 
         {/* 5 Core Control Selectors */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '14px' }}>
@@ -746,50 +773,39 @@ export default function SelfServiceStudio() {
           )}
         </div>
 
-        {/* AI Recommendation Alert */}
-        <div style={{ marginTop: '14px', padding: '10px 14px', borderRadius: '12px', background: 'rgba(240, 253, 244, 0.85)', border: '1px solid rgba(167, 243, 208, 0.7)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <FaLightbulb style={{ color: '#059669', fontSize: '16px', flexShrink: 0 }} />
-          <span style={{ fontSize: '12.5px', color: '#065f46' }}>
-            <strong>คำแนะนำอัจฉริยะ (Smart Chart Advisor):</strong> {aggregatedData.recommendationReason}
-          </span>
-        </div>
       </div>
 
-      {/* 3. Summary Metric Cards (Apple iOS Style Cards) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', marginBottom: '22px' }}>
-        <div className="glass-card" style={{ padding: '16px 20px' }}>
-          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>ยอดรวมทั้งหมด (Total Value)</div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#006838', marginTop: '4px' }}>
+      {/* 3. Summary Metric Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', marginBottom: '18px' }}>
+        <div className="glass-card" style={{ padding: '14px 18px' }}>
+          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>ยอดรวมทั้งหมด</div>
+          <div style={{ fontSize: '22px', fontWeight: 800, color: '#006838', marginTop: '2px' }}>
             {aggregatedData.totalValue.toLocaleString()}{' '}
-            {aggregatedData.format === 'currency' ? <span style={{ fontSize: '14px', fontWeight: 600 }}>บาท</span> : ''}
+            {aggregatedData.format === 'currency' ? <span style={{ fontSize: '13px', fontWeight: 600 }}>บาท</span> : ''}
           </div>
-          <div style={{ fontSize: '11px', color: '#059669', marginTop: '3px' }}>จากข้อมูลทั้งหมด {aggregatedData.count} แถว</div>
         </div>
 
-        <div className="glass-card" style={{ padding: '16px 20px' }}>
-          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>ค่าเฉลี่ยต่อกลุ่ม (Average)</div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#0284c7', marginTop: '4px' }}>
+        <div className="glass-card" style={{ padding: '14px 18px' }}>
+          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>ค่าเฉลี่ยต่อกลุ่ม</div>
+          <div style={{ fontSize: '22px', fontWeight: 800, color: '#0284c7', marginTop: '2px' }}>
             {Math.round(aggregatedData.averageValue).toLocaleString()}{' '}
-            {aggregatedData.format === 'currency' ? <span style={{ fontSize: '14px', fontWeight: 600 }}>บาท</span> : ''}
+            {aggregatedData.format === 'currency' ? <span style={{ fontSize: '13px', fontWeight: 600 }}>บาท</span> : ''}
           </div>
-          <div style={{ fontSize: '11px', color: '#0284c7', marginTop: '3px' }}>เฉลี่ยใน {aggregatedData.labels.length} กลุ่มมิติ</div>
         </div>
 
-        <div className="glass-card" style={{ padding: '16px 20px' }}>
-          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>ค่าสูงสุดในกลุ่ม (Peak Group)</div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#7c3aed', marginTop: '4px' }}>
+        <div className="glass-card" style={{ padding: '14px 18px' }}>
+          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>ค่าสูงสุดในกลุ่ม</div>
+          <div style={{ fontSize: '22px', fontWeight: 800, color: '#7c3aed', marginTop: '2px' }}>
             {aggregatedData.maxValue.toLocaleString()}{' '}
-            {aggregatedData.format === 'currency' ? <span style={{ fontSize: '14px', fontWeight: 600 }}>บาท</span> : ''}
+            {aggregatedData.format === 'currency' ? <span style={{ fontSize: '13px', fontWeight: 600 }}>บาท</span> : ''}
           </div>
-          <div style={{ fontSize: '11px', color: '#7c3aed', marginTop: '3px' }}>กลุ่มที่มีสัดส่วนมากที่สุด</div>
         </div>
 
-        <div className="glass-card" style={{ padding: '16px 20px' }}>
-          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>จำนวนกลุ่มข้อมูล (Categories)</div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#f59e0b', marginTop: '4px' }}>
-            {aggregatedData.labels.length} <span style={{ fontSize: '14px', fontWeight: 600 }}>กลุ่ม</span>
+        <div className="glass-card" style={{ padding: '14px 18px' }}>
+          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>จำนวนกลุ่มข้อมูล</div>
+          <div style={{ fontSize: '22px', fontWeight: 800, color: '#f59e0b', marginTop: '2px' }}>
+            {aggregatedData.labels.length} <span style={{ fontSize: '13px', fontWeight: 600 }}>กลุ่ม</span>
           </div>
-          <div style={{ fontSize: '11px', color: '#b45309', marginTop: '3px' }}>ตามมิติ {currentDomainDef.dimensions.find((d) => d.id === query.primaryDimensionId)?.label}</div>
         </div>
       </div>
 
@@ -797,25 +813,15 @@ export default function SelfServiceStudio() {
       <div style={{ display: 'grid', gridTemplateColumns: activeChartType === 'pivot' ? '1fr' : '1.7fr 1fr', gap: '20px' }}>
         {/* Main Chart Area */}
         {activeChartType !== 'pivot' && (
-          <div className="glass-card" style={{ padding: '22px 24px', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
-              <div>
-                <h3 style={{ fontSize: '15.5px', fontWeight: 700, color: '#0f172a' }}>
-                  แผนภาพวิเคราะห์: {currentDomainDef.measures.find((m) => m.id === query.measureId)?.label} จำแนกตาม{' '}
-                  {currentDomainDef.dimensions.find((d) => d.id === query.primaryDimensionId)?.label}
-                </h3>
-                {query.secondaryDimensionId && (
-                  <span style={{ fontSize: '12px', color: '#64748b' }}>
-                    และจำแนกมิติย่อยตาม: {currentDomainDef.dimensions.find((d) => d.id === query.secondaryDimensionId)?.label}
-                  </span>
-                )}
-              </div>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <span className="glow-badge-active">สดจาก Data Warehouse</span>
-              </div>
+          <div className="glass-card" style={{ padding: '20px 22px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ marginBottom: '12px' }}>
+              <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', margin: 0 }}>
+                {currentDomainDef.measures.find((m) => m.id === query.measureId)?.label} จำแนกตาม{' '}
+                {currentDomainDef.dimensions.find((d) => d.id === query.primaryDimensionId)?.label}
+              </h3>
             </div>
 
-            <div style={{ position: 'relative', height: '390px', width: '100%', flex: 1 }}>
+            <div style={{ position: 'relative', height: '390px', width: '100%', flex: 1, cursor: 'pointer' }}>
               <canvas ref={chartRef} />
             </div>
           </div>
@@ -863,9 +869,11 @@ export default function SelfServiceStudio() {
                 {aggregatedData.tableRows.map((row, idx) => (
                   <tr
                     key={idx}
+                    onClick={() => openCategoryDrillDown(row.category, row.subCategory)}
                     style={{
                       borderBottom: '1px solid rgba(226, 232, 240, 0.7)',
                       background: idx % 2 === 0 ? 'rgba(255, 255, 255, 0.5)' : 'transparent',
+                      cursor: 'pointer',
                     }}
                   >
                     <td style={{ padding: '9px 12px', fontWeight: 600, color: '#0f172a' }}>{row.category}</td>
@@ -897,6 +905,16 @@ export default function SelfServiceStudio() {
           </div>
         </div>
       </div>
+
+      <DrillDownProjectDrawer
+        isOpen={drillDown.isOpen}
+        onClose={() => setDrillDown((prev) => ({ ...prev, isOpen: false }))}
+        title={drillDown.title}
+        subtitle={drillDown.subtitle}
+        accentColor="#00A651"
+        items={drillDown.items}
+        categoryKey={(query.factDomain === 'monitoring' ? 'research' : query.factDomain) as CategoryKey}
+      />
     </div>
   );
 }

@@ -29,27 +29,22 @@ export function KpiHeaderToolbar({ timeFilter, isRefreshing, onRefresh }: KpiHea
         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
       }}
     >
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-          <span
-            style={{
-              backgroundColor: '#e8f5e9',
-              color: '#007a3e',
-              padding: '3px 10px',
-              borderRadius: '16px',
-              fontSize: '12px',
-              fontWeight: 700,
-            }}
-          >
-            {timeFilter && timeFilter.mode !== 'all' ? getTimeFilterLabel(timeFilter) : 'ทุกช่วงเวลา'}
-          </span>
-        </div>
-        <h1 style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a', margin: 0 }}>
-          ระบบติดตามตัวชี้วัดตามแผนยุทธศาสตร์
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+        <h1 style={{ fontSize: '19px', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+          ตัวชี้วัดตามแผนยุทธศาสตร์ (KPI)
         </h1>
-        <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0 0' }}>
-          ประมวลผลสถานะความสำเร็จและเปรียบเทียบกับเป้าหมายแบบเรียลไทม์จากคลังข้อมูลวิจัย
-        </p>
+        <span
+          style={{
+            backgroundColor: '#e8f5e9',
+            color: '#007a3e',
+            padding: '3px 10px',
+            borderRadius: '16px',
+            fontSize: '12px',
+            fontWeight: 700,
+          }}
+        >
+          {timeFilter && timeFilter.mode !== 'all' ? getTimeFilterLabel(timeFilter) : 'ทุกช่วงเวลา'}
+        </span>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -74,28 +69,6 @@ export function KpiHeaderToolbar({ timeFilter, isRefreshing, onRefresh }: KpiHea
         >
           <FaSyncAlt style={{ animation: isRefreshing ? 'spin 1s linear infinite' : 'none', fontSize: '12px' }} />
           <span>{isRefreshing ? 'กำลังอัปเดต...' : 'รีเฟรชข้อมูล DB'}</span>
-        </button>
-
-        <button
-          onClick={() => router.push('/manage')}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '7px',
-            padding: '9px 18px',
-            backgroundColor: '#00A651',
-            border: 'none',
-            borderRadius: '8px',
-            color: '#ffffff',
-            fontSize: '13.5px',
-            fontWeight: 600,
-            cursor: 'pointer',
-            boxShadow: '0 2px 6px rgba(0, 166, 81, 0.25)',
-            transition: 'all 0.15s ease',
-          }}
-        >
-          <FaCog style={{ fontSize: '13px' }} />
-          <span>จัดการตัวชี้วัดตามแผนยุทธศาสตร์ (เพิ่ม/แก้ไข/ลบ)</span>
         </button>
       </div>
     </div>

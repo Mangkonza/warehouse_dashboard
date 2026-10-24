@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Chart from 'chart.js/auto';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { FaChartBar, FaChartPie } from 'react-icons/fa';
 import { IPItem } from '../_hooks/useIPData';
 import { getDepartment, getDepartmentColor } from '@/lib/departments';
-import { formatTopItemsForTooltip } from '@/lib/chartTooltipHelper';
+import { formatTopItemsForTooltip, getClickedChartElement } from '@/lib/chartTooltipHelper';
 import { HybridSdgCard } from '@/components/data-display';
+import { DrillDownProjectDrawer } from '@/components/ui';
 
 interface IPChartsProps {
   validIpData: IPItem[];
@@ -21,6 +22,19 @@ export function IPCharts({
   onSelectType,
 }: IPChartsProps) {
   const chartInstances = useRef<Chart[]>([]);
+  const [drillDown, setDrillDown] = useState<{
+    isOpen: boolean;
+    title: string;
+    subtitle: string;
+    accentColor: string;
+    items: IPItem[];
+  }>({
+    isOpen: false,
+    title: '',
+    subtitle: '',
+    accentColor: '#6a1b9a',
+    items: [],
+  });
 
   useEffect(() => {
     chartInstances.current.forEach((c) => c.destroy());
@@ -92,11 +106,20 @@ export function IPCharts({
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        onClick: (_e: any, elements: any[]) => {
-          if (elements.length > 0 && onSelectDept) {
-            const idx = elements[0].index;
-            const d = sortedDepts[idx];
-            if (d) onSelectDept(d.code);
+        onClick: (event: any, elements: any[], chart: any) => {
+          const hit = getClickedChartElement(event, elements, chart, 'x');
+          if (hit) {
+            const d = sortedDepts[hit.index];
+            if (d) {
+              if (onSelectDept) onSelectDept(d.code);
+              setDrillDown({
+                isOpen: true,
+                title: `งานทรัพย์สินทางปัญญา: ภาควิชา${d.name} (${d.code})`,
+                subtitle: `รวม ${d.count} รายการ`,
+                accentColor: getDepartmentColor(d.code),
+                items: d.items,
+              });
+            }
           }
         },
         plugins: {
@@ -152,11 +175,20 @@ export function IPCharts({
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        onClick: (_e: any, elements: any[]) => {
-          if (elements.length > 0 && onSelectType) {
-            const idx = elements[0].index;
-            const entry = activeTypes[idx];
-            if (entry) onSelectType(entry[0]);
+        onClick: (event: any, elements: any[], chart: any) => {
+          const hit = getClickedChartElement(event, elements, chart, 'nearest');
+          if (hit) {
+            const entry = activeTypes[hit.index];
+            if (entry) {
+              if (onSelectType) onSelectType(entry[0]);
+              setDrillDown({
+                isOpen: true,
+                title: `งานทรัพย์สินทางปัญญาประเภท: ${entry[1].label}`,
+                subtitle: `รวม ${entry[1].count} รายการ`,
+                accentColor: entry[1].color,
+                items: entry[1].items,
+              });
+            }
           }
         },
         plugins: {
@@ -188,28 +220,18 @@ export function IPCharts({
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '16px' }}>
       <div className="chart-grid">
         <div className="chart-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <h3 style={{ margin: 0 }}>
-              <FaChartBar style={{ marginRight: 8, color: '#6a1b9a' }} /> จำนวนงานทรัพย์สินทางปัญญาตามภาควิชา
-            </h3>
-            <span style={{ fontSize: '11.5px', color: '#00A651', fontWeight: 600 }}>
-              💡 คลิกแท่งกราฟเพื่อกรองภาควิชา
-            </span>
-          </div>
+          <h3>
+            <FaChartBar style={{ marginRight: 8, color: '#6a1b9a' }} /> จำนวนงานทรัพย์สินทางปัญญาตามภาควิชา
+          </h3>
           <div className="chart-wrapper" style={{ cursor: 'pointer' }}>
             <canvas id="c_ip_dept" />
           </div>
         </div>
 
         <div className="chart-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <h3 style={{ margin: 0 }}>
-              <FaChartPie style={{ marginRight: 8, color: '#6a1b9a' }} /> สัดส่วนตามประเภททรัพย์สินทางปัญญา
-            </h3>
-            <span style={{ fontSize: '11.5px', color: '#00A651', fontWeight: 600 }}>
-              💡 คลิกส่วนกราฟเพื่อกรองประเภท
-            </span>
-          </div>
+          <h3>
+            <FaChartPie style={{ marginRight: 8, color: '#6a1b9a' }} /> สัดส่วนตามประเภททรัพย์สินทางปัญญา
+          </h3>
           <div className="chart-wrapper" style={{ cursor: 'pointer' }}>
             <canvas id="c_ip_type" />
           </div>
@@ -219,7 +241,17 @@ export function IPCharts({
       <HybridSdgCard
         items={validIpData}
         categoryKey="ip"
-        title="การวิเคราะห์งานทรัพย์สินทางปัญญาตามเป้าหมายการพัฒนาที่ยั่งยืน (UN SDGs & UI GreenMetric)"
+        title="เป้าหมายการพัฒนาที่ยั่งยืน (UN SDGs)"
+      />
+
+      <DrillDownProjectDrawer
+        isOpen={drillDown.isOpen}
+        onClose={() => setDrillDown((prev) => ({ ...prev, isOpen: false }))}
+        title={drillDown.title}
+        subtitle={drillDown.subtitle}
+        accentColor={drillDown.accentColor}
+        items={drillDown.items}
+        categoryKey="ip"
       />
     </div>
   );

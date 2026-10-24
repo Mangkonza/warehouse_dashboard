@@ -8,7 +8,7 @@ import { FaCoins, FaAward, FaTasks, FaLeaf } from 'react-icons/fa';
 import { getDepartmentColor } from '@/lib/departments';
 import { DepartmentBadge } from '@/components/ui';
 import { DepartmentOverviewStat } from '../_hooks/useOverviewData';
-import { formatTopItemsForTooltip } from '@/lib/chartTooltipHelper';
+import { formatTopItemsForTooltip, getClickedChartElement } from '@/lib/chartTooltipHelper';
 import { DrillDownProjectDrawer, HybridSdgCard } from '@/components/data-display';
 import { autoDetectJournalRanking, JOURNAL_TIER_STYLES } from '@/config/journalRankingConfig';
 import { CategoryKey } from '@/config/dataManagementConfig';
@@ -119,10 +119,10 @@ export const PerspectiveSection: React.FC<PerspectiveSectionProps> = ({
           options: {
             responsive: true,
             maintainAspectRatio: false,
-            onClick: (_event, elements) => {
-              if (elements.length > 0) {
-                const idx = elements[0].index;
-                const d = departmentStats[idx];
+            onClick: (event, elements, chart) => {
+              const hit = getClickedChartElement(event, elements, chart, 'x');
+              if (hit) {
+                const d = departmentStats[hit.index];
                 if (d) {
                   setDrillDownState({
                     isOpen: true,
@@ -198,6 +198,20 @@ export const PerspectiveSection: React.FC<PerspectiveSectionProps> = ({
           options: {
             responsive: true,
             maintainAspectRatio: false,
+            onClick: (event, elements, chart) => {
+              const hit = getClickedChartElement(event, elements, chart, 'x');
+              if (hit) {
+                const monthLabel = MOCK_YOY_FUNDING.months[hit.index] || '';
+                setDrillDownState({
+                  isOpen: true,
+                  title: `โครงการวิจัยในปีงบประมาณปัจจุบัน (ข้อมูลเดือน ${monthLabel})`,
+                  subtitle: `รวมโครงการวิจัยในระบบทั้งหมด ${validResearch.length} โครงการ`,
+                  accentColor: '#00A651',
+                  categoryKey: 'research',
+                  items: validResearch,
+                });
+              }
+            },
             plugins: { legend: { position: 'top' }, datalabels: { display: false } },
             scales: {
               y: {
@@ -232,9 +246,10 @@ export const PerspectiveSection: React.FC<PerspectiveSectionProps> = ({
           options: {
             responsive: true,
             maintainAspectRatio: false,
-            onClick: (_event, elements) => {
-              if (elements.length > 0) {
-                const dsIdx = elements[0].datasetIndex;
+            onClick: (event, elements, chart) => {
+              const hit = getClickedChartElement(event, elements, chart, 'nearest');
+              if (hit) {
+                const dsIdx = hit.datasetIndex;
                 const tierKeys = ['Q1', 'Q2', 'Q3', 'Q4', 'TCI'];
                 const tierLabels = ['Scopus Q1', 'Scopus Q2', 'Scopus Q3', 'Scopus Q4', 'TCI / ระดับชาติ'];
                 const key = tierKeys[dsIdx] || 'Q1';
@@ -287,10 +302,10 @@ export const PerspectiveSection: React.FC<PerspectiveSectionProps> = ({
       {/* Perspective Tabs Header */}
       <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px', marginBottom: '16px', flexWrap: 'wrap' }}>
         {[
-          { id: 'funding', label: 'มิติด้านงบประมาณและแหล่งทุน', icon: <FaCoins /> },
-          { id: 'quality', label: 'มิติด้านคุณภาพผลงานตีพิมพ์ (Quartile)', icon: <FaAward /> },
-          { id: 'projects', label: 'ตารางสรุปผลงาน 5 พันธกิจรายภาควิชา', icon: <FaTasks /> },
-          { id: 'sdg', label: 'มิติด้านความยั่งยืน (UN SDGs & UI GreenMetric)', icon: <FaLeaf /> },
+          { id: 'funding', label: 'งบประมาณและแหล่งทุน', icon: <FaCoins /> },
+          { id: 'quality', label: 'คุณภาพผลงานตีพิมพ์ (Quartile)', icon: <FaAward /> },
+          { id: 'projects', label: 'สรุป 5 พันธกิจรายภาควิชา', icon: <FaTasks /> },
+          { id: 'sdg', label: 'ความยั่งยืน (UN SDGs)', icon: <FaLeaf /> },
         ].map((tab) => {
           const isActive = activePerspective === tab.id;
           return (
@@ -323,14 +338,9 @@ export const PerspectiveSection: React.FC<PerspectiveSectionProps> = ({
       {activePerspective === 'funding' && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-              <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#1e293b' }}>
-                แจกแจงงบประมาณวิจัยตาม 7 ภาควิชา (ล้านบาท)
-              </h4>
-              <span style={{ fontSize: '11.5px', color: '#00A651', fontWeight: 600 }}>
-                💡 คลิกแท่งกราฟเพื่อดูรายชื่อโครงการ
-              </span>
-            </div>
+            <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', fontWeight: 700, color: '#1e293b' }}>
+              งบประมาณวิจัยตาม 7 ภาควิชา (ล้านบาท)
+            </h4>
             <div style={{ height: '280px', cursor: 'pointer' }}>
               <canvas ref={canvasFundingTreemap} />
             </div>
@@ -395,14 +405,9 @@ export const PerspectiveSection: React.FC<PerspectiveSectionProps> = ({
 
       {activePerspective === 'projects' && (
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
-            <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#1e293b' }}>
-              ตารางสรุปผลงานครบทั้ง 5 พันธกิจราย 7 ภาควิชา
-            </h4>
-            <span style={{ fontSize: '12px', color: '#00A651', fontWeight: 600 }}>
-              💡 คลิกที่แถวภาควิชาเพื่อเปิดดูรายชื่อโครงการและผลงานทั้งหมดของภาควิชา
-            </span>
-          </div>
+          <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', fontWeight: 700, color: '#1e293b' }}>
+            สรุปผลงาน 5 พันธกิจราย 7 ภาควิชา
+          </h4>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', marginTop: '6px' }}>
               <thead>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import pubData from '@/data/publications.json';
-import { getCachedCategoryData, saveCategoryRecord, deleteCategoryRecord } from '@/lib/dataService';
+import { getCachedCategoryData } from '@/lib/dataService';
 import { TimeFilterState, itemMatchesTimeFilter } from '@/types/timeFilter';
 import { isTestRecord } from '@/lib/sdgEngine';
 import { autoDetectJournalRanking } from '@/config/journalRankingConfig';
@@ -173,30 +173,6 @@ export function usePublicationsData(timeFilter?: TimeFilterState) {
     return Array.from(set).sort().reverse();
   }, [dataList]);
 
-  // CRUD handlers
-  const savePublication = async (record: Record<string, any>, isNew: boolean) => {
-    const res = await saveCategoryRecord('publications', record, isNew);
-    if (res.success) {
-      await refreshData();
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new Event('ku_data_updated'));
-      }
-    }
-    return res;
-  };
-
-  const deletePublication = async (id: string): Promise<{ success: boolean; error?: string }> => {
-    const ok = await deleteCategoryRecord('publications', id);
-    if (ok) {
-      await refreshData();
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new Event('ku_data_updated'));
-      }
-      return { success: true };
-    }
-    return { success: false, error: 'เกิดข้อผิดพลาดในการลบรายการ' };
-  };
-
   return {
     validData,
     filteredData,
@@ -216,8 +192,6 @@ export function usePublicationsData(timeFilter?: TimeFilterState) {
     fiscalYearFilter,
     setFiscalYearFilter,
     availableFiscalYears,
-    savePublication,
-    deletePublication,
     refreshData,
   };
 }

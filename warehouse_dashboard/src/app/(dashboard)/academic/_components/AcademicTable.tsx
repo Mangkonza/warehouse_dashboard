@@ -38,16 +38,10 @@ export function AcademicTable({
           gap: '10px',
         }}
       >
-        <div>
-          <h3 style={{ margin: 0 }}>
-            <FaListUl style={{ color: '#1565c0' }} />
-            ตารางโครงการพัฒนาวิชาการ ({displayData.length}
-            {totalCount && totalCount !== displayData.length ? ` จาก ${totalCount}` : ''} โครงการ)
-          </h3>
-          <span style={{ fontSize: '11.5px', color: '#64748b' }}>
-            คลิกที่แถวโครงการเพื่อดูรายละเอียดการจัดสรรงบประมาณ 5% : 5% : 5% ฉบับเต็ม
-          </span>
-        </div>
+        <h3 style={{ margin: 0 }}>
+          <FaListUl style={{ color: '#1565c0' }} /> โครงการพัฒนาวิชาการ ({displayData.length}
+          {totalCount && totalCount !== displayData.length ? ` / ${totalCount}` : ''})
+        </h3>
 
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
           {selectedClient !== 'all' && onClientChange && (

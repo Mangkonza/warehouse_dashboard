@@ -99,14 +99,9 @@ export const BurnupCard: React.FC<BurnupCardProps> = ({ selectedKpi }) => {
   return (
     <div className="glass-card" style={{ padding: '20px 24px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '14px', flex: 1 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-        <div>
-          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <FaChartLine style={{ color: '#00A651' }} /> กราฟไต่ระดับผลงานสะสม (Burn-Up Chart vs เป้าหมาย)
-          </h3>
-          <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#64748b' }}>
-            {selectedKpi.title} ({selectedKpi.code}) — ประเมินความเร็วในการทำงาน (Velocity) และคาดการณ์โอกาสบรรลุเป้าหมาย
-          </p>
-        </div>
+        <h3 style={{ margin: 0, fontSize: '15.5px', fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FaChartLine style={{ color: '#00A651' }} /> ผลงานสะสมเทียบเป้าหมาย (Burn-Up): {selectedKpi.title} ({selectedKpi.code})
+        </h3>
       </div>
 
       <div style={{ height: '320px', width: '100%', position: 'relative' }}>

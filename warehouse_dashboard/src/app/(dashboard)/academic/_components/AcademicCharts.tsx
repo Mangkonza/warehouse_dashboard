@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Chart from 'chart.js/auto';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { FaChartLine, FaChartPie, FaChartBar } from 'react-icons/fa';
 import { AcademicItem } from '../_hooks/useAcademicData';
-import { formatTopItemsForTooltip } from '@/lib/chartTooltipHelper';
+import { formatTopItemsForTooltip, getClickedChartElement } from '@/lib/chartTooltipHelper';
 import { HybridSdgCard } from '@/components/data-display';
+import { DrillDownProjectDrawer } from '@/components/ui';
 
 interface AcademicChartsProps {
   validData: AcademicItem[];
@@ -26,6 +27,19 @@ export function AcademicCharts({
   onSelectClient,
 }: AcademicChartsProps) {
   const chartInstances = useRef<Chart[]>([]);
+  const [drillDown, setDrillDown] = useState<{
+    isOpen: boolean;
+    title: string;
+    subtitle: string;
+    accentColor: string;
+    items: AcademicItem[];
+  }>({
+    isOpen: false,
+    title: '',
+    subtitle: '',
+    accentColor: '#1565c0',
+    items: [],
+  });
 
   useEffect(() => {
     chartInstances.current.forEach((c) => c.destroy());
@@ -119,6 +133,22 @@ export function AcademicCharts({
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        onClick: (event: any, elements: any[], chart: any) => {
+          const hit = getClickedChartElement(event, elements, chart, 'x');
+          if (hit) {
+            const idx = hit.index;
+            const list = monthlyItems[idx] || [];
+            if (list.length > 0) {
+              setDrillDown({
+                isOpen: true,
+                title: `โครงการพัฒนาวิชาการประจำเดือน ${M[idx]}`,
+                subtitle: `รวม ${list.length} โครงการ • งบประมาณ ${monthlyBudget[idx].toFixed(2)} ล้านบาท`,
+                accentColor: C_ACA,
+                items: list,
+              });
+            }
+          }
+        },
         plugins: {
           legend: { display: false },
           datalabels: { align: 'top', anchor: 'end', color: C_ACA, font: { weight: 'bold' } },
@@ -159,6 +189,22 @@ export function AcademicCharts({
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        onClick: (event: any, elements: any[], chart: any) => {
+          const hit = getClickedChartElement(event, elements, chart, 'x');
+          if (hit) {
+            const idx = hit.index;
+            const list = monthlyItems[idx] || [];
+            if (list.length > 0) {
+              setDrillDown({
+                isOpen: true,
+                title: `โครงการพัฒนาวิชาการประจำเดือน ${M[idx]}`,
+                subtitle: `รวม ${list.length} โครงการ • งบประมาณ ${monthlyBudget[idx].toFixed(2)} ล้านบาท`,
+                accentColor: C_ACA,
+                items: list,
+              });
+            }
+          }
+        },
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -207,6 +253,19 @@ export function AcademicCharts({
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        onClick: (event: any, elements: any[], chart: any) => {
+          const hit = getClickedChartElement(event, elements, chart, 'nearest');
+          if (hit) {
+            const labels = ['งบดำเนินงานคงเหลือ (85%)', 'จัดสรรคณะ (5%)', 'จัดสรรภาควิชา (5%)', 'จัดสรรมก. (5%)'];
+            setDrillDown({
+              isOpen: true,
+              title: `สัดส่วนการจัดสรรงบประมาณ: ${labels[hit.index] || ''}`,
+              subtitle: `คำนวณจากโครงการพัฒนาวิชาการทั้งหมด ${validData.length} โครงการ`,
+              accentColor: ALLOC_COLORS[hit.index] || C_ACA,
+              items: validData,
+            });
+          }
+        },
         plugins: {
           datalabels: {
             color: '#fff',
@@ -234,11 +293,20 @@ export function AcademicCharts({
         responsive: true,
         maintainAspectRatio: false,
         indexAxis: 'y',
-        onClick: (_e: any, elements: any[]) => {
-          if (elements.length > 0 && onSelectClient) {
-            const idx = elements[0].index;
-            const cl = sortedClients[idx];
-            if (cl) onSelectClient(cl.name);
+        onClick: (event: any, elements: any[], chart: any) => {
+          const hit = getClickedChartElement(event, elements, chart, 'y');
+          if (hit) {
+            const cl = sortedClients[hit.index];
+            if (cl) {
+              if (onSelectClient) onSelectClient(cl.name);
+              setDrillDown({
+                isOpen: true,
+                title: `โครงการพัฒนาวิชาการ: ${cl.name}`,
+                subtitle: `รวม ${cl.count} โครงการ • งบประมาณรวม ${cl.budget.toLocaleString('th-TH')} บาท`,
+                accentColor: C_ACA,
+                items: cl.items,
+              });
+            }
           }
         },
         plugins: {
@@ -284,7 +352,7 @@ export function AcademicCharts({
           <h3>
             <FaChartLine style={{ color: '#1565c0' }} /> จำนวนโครงการพัฒนาวิชาการรายเดือน
           </h3>
-          <div className="chart-wrapper">
+          <div className="chart-wrapper" style={{ cursor: 'pointer' }}>
             <canvas id="c_ac_cnt" />
           </div>
         </div>
@@ -292,7 +360,7 @@ export function AcademicCharts({
           <h3>
             <FaChartLine style={{ color: '#00A651' }} /> งบประมาณโครงการพัฒนาวิชาการรายเดือน (ล้านบาท)
           </h3>
-          <div className="chart-wrapper">
+          <div className="chart-wrapper" style={{ cursor: 'pointer' }}>
             <canvas id="c_ac_bud" />
           </div>
         </div>
@@ -303,19 +371,14 @@ export function AcademicCharts({
           <h3>
             <FaChartPie style={{ color: '#1565c0' }} /> สัดส่วนการจัดสรรงบประมาณจริง (85% : 5% : 5% : 5%)
           </h3>
-          <div className="chart-wrapper">
+          <div className="chart-wrapper" style={{ cursor: 'pointer' }}>
             <canvas id="c_ac_alloc" />
           </div>
         </div>
         <div className="chart-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <h3 style={{ margin: 0 }}>
-              <FaChartBar style={{ color: '#1565c0' }} /> หน่วยงานผู้ขอรับบริการหลัก (Top Clients)
-            </h3>
-            <span style={{ fontSize: '11.5px', color: '#00A651', fontWeight: 600 }}>
-              💡 คลิกแท่งกราฟเพื่อกรองตาราง
-            </span>
-          </div>
+          <h3>
+            <FaChartBar style={{ color: '#1565c0' }} /> หน่วยงานผู้ขอรับบริการหลัก (Top Clients)
+          </h3>
           <div className="chart-wrapper" style={{ cursor: 'pointer' }}>
             <canvas id="c_ac_client" />
           </div>
@@ -325,7 +388,17 @@ export function AcademicCharts({
       <HybridSdgCard
         items={validData}
         categoryKey="academic"
-        title="การวิเคราะห์โครงการพัฒนาวิชาการตามเป้าหมายการพัฒนาที่ยั่งยืน (UN SDGs & UI GreenMetric)"
+        title="เป้าหมายการพัฒนาที่ยั่งยืน (UN SDGs)"
+      />
+
+      <DrillDownProjectDrawer
+        isOpen={drillDown.isOpen}
+        onClose={() => setDrillDown((prev) => ({ ...prev, isOpen: false }))}
+        title={drillDown.title}
+        subtitle={drillDown.subtitle}
+        accentColor={drillDown.accentColor}
+        items={drillDown.items}
+        categoryKey="academic"
       />
     </div>
   );
