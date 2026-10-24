@@ -1,13 +1,22 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/features/auth';
 import { DataManagementRoot } from './DataManagementRoot';
 
 export function ManageView() {
   const router = useRouter();
-  const { isAdmin, openLoginModal } = useAuth();
+  const { isAdmin, openLoginModal, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px] text-slate-500">
+        <div className="size-6 border-2 border-[#00A651] border-t-transparent rounded-full animate-spin mr-3" />
+        <span className="text-sm font-medium">กำลังโหลดข้อมูล...</span>
+      </div>
+    );
+  }
 
   if (!isAdmin) {
     return (
@@ -38,10 +47,12 @@ export function ManageView() {
 
   return (
     <div>
-      <DataManagementRoot
-        goBack={() => router.push('/overview')}
-        onNavigateToMonitoring={() => router.push('/monitoring')}
-      />
+      <Suspense fallback={<div className="p-8 text-center text-slate-400">กำลังโหลด...</div>}>
+        <DataManagementRoot
+          goBack={() => router.push('/overview')}
+          onNavigateToMonitoring={() => router.push('/monitoring')}
+        />
+      </Suspense>
     </div>
   );
 }

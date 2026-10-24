@@ -1,8 +1,9 @@
-﻿'use client';
+'use client';
 
 import React, { useState } from 'react';
-import { ColumnDef } from '@/types/dataManagement';
-import { getDepartmentAbbr } from '@/config/dataManagementConfig';
+import { ColumnDef, CategoryKey } from '@/types/dataManagement';
+import { getDepartmentAbbr, CATEGORIES_CONFIG } from '@/config/dataManagementConfig';
+import { DepartmentBadge, RecordDetailDrawer, formatDateBE, formatMoney } from '@/components/ui';
 import {
   FaUser,
   FaEdit,
@@ -45,6 +46,10 @@ export const DataTable: React.FC<DataTableProps> = ({
   // ติดตามว่าแถวใดและคอลัมน์ใดถูกคลิกเพื่อขยายดูชื่อเต็มแบบ Inline
   const [expandedKeys, setExpandedKeys] = useState<Record<string, boolean>>({});
 
+  // Drawer แสดงรายละเอียดข้อมูลแบบเต็ม (Record Detail Drawer)
+  const [selectedDrawerIndex, setSelectedDrawerIndex] = useState<number | null>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
   // Modal แสดงรายละเอียดชื่อเต็มพร้อมปุ่มคัดลอก
   const [modalDetail, setModalDetail] = useState<{
     isOpen: boolean;
@@ -54,6 +59,15 @@ export const DataTable: React.FC<DataTableProps> = ({
   } | null>(null);
 
   const [hasCopied, setHasCopied] = useState(false);
+
+  const handleRowClick = (item: any, idx: number, e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.closest('button, a, input, select, textarea, [data-prevent-drawer="true"]')) {
+      return;
+    }
+    setSelectedDrawerIndex(idx);
+    setIsDrawerOpen(true);
+  };
 
   const toggleExpand = (key: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -131,14 +145,14 @@ export const DataTable: React.FC<DataTableProps> = ({
         if (isNaN(num) || num === 0) return <span style={{ color: '#94a3b8', fontSize: '13px' }}>-</span>;
         return (
           <span style={{ fontWeight: 600, color: '#059669', fontFamily: 'monospace', fontSize: '13px' }}>
-            {num.toLocaleString()}
+            {formatMoney(num)}
           </span>
         );
 
       case 'date':
         return (
           <span style={{ fontSize: '13px', color: '#475569', whiteSpace: 'nowrap' }}>
-            {String(rawVal).substring(0, 10)}
+            {formatDateBE(rawVal)}
           </span>
         );
 
@@ -152,31 +166,12 @@ export const DataTable: React.FC<DataTableProps> = ({
           if ((!deptText || deptText === 'ü' || deptText === 'P' || deptText === '-' || deptText === 'nan') && (item as any)?.creator) {
             deptText = String((item as any).creator);
           }
-          const abbr = getDepartmentAbbr(deptText);
-          const abbrList = abbr === '-' ? ['-'] : abbr.split(',').map((s: string) => s.trim()).filter(Boolean);
-
+          const depts = Array.from(new Set(deptText.split(',').map((s) => s.trim()).filter(Boolean)));
+          if (depts.length === 0) return <span style={{ color: '#cbd5e1' }}>-</span>;
           return (
-            <div style={{ display: 'inline-flex', gap: '4px', justifyContent: col.align === 'center' ? 'center' : 'flex-start', flexWrap: 'wrap', alignItems: 'center' }}>
-              {abbrList.map((ab: string, idx: number) => (
-                <span
-                  key={idx}
-                  style={{
-                    display: 'inline-block',
-                    padding: '2px 10px',
-                    borderRadius: '12px',
-                    fontSize: '13px',
-                    fontWeight: 600,
-                    fontFamily: "'Kanit', sans-serif",
-                    backgroundColor: ab === '-' ? '#94a3b8' : '#990000',
-                    color: '#ffffff',
-                    border: `1px solid ${ab === '-' ? '#94a3b8' : '#990000'}`,
-                    whiteSpace: 'nowrap',
-                    cursor: 'default',
-                  }}
-                  title={deptText}
-                >
-                  {ab}
-                </span>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px', alignItems: 'center' }}>
+              {depts.map((d, idx) => (
+                <DepartmentBadge key={idx} value={d} />
               ))}
             </div>
           );
@@ -191,6 +186,22 @@ export const DataTable: React.FC<DataTableProps> = ({
           bg = '#eff6ff';
           text = '#1d4ed8';
           border = '#bfdbfe';
+        } else if (col.key === 'service_type' || col.key === 'service_category') {
+          if (rawVal === 'วิทยากร/อาจารย์พิเศษ') {
+            bg = '#eff6ff'; text = '#1d4ed8'; border = '#bfdbfe';
+          } else if (rawVal === 'วิชาการ') {
+            bg = '#ecfdf5'; text = '#047857'; border = '#a7f3d0';
+          } else if (rawVal === 'วิชาชีพ') {
+            bg = '#faf5ff'; text = '#7e22ce'; border = '#e9d5ff';
+          } else if (rawVal === 'ผู้ทรงคุณวุฒิ') {
+            bg = '#fffbeb'; text = '#b45309'; border = '#fde68a';
+          } else if (rawVal === 'วิทยานิพนธ์ภายนอก') {
+            bg = '#f0fdfa'; text = '#0f766e'; border = '#99f6e4';
+          } else if (rawVal === 'ศึกษาดูงาน วศ.กพส.') {
+            bg = '#fff1f2'; text = '#be123c'; border = '#fecdd3';
+          } else {
+            bg = '#f8fafc'; text = '#475569'; border = '#e2e8f0';
+          }
         }
 
         return (
@@ -210,9 +221,11 @@ export const DataTable: React.FC<DataTableProps> = ({
               textOverflow: 'ellipsis',
               cursor: 'default',
             }}
-            title={String(rawVal)}
+            title={String(rawVal || '')}
           >
-            {String(rawVal).replace('ภาควิชา', '')}
+            {col.key === 'service_type' || col.key === 'service_category'
+              ? String(rawVal || '-')
+              : String(rawVal).replace('ภาควิชา', '')}
           </span>
         );
 
@@ -399,47 +412,103 @@ export const DataTable: React.FC<DataTableProps> = ({
         );
       }
 
+      case 'research_budget': {
+        const hasInternal = item.budget_internal !== undefined && item.budget_internal !== null && item.budget_internal !== '' && item.budget_internal !== '-' && item.budget_internal !== 'nan';
+        const hasExternal = item.budget_external !== undefined && item.budget_external !== null && item.budget_external !== '' && item.budget_external !== '-' && item.budget_external !== 'nan';
+        const internalStr = hasInternal ? `${formatMoney(item.budget_internal)} บาท` : '-';
+        const externalStr = hasExternal ? `${formatMoney(item.budget_external)} บาท` : '-';
+
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '1px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 600, color: '#059669', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
+              ภายใน: {internalStr}
+            </span>
+            <span style={{ fontSize: '11px', color: '#64748b', whiteSpace: 'nowrap' }}>
+              ภายนอก: {externalStr}
+            </span>
+          </div>
+        );
+      }
+
+      case 'research_duration': {
+        const start = item.start_date ? formatDateBE(item.start_date) : '';
+        const end = item.end_date ? formatDateBE(item.end_date) : '';
+        if (start && end && start !== '-' && end !== '-') {
+          return (
+            <span style={{ fontSize: '12px', color: '#334155', whiteSpace: 'nowrap' }}>
+              {start} – {end}
+            </span>
+          );
+        }
+        if (start && start !== '-') {
+          return (
+            <span style={{ fontSize: '12px', color: '#334155', whiteSpace: 'nowrap' }}>
+              {start}
+            </span>
+          );
+        }
+        if (item.duration && item.duration !== '-' && item.duration !== 'nan') {
+          return (
+            <span style={{ fontSize: '12px', color: '#334155', whiteSpace: 'nowrap' }}>
+              {String(item.duration)}
+            </span>
+          );
+        }
+        return <span style={{ color: '#cbd5e1' }}>-</span>;
+      }
+
       case 'academic_budget': {
         const b = Number(rawVal !== undefined && rawVal !== null && rawVal !== '' ? rawVal : item.budget || 0);
         if (isNaN(b) || b === 0) return <span style={{ color: '#94a3b8', fontSize: '13px' }}>-</span>;
-        const mgt = Math.round(b * 0.15);
-        const fac = Math.round(b * 0.05);
-        const dep = Math.round(b * 0.05);
-        const ku = Math.round(b * 0.05);
-        const rem = b - (mgt + fac + dep + ku);
+        const facPercent = item.percent_faculty !== undefined && item.percent_faculty !== null ? Number(item.percent_faculty) : 5;
+        const depPercent = item.percent_dept !== undefined && item.percent_dept !== null ? Number(item.percent_dept) : 5;
+        const kuPercent = item.percent_ku !== undefined && item.percent_ku !== null ? Number(item.percent_ku) : 5;
+        const fac =
+          item.alloc_faculty !== undefined && item.alloc_faculty !== null && item.alloc_faculty !== ''
+            ? Number(item.alloc_faculty)
+            : (b * facPercent) / 100;
+        const dep =
+          item.alloc_dept !== undefined && item.alloc_dept !== null && item.alloc_dept !== ''
+            ? Number(item.alloc_dept)
+            : (b * depPercent) / 100;
+        const ku =
+          item.alloc_ku !== undefined && item.alloc_ku !== null && item.alloc_ku !== ''
+            ? Number(item.alloc_ku)
+            : (b * kuPercent) / 100;
+        const totalDeduct = fac + dep + ku;
+
         return (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '1px' }}>
-            <span style={{ fontWeight: 700, color: '#059669', fontFamily: 'monospace', fontSize: '13.5px', whiteSpace: 'nowrap' }}>
-              {b.toLocaleString()}
+            <span style={{ fontWeight: 600, color: '#059669', fontFamily: 'monospace', fontSize: '13px', whiteSpace: 'nowrap' }}>
+              {formatMoney(b)} บาท
             </span>
-            <span
-              style={{
-                fontSize: '10.5px',
-                color: '#64748b',
-                cursor: 'help',
-                whiteSpace: 'nowrap',
-              }}
-              title={`การจัดสรรงบประมาณ (หักอัตโนมัติ 30%):\n- ค่าอำนวยการ (15%): ${mgt.toLocaleString()} บาท\n- คณะ (5%): ${fac.toLocaleString()} บาท\n- ภาควิชา (5%): ${dep.toLocaleString()} บาท\n- มก. (5%): ${ku.toLocaleString()} บาท\n- งบดำเนินงานคงเหลือ (70%): ${rem.toLocaleString()} บาท`}
-            >
-              หัก 30% ({ (mgt + fac + dep + ku).toLocaleString() })
+            <span style={{ fontSize: '11px', color: '#64748b', whiteSpace: 'nowrap' }}>
+              หักรวม: {formatMoney(totalDeduct)} บาท
             </span>
           </div>
         );
       }
 
       case 'academic_timeline': {
-        const start = item.start_date ? String(item.start_date).substring(0, 10) : '';
-        const end = item.end_date ? String(item.end_date).substring(0, 10) : '';
-        if (start && end) {
+        const start = item.start_date ? formatDateBE(item.start_date) : '';
+        const end = item.end_date ? formatDateBE(item.end_date) : '';
+        if (start && end && start !== '-' && end !== '-') {
           return (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
-              <span style={{ fontSize: '11.5px', color: '#1e293b', whiteSpace: 'nowrap', fontFamily: 'monospace' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px' }}>
+              <span style={{ fontSize: '12px', color: '#1e293b', whiteSpace: 'nowrap' }}>
                 {start}
               </span>
-              <span style={{ fontSize: '10px', color: '#64748b', whiteSpace: 'nowrap' }}>
+              <span style={{ fontSize: '10.5px', color: '#64748b', whiteSpace: 'nowrap' }}>
                 ถึง {end}
               </span>
             </div>
+          );
+        }
+        if (start && start !== '-') {
+          return (
+            <span style={{ fontSize: '12px', color: '#1e293b', whiteSpace: 'nowrap' }}>
+              {start}
+            </span>
           );
         }
         if (item.month && item.month !== '-' && item.month !== 'nan') {
@@ -462,6 +531,72 @@ export const DataTable: React.FC<DataTableProps> = ({
           );
         }
         return <span style={{ color: '#cbd5e1' }}>-</span>;
+      }
+
+      case 'publication_journal': {
+        const journal = item.journal || rawVal || '-';
+        const volParts: string[] = [];
+        if (item.volume) volParts.push(`Volume ${item.volume}`);
+        if (item.issue) volParts.push(`Issue ${item.issue}`);
+        if (item.page_start || item.page_end) {
+          volParts.push(`Page ${item.page_start || '-'}${item.page_end ? '–' + item.page_end : ''}`);
+        }
+        const line2 = volParts.length > 0
+          ? volParts.join(', ')
+          : 'Volume -, Issue -, Page -';
+
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            <span
+              style={{
+                fontSize: '13px',
+                color: '#1e293b',
+                lineHeight: '1.3',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+              }}
+              title={String(journal)}
+            >
+              {journal}
+            </span>
+            <span style={{ fontSize: '11px', color: '#64748b', whiteSpace: 'nowrap' }}>
+              {line2}
+            </span>
+          </div>
+        );
+      }
+
+      case 'ip_req_info': {
+        const reqNo = item.application_number || item.req_no || rawVal || '-';
+        const filing = item.filing_date ? formatDateBE(item.filing_date) : '-';
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px' }}>
+            <span style={{ fontFamily: 'monospace', fontSize: '12.5px', fontWeight: 500, color: '#334155', whiteSpace: 'nowrap' }}>
+              {reqNo}
+            </span>
+            <span style={{ fontSize: '11px', color: '#64748b', whiteSpace: 'nowrap' }}>
+              วันที่ยื่นคำขอ: {filing}
+            </span>
+          </div>
+        );
+      }
+
+      case 'ip_reg_info': {
+        const regNo = item.registration_number || item.reg_no || '-';
+        const prot = item.protection_period || (item.protection_start ? `${formatDateBE(item.protection_start)} – ${formatDateBE(item.protection_end)}` : '-');
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px' }}>
+            <span style={{ fontFamily: 'monospace', fontSize: '12.5px', fontWeight: 500, color: '#334155', whiteSpace: 'nowrap' }}>
+              {regNo}
+            </span>
+            <span style={{ fontSize: '11px', color: '#64748b', whiteSpace: 'nowrap' }}>
+              ระยะเวลาความคุ้มครอง: {prot}
+            </span>
+          </div>
+        );
       }
 
       case 'academic_character': {
@@ -597,6 +732,7 @@ export const DataTable: React.FC<DataTableProps> = ({
                 <div style={{ marginTop: '3px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <button
                     type="button"
+                    data-prevent-drawer="true"
                     onClick={(e) => toggleExpand(cellKey, e)}
                     style={{
                       background: 'none',
@@ -619,6 +755,7 @@ export const DataTable: React.FC<DataTableProps> = ({
 
                   <button
                     type="button"
+                    data-prevent-drawer="true"
                     onClick={(e) => handleOpenModal(col.label.replace('\n', ' '), strVal, item, e)}
                     style={{
                       background: 'none',
@@ -663,9 +800,14 @@ export const DataTable: React.FC<DataTableProps> = ({
         // คอลัมน์ชื่อบุคคล / หัวหน้าโครงการ / เจ้าของผลงาน / ผู้ว่าจ้าง / คอลัมน์ข้อความทั่วไป (ไม่ตัวหนา และคลิกดูชื่อเต็มได้)
         const strVal = String(rawVal);
         const isLongText = strVal.length > 25;
+        const isIncompletePersonnel = categoryKey === 'personnel' && col.key === 'name' && (
+          !item.position || !String(item.position).trim() ||
+          !item.email || !String(item.email).trim() || item.email === 'ไม่พบอีเมล' ||
+          !item.image_url || !String(item.image_url).trim()
+        );
 
         return (
-          <div style={{ position: 'relative' }}>
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
             <span
               onClick={isLongText ? (e) => toggleExpand(cellKey, e) : undefined}
               style={{
@@ -685,8 +827,26 @@ export const DataTable: React.FC<DataTableProps> = ({
               {strVal}
             </span>
 
+            {isIncompletePersonnel && (
+              <span
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  padding: '1px 6px',
+                  borderRadius: '4px',
+                  backgroundColor: '#fef3c7',
+                  color: '#b45309',
+                  border: '1px solid #fde68a',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                ข้อมูลไม่ครบ
+              </span>
+            )}
+
             {isLongText && (
               <span
+                data-prevent-drawer="true"
                 onClick={(e) => toggleExpand(cellKey, e)}
                 style={{
                   display: 'inline-flex',
@@ -717,7 +877,6 @@ export const DataTable: React.FC<DataTableProps> = ({
       <table
         style={{
           width: '100%',
-          minWidth: categoryKey === 'research' ? '1320px' : '1100px',
           tableLayout: 'fixed',
           borderCollapse: 'collapse',
           textAlign: 'left',
@@ -743,27 +902,30 @@ export const DataTable: React.FC<DataTableProps> = ({
             >
               #
             </th>
-            {columns.map((col) => (
-              <th
-                key={col.key}
-                style={{
-                  width: col.width || 'auto',
-                  textAlign: col.align || 'left',
-                  padding: col.type === 'avatar' ? '10px 4px' : '11px 10px',
-                  color: '#ffffff',
-                  fontWeight: 600,
-                  fontSize: '13px',
-                  backgroundColor: '#00A651',
-                  whiteSpace: 'nowrap', // หัวตารางทุกหน้ามีบรรทัดเดียวเสมอ เพื่อความ Consistent
-                  lineHeight: '1.2',
-                  verticalAlign: 'middle',
-                  borderBottom: '2px solid #008f44',
-                }}
-                title={col.key === 'image_url' ? 'รูปภาพประจำตัว / รูปโปรไฟล์' : col.label.replace('\n', ' ')}
-              >
-                {col.label.replace('\n', ' ')}
-              </th>
-            ))}
+            {columns.map((col) => {
+              const isDept = col.key === 'department';
+              return (
+                <th
+                  key={col.key}
+                  style={{
+                    width: col.width || (isDept ? '10%' : 'auto'),
+                    textAlign: isDept ? 'left' : col.align || 'left',
+                    padding: col.type === 'avatar' ? '10px 4px' : '11px 8px',
+                    color: '#ffffff',
+                    fontWeight: 600,
+                    fontSize: '13px',
+                    backgroundColor: '#00A651',
+                    whiteSpace: 'nowrap', // หัวตารางทุกหน้ามีบรรทัดเดียวเสมอ เพื่อความ Consistent
+                    lineHeight: '1.2',
+                    verticalAlign: 'middle',
+                    borderBottom: '2px solid #008f44',
+                  }}
+                  title={col.key === 'image_url' ? 'รูปภาพประจำตัว / รูปโปรไฟล์' : col.label.replace('\n', ' ')}
+                >
+                  {col.label.replace('\n', ' ')}
+                </th>
+              );
+            })}
             {!readOnly && (
               <th
                 style={{
@@ -797,10 +959,12 @@ export const DataTable: React.FC<DataTableProps> = ({
               return (
                 <tr
                   key={rowKey}
+                  onClick={(e) => handleRowClick(item, idx, e)}
                   style={{
                     borderBottom: '1px solid #e2e8f0',
                     backgroundColor: idx % 2 === 1 ? '#fafcfb' : '#ffffff',
                     transition: 'background-color 0.15s',
+                    cursor: 'pointer',
                   }}
                   onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f0fbf5')}
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = idx % 2 === 1 ? '#fafcfb' : '#ffffff')}
@@ -808,26 +972,33 @@ export const DataTable: React.FC<DataTableProps> = ({
                   <td style={{ textAlign: 'center', padding: '11px 6px', color: '#94a3b8', fontSize: '13px', verticalAlign: 'top' }}>
                     {rowNum}
                   </td>
-                  {columns.map((col) => (
-                    <td
-                      key={col.key}
-                      style={{
-                        padding: col.type === 'avatar' ? '7px 4px' : '11px 8px',
-                        textAlign: col.align || 'left',
-                        verticalAlign: 'top',
-                        color: '#1e293b',
-                        overflow: 'visible',
-                        wordBreak: 'break-word',
-                      }}
-                      title={typeof item[col.key] === 'string' || typeof item[col.key] === 'number' ? String(item[col.key]) : undefined}
-                    >
-                      {renderCell(col, item, idx)}
-                    </td>
-                  ))}
+                  {columns.map((col) => {
+                    const isDept = col.key === 'department';
+                    return (
+                      <td
+                        key={col.key}
+                        style={{
+                          width: col.width || (isDept ? '10%' : undefined),
+                          padding: col.type === 'avatar' ? '7px 4px' : '11px 8px',
+                          textAlign: isDept ? 'left' : col.align || 'left',
+                          verticalAlign: isDept ? 'middle' : 'top',
+                          color: '#1e293b',
+                          overflow: 'visible',
+                          wordBreak: 'break-word',
+                        }}
+                        title={typeof item[col.key] === 'string' || typeof item[col.key] === 'number' ? String(item[col.key]) : undefined}
+                      >
+                        {renderCell(col, item, idx)}
+                      </td>
+                    );
+                  })}
                   {!readOnly && (
                     <td style={{ textAlign: 'center', padding: '8px 4px', whiteSpace: 'nowrap', verticalAlign: 'top' }}>
                       <button
-                        onClick={() => onEdit(item, idx)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEdit(item, idx);
+                        }}
                         style={{
                           background: 'none',
                           border: 'none',
@@ -845,7 +1016,10 @@ export const DataTable: React.FC<DataTableProps> = ({
                         <FaEdit />
                       </button>
                       <button
-                        onClick={() => onDelete(item, idx)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDelete(item, idx);
+                        }}
                         style={{
                           background: 'none',
                           border: 'none',
@@ -1050,6 +1224,40 @@ export const DataTable: React.FC<DataTableProps> = ({
           </div>
         </div>
       )}
+
+      {/* RecordDetailDrawer Component */}
+      <RecordDetailDrawer
+        isOpen={isDrawerOpen && selectedDrawerIndex !== null && selectedDrawerIndex < data.length}
+        onClose={() => {
+          setIsDrawerOpen(false);
+          setSelectedDrawerIndex(null);
+        }}
+        item={selectedDrawerIndex !== null && selectedDrawerIndex < data.length ? data[selectedDrawerIndex] : null}
+        config={categoryKey ? CATEGORIES_CONFIG[categoryKey as CategoryKey] : undefined}
+        onEdit={(item, idx) => {
+          setIsDrawerOpen(false);
+          onEdit(item, idx);
+        }}
+        onDelete={(item, idx) => {
+          setIsDrawerOpen(false);
+          onDelete(item, idx);
+        }}
+        onPrev={() => {
+          if (selectedDrawerIndex !== null && selectedDrawerIndex > 0) {
+            setSelectedDrawerIndex(selectedDrawerIndex - 1);
+          }
+        }}
+        onNext={() => {
+          if (selectedDrawerIndex !== null && selectedDrawerIndex < data.length - 1) {
+            setSelectedDrawerIndex(selectedDrawerIndex + 1);
+          }
+        }}
+        hasPrev={selectedDrawerIndex !== null && selectedDrawerIndex > 0}
+        hasNext={selectedDrawerIndex !== null && selectedDrawerIndex < data.length - 1}
+        currentIndex={selectedDrawerIndex ?? 0}
+        totalInPage={data.length}
+        readOnly={readOnly}
+      />
     </div>
   );
 };

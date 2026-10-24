@@ -5,6 +5,7 @@ import Chart from 'chart.js/auto';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { FaChartLine, FaChartBar, FaChartPie, FaGlobe } from 'react-icons/fa';
 import { ResearchItem } from '../_hooks/useResearchData';
+import { getDepartment, getDepartmentColor } from '@/lib/departments';
 
 interface ResearchChartsProps {
   validData: ResearchItem[];
@@ -56,10 +57,10 @@ export function ResearchCharts({ validData }: ResearchChartsProps) {
         }
       }
 
-      // Group by dept
-      let dept = String(item.department || '').replace('ภาควิชา\n', '').replace('ภาควิชา', '').trim();
-      if (dept === 'nan' || !dept || dept === '-') dept = 'อื่นๆ';
-      deptBudget[dept] = (deptBudget[dept] || 0) + totalBudget / 1000000;
+      // Group by dept code
+      const deptInfo = getDepartment(item.department);
+      const deptCode = deptInfo.code !== '-' ? deptInfo.code : 'อื่นๆ';
+      deptBudget[deptCode] = (deptBudget[deptCode] || 0) + totalBudget / 1000000;
 
       // Group by fund
       let fund = String(item.fund_source || '').replace('\n', ' ').trim();
@@ -69,6 +70,7 @@ export function ResearchCharts({ validData }: ResearchChartsProps) {
 
     const deptLabels = Object.keys(deptBudget);
     const deptData = Object.values(deptBudget);
+    const deptColors = deptLabels.map((code) => getDepartmentColor(code));
 
     const sortedFunds = Object.entries(fundBudget).sort((a, b) => b[1] - a[1]).slice(0, 6);
     const fundLabels = sortedFunds.map((f) => f[0]);
@@ -172,12 +174,27 @@ export function ResearchCharts({ validData }: ResearchChartsProps) {
     // 3. Dept budget
     createChart('c_re_dept', {
       type: 'bar',
-      data: { labels: deptLabels, datasets: [{ label: 'ล้านบาท', data: deptData, backgroundColor: C_RES, borderRadius: 8 }] },
+      data: {
+        labels: deptLabels,
+        datasets: [{ label: 'ล้านบาท', data: deptData, backgroundColor: deptColors, borderRadius: 8 }],
+      },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         indexAxis: 'y',
-        plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c: any) => c.raw.toFixed(2) + ' ล้านบาท' } } },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              title: (items: any) => {
+                const code = items[0]?.label || '';
+                const dept = getDepartment(code);
+                return dept.name !== code ? `${dept.name} (${code})` : code;
+              },
+              label: (c: any) => ` ${c.raw.toFixed(2)} ล้านบาท`,
+            },
+          },
+        },
         scales: { x: { beginAtZero: true, grace: '20%', title: { display: true, text: 'ล้านบาท' } } },
       },
     });

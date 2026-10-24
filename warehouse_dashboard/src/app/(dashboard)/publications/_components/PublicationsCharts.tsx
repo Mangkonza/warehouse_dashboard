@@ -5,6 +5,7 @@ import Chart from 'chart.js/auto';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { FaChartBar, FaChartLine, FaChartPie, FaGlobe } from 'react-icons/fa';
 import { PublicationItem } from '../_hooks/usePublicationsData';
+import { getDepartment, getDepartmentColor } from '@/lib/departments';
 
 interface PublicationsChartsProps {
   validData: PublicationItem[];
@@ -131,16 +132,30 @@ export function PublicationsCharts({ validData }: PublicationsChartsProps) {
     });
 
     // 4. Dept bar
+    const pubDeptCodes = ['IRE', 'CE', 'AE', 'IE', 'ME', 'FE', 'CPE'];
+    const pubDeptColors = pubDeptCodes.map((code) => getDepartmentColor(code));
     createChart('c_pub_dept', {
       type: 'bar',
       data: {
-        labels: ['ชลประทาน', 'โยธา', 'เกษตร', 'อุตสาหการ', 'เครื่องกล', 'การอาหาร', 'คอมพิวเตอร์'],
-        datasets: [{ label: 'จำนวนผลงาน', data: [16, 12, 10, 8, 6, 5, 4], backgroundColor: C_PUB, borderRadius: 8 }],
+        labels: pubDeptCodes,
+        datasets: [{ label: 'จำนวนผลงาน', data: [16, 12, 10, 8, 6, 5, 4], backgroundColor: pubDeptColors, borderRadius: 8 }],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              title: (items: any) => {
+                const code = items[0]?.label || '';
+                const dept = getDepartment(code);
+                return dept.name !== code ? `${dept.name} (${code})` : code;
+              },
+              label: (c: any) => ` ${c.raw} เรื่อง`,
+            },
+          },
+        },
         scales: { y: { beginAtZero: true, grace: '20%', title: { display: true, text: 'จำนวน' } } },
       },
     });

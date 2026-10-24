@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { CategoryConfig, PersonnelRecord } from '@/types/dataManagement';
@@ -21,6 +21,22 @@ import { SDGTagSelector } from './SDGTagSelector';
 import { JournalQuartileSelector } from './JournalQuartileSelector';
 import { STATUS_LABELS } from '@/lib/projectMonitoringEngine';
 import { AcademicProjectForm } from './AcademicProjectForm';
+import { ResearchProjectForm } from '@/components/form/ResearchProjectForm';
+import { AcademicServiceForm } from '@/components/form/AcademicServiceForm';
+import { PublicationForm } from '@/components/form/PublicationForm';
+import { PersonnelForm } from '@/components/form/PersonnelForm';
+import { IntellectualPropertyForm } from '@/components/form/IntellectualPropertyForm';
+import { PersonPicker, PersonPickerValue } from '@/components/form/PersonPicker';
+import { MoneyInput } from '@/components/form/MoneyInput';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { DatePicker } from '@/components/ui/date-picker';
+import { DepartmentSelect } from '@/components/ui';
 
 const getCategoryIcon = (key: string) => {
   switch (key) {
@@ -134,6 +150,133 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
         setErrorMsg('"วันที่สิ้นสุดนำไปบูรณาการ" ต้องไม่เกิดขึ้นก่อน "วันที่เริ่มต้นนำไปบูรณาการ"');
         return;
       }
+    } else if (config.key === 'research') {
+      if (!formData.id || !String(formData.id).trim()) {
+        setErrorMsg('กรุณากรอก "รหัสโครงการวิจัย"');
+        return;
+      }
+      if (!formData.name || !String(formData.name).trim()) {
+        setErrorMsg('กรุณากรอก "ชื่อโครงการวิจัย (ภาษาไทย)"');
+        return;
+      }
+      if (!formData.head || !String(formData.head).trim()) {
+        setErrorMsg('กรุณากรอก "หัวหน้าโครงการวิจัย"');
+        return;
+      }
+      if (!formData.department || !String(formData.department).trim()) {
+        setErrorMsg('กรุณาระบุ "ภาควิชา / สังกัดหลักที่รับผิดชอบ"');
+        return;
+      }
+      if (!formData.fund_source || !String(formData.fund_source).trim()) {
+        setErrorMsg('กรุณากรอกหรือเลือก "แหล่งทุนวิจัย"');
+        return;
+      }
+      if (formData.start_date && formData.end_date && formData.end_date < formData.start_date) {
+        setErrorMsg('"เดือน/ปี สิ้นสุด" ต้องไม่เกิดขึ้นก่อน "เดือน/ปี เริ่มต้น"');
+        return;
+      }
+    } else if (config.key === 'service') {
+      const topicName = formData.name || formData.topic_title;
+      if (!topicName || !String(topicName).trim()) {
+        setErrorMsg('กรุณากรอก "เรื่อง / ชื่องานบริการวิชาการ"');
+        return;
+      }
+      const sType = formData.service_type || formData.service_category;
+      if (!sType || !String(sType).trim()) {
+        setErrorMsg('กรุณาเลือก "ประเภทงานบริการวิชาการ" (1 ใน 6 ประเภท)');
+        return;
+      }
+      const personName = formData.person;
+      if (!personName || !String(personName).trim()) {
+        setErrorMsg('กรุณากรอก "ชื่อ - นามสกุล" ผู้ให้บริการ / ผู้รับผิดชอบ');
+        return;
+      }
+      if (!formData.department || !String(formData.department).trim()) {
+        setErrorMsg('กรุณาระบุ "สังกัดภาควิชา / ศูนย์"');
+        return;
+      }
+      if (formData.start_date && formData.end_date && formData.end_date < formData.start_date) {
+        setErrorMsg('"วันที่สิ้นสุด" ต้องไม่เกิดขึ้นก่อน "วันที่เริ่มต้น"');
+        return;
+      }
+    } else if (config.key === 'publications') {
+      if (!formData.name || !String(formData.name).trim()) {
+        setErrorMsg('กรุณากรอกชื่อผลงานทางวิชาการ');
+        return;
+      }
+      if (!formData.type || !String(formData.type).trim()) {
+        setErrorMsg('กรุณาเลือกชนิดของผลงาน');
+        return;
+      }
+      if (!formData.level || !String(formData.level).trim()) {
+        setErrorMsg('กรุณาเลือกระดับ');
+        return;
+      }
+      if (!formData.owner || !String(formData.owner).trim()) {
+        setErrorMsg('กรุณาระบุเจ้าของผลงาน');
+        return;
+      }
+      if (!formData.department || !String(formData.department).trim()) {
+        setErrorMsg('กรุณาระบุสังกัดภาควิชา/สาขาวิชา');
+        return;
+      }
+      if (formData.budget !== undefined && formData.budget !== null && formData.budget !== '') {
+        const num = parseFloat(formData.budget);
+        if (isNaN(num) || num < 0) {
+          setErrorMsg('จำนวนเงินสนับสนุนต้องเป็นตัวเลขที่ไม่ติดลบ');
+          return;
+        }
+      }
+      if (formData.type !== 'เตรียมความพร้อมจดอนุสิทธิบัตร') {
+        const pStart = String(formData.page_start || '').trim();
+        const pEnd = String(formData.page_end || '').trim();
+        if (pStart && pEnd) {
+          const numStart = parseInt(pStart, 10);
+          const numEnd = parseInt(pEnd, 10);
+          if (!isNaN(numStart) && !isNaN(numEnd) && numEnd < numStart) {
+            setErrorMsg('หน้าสิ้นสุดต้องมากกว่าหรือเท่ากับหน้าเริ่มต้น');
+            return;
+          }
+        }
+      }
+    } else if (config.key === 'personnel') {
+      if (!formData.name || !String(formData.name).trim()) {
+        setErrorMsg('กรุณากรอก "ชื่อ-นามสกุล"');
+        return;
+      }
+      if (!formData.department || !String(formData.department).trim()) {
+        setErrorMsg('กรุณาระบุ "สังกัด"');
+        return;
+      }
+    } else if (config.key === 'ip') {
+      const title = formData.title || formData.name;
+      if (!title || !String(title).trim()) {
+        setErrorMsg('กรุณากรอก "ชื่อเรื่อง"');
+        return;
+      }
+      const inventors = formData.inventors;
+      const creator = formData.creator;
+      const hasInventors = (Array.isArray(inventors) && inventors.length > 0) || (creator && String(creator).trim());
+      if (!hasInventors) {
+        setErrorMsg('กรุณาระบุ "ผู้ประดิษฐ์" อย่างน้อย 1 ท่าน');
+        return;
+      }
+      if (!formData.type || !String(formData.type).trim()) {
+        setErrorMsg('กรุณาเลือก "ประเภททรัพย์สินทางปัญญา" (อนุสิทธิบัตร หรือ สิทธิบัตร)');
+        return;
+      }
+      if (formData.application_number && String(formData.application_number).length !== 10) {
+        setErrorMsg('"เลขที่คำขอ" ต้องมี 10 หลัก');
+        return;
+      }
+      if (formData.registration_number && String(formData.registration_number).length !== 10) {
+        setErrorMsg('"เลขที่" ต้องมี 10 หลัก');
+        return;
+      }
+      if (formData.protection_start && formData.protection_end && formData.protection_end < formData.protection_start) {
+        setErrorMsg('"วันที่สิ้นสุด" ต้องไม่เกิดขึ้นก่อน "วันที่เริ่มต้น"');
+        return;
+      }
     } else {
       // ตรวจสอบ required fields
       for (const col of config.columns) {
@@ -173,7 +316,15 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
           backgroundColor: '#ffffff',
           borderRadius: '16px',
           width: '100%',
-          maxWidth: config.key === 'academic' ? '820px' : '620px',
+          maxWidth:
+            config.key === 'academic' ||
+            config.key === 'research' ||
+            config.key === 'service' ||
+            config.key === 'publications' ||
+            config.key === 'personnel' ||
+            config.key === 'ip'
+              ? '880px'
+              : '620px',
           maxHeight: '90vh',
           display: 'flex',
           flexDirection: 'column',
@@ -246,6 +397,41 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
                 formData={formData}
                 onChange={handleFieldChange}
                 setFormData={setFormData}
+              />
+            ) : config.key === 'research' ? (
+              <ResearchProjectForm
+                formData={formData}
+                onChange={handleFieldChange}
+                setFormData={setFormData}
+                isEdit={isEdit}
+              />
+            ) : config.key === 'service' ? (
+              <AcademicServiceForm
+                formData={formData}
+                onChange={handleFieldChange}
+                setFormData={setFormData}
+                isEdit={isEdit}
+              />
+            ) : config.key === 'publications' ? (
+              <PublicationForm
+                formData={formData}
+                onChange={handleFieldChange}
+                setFormData={setFormData}
+                isEdit={isEdit}
+              />
+            ) : config.key === 'personnel' ? (
+              <PersonnelForm
+                formData={formData}
+                onChange={handleFieldChange}
+                setFormData={setFormData}
+                isEdit={isEdit}
+              />
+            ) : config.key === 'ip' ? (
+              <IntellectualPropertyForm
+                formData={formData}
+                onChange={handleFieldChange}
+                setFormData={setFormData}
+                isEdit={isEdit}
               />
             ) : (
               editableCols.map((col) => {
@@ -385,37 +571,54 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
                         }}
                       />
                     </div>
-                  ) : col.autocomplete === 'personnel' ? (
-                    <SmartAutocomplete
-                      value={val}
+                  ) : col.autocomplete === 'personnel' || col.key === 'creator' ? (
+                    <PersonPicker
+                      value={val ? {
+                        person_id: formData.person_id || null,
+                        name: String(val),
+                        department: formData.department,
+                      } : null}
+                      onChange={(person: PersonPickerValue | null) => {
+                        if (person) {
+                          handleFieldChange(col.key, person.name);
+                          handleFieldChange('person_id', person.person_id ?? null);
+                          if (person.department && (!formData.department || formData.department === '-')) {
+                            handleFieldChange('department', person.department);
+                          }
+                        } else {
+                          handleFieldChange(col.key, '');
+                          handleFieldChange('person_id', null);
+                        }
+                      }}
+                      placeholder="ค้นหาหรือระบุชื่อบุคคล..."
+                    />
+                  ) : col.key === 'department' || col.autocomplete === 'department' ? (
+                    <DepartmentSelect
+                      value={val ?? ''}
                       onChange={(newVal) => handleFieldChange(col.key, newVal)}
-                      onSelectPerson={handlePersonSelect}
-                      placeholder={col.placeholder}
-                      required={col.required}
+                      placeholder={col.placeholder || '-- กรุณาเลือกภาควิชา / สังกัด --'}
+                      className="w-full"
                     />
                   ) : col.selectOptions ? (
-                    <select
-                      value={val}
-                      onChange={(e) => handleFieldChange(col.key, e.target.value)}
-                      required={col.required}
-                      style={{
-                        padding: '10px 12px',
-                        borderRadius: '8px',
-                        border: '1px solid #cbd5e1',
-                        fontSize: '14px',
-                        outline: 'none',
-                        fontFamily: 'inherit',
-                        backgroundColor: '#ffffff',
-                      }}
-                    >
-                      <option value="">-- กรุณาเลือก --</option>
-                      {col.selectOptions.map((opt) => (
-                        <option key={opt} value={opt}>
-                          {opt}
-                        </option>
-                      ))}
-                    </select>
-                  ) : col.type === 'currency' || col.type === 'number' ? (
+                    <Select value={val ?? ''} onValueChange={(newVal) => handleFieldChange(col.key, newVal ?? '')}>
+                      <SelectTrigger className="w-full bg-white text-slate-800 h-10 text-sm">
+                        <SelectValue placeholder="-- กรุณาเลือก --" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {col.selectOptions.map((opt) => (
+                          <SelectItem key={opt} value={opt}>
+                            {opt}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : col.type === 'currency' ? (
+                    <MoneyInput
+                      value={val !== undefined && val !== '' ? Number(val) : null}
+                      onChange={(num) => handleFieldChange(col.key, num ?? 0)}
+                      placeholder={col.placeholder || '0.00'}
+                    />
+                  ) : col.type === 'number' ? (
                     <input
                       type="number"
                       step="any"
@@ -433,19 +636,11 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
                       }}
                     />
                   ) : col.type === 'date' ? (
-                    <input
-                      type="date"
-                      value={val}
-                      onChange={(e) => handleFieldChange(col.key, e.target.value)}
-                      required={col.required}
-                      style={{
-                        padding: '10px 12px',
-                        borderRadius: '8px',
-                        border: '1px solid #cbd5e1',
-                        fontSize: '14px',
-                        outline: 'none',
-                        fontFamily: 'inherit',
-                      }}
+                    <DatePicker
+                      value={val || ''}
+                      onChange={(_, dateStr) => handleFieldChange(col.key, dateStr)}
+                      placeholder="วว/ดด/ปปปป (พ.ศ.)"
+                      className="w-full"
                     />
                   ) : col.type === 'sdg' ? (
                     <SDGTagSelector
@@ -482,25 +677,18 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
                       onChange={(mems) => handleFieldChange(col.key, mems)}
                     />
                   ) : col.type === 'status' ? (
-                    <select
-                      value={val || 'active'}
-                      onChange={(e) => handleFieldChange(col.key, e.target.value)}
-                      style={{
-                        padding: '10px 12px',
-                        borderRadius: '8px',
-                        border: '1px solid #cbd5e1',
-                        fontSize: '14px',
-                        outline: 'none',
-                        fontFamily: 'inherit',
-                        backgroundColor: '#ffffff',
-                      }}
-                    >
-                      {Object.entries(STATUS_LABELS).map(([k, info]) => (
-                        <option key={k} value={k}>
-                          {info.labelTh}
-                        </option>
-                      ))}
-                    </select>
+                    <Select value={val || 'active'} onValueChange={(newVal) => handleFieldChange(col.key, newVal ?? 'active')}>
+                      <SelectTrigger className="w-full bg-white text-slate-800 h-10 text-sm">
+                        <SelectValue placeholder="เลือกสถานะ" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(STATUS_LABELS).map(([k, info]) => (
+                          <SelectItem key={k} value={k}>
+                            {info.labelTh}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   ) : (
                     <input
                       type="text"
@@ -531,6 +719,7 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
               borderTop: '1px solid #e2e8f0',
               display: 'flex',
               justifyContent: 'flex-end',
+              alignItems: 'center',
               gap: '12px',
             }}
           >
@@ -538,14 +727,23 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
               type="button"
               onClick={onClose}
               style={{
-                padding: '10px 20px',
+                padding: '9px 20px',
                 borderRadius: '8px',
                 border: '1px solid #cbd5e1',
                 backgroundColor: '#ffffff',
                 color: '#475569',
-                fontSize: '14px',
+                fontSize: '13.5px',
                 fontWeight: 500,
                 cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#f1f5f9';
+                e.currentTarget.style.borderColor = '#94a3b8';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#ffffff';
+                e.currentTarget.style.borderColor = '#cbd5e1';
               }}
             >
               ยกเลิก
@@ -553,19 +751,40 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
             <button
               type="submit"
               style={{
-                padding: '10px 24px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                whiteSpace: 'nowrap',
+                gap: '8px',
+                padding: '9px 22px',
                 borderRadius: '8px',
-                border: 'none',
+                border: '1px solid #00A651',
                 backgroundColor: '#00A651',
                 color: '#ffffff',
-                fontSize: '14px',
+                fontSize: '13.5px',
                 fontWeight: 600,
                 cursor: 'pointer',
-                boxShadow: '0 2px 6px rgba(0, 166, 81, 0.3)',
+                boxShadow: '0 2px 6px rgba(0, 166, 81, 0.25)',
+                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                transform: 'translateY(0)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#0f172a';
+                e.currentTarget.style.borderColor = '#0f172a';
+                e.currentTarget.style.color = '#ffffff';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(15, 23, 42, 0.35)';
+                e.currentTarget.style.transform = 'translateY(-1px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#00A651';
+                e.currentTarget.style.borderColor = '#00A651';
+                e.currentTarget.style.color = '#ffffff';
+                e.currentTarget.style.boxShadow = '0 2px 6px rgba(0, 166, 81, 0.25)';
+                e.currentTarget.style.transform = 'translateY(0)';
               }}
             >
-              <FaSave style={{ marginRight: '6px' }} />
-              {isEdit ? 'บันทึกการแก้ไข' : 'บันทึกรายการใหม่'}
+              <FaSave style={{ fontSize: '14px', flexShrink: 0, color: 'currentColor' }} />
+              <span>{isEdit ? 'บันทึกการแก้ไข' : 'บันทึกรายการใหม่'}</span>
             </button>
           </div>
         </form>

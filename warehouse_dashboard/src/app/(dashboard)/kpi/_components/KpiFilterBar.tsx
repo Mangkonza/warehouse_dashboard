@@ -1,6 +1,13 @@
 'use client';
 
 import React from 'react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { CATEGORY_NAMES } from '../_hooks/useKpiData';
 
 interface KpiFilterBarProps {
@@ -64,24 +71,18 @@ export function KpiFilterBar({
         <span style={{ fontSize: '12.5px', color: '#64748b', fontWeight: 500 }}>
           สถานะ:
         </span>
-        <select
-          value={selectedStatus}
-          onChange={(e) => onSelectStatus(e.target.value)}
-          style={{
-            padding: '5px 10px',
-            borderRadius: '6px',
-            border: '1px solid #cbd5e1',
-            fontSize: '12px',
-            backgroundColor: '#ffffff',
-            color: '#334155',
-          }}
-        >
-          <option value="all">ทุกสถานะ</option>
-          <option value="achieved">บรรลุเป้าหมาย (≥ 100%)</option>
-          <option value="on_track">เป็นไปตามเป้า (70-99%)</option>
-          <option value="at_risk">เฝ้าระวัง (40-69%)</option>
-          <option value="behind">ต้องเร่งรัด (&lt; 40%)</option>
-        </select>
+        <Select value={selectedStatus} onValueChange={(val) => onSelectStatus(val ?? 'all')}>
+          <SelectTrigger className="h-8 text-xs min-w-[140px] bg-white">
+            <SelectValue placeholder="ทุกสถานะ" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">ทุกสถานะ</SelectItem>
+            <SelectItem value="achieved">บรรลุเป้าหมาย (≥ 100%)</SelectItem>
+            <SelectItem value="on_track">เป็นไปตามเป้า (70-99%)</SelectItem>
+            <SelectItem value="at_risk">เฝ้าระวัง (40-69%)</SelectItem>
+            <SelectItem value="behind">ต้องเร่งรัด (&lt; 40%)</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );

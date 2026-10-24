@@ -1,12 +1,12 @@
 'use client';
 
 import React from 'react';
+import { FaHandsHelping, FaUserCheck, FaChalkboardTeacher, FaBuilding } from 'react-icons/fa';
 import { useTimeFilter, TimeFilterBar } from '@/features/time-filter';
+import { KpiGrid, DecisionBox } from '@/components/data-display';
 import { useServiceData } from '../_hooks/useServiceData';
-import { ServiceKpiGrid } from './ServiceKpiGrid';
 import { ServiceCharts } from './ServiceCharts';
 import { ServiceTable } from './ServiceTable';
-import { ServiceDecisionBox } from './ServiceDecisionBox';
 
 export function ServiceView() {
   const { timeFilter } = useTimeFilter();
@@ -24,11 +24,29 @@ export function ServiceView() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       <TimeFilterBar />
       <div className="tab-content active">
-        <ServiceKpiGrid
-          totalCount={validData.length}
-          personCount={uniquePersons.size}
-          targetCount={uniqueTargets.size}
-          deptCount={uniqueDepts.size}
+        <KpiGrid
+          items={[
+            {
+              icon: <FaHandsHelping />,
+              value: validData.length,
+              label: 'กิจกรรมทั้งหมด',
+            },
+            {
+              icon: <FaUserCheck />,
+              value: uniquePersons.size,
+              label: 'อาจารย์/ผู้รับผิดชอบ',
+            },
+            {
+              icon: <FaChalkboardTeacher />,
+              value: uniqueTargets.size,
+              label: 'กลุ่มเป้าหมายผู้รับบริการ',
+            },
+            {
+              icon: <FaBuilding />,
+              value: uniqueDepts.size || 7,
+              label: 'ภาควิชาที่มีส่วนร่วม',
+            },
+          ]}
         />
 
         <ServiceTable
@@ -39,7 +57,17 @@ export function ServiceView() {
 
         <ServiceCharts validData={validData} />
 
-        <ServiceDecisionBox />
+        <DecisionBox
+          title="ข้อมูลสนับสนุนการตัดสินใจ — งานบริการวิชาการ"
+          items={[
+            <>
+              <strong>งานผู้ทรงคุณวุฒิ</strong>สัดส่วนสูงสุด อาจารย์เป็นที่ยอมรับในวงวิชาการ
+            </>,
+            <>
+              กิจกรรมดำเนินอย่างต่อเนื่อง สะท้อน<strong>ความเข้มแข็งในการบริการสังคม</strong>ของคณะวิศวกรรมศาสตร์
+            </>,
+          ]}
+        />
       </div>
     </div>
   );

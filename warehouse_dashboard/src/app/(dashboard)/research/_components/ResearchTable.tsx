@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { FaTable, FaSearch } from 'react-icons/fa';
+import { FaTable } from 'react-icons/fa';
+import { SearchInput, DepartmentBadge, DepartmentSelect } from '@/components/ui';
 import { ResearchItem } from '../_hooks/useResearchData';
 
 interface ResearchTableProps {
@@ -15,7 +16,7 @@ interface ResearchTableProps {
 
 export function ResearchTable({
   filteredData,
-  uniqueDepts,
+  uniqueDepts: _uniqueDepts,
   searchTerm,
   onSearchChange,
   selectedDept,
@@ -37,46 +38,22 @@ export function ResearchTable({
           <FaTable style={{ color: '#00914d', marginRight: '8px' }} /> รายละเอียดโครงการวิจัย ({filteredData.length} โครงการ)
         </h3>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              background: '#fff',
-              border: '1px solid #cbd5e1',
-              borderRadius: '8px',
-              padding: '6px 10px',
-              fontSize: '13px',
-            }}
-          >
-            <FaSearch style={{ color: '#94a3b8', marginRight: '6px' }} />
-            <input
-              type="text"
-              placeholder="ค้นหาชื่อ, หัวหน้า..."
-              value={searchTerm}
-              onChange={(e) => onSearchChange(e.target.value)}
-              style={{ border: 'none', outline: 'none', fontSize: '12.5px', width: '160px', fontFamily: 'inherit' }}
-            />
-          </div>
-          <select
+          <SearchInput
+            placeholder="ค้นหาชื่อ, หัวหน้า..."
+            value={searchTerm}
+            onChange={onSearchChange}
+            width="160px"
+            style={{ padding: '6px 10px' }}
+          />
+          <DepartmentSelect
             value={selectedDept}
-            onChange={(e) => onDeptChange(e.target.value)}
-            style={{
-              padding: '6px 10px',
-              borderRadius: '8px',
-              border: '1px solid #cbd5e1',
-              fontSize: '12.5px',
-              fontFamily: 'inherit',
-              background: '#fff',
-              cursor: 'pointer',
-            }}
-          >
-            <option value="all">ทุกภาควิชา</option>
-            {Array.from(uniqueDepts).map((d) => (
-              <option key={d} value={d}>
-                {String(d).replace('ภาควิชา\n', '').replace('ภาควิชา', '')}
-              </option>
-            ))}
-          </select>
+            onChange={onDeptChange}
+            allowAll
+            allLabel="ทุกภาควิชา"
+            allValue="all"
+            size="sm"
+            className="w-[180px]"
+          />
         </div>
       </div>
 
@@ -88,7 +65,7 @@ export function ResearchTable({
               <th>รหัสโครงการ</th>
               <th>ชื่อโครงการ</th>
               <th>หัวหน้าโครงการ</th>
-              <th>ภาควิชา</th>
+              <th style={{ width: '90px', minWidth: '90px', maxWidth: '90px', textAlign: 'left', verticalAlign: 'middle' }}>ภาควิชา</th>
               <th style={{ textAlign: 'right' }}>งบประมาณรวม</th>
               <th>แหล่งทุน</th>
             </tr>
@@ -105,7 +82,9 @@ export function ResearchTable({
                   <td>{item.id && item.id !== 'nan' ? item.id : '-'}</td>
                   <td style={{ whiteSpace: 'normal', minWidth: '250px' }}>{item.name}</td>
                   <td>{item.head && item.head !== 'nan' ? item.head : '-'}</td>
-                  <td>{item.department && item.department !== 'nan' ? item.department.replace('ภาควิชา\n', '') : '-'}</td>
+                  <td style={{ width: '90px', minWidth: '90px', maxWidth: '90px', textAlign: 'left', verticalAlign: 'middle', padding: '8px 10px' }}>
+                    <DepartmentBadge value={item.department} />
+                  </td>
                   <td className="budget-cell">{totalBudget > 0 ? totalBudget.toLocaleString() + ' ฿' : '-'}</td>
                   <td>{item.fund_source && item.fund_source !== 'nan' ? item.fund_source : '-'}</td>
                 </tr>

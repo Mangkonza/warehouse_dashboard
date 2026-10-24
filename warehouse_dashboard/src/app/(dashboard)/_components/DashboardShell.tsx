@@ -25,7 +25,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  const { user, isAdmin, openLoginModal } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { timeFilter, setTimeFilter, isTimeModalOpen, setIsTimeModalOpen } = useTimeFilter();
 
   const [isSidebarHovered, setIsSidebarHovered] = useState(false);

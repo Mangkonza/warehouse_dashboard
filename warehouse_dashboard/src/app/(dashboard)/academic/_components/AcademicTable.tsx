@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { FaListUl, FaSearch } from 'react-icons/fa';
+import { FaListUl } from 'react-icons/fa';
+import { SearchInput } from '@/components/ui';
 import { AcademicItem } from '../_hooks/useAcademicData';
 
 interface AcademicTableProps {
@@ -37,26 +38,12 @@ export function AcademicTable({ displayData, searchTerm, onSearchChange }: Acade
           <FaListUl style={{ color: '#1565c0' }} />
           รายละเอียดโครงการพัฒนาวิชาการ ({displayData.length} รายการ)
         </h3>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            background: '#fff',
-            border: '1px solid #cbd5e1',
-            borderRadius: '8px',
-            padding: '6px 12px',
-            fontSize: '13px',
-          }}
-        >
-          <FaSearch style={{ color: '#94a3b8', marginRight: '6px' }} />
-          <input
-            type="text"
-            placeholder="ค้นหาชื่อโครงการ, ผู้ว่าจ้าง..."
-            value={searchTerm}
-            onChange={(e) => onSearchChange(e.target.value)}
-            style={{ border: 'none', outline: 'none', fontSize: '12.5px', width: '200px', fontFamily: 'inherit' }}
-          />
-        </div>
+        <SearchInput
+          placeholder="ค้นหาชื่อโครงการ, ผู้ว่าจ้าง..."
+          value={searchTerm}
+          onChange={onSearchChange}
+          width="200px"
+        />
       </div>
 
       <div
@@ -168,25 +155,39 @@ export function AcademicTable({ displayData, searchTerm, onSearchChange }: Acade
                   </td>
                   <td style={{ padding: '12px', textAlign: 'right', fontWeight: 600, color: '#006838' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                      <span>{(item.budget || 0).toLocaleString()} ฿</span>
-                      {Number(item.budget) > 0 && (
-                        <span
-                          style={{ fontSize: '10.5px', color: '#64748b', cursor: 'help' }}
-                          title={`การจัดสรรงบประมาณ (หักอัตโนมัติ 30%):\n- ค่าอำนวยการ (15%): ${Math.round(
-                            Number(item.budget) * 0.15
-                          ).toLocaleString()} ฿\n- คณะ (5%): ${Math.round(
-                            Number(item.budget) * 0.05
-                          ).toLocaleString()} ฿\n- ภาควิชา (5%): ${Math.round(
-                            Number(item.budget) * 0.05
-                          ).toLocaleString()} ฿\n- มก. (5%): ${Math.round(
-                            Number(item.budget) * 0.05
-                          ).toLocaleString()} ฿\n- คงเหลือดำเนินงาน (70%): ${Math.round(
-                            Number(item.budget) * 0.7
-                          ).toLocaleString()} ฿`}
-                        >
-                          หัก 30% ({Math.round(Number(item.budget) * 0.3).toLocaleString()} ฿)
-                        </span>
-                      )}
+                      <span>{(Number(item.budget) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท</span>
+                      {Number(item.budget) > 0 && (() => {
+                        const b = Number(item.budget) || 0;
+                        const facP = item.percent_faculty !== undefined && item.percent_faculty !== null ? Number(item.percent_faculty) : 5;
+                        const depP = item.percent_dept !== undefined && item.percent_dept !== null ? Number(item.percent_dept) : 5;
+                        const kuP = item.percent_ku !== undefined && item.percent_ku !== null ? Number(item.percent_ku) : 5;
+                        const totalP = facP + depP + kuP;
+                        const fac =
+                          item.alloc_faculty !== undefined && item.alloc_faculty !== null && item.alloc_faculty !== ''
+                            ? Number(item.alloc_faculty)
+                            : (b * facP) / 100;
+                        const dep =
+                          item.alloc_dept !== undefined && item.alloc_dept !== null && item.alloc_dept !== ''
+                            ? Number(item.alloc_dept)
+                            : (b * depP) / 100;
+                        const ku =
+                          item.alloc_ku !== undefined && item.alloc_ku !== null && item.alloc_ku !== ''
+                            ? Number(item.alloc_ku)
+                            : (b * kuP) / 100;
+                        const totalDeduct = fac + dep + ku;
+                        const rem =
+                          item.alloc_remaining !== undefined && item.alloc_remaining !== null && item.alloc_remaining !== ''
+                            ? Number(item.alloc_remaining)
+                            : Math.max(0, b - totalDeduct);
+                        return (
+                          <span
+                            style={{ fontSize: '10.5px', color: '#64748b', cursor: 'help' }}
+                            title={`การจัดสรรงบประมาณอัตโนมัติ:\n- คณะ (${facP}%): ${fac.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท\n- ภาควิชา (${depP}%): ${dep.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท\n- มก. (${kuP}%): ${ku.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท\n- คงเหลือดำเนินงาน (${(100 - totalP).toFixed(2)}%): ${rem.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท`}
+                          >
+                            หัก {totalP}% ({totalDeduct.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท)
+                          </span>
+                        );
+                      })()}
                     </div>
                   </td>
                   <td style={{ padding: '12px', color: '#0f172a', fontWeight: 400 }}>

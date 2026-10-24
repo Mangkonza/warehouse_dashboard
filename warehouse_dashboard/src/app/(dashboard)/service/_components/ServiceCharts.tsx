@@ -5,6 +5,7 @@ import Chart from 'chart.js/auto';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { FaChartLine, FaChartBar, FaChartPie } from 'react-icons/fa';
 import { ServiceItem } from '../_hooks/useServiceData';
+import { getDepartment, getDepartmentColor } from '@/lib/departments';
 
 interface ServiceChartsProps {
   validData: ServiceItem[];
@@ -142,16 +143,31 @@ export function ServiceCharts({ validData }: ServiceChartsProps) {
       },
     });
 
+    const srvDeptCodes = ['IRE', 'ME', 'CE', 'AE', 'FE', 'อื่นๆ'];
+    const srvDeptColors = srvDeptCodes.map((code) => getDepartmentColor(code));
     createChart('c_sv_dept', {
       type: 'pie',
       data: {
-        labels: ['ชลประทาน', 'เครื่องกล', 'โยธา', 'เกษตร', 'การอาหาร', 'อื่นๆ'],
-        datasets: [{ data: [70, 45, 35, 30, 25, 24], backgroundColor: UI_PALETTE.slice(0, 6) }],
+        labels: srvDeptCodes,
+        datasets: [{ data: [70, 45, 35, 30, 25, 24], backgroundColor: srvDeptColors }],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { datalabels: pieDatalabels as any, legend: { position: 'bottom', labels: { padding: 8 } } },
+        plugins: {
+          datalabels: pieDatalabels as any,
+          legend: { position: 'bottom', labels: { padding: 8 } },
+          tooltip: {
+            callbacks: {
+              title: (items: any) => {
+                const code = items[0]?.label || '';
+                const dept = getDepartment(code);
+                return dept.name !== code ? `${dept.name} (${code})` : code;
+              },
+              label: (c: any) => ` ${c.raw} ครั้ง`,
+            },
+          },
+        },
       },
     });
 

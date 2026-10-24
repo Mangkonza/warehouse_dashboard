@@ -7,6 +7,13 @@ import { FACT_DOMAINS_CONFIG } from '@/config/analyticsMetadata';
 import { AnalyticsQuery, ChartType, FactDomainId, AggregationType } from '@/types/analyticsBuilder';
 import { executeAnalyticsQuery } from '@/lib/analyticsEngine';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   FaChartBar,
   FaChartLine,
   FaChartPie,
@@ -455,18 +462,23 @@ export default function SelfServiceStudio() {
               <FaThList style={{ marginRight: '6px', color: '#7c3aed' }} />
               1. แกน X (มิติหลัก / จัดกลุ่ม)
             </label>
-            <select
+            <Select
               value={query.primaryDimensionId}
-              onChange={(e) => setQuery((prev) => ({ ...prev, primaryDimensionId: e.target.value }))}
-              className="glass-input"
-              style={{ width: '100%', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}
+              onValueChange={(val) => {
+                if (val) setQuery((prev) => ({ ...prev, primaryDimensionId: val }));
+              }}
             >
-              {currentDomainDef.dimensions.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.label}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="w-full bg-white text-slate-800 text-xs h-9 font-semibold">
+                <SelectValue placeholder="เลือกมิติหลัก" />
+              </SelectTrigger>
+              <SelectContent>
+                {currentDomainDef.dimensions.map((d) => (
+                  <SelectItem key={d.id} value={d.id}>
+                    {d.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* B. Y-Axis (Measure Field) */}
@@ -475,18 +487,23 @@ export default function SelfServiceStudio() {
               <FaCalculator style={{ marginRight: '6px', color: '#0284c7' }} />
               2. แกน Y (ตัววัดเชิงปริมาณ)
             </label>
-            <select
+            <Select
               value={query.measureId}
-              onChange={(e) => setQuery((prev) => ({ ...prev, measureId: e.target.value }))}
-              className="glass-input"
-              style={{ width: '100%', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}
+              onValueChange={(val) => {
+                if (val) setQuery((prev) => ({ ...prev, measureId: val }));
+              }}
             >
-              {currentDomainDef.measures.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.label}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="w-full bg-white text-slate-800 text-xs h-9 font-semibold">
+                <SelectValue placeholder="เลือกตัววัด" />
+              </SelectTrigger>
+              <SelectContent>
+                {currentDomainDef.measures.map((m) => (
+                  <SelectItem key={m.id} value={m.id}>
+                    {m.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* C. Aggregation Function */}
@@ -495,18 +512,23 @@ export default function SelfServiceStudio() {
               <FaMagic style={{ marginRight: '6px', color: '#00a859' }} />
               3. ฟังก์ชันรวมค่า (Aggregation)
             </label>
-            <select
+            <Select
               value={query.aggregationFn || currentDomainDef.measures.find((m) => m.id === query.measureId)?.aggregation || 'SUM'}
-              onChange={(e) => setQuery((prev) => ({ ...prev, aggregationFn: e.target.value as AggregationType }))}
-              className="glass-input"
-              style={{ width: '100%', cursor: 'pointer', fontSize: '13px' }}
+              onValueChange={(val) => {
+                if (val) setQuery((prev) => ({ ...prev, aggregationFn: val as AggregationType }));
+              }}
             >
-              <option value="SUM">ผลรวมทั้งหมด (SUM)</option>
-              <option value="COUNT">จำนวนรายการ (COUNT)</option>
-              <option value="AVG">ค่าเฉลี่ย (AVERAGE)</option>
-              <option value="MAX">ค่าสูงสุด (MAX)</option>
-              <option value="MIN">ค่าต่ำสุด (MIN)</option>
-            </select>
+              <SelectTrigger className="w-full bg-white text-slate-800 text-xs h-9">
+                <SelectValue placeholder="เลือกฟังก์ชันรวมค่า" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="SUM">ผลรวมทั้งหมด (SUM)</SelectItem>
+                <SelectItem value="COUNT">จำนวนรายการ (COUNT)</SelectItem>
+                <SelectItem value="AVG">ค่าเฉลี่ย (AVERAGE)</SelectItem>
+                <SelectItem value="MAX">ค่าสูงสุด (MAX)</SelectItem>
+                <SelectItem value="MIN">ค่าต่ำสุด (MIN)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* D. Secondary Dimension (Breakdown / Z-Axis) */}
@@ -515,21 +537,29 @@ export default function SelfServiceStudio() {
               <FaLayerGroup style={{ marginRight: '6px', color: '#f59e0b' }} />
               4. มิติย่อยซ้อน (Series / Z-Axis)
             </label>
-            <select
-              value={query.secondaryDimensionId || ''}
-              onChange={(e) => setQuery((prev) => ({ ...prev, secondaryDimensionId: e.target.value }))}
-              className="glass-input"
-              style={{ width: '100%', cursor: 'pointer', fontSize: '13px' }}
+            <Select
+              value={query.secondaryDimensionId || '__none__'}
+              onValueChange={(val) => {
+                setQuery((prev) => ({
+                  ...prev,
+                  secondaryDimensionId: val === '__none__' ? undefined : (val ?? undefined),
+                }));
+              }}
             >
-              <option value="">(ไม่มี - ดูมิติเดียว)</option>
-              {currentDomainDef.dimensions
-                .filter((d) => d.id !== query.primaryDimensionId)
-                .map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.label}
-                  </option>
-                ))}
-            </select>
+              <SelectTrigger className="w-full bg-white text-slate-800 text-xs h-9">
+                <SelectValue placeholder="(ไม่มี - ดูมิติเดียว)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">(ไม่มี - ดูมิติเดียว)</SelectItem>
+                {currentDomainDef.dimensions
+                  .filter((d) => d.id !== query.primaryDimensionId)
+                  .map((d) => (
+                    <SelectItem key={d.id} value={d.id}>
+                      {d.label}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 

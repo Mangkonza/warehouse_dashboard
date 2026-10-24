@@ -1,11 +1,23 @@
-﻿'use client';
+'use client';
 
 import React, { useState } from 'react';
+import { cn } from '@/lib/utils';
 import { DEPARTMENTS } from '@/config/dataManagementConfig';
 import { SmartAutocomplete } from './SmartAutocomplete';
+import { PersonPicker } from '@/components/form/PersonPicker';
 import { PersonnelRecord } from '@/types/dataManagement';
+import { DepartmentSelect } from '@/components/ui';
 import researchData from '@/data/research.json';
 import ipData from '@/data/ip.json';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { DatePicker } from '@/components/ui/date-picker';
+import { MoneyInput } from '@/components/form/MoneyInput';
 import {
   FaGraduationCap,
   FaCalculator,
@@ -24,6 +36,46 @@ interface ResearchProjectItem {
   code: string;
   name: string;
 }
+
+export interface AcademicCategoryDefinition {
+  category: string;
+  subTypes: string[];
+}
+
+export const ACADEMIC_PROJECT_CATEGORIES: AcademicCategoryDefinition[] = [
+  {
+    category: 'งานบริการด้านวิจัย',
+    subTypes: ['ศึกษา', 'วิจัย', 'สำรวจ', 'วางระบบ', 'ออกแบบ', 'สร้าง', 'ประดิษฐ์', 'การพัฒนา'],
+  },
+  {
+    category: 'งานที่ปรึกษา',
+    subTypes: ['บริการให้คำปรึกษา'],
+  },
+  {
+    category: 'งานบริการด้านฝึกอบรม',
+    subTypes: ['บริการฝึกอบรม', 'สัมมนา และประชุมเชิงปฏิบัติการในลักษณะว่าจ้าง', 'การพัฒนา'],
+  },
+  {
+    category: 'งานด้านบริการ',
+    subTypes: [
+      'บริการวิเคราะห์',
+      'ทดสอบ',
+      'ตรวจสอบ',
+      'ตรวจซ่อม',
+      'การผลิต',
+      'การควบคุม',
+      'การติดตั้ง',
+      'การปรับปรุง',
+      'การประกอบ',
+      'การส่งเสริม',
+      'การพัฒนา',
+    ],
+  },
+  {
+    category: 'งานบริการอื่นๆ',
+    subTypes: ['ความร่วมมือต่างๆเป็นต้น', 'อื่นๆที่ไม่สามารถระบุกลุ่มได้'],
+  },
+];
 
 interface AcademicProjectFormProps {
   formData: Record<string, any>;
@@ -52,12 +104,239 @@ export const AcademicProjectForm: React.FC<AcademicProjectFormProps> = ({
 
   // Budget calculations
   const totalBudget = Number(formData.budget) || 0;
-  const allocManagement = Math.round(totalBudget * 0.15); // 15%
-  const allocFaculty = Math.round(totalBudget * 0.05);    // 5%
-  const allocDept = Math.round(totalBudget * 0.05);       // 5%
-  const allocKu = Math.round(totalBudget * 0.05);         // 5%
-  const allocDeductions = allocManagement + allocFaculty + allocDept + allocKu; // 30%
-  const allocRemaining = totalBudget - allocDeductions;    // 70%
+
+  const round2 = (val: number): number => {
+    return Math.round((val + Number.EPSILON) * 100) / 100;
+  };
+
+  const percentFaculty =
+    formData.percent_faculty !== undefined && formData.percent_faculty !== null && formData.percent_faculty !== ''
+      ? Number(formData.percent_faculty)
+      : (formData.alloc_faculty !== undefined && totalBudget > 0
+          ? round2((Number(formData.alloc_faculty) / totalBudget) * 100)
+          : 5);
+
+  const percentDept =
+    formData.percent_dept !== undefined && formData.percent_dept !== null && formData.percent_dept !== ''
+      ? Number(formData.percent_dept)
+      : (formData.alloc_dept !== undefined && totalBudget > 0
+          ? round2((Number(formData.alloc_dept) / totalBudget) * 100)
+          : 5);
+
+  const percentKu =
+    formData.percent_ku !== undefined && formData.percent_ku !== null && formData.percent_ku !== ''
+      ? Number(formData.percent_ku)
+      : (formData.alloc_ku !== undefined && totalBudget > 0
+          ? round2((Number(formData.alloc_ku) / totalBudget) * 100)
+          : 5);
+
+  const allocFaculty =
+    formData.alloc_faculty !== undefined && formData.alloc_faculty !== null && formData.alloc_faculty !== ''
+      ? Number(formData.alloc_faculty)
+      : round2((totalBudget * percentFaculty) / 100);
+
+  const allocDept =
+    formData.alloc_dept !== undefined && formData.alloc_dept !== null && formData.alloc_dept !== ''
+      ? Number(formData.alloc_dept)
+      : round2((totalBudget * percentDept) / 100);
+
+  const allocKu =
+    formData.alloc_ku !== undefined && formData.alloc_ku !== null && formData.alloc_ku !== ''
+      ? Number(formData.alloc_ku)
+      : round2((totalBudget * percentKu) / 100);
+
+  const totalAllocDeductions = round2(allocFaculty + allocDept + allocKu);
+  const totalDeductPercent = round2(percentFaculty + percentDept + percentKu);
+  const remainingPercent = Math.max(0, round2(100 - totalDeductPercent));
+  const allocRemaining =
+    formData.alloc_remaining !== undefined && formData.alloc_remaining !== null && formData.alloc_remaining !== ''
+      ? Number(formData.alloc_remaining)
+      : Math.max(0, round2(totalBudget - totalAllocDeductions));
+
+  const isOverBudget =
+    (totalBudget > 0 && totalAllocDeductions > totalBudget) || totalDeductPercent > 100;
+
+  const formatCurrency = (val: number) => {
+    return val.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
+
+  const handleBudgetChange = (b: number | null) => {
+    const val = b ?? 0;
+    const fAmt = round2((val * percentFaculty) / 100);
+    const dAmt = round2((val * percentDept) / 100);
+    const kAmt = round2((val * percentKu) / 100);
+    const remAmt = Math.max(0, round2(val - (fAmt + dAmt + kAmt)));
+
+    onChange('budget', val);
+    onChange('percent_faculty', percentFaculty);
+    onChange('percent_dept', percentDept);
+    onChange('percent_ku', percentKu);
+    onChange('alloc_faculty', fAmt);
+    onChange('alloc_dept', dAmt);
+    onChange('alloc_ku', kAmt);
+    onChange('alloc_remaining', remAmt);
+  };
+
+  const handlePercentChange = (
+    key: 'percent_faculty' | 'percent_dept' | 'percent_ku',
+    rawVal: string
+  ) => {
+    const amtKey =
+      key === 'percent_faculty'
+        ? 'alloc_faculty'
+        : key === 'percent_dept'
+        ? 'alloc_dept'
+        : 'alloc_ku';
+
+    if (rawVal === '') {
+      onChange(key, '');
+      onChange(amtKey, 0);
+
+      const nextFAmt = key === 'percent_faculty' ? 0 : allocFaculty;
+      const nextDAmt = key === 'percent_dept' ? 0 : allocDept;
+      const nextKAmt = key === 'percent_ku' ? 0 : allocKu;
+      const nextRemAmt = Math.max(0, round2(totalBudget - (nextFAmt + nextDAmt + nextKAmt)));
+      onChange('alloc_remaining', nextRemAmt);
+      return;
+    }
+
+    const num = parseFloat(rawVal);
+    const validNum = isNaN(num) ? 0 : Math.max(0, Math.min(100, num));
+    const calculatedAmt = totalBudget > 0 ? round2((totalBudget * validNum) / 100) : 0;
+
+    const nextFAmt = key === 'percent_faculty' ? calculatedAmt : allocFaculty;
+    const nextDAmt = key === 'percent_dept' ? calculatedAmt : allocDept;
+    const nextKAmt = key === 'percent_ku' ? calculatedAmt : allocKu;
+    const nextRemAmt = Math.max(0, round2(totalBudget - (nextFAmt + nextDAmt + nextKAmt)));
+
+    onChange(key, validNum);
+    onChange(amtKey, calculatedAmt);
+    onChange('alloc_remaining', nextRemAmt);
+  };
+
+  const handlePercentBlur = (key: 'percent_faculty' | 'percent_dept' | 'percent_ku') => {
+    const cur = formData[key];
+    if (cur === '' || cur === undefined || cur === null) {
+      onChange(key, 0);
+    } else {
+      const num = parseFloat(String(cur));
+      onChange(key, isNaN(num) ? 0 : round2(num));
+    }
+  };
+
+  const handleAmountChange = (
+    key: 'alloc_faculty' | 'alloc_dept' | 'alloc_ku',
+    rawAmt: number | null
+  ) => {
+    const validAmt = rawAmt !== null && !isNaN(rawAmt) ? Math.max(0, rawAmt) : 0;
+    const percentKey =
+      key === 'alloc_faculty'
+        ? 'percent_faculty'
+        : key === 'alloc_dept'
+        ? 'percent_dept'
+        : 'percent_ku';
+
+    const calculatedPercent =
+      totalBudget > 0 ? round2((validAmt / totalBudget) * 100) : 0;
+
+    const nextFAmt = key === 'alloc_faculty' ? validAmt : allocFaculty;
+    const nextDAmt = key === 'alloc_dept' ? validAmt : allocDept;
+    const nextKAmt = key === 'alloc_ku' ? validAmt : allocKu;
+    const nextRemAmt = Math.max(0, round2(totalBudget - (nextFAmt + nextDAmt + nextKAmt)));
+
+    onChange(key, validAmt);
+    onChange(percentKey, calculatedPercent);
+    onChange('alloc_remaining', nextRemAmt);
+  };
+
+  // Section 5: Academic Project Categories & Sub-types
+  const selectedCategories: string[] = React.useMemo(() => {
+    if (Array.isArray(formData.project_type_categories)) {
+      return formData.project_type_categories;
+    }
+    if (Array.isArray(formData.project_type_category)) {
+      return formData.project_type_category;
+    }
+    if (typeof formData.project_type_category === 'string' && formData.project_type_category) {
+      return formData.project_type_category
+        .split(',')
+        .map((s: string) => s.trim())
+        .filter(Boolean);
+    }
+    return [];
+  }, [formData.project_type_categories, formData.project_type_category]);
+
+  const selectedSubTypes: string[] = React.useMemo(() => {
+    if (Array.isArray(formData.project_sub_types)) return formData.project_sub_types;
+    if (typeof formData.project_sub_types === 'string' && formData.project_sub_types) {
+      return formData.project_sub_types.split(',').map((s) => s.trim()).filter(Boolean);
+    }
+    return [];
+  }, [formData.project_sub_types]);
+
+  const otherCustomText = React.useMemo(() => {
+    if (formData.project_type_other) return String(formData.project_type_other);
+    const match = selectedSubTypes.find((s) => s.startsWith('อื่นๆ: '));
+    if (match) return match.replace('อื่นๆ: ', '');
+    return '';
+  }, [formData.project_type_other, selectedSubTypes]);
+
+  const isOtherChecked = React.useMemo(() => {
+    return selectedSubTypes.some((s) => s === 'อื่นๆ' || s.startsWith('อื่นๆ:'));
+  }, [selectedSubTypes]);
+
+  const handleToggleCategory = (cat: string) => {
+    let nextCats: string[];
+    let nextSubTypes = [...selectedSubTypes];
+    const catDef = ACADEMIC_PROJECT_CATEGORIES.find((c) => c.category === cat);
+
+    if (selectedCategories.includes(cat)) {
+      nextCats = selectedCategories.filter((c) => c !== cat);
+      if (catDef) {
+        nextSubTypes = nextSubTypes.filter((s) => !catDef.subTypes.includes(s));
+      }
+    } else {
+      nextCats = [...selectedCategories, cat];
+    }
+
+    onChange('project_type_categories', nextCats);
+    onChange('project_type_category', nextCats.join(', '));
+    onChange('project_sub_types', nextSubTypes);
+  };
+
+  const handleToggleSubType = (subType: string) => {
+    let next: string[];
+    if (selectedSubTypes.includes(subType)) {
+      next = selectedSubTypes.filter((s) => s !== subType);
+    } else {
+      next = [...selectedSubTypes, subType];
+    }
+    onChange('project_sub_types', next);
+  };
+
+  const handleToggleOther = () => {
+    if (isOtherChecked) {
+      const filtered = selectedSubTypes.filter((s) => s !== 'อื่นๆ' && !s.startsWith('อื่นๆ:'));
+      onChange('project_sub_types', filtered);
+      onChange('project_type_other', '');
+    } else {
+      const custom = (otherCustomText || '').trim();
+      const entry = custom ? `อื่นๆ: ${custom}` : 'อื่นๆ';
+      onChange('project_sub_types', [...selectedSubTypes, entry]);
+    }
+  };
+
+  const handleOtherTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const text = e.target.value;
+    onChange('project_type_other', text);
+    const clean = text.trim();
+    const entry = clean ? `อื่นๆ: ${clean}` : 'อื่นๆ';
+    const filtered = selectedSubTypes.filter((s) => s !== 'อื่นๆ' && !s.startsWith('อื่นๆ:'));
+    onChange('project_sub_types', [...filtered, entry]);
+  };
 
   // Research projects array
   const researchProjects: ResearchProjectItem[] = Array.isArray(formData.research_projects)
@@ -102,8 +381,7 @@ export const AcademicProjectForm: React.FC<AcademicProjectFormProps> = ({
   };
 
   // Quick select research project from database
-  const handleQuickSelectResearch = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedId = e.target.value;
+  const handleQuickSelectResearch = (selectedId: string | null) => {
     if (!selectedId) return;
     const found = researchData.find((r: any) => String(r.id || r._id).trim() === selectedId.trim());
     if (found) {
@@ -117,8 +395,7 @@ export const AcademicProjectForm: React.FC<AcademicProjectFormProps> = ({
   };
 
   // Quick select IP from database
-  const handleQuickSelectIp = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedVal = e.target.value;
+  const handleQuickSelectIp = (selectedVal: string | null) => {
     if (selectedVal) {
       onChange('patent_integration', selectedVal);
     }
@@ -145,12 +422,14 @@ export const AcademicProjectForm: React.FC<AcademicProjectFormProps> = ({
       {/* หมวดที่ 1: ข้อมูลทั่วไปของโครงการพัฒนาวิชาการ */}
       {/* ========================================================================= */}
       <div
+        className="scroll-mt-24"
         style={{
           border: '1px solid #e2e8f0',
           borderRadius: '12px',
           padding: '18px 20px',
           backgroundColor: '#ffffff',
           boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+          scrollMarginTop: '96px',
         }}
       >
         <div
@@ -216,27 +495,12 @@ export const AcademicProjectForm: React.FC<AcademicProjectFormProps> = ({
               <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
                 ภาควิชา / หน่วยงานดำเนินการ
               </label>
-              <select
+              <DepartmentSelect
                 value={formData.department || ''}
-                onChange={(e) => onChange('department', e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '9px 12px',
-                  borderRadius: '8px',
-                  border: '1px solid #cbd5e1',
-                  fontSize: '13.5px',
-                  outline: 'none',
-                  backgroundColor: '#ffffff',
-                  fontFamily: 'inherit',
-                }}
-              >
-                <option value="">-- เลือกภาควิชา / หน่วยงาน --</option>
-                {DEPARTMENTS.map((dept) => (
-                  <option key={dept} value={dept}>
-                    {dept}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => onChange('department', val)}
+                placeholder="-- เลือกภาควิชา / หน่วยงาน --"
+                className="w-full"
+              />
             </div>
 
             {/* ผู้ขอรับบริการ / ว่าจ้าง */}
@@ -326,12 +590,14 @@ export const AcademicProjectForm: React.FC<AcademicProjectFormProps> = ({
       {/* หมวดที่ 2: บุคลากรและผู้ร่วมโครงการ */}
       {/* ========================================================================= */}
       <div
+        className="scroll-mt-24"
         style={{
           border: '1px solid #e2e8f0',
           borderRadius: '12px',
           padding: '18px 20px',
           backgroundColor: '#ffffff',
           boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+          scrollMarginTop: '96px',
         }}
       >
         <div
@@ -366,17 +632,30 @@ export const AcademicProjectForm: React.FC<AcademicProjectFormProps> = ({
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          {/* หัวหน้าโครงการ (SmartAutocomplete) */}
+          {/* หัวหน้าโครงการ (PersonPicker) */}
           <div>
             <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
               หัวหน้าโครงการ <span style={{ color: '#ef4444' }}>*</span>
             </label>
-            <SmartAutocomplete
-              value={formData.head || ''}
-              onChange={(newVal) => onChange('head', newVal)}
-              onSelectPerson={handleHeadSelect}
-              placeholder="พิมพ์ค้นหาชื่ออาจารย์หรือหัวหน้าโครงการ..."
-              required
+            <PersonPicker
+              value={formData.head ? {
+                person_id: formData.head_id || null,
+                name: formData.head,
+                department: formData.department,
+              } : null}
+              onChange={(person) => {
+                if (person) {
+                  onChange('head', person.name);
+                  onChange('head_id', person.person_id ?? null);
+                  if (person.department) {
+                    onChange('department', person.department);
+                  }
+                } else {
+                  onChange('head', '');
+                  onChange('head_id', null);
+                }
+              }}
+              placeholder="ค้นหาชื่ออาจารย์หรือหัวหน้าโครงการ..."
             />
           </div>
 
@@ -480,12 +759,15 @@ export const AcademicProjectForm: React.FC<AcademicProjectFormProps> = ({
       {/* หมวดที่ 3: งบประมาณรวมและการจัดสรรอัตโนมัติ */}
       {/* ========================================================================= */}
       <div
+        id="section-academic-budget"
+        className="scroll-mt-24"
         style={{
           border: '1px solid #e2e8f0',
           borderRadius: '12px',
           padding: '18px 20px',
           backgroundColor: '#ffffff',
           boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+          scrollMarginTop: '96px',
         }}
       >
         <div
@@ -522,114 +804,230 @@ export const AcademicProjectForm: React.FC<AcademicProjectFormProps> = ({
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <div>
             <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-              งบประมาณรวมทั้งหมด (บาท) <span style={{ color: '#ef4444' }}>*</span>
+              งบประมาณรวมทั้งหมด <span style={{ color: '#ef4444' }}>*</span>
             </label>
-            <div style={{ position: 'relative' }}>
-              <input
-                type="number"
-                min="0"
-                step="any"
-                value={formData.budget !== undefined ? formData.budget : ''}
-                onChange={(e) => {
-                  const b = parseFloat(e.target.value) || 0;
-                  onChange('budget', b);
-                  // Auto save precalculated allocations
-                  onChange('alloc_management_fee', Math.round(b * 0.15));
-                  onChange('alloc_faculty', Math.round(b * 0.05));
-                  onChange('alloc_dept', Math.round(b * 0.05));
-                  onChange('alloc_ku', Math.round(b * 0.05));
-                  onChange('alloc_remaining', Math.round(b * 0.70));
-                }}
-                placeholder="0"
-                required
-                style={{
-                  width: '100%',
-                  padding: '10px 14px',
-                  borderRadius: '8px',
-                  border: '1.5px solid #00A651',
-                  fontSize: '16px',
-                  fontWeight: 700,
-                  fontFamily: 'monospace',
-                  color: '#006838',
-                  outline: 'none',
-                  backgroundColor: '#ffffff',
-                }}
-              />
-            </div>
-            <span style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', display: 'block' }}>
-              กรอกเฉพาะยอดงบประมาณรวม ระบบจะคำนวณการจัดสรรเงินเข้ากองทุนและส่วนต่างๆ ให้อัตโนมัติ
-            </span>
+            <MoneyInput
+              value={formData.budget !== undefined && formData.budget !== '' ? Number(formData.budget) : null}
+              onChange={handleBudgetChange}
+              placeholder="0.00"
+            />
           </div>
 
-          {/* การ์ดแสดงผลการจัดสรรงบประมาณอัตโนมัติ (หัก 15% ค่าอำนวยการ, 5% คณะ, 5% ภาควิชา, 5% มก.) */}
-          <div
-            style={{
-              padding: '14px 16px',
-              borderRadius: '10px',
-              backgroundColor: '#f0fbf5',
-              border: '1px solid #bbf7d0',
-            }}
-          >
+          <div>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '8px' }}>
+              การจัดสรรงบประมาณอัตโนมัติ
+            </label>
+
+            {/* ONE bordered block with a single level of border and no nested cards */}
             <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: '10px',
-              }}
+              className={cn(
+                'rounded-lg border bg-white overflow-hidden transition-colors',
+                isOverBudget ? 'border-rose-300' : 'border-slate-200'
+              )}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 700, color: '#006838' }}>
-                <FaCalculator style={{ fontSize: '13px' }} />
-                <span>การจัดสรรงบประมาณอัตโนมัติ (หักแน่นอน 30%)</span>
+              {/* Header row: desktop only */}
+              <div className="hidden md:flex items-center gap-4 px-4 py-2 bg-slate-50 border-b border-slate-100 text-xs font-semibold text-slate-500">
+                <div className="flex-1 min-w-0" />
+                <div className="w-[140px] text-right pr-7">สัดส่วน</div>
+                <div className="w-[220px] text-right pr-9">จำนวนเงิน</div>
               </div>
-              <span style={{ fontSize: '11.5px', color: '#007a3e', fontWeight: 600 }}>
-                คำนวณอัตโนมัติจากยอดรวม {totalBudget.toLocaleString()} บาท
-              </span>
+
+              {/* Rows: หักเข้าคณะ, หักเข้าภาควิชา, หักเข้ามหาวิทยาลัย (มก.) */}
+              <div className="divide-y divide-slate-100 px-4">
+                {/* 1. หักเข้าคณะ */}
+                <div className="flex flex-col md:flex-row md:items-center gap-1.5 md:gap-4 py-2.5">
+                  <div className="text-sm font-medium text-slate-700 md:flex-1 min-w-0">
+                    หักเข้าคณะ
+                  </div>
+                  <div className="flex items-center gap-3 w-full md:w-auto">
+                    <div className="flex items-center gap-2 flex-1 md:w-[140px]">
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.01"
+                        value={formData.percent_faculty !== undefined ? formData.percent_faculty : percentFaculty}
+                        onChange={(e) => handlePercentChange('percent_faculty', e.target.value)}
+                        onBlur={() => handlePercentBlur('percent_faculty')}
+                        placeholder="0.00"
+                        className={cn(
+                          'flex-1 h-10 px-3 text-sm text-right tabular-nums font-medium rounded-lg border bg-white shadow-2xs transition-colors',
+                          'focus:outline-none focus:ring-2',
+                          isOverBudget
+                            ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-200 text-rose-900'
+                            : 'border-slate-300 focus:border-[#00A651] focus:ring-[#00A651]/20 text-slate-900'
+                        )}
+                      />
+                      <span className="shrink-0 text-sm font-semibold text-slate-600 select-none w-5 text-left">
+                        %
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2.5 flex-[1.5] md:w-[220px]">
+                      <MoneyInput
+                        value={allocFaculty}
+                        onChange={(val) => handleAmountChange('alloc_faculty', val)}
+                        placeholder="0.00"
+                        className="w-full"
+                        inputClassName={isOverBudget ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-200' : undefined}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. หักเข้าภาควิชา */}
+                <div className="flex flex-col md:flex-row md:items-center gap-1.5 md:gap-4 py-2.5">
+                  <div className="text-sm font-medium text-slate-700 md:flex-1 min-w-0">
+                    หักเข้าภาควิชา
+                  </div>
+                  <div className="flex items-center gap-3 w-full md:w-auto">
+                    <div className="flex items-center gap-2 flex-1 md:w-[140px]">
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.01"
+                        value={formData.percent_dept !== undefined ? formData.percent_dept : percentDept}
+                        onChange={(e) => handlePercentChange('percent_dept', e.target.value)}
+                        onBlur={() => handlePercentBlur('percent_dept')}
+                        placeholder="0.00"
+                        className={cn(
+                          'flex-1 h-10 px-3 text-sm text-right tabular-nums font-medium rounded-lg border bg-white shadow-2xs transition-colors',
+                          'focus:outline-none focus:ring-2',
+                          isOverBudget
+                            ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-200 text-rose-900'
+                            : 'border-slate-300 focus:border-[#00A651] focus:ring-[#00A651]/20 text-slate-900'
+                        )}
+                      />
+                      <span className="shrink-0 text-sm font-semibold text-slate-600 select-none w-5 text-left">
+                        %
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2.5 flex-[1.5] md:w-[220px]">
+                      <MoneyInput
+                        value={allocDept}
+                        onChange={(val) => handleAmountChange('alloc_dept', val)}
+                        placeholder="0.00"
+                        className="w-full"
+                        inputClassName={isOverBudget ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-200' : undefined}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. หักเข้ามหาวิทยาลัย (มก.) */}
+                <div className="flex flex-col md:flex-row md:items-center gap-1.5 md:gap-4 py-2.5">
+                  <div className="text-sm font-medium text-slate-700 md:flex-1 min-w-0">
+                    หักเข้ามหาวิทยาลัย (มก.)
+                  </div>
+                  <div className="flex items-center gap-3 w-full md:w-auto">
+                    <div className="flex items-center gap-2 flex-1 md:w-[140px]">
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.01"
+                        value={formData.percent_ku !== undefined ? formData.percent_ku : percentKu}
+                        onChange={(e) => handlePercentChange('percent_ku', e.target.value)}
+                        onBlur={() => handlePercentBlur('percent_ku')}
+                        placeholder="0.00"
+                        className={cn(
+                          'flex-1 h-10 px-3 text-sm text-right tabular-nums font-medium rounded-lg border bg-white shadow-2xs transition-colors',
+                          'focus:outline-none focus:ring-2',
+                          isOverBudget
+                            ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-200 text-rose-900'
+                            : 'border-slate-300 focus:border-[#00A651] focus:ring-[#00A651]/20 text-slate-900'
+                        )}
+                      />
+                      <span className="shrink-0 text-sm font-semibold text-slate-600 select-none w-5 text-left">
+                        %
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2.5 flex-[1.5] md:w-[220px]">
+                      <MoneyInput
+                        value={allocKu}
+                        onChange={(val) => handleAmountChange('alloc_ku', val)}
+                        placeholder="0.00"
+                        className="w-full"
+                        inputClassName={isOverBudget ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-200' : undefined}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Divider, then row หักรวม: plain text (not inputs) */}
+              <div className="border-t border-slate-200 bg-slate-50/50 px-4">
+                <div className="flex flex-col md:flex-row md:items-center gap-1.5 md:gap-4 py-2.5">
+                  <div className="text-sm font-semibold text-slate-700 md:flex-1 min-w-0">
+                    หักรวม
+                  </div>
+                  <div className="flex items-center gap-3 w-full md:w-auto">
+                    <div className="flex items-center justify-end gap-2 flex-1 md:w-[140px]">
+                      <span className="flex-1 text-sm text-right tabular-nums font-semibold text-slate-700">
+                        {totalDeductPercent.toFixed(2)}
+                      </span>
+                      <span className="shrink-0 text-sm font-semibold text-slate-600 select-none w-5 text-left">
+                        %
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-end gap-2.5 flex-[1.5] md:w-[220px]">
+                      <span className="flex-1 text-sm text-right tabular-nums font-semibold text-slate-700">
+                        {formatCurrency(totalAllocDeductions)}
+                      </span>
+                      <span className="shrink-0 text-sm font-semibold text-slate-600 select-none w-7 text-left">
+                        บาท
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Final row งบดำเนินงานคงเหลือ: read-only, same columns, light theme-green background band, semibold text */}
+              <div className="border-t border-emerald-200 bg-[#f0fdf4] px-4">
+                <div className="flex flex-col md:flex-row md:items-center gap-1.5 md:gap-4 py-2.5">
+                  <div className="text-sm font-semibold text-emerald-900 md:flex-1 min-w-0">
+                    งบดำเนินงานคงเหลือ
+                  </div>
+                  <div className="flex items-center gap-3 w-full md:w-auto">
+                    <div className="flex items-center justify-end gap-2 flex-1 md:w-[140px]">
+                      <span
+                        className={cn(
+                          'flex-1 text-sm text-right tabular-nums font-semibold',
+                          allocRemaining < 0 || remainingPercent < 0 ? 'text-rose-600' : 'text-emerald-800'
+                        )}
+                      >
+                        {remainingPercent.toFixed(2)}
+                      </span>
+                      <span className="shrink-0 text-sm font-semibold text-emerald-700 select-none w-5 text-left">
+                        %
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-end gap-2.5 flex-[1.5] md:w-[220px]">
+                      <span
+                        className={cn(
+                          'flex-1 text-sm text-right tabular-nums font-semibold',
+                          allocRemaining < 0 || remainingPercent < 0 ? 'text-rose-600' : 'text-emerald-800'
+                        )}
+                      >
+                        {formatCurrency(allocRemaining)}
+                      </span>
+                      <span className="shrink-0 text-sm font-semibold text-emerald-700 select-none w-7 text-left">
+                        บาท
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {/* Grid แสดงสัดส่วน 5 รายการ */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
-                gap: '8px',
-              }}
-            >
-              <div style={{ backgroundColor: '#ffffff', padding: '8px 10px', borderRadius: '6px', border: '1px solid #dcfce7' }}>
-                <div style={{ fontSize: '11.5px', color: '#64748b' }}>ค่าอำนวยการ (15%)</div>
-                <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#1e293b', fontFamily: 'monospace' }}>
-                  {allocManagement.toLocaleString()} ฿
-                </div>
+            {/* Inline validation error under the block if deductions exceed 100% or total */}
+            {isOverBudget && (
+              <div className="text-xs text-rose-500 font-medium mt-1.5">
+                {totalBudget > 0 && totalAllocDeductions > totalBudget
+                  ? 'ยอดหักรวมเกินกว่างบประมาณรวมทั้งหมด'
+                  : 'ยอดหักรวมเกินกว่า 100%'}
               </div>
-
-              <div style={{ backgroundColor: '#ffffff', padding: '8px 10px', borderRadius: '6px', border: '1px solid #dcfce7' }}>
-                <div style={{ fontSize: '11.5px', color: '#64748b' }}>คณะ (5%)</div>
-                <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#1e293b', fontFamily: 'monospace' }}>
-                  {allocFaculty.toLocaleString()} ฿
-                </div>
-              </div>
-
-              <div style={{ backgroundColor: '#ffffff', padding: '8px 10px', borderRadius: '6px', border: '1px solid #dcfce7' }}>
-                <div style={{ fontSize: '11.5px', color: '#64748b' }}>ภาควิชา (5%)</div>
-                <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#1e293b', fontFamily: 'monospace' }}>
-                  {allocDept.toLocaleString()} ฿
-                </div>
-              </div>
-
-              <div style={{ backgroundColor: '#ffffff', padding: '8px 10px', borderRadius: '6px', border: '1px solid #dcfce7' }}>
-                <div style={{ fontSize: '11.5px', color: '#64748b' }}>มก. (5%)</div>
-                <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#1e293b', fontFamily: 'monospace' }}>
-                  {allocKu.toLocaleString()} ฿
-                </div>
-              </div>
-
-              <div style={{ backgroundColor: '#ecfdf5', padding: '8px 10px', borderRadius: '6px', border: '1px solid #86efac' }}>
-                <div style={{ fontSize: '11.5px', color: '#047857', fontWeight: 600 }}>งบดำเนินงานคงเหลือ (70%)</div>
-                <div style={{ fontSize: '14px', fontWeight: 800, color: '#006838', fontFamily: 'monospace' }}>
-                  {allocRemaining.toLocaleString()} ฿
-                </div>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
@@ -638,12 +1036,14 @@ export const AcademicProjectForm: React.FC<AcademicProjectFormProps> = ({
       {/* หมวดที่ 4: ระยะเวลาดำเนินการ (บังคับใส่ เริ่มต้น - สิ้นสุด) */}
       {/* ========================================================================= */}
       <div
+        className="scroll-mt-24"
         style={{
           border: '1px solid #e2e8f0',
           borderRadius: '12px',
           padding: '18px 20px',
           backgroundColor: '#ffffff',
           boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+          scrollMarginTop: '96px',
         }}
       >
         <div
@@ -674,7 +1074,7 @@ export const AcademicProjectForm: React.FC<AcademicProjectFormProps> = ({
           </div>
           <div>
             <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#1e293b' }}>
-              ระยะเวลาดำเนินการ <span style={{ color: '#ef4444' }}>* (บังคับใส่ปฏิทิน เริ่มต้น - สิ้นสุด)</span>
+              ระยะเวลาดำเนินการ <span style={{ color: '#ef4444' }}>*</span>
             </h4>
           </div>
         </div>
@@ -684,62 +1084,40 @@ export const AcademicProjectForm: React.FC<AcademicProjectFormProps> = ({
             <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
               วันที่เริ่มต้นดำเนินการ <span style={{ color: '#ef4444' }}>*</span>
             </label>
-            <div style={{ position: 'relative' }}>
-              <input
-                type="date"
-                value={formData.start_date || ''}
-                onChange={(e) => onChange('start_date', e.target.value)}
-                required
-                style={{
-                  width: '100%',
-                  padding: '9px 12px',
-                  borderRadius: '8px',
-                  border: '1px solid #cbd5e1',
-                  fontSize: '13.5px',
-                  outline: 'none',
-                  fontFamily: 'inherit',
-                  backgroundColor: '#ffffff',
-                }}
-              />
-            </div>
+            <DatePicker
+              value={formData.start_date || ''}
+              onChange={(_, dateStr) => onChange('start_date', dateStr)}
+              placeholder="วว/ดด/ปปปป (พ.ศ.)"
+              className="w-full"
+            />
           </div>
 
           <div>
             <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
               วันที่สิ้นสุดดำเนินการ <span style={{ color: '#ef4444' }}>*</span>
             </label>
-            <div style={{ position: 'relative' }}>
-              <input
-                type="date"
-                value={formData.end_date || ''}
-                onChange={(e) => onChange('end_date', e.target.value)}
-                required
-                style={{
-                  width: '100%',
-                  padding: '9px 12px',
-                  borderRadius: '8px',
-                  border: '1px solid #cbd5e1',
-                  fontSize: '13.5px',
-                  outline: 'none',
-                  fontFamily: 'inherit',
-                  backgroundColor: '#ffffff',
-                }}
-              />
-            </div>
+            <DatePicker
+              value={formData.end_date || ''}
+              onChange={(_, dateStr) => onChange('end_date', dateStr)}
+              placeholder="วว/ดด/ปปปป (พ.ศ.)"
+              className="w-full"
+            />
           </div>
         </div>
       </div>
 
       {/* ========================================================================= */}
-      {/* หมวดที่ 5: บูรณาการการใช้ประโยชน์ (โครงการวิจัย & สิทธิบัตร) */}
+      {/* หมวดที่ 5: ประเภทโครงการพัฒนาวิชาการ */}
       {/* ========================================================================= */}
       <div
+        className="scroll-mt-24"
         style={{
           border: '1px solid #e2e8f0',
           borderRadius: '12px',
           padding: '18px 20px',
           backgroundColor: '#ffffff',
           boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+          scrollMarginTop: '96px',
         }}
       >
         <div
@@ -768,13 +1146,276 @@ export const AcademicProjectForm: React.FC<AcademicProjectFormProps> = ({
           >
             5
           </div>
+          <div>
+            <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#1e293b' }}>
+              ประเภทโครงการพัฒนาวิชาการ
+            </h4>
+            <span style={{ fontSize: '12px', color: '#64748b' }}>
+              (สามารถเลือกได้มากกว่า 1 ประเภท และเลือกประเภทย่อยได้หลายรายการ)
+            </span>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {ACADEMIC_PROJECT_CATEGORIES.map((catDef) => {
+            const isSelected = selectedCategories.includes(catDef.category);
+            const selectedCount = catDef.subTypes.filter((s) => selectedSubTypes.includes(s)).length;
+            return (
+              <div
+                key={catDef.category}
+                style={{
+                  border: isSelected ? '1.5px solid #00A651' : '1px solid #e2e8f0',
+                  borderRadius: '10px',
+                  backgroundColor: isSelected ? '#f0fdf4' : '#ffffff',
+                  boxShadow: isSelected ? '0 2px 4px rgba(0, 166, 81, 0.08)' : '0 1px 2px rgba(0,0,0,0.02)',
+                  transition: 'all 0.15s ease-in-out',
+                  overflow: 'hidden',
+                }}
+              >
+                {/* Header row as checkbox option */}
+                <div
+                  onClick={() => handleToggleCategory(catDef.category)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '12px 16px',
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                    backgroundColor: isSelected ? '#f0fdf4' : 'transparent',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '18px',
+                      height: '18px',
+                      borderRadius: '4px',
+                      border: isSelected ? '1.5px solid #00A651' : '1.5px solid #cbd5e1',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: isSelected ? '#00A651' : '#ffffff',
+                      flexShrink: 0,
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    {isSelected && <FaCheck style={{ color: '#ffffff', fontSize: '10px' }} />}
+                  </div>
+                  <span
+                    style={{
+                      fontSize: '14px',
+                      fontWeight: isSelected ? 700 : 600,
+                      color: isSelected ? '#006838' : '#334155',
+                    }}
+                  >
+                    {catDef.category}
+                  </span>
+                  {isSelected && selectedCount > 0 && (
+                    <span
+                      style={{
+                        marginLeft: 'auto',
+                        fontSize: '11.5px',
+                        fontWeight: 600,
+                        color: '#006838',
+                        backgroundColor: '#dcfce7',
+                        padding: '2px 8px',
+                        borderRadius: '9999px',
+                      }}
+                    >
+                      เลือก {selectedCount} รายการ
+                    </span>
+                  )}
+                </div>
+
+                {/* Sub-types checkboxes (only visible and active when this main category is selected) */}
+                {isSelected && (
+                  <div
+                    style={{
+                      padding: '12px 16px 16px 46px',
+                      borderTop: '1px solid #dcfce7',
+                      backgroundColor: '#ffffff',
+                    }}
+                  >
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#475569', marginBottom: '8px' }}>
+                      ประเภทย่อย (เลือกได้หลายรายการ):
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                      {catDef.subTypes.map((sub) => {
+                        const isChecked = selectedSubTypes.includes(sub);
+                        return (
+                          <label
+                            key={sub}
+                            onClick={(e) => e.stopPropagation()}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '7px',
+                              padding: '6px 12px',
+                              borderRadius: '7px',
+                              border: isChecked ? '1.5px solid #00A651' : '1px solid #cbd5e1',
+                              backgroundColor: isChecked ? '#e8f5e9' : '#f8fafc',
+                              color: isChecked ? '#006838' : '#334155',
+                              fontSize: '13px',
+                              fontWeight: isChecked ? 600 : 500,
+                              cursor: 'pointer',
+                              userSelect: 'none',
+                              transition: 'all 0.15s ease',
+                            }}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={() => handleToggleSubType(sub)}
+                              style={{
+                                accentColor: '#00A651',
+                                width: '15px',
+                                height: '15px',
+                                cursor: 'pointer',
+                              }}
+                            />
+                            <span>{sub}</span>
+                          </label>
+                        );
+                      })}
+
+                      {/* "อื่นๆ" Checkbox at the end */}
+                      <label
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '7px',
+                          padding: '6px 12px',
+                          borderRadius: '7px',
+                          border: isOtherChecked ? '1.5px solid #00A651' : '1px solid #cbd5e1',
+                          backgroundColor: isOtherChecked ? '#e8f5e9' : '#f8fafc',
+                          color: isOtherChecked ? '#006838' : '#334155',
+                          fontSize: '13px',
+                          fontWeight: isOtherChecked ? 600 : 500,
+                          cursor: 'pointer',
+                          userSelect: 'none',
+                          transition: 'all 0.15s ease',
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isOtherChecked}
+                          onChange={handleToggleOther}
+                          style={{
+                            accentColor: '#00A651',
+                            width: '15px',
+                            height: '15px',
+                            cursor: 'pointer',
+                          }}
+                        />
+                        <span>อื่นๆ</span>
+                      </label>
+                    </div>
+
+                    {/* Inline custom typing for อื่นๆ */}
+                    {isOtherChecked && (
+                      <div
+                        onClick={(e) => e.stopPropagation()}
+                        style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '8px', maxWidth: '520px' }}
+                      >
+                        <input
+                          type="text"
+                          value={otherCustomText}
+                          onChange={handleOtherTextChange}
+                          placeholder="พิมพ์ระบุประเภทย่อยเพิ่มเติม..."
+                          autoFocus
+                          style={{
+                            width: '100%',
+                            padding: '8px 12px',
+                            borderRadius: '6px',
+                            border: '1.5px solid #00A651',
+                            fontSize: '13px',
+                            outline: 'none',
+                            backgroundColor: '#ffffff',
+                            color: '#0f172a',
+                            boxShadow: '0 0 0 3px rgba(0, 166, 81, 0.1)',
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* เลขระเบียนโครงการ (ไม่บังคับใส่) */}
+        <div style={{ marginTop: '18px', paddingTop: '16px', borderTop: '1px dashed #e2e8f0' }}>
+          <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+            เลขระเบียนโครงการ <span style={{ fontSize: '12px', fontWeight: 400, color: '#64748b' }}>(ไม่บังคับใส่)</span>
+          </label>
+          <input
+            type="text"
+            value={formData.record_number || ''}
+            onChange={(e) => onChange('record_number', e.target.value)}
+            placeholder="เช่น ทบ. 68-xxx หรือเลขระเบียนโครงการ (ถ้ามี)"
+            style={{
+              width: '100%',
+              padding: '9px 12px',
+              borderRadius: '6px',
+              border: '1px solid #cbd5e1',
+              fontSize: '13px',
+              outline: 'none',
+              fontFamily: 'inherit',
+              backgroundColor: '#ffffff',
+            }}
+          />
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* หมวดที่ 6: การบูรณาการการใช้ประโยชน์ (โครงการวิจัย และ สิทธิบัตร) */}
+      {/* ========================================================================= */}
+      <div
+        className="scroll-mt-24"
+        style={{
+          border: '1px solid #e2e8f0',
+          borderRadius: '12px',
+          padding: '18px 20px',
+          backgroundColor: '#ffffff',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+          scrollMarginTop: '96px',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            marginBottom: '16px',
+            paddingBottom: '10px',
+            borderBottom: '1.5px solid #f1f5f9',
+          }}
+        >
+          <div
+            style={{
+              width: '26px',
+              height: '26px',
+              borderRadius: '6px',
+              backgroundColor: '#e8f5e9',
+              color: '#00A651',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '13px',
+              fontWeight: 700,
+            }}
+          >
+            6
+          </div>
           <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#1e293b' }}>
             การบูรณาการการใช้ประโยชน์ (โครงการวิจัย และ สิทธิบัตร)
           </h4>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-          {/* ส่วนที่ 5.1: บูรณาการกับโครงการวิจัย (รหัส 8 ตัว + ชื่อโครงการ, มีได้หลายรหัส) */}
+          {/* ส่วนที่ 6.1: บูรณาการกับโครงการวิจัย (รหัส 8 ตัว + ชื่อโครงการ, มีได้หลายรหัส) */}
           <div
             style={{
               padding: '14px 16px',
@@ -795,32 +1436,22 @@ export const AcademicProjectForm: React.FC<AcademicProjectFormProps> = ({
 
             {/* Quick Helper Dropdown จากฐานข้อมูลวิจัยที่มีอยู่ */}
             <div style={{ marginBottom: '10px' }}>
-              <select
-                onChange={handleQuickSelectResearch}
-                defaultValue=""
-                style={{
-                  width: '100%',
-                  padding: '7px 10px',
-                  borderRadius: '6px',
-                  border: '1px dashed #94a3b8',
-                  backgroundColor: '#ffffff',
-                  fontSize: '12.5px',
-                  color: '#475569',
-                  outline: 'none',
-                  cursor: 'pointer',
-                }}
-              >
-                <option value="">-- เลือกเติมข้อมูลด่วนจากโครงการวิจัยในระบบ (หรือพิมพ์เองด้านล่าง) --</option>
-                {researchData.slice(0, 30).map((r: any, idx: number) => {
-                  const rId = String(r.id || '').replace(/[\n\r]/g, ' ').trim();
-                  const rName = String(r.name || '').replace(/[\n\r]/g, ' ').trim();
-                  return (
-                    <option key={idx} value={String(r.id || r._id)}>
-                      [{rId}] {rName.substring(0, 65)}...
-                    </option>
-                  );
-                })}
-              </select>
+              <Select onValueChange={(val) => handleQuickSelectResearch(val as string | null)}>
+                <SelectTrigger className="w-full bg-white text-slate-700 border-dashed text-xs h-9">
+                  <SelectValue placeholder="-- เลือกเติมข้อมูลด่วนจากโครงการวิจัยในระบบ (หรือพิมพ์เองด้านล่าง) --" />
+                </SelectTrigger>
+                <SelectContent>
+                  {researchData.slice(0, 30).map((r: any, idx: number) => {
+                    const rId = String(r.id || '').replace(/[\n\r]/g, ' ').trim();
+                    const rName = String(r.name || '').replace(/[\n\r]/g, ' ').trim();
+                    return (
+                      <SelectItem key={idx} value={String(r.id || r._id)}>
+                        [{rId}] {rName.substring(0, 65)}...
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Form Input เพิ่มรหัสโครงการวิจัย */}
@@ -978,7 +1609,7 @@ export const AcademicProjectForm: React.FC<AcademicProjectFormProps> = ({
             </div>
           </div>
 
-          {/* ส่วนที่ 5.2: บูรณาการกับสิทธิบัตร */}
+          {/* ส่วนที่ 6.2: บูรณาการกับสิทธิบัตร */}
           <div
             style={{
               padding: '14px 16px',
@@ -989,37 +1620,27 @@ export const AcademicProjectForm: React.FC<AcademicProjectFormProps> = ({
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13.5px', fontWeight: 700, color: '#1e293b', marginBottom: '8px' }}>
               <FaCertificate style={{ color: '#00A651', fontSize: '13px' }} />
-              <span>บูรณาการกับสิทธิบัตร / งานทรัพย์สินทางปัญญา</span>
+              <span>บูรณาการทรัพย์สินทางปัญญา</span>
             </div>
 
             {/* Quick helper dropdown จากฐานข้อมูลสิทธิบัตร */}
             <div style={{ marginBottom: '8px' }}>
-              <select
-                onChange={handleQuickSelectIp}
-                defaultValue=""
-                style={{
-                  width: '100%',
-                  padding: '7px 10px',
-                  borderRadius: '6px',
-                  border: '1px dashed #94a3b8',
-                  backgroundColor: '#ffffff',
-                  fontSize: '12.5px',
-                  color: '#475569',
-                  outline: 'none',
-                  cursor: 'pointer',
-                }}
-              >
-                <option value="">-- เลือกสิทธิบัตรจากระบบ (หรือพิมพ์เองในช่องด้านล่าง) --</option>
-                {ipData.map((item: any, idx: number) => {
-                  const reqNo = String(item.req_no || '').trim();
-                  const ipName = String(item.name || '').trim();
-                  return (
-                    <option key={idx} value={`${reqNo ? `[${reqNo}] ` : ''}${ipName}`}>
-                      {reqNo ? `[${reqNo}] ` : ''}{ipName} ({item.type || 'สิทธิบัตร'})
-                    </option>
-                  );
-                })}
-              </select>
+              <Select onValueChange={(val) => handleQuickSelectIp(val as string | null)}>
+                <SelectTrigger className="w-full bg-white text-slate-700 border-dashed text-xs h-9">
+                  <SelectValue placeholder="-- เลือกสิทธิบัตรจากระบบ (หรือพิมพ์เองในช่องด้านล่าง) --" />
+                </SelectTrigger>
+                <SelectContent>
+                  {ipData.map((item: any, idx: number) => {
+                    const reqNo = String(item.req_no || '').trim();
+                    const ipName = String(item.name || '').trim();
+                    return (
+                      <SelectItem key={idx} value={`${reqNo ? `[${reqNo}] ` : ''}${ipName}`}>
+                        {reqNo ? `[${reqNo}] ` : ''}{ipName} ({item.type || 'สิทธิบัตร'})
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
             </div>
 
             <input
@@ -1040,7 +1661,7 @@ export const AcademicProjectForm: React.FC<AcademicProjectFormProps> = ({
             />
           </div>
 
-          {/* ส่วนที่ 5.3: วันที่นำไปบูรณาการ (เริ่มต้น - สิ้นสุด ไม่บังคับใส่) */}
+          {/* ส่วนที่ 6.3: วันที่นำไปบูรณาการ (เริ่มต้น - สิ้นสุด ไม่บังคับใส่) */}
           <div
             style={{
               padding: '14px 16px',
@@ -1063,20 +1684,11 @@ export const AcademicProjectForm: React.FC<AcademicProjectFormProps> = ({
                 <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 500, color: '#475569', marginBottom: '4px' }}>
                   วันที่เริ่มต้นนำไปบูรณาการ
                 </label>
-                <input
-                  type="date"
+                <DatePicker
                   value={formData.integration_start_date || ''}
-                  onChange={(e) => onChange('integration_start_date', e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    borderRadius: '6px',
-                    border: '1px solid #cbd5e1',
-                    fontSize: '13px',
-                    outline: 'none',
-                    backgroundColor: '#ffffff',
-                    fontFamily: 'inherit',
-                  }}
+                  onChange={(_, dateStr) => onChange('integration_start_date', dateStr)}
+                  placeholder="วว/ดด/ปปปป (พ.ศ.)"
+                  className="w-full"
                 />
               </div>
 
@@ -1084,25 +1696,54 @@ export const AcademicProjectForm: React.FC<AcademicProjectFormProps> = ({
                 <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 500, color: '#475569', marginBottom: '4px' }}>
                   วันที่สิ้นสุดนำไปบูรณาการ
                 </label>
-                <input
-                  type="date"
+                <DatePicker
                   value={formData.integration_end_date || ''}
-                  onChange={(e) => onChange('integration_end_date', e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    borderRadius: '6px',
-                    border: '1px solid #cbd5e1',
-                    fontSize: '13px',
-                    outline: 'none',
-                    backgroundColor: '#ffffff',
-                    fontFamily: 'inherit',
-                  }}
+                  onChange={(_, dateStr) => onChange('integration_end_date', dateStr)}
+                  placeholder="วว/ดด/ปปปป (พ.ศ.)"
+                  className="w-full"
                 />
               </div>
             </div>
           </div>
         </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* หมายเหตุ (ไม่บังคับใส่) - ช่องสุดท้ายของแบบฟอร์ม */}
+      {/* ========================================================================= */}
+      <div
+        style={{
+          border: '1px solid #e2e8f0',
+          borderRadius: '12px',
+          padding: '18px 20px',
+          backgroundColor: '#ffffff',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+          <FaInfoCircle style={{ color: '#64748b', fontSize: '14px' }} />
+          <label style={{ margin: 0, fontSize: '13.5px', fontWeight: 700, color: '#1e293b' }}>
+            หมายเหตุ <span style={{ fontSize: '12px', fontWeight: 400, color: '#64748b' }}>(ไม่บังคับใส่)</span>
+          </label>
+        </div>
+        <textarea
+          rows={3}
+          value={formData.remarks || ''}
+          onChange={(e) => onChange('remarks', e.target.value)}
+          placeholder="ระบุหมายเหตุเพิ่มเติม (ถ้ามี)..."
+          style={{
+            width: '100%',
+            padding: '10px 12px',
+            borderRadius: '8px',
+            border: '1px solid #cbd5e1',
+            fontSize: '13px',
+            lineHeight: 1.5,
+            outline: 'none',
+            fontFamily: 'inherit',
+            backgroundColor: '#ffffff',
+            resize: 'vertical',
+          }}
+        />
       </div>
     </div>
   );

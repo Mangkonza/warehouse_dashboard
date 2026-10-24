@@ -4,6 +4,14 @@ import React, { useState } from 'react';
 import { ExtensionReasonCategory, ProjectExtensionRecord } from '@/types/projectMonitoring';
 import { createExtensionRequest } from '@/lib/projectMonitoringEngine';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { DepartmentBadge } from '@/components/ui';
+import {
   FaClock,
   FaTimes,
   FaCheck,
@@ -115,7 +123,9 @@ export const ProjectExtensionModal: React.FC<ProjectExtensionModalProps> = ({
           <div style={{ display: 'flex', gap: '16px', marginTop: '8px', fontSize: '12.5px', color: '#475569' }}>
             <span>รหัส: <strong>{projectItem.id}</strong></span>
             <span>หัวหน้าโครงการ: <strong>{projectItem.head || projectItem.person || '-'}</strong></span>
-            <span>ภาควิชา: <strong>{projectItem.department || '-'}</strong></span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              ภาควิชา: <DepartmentBadge value={projectItem.department} />
+            </span>
           </div>
         </div>
 
@@ -152,19 +162,24 @@ export const ProjectExtensionModal: React.FC<ProjectExtensionModalProps> = ({
             <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
               ประเภทเหตุผลความจำเป็น (ตามเกณฑ์ สวพ.มก.) *
             </label>
-            <select
+            <Select
               value={reasonCategory}
-              onChange={(e) => setReasonCategory(e.target.value as ExtensionReasonCategory)}
-              className="glass-input"
-              style={{ width: '100%', cursor: 'pointer' }}
+              onValueChange={(val) => {
+                if (val) setReasonCategory(val as ExtensionReasonCategory);
+              }}
             >
-              <option value="lab_analysis_waiting">รอผลวิเคราะห์ทางห้องปฏิบัติการ / มาตรฐานภายนอก</option>
-              <option value="technical_issue">อุปสรรคทางเทคนิคในการทดลอง / ปรับปรุงเครื่องมือ</option>
-              <option value="procurement_delay">กระบวนการจัดซื้อจัดจ้างครุภัณฑ์วิจัยล่าช้า</option>
-              <option value="publication_acceptance">รอหนังสือตอบรับการตีพิมพ์ในวารสารนานาชาติ (Acceptance Letter)</option>
-              <option value="force_majeure">เหตุสุดวิสัย / ภัยธรรมชาติ / สภาพภูมิอากาศแปรปรวน</option>
-              <option value="other">เหตุผลความจำเป็นอื่นๆ</option>
-            </select>
+              <SelectTrigger className="w-full bg-white text-slate-800 text-sm h-10">
+                <SelectValue placeholder="เลือกประเภทเหตุผล" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="lab_analysis_waiting">รอผลวิเคราะห์ทางห้องปฏิบัติการ / มาตรฐานภายนอก</SelectItem>
+                <SelectItem value="technical_issue">อุปสรรคทางเทคนิคในการทดลอง / ปรับปรุงเครื่องมือ</SelectItem>
+                <SelectItem value="procurement_delay">กระบวนการจัดซื้อจัดจ้างครุภัณฑ์วิจัยล่าช้า</SelectItem>
+                <SelectItem value="publication_acceptance">รอหนังสือตอบรับการตีพิมพ์ในวารสารนานาชาติ (Acceptance Letter)</SelectItem>
+                <SelectItem value="force_majeure">เหตุสุดวิสัย / ภัยธรรมชาติ / สภาพภูมิอากาศแปรปรวน</SelectItem>
+                <SelectItem value="other">เหตุผลความจำเป็นอื่นๆ</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Detailed Reason */}

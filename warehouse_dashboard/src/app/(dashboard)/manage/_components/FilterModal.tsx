@@ -1,9 +1,17 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { CategoryKey, CategoryConfig } from '@/types/dataManagement';
 import { DEPARTMENTS, getDepartmentAbbr } from '@/config/dataManagementConfig';
 import { FaFilter, FaTimes, FaUndo, FaCheck } from 'react-icons/fa';
+import { DepartmentSelect } from '@/components/ui';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface FilterModalProps {
   isOpen: boolean;
@@ -14,11 +22,13 @@ interface FilterModalProps {
   selectedRole: string;
   selectedImageStatus: 'all' | 'has_image' | 'no_image';
   selectedSubFilter: string;
+  selectedCompleteness?: 'all' | 'complete' | 'incomplete';
   onApply: (filters: {
     selectedDept: string;
     selectedRole: string;
     selectedImageStatus: 'all' | 'has_image' | 'no_image';
     selectedSubFilter: string;
+    selectedCompleteness?: 'all' | 'complete' | 'incomplete';
   }) => void;
   onReset: () => void;
 }
@@ -32,6 +42,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
   selectedRole,
   selectedImageStatus,
   selectedSubFilter,
+  selectedCompleteness = 'all',
   onApply,
   onReset,
 }) => {
@@ -40,6 +51,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
   const [draftRole, setDraftRole] = useState(selectedRole);
   const [draftImageStatus, setDraftImageStatus] = useState(selectedImageStatus);
   const [draftSubFilter, setDraftSubFilter] = useState(selectedSubFilter);
+  const [draftCompleteness, setDraftCompleteness] = useState<'all' | 'complete' | 'incomplete'>(selectedCompleteness);
 
   useEffect(() => {
     if (isOpen) {
@@ -47,8 +59,9 @@ export const FilterModal: React.FC<FilterModalProps> = ({
       setDraftRole(selectedRole);
       setDraftImageStatus(selectedImageStatus);
       setDraftSubFilter(selectedSubFilter);
+      setDraftCompleteness(selectedCompleteness);
     }
-  }, [isOpen, selectedDept, selectedRole, selectedImageStatus, selectedSubFilter]);
+  }, [isOpen, selectedDept, selectedRole, selectedImageStatus, selectedSubFilter, selectedCompleteness]);
 
   if (!isOpen) return null;
 
@@ -58,6 +71,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
       selectedRole: draftRole,
       selectedImageStatus: draftImageStatus,
       selectedSubFilter: draftSubFilter,
+      selectedCompleteness: draftCompleteness,
     });
     onClose();
   };
@@ -67,6 +81,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
     setDraftRole('');
     setDraftImageStatus('all');
     setDraftSubFilter('');
+    setDraftCompleteness('all');
     onReset();
     onClose();
   };
@@ -75,7 +90,8 @@ export const FilterModal: React.FC<FilterModalProps> = ({
     (draftDept ? 1 : 0) +
     (draftRole ? 1 : 0) +
     (draftImageStatus !== 'all' ? 1 : 0) +
-    (draftSubFilter ? 1 : 0);
+    (draftSubFilter ? 1 : 0) +
+    (draftCompleteness !== 'all' ? 1 : 0);
 
   return (
     <div
@@ -147,32 +163,14 @@ export const FilterModal: React.FC<FilterModalProps> = ({
             <label style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>
               ภาควิชา / ศูนย์สังกัด
             </label>
-            <select
+            <DepartmentSelect
               value={draftDept}
-              onChange={(e) => setDraftDept(e.target.value)}
-              style={{
-                padding: '9px 12px',
-                borderRadius: '8px',
-                border: draftDept ? '1.5px solid #72242B' : '1px solid #cbd5e1',
-                backgroundColor: draftDept ? '#fbf0f1' : '#ffffff',
-                color: draftDept ? '#72242B' : '#1e293b',
-                fontWeight: draftDept ? 600 : 400,
-                fontSize: '13.5px',
-                outline: 'none',
-                fontFamily: 'inherit',
-                cursor: 'pointer',
-              }}
-            >
-              <option value="">ทุกภาควิชา / ศูนย์สังกัด</option>
-              {DEPARTMENTS.map((dept) => {
-                const abbr = getDepartmentAbbr(dept);
-                return (
-                  <option key={dept} value={dept}>
-                    [{abbr}] {dept}
-                  </option>
-                );
-              })}
-            </select>
+              onChange={(val) => setDraftDept(val === '__all__' ? '' : val)}
+              allowAll
+              allLabel="ทุกภาควิชา / ศูนย์สังกัด"
+              allValue=""
+              className="w-full"
+            />
           </div>
 
           {/* 2. Personnel Category Filters */}
@@ -183,30 +181,20 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                 <label style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>
                   ตำแหน่งทางวิชาการ / สายงาน
                 </label>
-                <select
-                  value={draftRole}
-                  onChange={(e) => setDraftRole(e.target.value)}
-                  style={{
-                    padding: '9px 12px',
-                    borderRadius: '8px',
-                    border: draftRole ? '1.5px solid #00A651' : '1px solid #cbd5e1',
-                    backgroundColor: draftRole ? '#f0fbf5' : '#ffffff',
-                    color: draftRole ? '#00A651' : '#1e293b',
-                    fontWeight: draftRole ? 600 : 400,
-                    fontSize: '13.5px',
-                    outline: 'none',
-                    fontFamily: 'inherit',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <option value="">ทุกตำแหน่ง / ทุกสายงาน</option>
-                  <option value="professor">ศาสตราจารย์ (ศ.)</option>
-                  <option value="assoc_prof">รองศาสตราจารย์ (รศ.)</option>
-                  <option value="asst_prof">ผู้ช่วยศาสตราจารย์ (ผศ.)</option>
-                  <option value="lecturer">อาจารย์ / ดร.</option>
-                  <option value="executive">หัวหน้าภาควิชา / คณะผู้บริหาร</option>
-                  <option value="staff">สายสนับสนุน / พนักงานและเจ้าหน้าที่</option>
-                </select>
+                <Select value={draftRole || '__all__'} onValueChange={(val) => setDraftRole(val === '__all__' ? '' : (val ?? ''))}>
+                  <SelectTrigger className="w-full bg-white text-slate-800">
+                    <SelectValue placeholder="ทุกตำแหน่ง / ทุกสายงาน" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__all__">ทุกตำแหน่ง / ทุกสายงาน</SelectItem>
+                    <SelectItem value="professor">ศาสตราจารย์ (ศ.)</SelectItem>
+                    <SelectItem value="assoc_prof">รองศาสตราจารย์ (รศ.)</SelectItem>
+                    <SelectItem value="asst_prof">ผู้ช่วยศาสตราจารย์ (ผศ.)</SelectItem>
+                    <SelectItem value="lecturer">อาจารย์ / ดร.</SelectItem>
+                    <SelectItem value="executive">หัวหน้าภาควิชา / คณะผู้บริหาร</SelectItem>
+                    <SelectItem value="staff">สายสนับสนุน / พนักงานและเจ้าหน้าที่</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Profile Image Status */}
@@ -246,6 +234,44 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                   ))}
                 </div>
               </div>
+
+              {/* Profile Completeness Status */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>
+                  สถานะความครบถ้วนของข้อมูล
+                </label>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  {[
+                    { key: 'all', label: 'ทั้งหมด' },
+                    { key: 'incomplete', label: 'ข้อมูลไม่ครบ' },
+                    { key: 'complete', label: 'ข้อมูลครบถ้วน' },
+                  ].map((opt) => (
+                    <button
+                      key={opt.key}
+                      type="button"
+                      onClick={() => setDraftCompleteness(opt.key as any)}
+                      style={{
+                        flex: 1,
+                        padding: '8px 10px',
+                        borderRadius: '8px',
+                        border:
+                          draftCompleteness === opt.key
+                            ? '1.5px solid #00A651'
+                            : '1px solid #cbd5e1',
+                        backgroundColor:
+                          draftCompleteness === opt.key ? '#f0fbf5' : '#ffffff',
+                        color: draftCompleteness === opt.key ? '#00A651' : '#475569',
+                        fontWeight: draftCompleteness === opt.key ? 600 : 400,
+                        fontSize: '13px',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </>
           )}
 
@@ -255,27 +281,17 @@ export const FilterModal: React.FC<FilterModalProps> = ({
               <label style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>
                 ประเภทงบประมาณและแหล่งทุน
               </label>
-              <select
-                value={draftSubFilter}
-                onChange={(e) => setDraftSubFilter(e.target.value)}
-                style={{
-                  padding: '9px 12px',
-                  borderRadius: '8px',
-                  border: draftSubFilter ? '1.5px solid #00A651' : '1px solid #cbd5e1',
-                  backgroundColor: draftSubFilter ? '#f0fbf5' : '#ffffff',
-                  color: draftSubFilter ? '#00A651' : '#1e293b',
-                  fontWeight: draftSubFilter ? 600 : 400,
-                  fontSize: '13.5px',
-                  outline: 'none',
-                  fontFamily: 'inherit',
-                  cursor: 'pointer',
-                }}
-              >
-                <option value="">ทุกแหล่งทุนและงบประมาณ</option>
-                <option value="external">โครงการที่มีงบประมาณภายนอก</option>
-                <option value="internal">โครงการที่มีงบประมาณภายใน</option>
-                <option value="high_budget">โครงการงบประมาณรวม &gt; 1 ล้านบาท</option>
-              </select>
+              <Select value={draftSubFilter || '__all__'} onValueChange={(val) => setDraftSubFilter(val === '__all__' ? '' : (val ?? ''))}>
+                <SelectTrigger className="w-full bg-white text-slate-800">
+                  <SelectValue placeholder="ทุกแหล่งทุนและงบประมาณ" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__all__">ทุกแหล่งทุนและงบประมาณ</SelectItem>
+                  <SelectItem value="external">โครงการที่มีงบประมาณภายนอก</SelectItem>
+                  <SelectItem value="internal">โครงการที่มีงบประมาณภายใน</SelectItem>
+                  <SelectItem value="high_budget">โครงการงบประมาณรวม &gt; 1 ล้านบาท</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           )}
 
@@ -285,29 +301,19 @@ export const FilterModal: React.FC<FilterModalProps> = ({
               <label style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>
                 ลักษณะโครงการและการบูรณาการ
               </label>
-              <select
-                value={draftSubFilter}
-                onChange={(e) => setDraftSubFilter(e.target.value)}
-                style={{
-                  padding: '9px 12px',
-                  borderRadius: '8px',
-                  border: draftSubFilter ? '1.5px solid #00A651' : '1px solid #cbd5e1',
-                  backgroundColor: draftSubFilter ? '#f0fbf5' : '#ffffff',
-                  color: draftSubFilter ? '#00A651' : '#1e293b',
-                  fontWeight: draftSubFilter ? 600 : 400,
-                  fontSize: '13.5px',
-                  outline: 'none',
-                  fontFamily: 'inherit',
-                  cursor: 'pointer',
-                }}
-              >
-                <option value="">ทุกลักษณะและการบูรณาการ</option>
-                <option value="policy">สอดคล้องกับนโยบายชาติ</option>
-                <option value="value_add">เพิ่มมูลค่า</option>
-                <option value="has_research">มีการบูรณาการกับโครงการวิจัย</option>
-                <option value="has_patent">มีการบูรณาการกับสิทธิบัตร</option>
-                <option value="has_external_members">มีผู้ร่วมโครงการภายนอก</option>
-              </select>
+              <Select value={draftSubFilter || '__all__'} onValueChange={(val) => setDraftSubFilter(val === '__all__' ? '' : (val ?? ''))}>
+                <SelectTrigger className="w-full bg-white text-slate-800">
+                  <SelectValue placeholder="ทุกลักษณะและการบูรณาการ" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__all__">ทุกลักษณะและการบูรณาการ</SelectItem>
+                  <SelectItem value="policy">สอดคล้องกับนโยบายชาติ</SelectItem>
+                  <SelectItem value="value_add">เพิ่มมูลค่า</SelectItem>
+                  <SelectItem value="has_research">มีการบูรณาการกับโครงการวิจัย</SelectItem>
+                  <SelectItem value="has_patent">มีการบูรณาการกับสิทธิบัตร</SelectItem>
+                  <SelectItem value="has_external_members">มีผู้ร่วมโครงการภายนอก</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           )}
 
@@ -317,28 +323,18 @@ export const FilterModal: React.FC<FilterModalProps> = ({
               <label style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>
                 ระดับและฐานข้อมูลวารสาร
               </label>
-              <select
-                value={draftSubFilter}
-                onChange={(e) => setDraftSubFilter(e.target.value)}
-                style={{
-                  padding: '9px 12px',
-                  borderRadius: '8px',
-                  border: draftSubFilter ? '1.5px solid #00A651' : '1px solid #cbd5e1',
-                  backgroundColor: draftSubFilter ? '#f0fbf5' : '#ffffff',
-                  color: draftSubFilter ? '#00A651' : '#1e293b',
-                  fontWeight: draftSubFilter ? 600 : 400,
-                  fontSize: '13.5px',
-                  outline: 'none',
-                  fontFamily: 'inherit',
-                  cursor: 'pointer',
-                }}
-              >
-                <option value="">ทุกระดับ / ฐานข้อมูล</option>
-                <option value="q1">เฉพาะนานาชาติ Q1</option>
-                <option value="q2">เฉพาะนานาชาติ Q2</option>
-                <option value="inter">วารสารนานาชาติทั้งหมด</option>
-                <option value="tci">วารสารระดับชาติ / TCI</option>
-              </select>
+              <Select value={draftSubFilter || '__all__'} onValueChange={(val) => setDraftSubFilter(val === '__all__' ? '' : (val ?? ''))}>
+                <SelectTrigger className="w-full bg-white text-slate-800">
+                  <SelectValue placeholder="ทุกระดับ / ฐานข้อมูล" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__all__">ทุกระดับ / ฐานข้อมูล</SelectItem>
+                  <SelectItem value="q1">เฉพาะนานาชาติ Q1</SelectItem>
+                  <SelectItem value="q2">เฉพาะนานาชาติ Q2</SelectItem>
+                  <SelectItem value="inter">วารสารนานาชาติทั้งหมด</SelectItem>
+                  <SelectItem value="tci">วารสารระดับชาติ / TCI</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           )}
 
@@ -348,27 +344,17 @@ export const FilterModal: React.FC<FilterModalProps> = ({
               <label style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>
                 สถานะและประเภทงานทรัพย์สินทางปัญญา
               </label>
-              <select
-                value={draftSubFilter}
-                onChange={(e) => setDraftSubFilter(e.target.value)}
-                style={{
-                  padding: '9px 12px',
-                  borderRadius: '8px',
-                  border: draftSubFilter ? '1.5px solid #00A651' : '1px solid #cbd5e1',
-                  backgroundColor: draftSubFilter ? '#f0fbf5' : '#ffffff',
-                  color: draftSubFilter ? '#00A651' : '#1e293b',
-                  fontWeight: draftSubFilter ? 600 : 400,
-                  fontSize: '13.5px',
-                  outline: 'none',
-                  fontFamily: 'inherit',
-                  cursor: 'pointer',
-                }}
-              >
-                <option value="">ทุกสถานะและประเภท</option>
-                <option value="granted">ออกสิทธิบัตร / รับจดทะเบียนแล้ว</option>
-                <option value="patent">สิทธิบัตรการประดิษฐ์</option>
-                <option value="petty">อนุสิทธิบัตร</option>
-              </select>
+              <Select value={draftSubFilter || '__all__'} onValueChange={(val) => setDraftSubFilter(val === '__all__' ? '' : (val ?? ''))}>
+                <SelectTrigger className="w-full bg-white text-slate-800">
+                  <SelectValue placeholder="ทุกสถานะและประเภท" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__all__">ทุกสถานะและประเภท</SelectItem>
+                  <SelectItem value="granted">ออกสิทธิบัตร / รับจดทะเบียนแล้ว</SelectItem>
+                  <SelectItem value="patent">สิทธิบัตรการประดิษฐ์</SelectItem>
+                  <SelectItem value="petty">อนุสิทธิบัตร</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           )}
         </div>

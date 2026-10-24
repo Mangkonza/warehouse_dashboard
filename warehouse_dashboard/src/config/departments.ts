@@ -1,7 +1,10 @@
 /**
  * Canonical Department Definitions & Mappings
  * Faculty of Engineering at Kamphaeng Saen, Kasetsart University
+ * (Aligned with src/lib/departments.ts single source of truth)
  */
+
+import { DEPARTMENTS, getDepartment } from '@/lib/departments';
 
 export interface DepartmentInfo {
   code: string;
@@ -10,7 +13,7 @@ export interface DepartmentInfo {
 }
 
 export const CANONICAL_DEPARTMENTS: DepartmentInfo[] = [
-  { code: 'ABE', name: 'วิศวกรรมเกษตร', abbrTh: 'วศ.กษ.' },
+  { code: 'AE', name: 'วิศวกรรมเกษตร', abbrTh: 'วศ.กษ.' },
   { code: 'CPE', name: 'วิศวกรรมคอมพิวเตอร์', abbrTh: 'วศ.คพ.' },
   { code: 'IRE', name: 'วิศวกรรมชลประทาน', abbrTh: 'วศ.ชป.' },
   { code: 'FE',  name: 'วิศวกรรมอาหาร', abbrTh: 'วศ.อห.' },
@@ -21,15 +24,8 @@ export const CANONICAL_DEPARTMENTS: DepartmentInfo[] = [
 
 export const DEPARTMENT_NAMES = CANONICAL_DEPARTMENTS.map((d) => d.name);
 
-export function matchDepartmentCode(rawDept: string): string | null {
+export function matchDepartmentCode(rawDept?: string | null): string | null {
   if (!rawDept) return null;
-  const s = rawDept.trim();
-  if (s.includes('เกษตร') || s === 'ABE') return 'ABE';
-  if (s.includes('คอมพิวเตอร์') || s === 'CPE') return 'CPE';
-  if (s.includes('ชลประทาน') || s === 'IRE') return 'IRE';
-  if (s.includes('อาหาร') || s === 'FE') return 'FE';
-  if (s.includes('อุตสาหการ') || s === 'IE') return 'IE';
-  if (s.includes('เครื่องกล') || s === 'ME') return 'ME';
-  if (s.includes('โยธา') || s === 'CE') return 'CE';
-  return null;
+  const dept = getDepartment(rawDept);
+  return dept.code !== '-' ? dept.code : null;
 }

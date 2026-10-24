@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { FaExclamationTriangle, FaClock, FaArrowRight } from 'react-icons/fa';
+import { DepartmentBadge } from '@/components/ui';
 
 interface ActionListCardProps {
   actionList: {
@@ -56,9 +57,9 @@ export const ActionListCard: React.FC<ActionListCardProps> = ({ actionList }) =>
                 <div style={{ fontWeight: 600, color: '#78350f', lineHeight: 1.3 }}>
                   {item.name}
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', color: '#92400e', fontSize: '11px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px', color: '#92400e', fontSize: '11px' }}>
                   <span>เหลือ {item._tl?.days_remaining} วัน</span>
-                  <span>{item.department}</span>
+                  <DepartmentBadge value={item.department} />
                 </div>
               </div>
             ))

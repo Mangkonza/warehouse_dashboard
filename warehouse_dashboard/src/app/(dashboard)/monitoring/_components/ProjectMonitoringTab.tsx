@@ -5,10 +5,19 @@ import { calculateProjectTimeline, STATUS_LABELS } from '@/lib/projectMonitoring
 import { ProjectExtensionRecord, ProjectStatus, ProjectTimelineInfo } from '@/types/projectMonitoring';
 import { ProjectExtensionModal } from '@/features/monitoring/components/ProjectExtensionModal';
 import { ConfirmActionModal } from '@/components/ui/ConfirmActionModal';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { getCachedCategoryData, fetchCategoryData, saveCategoryRecord } from '@/lib/dataService';
 import rawResearch from '@/data/research.json';
 import rawAcademic from '@/data/academic.json';
 import { DEPARTMENTS, getDepartmentAbbr } from '@/config/dataManagementConfig';
+import { DepartmentBadge, DepartmentSelect } from '@/components/ui';
+import { getDepartment } from '@/lib/departments';
 import {
   FaClock,
   FaFlask,
@@ -169,8 +178,11 @@ export default function ProjectMonitoringTab({
       }
       // Department Filter
       if (deptFilter !== 'all') {
-        const d = String(p.department || '');
-        if (!d.includes(deptFilter)) return false;
+        const itemDept = getDepartment(p.department);
+        const filterDept = getDepartment(deptFilter);
+        if (itemDept.code !== filterDept.code && !String(p.department || '').includes(deptFilter)) {
+          return false;
+        }
       }
       // Search Term
       if (searchTerm.trim()) {
@@ -741,27 +753,15 @@ export default function ProjectMonitoringTab({
           {/* Department Filter */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <FaBuilding style={{ color: '#64748b', fontSize: '13px' }} />
-            <select
+            <DepartmentSelect
               value={deptFilter}
-              onChange={(e) => setDeptFilter(e.target.value)}
-              style={{
-                padding: '8px 12px',
-                borderRadius: '8px',
-                border: '1px solid #cbd5e1',
-                fontSize: '13px',
-                outline: 'none',
-                fontFamily: 'inherit',
-                backgroundColor: '#ffffff',
-                cursor: 'pointer',
-              }}
-            >
-              <option value="all">ทุกภาควิชา / ศูนย์</option>
-              {DEPARTMENTS.map((dept) => (
-                <option key={dept} value={dept}>
-                  {dept}
-                </option>
-              ))}
-            </select>
+              onChange={setDeptFilter}
+              allowAll
+              allLabel="ทุกภาควิชา / ศูนย์"
+              allValue="all"
+              size="sm"
+              className="w-[200px]"
+            />
           </div>
 
           {(statusFilter !== 'all' || deptFilter !== 'all' || searchTerm) && (
@@ -945,21 +945,9 @@ export default function ProjectMonitoringTab({
                   </div>
 
                   {/* ภาควิชา */}
-                  <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span style={{ color: '#64748b' }}>ภาควิชา: </span>
-                    <span
-                      style={{
-                        display: 'inline-block',
-                        padding: '1px 8px',
-                        borderRadius: '8px',
-                        backgroundColor: '#990000',
-                        color: '#ffffff',
-                        fontSize: '12px',
-                        fontWeight: 600,
-                      }}
-                    >
-                      {getDepartmentAbbr(item.department)}
-                    </span>
+                    <DepartmentBadge value={item.department} />
                   </div>
 
                   {/* ข้อมูลเฉพาะ: โครงการวิจัย vs โครงการพัฒนาวิชาการ */}
@@ -985,11 +973,24 @@ export default function ProjectMonitoringTab({
                       <div>
                         <span style={{ color: '#64748b' }}>งบประมาณรวม: </span>
                         <strong style={{ color: '#006838', fontFamily: 'monospace' }}>
-                          {(item.budget || 0).toLocaleString()} บาท
+                          {(Number(item.budget) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท
                         </strong>
-                        <span style={{ fontSize: '11px', color: '#64748b', marginLeft: '4px' }}>
-                          (หัก 30%: {Math.round((item.budget || 0) * 0.30).toLocaleString()} ฿)
-                        </span>
+                        {Number(item.budget) > 0 && (() => {
+                          const b = Number(item.budget) || 0;
+                          const facP = item.percent_faculty !== undefined && item.percent_faculty !== null ? Number(item.percent_faculty) : 5;
+                          const depP = item.percent_dept !== undefined && item.percent_dept !== null ? Number(item.percent_dept) : 5;
+                          const kuP = item.percent_ku !== undefined && item.percent_ku !== null ? Number(item.percent_ku) : 5;
+                          const totalP = facP + depP + kuP;
+                          const facAmt = item.alloc_faculty !== undefined && item.alloc_faculty !== null && item.alloc_faculty !== '' ? Number(item.alloc_faculty) : (b * facP) / 100;
+                          const depAmt = item.alloc_dept !== undefined && item.alloc_dept !== null && item.alloc_dept !== '' ? Number(item.alloc_dept) : (b * depP) / 100;
+                          const kuAmt = item.alloc_ku !== undefined && item.alloc_ku !== null && item.alloc_ku !== '' ? Number(item.alloc_ku) : (b * kuP) / 100;
+                          const totalDeduct = facAmt + depAmt + kuAmt;
+                          return (
+                            <span style={{ fontSize: '11px', color: '#64748b', marginLeft: '6px' }}>
+                              (หัก {totalP}%: {totalDeduct.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท)
+                            </span>
+                          );
+                        })()}
                       </div>
                     </>
                   )}

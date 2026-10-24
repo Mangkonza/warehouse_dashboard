@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import ipData from '@/data/ip.json';
 import { getCachedCategoryData } from '@/lib/dataService';
 import { TimeFilterState, itemMatchesTimeFilter } from '@/types/timeFilter';
+import { getDepartment } from '@/lib/departments';
 
 export interface IPItem {
   id?: string;
@@ -56,13 +57,17 @@ export function useIPData(timeFilter?: TimeFilterState) {
       const matchSearch =
         !searchTerm ||
         (item.name && item.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (item.title && item.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (item.creator && item.creator.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (item.application_number && item.application_number.includes(searchTerm)) ||
+        (item.registration_number && item.registration_number.includes(searchTerm)) ||
         (item.req_no && item.req_no.toLowerCase().includes(searchTerm.toLowerCase()));
 
+      const targetCode = deptFilter !== 'all' ? getDepartment(deptFilter).code : '';
       const matchDept =
         deptFilter === 'all' ||
-        (item.creator && item.creator.includes(deptFilter)) ||
-        (item.department && item.department.includes(deptFilter));
+        (item.creator && (item.creator.includes(deptFilter) || (targetCode !== '-' && getDepartment(item.creator).code === targetCode))) ||
+        (item.department && (item.department.includes(deptFilter) || (targetCode !== '-' && getDepartment(item.department).code === targetCode)));
 
       return matchSearch && matchDept;
     });
@@ -78,6 +83,10 @@ export function useIPData(timeFilter?: TimeFilterState) {
     ).length;
   }, [validIpData]);
 
+  const totalSupportAmount = useMemo(() => {
+    return validIpData.reduce((sum, item) => sum + (Number(item.support_amount) || 0), 0);
+  }, [validIpData]);
+
   const uniqueDeptCount = availableDepts.length > 0 ? availableDepts.length : 1;
 
   return {
@@ -85,6 +94,7 @@ export function useIPData(timeFilter?: TimeFilterState) {
     filteredIpData,
     availableDepts,
     patentCount,
+    totalSupportAmount,
     uniqueDeptCount,
     searchTerm,
     setSearchTerm,

@@ -43,6 +43,14 @@ const COLUMN_ALIASES: Record<string, string[]> = {
   email: ['อีเมล', 'e-mail', 'email'],
   target_group: ['กลุ่มเป้าหมาย', 'ผู้เข้าร่วม', 'target_group', 'audience'],
   image_url: ['รูปภาพ', 'รูปภาพประจำตัว', 'รูปถ่าย', 'รูป', 'รูปโปรไฟล์', 'image', 'picture', 'photo', 'avatar', 'image_url'],
+  title: ['ชื่อเรื่อง', 'title', 'ชื่อการประดิษฐ์', 'เรื่อง'],
+  support_amount: ['คณะฯ สนับสนุน', 'เงินสนับสนุน', 'support_amount', 'คณะสนับสนุน', 'เงินรางวัลสนับสนุน'],
+  application_number: ['เลขที่คำขอ', 'application_number', 'app_no'],
+  registration_number: ['เลขที่', 'เลขที่ทะเบียน', 'registration_number', 'reg_no', 'เลขที่สิทธิบัตร'],
+  filing_date: ['วันที่ยื่น', 'filing_date', 'ยื่นคำขอ'],
+  protection_start: ['วันที่เริ่มต้น', 'protection_start', 'เริ่มคุ้มครอง'],
+  protection_end: ['วันที่สิ้นสุด', 'protection_end', 'สิ้นสุดคุ้มครอง'],
+  remarks: ['หมายเหตุ', 'remarks', 'comment', 'note'],
 };
 
 /**
@@ -50,7 +58,7 @@ const COLUMN_ALIASES: Record<string, string[]> = {
  */
 export function cleanText(val: any): string {
   if (val === null || val === undefined) return '';
-  const str = String(val).replace(/\\r\\n|\\r|\\n/g, ' ').replace(/\s+/g, ' ').trim();
+  const str = String(val).replace(/\\r\\n|\\r|\\n|\r?\n/g, ' ').replace(/\s+/g, ' ').trim();
   if (str === 'nan' || str === 'NaT' || str === '-' || str === 'undefined' || str === 'null') {
     return '';
   }

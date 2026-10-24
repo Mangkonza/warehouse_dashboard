@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 import { PersonnelRecord } from '@/types/dataManagement';
@@ -105,18 +105,7 @@ export const SmartAutocomplete: React.FC<SmartAutocompleteProps> = ({
             overflowY: 'auto',
           }}
         >
-          <div
-            style={{
-              padding: '6px 12px',
-              fontSize: '11px',
-              fontWeight: 600,
-              color: '#00A651',
-              backgroundColor: '#f0fdf4',
-              borderBottom: '1px solid #dcfce7',
-            }}
-          >
-            รายชื่อบุคลากรที่ตรงกันในระบบ (เลือกเพื่อ Auto-fill ข้อมูล)
-          </div>
+          {/* Suggestions Dropdown Items */}
 
           {matches.map((p) => (
             <div

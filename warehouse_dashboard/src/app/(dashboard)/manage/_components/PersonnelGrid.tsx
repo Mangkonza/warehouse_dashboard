@@ -1,8 +1,9 @@
-﻿'use client';
+'use client';
 
 import React from 'react';
 import { PersonnelRecord } from '@/types/dataManagement';
 import { getDepartmentAbbr } from '@/config/dataManagementConfig';
+import { DepartmentBadge } from '@/components/ui';
 import { FaUserTie, FaEnvelope, FaEdit, FaTrashAlt } from 'react-icons/fa';
 
 interface PersonnelGridProps {
@@ -81,9 +82,6 @@ export const PersonnelGrid: React.FC<PersonnelGridProps> = ({
 
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '11px', color: '#64748b', fontFamily: 'monospace' }}>
-                  {p.id}
-                </span>
                 {p.title_th && (
                   <span
                     style={{
@@ -96,6 +94,21 @@ export const PersonnelGrid: React.FC<PersonnelGridProps> = ({
                     }}
                   >
                     {p.title_th}
+                  </span>
+                )}
+                {(!p.position || !p.position.trim() || !p.email || !p.email.trim() || p.email === 'ไม่พบอีเมล' || !p.image_url || !p.image_url.trim()) && (
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      padding: '1px 6px',
+                      borderRadius: '4px',
+                      backgroundColor: '#fef3c7',
+                      color: '#b45309',
+                      border: '1px solid #fde68a',
+                    }}
+                  >
+                    ข้อมูลไม่ครบ
                   </span>
                 )}
               </div>
@@ -129,30 +142,9 @@ export const PersonnelGrid: React.FC<PersonnelGridProps> = ({
             </div>
           </div>
 
-          {/* Department Badge: ตัวย่อภาษาอังกฤษ + สีเลือดหมู #72242B (ไม่มี icon, เอาเมาส์ชี้แสดงชื่อเต็ม) */}
+          {/* Department Badge */}
           <div style={{ marginTop: '14px', paddingTop: '10px', borderTop: '1px solid #f1f5f9' }}>
-            <span
-              style={{
-                display: 'inline-block',
-                padding: '3px 10px',
-                borderRadius: '12px',
-                fontSize: '12.5px',
-                fontWeight: 600,
-                fontFamily: "'Kanit', sans-serif",
-                backgroundColor: '#990000',
-                color: '#ffffff',
-                border: '1px solid #990000',
-                maxWidth: '100%',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                letterSpacing: '0.3px',
-                cursor: 'default',
-              }}
-              title={p.department}
-            >
-              {getDepartmentAbbr(p.department)}
-            </span>
+            <DepartmentBadge value={p.department} />
           </div>
 
           {/* Footer: Email & Actions */}

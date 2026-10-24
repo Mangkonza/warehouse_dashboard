@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useMemo } from 'react';
 import { CategoryKey, PersonnelRecord } from '@/types/dataManagement';
@@ -8,7 +8,14 @@ import { DataTable } from './DataTable';
 import { PersonnelGrid } from './PersonnelGrid';
 import { SmartAddEditModal } from './SmartAddEditModal';
 import { SmartExcelImportModal } from './SmartExcelImportModal';
-import { DeleteConfirmModal } from './DeleteConfirmModal';
+import { ConfirmActionModal, SearchInput } from '@/components/ui';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { FilterModal } from './FilterModal';
 import { downloadExcelTemplate, exportTableToExcel } from '@/lib/etlEngine';
 import {
@@ -75,6 +82,56 @@ const getInitialDataset = (key: CategoryKey, fallback: any[]) => {
   return sanitizeDataset(fallback, key);
 };
 
+const VALID_CATEGORIES: readonly CategoryKey[] = [
+  'research',
+  'academic',
+  'service',
+  'publications',
+  'ip',
+  'personnel',
+  'kpi',
+  'monitoring',
+];
+
+const LS_MANAGE_TAB_KEY = 'ku_dw_manage_active_tab';
+const LS_PERSONNEL_VIEW_KEY = 'ku_dw_manage_personnel_view_mode';
+
+function resolveInitialCategory(): CategoryKey {
+  if (typeof window !== 'undefined') {
+    try {
+      // 1. URL search param has highest priority (?tab=... or ?category=...)
+      const params = new URLSearchParams(window.location.search);
+      const urlTab = params.get('tab') || params.get('category');
+      if (urlTab && VALID_CATEGORIES.includes(urlTab as CategoryKey)) {
+        return urlTab as CategoryKey;
+      }
+
+      // 2. LocalStorage has second priority
+      const savedTab = localStorage.getItem(LS_MANAGE_TAB_KEY);
+      if (savedTab && VALID_CATEGORIES.includes(savedTab as CategoryKey)) {
+        return savedTab as CategoryKey;
+      }
+    } catch (e) {
+      console.warn('[DataManagement] Error resolving initial category:', e);
+    }
+  }
+  return 'research';
+}
+
+function resolveInitialPersonnelViewMode(): 'grid' | 'table' {
+  if (typeof window !== 'undefined') {
+    try {
+      const saved = localStorage.getItem(LS_PERSONNEL_VIEW_KEY);
+      if (saved === 'grid' || saved === 'table') {
+        return saved;
+      }
+    } catch {
+      // ignore
+    }
+  }
+  return 'table';
+}
+
 export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
   goBack,
   onNavigateToMonitoring,
@@ -110,15 +167,48 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
     });
   }, []);
 
-  const [activeCategory, setActiveCategory] = useState<CategoryKey>('research');
+  const [activeCategory, setActiveCategory] = useState<CategoryKey>(resolveInitialCategory);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDept, setSelectedDept] = useState('');
   const [selectedRole, setSelectedRole] = useState('');
   const [selectedImageStatus, setSelectedImageStatus] = useState<'all' | 'has_image' | 'no_image'>('all');
+  const [selectedCompleteness, setSelectedCompleteness] = useState<'all' | 'complete' | 'incomplete'>('all');
   const [selectedSubFilter, setSelectedSubFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [personnelViewMode, setPersonnelViewMode] = useState<'grid' | 'table'>('table');
+  const [personnelViewMode, setPersonnelViewMode] = useState<'grid' | 'table'>(resolveInitialPersonnelViewMode);
+
+  // Synchronize URL and handle browser back/forward navigation
+  React.useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const currentTab = params.get('tab') || params.get('category');
+      if (currentTab !== activeCategory) {
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.set('tab', activeCategory);
+        window.history.replaceState(null, '', newUrl.pathname + newUrl.search);
+      }
+      localStorage.setItem(LS_MANAGE_TAB_KEY, activeCategory);
+    } catch (e) {
+      console.warn('[DataManagement] Error updating tab in URL/storage:', e);
+    }
+
+    const handlePopState = () => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const tab = params.get('tab') || params.get('category');
+        if (tab && VALID_CATEGORIES.includes(tab as CategoryKey)) {
+          setActiveCategory(tab as CategoryKey);
+          localStorage.setItem(LS_MANAGE_TAB_KEY, tab);
+        }
+      } catch (e) {
+        console.warn('[DataManagement] Error handling popstate:', e);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [activeCategory]);
 
   // Modals state
   const [isAddEditModalOpen, setIsAddEditModalOpen] = useState(false);
@@ -164,19 +254,14 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
         const name = String(item.name || '').toLowerCase();
 
         if (selectedRole === 'professor') {
-          // ศ. หรือ ศาสตราจารย์
           if (!title.includes('ศ.') && !name.includes('ศ.ดร.') && !pos.includes('ศาสตราจารย์')) return false;
         } else if (selectedRole === 'assoc_prof') {
-          // รศ. หรือ รองศาสตราจารย์
           if (!title.includes('รศ.') && !name.includes('รศ.') && !pos.includes('รองศาสตราจารย์')) return false;
         } else if (selectedRole === 'asst_prof') {
-          // ผศ. หรือ ผู้ช่วยศาสตราจารย์
           if (!title.includes('ผศ.') && !name.includes('ผศ.') && !pos.includes('ผู้ช่วยศาสตราจารย์')) return false;
         } else if (selectedRole === 'lecturer') {
-          // อาจารย์ทั่วไป (อ. / ดร. / อาจารย์)
           if (!title.includes('อ.') && !title.includes('ดร.') && !pos.includes('อาจารย์')) return false;
         } else if (selectedRole === 'executive') {
-          // หัวหน้าภาค / คณบดี / รองคณบดี / ประธานหลักสูตร
           if (
             !pos.includes('หัวหน้า') &&
             !pos.includes('คณบดี') &&
@@ -186,7 +271,6 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
             return false;
           }
         } else if (selectedRole === 'staff') {
-          // สายสนับสนุน / เจ้าหน้าที่ / พนักงาน
           if (
             title.includes('ศ.') ||
             title.includes('รศ.') ||
@@ -204,6 +288,17 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
         const hasImg = Boolean(item.image_url && String(item.image_url).trim() !== '');
         if (selectedImageStatus === 'has_image' && !hasImg) return false;
         if (selectedImageStatus === 'no_image' && hasImg) return false;
+      }
+
+      // Personnel: Profile Completeness Filter (ข้อมูลไม่ครบ: ขาด ตำแหน่ง, อีเมล, หรือ รูปภาพ)
+      if (activeCategory === 'personnel' && selectedCompleteness !== 'all') {
+        const isIncomplete = (
+          !item.position || !String(item.position).trim() ||
+          !item.email || !String(item.email).trim() || item.email === 'ไม่พบอีเมล' ||
+          !item.image_url || !String(item.image_url).trim()
+        );
+        if (selectedCompleteness === 'incomplete' && !isIncomplete) return false;
+        if (selectedCompleteness === 'complete' && isIncomplete) return false;
       }
 
       // 4. Dynamic SubFilter for other categories
@@ -259,6 +354,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
     selectedDept,
     selectedRole,
     selectedImageStatus,
+    selectedCompleteness,
     selectedSubFilter,
     searchTerm,
     currentConfig,
@@ -294,7 +390,26 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
     setSelectedDept('');
     setSelectedRole('');
     setSelectedImageStatus('all');
+    setSelectedCompleteness('all');
     setSelectedSubFilter('');
+
+    try {
+      localStorage.setItem(LS_MANAGE_TAB_KEY, key);
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.set('tab', key);
+      window.history.replaceState(null, '', newUrl.pathname + newUrl.search);
+    } catch (e) {
+      console.warn('[DataManagement] Error persisting tab change:', e);
+    }
+  };
+
+  const handlePersonnelViewModeChange = (mode: 'grid' | 'table') => {
+    setPersonnelViewMode(mode);
+    try {
+      localStorage.setItem(LS_PERSONNEL_VIEW_KEY, mode);
+    } catch {
+      // ignore
+    }
   };
 
   // Reset all active filters
@@ -303,6 +418,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
     setSelectedDept('');
     setSelectedRole('');
     setSelectedImageStatus('all');
+    setSelectedCompleteness('all');
     setSelectedSubFilter('');
     setCurrentPage(1);
   };
@@ -312,6 +428,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
     selectedDept ||
     selectedRole ||
     selectedImageStatus !== 'all' ||
+    selectedCompleteness !== 'all' ||
     selectedSubFilter
   );
 
@@ -319,6 +436,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
     (selectedDept ? 1 : 0) +
     (selectedRole ? 1 : 0) +
     (selectedImageStatus !== 'all' ? 1 : 0) +
+    (selectedCompleteness !== 'all' ? 1 : 0) +
     (selectedSubFilter ? 1 : 0);
 
   // CRUD Operations
@@ -326,23 +444,22 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
     const isNew = !(editingIndex !== null && editingIndex >= 0);
     const targetCategory = activeCategory === 'monitoring' ? 'research' : activeCategory;
 
-    // Persist to API and localStorage
-    await saveCategoryRecord(targetCategory, record, isNew);
+    const saveResult = await saveCategoryRecord(targetCategory, record, isNew);
+    if (!saveResult.success) {
+      showToast(saveResult.error || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+      return;
+    }
+
+    const savedRecord = saveResult.data || record;
 
     setDatasets((prev) => {
       const list = [...(prev[targetCategory] || [])];
       if (!isNew && editingIndex !== null && editingIndex >= 0) {
-        // Edit
         const prevId = list[editingIndex]._id || `${targetCategory}_${editingIndex}`;
-        list[editingIndex] = { ...list[editingIndex], ...record, _id: prevId };
+        list[editingIndex] = { ...list[editingIndex], ...savedRecord, _id: prevId };
         showToast(`แก้ไขข้อมูล "${record[currentConfig.nameKey] || record.name}" สำเร็จ`);
       } else {
-        // Add new
-        const newRecord = {
-          ...record,
-          _id: record._id || `${targetCategory}_new_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-        };
-        list.unshift(newRecord);
+        list.unshift(savedRecord);
         showToast(`เพิ่มรายการ "${record[currentConfig.nameKey] || record.name}" เรียบร้อยแล้ว`);
       }
       return {
@@ -440,7 +557,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
         </div>
       )}
 
-      {/* 1. Header แบนราบ สะอาด คุมโทนระบบ (ไม่มีกล่องซ้อน) */}
+      {/* 1. Header แบนราบ สะอาด คุมโทนระบบ */}
       <div
         style={{
           display: 'flex',
@@ -467,71 +584,9 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
             จัดการและนำเข้าข้อมูลโครงการวิจัย โครงการพัฒนาวิชาการ ผลงานตีพิมพ์ทางวิชาการ งานบริการวิชาการ งานทรัพย์สินทางปัญญา และฐานข้อมูลบุคลากร
           </div>
         </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          {onNavigateToMonitoring && (
-            <button
-              onClick={onNavigateToMonitoring}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                backgroundColor: '#ffffff',
-                border: '1px solid #00A651',
-                color: '#00A651',
-                padding: '6px 14px',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontWeight: 600,
-                fontSize: '12.5px',
-                transition: 'all 0.15s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#f0fbf5';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#ffffff';
-              }}
-            >
-              <FaClock style={{ fontSize: '11px' }} />
-              <span>ติดตามสถานะโครงการ</span>
-            </button>
-          )}
-
-          <button
-            onClick={goBack}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              backgroundColor: '#ffffff',
-              border: '1px solid #cbd5e1',
-              color: '#334155',
-              padding: '6px 14px',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontWeight: 500,
-              fontSize: '12.5px',
-              transition: 'all 0.15s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = '#00A651';
-              e.currentTarget.style.color = '#00A651';
-              e.currentTarget.style.backgroundColor = '#f0fbf5';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = '#cbd5e1';
-              e.currentTarget.style.color = '#334155';
-              e.currentTarget.style.backgroundColor = '#ffffff';
-            }}
-          >
-            <FaArrowLeft style={{ fontSize: '11px' }} />
-            <span>กลับสู่หน้าหลัก</span>
-          </button>
-        </div>
       </div>
 
-      {/* 2. Top Segmented Horizontal Tabs (แถบเลือกหมวดแนวนอน ไม่มี Icon ไม่มีกล่องซ้อน) */}
+      {/* 2. Top Segmented Horizontal Tabs */}
       <TopSegmentedTabs
         activeCategory={activeCategory}
         onSelectCategory={handleTabChange}
@@ -541,7 +596,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
       {activeCategory === 'kpi' ? (
         <KPIManagementTab datasets={datasets} />
       ) : (
-        /* 3. กล่องเนื้อหาหลัก (Single Unified Modern Surface - ไม่มีการซ้อน Card) */
+        /* 3. กล่องเนื้อหาหลัก */
         <div
           style={{
             backgroundColor: '#ffffff',
@@ -551,538 +606,529 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
             overflow: 'hidden',
           }}
         >
-        {/* Action & Filter Bar */}
-        <div
-          style={{
-            padding: '16px 20px',
-            backgroundColor: '#ffffff',
-            borderBottom: '1px solid #e2e8f0',
-            display: 'flex',
-            flexWrap: 'wrap',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: '12px',
-          }}
-        >
-          {/* ซ้าย: ช่องค้นหาขนาดกระชับ และปุ่มตัวกรอง (Modal) */}
+          {/* Action & Filter Bar */}
           <div
             style={{
+              padding: '16px 20px',
+              backgroundColor: '#ffffff',
+              borderBottom: '1px solid #e2e8f0',
               display: 'flex',
-              alignItems: 'center',
               flexWrap: 'wrap',
-              gap: '10px',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: '12px',
             }}
           >
-            {/* Search Box: จัดสรรขนาดความยาวให้เหมาะสม กระชับ พอดีตัว ไม่ยาวเกินไป */}
+            {/* ซ้าย: ช่องค้นหา และปุ่มตัวกรอง */}
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                backgroundColor: '#ffffff',
-                border: '1px solid #cbd5e1',
-                borderRadius: '8px',
-                padding: '7px 12px',
-                width: '240px',
-                transition: 'border-color 0.15s',
+                flexWrap: 'wrap',
+                gap: '10px',
+                flex: '1 1 280px',
               }}
             >
-              <FaSearch style={{ color: '#94a3b8', marginRight: '8px', fontSize: '13px', flexShrink: 0 }} />
-              <input
-                type="text"
-                placeholder={
-                  activeCategory === 'personnel'
-                    ? 'ค้นหาชื่อ, ตำแหน่ง, รหัส...'
-                    : `ค้นหา${currentConfig.title}...`
-                }
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setCurrentPage(1);
-                }}
-                style={{
-                  border: 'none',
-                  background: 'none',
-                  outline: 'none',
-                  width: '100%',
-                  fontSize: '13px',
-                  fontFamily: 'inherit',
-                  color: '#1e293b',
-                }}
-              />
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm('')}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: '#94a3b8',
-                    cursor: 'pointer',
-                    padding: '0 4px',
-                    fontSize: '15px',
-                  }}
-                  title="ล้างคำค้นหา"
-                >
-                  &times;
-                </button>
-              )}
-            </div>
-
-            {/* ปุ่ม Filter (เปิด Modal ตัวกรองอย่างละเอียด) */}
-            <button
-              type="button"
-              onClick={() => setIsFilterModalOpen(true)}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '7px',
-                padding: '7px 14px',
-                borderRadius: '8px',
-                border: activeFilterCount > 0 ? '1.5px solid #00A651' : '1px solid #cbd5e1',
-                backgroundColor: activeFilterCount > 0 ? '#f0fbf5' : '#ffffff',
-                color: activeFilterCount > 0 ? '#00A651' : '#334155',
-                fontSize: '13px',
-                fontWeight: activeFilterCount > 0 ? 600 : 500,
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-                boxShadow: activeFilterCount > 0 ? '0 1px 3px rgba(0, 166, 81, 0.15)' : 'none',
-              }}
-              onMouseEnter={(e) => {
-                if (activeFilterCount === 0) {
-                  e.currentTarget.style.borderColor = '#00A651';
-                  e.currentTarget.style.backgroundColor = '#f0fbf5';
-                  e.currentTarget.style.color = '#00A651';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (activeFilterCount === 0) {
-                  e.currentTarget.style.borderColor = '#cbd5e1';
-                  e.currentTarget.style.backgroundColor = '#ffffff';
-                  e.currentTarget.style.color = '#334155';
-                }
-              }}
-              title="เปิดหน้าต่างตัวกรองข้อมูล"
-            >
-              <FaFilter style={{ fontSize: '11px' }} />
-              <span>ตัวกรอง</span>
-              {activeFilterCount > 0 && (
-                <span
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    minWidth: '18px',
-                    height: '18px',
-                    padding: '0 5px',
-                    borderRadius: '9px',
-                    backgroundColor: '#00A651',
-                    color: '#ffffff',
-                    fontSize: '11px',
-                    fontWeight: 700,
-                  }}
-                >
-                  {activeFilterCount}
-                </span>
-              )}
-            </button>
-
-            {/* ปุ่มล้างตัวกรองทั้งหมด เมื่อมีการใช้งานตัวกรองหรือค้นหา */}
-            {hasActiveFilters && (
-              <button
-                onClick={handleResetFilters}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  padding: '7px 12px',
-                  borderRadius: '8px',
-                  backgroundColor: '#fee2e2',
-                  border: '1px solid #fca5a5',
-                  color: '#b91c1c',
-                  fontSize: '12.5px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: 'background-color 0.15s ease',
-                  whiteSpace: 'nowrap',
-                }}
-                title="ล้างตัวกรองทั้งหมด"
-              >
-                <FaTimes style={{ fontSize: '11px' }} />
-                <span>ล้างตัวกรอง</span>
-              </button>
-            )}
-          </div>
-
-          {/* ขวา: ปุ่มคำสั่งงาน */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-            {/* สลับมุมมองเมื่ออยู่ในแท็บบุคลากร */}
-            {activeCategory === 'personnel' && (
+              {/* Search Box */}
               <div
                 style={{
                   display: 'flex',
+                  alignItems: 'center',
+                  backgroundColor: '#ffffff',
                   border: '1px solid #cbd5e1',
                   borderRadius: '8px',
-                  overflow: 'hidden',
-                  marginRight: '4px',
+                  padding: '7px 12px',
+                  width: '100%',
+                  maxWidth: '260px',
+                  minWidth: '180px',
+                  transition: 'border-color 0.15s',
                 }}
               >
-                <button
-                  onClick={() => setPersonnelViewMode('table')}
-                  style={{
-                    padding: '7px 12px',
-                    border: 'none',
-                    backgroundColor: personnelViewMode === 'table' ? '#00A651' : '#ffffff',
-                    color: personnelViewMode === 'table' ? '#ffffff' : '#64748b',
-                    cursor: 'pointer',
-                    fontSize: '12px',
-                    fontWeight: 500,
+                <FaSearch style={{ color: '#94a3b8', marginRight: '8px', fontSize: '13px', flexShrink: 0 }} />
+                <input
+                  type="text"
+                  placeholder={
+                    activeCategory === 'personnel'
+                      ? 'ค้นหาชื่อ, ตำแหน่ง, สังกัด...'
+                      : `ค้นหา${currentConfig.title}...`
+                  }
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
                   }}
-                  title="มุมมองตาราง"
+                  style={{
+                    border: 'none',
+                    background: 'none',
+                    outline: 'none',
+                    width: '100%',
+                    fontSize: '13px',
+                    fontFamily: 'inherit',
+                    color: '#1e293b',
+                  }}
+                />
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm('')}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#94a3b8',
+                      cursor: 'pointer',
+                      padding: '0 4px',
+                      fontSize: '15px',
+                    }}
+                    title="ล้างคำค้นหา"
+                  >
+                    &times;
+                  </button>
+                )}
+              </div>
+
+              {/* ปุ่ม Filter */}
+              <button
+                type="button"
+                onClick={() => setIsFilterModalOpen(true)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '7px',
+                  padding: '7px 14px',
+                  borderRadius: '8px',
+                  border: activeFilterCount > 0 ? '1.5px solid #00A651' : '1px solid #cbd5e1',
+                  backgroundColor: activeFilterCount > 0 ? '#f0fbf5' : '#ffffff',
+                  color: activeFilterCount > 0 ? '#00A651' : '#334155',
+                  fontSize: '13px',
+                  fontWeight: activeFilterCount > 0 ? 600 : 500,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                  boxShadow: activeFilterCount > 0 ? '0 1px 3px rgba(0, 166, 81, 0.15)' : 'none',
+                  whiteSpace: 'nowrap',
+                }}
+                onMouseEnter={(e) => {
+                  if (activeFilterCount === 0) {
+                    e.currentTarget.style.borderColor = '#00A651';
+                    e.currentTarget.style.backgroundColor = '#f0fbf5';
+                    e.currentTarget.style.color = '#00A651';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (activeFilterCount === 0) {
+                    e.currentTarget.style.borderColor = '#cbd5e1';
+                    e.currentTarget.style.backgroundColor = '#ffffff';
+                    e.currentTarget.style.color = '#334155';
+                  }
+                }}
+                title="เปิดหน้าต่างตัวกรองข้อมูล"
+              >
+                <FaFilter style={{ fontSize: '11px' }} />
+                <span>ตัวกรอง</span>
+                {activeFilterCount > 0 && (
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      minWidth: '18px',
+                      height: '18px',
+                      padding: '0 5px',
+                      borderRadius: '9px',
+                      backgroundColor: '#00A651',
+                      color: '#ffffff',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                    }}
+                  >
+                    {activeFilterCount}
+                  </span>
+                )}
+              </button>
+
+              {/* ปุ่มล้างตัวกรองทั้งหมด */}
+              {hasActiveFilters && (
+                <button
+                  onClick={handleResetFilters}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    padding: '7px 12px',
+                    borderRadius: '8px',
+                    backgroundColor: '#fee2e2',
+                    border: '1px solid #fca5a5',
+                    color: '#b91c1c',
+                    fontSize: '12.5px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'background-color 0.15s ease',
+                    whiteSpace: 'nowrap',
+                  }}
+                  title="ล้างตัวกรองทั้งหมด"
                 >
-                  <FaList style={{ marginRight: '5px' }} />
-                  ตาราง
+                  <FaTimes style={{ fontSize: '11px' }} />
+                  <span>ล้างตัวกรอง</span>
                 </button>
-                <button
-                  onClick={() => setPersonnelViewMode('grid')}
+              )}
+            </div>
+
+            {/* ขวา: กลุ่มปุ่มคำสั่งงานและสลับมุมมอง */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                flexWrap: 'wrap',
+                justifyContent: 'flex-start',
+              }}
+            >
+              {/* สลับมุมมองเมื่ออยู่ในแท็บบุคลากร */}
+              {activeCategory === 'personnel' && (
+                <div
                   style={{
-                    padding: '7px 12px',
-                    border: 'none',
-                    backgroundColor: personnelViewMode === 'grid' ? '#00A651' : '#ffffff',
-                    color: personnelViewMode === 'grid' ? '#ffffff' : '#64748b',
-                    cursor: 'pointer',
-                    fontSize: '12px',
-                    fontWeight: 500,
+                    display: 'inline-flex',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '8px',
+                    overflow: 'hidden',
                   }}
-                  title="มุมมองการ์ด"
                 >
-                  <FaThLarge style={{ marginRight: '5px' }} />
-                  การ์ด
+                  <button
+                    onClick={() => handlePersonnelViewModeChange('table')}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      whiteSpace: 'nowrap',
+                      padding: '7px 12px',
+                      border: 'none',
+                      backgroundColor: personnelViewMode === 'table' ? '#00A651' : '#ffffff',
+                      color: personnelViewMode === 'table' ? '#ffffff' : '#64748b',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      fontWeight: 500,
+                    }}
+                    title="มุมมองตาราง"
+                  >
+                    <FaList style={{ marginRight: '6px', fontSize: '12px' }} />
+                    <span>ตาราง</span>
+                  </button>
+                  <button
+                    onClick={() => handlePersonnelViewModeChange('grid')}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      whiteSpace: 'nowrap',
+                      padding: '7px 12px',
+                      border: 'none',
+                      backgroundColor: personnelViewMode === 'grid' ? '#00A651' : '#ffffff',
+                      color: personnelViewMode === 'grid' ? '#ffffff' : '#64748b',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      fontWeight: 500,
+                    }}
+                    title="มุมมองการ์ด"
+                  >
+                    <FaThLarge style={{ marginRight: '6px', fontSize: '12px' }} />
+                    <span>การ์ด</span>
+                  </button>
+                </div>
+              )}
+
+              {/* ส่งออก Excel */}
+              <button
+                onClick={() => exportTableToExcel(filteredData, activeCategory)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '7px 14px',
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '8px',
+                  color: '#334155',
+                  fontSize: '13px',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  transition: 'all 0.15s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = '#00A651';
+                  e.currentTarget.style.color = '#00A651';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = '#cbd5e1';
+                  e.currentTarget.style.color = '#334155';
+                }}
+                title="ส่งออกข้อมูลในตารางเป็นไฟล์ Excel"
+              >
+                <FaFileExport style={{ color: '#64748b', fontSize: '13px' }} />
+                <span>ส่งออก Excel</span>
+              </button>
+
+              {/* เพิ่มรายการ */}
+              <button
+                onClick={() => {
+                  setEditingItem(null);
+                  setEditingIndex(null);
+                  setIsAddEditModalOpen(true);
+                }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '7px 16px',
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #00A651',
+                  borderRadius: '8px',
+                  color: '#00A651',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  transition: 'all 0.15s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#f0fbf5';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#ffffff';
+                }}
+              >
+                <FaPlus style={{ fontSize: '12px', color: '#00A651' }} />
+                <span>เพิ่มรายการ</span>
+              </button>
+
+              {/* นำเข้าไฟล์ Excel */}
+              <button
+                onClick={() => setIsImportModalOpen(true)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '7px 18px',
+                  backgroundColor: '#00A651',
+                  border: 'none',
+                  borderRadius: '8px',
+                  color: '#ffffff',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 6px rgba(0, 166, 81, 0.25)',
+                  whiteSpace: 'nowrap',
+                  transition: 'background-color 0.15s ease',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#008f44')}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#00A651')}
+              >
+                <FaFileExcel style={{ fontSize: '14px' }} />
+                <span>นำเข้าไฟล์ Excel</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Content: ตารางหรือการ์ด */}
+          {activeCategory === 'monitoring' ? (
+            <div style={{ padding: '24px', backgroundColor: '#f8fafc' }}>
+              <ProjectMonitoringView
+                projects={datasets.research}
+                onUpdateProject={async (updated) => {
+                  await saveCategoryRecord('research', updated, false);
+                  const updatedResearch = datasets.research.map((p) =>
+                    (p._id && p._id === updated._id) || (p.id && p.id === updated.id) ? updated : p
+                  );
+                  setDatasets((prev) => ({
+                    ...prev,
+                    research: updatedResearch,
+                    monitoring: updatedResearch,
+                  }));
+                  showToast('อัปเดตกำหนดการและสถานะโครงการเรียบร้อยแล้ว');
+                }}
+              />
+            </div>
+          ) : activeCategory === 'personnel' && personnelViewMode === 'grid' ? (
+            <div style={{ padding: '20px', backgroundColor: '#f8fafc' }}>
+              <PersonnelGrid
+                personnel={paginatedData as PersonnelRecord[]}
+                onEdit={(person) => {
+                  const actualIdx = datasets.personnel.findIndex(
+                    (p) => (p._id && p._id === person._id) || (p.id && p.id === person.id) || p === person
+                  );
+                  setEditingItem(person);
+                  setEditingIndex(actualIdx);
+                  setIsAddEditModalOpen(true);
+                }}
+                onDelete={(person) => {
+                  const actualIdx = datasets.personnel.findIndex(
+                    (p) => (p._id && p._id === person._id) || (p.id && p.id === person.id) || p === person
+                  );
+                  setDeleteTarget({ item: person, index: actualIdx });
+                }}
+              />
+            </div>
+          ) : (
+            <DataTable
+              key={`${activeCategory}-page-${currentPage}`}
+              categoryKey={activeCategory}
+              currentPage={currentPage}
+              columns={currentConfig.columns}
+              data={paginatedData}
+              startIndex={startIndex}
+              onEdit={(item) => {
+                const actualIdx = datasets[activeCategory].findIndex(
+                  (x) => (x._id && x._id === item._id) || (x.id && x.id === item.id) || x === item
+                );
+                setEditingItem(item);
+                setEditingIndex(actualIdx >= 0 ? actualIdx : currentList.indexOf(item));
+                setIsAddEditModalOpen(true);
+              }}
+              onDelete={(item) => {
+                const actualIdx = datasets[activeCategory].findIndex(
+                  (x) => (x._id && x._id === item._id) || (x.id && x.id === item.id) || x === item
+                );
+                setDeleteTarget({ item, index: actualIdx >= 0 ? actualIdx : currentList.indexOf(item) });
+              }}
+            />
+          )}
+
+          {/* Footer: Pagination & ข้อมูลจำนวนรายการ */}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '12px 20px',
+              borderTop: '1px solid #e2e8f0',
+              backgroundColor: '#ffffff',
+              fontSize: '13px',
+              color: '#64748b',
+              flexWrap: 'wrap',
+              gap: '12px',
+            }}
+          >
+            <div>
+              แสดง {filteredData.length > 0 ? startIndex + 1 : 0} ถึง{' '}
+              {Math.min(startIndex + itemsPerPage, filteredData.length)} จากทั้งหมด{' '}
+              <strong style={{ color: '#1e293b' }}>{filteredData.length}</strong> รายการ
+              {selectedDept && ` (สังกัด: ${selectedDept.replace('ภาควิชา', '')})`}
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span>แสดง:</span>
+                <Select
+                  value={String(itemsPerPage)}
+                  onValueChange={(val) => {
+                    if (val) {
+                      setItemsPerPage(Number(val));
+                      setCurrentPage(1);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="h-7 text-xs w-[70px] bg-white">
+                    <SelectValue placeholder={String(itemsPerPage)} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="25">25</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* ปุ่มเปลี่ยนหน้า */}
+              <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  style={{
+                    padding: '5px 9px',
+                    borderRadius: '6px',
+                    border: '1px solid #cbd5e1',
+                    backgroundColor: currentPage === 1 ? '#f8fafc' : '#ffffff',
+                    color: currentPage === 1 ? '#cbd5e1' : '#334155',
+                    cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                    fontSize: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.15s ease',
+                  }}
+                  title="หน้าก่อนหน้า"
+                >
+                  <FaChevronLeft style={{ fontSize: '10px' }} />
+                </button>
+
+                {/* Dynamic Page Numbers */}
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter((p) => {
+                    if (totalPages <= 6) return true;
+                    if (p === 1 || p === totalPages) return true;
+                    return Math.abs(p - currentPage) <= 1;
+                  })
+                  .map((p, idx, arr) => {
+                    const isCurrent = p === currentPage;
+                    const prevP = arr[idx - 1];
+                    const hasGap = prevP && p - prevP > 1;
+
+                    return (
+                      <React.Fragment key={p}>
+                        {hasGap && (
+                          <span style={{ padding: '0 3px', color: '#94a3b8', fontSize: '12px' }}>…</span>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => setCurrentPage(p)}
+                          style={{
+                            minWidth: '28px',
+                            height: '28px',
+                            padding: '0 6px',
+                            borderRadius: '6px',
+                            border: isCurrent ? '1px solid #00A651' : '1px solid #e2e8f0',
+                            backgroundColor: isCurrent ? '#00A651' : '#ffffff',
+                            color: isCurrent ? '#ffffff' : '#334155',
+                            fontWeight: isCurrent ? 700 : 500,
+                            fontSize: '12px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          {p}
+                        </button>
+                      </React.Fragment>
+                    );
+                  })}
+
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  style={{
+                    padding: '5px 9px',
+                    borderRadius: '6px',
+                    border: '1px solid #cbd5e1',
+                    backgroundColor: currentPage === totalPages ? '#f8fafc' : '#ffffff',
+                    color: currentPage === totalPages ? '#cbd5e1' : '#334155',
+                    cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                    fontSize: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.15s ease',
+                  }}
+                  title="หน้าถัดไป"
+                >
+                  <FaChevronRight style={{ fontSize: '10px' }} />
                 </button>
               </div>
-            )}
-
-            {/* ดาวน์โหลดแม่แบบ */}
-            <button
-              onClick={() => downloadExcelTemplate(activeCategory)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '7px 14px',
-                backgroundColor: '#ffffff',
-                border: '1px solid #00A651',
-                borderRadius: '8px',
-                color: '#00A651',
-                fontSize: '13px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#f0fbf5';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#ffffff';
-              }}
-              title="ดาวน์โหลดไฟล์แม่แบบ Excel สำหรับหมวดนี้"
-            >
-              <FaDownload style={{ color: '#00A651', fontSize: '13px' }} />
-              <span>ดาวน์โหลดแม่แบบ</span>
-            </button>
-
-            {/* ส่งออก Excel */}
-            <button
-              onClick={() => exportTableToExcel(filteredData, activeCategory)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '7px 14px',
-                backgroundColor: '#ffffff',
-                border: '1px solid #cbd5e1',
-                borderRadius: '8px',
-                color: '#334155',
-                fontSize: '13px',
-                fontWeight: 500,
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = '#00A651';
-                e.currentTarget.style.color = '#00A651';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = '#cbd5e1';
-                e.currentTarget.style.color = '#334155';
-              }}
-              title="ส่งออกข้อมูลในตารางเป็นไฟล์ Excel"
-            >
-              <FaFileExport style={{ color: '#64748b', fontSize: '13px' }} />
-              <span>ส่งออก Excel</span>
-            </button>
-
-            {/* เพิ่มรายการ */}
-            <button
-              onClick={() => {
-                setEditingItem(null);
-                setEditingIndex(null);
-                setIsAddEditModalOpen(true);
-              }}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '7px 16px',
-                backgroundColor: '#ffffff',
-                border: '1px solid #00A651',
-                borderRadius: '8px',
-                color: '#00A651',
-                fontSize: '13px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#f0fbf5';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#ffffff';
-              }}
-            >
-              <FaPlus style={{ fontSize: '12px', color: '#00A651' }} />
-              <span>เพิ่มรายการ</span>
-            </button>
-
-            {/* นำเข้าไฟล์ Excel */}
-            <button
-              onClick={() => setIsImportModalOpen(true)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '7px 18px',
-                backgroundColor: '#00A651',
-                border: 'none',
-                borderRadius: '8px',
-                color: '#ffffff',
-                fontSize: '13px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                boxShadow: '0 2px 6px rgba(0, 166, 81, 0.25)',
-                transition: 'background-color 0.15s ease',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#008f44')}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#00A651')}
-            >
-              <FaFileExcel style={{ fontSize: '14px' }} />
-              <span>นำเข้าไฟล์ Excel</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Content: ตารางหรือการ์ด */}
-        {activeCategory === 'monitoring' ? (
-          <div style={{ padding: '24px', backgroundColor: '#f8fafc' }}>
-            <ProjectMonitoringView
-              projects={datasets.research}
-              onUpdateProject={async (updated) => {
-                await saveCategoryRecord('research', updated, false);
-                const updatedResearch = datasets.research.map((p) =>
-                  (p._id && p._id === updated._id) || (p.id && p.id === updated.id) ? updated : p
-                );
-                setDatasets((prev) => ({
-                  ...prev,
-                  research: updatedResearch,
-                  monitoring: updatedResearch,
-                }));
-                showToast('อัปเดตกำหนดการและสถานะโครงการเรียบร้อยแล้ว');
-              }}
-            />
-          </div>
-        ) : activeCategory === 'personnel' && personnelViewMode === 'grid' ? (
-          <div style={{ padding: '20px', backgroundColor: '#f8fafc' }}>
-            <PersonnelGrid
-              personnel={paginatedData as PersonnelRecord[]}
-              onEdit={(person) => {
-                const actualIdx = datasets.personnel.findIndex(
-                  (p) => (p._id && p._id === person._id) || (p.id && p.id === person.id) || p === person
-                );
-                setEditingItem(person);
-                setEditingIndex(actualIdx);
-                setIsAddEditModalOpen(true);
-              }}
-              onDelete={(person) => {
-                const actualIdx = datasets.personnel.findIndex(
-                  (p) => (p._id && p._id === person._id) || (p.id && p.id === person.id) || p === person
-                );
-                setDeleteTarget({ item: person, index: actualIdx });
-              }}
-            />
-          </div>
-        ) : (
-          <DataTable
-            key={`${activeCategory}-page-${currentPage}`}
-            categoryKey={activeCategory}
-            currentPage={currentPage}
-            columns={currentConfig.columns}
-            data={paginatedData}
-            startIndex={startIndex}
-            onEdit={(item) => {
-              const actualIdx = datasets[activeCategory].findIndex(
-                (x) => (x._id && x._id === item._id) || (x.id && x.id === item.id) || x === item
-              );
-              setEditingItem(item);
-              setEditingIndex(actualIdx >= 0 ? actualIdx : currentList.indexOf(item));
-              setIsAddEditModalOpen(true);
-            }}
-            onDelete={(item) => {
-              const actualIdx = datasets[activeCategory].findIndex(
-                (x) => (x._id && x._id === item._id) || (x.id && x.id === item.id) || x === item
-              );
-              setDeleteTarget({ item, index: actualIdx >= 0 ? actualIdx : currentList.indexOf(item) });
-            }}
-          />
-        )}
-
-        {/* Footer: Pagination & ข้อมูลจำนวนรายการ */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: '12px 20px',
-            borderTop: '1px solid #e2e8f0',
-            backgroundColor: '#ffffff',
-            fontSize: '13px',
-            color: '#64748b',
-            flexWrap: 'wrap',
-            gap: '12px',
-          }}
-        >
-          <div>
-            แสดง {filteredData.length > 0 ? startIndex + 1 : 0} ถึง{' '}
-            {Math.min(startIndex + itemsPerPage, filteredData.length)} จากทั้งหมด{' '}
-            <strong style={{ color: '#1e293b' }}>{filteredData.length}</strong> รายการ
-            {selectedDept && ` (สังกัด: ${selectedDept.replace('ภาควิชา', '')})`}
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span>แสดง:</span>
-              <select
-                value={itemsPerPage}
-                onChange={(e) => {
-                  setItemsPerPage(Number(e.target.value));
-                  setCurrentPage(1);
-                }}
-                style={{
-                  padding: '4px 8px',
-                  borderRadius: '6px',
-                  border: '1px solid #cbd5e1',
-                  fontSize: '12px',
-                  outline: 'none',
-                  color: '#334155',
-                  backgroundColor: '#ffffff',
-                }}
-              >
-                <option value={10}>10</option>
-                <option value={25}>25</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
-              </select>
-            </div>
-
-            {/* ปุ่มเปลี่ยนหน้าแบบมีตัวเลขระบุชัดเจน และไฮไลท์หน้าที่เลือก */}
-            <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-              <button
-                type="button"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                style={{
-                  padding: '5px 9px',
-                  borderRadius: '6px',
-                  border: '1px solid #cbd5e1',
-                  backgroundColor: currentPage === 1 ? '#f8fafc' : '#ffffff',
-                  color: currentPage === 1 ? '#cbd5e1' : '#334155',
-                  cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-                  fontSize: '12px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'all 0.15s ease',
-                }}
-                title="หน้าก่อนหน้า"
-              >
-                <FaChevronLeft style={{ fontSize: '10px' }} />
-              </button>
-
-              {/* Dynamic Page Numbers */}
-              {Array.from({ length: totalPages }, (_, i) => i + 1)
-                .filter((p) => {
-                  if (totalPages <= 6) return true;
-                  if (p === 1 || p === totalPages) return true;
-                  return Math.abs(p - currentPage) <= 1;
-                })
-                .map((p, idx, arr) => {
-                  const isCurrent = p === currentPage;
-                  const prevP = arr[idx - 1];
-                  const hasGap = prevP && p - prevP > 1;
-
-                  return (
-                    <React.Fragment key={p}>
-                      {hasGap && (
-                        <span style={{ padding: '0 3px', color: '#94a3b8', fontSize: '12px' }}>…</span>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => setCurrentPage(p)}
-                        style={{
-                          minWidth: '28px',
-                          height: '28px',
-                          padding: '0 6px',
-                          borderRadius: '6px',
-                          border: isCurrent ? '1px solid #00A651' : '1px solid #e2e8f0',
-                          backgroundColor: isCurrent ? '#00A651' : '#ffffff',
-                          color: isCurrent ? '#ffffff' : '#334155',
-                          fontWeight: isCurrent ? 700 : 500,
-                          fontSize: '12px',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          transition: 'all 0.15s ease',
-                        }}
-                      >
-                        {p}
-                      </button>
-                    </React.Fragment>
-                  );
-                })}
-
-              <button
-                type="button"
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                style={{
-                  padding: '5px 9px',
-                  borderRadius: '6px',
-                  border: '1px solid #cbd5e1',
-                  backgroundColor: currentPage === totalPages ? '#f8fafc' : '#ffffff',
-                  color: currentPage === totalPages ? '#cbd5e1' : '#334155',
-                  cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
-                  fontSize: '12px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'all 0.15s ease',
-                }}
-                title="หน้าถัดไป"
-              >
-                <FaChevronRight style={{ fontSize: '10px' }} />
-              </button>
             </div>
           </div>
         </div>
-      </div>
       )}
 
       {/* Modals */}
@@ -1105,10 +1151,38 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
         onCommitImport={handleCommitImport}
       />
 
-      <DeleteConfirmModal
+      <ConfirmActionModal
         isOpen={Boolean(deleteTarget)}
-        title={currentConfig.title}
-        itemName={deleteTarget ? deleteTarget.item[currentConfig.nameKey] || deleteTarget.item.name || '' : ''}
+        type="danger"
+        title="ยืนยันการลบรายการ?"
+        message={`คุณต้องการลบข้อมูล "${deleteTarget ? deleteTarget.item[currentConfig.nameKey] || deleteTarget.item.name || '' : ''}" ในหมวด ${currentConfig.title} ใช่หรือไม่?`}
+        detail={
+          activeCategory === 'personnel' && deleteTarget ? (() => {
+            const pId = Number(deleteTarget.item.id);
+            const pName = String(deleteTarget.item.name || '').trim();
+            let count = 0;
+            ['research', 'academic', 'service', 'publications', 'ip'].forEach((cat) => {
+              const list = datasets[cat as CategoryKey] || [];
+              list.forEach((it: any) => {
+                if (
+                  (pId && (it.person_id === pId || it.head_id === pId || it.owner_id === pId)) ||
+                  (it.head && it.head === pName) ||
+                  (it.person && it.person === pName) ||
+                  (it.owner && it.owner === pName) ||
+                  (it.creator && String(it.creator).includes(pName))
+                ) {
+                  count++;
+                }
+              });
+            });
+            if (count > 0) {
+              return `พบการเชื่อมโยงข้อมูลในระบบ ${count} รายการ (โครงการวิจัย/บริการ/สิ่งประดิษฐ์/บทความ) หากลบ ระบบจะยกเลิกการเชื่อมโยง (un-link) โดยยังคงชื่อข้อความเดิมไว้ในรายการเหล่านั้น`;
+            }
+            return 'การดำเนินการนี้จะไม่สามารถย้อนกลับได้';
+          })() : 'การดำเนินการนี้จะไม่สามารถย้อนกลับได้'
+        }
+        confirmText="ยืนยันการลบ"
+        cancelText="ยกเลิก"
         onConfirm={handleDeleteConfirm}
         onCancel={() => setDeleteTarget(null)}
       />
@@ -1122,11 +1196,13 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
         selectedRole={selectedRole}
         selectedImageStatus={selectedImageStatus}
         selectedSubFilter={selectedSubFilter}
+        selectedCompleteness={selectedCompleteness}
         onApply={(filters) => {
           setSelectedDept(filters.selectedDept);
           setSelectedRole(filters.selectedRole);
           setSelectedImageStatus(filters.selectedImageStatus);
           setSelectedSubFilter(filters.selectedSubFilter);
+          setSelectedCompleteness(filters.selectedCompleteness || 'all');
           setCurrentPage(1);
         }}
         onReset={handleResetFilters}

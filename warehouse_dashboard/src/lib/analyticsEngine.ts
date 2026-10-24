@@ -5,6 +5,7 @@ import { recommendChartType } from './chartAdvisor';
 import { calculateProjectTimeline } from './projectMonitoringEngine';
 import { detectSDGsFromText } from './sdgEngine';
 import { autoDetectJournalRanking } from './journalRankingEngine';
+import { getDepartment, getDepartmentColor } from './departments';
 
 // Vibrant Liquid Glass Palette (KU Green, Azure Blue, Violet, Amber, Rose, Teal, Cyan)
 const LIQUID_GLASS_PALETTE = [
@@ -80,7 +81,8 @@ function extractDimensionValue(row: Record<string, any>, dimField: string): stri
 
   // 5. ภาควิชา
   if (dimField === 'department') {
-    return normalizeDepartmentName(row.department);
+    const d = getDepartment(row.department);
+    return d.code !== '-' ? d.code : normalizeDepartmentName(row.department);
   }
 
   const val = row[dimField];
@@ -193,8 +195,14 @@ export function executeAnalyticsQuery(
         {
           label: measureDef.label,
           data: dataValues,
-          backgroundColor: labels.map((_, i) => LIQUID_GLASS_ALPHA[i % LIQUID_GLASS_ALPHA.length]),
-          borderColor: labels.map((_, i) => LIQUID_GLASS_PALETTE[i % LIQUID_GLASS_PALETTE.length]) as any,
+          backgroundColor:
+            primaryDimDef.field === 'department'
+              ? labels.map((l) => getDepartmentColor(l))
+              : labels.map((_, i) => LIQUID_GLASS_ALPHA[i % LIQUID_GLASS_ALPHA.length]),
+          borderColor:
+            primaryDimDef.field === 'department'
+              ? labels.map((l) => getDepartmentColor(l)) as any
+              : (labels.map((_, i) => LIQUID_GLASS_PALETTE[i % LIQUID_GLASS_PALETTE.length]) as any),
           fill: true,
         },
       ],

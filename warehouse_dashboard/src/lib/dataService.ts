@@ -64,12 +64,8 @@ export async function saveCategoryRecord(
   category: string,
   record: Record<string, any>,
   isNew: boolean
-): Promise<{ success: boolean; data: any }> {
+): Promise<{ success: boolean; data?: any; error?: string }> {
   const method = isNew ? 'POST' : 'PUT';
-
-  // 1. Optimistically update local cache first
-  const currentList = getCachedCategoryData(category) || [];
-  let updatedList = [...currentList];
 
   const recordId = record._id || record.id || `${category}_${Date.now()}`;
   const recordToSave = {
@@ -78,40 +74,52 @@ export async function saveCategoryRecord(
     updatedAt: new Date().toISOString(),
   };
 
-  if (isNew) {
-    updatedList.unshift(recordToSave);
-  } else {
-    let found = false;
-    updatedList = updatedList.map((item) => {
-      if (item._id === recordId || item.id === recordId) {
-        found = true;
-        return recordToSave;
-      }
-      return item;
-    });
-    if (!found) {
-      updatedList.unshift(recordToSave);
-    }
-  }
-
-  setCachedCategoryData(category, updatedList);
-
-  // 2. Send API request to Next.js route
+  // 1. Send API request to Next.js route
   try {
     const res = await fetch(`/api/data/${category}`, {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(recordToSave),
     });
-    if (res.ok) {
-      const result = await res.json();
-      return { success: true, data: result.data || recordToSave };
-    }
-  } catch (err) {
-    console.error(`[dataService] Error saving record to API for ${category}:`, err);
-  }
 
-  return { success: true, data: recordToSave };
+    const result = await res.json().catch(() => ({}));
+
+    if (res.ok) {
+      // 2. Update local cache only on success
+      const currentList = getCachedCategoryData(category) || [];
+      let updatedList = [...currentList];
+
+      if (isNew) {
+        updatedList.unshift(result.data || recordToSave);
+      } else {
+        let found = false;
+        updatedList = updatedList.map((item) => {
+          if (item._id === recordId || item.id === recordId) {
+            found = true;
+            return result.data || recordToSave;
+          }
+          return item;
+        });
+        if (!found) {
+          updatedList.unshift(result.data || recordToSave);
+        }
+      }
+
+      setCachedCategoryData(category, updatedList);
+      return { success: true, data: result.data || recordToSave };
+    } else {
+      return {
+        success: false,
+        error: result.message || 'บันทึกข้อมูลไม่สำเร็จ กรุณาตรวจสอบข้อมูลอีกครั้ง',
+      };
+    }
+  } catch (err: any) {
+    console.error(`[dataService] Error saving record to API for ${category}:`, err);
+    return {
+      success: false,
+      error: err?.message || 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้',
+    };
+  }
 }
 
 export async function deleteCategoryRecord(

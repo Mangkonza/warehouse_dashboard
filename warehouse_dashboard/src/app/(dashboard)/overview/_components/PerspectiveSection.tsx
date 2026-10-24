@@ -6,6 +6,8 @@ import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { MOCK_YOY_FUNDING, MOCK_PUB_QUARTILE_TRENDS } from '../_constants/mockHistoricalData';
 import { detectSDGsFromText, SDG_MASTER } from '@/lib/sdgEngine';
 import { FaCoins, FaAward, FaTasks, FaLeaf } from 'react-icons/fa';
+import { getDepartmentColor } from '@/lib/departments';
+import { DepartmentBadge } from '@/components/ui';
 
 export type StrategicPerspective = 'funding' | 'quality' | 'projects' | 'sdg';
 
@@ -44,12 +46,12 @@ export const PerspectiveSection: React.FC<PerspectiveSectionProps> = ({
         chartFundingTreemap.current = new Chart(canvasFundingTreemap.current, {
           type: 'bar',
           data: {
-            labels: departmentStats.map((d) => `${d.code} (${d.name})`),
+            labels: departmentStats.map((d) => d.code),
             datasets: [
               {
                 label: 'งบวิจัย (ล้านบาท)',
                 data: departmentStats.map((d) => Number((d.budget / 1000000).toFixed(2))),
-                backgroundColor: departmentStats.map((d) => (d.code === 'IRE' ? '#006838' : '#0284c7')),
+                backgroundColor: departmentStats.map((d) => getDepartmentColor(d.code)),
                 borderRadius: 8,
               },
             ],
@@ -59,6 +61,16 @@ export const PerspectiveSection: React.FC<PerspectiveSectionProps> = ({
             maintainAspectRatio: false,
             plugins: {
               legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  title: (items: any) => {
+                    const idx = items[0]?.dataIndex;
+                    const d = departmentStats[idx];
+                    return d ? `${d.name} (${d.code})` : items[0]?.label;
+                  },
+                  label: (c: any) => ` งบวิจัย: ${c.raw} ล้านบาท`,
+                },
+              },
               datalabels: {
                 anchor: 'end',
                 align: 'top',
@@ -264,7 +276,7 @@ export const PerspectiveSection: React.FC<PerspectiveSectionProps> = ({
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', marginTop: '10px' }}>
             <thead>
               <tr style={{ backgroundColor: '#00A651', color: '#ffffff' }}>
-                <th style={{ padding: '10px 14px', textAlign: 'left', whiteSpace: 'nowrap' }}>ภาควิชา</th>
+                <th style={{ width: '90px', minWidth: '90px', maxWidth: '90px', padding: '10px 14px', textAlign: 'left', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>ภาควิชา</th>
                 <th style={{ padding: '10px 14px', textAlign: 'right', whiteSpace: 'nowrap' }}>โครงการวิจัย</th>
                 <th style={{ padding: '10px 14px', textAlign: 'right', whiteSpace: 'nowrap' }}>งบวิจัยรวม (บาท)</th>
                 <th style={{ padding: '10px 14px', textAlign: 'right', whiteSpace: 'nowrap' }}>บทความตีพิมพ์</th>
@@ -274,11 +286,13 @@ export const PerspectiveSection: React.FC<PerspectiveSectionProps> = ({
             <tbody>
               {departmentStats.map((d, idx) => (
                 <tr key={d.code} style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: idx % 2 === 0 ? '#fff' : '#f8fafc' }}>
-                  <td style={{ padding: '10px 14px', fontWeight: 600 }}>{d.name} ({d.code})</td>
-                  <td style={{ padding: '10px 14px', textAlign: 'right' }}>{d.researchCount}</td>
-                  <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 600, color: '#006838' }}>{d.budget.toLocaleString()}</td>
-                  <td style={{ padding: '10px 14px', textAlign: 'right' }}>{d.pubs}</td>
-                  <td style={{ padding: '10px 14px', textAlign: 'right' }}>{d.services}</td>
+                  <td style={{ width: '90px', minWidth: '90px', maxWidth: '90px', padding: '8px 14px', textAlign: 'left', verticalAlign: 'middle' }}>
+                    <DepartmentBadge value={d.code} />
+                  </td>
+                  <td style={{ padding: '10px 14px', textAlign: 'right', verticalAlign: 'middle' }}>{d.researchCount}</td>
+                  <td style={{ padding: '10px 14px', textAlign: 'right', verticalAlign: 'middle', fontWeight: 600, color: '#006838' }}>{d.budget.toLocaleString()}</td>
+                  <td style={{ padding: '10px 14px', textAlign: 'right', verticalAlign: 'middle' }}>{d.pubs}</td>
+                  <td style={{ padding: '10px 14px', textAlign: 'right', verticalAlign: 'middle' }}>{d.services}</td>
                 </tr>
               ))}
             </tbody>

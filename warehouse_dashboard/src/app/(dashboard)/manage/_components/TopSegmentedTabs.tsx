@@ -1,8 +1,10 @@
-﻿'use client';
+'use client';
 
 import React from 'react';
 import { CategoryKey } from '@/types/dataManagement';
 import { CATEGORIES_CONFIG } from '@/config/dataManagementConfig';
+import { LiquidButton } from '@/components/ui/liquid-glass';
+import { cn } from '@/lib/utils';
 
 interface TopSegmentedTabsProps {
   activeCategory: CategoryKey;
@@ -29,10 +31,11 @@ export const TopSegmentedTabs: React.FC<TopSegmentedTabsProps> = ({
     <div
       style={{
         display: 'flex',
-        gap: '6px',
+        gap: '8px',
         overflowX: 'auto',
-        paddingBottom: '2px',
+        padding: '4px 2px 8px',
         scrollbarWidth: 'none',
+        alignItems: 'center',
       }}
     >
       {categoryKeys.map((key) => {
@@ -41,59 +44,33 @@ export const TopSegmentedTabs: React.FC<TopSegmentedTabsProps> = ({
         const count = counts[key] ?? 0;
 
         return (
-          <button
+          <LiquidButton
             key={key}
             onClick={() => onSelectCategory(key)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '9px 16px',
-              border: isActive ? '1px solid #00A651' : '1px solid #e2e8f0',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              backgroundColor: isActive ? '#00A651' : '#ffffff',
-              color: isActive ? '#ffffff' : '#475569',
-              fontWeight: isActive ? 600 : 500,
-              fontSize: '13.5px',
-              whiteSpace: 'nowrap',
-              transition: 'all 0.15s ease',
-              boxShadow: isActive ? '0 2px 6px rgba(0, 166, 81, 0.22)' : '0 1px 2px rgba(0, 0, 0, 0.03)',
-            }}
-            onMouseEnter={(e) => {
-              if (!isActive) {
-                e.currentTarget.style.borderColor = '#00A651';
-                e.currentTarget.style.color = '#00A651';
-                e.currentTarget.style.backgroundColor = '#f0fbf5';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!isActive) {
-                e.currentTarget.style.borderColor = '#e2e8f0';
-                e.currentTarget.style.color = '#475569';
-                e.currentTarget.style.backgroundColor = '#ffffff';
-              }
-            }}
+            variant={isActive ? 'active' : 'tab'}
+            size="tab"
+            className={cn(
+              "cursor-pointer select-none transition-all duration-300",
+              isActive
+                ? "rounded-full bg-gradient-to-r from-[#00A651] via-[#059669] to-[#008a43] text-white shadow-[0_4px_12px_rgba(0,166,81,0.3)] scale-[1.02] [&>div:nth-child(-n+2)]:hidden"
+                : "bg-white/70 hover:bg-white text-slate-700 hover:text-[#00A651] hover:scale-[1.02] border border-slate-200/70 shadow-[0_2px_8px_rgba(0,0,0,0.03),inset_0_1px_1px_rgba(255,255,255,0.9)] backdrop-blur-md"
+            )}
           >
-            <span>{config.title}</span>
+            <span className="font-semibold text-[13.5px] whitespace-nowrap">
+              {config.title}
+            </span>
 
-            {/* Counter Badge */}
             <span
-              style={{
-                display: 'inline-block',
-                padding: '2px 7px',
-                borderRadius: '12px',
-                fontSize: '11px',
-                fontWeight: 700,
-                backgroundColor: isActive ? 'rgba(255, 255, 255, 0.25)' : '#f1f5f9',
-                color: isActive ? '#ffffff' : '#64748b',
-                minWidth: '20px',
-                textAlign: 'center',
-              }}
+              className={cn(
+                "inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs min-w-[22px] transition-all",
+                isActive
+                  ? "bg-white/25 text-white font-bold"
+                  : "bg-slate-100 text-slate-600 font-semibold border border-slate-200/60"
+              )}
             >
               {count.toLocaleString()}
             </span>
-          </button>
+          </LiquidButton>
         );
       })}
     </div>

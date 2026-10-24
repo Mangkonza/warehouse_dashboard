@@ -1,10 +1,19 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useMemo } from 'react';
 import { calculateProjectTimeline, STATUS_LABELS } from '@/lib/projectMonitoringEngine';
 import { ProjectExtensionRecord, ProjectStatus, ProjectTimelineInfo } from '@/types/projectMonitoring';
-import { ProjectExtensionModal } from './ProjectExtensionModal';
+import { ProjectExtensionModal } from '@/features/monitoring/components/ProjectExtensionModal';
 import { ConfirmActionModal } from '@/components/ui/ConfirmActionModal';
+import { DepartmentBadge, DepartmentSelect } from '@/components/ui';
+import { getDepartment } from '@/lib/departments';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   FaClock,
   FaCheckCircle,
@@ -84,8 +93,11 @@ export const ProjectMonitoringView: React.FC<ProjectMonitoringViewProps> = ({
       }
       // 2. Department Filter
       if (deptFilter !== 'all') {
-        const d = String(p.department || '');
-        if (!d.includes(deptFilter)) return false;
+        const itemDept = getDepartment(p.department);
+        const filterDept = getDepartment(deptFilter);
+        if (itemDept.code !== filterDept.code && !String(p.department || '').includes(deptFilter)) {
+          return false;
+        }
       }
       // 3. Search Term
       if (searchTerm.trim()) {
@@ -285,23 +297,15 @@ export const ProjectMonitoringView: React.FC<ProjectMonitoringViewProps> = ({
         </div>
 
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <select
+          <DepartmentSelect
             value={deptFilter}
-            onChange={(e) => setDeptFilter(e.target.value)}
-            className="glass-input"
-            style={{ cursor: 'pointer', fontSize: '13px' }}
-          >
-            <option value="all">ทุกภาควิชา / ศูนย์</option>
-            <option value="เกษตร">วิศวกรรมการเกษตร</option>
-            <option value="คอมพิวเตอร์">วิศวกรรมคอมพิวเตอร์</option>
-            <option value="ชลประทาน">วิศวกรรมชลประทาน</option>
-            <option value="อาหาร">วิศวกรรมอาหาร</option>
-            <option value="อุตสาหการ">วิศวกรรมอุตสาหการ</option>
-            <option value="เครื่องกล">วิศวกรรมเครื่องกล</option>
-            <option value="โยธา">วิศวกรรมโยธา</option>
-            <option value="พลังงาน">ศูนย์พลังงานฯ</option>
-            <option value="ประตู">ศูนย์ทดสอบประตูหน้าต่างฯ</option>
-          </select>
+            onChange={setDeptFilter}
+            allowAll
+            allLabel="ทุกภาควิชา / ศูนย์"
+            allValue="all"
+            size="sm"
+            className="w-[200px]"
+          />
         </div>
       </div>
 
@@ -391,7 +395,8 @@ export const ProjectMonitoringView: React.FC<ProjectMonitoringViewProps> = ({
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <FaBuilding style={{ color: '#0284c7' }} />
-                  <span>สังกัด: <strong>{String(item.department || '-').replace(/ภาควิชา\n?/g, '')}</strong></span>
+                  <span>สังกัด: </span>
+                  <DepartmentBadge value={item.department} />
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <FaCalendarAlt style={{ color: '#7c3aed' }} />

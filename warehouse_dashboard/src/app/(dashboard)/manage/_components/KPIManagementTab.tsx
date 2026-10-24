@@ -1,6 +1,14 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useMemo } from 'react';
+import { ConfirmActionModal } from '@/components/ui';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { KPIItem, KPICalcType, KPICategory, FilterOperator } from '@/types/kpi';
 import {
   getStoredKPIs,
@@ -345,31 +353,25 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets }) 
 
             {/* ตัวกรองหมวดหมู่ */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <select
+              <Select
                 value={selectedCategory}
-                onChange={(e) => {
-                  setSelectedCategory(e.target.value);
+                onValueChange={(val) => {
+                  setSelectedCategory(val ?? 'all');
                   setCurrentPage(1);
                 }}
-                style={{
-                  padding: '7px 12px',
-                  borderRadius: '8px',
-                  border: '1px solid #cbd5e1',
-                  backgroundColor: '#ffffff',
-                  color: '#334155',
-                  fontSize: '13px',
-                  fontWeight: 500,
-                  outline: 'none',
-                  cursor: 'pointer',
-                }}
               >
-                <option value="all">ทุกหมวดยุทธศาสตร์</option>
-                {Object.entries(CATEGORY_LABELS).map(([k, lbl]) => (
-                  <option key={k} value={k}>
-                    {lbl}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="w-[180px] bg-white text-slate-800 text-xs h-9">
+                  <SelectValue placeholder="ทุกหมวดยุทธศาสตร์" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">ทุกหมวดยุทธศาสตร์</SelectItem>
+                  {Object.entries(CATEGORY_LABELS).map(([k, lbl]) => (
+                    <SelectItem key={k} value={k}>
+                      {lbl}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
@@ -859,25 +861,24 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets }) 
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span>แสดง:</span>
-              <select
-                value={itemsPerPage}
-                onChange={(e) => {
-                  setItemsPerPage(Number(e.target.value));
-                  setCurrentPage(1);
-                }}
-                style={{
-                  padding: '4px 8px',
-                  borderRadius: '6px',
-                  border: '1px solid #cbd5e1',
-                  fontSize: '12px',
-                  outline: 'none',
-                  cursor: 'pointer',
+              <Select
+                value={String(itemsPerPage)}
+                onValueChange={(val) => {
+                  if (val) {
+                    setItemsPerPage(Number(val));
+                    setCurrentPage(1);
+                  }
                 }}
               >
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-              </select>
+                <SelectTrigger className="w-[70px] bg-white text-slate-800 text-xs h-8">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -1045,24 +1046,23 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets }) 
                     <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
                       หมวดหมู่
                     </label>
-                    <select
+                    <Select
                       value={formCategory}
-                      onChange={(e) => setFormCategory(e.target.value as KPICategory)}
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        borderRadius: '8px',
-                        border: '1px solid #cbd5e1',
-                        fontSize: '13px',
-                        backgroundColor: '#ffffff',
+                      onValueChange={(val) => {
+                        if (val) setFormCategory(val as KPICategory);
                       }}
                     >
-                      {Object.entries(CATEGORY_LABELS).map(([k, lbl]) => (
-                        <option key={k} value={k}>
-                          {lbl}
-                        </option>
-                      ))}
-                    </select>
+                      <SelectTrigger className="w-full bg-white text-slate-800 text-xs h-9">
+                        <SelectValue placeholder="เลือกหมวดหมู่" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(CATEGORY_LABELS).map(([k, lbl]) => (
+                          <SelectItem key={k} value={k}>
+                            {lbl}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div>
@@ -1212,25 +1212,19 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets }) 
                           >
                             เชื่อมโยงตารางข้อมูล
                           </label>
-                          <select
-                            value={formDatasetKey}
-                            onChange={(e) => setFormDatasetKey(e.target.value)}
-                            style={{
-                              width: '100%',
-                              padding: '8px 12px',
-                              borderRadius: '8px',
-                              border: '1px solid #cbd5e1',
-                              fontSize: '13px',
-                              backgroundColor: '#ffffff',
-                            }}
-                          >
-                            <option value="research">โครงการวิจัย</option>
-                            <option value="academic">โครงการพัฒนาวิชาการ</option>
-                            <option value="publications">ผลงานตีพิมพ์ทางวิชาการ</option>
-                            <option value="service">งานบริการวิชาการ</option>
-                            <option value="ip">งานทรัพย์สินทางปัญญา</option>
-                            <option value="personnel">บุคลากร/อาจารย์</option>
-                          </select>
+                          <Select value={formDatasetKey} onValueChange={(val) => { if (val) setFormDatasetKey(val); }}>
+                            <SelectTrigger className="w-full bg-white text-slate-800 text-xs h-9">
+                              <SelectValue placeholder="เลือกตารางข้อมูล" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="research">โครงการวิจัย</SelectItem>
+                              <SelectItem value="academic">โครงการพัฒนาวิชาการ</SelectItem>
+                              <SelectItem value="publications">ผลงานตีพิมพ์ทางวิชาการ</SelectItem>
+                              <SelectItem value="service">งานบริการวิชาการ</SelectItem>
+                              <SelectItem value="ip">งานทรัพย์สินทางปัญญา</SelectItem>
+                              <SelectItem value="personnel">บุคลากร/อาจารย์</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
 
                         {formCalcType === 'auto_sum' && (
@@ -1246,22 +1240,16 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets }) 
                             >
                               ฟิลด์ตัวเลขที่ต้องการรวมยอด
                             </label>
-                            <select
-                              value={formSumField}
-                              onChange={(e) => setFormSumField(e.target.value)}
-                              style={{
-                                width: '100%',
-                                padding: '8px 12px',
-                                borderRadius: '8px',
-                                border: '1px solid #cbd5e1',
-                                fontSize: '13px',
-                                backgroundColor: '#ffffff',
-                              }}
-                            >
-                              <option value="budget_external">งบวิจัยภายนอก (budget_external)</option>
-                              <option value="budget_internal">งบวิจัยภายใน (budget_internal)</option>
-                              <option value="budget">งบประมาณรวม (budget)</option>
-                            </select>
+                            <Select value={formSumField} onValueChange={(val) => { if (val) setFormSumField(val); }}>
+                              <SelectTrigger className="w-full bg-white text-slate-800 text-xs h-9">
+                                <SelectValue placeholder="เลือกฟิลด์ตัวเลข" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="budget_external">งบวิจัยภายนอก (budget_external)</SelectItem>
+                                <SelectItem value="budget_internal">งบวิจัยภายใน (budget_internal)</SelectItem>
+                                <SelectItem value="budget">งบประมาณรวม (budget)</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </div>
                         )}
                       </div>
@@ -1281,40 +1269,30 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets }) 
                             เงื่อนไขการกรอง
                           </label>
                           <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1.2fr', gap: '8px' }}>
-                            <select
-                              value={formFilterField}
-                              onChange={(e) => setFormFilterField(e.target.value)}
-                              style={{
-                                padding: '7px 10px',
-                                borderRadius: '6px',
-                                border: '1px solid #cbd5e1',
-                                fontSize: '12.5px',
-                                backgroundColor: '#ffffff',
-                              }}
-                            >
-                              <option value="budget_external">งบภายนอก</option>
-                              <option value="budget_internal">งบภายใน</option>
-                              <option value="department">ภาควิชา</option>
-                              <option value="fund_source">แหล่งทุน</option>
-                              <option value="journal">ระดับวารสาร / Quartile</option>
-                            </select>
+                            <Select value={formFilterField} onValueChange={(val) => { if (val) setFormFilterField(val); }}>
+                              <SelectTrigger className="w-full bg-white text-slate-800 text-xs h-8">
+                                <SelectValue placeholder="ฟิลด์" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="budget_external">งบภายนอก</SelectItem>
+                                <SelectItem value="budget_internal">งบภายใน</SelectItem>
+                                <SelectItem value="department">ภาควิชา</SelectItem>
+                                <SelectItem value="fund_source">แหล่งทุน</SelectItem>
+                                <SelectItem value="journal">ระดับวารสาร / Quartile</SelectItem>
+                              </SelectContent>
+                            </Select>
 
-                            <select
-                              value={formFilterOperator}
-                              onChange={(e) => setFormFilterOperator(e.target.value as FilterOperator)}
-                              style={{
-                                padding: '7px 10px',
-                                borderRadius: '6px',
-                                border: '1px solid #cbd5e1',
-                                fontSize: '12.5px',
-                                backgroundColor: '#ffffff',
-                              }}
-                            >
-                              <option value="gte">มากกว่าหรือเท่ากับ (&ge;)</option>
-                              <option value="lte">น้อยกว่าหรือเท่ากับ (&le;)</option>
-                              <option value="equals">เท่ากับ (=)</option>
-                              <option value="contains">ประกอบด้วยคำว่า</option>
-                            </select>
+                            <Select value={formFilterOperator} onValueChange={(val) => { if (val) setFormFilterOperator(val as FilterOperator); }}>
+                              <SelectTrigger className="w-full bg-white text-slate-800 text-xs h-8">
+                                <SelectValue placeholder="เงื่อนไข" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="gte">มากกว่าหรือเท่ากับ (&ge;)</SelectItem>
+                                <SelectItem value="lte">น้อยกว่าหรือเท่ากับ (&le;)</SelectItem>
+                                <SelectItem value="equals">เท่ากับ (=)</SelectItem>
+                                <SelectItem value="contains">ประกอบด้วยคำว่า</SelectItem>
+                              </SelectContent>
+                            </Select>
 
                             <input
                               type="text"
@@ -1335,7 +1313,7 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets }) 
                       {formCalcType === 'auto_completeness' && (
                         <div style={{ marginTop: '10px' }}>
                           <div style={{ fontSize: '12px', color: '#059669', fontWeight: 600 }}>
-                            ตรวจสอบการมีส่วนร่วมครบทั้ง 7 ภาควิชา: ABE, CPE, IRE, FE, IE, ME, CE
+                            ตรวจสอบการมีส่วนร่วมครบทั้ง 7 ภาควิชา: AE, CPE, IRE, FE, IE, ME, CE
                           </div>
                         </div>
                       )}
@@ -1528,98 +1506,20 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets }) 
         </div>
       )}
 
-      {/* Modal ยืนยันการลบตัวชี้วัด (ตาม Major Style ของ DeleteConfirmModal) */}
-      {deleteConfirmId && targetToDelete && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(15, 23, 42, 0.65)',
-            backdropFilter: 'blur(3px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 99999,
-            padding: '16px',
-          }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setDeleteConfirmId(null);
-          }}
-        >
-          <div
-            style={{
-              backgroundColor: '#ffffff',
-              borderRadius: '16px',
-              maxWidth: '440px',
-              width: '100%',
-              padding: '24px',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.28)',
-              border: '1px solid #e2e8f0',
-              textAlign: 'center',
-              animation: 'modalFadeIn 0.2s ease-out',
-            }}
-          >
-            <div
-              style={{
-                width: '52px',
-                height: '52px',
-                borderRadius: '50%',
-                backgroundColor: '#fee2e2',
-                color: '#dc2626',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 16px auto',
-                fontSize: '22px',
-              }}
-            >
-              <FaExclamationTriangle />
-            </div>
-
-            <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#0f172a', margin: '0 0 8px 0' }}>
-              ยืนยันการลบตัวชี้วัด?
-            </h3>
-            <p style={{ fontSize: '13.5px', color: '#64748b', margin: '0 0 20px 0', lineHeight: 1.5 }}>
-              คุณกำลังจะลบ <strong>{targetToDelete.code}: {targetToDelete.title}</strong>{' '}
-              ออกจากระบบ การกระทำนี้ไม่สามารถย้อนกลับได้
-            </p>
-
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-              <button
-                onClick={() => setDeleteConfirmId(null)}
-                style={{
-                  padding: '9px 20px',
-                  borderRadius: '8px',
-                  border: '1px solid #cbd5e1',
-                  backgroundColor: '#ffffff',
-                  color: '#475569',
-                  fontSize: '13px',
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                }}
-              >
-                ยกเลิก
-              </button>
-              <button
-                onClick={() => handleDelete(deleteConfirmId)}
-                style={{
-                  padding: '9px 22px',
-                  borderRadius: '8px',
-                  border: 'none',
-                  backgroundColor: '#dc2626',
-                  color: '#ffffff',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 6px rgba(220, 38, 38, 0.3)',
-                }}
-              >
-                ยืนยันการลบ
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Modal ยืนยันการลบตัวชี้วัด */}
+      <ConfirmActionModal
+        isOpen={Boolean(deleteConfirmId && targetToDelete)}
+        type="danger"
+        title="ยืนยันการลบตัวชี้วัด?"
+        message={`คุณกำลังจะลบ ${targetToDelete?.code}: ${targetToDelete?.title} ออกจากระบบ`}
+        detail="การกระทำนี้ไม่สามารถย้อนกลับได้"
+        confirmText="ยืนยันการลบ"
+        cancelText="ยกเลิก"
+        onConfirm={() => {
+          if (deleteConfirmId) handleDelete(deleteConfirmId);
+        }}
+        onCancel={() => setDeleteConfirmId(null)}
+      />
     </>
   );
 };

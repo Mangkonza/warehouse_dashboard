@@ -25,7 +25,12 @@ export type ColumnType =
   | 'academic_budget'
   | 'academic_timeline'
   | 'academic_integration'
-  | 'academic_character';
+  | 'academic_character'
+  | 'research_budget'
+  | 'research_duration'
+  | 'publication_journal'
+  | 'ip_req_info'
+  | 'ip_reg_info';
 
 export interface ColumnDef {
   key: string;
@@ -42,6 +47,31 @@ export interface ColumnDef {
   format?: (val: any, row: any) => string;
 }
 
+export type DetailFieldType =
+  | 'text'
+  | 'currency'
+  | 'date'
+  | 'person'
+  | 'person_list'
+  | 'department'
+  | 'badge'
+  | 'list'
+  | 'allocation';
+
+export interface DetailFieldDef {
+  key: string;
+  label: string;
+  type?: DetailFieldType;
+  span?: 1 | 2;
+  getValue?: (item: any) => any;
+  format?: (val: any, item: any) => string;
+}
+
+export interface DetailGroupDef {
+  groupLabel?: string;
+  fields: DetailFieldDef[];
+}
+
 export interface CategoryConfig {
   key: CategoryKey;
   title: string;
@@ -54,13 +84,14 @@ export interface CategoryConfig {
   departmentKey?: string;
   personKey?: string;
   columns: ColumnDef[];
+  detailGroups?: DetailGroupDef[];
   templateSampleRows: Record<string, any>[];
   searchFields: string[];
 }
 
 export interface PersonnelRecord {
   _id?: string;
-  id: string;
+  id: number | string;
   name: string;
   clean_name: string;
   title_th: string;
@@ -68,6 +99,7 @@ export interface PersonnelRecord {
   department: string;
   email: string;
   image_url: string;
+  updatedAt?: string;
 }
 
 export type RowValidationStatus = 'valid' | 'warning' | 'error';

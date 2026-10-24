@@ -1,5 +1,50 @@
 [
   {
+    "id": "วศ.กพส. 1/2569",
+    "name": "test",
+    "head": "Test1",
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+    "status": "",
+    "sdg_code": "",
+    "members": "",
+    "budget_internal": 12000,
+    "budget_external": 50,
+    "fund_source": "test",
+    "trl_outputs": [],
+    "project_nature": [],
+    "collaboration_type": [],
+    "name_en": "test",
+    "fund_type": "ภายใน",
+    "start_date": "2026-10",
+    "end_date": "2027-10",
+    "head_id": 305,
+    "departments": [
+      "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร"
+    ],
+    "co_researchers": [
+      {
+        "name": "test test",
+        "department": "ภาควิชาวิศวกรรมเกษตร",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย",
+        "contributionPercent": null,
+        "id": "1111",
+        "person_id": 306
+      },
+      {
+        "name": "Test1",
+        "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร",
+        "isExternal": false,
+        "role": "ผู้ร่วมวิจัย",
+        "contributionPercent": null,
+        "id": "122",
+        "person_id": 305
+      }
+    ],
+    "_id": "วก.วศ.กพส. 1/2568",
+    "updatedAt": "2026-10-23T09:14:03.737Z"
+  },
+  {
     "id": "วศ.กพส.\n1/2568",
     "name": "การใช้แอปพลิเคชั่นไลน์เพื่อการสื่อสารภายในคณะวิศวกรรมศาสตร์ กำแพงแสน",
     "head": "นางสาวอรุณรัตน์ บุญปองหา",
@@ -8,7 +53,8 @@
     "budget_external": "-",
     "fund_source": "คณะวิศวกรรมศาสตร์\nกำแพงแสน",
     "start_date": "12 เดือน",
-    "_id": "research_วศ.กพส.\n1/2568"
+    "_id": "research_วศ.กพส.\n1/2568",
+    "head_id": 17
   },
   {
     "id": "วศ.กพส.\n2/2568",
@@ -19,7 +65,8 @@
     "budget_external": "-",
     "fund_source": "คณะวิศวกรรมศาสตร์\nกำแพงแสน",
     "start_date": "6 เดือน",
-    "_id": "research_วศ.กพส.\n2/2568"
+    "_id": "research_วศ.กพส.\n2/2568",
+    "head_id": 108
   },
   {
     "id": "วศ.กพส.\n3/2568",
@@ -30,7 +77,8 @@
     "budget_external": "-",
     "fund_source": "คณะวิศวกรรมศาสตร์\nกำแพงแสน",
     "start_date": "12 เดือน",
-    "_id": "research_วศ.กพส.\n3/2568"
+    "_id": "research_วศ.กพส.\n3/2568",
+    "head_id": 130
   },
   {
     "id": "วศ.กพส.\n4/2568",
@@ -41,7 +89,8 @@
     "budget_external": "-",
     "fund_source": "คณะวิศวกรรมศาสตร์\nกำแพงแสน",
     "start_date": "6 เดือน",
-    "_id": "research_วศ.กพส.\n4/2568"
+    "_id": "research_วศ.กพส.\n4/2568",
+    "head_id": 129
   },
   {
     "id": "วศ.กพส.\n5/2568",
@@ -52,7 +101,8 @@
     "budget_external": "-",
     "fund_source": "คณะวิศวกรรมศาสตร์\nกำแพงแสน",
     "start_date": "12 เดือน",
-    "_id": "research_วศ.กพส.\n5/2568"
+    "_id": "research_วศ.กพส.\n5/2568",
+    "head_id": 101
   },
   {
     "id": "วศ.กพส.\n6/2568",
@@ -63,7 +113,8 @@
     "budget_external": "-",
     "fund_source": "คณะวิศวกรรมศาสตร์\nกำแพงแสน",
     "start_date": "12 เดือน",
-    "_id": "research_วศ.กพส.\n6/2568"
+    "_id": "research_วศ.กพส.\n6/2568",
+    "head_id": 125
   },
   {
     "id": "",
@@ -74,7 +125,8 @@
     "budget_external": 3707000,
     "fund_source": "ทุนสนับสนุนการวิจัย \nวิทยาเขตกำแพงแสน \nประจำปีงบประมาณ 2568",
     "start_date": "1968-01-01 00:00:00",
-    "_id": "research_idx_6"
+    "_id": "research_idx_6",
+    "head_id": null
   },
   {
     "id": "",
@@ -85,7 +137,8 @@
     "budget_external": 6543600,
     "fund_source": "หน่วยบริหารและจัดการทุนด้านการเพิ่มความสามารถในการแข่งขันของประเทศ (บพข.) ร่วมกับ บริษัท อินโนวาเทค เอ็นเนอร์ยี่ จำกัด",
     "start_date": "1967-09-01 00:00:00",
-    "_id": "research_idx_7"
+    "_id": "research_idx_7",
+    "head_id": null
   },
   {
     "id": "",
@@ -96,7 +149,8 @@
     "budget_external": 7658000,
     "fund_source": "สำนักงานการวิจัย\nแห่งชาติ (วช.)",
     "start_date": "1968-05-01 00:00:00",
-    "_id": "research_idx_8"
+    "_id": "research_idx_8",
+    "head_id": 62
   },
   {
     "id": "วศ.กพส.\n7/2568",
@@ -107,7 +161,8 @@
     "budget_external": "-",
     "fund_source": "คณะวิศวกรรมศาสตร์ กำแพงแสน",
     "start_date": "1968-06-01 00:00:00",
-    "_id": "research_วศ.กพส.\n7/2568"
+    "_id": "research_วศ.กพส.\n7/2568",
+    "head_id": 111
   },
   {
     "id": "วศ.กพส.\n8/2568",
@@ -118,7 +173,8 @@
     "budget_external": "-",
     "fund_source": "คณะวิศวกรรมศาสตร์ กำแพงแสน",
     "start_date": "1968-06-01 00:00:00",
-    "_id": "research_วศ.กพส.\n8/2568"
+    "_id": "research_วศ.กพส.\n8/2568",
+    "head_id": 106
   },
   {
     "id": "วศ.กพส.\n9/2568",
@@ -129,7 +185,8 @@
     "budget_external": "-",
     "fund_source": "คณะวิศวกรรมศาสตร์ กำแพงแสน",
     "start_date": "1968-06-01 00:00:00",
-    "_id": "research_วศ.กพส.\n9/2568"
+    "_id": "research_วศ.กพส.\n9/2568",
+    "head_id": 18
   },
   {
     "id": "วศ.กพส.\nบ.1/2568",
@@ -140,7 +197,8 @@
     "budget_external": "-",
     "fund_source": "คณะวิศวกรรมศาสตร์ กำแพงแสน",
     "start_date": "1968-06-15 00:00:00",
-    "_id": "research_วศ.กพส.\nบ.1/2568"
+    "_id": "research_วศ.กพส.\nบ.1/2568",
+    "head_id": 2
   },
   {
     "id": "",
@@ -151,7 +209,8 @@
     "budget_external": 1000000,
     "fund_source": "สำนักงาน\nการวิจัยแห่งชาติ (วช.)",
     "start_date": "1968-06-01 00:00:00",
-    "_id": "research_idx_13"
+    "_id": "research_idx_13",
+    "head_id": 28
   },
   {
     "id": "",
@@ -162,7 +221,8 @@
     "budget_external": 2500000,
     "fund_source": "บริษัท มิตรผลวิจัย พัฒนาอ้อยและน้ำตาล จำกัด",
     "start_date": "1968-03-01 00:00:00",
-    "_id": "research_idx_14"
+    "_id": "research_idx_14",
+    "head_id": 62
   },
   {
     "id": "",
@@ -173,7 +233,8 @@
     "budget_external": 300000,
     "fund_source": "บริษัท มิตรผลวิจัย พัฒนาอ้อยและน้ำตาล จำกัด",
     "start_date": "1968-03-01 00:00:00",
-    "_id": "research_idx_15"
+    "_id": "research_idx_15",
+    "head_id": 62
   },
   {
     "id": "YF(KU)\n37.68",
@@ -184,7 +245,8 @@
     "budget_external": 0,
     "fund_source": "ทุนอุดหนุนวิจัยเพื่อพัฒนานักวิจัยรุ่นใหม่ มก. ปี 2568",
     "start_date": "1968-07-01 00:00:00",
-    "_id": "research_YF(KU)\n37.68"
+    "_id": "research_YF(KU)\n37.68",
+    "head_id": 152
   },
   {
     "id": "",
@@ -195,7 +257,8 @@
     "budget_external": 969000,
     "fund_source": "สำนักงานการวิจัย\nแห่งชาติ (วช.)",
     "start_date": "1968-07-01 00:00:00",
-    "_id": "research_idx_17"
+    "_id": "research_idx_17",
+    "head_id": 34
   },
   {
     "id": "PRP\n6805031920",
@@ -206,7 +269,8 @@
     "budget_external": 14500000,
     "fund_source": "สำนักงานพัฒนาการวิจัยการเกษตร (องค์การมหาชน)",
     "start_date": "1968-07-25 00:00:00",
-    "_id": "research_PRP\n6805031920"
+    "_id": "research_PRP\n6805031920",
+    "head_id": 37
   },
   {
     "id": "วศ.กพส.\nบ.2/2568",
@@ -217,7 +281,8 @@
     "budget_external": 0,
     "fund_source": "คณะวิศวกรรมศาสตร์ กำแพงแสน",
     "start_date": "2025-08-15 00:00:00",
-    "_id": "research_วศ.กพส.\nบ.2/2568"
+    "_id": "research_วศ.กพส.\nบ.2/2568",
+    "head_id": 167
   },
   {
     "id": "วศ.กพส.\n10/2568",
@@ -228,7 +293,8 @@
     "budget_external": 0,
     "fund_source": "คณะวิศวกรรมศาสตร์ กำแพงแสน",
     "start_date": "2025-08-18 00:00:00",
-    "_id": "research_วศ.กพส.\n10/2568"
+    "_id": "research_วศ.กพส.\n10/2568",
+    "head_id": 88
   },
   {
     "id": "วศ.กพส.\nบ.3/2568",
@@ -239,7 +305,8 @@
     "budget_external": 0,
     "fund_source": "คณะวิศวกรรมศาสตร์ กำแพงแสน",
     "start_date": "2025-09-15 00:00:00",
-    "_id": "research_วศ.กพส.\nบ.3/2568"
+    "_id": "research_วศ.กพส.\nบ.3/2568",
+    "head_id": 166
   },
   {
     "id": "",
@@ -250,7 +317,8 @@
     "budget_external": 14000000,
     "fund_source": "สำนักงานการวิจัย\nแห่งชาติ(วช.)",
     "start_date": "2568-11-01 00:00:00",
-    "_id": "research_idx_22"
+    "_id": "research_idx_22",
+    "head_id": 28
   },
   {
     "id": "",
@@ -261,7 +329,8 @@
     "budget_external": 600000,
     "fund_source": "สำนักงานการวิจัย\nแห่งชาติ(วช.)",
     "start_date": "2026-03-01 00:00:00",
-    "_id": "research_idx_23"
+    "_id": "research_idx_23",
+    "head_id": 80
   },
   {
     "id": "",
@@ -272,7 +341,8 @@
     "budget_external": 16050200,
     "fund_source": "สำนักงานเร่งรัดการวิจัยและนวัตกรรมเพื่อเพิ่มความสามารถการแข่งขันและการพัฒนาพื้นที่ (องค์การมหาชน) \nกับ\nบริษัทโอทีเอส เซอร์วิสแอนด์ ซัพพลาย จำกัด",
     "start_date": "1 ปี",
-    "_id": "research_idx_24"
+    "_id": "research_idx_24",
+    "head_id": 38
   },
   {
     "id": "",
@@ -283,7 +353,8 @@
     "budget_external": "-",
     "fund_source": "ทุนอุดหนุนการวิจัย คณะวิศวกรรมศาสตร์ กำแพงแสน ประจำปีงบประมาณ 2569",
     "start_date": "2569-03-03 00:00:00",
-    "_id": "research_idx_25"
+    "_id": "research_idx_25",
+    "head_id": 127
   },
   {
     "id": "",
@@ -294,7 +365,8 @@
     "budget_external": 1628000,
     "fund_source": "สำนักงานการวิจัย\nแห่งชาติ (วช)",
     "start_date": "1969-03-03 00:00:00",
-    "_id": "research_idx_26"
+    "_id": "research_idx_26",
+    "head_id": 112
   },
   {
     "id": "",
@@ -305,7 +377,8 @@
     "budget_external": 9478000,
     "fund_source": "สำนักงานพัฒนาการวิจัย\nการเกษตร(สวก.)",
     "start_date": "-",
-    "_id": "research_idx_27"
+    "_id": "research_idx_27",
+    "head_id": 37
   },
   {
     "id": "",
@@ -316,7 +389,8 @@
     "budget_external": 6857000,
     "fund_source": "สำนักงานการวิจัยแห่งชาติ(วช.)",
     "start_date": "2569-04-04 00:00:00",
-    "_id": "research_idx_28"
+    "_id": "research_idx_28",
+    "head_id": 62
   },
   {
     "id": "",
@@ -327,7 +401,8 @@
     "budget_external": "-",
     "fund_source": "ทุนอุดหนุนการวิจัย \nคณะวิศวกรรมศาสตร์ กำแพงแสน ประจำปีงบประมาณ 2569",
     "start_date": "2569-04-04 00:00:00",
-    "_id": "research_idx_29"
+    "_id": "research_idx_29",
+    "head_id": 122
   },
   {
     "id": "",
@@ -338,6 +413,7 @@
     "budget_external": 18000200,
     "fund_source": "หน่วยบริหารและจัดการทุนด้านการเพิ่มความสามารถในการแข่งขันของประเทศ(บพช)",
     "start_date": "2569-05-05 00:00:00",
-    "_id": "research_idx_30"
+    "_id": "research_idx_30",
+    "head_id": 38
   }
 ]

@@ -251,7 +251,7 @@ export function useOverviewData(timeFilter: TimeFilterState) {
 
   const departmentStats = useMemo(() => {
     const depts: Record<string, { code: string; name: string; budget: number; pubs: number; services: number; researchCount: number }> = {
-      ABE: { code: 'ABE', name: 'วิศวกรรมเกษตร', budget: 0, pubs: 0, services: 0, researchCount: 0 },
+      AE: { code: 'AE', name: 'วิศวกรรมเกษตร', budget: 0, pubs: 0, services: 0, researchCount: 0 },
       CPE: { code: 'CPE', name: 'วิศวกรรมคอมพิวเตอร์', budget: 0, pubs: 0, services: 0, researchCount: 0 },
       IRE: { code: 'IRE', name: 'วิศวกรรมชลประทาน', budget: 0, pubs: 0, services: 0, researchCount: 0 },
       FE: { code: 'FE', name: 'วิศวกรรมอาหาร', budget: 0, pubs: 0, services: 0, researchCount: 0 },

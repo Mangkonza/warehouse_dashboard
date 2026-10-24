@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import researchData from '@/data/research.json';
 import { getCachedCategoryData } from '@/lib/dataService';
 import { TimeFilterState, itemMatchesTimeFilter } from '@/types/timeFilter';
+import { getDepartment } from '@/lib/departments';
 
 export interface ResearchItem {
   id?: string;
@@ -70,8 +71,11 @@ export function useResearchData(timeFilter?: TimeFilterState) {
   const filteredData = useMemo(() => {
     return validData.filter((item) => {
       if (selectedDept !== 'all') {
-        const d = String(item.department || '');
-        if (!d.includes(selectedDept)) return false;
+        const itemDept = getDepartment(item.department);
+        const filterDept = getDepartment(selectedDept);
+        if (itemDept.code !== filterDept.code && !String(item.department || '').includes(selectedDept)) {
+          return false;
+        }
       }
       if (searchTerm.trim()) {
         const q = searchTerm.toLowerCase();

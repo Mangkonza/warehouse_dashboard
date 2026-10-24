@@ -5,6 +5,8 @@ import { FaBullseye, FaBuilding, FaInfoCircle } from 'react-icons/fa';
 import { KPIComputedResult } from '@/types/kpi';
 import { ENGINEERING_DEPARTMENTS } from '@/config/kpiConfig';
 import { CATEGORY_NAMES } from '../_hooks/useKpiData';
+import { DepartmentBadge } from '@/components/ui';
+import { getDepartment } from '@/lib/departments';
 
 interface KpiGridCardsProps {
   filteredKPIs: KPIComputedResult[];
@@ -220,38 +222,29 @@ export function KpiGridCards({ filteredKPIs, expandedId, onToggleExpand }: KpiGr
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                     {ENGINEERING_DEPARTMENTS.map((dept) => {
                       const isDone = details.completedDepartments?.includes(dept);
-                      const deptAbbrMap: Record<string, string> = {
-                        'วิศวกรรมเกษตร': 'ABE',
-                        'วิศวกรรมคอมพิวเตอร์': 'CPE',
-                        'วิศวกรรมชลประทาน': 'IRE',
-                        'วิศวกรรมอาหาร': 'FE',
-                        'วิศวกรรมอุตสาหการ': 'IE',
-                        'วิศวกรรมเครื่องกล': 'ME',
-                        'วิศวกรรมโยธา': 'CE',
-                      };
-                      const abbr = deptAbbrMap[dept] || dept;
+                      if (isDone) {
+                        return <DepartmentBadge key={dept} value={dept} />;
+                      }
 
                       return (
                         <span
                           key={dept}
-                          title={dept}
+                          title={`${dept} (ยังไม่ครบ)`}
                           style={{
                             display: 'inline-flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            minWidth: '46px',
-                            padding: '3px 9px',
-                            borderRadius: '6px',
-                            fontSize: '11.5px',
-                            fontWeight: 700,
-                            letterSpacing: '0.5px',
-                            backgroundColor: isDone ? '#00A651' : '#f1f5f9',
-                            color: isDone ? '#ffffff' : '#64748b',
-                            border: isDone ? '1px solid #008f44' : '1px solid #cbd5e1',
-                            boxShadow: isDone ? '0 1px 3px rgba(0, 166, 81, 0.25)' : 'none',
+                            minWidth: '56px',
+                            padding: '3px 12px',
+                            borderRadius: '9999px',
+                            fontSize: '12.5px',
+                            fontWeight: 500,
+                            backgroundColor: '#f1f5f9',
+                            color: '#94a3b8',
+                            border: '1px solid #e2e8f0',
                           }}
                         >
-                          {abbr}
+                          {getDepartment(dept).code}
                         </span>
                       );
                     })}

@@ -168,8 +168,8 @@ export function AcademicCharts({ validData }: AcademicChartsProps) {
     createChart('c_ac_alloc', {
       type: 'doughnut',
       data: {
-        labels: ['โครงการ (70%)', 'ค่าอำนวยการ (15%)', 'คณะ (5%)', 'ภาควิชา (5%)', 'มก. (5%)'],
-        datasets: [{ data: [70, 15, 5, 5, 5], backgroundColor: UI_PALETTE.slice(0, 5) }],
+        labels: ['งบดำเนินงานคงเหลือ (85%)', 'คณะ (5%)', 'ภาควิชา (5%)', 'มก. (5%)'],
+        datasets: [{ data: [85, 5, 5, 5], backgroundColor: UI_PALETTE.slice(0, 4) }],
       },
       options: {
         responsive: true,

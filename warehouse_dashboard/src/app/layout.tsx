@@ -3,6 +3,10 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { Providers } from "./providers";
 import { SITE_CONFIG } from "@/config/site";
+import { Geist } from "next/font/google";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const kanit = localFont({
   src: [
@@ -47,7 +51,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="th" className={kanit.variable}>
+    <html lang="th" className={cn("font-sans", geist.variable)}>
       <head>
         <link rel="icon" href="/icon.png" type="image/png" />
         <link rel="shortcut icon" href="/favicon.ico" />

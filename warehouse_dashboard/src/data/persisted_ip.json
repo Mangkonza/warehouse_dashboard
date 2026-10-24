@@ -1,0 +1,456 @@
+[
+  {
+    "_id": "ip_1",
+    "id": "ip_1",
+    "title": "อุปกรณ์ผลิตลูกปูน",
+    "name": "อุปกรณ์ผลิตลูกปูน",
+    "type": "อนุสิทธิบัตร",
+    "inventors": [
+      {
+        "person_id": 81,
+        "name": "รศ.ดร.นันทวัฒน์ ขมหวาน",
+        "prefix": "รศ.ดร.",
+        "clean_name": "นันทวัฒน์ ขมหวาน",
+        "department": "ภาควิชาวิศวกรรมโยธา",
+        "sort_order": 1
+      },
+      {
+        "person_id": null,
+        "name": "รศ.ดร.เชาว์  อินทร์ประสิทธิ์",
+        "prefix": "",
+        "clean_name": "เชาว์ อินทร์ประสิทธิ์",
+        "department": "ภาควิชาวิศวกรรมโยธา, ภาควิชาวิศวกรรมการอาหาร",
+        "sort_order": 2
+      }
+    ],
+    "creator": "รศ.ดร.นันทวัฒน์ ขมหวาน, รศ.ดร.เชาว์  อินทร์ประสิทธิ์",
+    "department": "ภาควิชาวิศวกรรมโยธา, ภาควิชาวิศวกรรมโยธา, ภาควิชาวิศวกรรมการอาหาร",
+    "departments": [
+      "ภาควิชาวิศวกรรมโยธา",
+      "ภาควิชาวิศวกรรมโยธา, ภาควิชาวิศวกรรมการอาหาร"
+    ],
+    "filing_date": "",
+    "application_number": "2303000652",
+    "registration_number": "0000022823",
+    "protection_start": "",
+    "protection_end": "",
+    "support_amount": 0,
+    "remarks": "",
+    "req_no": "2303000652 / 0000022823",
+    "status": "ได้รับความคุ้มครองแล้ว",
+    "person_id": 81,
+    "updatedAt": "2026-10-24T06:17:23.531Z"
+  },
+  {
+    "_id": "ip_2",
+    "id": "ip_2",
+    "title": "อุปกรณ์วัดความกรอบของเนื้อมะละกอผลดิบ",
+    "name": "อุปกรณ์วัดความกรอบของเนื้อมะละกอผลดิบ",
+    "type": "อนุสิทธิบัตร",
+    "inventors": [
+      {
+        "person_id": null,
+        "name": "ศ.ดร.อนุพันธ์ เทอดวงศ์วรกุล",
+        "prefix": "",
+        "clean_name": "อนุพันธ์ เทอดวงศ์วรกุล",
+        "department": "ภาควิชาวิศวกรรมเกษตร",
+        "sort_order": 1
+      },
+      {
+        "person_id": null,
+        "name": "นายวิชัย หมอยาดี",
+        "prefix": "",
+        "clean_name": "วิชัย หมอยาดี",
+        "department": "ภาควิชาวิศวกรรมเกษตร",
+        "sort_order": 2
+      }
+    ],
+    "creator": "ศ.ดร.อนุพันธ์ เทอดวงศ์วรกุล, นายวิชัย หมอยาดี",
+    "department": "ภาควิชาวิศวกรรมเกษตร",
+    "departments": [
+      "ภาควิชาวิศวกรรมเกษตร"
+    ],
+    "filing_date": "",
+    "application_number": "2303003816",
+    "registration_number": "0000024730",
+    "protection_start": "",
+    "protection_end": "",
+    "support_amount": 0,
+    "remarks": "",
+    "req_no": "2303003816 / 0000024730",
+    "status": "ได้รับความคุ้มครองแล้ว",
+    "person_id": null,
+    "updatedAt": "2026-10-24T06:17:23.534Z"
+  },
+  {
+    "_id": "ip_3",
+    "id": "ip_3",
+    "title": "เครื่องนึ่งและอบแห้งข้าวเปลือกด้วยเทคนิคฟลูอิไดซ์เบดสั่นร่วมกับการใช้ไอน้ำร้อนยวดยิ่ง",
+    "name": "เครื่องนึ่งและอบแห้งข้าวเปลือกด้วยเทคนิคฟลูอิไดซ์เบดสั่นร่วมกับการใช้ไอน้ำร้อนยวดยิ่ง",
+    "type": "อนุสิทธิบัตร",
+    "inventors": [
+      {
+        "person_id": null,
+        "name": "รศ.ดร.เชาว์ อินทร์ประสิทธิ์",
+        "prefix": "",
+        "clean_name": "เชาว์ อินทร์ประสิทธิ์",
+        "department": "ภาควิชาวิศวกรรมการอาหาร",
+        "sort_order": 1
+      },
+      {
+        "person_id": null,
+        "name": "นางสาวพรพรรณ จิอู๋",
+        "prefix": "",
+        "clean_name": "พรพรรณ จิอู๋",
+        "department": "ภาควิชาวิศวกรรมการอาหาร",
+        "sort_order": 2
+      }
+    ],
+    "creator": "รศ.ดร.เชาว์ อินทร์ประสิทธิ์, นางสาวพรพรรณ จิอู๋",
+    "department": "ภาควิชาวิศวกรรมการอาหาร",
+    "departments": [
+      "ภาควิชาวิศวกรรมการอาหาร"
+    ],
+    "filing_date": "",
+    "application_number": "2203002402",
+    "registration_number": "0000024939",
+    "protection_start": "",
+    "protection_end": "",
+    "support_amount": 0,
+    "remarks": "",
+    "req_no": "2203002402 / 0000024939",
+    "status": "ได้รับความคุ้มครองแล้ว",
+    "person_id": null,
+    "updatedAt": "2026-10-24T06:17:23.535Z"
+  },
+  {
+    "_id": "ip_4",
+    "id": "ip_4",
+    "title": "รถเข็นสี่ล้อเพื่อการเกษตรขับเคลื่อนด้วยระบบไฟฟ้า",
+    "name": "รถเข็นสี่ล้อเพื่อการเกษตรขับเคลื่อนด้วยระบบไฟฟ้า",
+    "type": "อนุสิทธิบัตร",
+    "inventors": [
+      {
+        "person_id": 6,
+        "name": "รศ.ดร. ศิวลักษณ์ ปฐวีรัตน์",
+        "prefix": "รศ.ดร.",
+        "clean_name": "ศิวลักษณ์ ปฐวีรัตน์",
+        "department": "ภาควิชาวิศวกรรมการเกษตร",
+        "sort_order": 1
+      }
+    ],
+    "creator": "รศ.ดร. ศิวลักษณ์ ปฐวีรัตน์",
+    "department": "ภาควิชาวิศวกรรมการเกษตร",
+    "departments": [
+      "ภาควิชาวิศวกรรมการเกษตร"
+    ],
+    "filing_date": "",
+    "application_number": "2303003200",
+    "registration_number": "0000024938",
+    "protection_start": "",
+    "protection_end": "",
+    "support_amount": 0,
+    "remarks": "",
+    "req_no": "2303003200 / 0000024938",
+    "status": "ได้รับความคุ้มครองแล้ว",
+    "person_id": 6,
+    "updatedAt": "2026-10-24T06:17:23.535Z"
+  },
+  {
+    "_id": "ip_5",
+    "id": "ip_5",
+    "title": "เครื่องกำจัดโลหะฟอสไฟต์ตกค้างในเศษเถ้าสารรม",
+    "name": "เครื่องกำจัดโลหะฟอสไฟต์ตกค้างในเศษเถ้าสารรม",
+    "type": "อนุสิทธิบัตร",
+    "inventors": [
+      {
+        "person_id": 10,
+        "name": "รศ.ดร.วัชรพล ชยประเสริฐ",
+        "prefix": "รศ.ดร.",
+        "clean_name": "วัชรพล ชยประเสริฐ",
+        "department": "ภาควิชาวิศวกรรมการเกษตร",
+        "sort_order": 1
+      }
+    ],
+    "creator": "รศ.ดร.วัชรพล ชยประเสริฐ",
+    "department": "ภาควิชาวิศวกรรมการเกษตร",
+    "departments": [
+      "ภาควิชาวิศวกรรมการเกษตร"
+    ],
+    "filing_date": "",
+    "application_number": "2203002196",
+    "registration_number": "0000024733",
+    "protection_start": "",
+    "protection_end": "",
+    "support_amount": 0,
+    "remarks": "",
+    "req_no": "2203002196 / 0000024733",
+    "status": "ได้รับความคุ้มครองแล้ว",
+    "person_id": 10,
+    "updatedAt": "2026-10-24T06:17:23.535Z"
+  },
+  {
+    "_id": "ip_6",
+    "id": "ip_6",
+    "title": "Precast concrete with sacrificial anode cathodic protection",
+    "name": "Precast concrete with sacrificial anode cathodic protection",
+    "type": "สิทธิบัตร",
+    "inventors": [
+      {
+        "person_id": 81,
+        "name": "รศ.ดร.นันทวัฒน์ ขมหวาน",
+        "prefix": "รศ.ดร.",
+        "clean_name": "นันทวัฒน์ ขมหวาน",
+        "department": "ภาควิชาวิศวกรรมโยธา",
+        "sort_order": 1
+      }
+    ],
+    "creator": "รศ.ดร.นันทวัฒน์ ขมหวาน",
+    "department": "ภาควิชาวิศวกรรมโยธา",
+    "departments": [
+      "ภาควิชาวิศวกรรมโยธา"
+    ],
+    "filing_date": "",
+    "application_number": "0000002025",
+    "registration_number": "0000755541",
+    "protection_start": "",
+    "protection_end": "",
+    "support_amount": 0,
+    "remarks": "",
+    "req_no": "0000002025 / 0000755541",
+    "status": "ได้รับความคุ้มครองแล้ว",
+    "person_id": 81,
+    "updatedAt": "2026-10-24T06:17:23.535Z"
+  },
+  {
+    "_id": "ip_7",
+    "id": "ip_7",
+    "title": "เครื่องกำจัดวัชพืชด้วยเปลวไฟสำหรับติดท้ายรถแทรกเตอร์",
+    "name": "เครื่องกำจัดวัชพืชด้วยเปลวไฟสำหรับติดท้ายรถแทรกเตอร์",
+    "type": "อนุสิทธิบัตร",
+    "inventors": [
+      {
+        "person_id": 8,
+        "name": "รศ.ดร.ประเทือง อุษาบริสุทธิ์",
+        "prefix": "รศ.ดร.",
+        "clean_name": "ประเทือง อุษาบริสุทธิ์",
+        "department": "ภาควิชาวิศวกรรมการเกษตร",
+        "sort_order": 1
+      },
+      {
+        "person_id": 4,
+        "name": "ผศ.ดร.วันรัฐ  อับดุลลากาซิม",
+        "prefix": "ผศ.ดร.",
+        "clean_name": "วันรัฐ อับดุลลากาซิม",
+        "department": "ภาควิชาวิศวกรรมการเกษตร",
+        "sort_order": 2
+      },
+      {
+        "person_id": 16,
+        "name": "ผศ.ดร.วัชรชาญ สุขเจริญวิภารัตน์",
+        "prefix": "ผศ.ดร.",
+        "clean_name": "วัชรชาญ สุขเจริญวิภารัตน์",
+        "department": "ภาควิชาวิศวกรรมการเกษตร",
+        "sort_order": 3
+      },
+      {
+        "person_id": 15,
+        "name": "อ.ดร.ชัยยะ จันทรา",
+        "prefix": "อ.",
+        "clean_name": "ดร.ชัยยะ จันทรา",
+        "department": "ภาควิชาวิศวกรรมการเกษตร",
+        "sort_order": 4
+      },
+      {
+        "person_id": null,
+        "name": "นายพงศ์พันธุ์  ปั้นมยุรา",
+        "prefix": "",
+        "clean_name": "พงศ์พันธุ์ ปั้นมยุรา",
+        "department": "ภาควิชาวิศวกรรมเกษตร",
+        "sort_order": 5
+      }
+    ],
+    "creator": "รศ.ดร.ประเทือง อุษาบริสุทธิ์, ผศ.ดร.วันรัฐ  อับดุลลากาซิม, ผศ.ดร.วัชรชาญ สุขเจริญวิภารัตน์, อ.ดร.ชัยยะ จันทรา, นายพงศ์พันธุ์  ปั้นมยุรา",
+    "department": "ภาควิชาวิศวกรรมการเกษตร, ภาควิชาวิศวกรรมเกษตร",
+    "departments": [
+      "ภาควิชาวิศวกรรมการเกษตร",
+      "ภาควิชาวิศวกรรมเกษตร"
+    ],
+    "filing_date": "",
+    "application_number": "2303002822",
+    "registration_number": "0000025468",
+    "protection_start": "",
+    "protection_end": "",
+    "support_amount": 0,
+    "remarks": "",
+    "req_no": "2303002822 / 0000025468",
+    "status": "ได้รับความคุ้มครองแล้ว",
+    "person_id": 8,
+    "updatedAt": "2026-10-24T06:17:23.536Z"
+  },
+  {
+    "_id": "ip_8",
+    "id": "ip_8",
+    "title": "เครื่องกำจัดวัชพืชด้วยน้ำร้อนสำหรับติดท้ายรถแทรกเตอร์",
+    "name": "เครื่องกำจัดวัชพืชด้วยน้ำร้อนสำหรับติดท้ายรถแทรกเตอร์",
+    "type": "อนุสิทธิบัตร",
+    "inventors": [
+      {
+        "person_id": 8,
+        "name": "รศ.ดร.ประเทือง อุษาบริสุทธิ์",
+        "prefix": "รศ.ดร.",
+        "clean_name": "ประเทือง อุษาบริสุทธิ์",
+        "department": "ภาควิชาวิศวกรรมการเกษตร",
+        "sort_order": 1
+      },
+      {
+        "person_id": 4,
+        "name": "ผศ.ดร.วันรัฐ  อับดุลลากาซิม",
+        "prefix": "ผศ.ดร.",
+        "clean_name": "วันรัฐ อับดุลลากาซิม",
+        "department": "ภาควิชาวิศวกรรมการเกษตร",
+        "sort_order": 2
+      },
+      {
+        "person_id": 16,
+        "name": "ผศ.ดร.วัชรชาญ สุขเจริญวิภารัตน์",
+        "prefix": "ผศ.ดร.",
+        "clean_name": "วัชรชาญ สุขเจริญวิภารัตน์",
+        "department": "ภาควิชาวิศวกรรมการเกษตร",
+        "sort_order": 3
+      },
+      {
+        "person_id": 15,
+        "name": "อ.ดร.ชัยยะ จันทรา",
+        "prefix": "อ.",
+        "clean_name": "ดร.ชัยยะ จันทรา",
+        "department": "ภาควิชาวิศวกรรมการเกษตร",
+        "sort_order": 4
+      },
+      {
+        "person_id": null,
+        "name": "นายพงศ์พันธุ์  ปั้นมยุรา",
+        "prefix": "",
+        "clean_name": "พงศ์พันธุ์ ปั้นมยุรา",
+        "department": "ภาควิชาวิศวกรรมเกษตร",
+        "sort_order": 5
+      }
+    ],
+    "creator": "รศ.ดร.ประเทือง อุษาบริสุทธิ์, ผศ.ดร.วันรัฐ  อับดุลลากาซิม, ผศ.ดร.วัชรชาญ สุขเจริญวิภารัตน์, อ.ดร.ชัยยะ จันทรา, นายพงศ์พันธุ์  ปั้นมยุรา",
+    "department": "ภาควิชาวิศวกรรมการเกษตร, ภาควิชาวิศวกรรมเกษตร",
+    "departments": [
+      "ภาควิชาวิศวกรรมการเกษตร",
+      "ภาควิชาวิศวกรรมเกษตร"
+    ],
+    "filing_date": "",
+    "application_number": "2303002824",
+    "registration_number": "0000025469",
+    "protection_start": "",
+    "protection_end": "",
+    "support_amount": 0,
+    "remarks": "",
+    "req_no": "2303002824 / 0000025469",
+    "status": "ได้รับความคุ้มครองแล้ว",
+    "person_id": 8,
+    "updatedAt": "2026-10-24T06:17:23.536Z"
+  },
+  {
+    "_id": "ip_9",
+    "id": "ip_9",
+    "title": "เครื่องวัดความต้านทานดินแบบอัตโนมัติสำหรับรถแทรกเตอร์",
+    "name": "เครื่องวัดความต้านทานดินแบบอัตโนมัติสำหรับรถแทรกเตอร์",
+    "type": "อนุสิทธิบัตร",
+    "inventors": [
+      {
+        "person_id": 8,
+        "name": "รศ.ดร.ประเทือง อุษาบริสุทธิ์",
+        "prefix": "รศ.ดร.",
+        "clean_name": "ประเทือง อุษาบริสุทธิ์",
+        "department": "ภาควิชาวิศวกรรมการเกษตร",
+        "sort_order": 1
+      }
+    ],
+    "creator": "รศ.ดร.ประเทือง อุษาบริสุทธิ์",
+    "department": "ภาควิชาวิศวกรรมการเกษตร",
+    "departments": [
+      "ภาควิชาวิศวกรรมการเกษตร"
+    ],
+    "filing_date": "",
+    "application_number": "2503004483",
+    "registration_number": "",
+    "protection_start": "",
+    "protection_end": "",
+    "support_amount": 0,
+    "remarks": "",
+    "req_no": "2503004483",
+    "status": "ยื่นคำขอแล้ว",
+    "person_id": 8,
+    "updatedAt": "2026-10-24T06:17:23.537Z"
+  },
+  {
+    "_id": "ip_10",
+    "id": "ip_10",
+    "title": "ชุดอุปกรณ์ตรวจวัดความชื้นของเมล็ดพืช",
+    "name": "ชุดอุปกรณ์ตรวจวัดความชื้นของเมล็ดพืช",
+    "type": "อนุสิทธิบัตร",
+    "inventors": [
+      {
+        "person_id": null,
+        "name": "ภาควิชาวิศวกรรมเกษตร",
+        "prefix": "",
+        "clean_name": "ภาควิชาวิศวกรรมเกษตร",
+        "department": "ภาควิชาวิศวกรรมเกษตร",
+        "sort_order": 1
+      }
+    ],
+    "creator": "ภาควิชาวิศวกรรมเกษตร",
+    "department": "ภาควิชาวิศวกรรมเกษตร",
+    "departments": [
+      "ภาควิชาวิศวกรรมเกษตร"
+    ],
+    "filing_date": "2567-06-17",
+    "application_number": "",
+    "registration_number": "",
+    "protection_start": "",
+    "protection_end": "",
+    "support_amount": 0,
+    "remarks": "",
+    "req_no": "2567-06-17",
+    "status": "ยื่นคำขอแล้ว",
+    "person_id": null,
+    "updatedAt": "2026-10-24T06:17:23.537Z"
+  },
+  {
+    "_id": "ip_11",
+    "id": "ip_11",
+    "title": "รถไถเดินตามสำหรับกำจัดวัชพืช",
+    "name": "รถไถเดินตามสำหรับกำจัดวัชพืช",
+    "type": "อนุสิทธิบัตร",
+    "inventors": [
+      {
+        "person_id": null,
+        "name": "ภาควิชาวิศวกรรมเกษตร",
+        "prefix": "",
+        "clean_name": "ภาควิชาวิศวกรรมเกษตร",
+        "department": "ภาควิชาวิศวกรรมเกษตร",
+        "sort_order": 1
+      }
+    ],
+    "creator": "ภาควิชาวิศวกรรมเกษตร",
+    "department": "ภาควิชาวิศวกรรมเกษตร",
+    "departments": [
+      "ภาควิชาวิศวกรรมเกษตร"
+    ],
+    "filing_date": "1968-04-29",
+    "application_number": "",
+    "registration_number": "",
+    "protection_start": "",
+    "protection_end": "",
+    "support_amount": 0,
+    "remarks": "",
+    "req_no": "1968-04-29",
+    "status": "ยื่นคำขอแล้ว",
+    "person_id": null,
+    "updatedAt": "2026-10-24T06:17:23.537Z"
+  }
+]

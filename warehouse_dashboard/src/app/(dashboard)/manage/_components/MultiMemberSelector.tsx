@@ -1,9 +1,16 @@
-﻿'use client';
+'use client';
 
 import React, { useState } from 'react';
 import { ProjectMember, MemberRole, AffiliationType } from '@/types/projectMonitoring';
 import { SmartAutocomplete } from './SmartAutocomplete';
 import { PersonnelRecord } from '@/types/dataManagement';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   FaUserPlus,
   FaTrash,
@@ -162,35 +169,35 @@ export const MultiMemberSelector: React.FC<MultiMemberSelectorProps> = ({
           {/* Role */}
           <div>
             <label style={{ fontSize: '11.5px', color: '#64748b', display: 'block', marginBottom: '4px' }}>บทบาท</label>
-            <select
-              value={newRole}
-              onChange={(e) => setNewRole(e.target.value as MemberRole)}
-              className="glass-input"
-              style={{ width: '100%', fontSize: '12.5px', padding: '6px 10px' }}
-            >
-              {ROLE_OPTIONS.map((r) => (
-                <option key={r.role} value={r.role}>
-                  {r.label}
-                </option>
-              ))}
-            </select>
+            <Select value={newRole} onValueChange={(val) => { if (val) setNewRole(val as MemberRole); }}>
+              <SelectTrigger className="w-full bg-white text-slate-800 h-9 text-xs">
+                <SelectValue placeholder="เลือกบทบาท" />
+              </SelectTrigger>
+              <SelectContent>
+                {ROLE_OPTIONS.map((r) => (
+                  <SelectItem key={r.role} value={r.role}>
+                    {r.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Affiliation Type */}
           <div>
             <label style={{ fontSize: '11.5px', color: '#64748b', display: 'block', marginBottom: '4px' }}>ประเภทสังกัด</label>
-            <select
-              value={newAffiliation}
-              onChange={(e) => setNewAffiliation(e.target.value as AffiliationType)}
-              className="glass-input"
-              style={{ width: '100%', fontSize: '12.5px', padding: '6px 10px' }}
-            >
-              {AFFILIATION_OPTIONS.map((a) => (
-                <option key={a.type} value={a.type}>
-                  {a.label}
-                </option>
-              ))}
-            </select>
+            <Select value={newAffiliation} onValueChange={(val) => { if (val) setNewAffiliation(val as AffiliationType); }}>
+              <SelectTrigger className="w-full bg-white text-slate-800 h-9 text-xs">
+                <SelectValue placeholder="เลือกประเภทสังกัด" />
+              </SelectTrigger>
+              <SelectContent>
+                {AFFILIATION_OPTIONS.map((a) => (
+                  <SelectItem key={a.type} value={a.type}>
+                    {a.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Contribution % */}
@@ -239,19 +246,18 @@ export const MultiMemberSelector: React.FC<MultiMemberSelectorProps> = ({
           <div>
             <label style={{ fontSize: '11.5px', color: '#64748b', display: 'block', marginBottom: '4px' }}>หน่วยงาน / คณะ / บริษัท</label>
             {newAffiliation === 'ku_kps_faculty' ? (
-              <select
-                value={newOrg}
-                onChange={(e) => setNewOrg(e.target.value)}
-                className="glass-input"
-                style={{ width: '100%', fontSize: '12.5px', padding: '8px 12px' }}
-              >
-                <option value="">เลือกคณะในกำแพงแสน...</option>
-                {KU_KPS_FACULTIES.map((f) => (
-                  <option key={f} value={f}>
-                    {f}
-                  </option>
-                ))}
-              </select>
+              <Select value={newOrg} onValueChange={(val) => setNewOrg(val ?? '')}>
+                <SelectTrigger className="w-full bg-white text-slate-800 h-9 text-xs">
+                  <SelectValue placeholder="เลือกคณะในกำแพงแสน..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {KU_KPS_FACULTIES.map((f) => (
+                    <SelectItem key={f} value={f}>
+                      {f}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             ) : (
               <input
                 type="text"
