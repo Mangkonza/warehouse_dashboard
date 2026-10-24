@@ -6,7 +6,13 @@
     "client": "-",
     "budget": 420000,
     "_id": "academic_idx_0",
-    "head_id": 145
+    "head_id": 145,
+    "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+    "integration_start_date": "2026-10-31",
+    "integration_end_date": "2027-10-31",
+    "start_date": "2026-10-25",
+    "end_date": "2026-10-31",
+    "updatedAt": "2026-10-24T17:38:36.762Z"
   },
   {
     "month": "ม.ค.",

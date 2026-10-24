@@ -385,6 +385,7 @@ export function PersonPicker({
       }}>
         <PopoverTrigger
           disabled={disabled || readOnly}
+          nativeButton={false}
           render={
             <div
               role="button"

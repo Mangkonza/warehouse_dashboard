@@ -140,6 +140,7 @@ export function DepartmentMultiSelect({
       >
         <PopoverTrigger
           disabled={disabled}
+          nativeButton={false}
           render={
             <div
               tabIndex={disabled ? -1 : 0}
