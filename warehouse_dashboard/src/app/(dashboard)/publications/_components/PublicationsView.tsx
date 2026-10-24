@@ -46,6 +46,7 @@ export function PublicationsView() {
               label: 'ผลงานตีพิมพ์ทางวิชาการทั้งหมด',
               subtext: `นานาชาติ ${internationalCount} • ชาติ ${nationalCount}`,
               accentColor: '#2e7d32',
+              active: levelFilter === 'all',
               onClick: () => setLevelFilter('all'),
             },
             {
@@ -53,6 +54,7 @@ export function PublicationsView() {
               label: 'ผลงานระดับนานาชาติ Scopus Q1',
               subtext: `${validData.length > 0 ? Math.round((q1Count / validData.length) * 100) : 0}% ของทั้งหมด`,
               accentColor: '#059669',
+              active: levelFilter === 'Q1',
               onClick: () => setLevelFilter(levelFilter === 'Q1' ? 'all' : 'Q1'),
             },
             {
@@ -60,6 +62,7 @@ export function PublicationsView() {
               label: 'ผลงานระดับนานาชาติ Scopus Q2–Q4',
               subtext: `${validData.length > 0 ? Math.round((q2Count / validData.length) * 100) : 0}% ของทั้งหมด`,
               accentColor: '#2563eb',
+              active: levelFilter === 'Q2',
               onClick: () => setLevelFilter(levelFilter === 'Q2' ? 'all' : 'Q2'),
             },
             {
@@ -67,6 +70,7 @@ export function PublicationsView() {
               label: 'ผลงานระดับชาติ TCI และอื่นๆ',
               subtext: `เตรียมอนุสิทธิบัตร/อื่นๆ ${otherCount} รายการ`,
               accentColor: '#7c3aed',
+              active: levelFilter === 'TCI',
               onClick: () => setLevelFilter(levelFilter === 'TCI' ? 'all' : 'TCI'),
             },
             {

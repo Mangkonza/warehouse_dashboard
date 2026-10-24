@@ -18,10 +18,12 @@ export const ActionListCard: React.FC<ActionListCardProps> = ({ actionList }) =>
 
   return (
     <div
-      className="glass-card"
       style={{
+        backgroundColor: '#ffffff',
         padding: '20px 22px',
-        borderRadius: '16px',
+        borderRadius: '12px',
+        border: '1px solid #e2e8f0',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
         display: 'flex',
         flexDirection: 'column',
         gap: '12px',
@@ -30,12 +32,9 @@ export const ActionListCard: React.FC<ActionListCardProps> = ({ actionList }) =>
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <FaExclamationTriangle style={{ color: '#d97706', fontSize: '16px' }} />
-          <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
-            รายการที่ต้องเร่งรัด / ติดตาม
-          </h3>
-        </div>
+        <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
+          รายการที่ต้องเร่งรัด / ติดตาม
+        </h3>
         <Link
           href="/monitoring"
           style={{ fontSize: '11.5px', fontWeight: 600, color: '#00A651', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}

@@ -298,14 +298,34 @@ export const PerspectiveSection: React.FC<PerspectiveSectionProps> = ({
   }, [activePerspective, departmentStats, pubByTier]);
 
   return (
-    <div className="glass-card" style={{ padding: '20px 24px', borderRadius: '16px' }}>
-      {/* Perspective Tabs Header */}
-      <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px', marginBottom: '16px', flexWrap: 'wrap' }}>
+    <div
+      style={{
+        backgroundColor: '#ffffff',
+        padding: '20px 24px',
+        borderRadius: '12px',
+        border: '1px solid #e2e8f0',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+      }}
+    >
+      {/* Perspective Tabs Header (Clean Segment Switcher) */}
+      <div
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          backgroundColor: '#f1f5f9',
+          padding: '4px',
+          borderRadius: '10px',
+          gap: '4px',
+          border: '1px solid #e2e8f0',
+          marginBottom: '20px',
+          flexWrap: 'wrap',
+        }}
+      >
         {[
-          { id: 'funding', label: 'งบประมาณและแหล่งทุน', icon: <FaCoins /> },
-          { id: 'quality', label: 'คุณภาพผลงานตีพิมพ์ (Quartile)', icon: <FaAward /> },
-          { id: 'projects', label: 'สรุป 5 พันธกิจรายภาควิชา', icon: <FaTasks /> },
-          { id: 'sdg', label: 'ความยั่งยืน (UN SDGs)', icon: <FaLeaf /> },
+          { id: 'funding', label: 'งบประมาณและแหล่งทุน' },
+          { id: 'quality', label: 'คุณภาพผลงานตีพิมพ์ (Quartile)' },
+          { id: 'projects', label: 'สรุป 5 พันธกิจรายภาควิชา' },
+          { id: 'sdg', label: 'ความยั่งยืน (UN SDGs)' },
         ].map((tab) => {
           const isActive = activePerspective === tab.id;
           return (
@@ -313,21 +333,21 @@ export const PerspectiveSection: React.FC<PerspectiveSectionProps> = ({
               key={tab.id}
               onClick={() => setActivePerspective(tab.id as StrategicPerspective)}
               style={{
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
-                gap: '8px',
-                padding: '8px 16px',
-                borderRadius: '8px',
+                padding: '7px 16px',
+                borderRadius: '7px',
                 border: 'none',
-                backgroundColor: isActive ? '#00A651' : 'transparent',
-                color: isActive ? '#ffffff' : '#475569',
+                backgroundColor: isActive ? '#ffffff' : 'transparent',
+                color: isActive ? '#00A651' : '#64748b',
                 fontWeight: isActive ? 700 : 500,
                 fontSize: '13px',
+                boxShadow: isActive ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
+                whiteSpace: 'nowrap',
               }}
             >
-              {tab.icon}
               <span>{tab.label}</span>
             </button>
           );

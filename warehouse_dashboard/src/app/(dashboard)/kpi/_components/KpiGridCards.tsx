@@ -61,12 +61,13 @@ export function KpiGridCards({ filteredKPIs, expandedId, onToggleExpand }: KpiGr
         const isExpanded = expandedId === kpi.id;
 
         return (
-          <div
+            <div
             key={kpi.id}
             style={{
               backgroundColor: '#ffffff',
               borderRadius: '12px',
-              border: '1px solid #e2e8f0',
+              border: `1.5px solid ${statusColor}40`,
+              borderLeft: `4px solid ${statusColor}`,
               boxShadow: '0 2px 4px rgba(0,0,0,0.03)',
               overflow: 'hidden',
               display: 'flex',
@@ -258,9 +259,8 @@ export function KpiGridCards({ filteredKPIs, expandedId, onToggleExpand }: KpiGr
 
               {/* Responsible Unit */}
               {kpi.responsibleUnit && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#64748b' }}>
-                  <FaBuilding style={{ color: '#94a3b8' }} />
-                  <span>ผู้รับผิดชอบ: <strong>{kpi.responsibleUnit}</strong></span>
+                <div style={{ fontSize: '12px', color: '#64748b' }}>
+                  <span>ผู้รับผิดชอบ: <strong style={{ color: '#1e293b' }}>{kpi.responsibleUnit}</strong></span>
                 </div>
               )}
 
@@ -288,12 +288,8 @@ export function KpiGridCards({ filteredKPIs, expandedId, onToggleExpand }: KpiGr
                       fontWeight: 600,
                       cursor: 'pointer',
                       padding: 0,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px',
                     }}
                   >
-                    <FaInfoCircle />
                     <span>{isExpanded ? 'ย่อคำอธิบาย' : 'ดูเกณฑ์ประเมิน'}</span>
                   </button>
                 ) : (
@@ -305,9 +301,6 @@ export function KpiGridCards({ filteredKPIs, expandedId, onToggleExpand }: KpiGr
                     type="button"
                     onClick={() => setDrillDownItem(item)}
                     style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '5px',
                       padding: '4px 10px',
                       borderRadius: '6px',
                       border: '1px solid #00A651',
@@ -318,8 +311,7 @@ export function KpiGridCards({ filteredKPIs, expandedId, onToggleExpand }: KpiGr
                       cursor: 'pointer',
                     }}
                   >
-                    <FaListUl size={11} />
-                    <span>ดูรายการผลงานจริง ({details.sampleMatches.length})</span>
+                    <span>ดูผลงานจริง ({details.sampleMatches.length})</span>
                   </button>
                 )}
               </div>

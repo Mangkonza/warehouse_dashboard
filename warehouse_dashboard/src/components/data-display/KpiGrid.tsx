@@ -8,6 +8,7 @@ export interface KpiCardItem {
   label: ReactNode;
   subtext?: ReactNode;
   accentColor?: string;
+  active?: boolean;
   onClick?: () => void;
 }
 
@@ -21,6 +22,7 @@ export function KpiCard({
   label,
   subtext,
   accentColor = '#00A651',
+  active = false,
   onClick,
   className = '',
   style,
@@ -30,11 +32,11 @@ export function KpiCard({
       className={`kpi-card ${className}`.trim()}
       onClick={onClick}
       style={{
-        backgroundColor: '#ffffff',
+        backgroundColor: active ? `${accentColor}10` : '#ffffff',
         borderRadius: '12px',
         padding: '16px 18px',
-        border: `1.5px solid ${accentColor}`,
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+        border: active ? `2px solid ${accentColor}` : `1.5px solid ${accentColor}`,
+        boxShadow: active ? `0 4px 14px ${accentColor}25` : '0 1px 3px rgba(0, 0, 0, 0.04)',
         cursor: onClick ? 'pointer' : 'default',
         transition: 'all 0.18s cubic-bezier(0.4, 0, 0.2, 1)',
         display: 'flex',
@@ -45,45 +47,20 @@ export function KpiCard({
         ...style,
       }}
     >
-      {/* 1. Header Row (หัวเรื่องอยู่บนสุด อ่านแล้วรู้ทันทีว่าเป็นข้อมูลอะไร ไม่ใช้ icon หรือ emoji) */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'flex-start',
-          justifyContent: 'space-between',
-          gap: '8px',
-          marginBottom: '8px',
-        }}
-      >
+      {/* 1. Header Row (หัวเรื่องอยู่บนสุด เต็มแถว ชัดเจน เรียบหรู ไม่ใช้ icon หรือ emoji หรือป้ายข้อความซ้ำซ้อน) */}
+      <div style={{ marginBottom: '8px' }}>
         <div
           className="kpi-label"
           style={{
             fontSize: '13px',
             fontWeight: 600,
-            color: '#334155',
+            color: active ? '#0f172a' : '#334155',
             lineHeight: 1.35,
             letterSpacing: '0.1px',
           }}
         >
           {label}
         </div>
-        {onClick && (
-          <span
-            style={{
-              fontSize: '11px',
-              color: accentColor,
-              fontWeight: 600,
-              whiteSpace: 'nowrap',
-              backgroundColor: `${accentColor}12`,
-              padding: '2px 8px',
-              borderRadius: '999px',
-              border: `1px solid ${accentColor}30`,
-              flexShrink: 0,
-            }}
-          >
-            คลิกดูรายการ ▸
-          </span>
-        )}
       </div>
 
       {/* 2. Main Value (ตัวเลขสถิติสำคัญ แสดงผลชัดเจน) */}

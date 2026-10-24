@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { FaDatabase, FaSyncAlt, FaCamera, FaDownload } from 'react-icons/fa';
+import { FaSyncAlt, FaDownload } from 'react-icons/fa';
 
 interface OverviewHeaderToolbarProps {
   isLiveFromDb: boolean;
@@ -15,12 +15,10 @@ export const OverviewHeaderToolbar: React.FC<OverviewHeaderToolbarProps> = ({
   isLiveFromDb,
   isRefreshing,
   onRefresh,
-  onSnapshot,
   onExportMaster,
 }) => {
   return (
     <div
-      className="glass-card"
       style={{
         display: 'flex',
         justifyContent: 'space-between',
@@ -28,18 +26,21 @@ export const OverviewHeaderToolbar: React.FC<OverviewHeaderToolbarProps> = ({
         flexWrap: 'wrap',
         gap: '12px',
         padding: '14px 20px',
-        borderRadius: '16px',
+        borderRadius: '12px',
+        backgroundColor: '#ffffff',
+        border: '1px solid #e2e8f0',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span
             style={{
-              width: '10px',
-              height: '10px',
+              width: '9px',
+              height: '9px',
               borderRadius: '50%',
               backgroundColor: isLiveFromDb ? '#059669' : '#0284c7',
-              boxShadow: isLiveFromDb ? '0 0 8px #059669' : '0 0 8px #0284c7',
+              boxShadow: isLiveFromDb ? '0 0 6px #059669' : '0 0 6px #0284c7',
             }}
           />
           <span style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>
@@ -50,14 +51,19 @@ export const OverviewHeaderToolbar: React.FC<OverviewHeaderToolbarProps> = ({
         <button
           onClick={onRefresh}
           disabled={isRefreshing}
-          className="glass-btn"
           style={{
             display: 'inline-flex',
             alignItems: 'center',
             gap: '6px',
             padding: '6px 12px',
             fontSize: '12px',
+            fontWeight: 500,
             cursor: isRefreshing ? 'not-allowed' : 'pointer',
+            backgroundColor: '#f8fafc',
+            border: '1px solid #cbd5e1',
+            borderRadius: '8px',
+            color: '#334155',
+            transition: 'all 0.15s ease',
           }}
           title="ซิงค์ข้อมูลล่าสุดจากฐานข้อมูล"
         >
@@ -73,7 +79,7 @@ export const OverviewHeaderToolbar: React.FC<OverviewHeaderToolbarProps> = ({
             display: 'inline-flex',
             alignItems: 'center',
             gap: '8px',
-            padding: '8px 18px',
+            padding: '8px 16px',
             backgroundColor: '#00A651',
             color: '#ffffff',
             border: 'none',
@@ -82,6 +88,7 @@ export const OverviewHeaderToolbar: React.FC<OverviewHeaderToolbarProps> = ({
             fontWeight: 600,
             cursor: 'pointer',
             boxShadow: '0 2px 6px rgba(0, 166, 81, 0.25)',
+            transition: 'all 0.15s ease',
           }}
           title="ดาวน์โหลดไฟล์ Excel สรุปผู้บริหารแบบ Master รวม 5 หมวด"
         >

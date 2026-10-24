@@ -454,10 +454,21 @@ export default function SelfServiceStudio() {
   };
 
   return (
-    <div className="liquid-glass-bg" style={{ padding: '16px 24px 48px' }}>
-      {/* 1. Quick Domain Selector Pills */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
-        <div className="liquid-glass-dock" style={{ display: 'flex', padding: '6px', gap: '6px', flexWrap: 'wrap' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
+      {/* 1. Quick Domain Selector Segment Switcher (คลีน สอดคล้องกับทุกหน้า) */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            backgroundColor: '#f1f5f9',
+            padding: '4px',
+            borderRadius: '10px',
+            gap: '4px',
+            border: '1px solid #e2e8f0',
+            flexWrap: 'wrap',
+          }}
+        >
           {(Object.keys(FACT_DOMAINS_CONFIG) as FactDomainId[]).map((dId) => {
             const def = FACT_DOMAINS_CONFIG[dId];
             const isActive = query.factDomain === dId;
@@ -467,46 +478,47 @@ export default function SelfServiceStudio() {
                 onClick={() => handleDomainChange(dId)}
                 type="button"
                 style={{
-                  padding: '8px 14px',
-                  borderRadius: '9999px',
-                  fontSize: '12.5px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '7px',
+                  padding: '7px 16px',
+                  borderRadius: '7px',
+                  fontSize: '13px',
                   border: 'none',
                   cursor: 'pointer',
-                  background: isActive ? '#00a859' : 'transparent',
-                  color: isActive ? '#ffffff' : '#475569',
+                  backgroundColor: isActive ? '#ffffff' : 'transparent',
+                  color: isActive ? '#00A651' : '#64748b',
                   fontWeight: isActive ? 700 : 500,
-                  boxShadow: isActive ? '0 4px 12px rgba(0, 168, 89, 0.35)' : 'none',
-                  transition: 'all 0.18s ease',
+                  boxShadow: isActive ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                  transition: 'all 0.15s ease',
+                  whiteSpace: 'nowrap',
                 }}
               >
-                <span>{getDomainIcon(dId)}</span>
                 <span>{def.nameTh}</span>
               </button>
             );
           })}
         </div>
-        <span style={{ fontSize: '12.5px', color: '#64748b', fontWeight: 600 }}>
+        <span style={{ fontSize: '13px', color: '#64748b', fontWeight: 600 }}>
           {currentDomainDef.nameTh}: <strong style={{ color: '#00A651' }}>{aggregatedData.count}</strong> รายการ
         </span>
       </div>
 
       {/* Global Time Filter Bar */}
-      <div style={{ marginBottom: '16px' }}>
-        <TimeFilterBar totalCount={aggregatedData.count} />
-      </div>
+      <TimeFilterBar totalCount={aggregatedData.count} />
 
       {/* 2. Visual Query Builder Panel */}
-      <div className="glass-card" style={{ padding: '18px 20px', marginBottom: '18px' }}>
-
+      <div
+        style={{
+          backgroundColor: '#ffffff',
+          padding: '18px 20px',
+          borderRadius: '12px',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+        }}
+      >
         {/* 5 Core Control Selectors */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '14px' }}>
           {/* A. X-Axis (Primary Dimension) */}
           <div>
             <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-              <FaThList style={{ marginRight: '6px', color: '#7c3aed' }} />
               1. แกน X (มิติหลัก / จัดกลุ่ม)
             </label>
             <Select
@@ -531,7 +543,6 @@ export default function SelfServiceStudio() {
           {/* B. Y-Axis (Measure Field) */}
           <div>
             <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-              <FaCalculator style={{ marginRight: '6px', color: '#0284c7' }} />
               2. แกน Y (ตัววัดเชิงปริมาณ)
             </label>
             <Select
@@ -556,7 +567,6 @@ export default function SelfServiceStudio() {
           {/* C. Aggregation Function */}
           <div>
             <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-              <FaMagic style={{ marginRight: '6px', color: '#00a859' }} />
               3. ฟังก์ชันรวมค่า (Aggregation)
             </label>
             <Select
@@ -581,7 +591,6 @@ export default function SelfServiceStudio() {
           {/* D. Secondary Dimension (Breakdown / Z-Axis) */}
           <div>
             <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-              <FaLayerGroup style={{ marginRight: '6px', color: '#f59e0b' }} />
               4. มิติย่อยซ้อน (Series / Z-Axis)
             </label>
             <Select
@@ -612,7 +621,6 @@ export default function SelfServiceStudio() {
           {/* E. Department Filter */}
           <div>
             <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-              <FaBuilding style={{ marginRight: '6px', color: '#059669' }} />
               5. กรองภาควิชา (Department)
             </label>
             <DepartmentSelect
@@ -775,36 +783,93 @@ export default function SelfServiceStudio() {
 
       </div>
 
-      {/* 3. Summary Metric Cards */}
+      {/* 3. Summary Metric Cards (กรอบสี คลีน หัวเรื่องอยู่บนสุด) */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', marginBottom: '18px' }}>
-        <div className="glass-card" style={{ padding: '14px 18px' }}>
-          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>ยอดรวมทั้งหมด</div>
-          <div style={{ fontSize: '22px', fontWeight: 800, color: '#006838', marginTop: '2px' }}>
-            {aggregatedData.totalValue.toLocaleString()}{' '}
-            {aggregatedData.format === 'currency' ? <span style={{ fontSize: '13px', fontWeight: 600 }}>บาท</span> : ''}
+        <div
+          style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '12px',
+            padding: '16px 18px',
+            border: '1.5px solid #00A651',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            minHeight: '90px',
+          }}
+        >
+          <div style={{ fontSize: '13px', color: '#334155', fontWeight: 600 }}>ยอดรวมทั้งหมด</div>
+          <div>
+            <div style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', fontVariantNumeric: 'tabular-nums' }}>
+              {aggregatedData.totalValue.toLocaleString()}{' '}
+              {aggregatedData.format === 'currency' ? <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}>บาท</span> : ''}
+            </div>
           </div>
         </div>
 
-        <div className="glass-card" style={{ padding: '14px 18px' }}>
-          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>ค่าเฉลี่ยต่อกลุ่ม</div>
-          <div style={{ fontSize: '22px', fontWeight: 800, color: '#0284c7', marginTop: '2px' }}>
-            {Math.round(aggregatedData.averageValue).toLocaleString()}{' '}
-            {aggregatedData.format === 'currency' ? <span style={{ fontSize: '13px', fontWeight: 600 }}>บาท</span> : ''}
+        <div
+          style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '12px',
+            padding: '16px 18px',
+            border: '1.5px solid #0284c7',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            minHeight: '90px',
+          }}
+        >
+          <div style={{ fontSize: '13px', color: '#334155', fontWeight: 600 }}>ค่าเฉลี่ยต่อกลุ่ม</div>
+          <div>
+            <div style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', fontVariantNumeric: 'tabular-nums' }}>
+              {Math.round(aggregatedData.averageValue).toLocaleString()}{' '}
+              {aggregatedData.format === 'currency' ? <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}>บาท</span> : ''}
+            </div>
           </div>
         </div>
 
-        <div className="glass-card" style={{ padding: '14px 18px' }}>
-          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>ค่าสูงสุดในกลุ่ม</div>
-          <div style={{ fontSize: '22px', fontWeight: 800, color: '#7c3aed', marginTop: '2px' }}>
-            {aggregatedData.maxValue.toLocaleString()}{' '}
-            {aggregatedData.format === 'currency' ? <span style={{ fontSize: '13px', fontWeight: 600 }}>บาท</span> : ''}
+        <div
+          style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '12px',
+            padding: '16px 18px',
+            border: '1.5px solid #7c3aed',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            minHeight: '90px',
+          }}
+        >
+          <div style={{ fontSize: '13px', color: '#334155', fontWeight: 600 }}>ค่าสูงสุดในกลุ่ม</div>
+          <div>
+            <div style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', fontVariantNumeric: 'tabular-nums' }}>
+              {aggregatedData.maxValue.toLocaleString()}{' '}
+              {aggregatedData.format === 'currency' ? <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}>บาท</span> : ''}
+            </div>
           </div>
         </div>
 
-        <div className="glass-card" style={{ padding: '14px 18px' }}>
-          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>จำนวนกลุ่มข้อมูล</div>
-          <div style={{ fontSize: '22px', fontWeight: 800, color: '#f59e0b', marginTop: '2px' }}>
-            {aggregatedData.labels.length} <span style={{ fontSize: '13px', fontWeight: 600 }}>กลุ่ม</span>
+        <div
+          style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '12px',
+            padding: '16px 18px',
+            border: '1.5px solid #d97706',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            minHeight: '90px',
+          }}
+        >
+          <div style={{ fontSize: '13px', color: '#334155', fontWeight: 600 }}>จำนวนกลุ่มข้อมูล</div>
+          <div>
+            <div style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', fontVariantNumeric: 'tabular-nums' }}>
+              {aggregatedData.labels.length}{' '}
+              <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}>กลุ่ม</span>
+            </div>
           </div>
         </div>
       </div>
@@ -813,7 +878,17 @@ export default function SelfServiceStudio() {
       <div style={{ display: 'grid', gridTemplateColumns: activeChartType === 'pivot' ? '1fr' : '1.7fr 1fr', gap: '20px' }}>
         {/* Main Chart Area */}
         {activeChartType !== 'pivot' && (
-          <div className="glass-card" style={{ padding: '20px 22px', display: 'flex', flexDirection: 'column' }}>
+          <div
+            style={{
+              backgroundColor: '#ffffff',
+              padding: '20px 22px',
+              borderRadius: '12px',
+              border: '1px solid #e2e8f0',
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
             <div style={{ marginBottom: '12px' }}>
               <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', margin: 0 }}>
                 {currentDomainDef.measures.find((m) => m.id === query.measureId)?.label} จำแนกตาม{' '}
@@ -828,28 +903,40 @@ export default function SelfServiceStudio() {
         )}
 
         {/* Detailed Pivot Matrix Table */}
-        <div className="glass-card" style={{ padding: '20px 22px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        <div
+          style={{
+            backgroundColor: '#ffffff',
+            padding: '20px 22px',
+            borderRadius: '12px',
+            border: '1px solid #e2e8f0',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <FaTable style={{ color: '#00a859', fontSize: '15px' }} />
-              <h3 style={{ fontSize: '14.5px', fontWeight: 700, color: '#0f172a' }}>
-                ตารางสรุปสถิติ (Detailed Pivot Table)
-              </h3>
-            </div>
+            <h3 style={{ fontSize: '14.5px', fontWeight: 700, color: '#0f172a', margin: 0 }}>
+              ตารางสรุปสถิติ (Detailed Pivot Table)
+            </h3>
             <button
               type="button"
               onClick={handleExportCSV}
-              className="glass-btn"
               style={{
-                padding: '4px 10px',
-                fontSize: '11.5px',
+                padding: '6px 12px',
+                fontSize: '12px',
+                fontWeight: 600,
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '5px',
-                color: '#006838',
+                color: '#00A651',
+                backgroundColor: '#f0fbf5',
+                border: '1px solid #00A65140',
+                borderRadius: '8px',
+                cursor: 'pointer',
               }}
             >
-              <FaDownload /> ส่งออก CSV
+              <span>ส่งออก CSV</span>
             </button>
           </div>
 

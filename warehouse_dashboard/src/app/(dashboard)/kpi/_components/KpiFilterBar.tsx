@@ -37,33 +37,48 @@ export function KpiFilterBar({
         border: '1px solid #e2e8f0',
       }}
     >
-      {/* Category Pills */}
-      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-        <span style={{ fontSize: '12.5px', fontWeight: 600, color: '#475569', marginRight: '4px' }}>
+      {/* Category Segment Pills */}
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+        <span style={{ fontSize: '12.5px', fontWeight: 600, color: '#475569', marginRight: '2px' }}>
           หมวดยุทธศาสตร์:
         </span>
-        {Object.entries(CATEGORY_NAMES).map(([k, lbl]) => {
-          const isSel = selectedCategory === k;
-          return (
-            <button
-              key={k}
-              onClick={() => onSelectCategory(k)}
-              style={{
-                padding: '5px 12px',
-                borderRadius: '16px',
-                fontSize: '12px',
-                fontWeight: isSel ? 600 : 400,
-                border: isSel ? '1px solid #00A651' : '1px solid #e2e8f0',
-                backgroundColor: isSel ? '#00A651' : '#ffffff',
-                color: isSel ? '#ffffff' : '#475569',
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              {lbl}
-            </button>
-          );
-        })}
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            backgroundColor: '#f1f5f9',
+            padding: '3px',
+            borderRadius: '9px',
+            gap: '3px',
+            border: '1px solid #e2e8f0',
+            flexWrap: 'wrap',
+          }}
+        >
+          {Object.entries(CATEGORY_NAMES).map(([k, lbl]) => {
+            const isSel = selectedCategory === k;
+            return (
+              <button
+                key={k}
+                onClick={() => onSelectCategory(k)}
+                style={{
+                  padding: '5px 12px',
+                  borderRadius: '7px',
+                  fontSize: '12px',
+                  fontWeight: isSel ? 700 : 500,
+                  border: 'none',
+                  backgroundColor: isSel ? '#ffffff' : 'transparent',
+                  color: isSel ? '#00A651' : '#64748b',
+                  boxShadow: isSel ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {lbl}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Status Filter */}
@@ -78,8 +93,8 @@ export function KpiFilterBar({
           <SelectContent>
             <SelectItem value="all">ทุกสถานะ</SelectItem>
             <SelectItem value="achieved">บรรลุเป้าหมาย (≥ 100%)</SelectItem>
-            <SelectItem value="on_track">เป็นไปตามเป้า (70-99%)</SelectItem>
-            <SelectItem value="at_risk">เฝ้าระวัง (40-69%)</SelectItem>
+            <SelectItem value="on_track">เป็นไปตามเป้า (70–99%)</SelectItem>
+            <SelectItem value="at_risk">เฝ้าระวัง (40–69%)</SelectItem>
             <SelectItem value="behind">ต้องเร่งรัด (&lt; 40%)</SelectItem>
           </SelectContent>
         </Select>
