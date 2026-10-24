@@ -21,6 +21,55 @@ import {
   FaUser,
 } from 'react-icons/fa';
 
+function SessionTimer({ isExpanded }: { isExpanded: boolean }) {
+  const [timeLeft, setTimeLeft] = useState('07:59:45');
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = new Date();
+      const hours = String(7 - (now.getMinutes() % 8)).padStart(2, '0');
+      const minutes = String(59 - now.getMinutes()).padStart(2, '0');
+      const seconds = String(59 - now.getSeconds()).padStart(2, '0');
+      setTimeLeft(`${hours}:${minutes}:${seconds}`);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div
+      style={{
+        padding: '14px 16px',
+        borderTop: '1px solid #2d343c',
+        backgroundColor: '#181c20',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: isExpanded ? 'space-between' : 'center',
+        fontSize: '11px',
+        color: '#64748b',
+        flexShrink: 0,
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <div
+          style={{
+            width: '7px',
+            height: '7px',
+            borderRadius: '50%',
+            backgroundColor: '#00e676',
+            boxShadow: '0 0 6px #00e676',
+          }}
+        />
+        {isExpanded && <span>Session KU:</span>}
+      </div>
+      {isExpanded && (
+        <span style={{ color: '#94a3b8', fontFamily: 'monospace', fontWeight: 600 }}>
+          {timeLeft}
+        </span>
+      )}
+    </div>
+  );
+}
+
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -36,19 +85,6 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     return false;
   });
   const [isForceCollapsed, setIsForceCollapsed] = useState(false);
-  const [timeLeft, setTimeLeft] = useState('07:59:45');
-
-  // Countdown timer simulation
-  useEffect(() => {
-    const timer = setInterval(() => {
-      const now = new Date();
-      const hours = String(7 - (now.getMinutes() % 8)).padStart(2, '0');
-      const minutes = String(59 - now.getMinutes()).padStart(2, '0');
-      const seconds = String(59 - now.getSeconds()).padStart(2, '0');
-      setTimeLeft(`${hours}:${minutes}:${seconds}`);
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   const handleTogglePin = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -95,15 +131,15 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   };
 
   const menuItems: SidebarMenuItem[] = [
-    { id: 'overview', label: 'แดชบอร์ด ภาพรวม', path: '/overview', icon: <FaThLarge /> },
-    { id: 'studio', label: 'วิเคราะห์ข้อมูล (BI Studio)', path: '/studio', icon: <FaChartLine /> },
-    { id: 'monitoring', label: 'ติดตามสถานะโครงการ', path: '/monitoring', icon: <FaClock /> },
-    { id: 'research', label: 'โครงการวิจัย', path: '/research', icon: <FaFlask /> },
-    { id: 'academic', label: 'โครงการพัฒนาวิชาการ', path: '/academic', icon: <FaGraduationCap /> },
-    { id: 'publications', label: 'ผลงานตีพิมพ์ทางวิชาการ', path: '/publications', icon: <FaBook /> },
-    { id: 'service', label: 'งานบริการวิชาการ', path: '/service', icon: <FaHandsHelping /> },
-    { id: 'ip', label: 'งานทรัพย์สินทางปัญญา', path: '/ip', icon: <FaCertificate /> },
-    { id: 'kpi', label: 'ตัวชี้วัดตามแผนยุทธศาสตร์', path: '/kpi', icon: <FaBullseye /> },
+    { id: 'overview', label: 'แดชบอร์ด ภาพรวม', path: '/overview', icon: <FaThLarge />, group: 'มุมมองบริหารและยุทธศาสตร์' },
+    { id: 'kpi', label: 'ตัวชี้วัดตามแผนยุทธศาสตร์', path: '/kpi', icon: <FaBullseye />, group: 'มุมมองบริหารและยุทธศาสตร์' },
+    { id: 'monitoring', label: 'ติดตามสถานะโครงการ', path: '/monitoring', icon: <FaClock />, group: 'มุมมองบริหารและยุทธศาสตร์' },
+    { id: 'research', label: 'โครงการวิจัย', path: '/research', icon: <FaFlask />, group: 'พันธกิจหลัก 5 ด้าน' },
+    { id: 'academic', label: 'โครงการพัฒนาวิชาการ', path: '/academic', icon: <FaGraduationCap />, group: 'พันธกิจหลัก 5 ด้าน' },
+    { id: 'publications', label: 'ผลงานตีพิมพ์ทางวิชาการ', path: '/publications', icon: <FaBook />, group: 'พันธกิจหลัก 5 ด้าน' },
+    { id: 'service', label: 'งานบริการวิชาการ', path: '/service', icon: <FaHandsHelping />, group: 'พันธกิจหลัก 5 ด้าน' },
+    { id: 'ip', label: 'งานทรัพย์สินทางปัญญา', path: '/ip', icon: <FaCertificate />, group: 'พันธกิจหลัก 5 ด้าน' },
+    { id: 'studio', label: 'วิเคราะห์ข้อมูล (BI Studio)', path: '/studio', icon: <FaChartLine />, group: 'เครื่องมือวิเคราะห์' },
   ];
 
   const singleRole = getSingleRoleTitle();
@@ -240,39 +276,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     </div>
   ) : null;
 
-  const timerSlot = (
-    <div
-      style={{
-        padding: '14px 16px',
-        borderTop: '1px solid #2d343c',
-        backgroundColor: '#181c20',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: isExpanded ? 'space-between' : 'center',
-        fontSize: '11px',
-        color: '#64748b',
-        flexShrink: 0,
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-        <div
-          style={{
-            width: '7px',
-            height: '7px',
-            borderRadius: '50%',
-            backgroundColor: '#00e676',
-            boxShadow: '0 0 6px #00e676',
-          }}
-        />
-        {isExpanded && <span>Session KU:</span>}
-      </div>
-      {isExpanded && (
-        <span style={{ color: '#94a3b8', fontFamily: 'monospace', fontWeight: 600 }}>
-          {timeLeft}
-        </span>
-      )}
-    </div>
-  );
+  const timerSlot = <SessionTimer isExpanded={isExpanded} />;
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f5f7f9' }}>

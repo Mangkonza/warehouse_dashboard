@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-import { CategoryConfig } from '@/types/dataManagement';
+import { CategoryConfig, CategoryKey } from '@/types/dataManagement';
+import { CATEGORIES_CONFIG } from '@/config/dataManagementConfig';
 import { DepartmentBadge } from '@/components/ui/department-badge';
 import {
   FaTimes,
@@ -10,6 +11,13 @@ import {
   FaEdit,
   FaTrashAlt,
 } from 'react-icons/fa';
+
+function normalizeBuddhistYear(y: number): number {
+  if (y >= 1960 && y <= 1980) {
+    return y + 600; // Excel 2-digit BE year (e.g., 68 -> 1968 -> 2568)
+  }
+  return y < 2400 ? y + 543 : y;
+}
 
 export function formatDateBE(val?: any): string {
   if (val === null || val === undefined || val === '' || val === '-' || val === 'nan' || val === 'NaT') {
@@ -24,7 +32,7 @@ export function formatDateBE(val?: any): string {
     const y = parseInt(isoMatch[1], 10);
     const m = isoMatch[2].padStart(2, '0');
     const d = isoMatch[3].padStart(2, '0');
-    const beYear = y < 2400 ? y + 543 : y;
+    const beYear = normalizeBuddhistYear(y);
     return `${d}/${m}/${beYear}`;
   }
 
@@ -33,7 +41,7 @@ export function formatDateBE(val?: any): string {
   if (ymMatch) {
     const y = parseInt(ymMatch[1], 10);
     const m = ymMatch[2].padStart(2, '0');
-    const beYear = y < 2400 ? y + 543 : y;
+    const beYear = normalizeBuddhistYear(y);
     return `${m}/${beYear}`;
   }
 
@@ -43,7 +51,7 @@ export function formatDateBE(val?: any): string {
     const d = dmyMatch[1].padStart(2, '0');
     const m = dmyMatch[2].padStart(2, '0');
     const y = parseInt(dmyMatch[3], 10);
-    const beYear = y < 2400 ? y + 543 : y;
+    const beYear = normalizeBuddhistYear(y);
     return `${d}/${m}/${beYear}`;
   }
 
@@ -53,7 +61,7 @@ export function formatDateBE(val?: any): string {
     const d = String(parsed.getDate()).padStart(2, '0');
     const m = String(parsed.getMonth() + 1).padStart(2, '0');
     const y = parsed.getFullYear();
-    const beYear = y < 2400 ? y + 543 : y;
+    const beYear = normalizeBuddhistYear(y);
     return `${d}/${m}/${beYear}`;
   }
 
@@ -72,8 +80,10 @@ export function formatMoney(val?: any): string {
 export interface RecordDetailDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  item: Record<string, any> | null;
+  item?: Record<string, any> | null;
+  record?: Record<string, any> | null;
   config?: CategoryConfig;
+  categoryKey?: CategoryKey | string;
   onEdit?: (item: any, index: number) => void;
   onDelete?: (item: any, index: number) => void;
   onPrev?: () => void;
@@ -88,8 +98,10 @@ export interface RecordDetailDrawerProps {
 export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
   isOpen,
   onClose,
-  item,
-  config,
+  item: itemProp,
+  record,
+  config: configProp,
+  categoryKey,
   onEdit,
   onDelete,
   onPrev,
@@ -100,6 +112,12 @@ export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
   totalInPage = 0,
   readOnly = false,
 }) => {
+  const item = itemProp ?? record ?? null;
+  const config =
+    configProp ??
+    (categoryKey && CATEGORIES_CONFIG[categoryKey as CategoryKey]
+      ? CATEGORIES_CONFIG[categoryKey as CategoryKey]
+      : undefined);
   const drawerRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 

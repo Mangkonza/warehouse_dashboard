@@ -194,6 +194,67 @@ export const SDGS_DATA: Record<number, SDGItem> = {
   },
 };
 
+export type SDGClusterKey = 'agri_food_health' | 'water_energy_climate' | 'smart_industry_infra' | 'education_partnership';
+
+export interface SDGStrategicCluster {
+  key: SDGClusterKey;
+  nameTh: string;
+  shortNameTh: string;
+  descriptionTh: string;
+  color: string;
+  bgTint: string;
+  borderTint: string;
+  sdgNumbers: number[];
+  relatedDepts: string[];
+}
+
+export const SDG_STRATEGIC_CLUSTERS: SDGStrategicCluster[] = [
+  {
+    key: 'agri_food_health',
+    nameTh: 'เกษตร อาหาร และคุณภาพชีวิต',
+    shortNameTh: 'เกษตร・อาหาร・สุขภาพ',
+    descriptionTh: 'ความมั่นคงทางอาหาร เครื่องจักรกลเกษตร แปรรูปอาหาร และความปลอดภัยทางชีวภาพ',
+    color: '#00A651',
+    bgTint: '#f0fbf5',
+    borderTint: '#a7f3d0',
+    sdgNumbers: [1, 2, 3],
+    relatedDepts: ['AE', 'FE'],
+  },
+  {
+    key: 'water_energy_climate',
+    nameTh: 'น้ำ พลังงานสะอาด และสภาพภูมิอากาศ',
+    shortNameTh: 'น้ำ・พลังงาน・ภูมิอากาศ',
+    descriptionTh: 'การบริหารจัดการน้ำชลประทาน พลังงานทดแทน การลดคาร์บอน และระบบนิเวศ',
+    color: '#0284c7',
+    bgTint: '#eff6ff',
+    borderTint: '#bfdbfe',
+    sdgNumbers: [6, 7, 13, 14, 15],
+    relatedDepts: ['IRE', 'ME', 'EEEC'],
+  },
+  {
+    key: 'smart_industry_infra',
+    nameTh: 'อุตสาหกรรม นวัตกรรมดิจิทัล และเมืองยั่งยืน',
+    shortNameTh: 'อุตสาหกรรม・AI・เมืองยั่งยืน',
+    descriptionTh: 'ปัญญาประดิษฐ์ หุ่นยนต์ โครงสร้างพื้นฐานโยธา การจัดการของเสีย และเศรษฐกิจหมุนเวียน',
+    color: '#e65100',
+    bgTint: '#fff7ed',
+    borderTint: '#fed7aa',
+    sdgNumbers: [8, 9, 11, 12],
+    relatedDepts: ['CPE', 'CE', 'IE', 'DWT', 'NAMC'],
+  },
+  {
+    key: 'education_partnership',
+    nameTh: 'การศึกษาและเครือข่ายความร่วมมือ',
+    shortNameTh: 'การศึกษา・ความร่วมมือ',
+    descriptionTh: 'การพัฒนาวิชาการ บริการวิชาการ การถ่ายทอดเทคโนโลยี และความร่วมมือใน/ต่างประเทศ',
+    color: '#1565c0',
+    bgTint: '#eff6ff',
+    borderTint: '#bfdbfe',
+    sdgNumbers: [4, 5, 10, 16, 17],
+    relatedDepts: ['OFS'],
+  },
+];
+
 export const UI_GREENMETRIC_CATEGORIES = [
   { code: 'SI', nameTh: 'ที่ตั้งและโครงสร้างพื้นฐาน (Setting & Infrastructure)', color: '#3b82f6' },
   { code: 'EC', nameTh: 'พลังงานและการเปลี่ยนแปลงสภาพภูมิอากาศ (Energy & Climate)', color: '#f59e0b' },

@@ -3,15 +3,25 @@
 import React, { useEffect, useRef } from 'react';
 import Chart from 'chart.js/auto';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
-import { FaChartLine, FaChartBar, FaChartPie, FaGlobe } from 'react-icons/fa';
+import { FaChartBar, FaChartPie } from 'react-icons/fa';
 import { ResearchItem } from '../_hooks/useResearchData';
 import { getDepartment, getDepartmentColor } from '@/lib/departments';
+import { formatTopItemsForTooltip } from '@/lib/chartTooltipHelper';
+import { HybridSdgCard } from '@/components/data-display';
 
 interface ResearchChartsProps {
   validData: ResearchItem[];
+  selectedDept?: string;
+  onSelectDept?: (deptCode: string) => void;
+  selectedFund?: string;
+  onSelectFund?: (fundName: string) => void;
 }
 
-export function ResearchCharts({ validData }: ResearchChartsProps) {
+export function ResearchCharts({
+  validData,
+  onSelectDept,
+  onSelectFund,
+}: ResearchChartsProps) {
   const chartInstances = useRef<Chart[]>([]);
 
   useEffect(() => {
@@ -23,74 +33,45 @@ export function ResearchCharts({ validData }: ResearchChartsProps) {
     Chart.defaults.font.size = 12;
     Chart.defaults.color = '#0f172a';
 
-    const C_RES = '#006838';
-    const UI_PALETTE = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#8AC926'];
+    const UI_PALETTE = ['#00A651', '#0284c7', '#6a1b9a', '#e65100', '#00838f', '#d97706', '#64748b'];
 
-    const M = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.'];
-    const monthMatchers = [
-      ['-01-', 'ม.ค.', 'มกราคม', '1/2568'],
-      ['-02-', 'ก.พ.', 'กุมภาพันธ์', '2/2568'],
-      ['-03-', 'มี.ค.', 'มีนาคม', '3/2568'],
-      ['-04-', 'เม.ย.', 'เมษายน', '4/2568'],
-      ['-05-', 'พ.ค.', 'พฤษภาคม', '5/2568'],
-      ['-06-', 'มิ.ย.', 'มิถุนายน', '6/2568'],
-      ['-07-', 'ก.ค.', 'กรกฎาคม', '7/2568'],
-    ];
-
-    const monthlyCount = [0, 0, 0, 0, 0, 0, 0];
-    const monthlyBudget = [0, 0, 0, 0, 0, 0, 0];
-    const deptBudget: Record<string, number> = {};
-    const fundBudget: Record<string, number> = {};
+    const deptGroups: Record<string, { code: string; name: string; budget: number; count: number; items: ResearchItem[] }> = {};
+    const fundGroups: Record<string, { name: string; budget: number; count: number; items: ResearchItem[] }> = {};
 
     validData.forEach((item) => {
       const internal = typeof item.budget_internal === 'number' ? item.budget_internal : Number(item.budget_internal) || 0;
       const external = typeof item.budget_external === 'number' ? item.budget_external : Number(item.budget_external) || 0;
       const totalBudget = internal + external;
 
-      // Group by month
-      const dateStr = String(item.start_date || item.id || '').toLowerCase();
-      for (let i = 0; i < M.length; i++) {
-        if (monthMatchers[i].some((m) => dateStr.includes(m))) {
-          monthlyCount[i]++;
-          monthlyBudget[i] += totalBudget / 1000000;
-          break;
-        }
-      }
-
       // Group by dept code
       const deptInfo = getDepartment(item.department);
-      const deptCode = deptInfo.code !== '-' ? deptInfo.code : 'อื่นๆ';
-      deptBudget[deptCode] = (deptBudget[deptCode] || 0) + totalBudget / 1000000;
+      const deptCode = deptInfo.code !== '-' ? deptInfo.code : 'OTH';
+      if (!deptGroups[deptCode]) {
+        deptGroups[deptCode] = { code: deptCode, name: deptInfo.name, budget: 0, count: 0, items: [] };
+      }
+      deptGroups[deptCode].budget += totalBudget;
+      deptGroups[deptCode].count += 1;
+      deptGroups[deptCode].items.push(item);
 
       // Group by fund
       let fund = String(item.fund_source || '').replace('\n', ' ').trim();
-      if (fund === 'nan' || !fund || fund === '-') fund = 'อื่นๆ';
-      fundBudget[fund] = (fundBudget[fund] || 0) + totalBudget;
+      if (fund === 'nan' || !fund || fund === '-') fund = 'ไม่ระบุแหล่งทุน';
+      if (!fundGroups[fund]) {
+        fundGroups[fund] = { name: fund, budget: 0, count: 0, items: [] };
+      }
+      fundGroups[fund].budget += totalBudget;
+      fundGroups[fund].count += 1;
+      fundGroups[fund].items.push(item);
     });
 
-    const deptLabels = Object.keys(deptBudget);
-    const deptData = Object.values(deptBudget);
+    const sortedDepts = Object.values(deptGroups).sort((a, b) => b.budget - a.budget);
+    const deptLabels = sortedDepts.map((d) => d.code);
+    const deptBudgetM = sortedDepts.map((d) => Number((d.budget / 1000000).toFixed(2)));
     const deptColors = deptLabels.map((code) => getDepartmentColor(code));
 
-    const sortedFunds = Object.entries(fundBudget).sort((a, b) => b[1] - a[1]).slice(0, 6);
-    const fundLabels = sortedFunds.map((f) => f[0]);
-    const fundData = sortedFunds.map((f) => f[1]);
-
-    const pieDatalabels = {
-      color: '#fff',
-      anchor: 'center' as const,
-      align: 'center' as const,
-      textStrokeColor: 'rgba(0,0,0,0.6)',
-      textStrokeWidth: 2,
-      font: { weight: 'bold' as const, size: 12 },
-      formatter: (value: any, context: any) => {
-        if (value === 0) return '';
-        const sum = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
-        const p = ((value * 100) / sum).toFixed(1) + '%';
-        return value.toLocaleString('en-US') + '\n(' + p + ')';
-      },
-      textAlign: 'center' as const,
-    };
+    const sortedFunds = Object.values(fundGroups).sort((a, b) => b.budget - a.budget).slice(0, 7);
+    const fundLabels = sortedFunds.map((f) => f.name);
+    const fundData = sortedFunds.map((f) => f.budget);
 
     const createChart = (id: string, config: any) => {
       const canvas = document.getElementById(id) as HTMLCanvasElement;
@@ -100,152 +81,17 @@ export function ResearchCharts({ validData }: ResearchChartsProps) {
       }
     };
 
-    // 1. Monthly count
-    createChart('c_re_cnt', {
-      type: 'line',
-      data: {
-        labels: M,
-        datasets: [
-          {
-            label: 'จำนวนโครงการ',
-            data: monthlyCount,
-            borderColor: C_RES,
-            backgroundColor: 'rgba(0, 104, 56, 0.1)',
-            fill: true,
-            tension: 0.4,
-            pointBackgroundColor: C_RES,
-            pointRadius: 5,
-            pointHoverRadius: 7,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          datalabels: { align: 'top', anchor: 'end', color: C_RES, font: { weight: 'bold' } },
-        },
-        scales: {
-          y: { beginAtZero: true, grace: '20%', ticks: { stepSize: 1 }, title: { display: true, text: 'จำนวนโครงการ' } },
-        },
-      },
-    });
-
-    // 2. Monthly budget
-    createChart('c_re_bud', {
-      type: 'line',
-      data: {
-        labels: M,
-        datasets: [
-          {
-            label: 'ล้านบาท',
-            data: monthlyBudget,
-            borderColor: C_RES,
-            backgroundColor: 'rgba(0, 104, 56, 0.1)',
-            fill: true,
-            tension: 0.4,
-            pointBackgroundColor: C_RES,
-            pointRadius: 5,
-            pointHoverRadius: 7,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: (c: any) => c.raw.toFixed(2) + ' ล้านบาท' } },
-          datalabels: {
-            align: 'top',
-            anchor: 'end',
-            color: C_RES,
-            font: { weight: 'bold' },
-            formatter: (v: any) => (v > 0 ? v.toFixed(1) : ''),
-          },
-        },
-        scales: {
-          y: { beginAtZero: true, grace: '20%', title: { display: true, text: 'ล้านบาท' } },
-        },
-      },
-    });
-
-    // 3. Dept budget
+    // 1. Dept budget & project count with Rich Tooltip + Click to filter
     createChart('c_re_dept', {
       type: 'bar',
       data: {
         labels: deptLabels,
-        datasets: [{ label: 'ล้านบาท', data: deptData, backgroundColor: deptColors, borderRadius: 8 }],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        indexAxis: 'y',
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              title: (items: any) => {
-                const code = items[0]?.label || '';
-                const dept = getDepartment(code);
-                return dept.name !== code ? `${dept.name} (${code})` : code;
-              },
-              label: (c: any) => ` ${c.raw.toFixed(2)} ล้านบาท`,
-            },
-          },
-        },
-        scales: { x: { beginAtZero: true, grace: '20%', title: { display: true, text: 'ล้านบาท' } } },
-      },
-    });
-
-    // 4. Fund doughnut
-    createChart('c_re_fund', {
-      type: 'doughnut',
-      data: {
-        labels: fundLabels.length > 0 ? fundLabels : ['ไม่มีข้อมูล'],
-        datasets: [{ data: fundData.length > 0 ? fundData : [1], backgroundColor: UI_PALETTE.slice(0, fundLabels.length) }],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          datalabels: pieDatalabels as any,
-          legend: { position: 'bottom', labels: { padding: 8 } },
-          tooltip: { callbacks: { label: (c: any) => c.label + ': ฿' + c.raw.toLocaleString() } },
-        },
-      },
-    });
-
-    // 5. Diverging SDG
-    const sdgLabels = ['SDG 6 น้ำสะอาด', 'SDG 9 นวัตกรรม', 'SDG 13 สภาพภูมิอากาศ', 'SDG 2 อาหาร', 'SDG 8 เศรษฐกิจ'];
-    const sdgColors = ['#26bde2', '#fd6925', '#3f7e44', '#dda63a', '#a21942'];
-    const rawSDGCount = [4, 5, 3, 2, 1];
-    const rawSDGBudget = [50.39, 16.27, 43.53, 6.88, 1.63];
-
-    const maxBudget = Math.max(...rawSDGBudget);
-    const maxCount = Math.max(...rawSDGCount);
-    const scaleRatio = maxBudget / maxCount;
-    const scaledCountData = rawSDGCount.map((v) => -(v * scaleRatio));
-
-    createChart('c_re_sdg_combined', {
-      type: 'bar',
-      data: {
-        labels: sdgLabels,
         datasets: [
           {
-            label: 'จำนวนโครงการ',
-            data: scaledCountData,
-            backgroundColor: sdgColors,
-            borderRadius: 4,
-            barPercentage: 0.7,
-          },
-          {
-            label: 'งบประมาณ (ล้านบาท)',
-            data: rawSDGBudget,
-            backgroundColor: sdgColors,
-            borderRadius: 4,
-            barPercentage: 0.7,
+            label: 'งบประมาณวิจัย (ล้านบาท)',
+            data: deptBudgetM,
+            backgroundColor: deptColors,
+            borderRadius: 8,
           },
         ],
       },
@@ -253,37 +99,100 @@ export function ResearchCharts({ validData }: ResearchChartsProps) {
         responsive: true,
         maintainAspectRatio: false,
         indexAxis: 'y',
+        onClick: (_e: any, elements: any[]) => {
+          if (elements.length > 0 && onSelectDept) {
+            const idx = elements[0].index;
+            const d = sortedDepts[idx];
+            if (d) onSelectDept(d.code);
+          }
+        },
         plugins: {
           legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: (c: any) => {
-                if (c.datasetIndex === 0) return 'จำนวนโครงการ: ' + rawSDGCount[c.dataIndex] + ' โครงการ';
-                return 'งบประมาณ: ' + c.raw.toFixed(2) + ' ล้านบาท';
-              },
+          datalabels: {
+            anchor: 'end',
+            align: 'right',
+            color: '#1e293b',
+            font: { weight: 'bold', size: 11 },
+            formatter: (v: number, ctx: any) => {
+              const d = sortedDepts[ctx.dataIndex];
+              return `${v.toFixed(2)} ลบ. (${d?.count || 0} โครงการ)`;
             },
           },
-          datalabels: {
-            color: '#424242',
-            font: { weight: 'bold', size: 11 },
-            anchor: (c: any) => (c.datasetIndex === 0 ? 'start' : 'end'),
-            align: (c: any) => (c.datasetIndex === 0 ? 'left' : 'right'),
-            formatter: (value: any, c: any) => {
-              if (c.datasetIndex === 0) return rawSDGCount[c.dataIndex] + ' โครงการ';
-              return rawSDGBudget[c.dataIndex].toFixed(2) + ' ลบ.';
+          tooltip: {
+            callbacks: {
+              title: (items: any) => {
+                const idx = items[0]?.dataIndex;
+                const d = sortedDepts[idx];
+                return d ? `${d.name} (${d.code})` : items[0]?.label;
+              },
+              label: (c: any) => {
+                const d = sortedDepts[c.dataIndex];
+                return ` งบประมาณรวม: ${(d?.budget || 0).toLocaleString('th-TH')} บาท (${d?.count || 0} โครงการ)`;
+              },
+              afterBody: (items: any) => {
+                const idx = items[0]?.dataIndex;
+                const d = sortedDepts[idx];
+                return d ? formatTopItemsForTooltip(d.items, { maxItems: 3, showBudget: true }) : [];
+              },
             },
           },
         },
         scales: {
-          x: {
-            stacked: true,
-            ticks: { display: false },
-            grid: { drawBorder: false, drawTicks: false },
-            title: { display: true, text: '← จำนวนโครงการ | งบประมาณ (ล้านบาท) →', font: { weight: 'bold' }, padding: 10 },
+          x: { beginAtZero: true, grace: '28%', title: { display: true, text: 'ล้านบาท' } },
+          y: { grid: { display: false } },
+        },
+      },
+    });
+
+    // 2. Fund source breakdown with Rich Tooltip + Click to filter
+    createChart('c_re_fund', {
+      type: 'doughnut',
+      data: {
+        labels: fundLabels.length > 0 ? fundLabels : ['ไม่มีข้อมูล'],
+        datasets: [
+          {
+            data: fundData.length > 0 ? fundData : [1],
+            backgroundColor: UI_PALETTE.slice(0, Math.max(fundLabels.length, 1)),
+            borderWidth: 2,
+            borderColor: '#ffffff',
           },
-          y: {
-            stacked: true,
-            ticks: { font: { weight: 'bold' } },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        onClick: (_e: any, elements: any[]) => {
+          if (elements.length > 0 && onSelectFund) {
+            const idx = elements[0].index;
+            const f = sortedFunds[idx];
+            if (f) onSelectFund(f.name);
+          }
+        },
+        plugins: {
+          datalabels: {
+            color: '#fff',
+            font: { weight: 'bold', size: 11 },
+            formatter: (value: number, context: any) => {
+              if (!value) return '';
+              const sum = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
+              const pct = (value * 100) / (sum || 1);
+              if (pct < 6) return '';
+              return `${pct.toFixed(0)}%`;
+            },
+          },
+          legend: { position: 'right', labels: { padding: 10, boxWidth: 12, font: { size: 11.5 } } },
+          tooltip: {
+            callbacks: {
+              label: (c: any) => {
+                const f = sortedFunds[c.dataIndex];
+                return ` ${c.label}: ${(c.raw || 0).toLocaleString('th-TH')} บาท (${f?.count || 0} โครงการ)`;
+              },
+              afterBody: (items: any) => {
+                const idx = items[0]?.dataIndex;
+                const f = sortedFunds[idx];
+                return f ? formatTopItemsForTooltip(f.items, { maxItems: 3, showBudget: true }) : [];
+              },
+            },
           },
         },
       },
@@ -292,56 +201,45 @@ export function ResearchCharts({ validData }: ResearchChartsProps) {
     return () => {
       chartInstances.current.forEach((c) => c.destroy());
     };
-  }, [validData]);
+  }, [validData, onSelectDept, onSelectFund]);
 
   return (
-    <>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '16px' }}>
       <div className="chart-grid">
         <div className="chart-card">
-          <h3>
-            <FaChartLine style={{ color: '#00914d' }} /> จำนวนโครงการวิจัยรายเดือน (ข้อมูลจริง)
-          </h3>
-          <div className="chart-wrapper">
-            <canvas id="c_re_cnt" />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <h3 style={{ margin: 0 }}>
+              <FaChartBar style={{ color: '#00A651' }} /> งบประมาณและจำนวนโครงการวิจัยตามภาควิชา
+            </h3>
+            <span style={{ fontSize: '11.5px', color: '#00A651', fontWeight: 600 }}>
+              💡 คลิกแท่งกราฟเพื่อกรองตาราง
+            </span>
           </div>
-        </div>
-        <div className="chart-card">
-          <h3>
-            <FaChartLine style={{ color: '#00914d' }} /> งบประมาณวิจัยรายเดือน (ล้านบาท) (ข้อมูลจริง)
-          </h3>
-          <div className="chart-wrapper">
-            <canvas id="c_re_bud" />
-          </div>
-        </div>
-      </div>
-
-      <div className="chart-grid">
-        <div className="chart-card">
-          <h3>
-            <FaChartBar style={{ color: '#00914d' }} /> งบประมาณตามภาควิชา (ข้อมูลจริง)
-          </h3>
-          <div className="chart-wrapper">
+          <div className="chart-wrapper" style={{ cursor: 'pointer' }}>
             <canvas id="c_re_dept" />
           </div>
         </div>
+
         <div className="chart-card">
-          <h3>
-            <FaChartPie style={{ color: '#00914d' }} /> สัดส่วนแหล่งทุนวิจัย (ข้อมูลจริง)
-          </h3>
-          <div className="chart-wrapper">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <h3 style={{ margin: 0 }}>
+              <FaChartPie style={{ color: '#00A651' }} /> สัดส่วนงบประมาณตามแหล่งทุนวิจัย
+            </h3>
+            <span style={{ fontSize: '11.5px', color: '#00A651', fontWeight: 600 }}>
+              💡 คลิกส่วนกราฟเพื่อกรองแหล่งทุน
+            </span>
+          </div>
+          <div className="chart-wrapper" style={{ cursor: 'pointer' }}>
             <canvas id="c_re_fund" />
           </div>
         </div>
-
-        <div className="chart-card chart-full">
-          <h3>
-            <FaGlobe style={{ color: '#00914d' }} /> การกระจายและงบประมาณตาม SDGs
-          </h3>
-          <div className="chart-wrapper">
-            <canvas id="c_re_sdg_combined" />
-          </div>
-        </div>
       </div>
-    </>
+
+      <HybridSdgCard
+        items={validData}
+        categoryKey="research"
+        title="การวิเคราะห์โครงการวิจัยตามเป้าหมายการพัฒนาที่ยั่งยืน (UN SDGs & UI GreenMetric)"
+      />
+    </div>
   );
 }

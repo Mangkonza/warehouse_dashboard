@@ -2,37 +2,23 @@
 
 import React from 'react';
 import { OverviewKpiScore } from '../_hooks/useOverviewData';
-import { FaCoins, FaFileAlt, FaTrophy, FaBriefcase, FaCertificate } from 'react-icons/fa';
+import { FaListUl } from 'react-icons/fa';
 
 interface KpiScorecardGridProps {
   scorecards: OverviewKpiScore[];
   selectedBurnupId: string;
   onSelectKpi: (id: string) => void;
+  onDrillDownKpi?: (kpi: OverviewKpiScore) => void;
 }
 
 export const KpiScorecardGrid: React.FC<KpiScorecardGridProps> = ({
   scorecards,
   selectedBurnupId,
   onSelectKpi,
+  onDrillDownKpi,
 }) => {
-  const getIcon = (id: string) => {
-    switch (id) {
-      case 'external_budget':
-        return <FaCoins />;
-      case 'scopus_pub':
-        return <FaFileAlt />;
-      case 'mega_projects':
-        return <FaTrophy />;
-      case 'service_revenue':
-        return <FaBriefcase />;
-      case 'ip_patents':
-      default:
-        return <FaCertificate />;
-    }
-  };
-
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '14px' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(215px, 1fr))', gap: '14px' }}>
       {scorecards.map((kpi) => {
         const isSelected = selectedBurnupId === kpi.id;
         return (
@@ -42,10 +28,10 @@ export const KpiScorecardGrid: React.FC<KpiScorecardGridProps> = ({
             className="glass-card"
             style={{
               padding: '16px 18px',
-              borderRadius: '14px',
+              borderRadius: '12px',
               cursor: 'pointer',
               border: isSelected ? '2px solid #00A651' : '1px solid #e2e8f0',
-              background: isSelected ? '#f0fdf4' : '#ffffff',
+              background: isSelected ? '#f0fbf5' : '#ffffff',
               transition: 'all 0.15s ease',
               display: 'flex',
               flexDirection: 'column',
@@ -75,10 +61,36 @@ export const KpiScorecardGrid: React.FC<KpiScorecardGridProps> = ({
                 {kpi.title}
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginBottom: '4px' }}>
-                <span style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a' }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '6px', marginBottom: '4px' }}>
+                <span style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a', fontVariantNumeric: 'tabular-nums' }}>
                   {kpi.actualFormatted}
                 </span>
+                {onDrillDownKpi && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDrillDownKpi(kpi);
+                    }}
+                    title="คลิกเพื่อดูรายชื่อโครงการ/ผลงาน"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      padding: '3px 8px',
+                      borderRadius: '6px',
+                      border: '1px solid #cbd5e1',
+                      backgroundColor: '#ffffff',
+                      color: '#00A651',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <FaListUl size={10} />
+                    <span>ดูรายการ ({kpi.items.length})</span>
+                  </button>
+                )}
               </div>
 
               <div style={{ fontSize: '11px', color: '#64748b' }}>
@@ -86,14 +98,13 @@ export const KpiScorecardGrid: React.FC<KpiScorecardGridProps> = ({
               </div>
             </div>
 
-            {/* Pro-rata Progress Bar */}
+            {/* Pro-rata Progress Bar with Vertical Time Target Marker */}
             <div style={{ marginTop: '12px' }}>
               <div
                 style={{
-                  height: '7px',
+                  height: '8px',
                   backgroundColor: '#e2e8f0',
                   borderRadius: '4px',
-                  overflow: 'hidden',
                   position: 'relative',
                 }}
               >
@@ -106,10 +117,24 @@ export const KpiScorecardGrid: React.FC<KpiScorecardGridProps> = ({
                     transition: 'width 0.4s ease',
                   }}
                 />
+                {/* Pro-rata Target Vertical Indicator */}
+                <div
+                  title={`เป้าหมายตามเวลา (Pro-rata): ${kpi.proRataTarget}%`}
+                  style={{
+                    position: 'absolute',
+                    top: '-3px',
+                    bottom: '-3px',
+                    left: `${Math.min(kpi.proRataTarget, 100)}%`,
+                    width: '2px',
+                    backgroundColor: '#0f172a',
+                    borderRadius: '1px',
+                    zIndex: 2,
+                  }}
+                />
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', fontSize: '10px', color: '#94a3b8' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px', fontSize: '10.5px', color: '#64748b' }}>
                 <span>ความก้าวหน้า {kpi.percent}%</span>
-                <span>เป้าหมายเวลา {kpi.proRataTarget}%</span>
+                <span style={{ fontWeight: 600, color: '#334155' }}>▏เป้าเวลา {kpi.proRataTarget}%</span>
               </div>
             </div>
           </div>

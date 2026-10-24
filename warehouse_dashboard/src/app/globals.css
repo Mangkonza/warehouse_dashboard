@@ -111,27 +111,26 @@ body{margin:0;background:var(--w);color:#0f172a;overflow-x:hidden;min-height:100
 .tab-content{display:none;animation:fadeIn .35s ease}
 .tab-content.active{display:block}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:14px;margin-bottom:24px}
-.kpi-card{background:var(--w);border-radius:var(--r);padding:18px 20px;border:1px solid var(--g2);box-shadow:var(--sh-s);transition:var(--t);position:relative;overflow:hidden}
-.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--ku),var(--ku-a))}
-.kpi-card:hover{transform:translateY(-3px);box-shadow:var(--sh-l)}
-.kpi-icon{width:38px;height:38px;background:var(--ku-p);border-radius:9px;display:flex;align-items:center;justify-content:center;color:var(--ku);font-size:16px;margin-bottom:10px}
-.kpi-value{font-size:26px;font-weight:800;color:var(--ku-d);line-height:1.1}
-.kpi-label{font-size:13px;font-weight:500;color:#1e293b;margin-top:4px}
-.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px}
-.chart-card{background:var(--w);border-radius:var(--r);padding:22px;border:1px solid var(--g2);box-shadow:var(--sh-s)}
-.chart-card h3{font-size:15px;font-weight:700;color:#0f172a;margin-bottom:14px;display:flex;align-items:center;gap:8px}
-.chart-card h3 i{color:var(--ku-l)}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(195px,1fr));gap:14px;margin-bottom:18px}
+.kpi-card{background:#ffffff;border-radius:12px;padding:16px 18px;border:1px solid #e2e8f0;box-shadow:0 1px 3px rgba(0,0,0,0.04);transition:all 0.15s ease;position:relative;overflow:hidden}
+.kpi-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,166,81,0.10)}
+.kpi-icon{width:36px;height:36px;background:#f0fbf5;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#00A651;font-size:15px;margin-bottom:8px}
+.kpi-value{font-size:23px;font-weight:700;color:#1e293b;line-height:1.15;font-variant-numeric:tabular-nums}
+.kpi-label{font-size:13px;font-weight:600;color:#334155;margin-top:4px}
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px}
+.chart-card{background:#ffffff;border-radius:12px;padding:20px;border:1px solid #e2e8f0;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+.chart-card h3{font-size:15px;font-weight:600;color:#1e293b;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.chart-card h3 i{color:#00A651}
 .chart-wrapper{position:relative;height:270px}
 .chart-full{grid-column:1/-1}
-.table-card{background:var(--w);border-radius:var(--r);padding:22px;border:1px solid var(--g2);box-shadow:var(--sh-s);margin-bottom:20px;overflow:hidden}
-.table-card h3{font-size:15px;font-weight:700;color:#0f172a;margin-bottom:14px;display:flex;align-items:center;gap:8px}
-.table-scroll{overflow-x:auto;max-height:380px;overflow-y:auto}
-table{width:100%;border-collapse:collapse;font-size:13px}
+.table-card{background:#ffffff;border-radius:12px;padding:20px;border:1px solid #e2e8f0;box-shadow:0 1px 3px rgba(0,0,0,0.04);margin-bottom:18px;overflow:hidden}
+.table-card h3{font-size:15px;font-weight:600;color:#1e293b;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.table-scroll{overflow-x:auto;max-height:460px;overflow-y:auto}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
 thead th, table th, .glass-table th {
   background: #00A651 !important;
   color: #ffffff !important;
-  padding: 11px 12px !important;
+  padding: 11px 10px !important;
   text-align: left;
   font-weight: 600 !important;
   position: sticky;
@@ -141,10 +140,10 @@ thead th, table th, .glass-table th {
   white-space: nowrap;
   border-bottom: 2px solid #008f44 !important;
 }
-tbody tr{transition:var(--t)}
-tbody tr:nth-child(even){background:var(--ku-bg)}
-tbody tr:hover{background:var(--ku-p)}
-tbody td{padding:10px 12px;border-bottom:1px solid var(--g2);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#0f172a}
+tbody tr{transition:background-color 0.15s ease}
+tbody tr:nth-child(even){background:#fafcfb}
+tbody tr:hover{background:#f0fbf5}
+tbody td{padding:11px 10px;border-bottom:1px solid #e2e8f0;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#0f172a;font-weight:400}
 
 /* ==========================================================================
    Shadcn Calendar Override Rules (Prevent Legacy Global Table Collisions)

@@ -1,7 +1,7 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { TimeFilterState, DEFAULT_TIME_FILTER } from '@/types/timeFilter';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { TimeFilterState, DEFAULT_TIME_FILTER, itemMatchesTimeFilter } from '@/types/timeFilter';
 
 interface TimeFilterContextType {
   timeFilter: TimeFilterState;
@@ -9,6 +9,7 @@ interface TimeFilterContextType {
   resetTimeFilter: () => void;
   isTimeModalOpen: boolean;
   setIsTimeModalOpen: (open: boolean) => void;
+  filterProjectsByTime: <T = any>(items: T[], dateField?: string) => T[];
 }
 
 const TimeFilterContext = createContext<TimeFilterContextType | undefined>(undefined);
@@ -45,6 +46,15 @@ export const TimeFilterProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     handleSetTimeFilter(DEFAULT_TIME_FILTER);
   };
 
+  const filterProjectsByTime = useCallback(
+    <T = any>(items: T[], _dateField?: string): T[] => {
+      if (!Array.isArray(items)) return [];
+      if (timeFilter.mode === 'all') return items;
+      return items.filter((item) => itemMatchesTimeFilter(item, timeFilter));
+    },
+    [timeFilter]
+  );
+
   return (
     <TimeFilterContext.Provider
       value={{
@@ -53,6 +63,7 @@ export const TimeFilterProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         resetTimeFilter,
         isTimeModalOpen,
         setIsTimeModalOpen,
+        filterProjectsByTime,
       }}
     >
       {children}

@@ -14,9 +14,36 @@ interface OverallStats {
 
 interface KpiSummaryCardsProps {
   stats: OverallStats;
+  selectedStatus?: string;
+  onSelectStatus?: (status: string) => void;
 }
 
-export function KpiSummaryCards({ stats }: KpiSummaryCardsProps) {
+export function KpiSummaryCards({
+  stats,
+  selectedStatus = 'all',
+  onSelectStatus,
+}: KpiSummaryCardsProps) {
+  const getCardStyle = (statusKey: string, activeColor: string) => {
+    const isActive = selectedStatus === statusKey;
+    return {
+      backgroundColor: isActive ? '#f0fbf5' : '#ffffff',
+      borderRadius: '12px',
+      padding: '18px 20px',
+      border: isActive ? `2px solid ${activeColor}` : '1px solid #e2e8f0',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '16px',
+      cursor: onSelectStatus ? 'pointer' : 'default',
+      transition: 'all 0.15s ease',
+    };
+  };
+
+  const handleToggle = (key: string) => {
+    if (!onSelectStatus) return;
+    onSelectStatus(selectedStatus === key ? 'all' : key);
+  };
+
   return (
     <div
       style={{
@@ -27,16 +54,8 @@ export function KpiSummaryCards({ stats }: KpiSummaryCardsProps) {
     >
       {/* Card 1: ความสำเร็จรวม */}
       <div
-        style={{
-          backgroundColor: '#ffffff',
-          borderRadius: '12px',
-          padding: '18px 20px',
-          border: '1px solid #e2e8f0',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '16px',
-        }}
+        onClick={() => handleToggle('all')}
+        style={getCardStyle('all', '#00A651')}
       >
         <div
           style={{
@@ -54,28 +73,20 @@ export function KpiSummaryCards({ stats }: KpiSummaryCardsProps) {
           <FaChartLine />
         </div>
         <div>
-          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>
-            คะแนนความสำเร็จเฉลี่ย
+          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>
+            คะแนนความสำเร็จเฉลี่ย (ทั้งหมด)
           </div>
           <div style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a' }}>{stats.avgScore}%</div>
           <div style={{ fontSize: '11.5px', color: '#059669', fontWeight: 600 }}>
-            รวม {stats.total} ตัวชี้วัดยุทธศาสตร์
+            รวม {stats.total} ตัวชี้วัด • คลิกแสดงทั้งหมด
           </div>
         </div>
       </div>
 
       {/* Card 2: บรรลุเป้าหมาย */}
       <div
-        style={{
-          backgroundColor: '#ffffff',
-          borderRadius: '12px',
-          padding: '18px 20px',
-          border: '1px solid #e2e8f0',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '16px',
-        }}
+        onClick={() => handleToggle('achieved')}
+        style={getCardStyle('achieved', '#059669')}
       >
         <div
           style={{
@@ -93,28 +104,20 @@ export function KpiSummaryCards({ stats }: KpiSummaryCardsProps) {
           <FaCheckCircle />
         </div>
         <div>
-          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>
+          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>
             บรรลุเป้าหมาย (≥ 100%)
           </div>
           <div style={{ fontSize: '24px', fontWeight: 800, color: '#059669' }}>{stats.achieved} ข้อ</div>
           <div style={{ fontSize: '11.5px', color: '#64748b' }}>
-            คิดเป็น {stats.total ? Math.round((stats.achieved / stats.total) * 100) : 0}% ของตัวชี้วัดทั้งหมด
+            คิดเป็น {stats.total ? Math.round((stats.achieved / stats.total) * 100) : 0}% • คลิกเพื่อกรอง
           </div>
         </div>
       </div>
 
       {/* Card 3: เป็นไปตามเป้า */}
       <div
-        style={{
-          backgroundColor: '#ffffff',
-          borderRadius: '12px',
-          padding: '18px 20px',
-          border: '1px solid #e2e8f0',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '16px',
-        }}
+        onClick={() => handleToggle('on_track')}
+        style={getCardStyle('on_track', '#0284c7')}
       >
         <div
           style={{
@@ -132,26 +135,18 @@ export function KpiSummaryCards({ stats }: KpiSummaryCardsProps) {
           <FaClock />
         </div>
         <div>
-          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>
+          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>
             เป็นไปตามเป้า (70 - 99%)
           </div>
           <div style={{ fontSize: '24px', fontWeight: 800, color: '#0284c7' }}>{stats.onTrack} ข้อ</div>
-          <div style={{ fontSize: '11.5px', color: '#64748b' }}>กำลังดำเนินงานต่อเนื่อง</div>
+          <div style={{ fontSize: '11.5px', color: '#64748b' }}>กำลังดำเนินงาน • คลิกเพื่อกรอง</div>
         </div>
       </div>
 
       {/* Card 4: ต้องเร่งรัด / เฝ้าระวัง */}
       <div
-        style={{
-          backgroundColor: '#ffffff',
-          borderRadius: '12px',
-          padding: '18px 20px',
-          border: '1px solid #e2e8f0',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '16px',
-        }}
+        onClick={() => handleToggle('risk_or_behind')}
+        style={getCardStyle('risk_or_behind', '#dc2626')}
       >
         <div
           style={{
@@ -169,14 +164,14 @@ export function KpiSummaryCards({ stats }: KpiSummaryCardsProps) {
           <FaExclamationCircle />
         </div>
         <div>
-          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>
+          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>
             เฝ้าระวัง & ต้องเร่งรัด (&lt; 70%)
           </div>
           <div style={{ fontSize: '24px', fontWeight: 800, color: '#dc2626' }}>
             {stats.atRisk + stats.behind} ข้อ
           </div>
           <div style={{ fontSize: '11.5px', color: '#b91c1c', fontWeight: 600 }}>
-            จำเป็นต้องจัดสรรทรัพยากรหนุนเสริม
+            คลิกเพื่อกรองเฉพาะข้อที่ต้องเร่งรัด
           </div>
         </div>
       </div>

@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import academicData from '@/data/academic.json';
 import { getCachedCategoryData } from '@/lib/dataService';
 import { TimeFilterState, itemMatchesTimeFilter } from '@/types/timeFilter';
+import { isTestRecord } from '@/lib/sdgEngine';
 
 export interface AcademicItem {
   id?: string;
@@ -19,6 +20,7 @@ export interface AcademicItem {
 
 export function useAcademicData(timeFilter?: TimeFilterState) {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedClient, setSelectedClient] = useState('all');
   const [dataList, setDataList] = useState<AcademicItem[]>(() => {
     return (getCachedCategoryData('academic') as AcademicItem[]) || (academicData as AcademicItem[]);
   });
@@ -34,14 +36,62 @@ export function useAcademicData(timeFilter?: TimeFilterState) {
 
   const validData = useMemo(() => {
     return dataList
-      .filter((item) => item.name && item.name !== 'nan' && item.name !== 'NaT')
+      .filter((item) => item.name && item.name !== 'nan' && item.name !== 'NaT' && !isTestRecord(item))
       .filter((item) => !timeFilter || itemMatchesTimeFilter(item, timeFilter));
   }, [dataList, timeFilter]);
 
-  const recentData = useMemo(() => validData.slice(-5).reverse(), [validData]);
+  const {
+    totalBudgetAll,
+    totalAllocFaculty,
+    totalAllocDept,
+    totalAllocKu,
+    totalAllocRemaining,
+    totalAllocated15,
+  } = useMemo(() => {
+    let budgetSum = 0;
+    let facSum = 0;
+    let depSum = 0;
+    let kuSum = 0;
+    let remSum = 0;
 
-  const totalBudgetAll = useMemo(() => {
-    return validData.reduce((sum, item) => sum + (typeof item.budget === 'number' ? item.budget : 0), 0);
+    validData.forEach((item) => {
+      const b = typeof item.budget === 'number' ? item.budget : Number(item.budget) || 0;
+      budgetSum += b;
+      const facP = item.percent_faculty !== undefined && item.percent_faculty !== null ? Number(item.percent_faculty) : 5;
+      const depP = item.percent_dept !== undefined && item.percent_dept !== null ? Number(item.percent_dept) : 5;
+      const kuP = item.percent_ku !== undefined && item.percent_ku !== null ? Number(item.percent_ku) : 5;
+
+      const fac =
+        item.alloc_faculty !== undefined && item.alloc_faculty !== null && item.alloc_faculty !== ''
+          ? Number(item.alloc_faculty)
+          : (b * facP) / 100;
+      const dep =
+        item.alloc_dept !== undefined && item.alloc_dept !== null && item.alloc_dept !== ''
+          ? Number(item.alloc_dept)
+          : (b * depP) / 100;
+      const ku =
+        item.alloc_ku !== undefined && item.alloc_ku !== null && item.alloc_ku !== ''
+          ? Number(item.alloc_ku)
+          : (b * kuP) / 100;
+      const rem =
+        item.alloc_remaining !== undefined && item.alloc_remaining !== null && item.alloc_remaining !== ''
+          ? Number(item.alloc_remaining)
+          : Math.max(0, b - (fac + dep + ku));
+
+      facSum += fac;
+      depSum += dep;
+      kuSum += ku;
+      remSum += rem;
+    });
+
+    return {
+      totalBudgetAll: budgetSum,
+      totalAllocFaculty: facSum,
+      totalAllocDept: depSum,
+      totalAllocKu: kuSum,
+      totalAllocRemaining: remSum,
+      totalAllocated15: facSum + depSum + kuSum,
+    };
   }, [validData]);
 
   const uniqueHeads = useMemo(() => {
@@ -60,24 +110,38 @@ export function useAcademicData(timeFilter?: TimeFilterState) {
     );
   }, [validData]);
 
+  // Show ALL matching items (fixing previous slice(-5) bug)
   const displayData = useMemo(() => {
-    if (!searchTerm.trim()) return recentData;
-    const q = searchTerm.toLowerCase();
     return validData.filter((item) => {
-      const n = String(item.name || '').toLowerCase();
-      const h = String(item.head || '').toLowerCase();
-      const c = String(item.client || '').toLowerCase();
-      return n.includes(q) || h.includes(q) || c.includes(q);
+      if (selectedClient !== 'all') {
+        const c = String(item.client || '').replace('\n', ' ').trim() || 'หน่วยงานภายใน/อื่นๆ';
+        if (c !== selectedClient && !c.includes(selectedClient)) return false;
+      }
+      if (searchTerm.trim()) {
+        const q = searchTerm.toLowerCase();
+        const n = String(item.name || '').toLowerCase();
+        const h = String(item.head || '').toLowerCase();
+        const c = String(item.client || '').toLowerCase();
+        if (!n.includes(q) && !h.includes(q) && !c.includes(q)) return false;
+      }
+      return true;
     });
-  }, [recentData, validData, searchTerm]);
+  }, [validData, selectedClient, searchTerm]);
 
   return {
     validData,
     displayData,
     totalBudgetAll,
+    totalAllocFaculty,
+    totalAllocDept,
+    totalAllocKu,
+    totalAllocRemaining,
+    totalAllocated15,
     uniqueHeads,
     uniqueClients,
     searchTerm,
     setSearchTerm,
+    selectedClient,
+    setSelectedClient,
   };
 }

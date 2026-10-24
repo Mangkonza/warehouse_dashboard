@@ -3,7 +3,7 @@ import { FACT_DOMAINS_CONFIG } from '../config/analyticsMetadata';
 import { normalizeDepartmentName } from '../config/dataManagementConfig';
 import { recommendChartType } from './chartAdvisor';
 import { calculateProjectTimeline } from './projectMonitoringEngine';
-import { detectSDGsFromText } from './sdgEngine';
+import { detectSDGsFromText, isTestRecord } from './sdgEngine';
 import { autoDetectJournalRanking } from './journalRankingEngine';
 import { getDepartment, getDepartmentColor } from './departments';
 
@@ -110,8 +110,10 @@ export function executeAnalyticsQuery(
 
   const activeAggregation = query.aggregationFn || measureDef.aggregation;
 
-  // กรองข้อมูลขยะ (Empty / NaN rows)
-  let validRows = rawDataset.filter((r) => r.name && r.name !== 'nan' && r.name !== 'NaT' && r.name !== 'เรื่อง');
+  // กรองข้อมูลขยะและข้อมูลทดสอบ (Empty / NaN / test rows)
+  let validRows = rawDataset.filter(
+    (r) => !isTestRecord(r) && r.name && r.name !== 'nan' && r.name !== 'NaT' && r.name !== 'เรื่อง'
+  );
 
   // กรองตามปี ถ้ามีการระบุ
   if (query.selectedYear && query.selectedYear !== 'all') {
@@ -120,7 +122,14 @@ export function executeAnalyticsQuery(
 
   // กรองตามภาควิชา ถ้ามีการระบุ
   if (query.selectedDept && query.selectedDept !== 'all') {
-    validRows = validRows.filter((r) => extractDimensionValue(r, 'department').includes(query.selectedDept!));
+    const targetCode = getDepartment(query.selectedDept).code;
+    validRows = validRows.filter((r) => {
+      const rowCode = getDepartment(r.department).code;
+      return (
+        (targetCode !== '-' && rowCode === targetCode) ||
+        extractDimensionValue(r, 'department').includes(query.selectedDept!)
+      );
+    });
   }
 
   // การคำนวณแบบ 1 มิติ (Single Primary Dimension)
@@ -177,7 +186,7 @@ export function executeAnalyticsQuery(
       const val = dataValues[idx];
       const share = totalVal > 0 ? ((val / totalVal) * 100).toFixed(1) + '%' : '0%';
       let formatted = val.toLocaleString();
-      if (measureDef.format === 'currency' && activeAggregation !== 'COUNT') formatted += ' ฿';
+      if (measureDef.format === 'currency' && activeAggregation !== 'COUNT') formatted += ' บาท';
 
       return {
         category: cat,
@@ -261,7 +270,7 @@ export function executeAnalyticsQuery(
           category: p,
           subCategory: s,
           value: val,
-          formattedValue: measureDef.format === 'currency' ? `${val.toLocaleString()} ฿` : val.toLocaleString(),
+          formattedValue: measureDef.format === 'currency' ? `${val.toLocaleString()} บาท` : val.toLocaleString(),
           sharePercent: totalVal > 0 ? ((val / totalVal) * 100).toFixed(1) + '%' : '0%',
         });
       }

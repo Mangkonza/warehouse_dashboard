@@ -4,6 +4,9 @@ import { useState, useEffect, useMemo } from 'react';
 import pubData from '@/data/publications.json';
 import { getCachedCategoryData, saveCategoryRecord, deleteCategoryRecord } from '@/lib/dataService';
 import { TimeFilterState, itemMatchesTimeFilter } from '@/types/timeFilter';
+import { isTestRecord } from '@/lib/sdgEngine';
+import { autoDetectJournalRanking } from '@/config/journalRankingConfig';
+import { getDepartment } from '@/lib/departments';
 
 export interface PublicationItem {
   id?: string;
@@ -26,12 +29,14 @@ export interface PublicationItem {
   remarks?: string;
   co_authors_foreign?: string[];
   co_authors_domestic?: string[];
+  _detectedTier?: string;
   [key: string]: any;
 }
 
 export function usePublicationsData(timeFilter?: TimeFilterState) {
   const [searchTerm, setSearchTerm] = useState('');
   const [levelFilter, setLevelFilter] = useState('all');
+  const [selectedDept, setSelectedDept] = useState('all');
   const [fiscalYearFilter, setFiscalYearFilter] = useState('all');
   const [dataList, setDataList] = useState<PublicationItem[]>(() => {
     return (getCachedCategoryData('publications') as PublicationItem[]) || (pubData as PublicationItem[]);
@@ -61,49 +66,103 @@ export function usePublicationsData(timeFilter?: TimeFilterState) {
 
   const validData = useMemo(() => {
     return dataList
-      .filter((item) => item.name && item.name !== 'nan' && item.name !== 'NaT')
-      .filter((item) => !timeFilter || itemMatchesTimeFilter(item, timeFilter));
+      .filter((item) => item.name && item.name !== 'nan' && item.name !== 'NaT' && !isTestRecord(item))
+      .filter((item) => !timeFilter || itemMatchesTimeFilter(item, timeFilter))
+      .map((item) => ({
+        ...item,
+        _detectedTier: item.journal_tier || autoDetectJournalRanking(item.journal || '', item.level || ''),
+      }));
   }, [dataList, timeFilter]);
 
-  const q1Count = useMemo(() => {
-    return validData.filter((d) => String(d.level || '').toUpperCase().includes('Q1')).length;
-  }, [validData]);
+  const {
+    q1Count,
+    q2Count,
+    tciCount,
+    otherCount,
+    internationalCount,
+    nationalCount,
+    totalSupportBudget,
+  } = useMemo(() => {
+    let q1 = 0;
+    let q2 = 0;
+    let tci = 0;
+    let other = 0;
+    let intl = 0;
+    let nat = 0;
+    let budgetSum = 0;
 
-  const q2Count = useMemo(() => {
-    return validData.filter((d) => String(d.level || '').toUpperCase().includes('Q2')).length;
-  }, [validData]);
+    validData.forEach((d) => {
+      const tier = d._detectedTier || '';
+      const lvl = String(d.level || '');
+      const typ = String(d.type || '');
+      budgetSum += Number(d.budget) || 0;
 
-  const tciCount = useMemo(() => {
-    return validData.filter((d) => String(d.level || '').toUpperCase().includes('TCI')).length;
-  }, [validData]);
+      if (lvl.includes('นานาชาติ')) intl++;
+      else if (lvl.includes('ชาติ')) nat++;
 
-  const otherCount = useMemo(() => {
-    return Math.max(0, validData.length - q1Count - q2Count - tciCount);
-  }, [validData, q1Count, q2Count, tciCount]);
+      if (typ.includes('อนุสิทธิบัตร')) {
+        other++;
+      } else if (tier === 'Scopus Q1') {
+        q1++;
+      } else if (tier === 'Scopus Q2' || tier === 'Scopus Q3' || tier === 'Scopus Q4') {
+        q2++;
+      } else if (tier.startsWith('TCI')) {
+        tci++;
+      } else {
+        other++;
+      }
+    });
+
+    return {
+      q1Count: q1,
+      q2Count: q2,
+      tciCount: tci,
+      otherCount: other,
+      internationalCount: intl,
+      nationalCount: nat,
+      totalSupportBudget: budgetSum,
+    };
+  }, [validData]);
 
   const filteredData = useMemo(() => {
     return validData.filter((item) => {
-      // 1. Level filter
+      // 1. Level / Tier / Type filter
       if (levelFilter !== 'all') {
-        const lvl = String(item.level || '').toUpperCase();
-        if (!lvl.includes(levelFilter.toUpperCase())) return false;
+        const lvl = String(item.level || '');
+        const tier = String(item._detectedTier || '');
+        const typ = String(item.type || '');
+        const target = levelFilter.toUpperCase();
+        const matched =
+          lvl === levelFilter ||
+          tier.toUpperCase().includes(target) ||
+          typ.includes(levelFilter);
+        if (!matched) return false;
       }
-      // 2. Fiscal year filter
+      // 2. Department filter
+      if (selectedDept !== 'all') {
+        const itemDept = getDepartment(item.department);
+        const filterDept = getDepartment(selectedDept);
+        if (itemDept.code !== filterDept.code && !String(item.department || '').includes(selectedDept)) {
+          return false;
+        }
+      }
+      // 3. Fiscal year filter
       if (fiscalYearFilter !== 'all') {
         const fy = item.fiscal_year_be ? String(item.fiscal_year_be) : '';
         if (fy !== fiscalYearFilter) return false;
       }
-      // 3. Search term (title / name)
+      // 4. Search term (title / owner / journal)
       if (searchTerm.trim()) {
         const q = searchTerm.toLowerCase();
         const n = String(item.name || '').toLowerCase();
         const o = String(item.owner || '').toLowerCase();
         const d = String(item.department || '').toLowerCase();
-        if (!n.includes(q) && !o.includes(q) && !d.includes(q)) return false;
+        const j = String(item.journal || '').toLowerCase();
+        if (!n.includes(q) && !o.includes(q) && !d.includes(q) && !j.includes(q)) return false;
       }
       return true;
     });
-  }, [validData, levelFilter, fiscalYearFilter, searchTerm]);
+  }, [validData, levelFilter, selectedDept, fiscalYearFilter, searchTerm]);
 
   // Available fiscal years
   const availableFiscalYears = useMemo(() => {
@@ -145,10 +204,15 @@ export function usePublicationsData(timeFilter?: TimeFilterState) {
     q2Count,
     tciCount,
     otherCount,
+    internationalCount,
+    nationalCount,
+    totalSupportBudget,
     searchTerm,
     setSearchTerm,
     levelFilter,
     setLevelFilter,
+    selectedDept,
+    setSelectedDept,
     fiscalYearFilter,
     setFiscalYearFilter,
     availableFiscalYears,

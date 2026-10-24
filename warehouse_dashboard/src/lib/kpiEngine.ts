@@ -1,5 +1,6 @@
-import { KPIItem, KPIComputedResult, KPICategory } from '../types/kpi';
+import { KPIItem, KPIComputedResult } from '../types/kpi';
 import { DEFAULT_KPIS, ENGINEERING_DEPARTMENTS } from '../config/kpiConfig';
+import { isTestRecord } from './sdgEngine';
 
 export { DEFAULT_KPIS, ENGINEERING_DEPARTMENTS };
 
@@ -79,9 +80,15 @@ export const deleteKPI = (id: string): void => {
 // ==========================================
 export const evaluateKPI = (kpi: KPIItem, datasets: Record<string, any[]>): KPIComputedResult => {
   const rawData = datasets[kpi.datasetKey] || [];
-  // กรองรายการขยะ เช่น nan, NaT, เรื่อง
+  // กรองรายการขยะ เช่น nan, NaT, เรื่อง และรายการทดสอบ (test)
   const data = rawData.filter(
-    (item) => item && item.name && item.name !== 'nan' && item.name !== 'NaT' && item.name !== 'เรื่อง'
+    (item) =>
+      item &&
+      (item.name || item.title) &&
+      item.name !== 'nan' &&
+      item.name !== 'NaT' &&
+      item.name !== 'เรื่อง' &&
+      !isTestRecord(item)
   );
 
   let currentValue = 0;
@@ -90,18 +97,25 @@ export const evaluateKPI = (kpi: KPIItem, datasets: Record<string, any[]>): KPIC
   switch (kpi.calcType) {
     case 'auto_sum': {
       const field = kpi.sumField || 'budget';
+      const contributing = data.filter((cur) => parseNumber(cur[field]) > 0);
       currentValue = data.reduce((acc, cur) => acc + parseNumber(cur[field]), 0);
+      details.matchCount = contributing.length;
+      details.sampleMatches = contributing.length > 0 ? contributing : data;
       break;
     }
 
     case 'auto_count': {
       currentValue = data.length;
+      details.matchCount = data.length;
+      details.sampleMatches = data;
       break;
     }
 
     case 'auto_filtered_count': {
       if (!kpi.filterConfig) {
         currentValue = data.length;
+        details.matchCount = data.length;
+        details.sampleMatches = data;
         break;
       }
       const { field, operator, value } = kpi.filterConfig;
@@ -126,7 +140,7 @@ export const evaluateKPI = (kpi: KPIItem, datasets: Record<string, any[]>): KPIC
       });
       currentValue = matched.length;
       details.matchCount = matched.length;
-      details.sampleMatches = matched.slice(0, 3);
+      details.sampleMatches = matched;
       break;
     }
 
@@ -138,7 +152,6 @@ export const evaluateKPI = (kpi: KPIItem, datasets: Record<string, any[]>): KPIC
       data.forEach((item) => {
         const deptStr = String(item[field] || '');
         expected.forEach((exp) => {
-          // เปรียบเทียบแบบยืดหยุ่น เช่น "วิศวกรรมเกษตร" กับ "ภาควิชา\nวิศวกรรมเกษตร"
           const cleanExp = exp.replace(/วิศวกรรม/g, '').trim();
           if (deptStr.includes(exp) || (cleanExp && deptStr.includes(cleanExp))) {
             presentDepts.add(exp);
@@ -152,12 +165,15 @@ export const evaluateKPI = (kpi: KPIItem, datasets: Record<string, any[]>): KPIC
       currentValue = completed.length;
       details.completedDepartments = completed;
       details.missingDepartments = missing;
+      details.matchCount = data.length;
+      details.sampleMatches = data;
       break;
     }
 
     case 'manual':
     default: {
       currentValue = kpi.manualProgress ?? 0;
+      details.sampleMatches = [];
       break;
     }
   }

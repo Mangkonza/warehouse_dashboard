@@ -44,6 +44,9 @@ import rawPublications from '@/data/publications.json';
 import rawServices from '@/data/services.json';
 import rawIP from '@/data/ip.json';
 import { getCachedCategoryData } from '@/lib/dataService';
+import { TimeFilterBar, useTimeFilter } from '@/features/time-filter';
+import { DepartmentSelect } from '@/components/ui';
+import { FaBuilding, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 
 const getDomainIcon = (id: FactDomainId) => {
   switch (id) {
@@ -103,7 +106,19 @@ const CHART_TYPES_CATALOG: ChartCategoryGroup[] = [
   },
 ];
 
+const QUICK_CHART_TYPES: { type: ChartType; label: string; icon: any }[] = [
+  { type: 'bar', label: 'คอลัมน์แนวตั้ง', icon: <FaChartBar /> },
+  { type: 'horizontal_bar', label: 'แถบแนวนอน', icon: <FaSlidersH /> },
+  { type: 'stacked_bar', label: 'แท่งซ้อนรวม', icon: <FaLayerGroup /> },
+  { type: 'smooth_line', label: 'เส้นโค้งแนวโน้ม', icon: <FaWaveSquare /> },
+  { type: 'donut', label: 'โดนัทสัดส่วน', icon: <FaChartPie /> },
+  { type: 'pivot', label: 'ตารางสรุป Pivot', icon: <FaTable /> },
+];
+
 export default function SelfServiceStudio() {
+  const { filterProjectsByTime } = useTimeFilter();
+  const [showAllCharts, setShowAllCharts] = useState(false);
+
   const [query, setQuery] = useState<AnalyticsQuery>({
     factDomain: 'research',
     measureId: 'total_budget',
@@ -117,24 +132,24 @@ export default function SelfServiceStudio() {
   const chartRef = useRef<HTMLCanvasElement | null>(null);
   const chartInstance = useRef<Chart | null>(null);
 
-  // Map fact domain to raw dataset
+  // Map fact domain to raw dataset and apply global Time Filter
   const currentDataset = useMemo(() => {
     switch (query.factDomain) {
       case 'research':
       case 'monitoring':
-        return getCachedCategoryData('research') || rawResearch;
+        return filterProjectsByTime(getCachedCategoryData('research') || rawResearch, 'start_date');
       case 'academic':
-        return getCachedCategoryData('academic') || rawAcademic;
+        return filterProjectsByTime(getCachedCategoryData('academic') || rawAcademic, 'start_date');
       case 'publications':
-        return getCachedCategoryData('publications') || rawPublications;
+        return filterProjectsByTime(getCachedCategoryData('publications') || rawPublications, 'pub_date');
       case 'service':
-        return getCachedCategoryData('service') || rawServices;
+        return filterProjectsByTime(getCachedCategoryData('service') || rawServices, 'date');
       case 'ip':
-        return getCachedCategoryData('ip') || rawIP;
+        return filterProjectsByTime(getCachedCategoryData('ip') || rawIP, 'date_filed');
       default:
-        return getCachedCategoryData('research') || rawResearch;
+        return filterProjectsByTime(getCachedCategoryData('research') || rawResearch, 'start_date');
     }
-  }, [query.factDomain]);
+  }, [query.factDomain, filterProjectsByTime]);
 
   const currentDomainDef = FACT_DOMAINS_CONFIG[query.factDomain];
 
@@ -440,6 +455,11 @@ export default function SelfServiceStudio() {
         </div>
       </div>
 
+      {/* Global Time Filter Bar */}
+      <div style={{ marginBottom: '16px' }}>
+        <TimeFilterBar />
+      </div>
+
       {/* 2. Visual Query Builder Panel (Apple iOS Liquid Glass Surface - No Bounce) */}
       <div className="glass-card" style={{ padding: '20px 24px', marginBottom: '22px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', borderBottom: '1px solid rgba(226, 232, 240, 0.7)', paddingBottom: '12px' }}>
@@ -454,8 +474,8 @@ export default function SelfServiceStudio() {
           </span>
         </div>
 
-        {/* 4 Core Control Selectors */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '16px' }}>
+        {/* 5 Core Control Selectors */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '14px' }}>
           {/* A. X-Axis (Primary Dimension) */}
           <div>
             <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
@@ -561,89 +581,169 @@ export default function SelfServiceStudio() {
               </SelectContent>
             </Select>
           </div>
+
+          {/* E. Department Filter */}
+          <div>
+            <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+              <FaBuilding style={{ marginRight: '6px', color: '#059669' }} />
+              5. กรองภาควิชา (Department)
+            </label>
+            <DepartmentSelect
+              value={query.selectedDept || 'all'}
+              onChange={(val) => setQuery((prev) => ({ ...prev, selectedDept: val }))}
+              allowAll
+              allLabel="ทุกภาควิชา / ศูนย์"
+              allValue="all"
+              size="sm"
+              className="w-full h-9"
+            />
+          </div>
         </div>
 
-        {/* 16 Chart Types Palette */}
-        <div style={{ marginTop: '18px', paddingTop: '16px', borderTop: '1px solid rgba(226, 232, 240, 0.7)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
-            <span style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a' }}>
-              เลือกรูปแบบกราฟที่ต้องการ (คลังแผนภาพวิเคราะห์ 16 รูปแบบ):
-            </span>
-            <button
-              type="button"
-              onClick={() => setQuery((prev) => ({ ...prev, chartType: aggregatedData.recommendedChartType }))}
-              className="glass-btn"
-              style={{
-                padding: '5px 12px',
-                borderRadius: '9999px',
-                fontSize: '12px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                color: '#006838',
-                borderColor: 'rgba(0, 168, 89, 0.4)',
-                background: 'rgba(240, 253, 244, 0.9)',
-              }}
-            >
-              <FaStar style={{ color: '#eab308' }} /> ใช้กราฟที่ระบบแนะนำ
-            </button>
+        {/* Compact Chart Selector Bar + Toggleable Full 16-Chart Catalog */}
+        <div style={{ marginTop: '16px', paddingTop: '14px', borderTop: '1px solid rgba(226, 232, 240, 0.7)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#0f172a', marginRight: '4px' }}>
+                รูปแบบกราฟ:
+              </span>
+              {QUICK_CHART_TYPES.map((btn) => {
+                const isSelected = activeChartType === btn.type;
+                const isRecommended = aggregatedData.recommendedChartType === btn.type;
+                return (
+                  <button
+                    key={btn.type}
+                    type="button"
+                    onClick={() => setQuery((prev) => ({ ...prev, chartType: btn.type }))}
+                    className="glass-btn"
+                    style={{
+                      padding: '6px 12px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      fontSize: '12px',
+                      borderRadius: '9999px',
+                      border: isSelected
+                        ? '2px solid #00A651'
+                        : isRecommended
+                        ? '1px dashed #00A651'
+                        : '1px solid #cbd5e1',
+                      background: isSelected ? '#f0fbf5' : '#ffffff',
+                      color: isSelected ? '#00A651' : '#334155',
+                      fontWeight: isSelected ? 700 : 500,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <span style={{ fontSize: '12px', color: isSelected ? '#00A651' : '#64748b' }}>{btn.icon}</span>
+                    <span>{btn.label}</span>
+                    {isRecommended && (
+                      <FaStar style={{ fontSize: '10px', color: '#eab308' }} title="ระบบแนะนำแผนภาพนี้" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={() => setQuery((prev) => ({ ...prev, chartType: aggregatedData.recommendedChartType }))}
+                className="glass-btn"
+                style={{
+                  padding: '5px 12px',
+                  borderRadius: '9999px',
+                  fontSize: '12px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  color: '#006838',
+                  borderColor: 'rgba(0, 168, 89, 0.4)',
+                  background: 'rgba(240, 253, 244, 0.9)',
+                  cursor: 'pointer',
+                }}
+              >
+                <FaStar style={{ color: '#eab308' }} /> แนะนำอัตโนมัติ
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowAllCharts((prev) => !prev)}
+                style={{
+                  padding: '5px 12px',
+                  borderRadius: '9999px',
+                  fontSize: '12px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  color: '#475569',
+                  border: '1px solid #cbd5e1',
+                  background: '#f8fafc',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                <span>{showAllCharts ? 'ย่อคลังกราฟ' : 'คลังกราฟทั้ง 16 รูปแบบ'}</span>
+                {showAllCharts ? <FaChevronUp style={{ fontSize: '10px' }} /> : <FaChevronDown style={{ fontSize: '10px' }} />}
+              </button>
+            </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
-            {CHART_TYPES_CATALOG.map((group) => (
-              <div key={group.groupName} style={{ background: 'rgba(248, 250, 252, 0.7)', borderRadius: '14px', padding: '10px 12px', border: '1px solid #e2e8f0' }}>
-                <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', marginBottom: '8px', textTransform: 'uppercase' }}>
-                  {group.groupName}
+          {showAllCharts && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px', marginTop: '12px' }}>
+              {CHART_TYPES_CATALOG.map((group) => (
+                <div key={group.groupName} style={{ background: 'rgba(248, 250, 252, 0.7)', borderRadius: '14px', padding: '10px 12px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', marginBottom: '8px', textTransform: 'uppercase' }}>
+                    {group.groupName}
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                    {group.items.map((btn) => {
+                      const isSelected = activeChartType === btn.type;
+                      const isRecommended = aggregatedData.recommendedChartType === btn.type;
+                      return (
+                        <button
+                          key={btn.type}
+                          type="button"
+                          onClick={() => setQuery((prev) => ({ ...prev, chartType: btn.type }))}
+                          className="glass-btn"
+                          title={btn.desc}
+                          style={{
+                            padding: '7px 8px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            fontSize: '11.5px',
+                            borderRadius: '8px',
+                            border: isSelected
+                              ? '2px solid #00a859'
+                              : isRecommended
+                              ? '1px dashed #00a859'
+                              : '1px solid rgba(226, 232, 240, 0.9)',
+                            background: isSelected ? 'rgba(0, 168, 89, 0.15)' : '#ffffff',
+                            color: isSelected ? '#006838' : '#334155',
+                            fontWeight: isSelected ? 700 : 500,
+                            position: 'relative',
+                          }}
+                        >
+                          <span style={{ fontSize: '13px', color: isSelected ? '#00a859' : '#64748b' }}>{btn.icon}</span>
+                          <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{btn.label}</span>
+                          {isRecommended && (
+                            <FaStar
+                              style={{
+                                marginLeft: 'auto',
+                                fontSize: '10px',
+                                color: '#eab308',
+                                flexShrink: 0,
+                              }}
+                              title="ระบบแนะนำแผนภาพนี้"
+                            />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-                  {group.items.map((btn) => {
-                    const isSelected = activeChartType === btn.type;
-                    const isRecommended = aggregatedData.recommendedChartType === btn.type;
-                    return (
-                      <button
-                        key={btn.type}
-                        type="button"
-                        onClick={() => setQuery((prev) => ({ ...prev, chartType: btn.type }))}
-                        className="glass-btn"
-                        title={btn.desc}
-                        style={{
-                          padding: '7px 8px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          fontSize: '11.5px',
-                          borderRadius: '8px',
-                          border: isSelected
-                            ? '2px solid #00a859'
-                            : isRecommended
-                            ? '1px dashed #00a859'
-                            : '1px solid rgba(226, 232, 240, 0.9)',
-                          background: isSelected ? 'rgba(0, 168, 89, 0.15)' : '#ffffff',
-                          color: isSelected ? '#006838' : '#334155',
-                          fontWeight: isSelected ? 700 : 500,
-                          position: 'relative',
-                        }}
-                      >
-                        <span style={{ fontSize: '13px', color: isSelected ? '#00a859' : '#64748b' }}>{btn.icon}</span>
-                        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{btn.label}</span>
-                        {isRecommended && (
-                          <FaStar
-                            style={{
-                              marginLeft: 'auto',
-                              fontSize: '10px',
-                              color: '#eab308',
-                              flexShrink: 0,
-                            }}
-                            title="ระบบแนะนำแผนภาพนี้"
-                          />
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* AI Recommendation Alert */}
