@@ -6,33 +6,40 @@
 
 ---
 
-## ขั้นตอนที่ 1: Build และเปิดใช้งาน Database Container ใน Docker
-เริ่มต้นด้วยการรันฐานข้อมูล PostgreSQL พร้อมโหลดโครงสร้างและข้อมูลตั้งต้นอัตโนมัติ:
+## ขั้นตอนที่ 1: เปิดใช้งาน Database ด้วย Docker
+1. คัดลอกไฟล์ Environment Variables ที่ root ของโปรเจกต์ (หากยังไม่มี):
+   ```bash
+   cp .env.example .env
+   ```
 
-```bash
-docker compose up -d
-```
-
-> **คำสั่งตรวจสอบสถานะ Container:**
-> ```bash
-> docker ps
-> ```
-> จะเห็น Container `ku_warehouse_db` กำลังทำงานที่พอร์ต `5432`
+2. เปิดการทำงานของ PostgreSQL Database Container:
+   ```bash
+   docker compose up -d
+   ```
 
 ---
 
 ## ขั้นตอนที่ 2: รัน Backend API
-เปิด Terminal แรก แล้วทำตามขั้นตอนดังนี้:
+เปิด Terminal แรก แล้วทำตามขั้นตอน:
 
-1. เข้าไปยังโฟลเดอร์ `backend`:
+1. เข้าโฟลเดอร์ `backend`:
    ```bash
    cd backend
    ```
-2. ติดตั้ง Dependencies:
+
+2. คัดลอกไฟล์ Environment Variables (หากยังไม่มี):
+   ```bash
+   cp .env.example .env
+   ```
+
+3. ติดตั้ง Dependencies และรัน Prisma Migration:
    ```bash
    npm install
+   npx prisma generate
+   npx prisma migrate deploy
    ```
-3. เริ่มต้นรันเซิร์ฟเวอร์ Backend (ไฟล์ `.env` มีการตั้งค่าพร้อมใช้งานอยู่แล้ว):
+
+4. เริ่มต้นเซิร์ฟเวอร์ Backend:
    ```bash
    npm run dev
    ```
@@ -41,17 +48,19 @@ docker compose up -d
 ---
 
 ## ขั้นตอนที่ 3: รัน Frontend Dashboard
-เปิด Terminal อีกหน้าต่าง แล้วทำตามขั้นตอนดังนี้:
+เปิด Terminal อีกหน้าต่าง แล้วทำตามขั้นตอน:
 
-1. เข้าไปยังโฟลเดอร์ `warehouse_dashboard`:
+1. เข้าโฟลเดอร์ `warehouse_dashboard`:
    ```bash
    cd warehouse_dashboard
    ```
+
 2. ติดตั้ง Dependencies:
    ```bash
    npm install
    ```
-3. เริ่มต้นรันเซิร์ฟเวอร์ Frontend (ไฟล์ `.env` และ `.env.local` มีการตั้งค่าพร้อมใช้งานอยู่แล้ว):
+
+3. เริ่มต้นเซิร์ฟเวอร์ Frontend:
    ```bash
    npm run dev
    ```
