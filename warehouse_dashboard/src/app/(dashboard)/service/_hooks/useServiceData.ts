@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import serviceData from '@/data/services.json';
-import { getCachedCategoryData } from '@/lib/dataService';
+import { getCachedCategoryData, fetchCategoryData } from '@/lib/dataService';
 import { TimeFilterState, itemMatchesTimeFilter } from '@/types/timeFilter';
 import { isTestRecord } from '@/lib/sdgEngine';
 import { getDepartment } from '@/lib/departments';
@@ -62,12 +62,22 @@ export function useServiceData(timeFilter?: TimeFilterState) {
   });
 
   useEffect(() => {
+    let isMounted = true;
+    fetchCategoryData('service').then((fresh) => {
+      if (isMounted && Array.isArray(fresh) && fresh.length > 0) {
+        setDataList(fresh as ServiceItem[]);
+      }
+    });
+
     const handleUpdate = () => {
       const fresh = getCachedCategoryData('service') as ServiceItem[];
       if (fresh && fresh.length > 0) setDataList(fresh);
     };
     window.addEventListener('ku_data_updated', handleUpdate);
-    return () => window.removeEventListener('ku_data_updated', handleUpdate);
+    return () => {
+      isMounted = false;
+      window.removeEventListener('ku_data_updated', handleUpdate);
+    };
   }, []);
 
   const validData = useMemo(() => {

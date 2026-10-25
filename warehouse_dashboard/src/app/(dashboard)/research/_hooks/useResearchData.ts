@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import researchData from '@/data/research.json';
-import { getCachedCategoryData } from '@/lib/dataService';
+import { getCachedCategoryData, fetchCategoryData } from '@/lib/dataService';
 import { TimeFilterState, itemMatchesTimeFilter } from '@/types/timeFilter';
 import { getDepartment } from '@/lib/departments';
 import { isTestRecord } from '@/lib/sdgEngine';
@@ -29,12 +29,22 @@ export function useResearchData(timeFilter?: TimeFilterState) {
   });
 
   useEffect(() => {
+    let isMounted = true;
+    fetchCategoryData('research').then((fresh) => {
+      if (isMounted && Array.isArray(fresh) && fresh.length > 0) {
+        setDataList(fresh as ResearchItem[]);
+      }
+    });
+
     const handleUpdate = () => {
       const fresh = getCachedCategoryData('research') as ResearchItem[];
       if (fresh && fresh.length > 0) setDataList(fresh);
     };
     window.addEventListener('ku_data_updated', handleUpdate);
-    return () => window.removeEventListener('ku_data_updated', handleUpdate);
+    return () => {
+      isMounted = false;
+      window.removeEventListener('ku_data_updated', handleUpdate);
+    };
   }, []);
 
   // Filter valid data & apply time filter (excluding test records in-memory)

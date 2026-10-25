@@ -48,7 +48,7 @@ import rawAcademic from '@/data/academic.json';
 import rawPublications from '@/data/publications.json';
 import rawServices from '@/data/services.json';
 import rawIP from '@/data/ip.json';
-import { getCachedCategoryData } from '@/lib/dataService';
+import { getCachedCategoryData, fetchCategoryData } from '@/lib/dataService';
 import { TimeFilterBar, useTimeFilter } from '@/features/time-filter';
 import { DepartmentSelect } from '@/components/ui';
 import { FaBuilding, FaChevronDown, FaChevronUp } from 'react-icons/fa';
@@ -148,6 +148,25 @@ export default function SelfServiceStudio() {
     items: [],
   });
 
+  const [dataVersion, setDataVersion] = useState(0);
+
+  useEffect(() => {
+    let isMounted = true;
+    const dom = query.factDomain === 'monitoring' ? 'research' : query.factDomain;
+    fetchCategoryData(dom).then(() => {
+      if (isMounted) setDataVersion((v) => v + 1);
+    });
+
+    const handleUpdate = () => {
+      setDataVersion((v) => v + 1);
+    };
+    window.addEventListener('ku_data_updated', handleUpdate);
+    return () => {
+      isMounted = false;
+      window.removeEventListener('ku_data_updated', handleUpdate);
+    };
+  }, [query.factDomain]);
+
   // Map fact domain to raw dataset and apply global Time Filter
   const currentDataset = useMemo(() => {
     switch (query.factDomain) {
@@ -165,7 +184,7 @@ export default function SelfServiceStudio() {
       default:
         return filterProjectsByTime(getCachedCategoryData('research') || rawResearch, 'start_date');
     }
-  }, [query.factDomain, filterProjectsByTime]);
+  }, [query.factDomain, filterProjectsByTime, dataVersion]);
 
   const currentDomainDef = FACT_DOMAINS_CONFIG[query.factDomain];
 

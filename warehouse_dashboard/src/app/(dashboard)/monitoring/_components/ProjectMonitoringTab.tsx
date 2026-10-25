@@ -988,20 +988,10 @@ export default function ProjectMonitoringTab({}: ProjectMonitoringTabProps) {
                           ) : (
                             <span className="text-slate-400 text-xs">-</span>
                           )}
-
-                          <button
-                            type="button"
-                            onClick={() => setExtensionTarget(item)}
-                            title="ยื่นขอขยายระยะเวลาโครงการ"
-                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-md transition-colors cursor-pointer"
-                          >
-                            <FaPlus className="text-[9px]" />
-                            <span>ขอขยายเวลา</span>
-                          </button>
                         </div>
                       </td>
 
-                      {/* จัดการ */}
+                      {/* รายละเอียด */}
                       <td style={{ padding: '10px 10px', textAlign: 'center' }}>
                         <div className="flex items-center justify-center gap-1.5 flex-wrap">
                           {/* Direct action if รอประเมิน */}
@@ -1021,29 +1011,15 @@ export default function ProjectMonitoringTab({}: ProjectMonitoringTabProps) {
                             </button>
                           )}
 
-                          {/* Toggle Close / Reopen */}
-                          <button
-                            type="button"
-                            onClick={() => handleToggleCloseProject(item)}
-                            title={isClosed ? 'เปิดโครงการใหม่' : 'ปิดโครงการ'}
-                            className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
-                              isClosed
-                                ? 'bg-sky-50 text-sky-800 border border-sky-200 hover:bg-sky-100'
-                                : 'bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200'
-                            }`}
-                          >
-                            <FaRedo className="text-[10px]" />
-                            <span>{isClosed ? 'เปิดโครงการใหม่' : 'ปิดโครงการ'}</span>
-                          </button>
-
                           {/* Details Button */}
                           <button
                             type="button"
                             onClick={() => setSelectedDetailTarget({ item, category: activeTab })}
                             title="ดูรายละเอียดโครงการ"
-                            className="inline-flex items-center justify-center w-7 h-7 text-xs font-semibold rounded-lg bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100 transition-colors cursor-pointer"
+                            className="inline-flex items-center justify-center px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 transition-colors cursor-pointer gap-1"
                           >
-                            <FaEye />
+                            <FaEye className="text-[11px]" />
+                            <span>ดูข้อมูล</span>
                           </button>
                         </div>
                       </td>
@@ -1163,14 +1139,14 @@ export default function ProjectMonitoringTab({}: ProjectMonitoringTabProps) {
         </div>
       </div>
 
-      {/* Record Detail Drawer */}
+      {/* Record Detail Drawer (Read-Only) */}
       {selectedDetailTarget && (
         <RecordDetailDrawer
           isOpen={true}
           onClose={() => setSelectedDetailTarget(null)}
           item={selectedDetailTarget.item}
           categoryKey={selectedDetailTarget.category}
-          readOnly={false}
+          readOnly={true}
         />
       )}
 

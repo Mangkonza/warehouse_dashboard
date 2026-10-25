@@ -3,11 +3,12 @@
 import React, { ReactNode } from 'react';
 
 export interface KpiCardItem {
-  icon: ReactNode;
+  icon?: ReactNode;
   value: ReactNode;
   label: ReactNode;
   subtext?: ReactNode;
   accentColor?: string;
+  active?: boolean;
   onClick?: () => void;
 }
 
@@ -17,89 +18,77 @@ export interface KpiCardProps extends KpiCardItem {
 }
 
 export function KpiCard({
-  icon,
   value,
   label,
   subtext,
   accentColor = '#00A651',
+  active = false,
   onClick,
   className = '',
   style,
 }: KpiCardProps) {
+  const isHighlighted = active;
   return (
     <div
       className={`kpi-card ${className}`.trim()}
       onClick={onClick}
       style={{
-        backgroundColor: '#ffffff',
+        backgroundColor: isHighlighted ? `${accentColor}0a` : '#ffffff',
         borderRadius: '12px',
         padding: '16px 18px',
-        border: '1px solid #e2e8f0',
-        borderTop: `3px solid ${accentColor}`,
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+        border: isHighlighted ? `2px solid ${accentColor}` : `1.5px solid ${accentColor}40`,
+        boxShadow: isHighlighted ? `0 4px 12px ${accentColor}25` : '0 1px 3px rgba(0, 0, 0, 0.04)',
         cursor: onClick ? 'pointer' : 'default',
         transition: 'all 0.15s ease',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        minHeight: '110px',
         ...style,
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-        <div
-          className="kpi-icon"
-          style={{
-            width: '36px',
-            height: '36px',
-            backgroundColor: `${accentColor}14`,
-            color: accentColor,
-            borderRadius: '8px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '15px',
-            marginBottom: 0,
-          }}
-        >
-          {icon}
-        </div>
-        {onClick && (
-          <span style={{ fontSize: '11px', color: '#0284c7', fontWeight: 500 }}>
-            คลิกดูรายการ ▸
-          </span>
-        )}
+      {/* 1. หัวเรื่องข้อมูล ด้านบนสุด */}
+      <div
+        className="kpi-label"
+        style={{
+          fontSize: '13px',
+          fontWeight: 600,
+          color: '#475569',
+          lineHeight: 1.3,
+          marginBottom: '6px',
+        }}
+      >
+        {label}
       </div>
+
+      {/* 2. ตัวเลขสถิติหลัก ตรงกลาง */}
       <div
         className="kpi-value"
         style={{
-          fontSize: '23px',
+          fontSize: '24px',
           fontWeight: 700,
-          color: '#1e293b',
+          color: '#0f172a',
           lineHeight: 1.15,
           fontVariantNumeric: 'tabular-nums',
         }}
       >
         {value}
       </div>
-      <div
-        className="kpi-label"
-        style={{
-          fontSize: '13px',
-          fontWeight: 600,
-          color: '#334155',
-          marginTop: '4px',
-        }}
-      >
-        {label}
-      </div>
-      {subtext && (
+
+      {/* 3. รายละเอียดเสริม ด้านล่าง */}
+      {subtext ? (
         <div
           style={{
-            fontSize: '11.5px',
+            fontSize: '12px',
             color: '#64748b',
-            marginTop: '4px',
+            marginTop: '6px',
             lineHeight: 1.35,
           }}
         >
           {subtext}
         </div>
+      ) : (
+        <div style={{ minHeight: '4px' }} />
       )}
     </div>
   );

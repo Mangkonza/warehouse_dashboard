@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import academicData from '@/data/academic.json';
-import { getCachedCategoryData } from '@/lib/dataService';
+import { getCachedCategoryData, fetchCategoryData } from '@/lib/dataService';
 import { TimeFilterState, itemMatchesTimeFilter } from '@/types/timeFilter';
 import { isTestRecord } from '@/lib/sdgEngine';
 
@@ -26,12 +26,22 @@ export function useAcademicData(timeFilter?: TimeFilterState) {
   });
 
   useEffect(() => {
+    let isMounted = true;
+    fetchCategoryData('academic').then((fresh) => {
+      if (isMounted && Array.isArray(fresh) && fresh.length > 0) {
+        setDataList(fresh as AcademicItem[]);
+      }
+    });
+
     const handleUpdate = () => {
       const fresh = getCachedCategoryData('academic') as AcademicItem[];
       if (fresh && fresh.length > 0) setDataList(fresh);
     };
     window.addEventListener('ku_data_updated', handleUpdate);
-    return () => window.removeEventListener('ku_data_updated', handleUpdate);
+    return () => {
+      isMounted = false;
+      window.removeEventListener('ku_data_updated', handleUpdate);
+    };
   }, []);
 
   const validData = useMemo(() => {

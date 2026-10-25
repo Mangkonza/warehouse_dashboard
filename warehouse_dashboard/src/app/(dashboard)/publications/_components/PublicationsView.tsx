@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { FaBookOpen, FaTrophy, FaGlobeAmericas, FaAward, FaCoins } from 'react-icons/fa';
 import { useTimeFilter, TimeFilterBar } from '@/features/time-filter';
 import { KpiGrid } from '@/components/data-display';
 import { usePublicationsData } from '../_hooks/usePublicationsData';
@@ -43,41 +42,40 @@ export function PublicationsView() {
         <KpiGrid
           items={[
             {
-              icon: <FaBookOpen />,
-              value: `${validData.length} เรื่อง`,
               label: 'ผลงานตีพิมพ์ทางวิชาการ',
+              value: `${validData.length} เรื่อง`,
               subtext: `นานาชาติ ${internationalCount} • ชาติ ${nationalCount}`,
               accentColor: '#2e7d32',
+              active: levelFilter === 'all',
               onClick: () => setLevelFilter('all'),
             },
             {
-              icon: <FaTrophy />,
-              value: `${q1Count} เรื่อง`,
               label: 'ระดับ Scopus Q1',
+              value: `${q1Count} เรื่อง`,
               subtext: `${validData.length > 0 ? Math.round((q1Count / validData.length) * 100) : 0}% ของทั้งหมด`,
               accentColor: '#059669',
+              active: levelFilter === 'Q1',
               onClick: () => setLevelFilter(levelFilter === 'Q1' ? 'all' : 'Q1'),
             },
             {
-              icon: <FaGlobeAmericas />,
-              value: `${q2Count} เรื่อง`,
               label: 'ระดับ Scopus Q2 - Q4',
+              value: `${q2Count} เรื่อง`,
               subtext: `${validData.length > 0 ? Math.round((q2Count / validData.length) * 100) : 0}% ของทั้งหมด`,
               accentColor: '#2563eb',
+              active: levelFilter === 'Q2',
               onClick: () => setLevelFilter(levelFilter === 'Q2' ? 'all' : 'Q2'),
             },
             {
-              icon: <FaAward />,
-              value: `${tciCount} เรื่อง`,
               label: 'ระดับ TCI (ชาติ)',
+              value: `${tciCount} เรื่อง`,
               subtext: `เตรียมอนุสิทธิบัตร/อื่นๆ ${otherCount} รายการ`,
               accentColor: '#7c3aed',
+              active: levelFilter === 'TCI',
               onClick: () => setLevelFilter(levelFilter === 'TCI' ? 'all' : 'TCI'),
             },
             {
-              icon: <FaCoins />,
-              value: `${totalSupportBudget.toLocaleString('th-TH')} บาท`,
               label: 'เงินสนับสนุนการตีพิมพ์รวม',
+              value: `${totalSupportBudget.toLocaleString('th-TH')} บาท`,
               subtext: `เฉลี่ย ${validData.length > 0 ? Math.round(totalSupportBudget / validData.length).toLocaleString('th-TH') : 0} บาท/เรื่อง`,
               accentColor: '#00A651',
             },

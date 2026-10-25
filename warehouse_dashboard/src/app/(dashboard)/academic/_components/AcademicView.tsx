@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { FaGraduationCap, FaCoins, FaHandHoldingUsd, FaUsers } from 'react-icons/fa';
 import { useTimeFilter, TimeFilterBar } from '@/features/time-filter';
 import { KpiGrid } from '@/components/data-display';
 import { useAcademicData } from '../_hooks/useAcademicData';
@@ -42,30 +41,26 @@ export function AcademicView() {
         <KpiGrid
           items={[
             {
-              icon: <FaGraduationCap />,
-              value: `${validData.length} โครงการ`,
               label: 'โครงการพัฒนาวิชาการ',
+              value: `${validData.length} โครงการ`,
               subtext: `หัวหน้าโครงการ ${uniqueHeads.size} ท่าน`,
               accentColor: '#1565c0',
             },
             {
-              icon: <FaCoins />,
-              value: `${budgetMillions} ล้านบาท`,
               label: 'งบประมาณรวม',
+              value: `${budgetMillions} ล้านบาท`,
               subtext: `${totalBudgetAll.toLocaleString('th-TH')} บาท`,
               accentColor: '#059669',
             },
             {
-              icon: <FaHandHoldingUsd />,
-              value: `${allocMillions} ล้านบาท`,
               label: 'การจัดสรรรายได้ (รวม 15%)',
+              value: `${allocMillions} ล้านบาท`,
               subtext: `คณะ 5% (${(totalAllocFaculty / 1000000).toFixed(2)}M) • ภาคฯ 5% • มก. 5%`,
               accentColor: '#00A651',
             },
             {
-              icon: <FaUsers />,
-              value: `${uniqueClients.size} หน่วยงาน`,
               label: 'ผู้ขอรับบริการภายนอก',
+              value: `${uniqueClients.size} หน่วยงาน`,
               subtext: `งบดำเนินงานคงเหลือ 85% (${(totalAllocRemaining / 1000000).toFixed(2)} ล้านบาท)`,
               accentColor: '#0284c7',
             },

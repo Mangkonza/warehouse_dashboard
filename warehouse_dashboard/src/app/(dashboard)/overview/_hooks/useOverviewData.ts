@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { apiFetch } from '@/lib/api';
 import { parseNumber } from '@/lib/kpiEngine';
 import { calculateProjectTimeline } from '@/lib/projectMonitoringEngine';
-import { getCachedCategoryData } from '@/lib/dataService';
+import { getCachedCategoryData, fetchCategoryData } from '@/lib/dataService';
 import { matchDepartmentCode } from '@/config/departments';
 import { exportMonthlyExecutiveMasterExcel, saveReportSnapshot } from '@/lib/etlEngine';
 import { TimeFilterState, itemMatchesTimeFilter, getTimeFilterLabel } from '@/types/timeFilter';
@@ -78,33 +78,33 @@ export function useOverviewData(timeFilter: TimeFilterState) {
   const fetchLiveData = async () => {
     setIsRefreshing(true);
     try {
-      const [resRes, acaRes, pubRes, srvRes, ipRes] = await Promise.allSettled([
-        apiFetch<any[]>('/dashboard/research'),
-        apiFetch<any[]>('/dashboard/academic'),
-        apiFetch<any[]>('/dashboard/publications'),
-        apiFetch<any[]>('/dashboard/services'),
-        apiFetch<any[]>('/dashboard/ip'),
+      const [resData, acaData, pubData, srvData, ipData] = await Promise.all([
+        fetchCategoryData('research'),
+        fetchCategoryData('academic'),
+        fetchCategoryData('publications'),
+        fetchCategoryData('service'),
+        fetchCategoryData('ip'),
       ]);
 
       let liveCount = 0;
-      if (resRes.status === 'fulfilled' && resRes.value.data) {
-        setResearchList(resRes.value.data);
+      if (resData && Array.isArray(resData) && resData.length > 0) {
+        setResearchList(resData);
         liveCount++;
       }
-      if (acaRes.status === 'fulfilled' && acaRes.value.data) {
-        setAcademicList(acaRes.value.data);
+      if (acaData && Array.isArray(acaData) && acaData.length > 0) {
+        setAcademicList(acaData);
         liveCount++;
       }
-      if (pubRes.status === 'fulfilled' && pubRes.value.data) {
-        setPubList(pubRes.value.data);
+      if (pubData && Array.isArray(pubData) && pubData.length > 0) {
+        setPubList(pubData);
         liveCount++;
       }
-      if (srvRes.status === 'fulfilled' && srvRes.value.data) {
-        setServiceList(srvRes.value.data);
+      if (srvData && Array.isArray(srvData) && srvData.length > 0) {
+        setServiceList(srvData);
         liveCount++;
       }
-      if (ipRes.status === 'fulfilled' && ipRes.value.data) {
-        setIpList(ipRes.value.data);
+      if (ipData && Array.isArray(ipData) && ipData.length > 0) {
+        setIpList(ipData);
         liveCount++;
       }
 

@@ -3,8 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { KPIItem, KPIComputedResult, KPICategory } from '@/types/kpi';
 import { getStoredKPIs, evaluateAllKPIs } from '@/lib/kpiEngine';
-import { getCachedCategoryData } from '@/lib/dataService';
-import { apiFetch } from '@/lib/api';
+import { getCachedCategoryData, fetchCategoryData } from '@/lib/dataService';
 import { TimeFilterState, itemMatchesTimeFilter } from '@/types/timeFilter';
 
 // Fallback JSON data
@@ -46,27 +45,23 @@ export function useKpiData(timeFilter?: TimeFilterState) {
   const loadLiveData = async () => {
     setIsRefreshing(true);
     try {
-      const [resRes, acaRes, pubRes, srvRes, ipRes] = await Promise.allSettled([
-        apiFetch<any[]>('/dashboard/research'),
-        apiFetch<any[]>('/dashboard/academic'),
-        apiFetch<any[]>('/dashboard/publications'),
-        apiFetch<any[]>('/dashboard/services'),
-        apiFetch<any[]>('/dashboard/ip'),
+      const [resData, acaData, pubData, srvData, ipData, perData] = await Promise.all([
+        fetchCategoryData('research'),
+        fetchCategoryData('academic'),
+        fetchCategoryData('publications'),
+        fetchCategoryData('service'),
+        fetchCategoryData('ip'),
+        fetchCategoryData('personnel'),
       ]);
 
       const newDatasets = {
-        research: getCachedCategoryData('research') || rawResearch,
-        academic: getCachedCategoryData('academic') || rawAcademic,
-        publications: getCachedCategoryData('publications') || rawPublications,
-        service: getCachedCategoryData('service') || rawServices,
-        ip: getCachedCategoryData('ip') || rawIP,
-        personnel: getCachedCategoryData('personnel') || rawPersonnel,
+        research: (resData && resData.length > 0) ? resData : (getCachedCategoryData('research') || rawResearch),
+        academic: (acaData && acaData.length > 0) ? acaData : (getCachedCategoryData('academic') || rawAcademic),
+        publications: (pubData && pubData.length > 0) ? pubData : (getCachedCategoryData('publications') || rawPublications),
+        service: (srvData && srvData.length > 0) ? srvData : (getCachedCategoryData('service') || rawServices),
+        ip: (ipData && ipData.length > 0) ? ipData : (getCachedCategoryData('ip') || rawIP),
+        personnel: (perData && perData.length > 0) ? perData : (getCachedCategoryData('personnel') || rawPersonnel),
       };
-      if (resRes.status === 'fulfilled' && resRes.value.data) newDatasets.research = resRes.value.data;
-      if (acaRes.status === 'fulfilled' && acaRes.value.data) newDatasets.academic = acaRes.value.data;
-      if (pubRes.status === 'fulfilled' && pubRes.value.data) newDatasets.publications = pubRes.value.data;
-      if (srvRes.status === 'fulfilled' && srvRes.value.data) newDatasets.service = srvRes.value.data;
-      if (ipRes.status === 'fulfilled' && ipRes.value.data) newDatasets.ip = ipRes.value.data;
 
       setDatasets(newDatasets);
     } catch (err) {

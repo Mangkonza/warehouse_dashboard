@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import ipData from '@/data/ip.json';
-import { getCachedCategoryData } from '@/lib/dataService';
+import { getCachedCategoryData, fetchCategoryData } from '@/lib/dataService';
 import { TimeFilterState, itemMatchesTimeFilter } from '@/types/timeFilter';
 import { getDepartment } from '@/lib/departments';
 import { isTestRecord } from '@/lib/sdgEngine';
@@ -33,12 +33,22 @@ export function useIPData(timeFilter?: TimeFilterState) {
   });
 
   useEffect(() => {
+    let isMounted = true;
+    fetchCategoryData('ip').then((fresh) => {
+      if (isMounted && Array.isArray(fresh) && fresh.length > 0) {
+        setDataList(fresh as IPItem[]);
+      }
+    });
+
     const handleUpdate = () => {
       const fresh = getCachedCategoryData('ip') as IPItem[];
       if (fresh && fresh.length > 0) setDataList(fresh);
     };
     window.addEventListener('ku_data_updated', handleUpdate);
-    return () => window.removeEventListener('ku_data_updated', handleUpdate);
+    return () => {
+      isMounted = false;
+      window.removeEventListener('ku_data_updated', handleUpdate);
+    };
   }, []);
 
   const validIpData = useMemo(() => {

@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { FaFlask, FaCoins, FaTrophy, FaHandHoldingUsd } from 'react-icons/fa';
 import { useTimeFilter, TimeFilterBar } from '@/features/time-filter';
 import { KpiGrid } from '@/components/data-display';
 import { useResearchData } from '../_hooks/useResearchData';
@@ -44,30 +43,26 @@ export function ResearchView() {
         <KpiGrid
           items={[
             {
-              icon: <FaFlask />,
-              value: `${validData.length} โครงการ`,
               label: 'โครงการวิจัยทั้งหมด',
+              value: `${validData.length} โครงการ`,
               subtext: `ครอบคลุม ${uniqueDepts.size} ภาควิชา`,
               accentColor: '#00A651',
             },
             {
-              icon: <FaCoins />,
-              value: `${budgetMillions} ล้านบาท`,
               label: 'งบประมาณวิจัยรวม',
+              value: `${budgetMillions} ล้านบาท`,
               subtext: `${totalBudgetAll.toLocaleString('th-TH')} บาท`,
               accentColor: '#059669',
             },
             {
-              icon: <FaHandHoldingUsd />,
+              label: 'สัดส่วนงบภายนอก / ภายใน',
               value: `${extMillions} / ${intMillions} ล้าน`,
-              label: 'งบภายนอก / งบภายใน (บาท)',
-              subtext: `สัดส่วนทุนภายนอก ${extPct}% (${uniqueFunds.size} แหล่งทุน)`,
+              subtext: `ทุนภายนอก ${extPct}% (${uniqueFunds.size} แหล่งทุน)`,
               accentColor: '#0284c7',
             },
             {
-              icon: <FaTrophy />,
-              value: `${megaProjectsCount} โครงการ`,
               label: 'โครงการขนาดใหญ่ (≥ 10 ล้านบาท)',
+              value: `${megaProjectsCount} โครงการ`,
               subtext: 'เป้าหมาย 5 โครงการ/ปี',
               accentColor: '#d97706',
             },
