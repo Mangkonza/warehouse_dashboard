@@ -15,6 +15,9 @@ export interface PublicationItem {
   owner?: string;
   department?: string;
   type?: string;
+  status?: string;
+  prep_budget?: number;
+  reward_budget?: number;
   level?: string;
   budget?: number;
   month?: string;
@@ -85,6 +88,8 @@ export function usePublicationsData(timeFilter?: TimeFilterState) {
     internationalCount,
     nationalCount,
     totalSupportBudget,
+    publishedCount,
+    inPrepCount,
   } = useMemo(() => {
     let q1 = 0;
     let q2 = 0;
@@ -93,19 +98,26 @@ export function usePublicationsData(timeFilter?: TimeFilterState) {
     let intl = 0;
     let nat = 0;
     let budgetSum = 0;
+    let pubCount = 0;
+    let prepCount = 0;
 
     validData.forEach((d) => {
       const tier = d._detectedTier || '';
       const lvl = String(d.level || '');
       const typ = String(d.type || '');
+      const st = String(d.status || '');
       budgetSum += Number(d.budget) || 0;
+
+      if (st.includes('ตีพิมพ์แล้ว') || typ === 'ตีพิมพ์') {
+        pubCount++;
+      } else {
+        prepCount++;
+      }
 
       if (lvl.includes('นานาชาติ')) intl++;
       else if (lvl.includes('ชาติ')) nat++;
 
-      if (typ.includes('อนุสิทธิบัตร')) {
-        other++;
-      } else if (tier === 'Scopus Q1') {
+      if (tier === 'Scopus Q1') {
         q1++;
       } else if (tier === 'Scopus Q2' || tier === 'Scopus Q3' || tier === 'Scopus Q4') {
         q2++;
@@ -124,6 +136,8 @@ export function usePublicationsData(timeFilter?: TimeFilterState) {
       internationalCount: intl,
       nationalCount: nat,
       totalSupportBudget: budgetSum,
+      publishedCount: pubCount,
+      inPrepCount: prepCount,
     };
   }, [validData]);
 
@@ -186,6 +200,8 @@ export function usePublicationsData(timeFilter?: TimeFilterState) {
     internationalCount,
     nationalCount,
     totalSupportBudget,
+    publishedCount,
+    inPrepCount,
     searchTerm,
     setSearchTerm,
     levelFilter,

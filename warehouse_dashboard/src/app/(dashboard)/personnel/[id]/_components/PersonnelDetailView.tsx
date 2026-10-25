@@ -618,7 +618,22 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
                         return (
                           <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
                             <td style={{ padding: '10px 12px', fontWeight: 600, color: '#0f172a' }}>
-                              {p.name}
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                                <span>{p.name}</span>
+                                <span
+                                  style={{
+                                    fontSize: '10.5px',
+                                    padding: '1px 6px',
+                                    borderRadius: '4px',
+                                    backgroundColor: p.status === 'ตีพิมพ์แล้ว' || p.type === 'ตีพิมพ์' ? '#ecfdf5' : '#f0f9ff',
+                                    color: p.status === 'ตีพิมพ์แล้ว' || p.type === 'ตีพิมพ์' ? '#059669' : '#0284c7',
+                                    border: `1px solid ${p.status === 'ตีพิมพ์แล้ว' || p.type === 'ตีพิมพ์' ? '#a7f3d0' : '#bae6fd'}`,
+                                    whiteSpace: 'nowrap',
+                                  }}
+                                >
+                                  {p.status || p.type || 'ตีพิมพ์แล้ว'}
+                                </span>
+                              </div>
                               {p.remarks && (
                                 <div style={{ fontSize: '11.5px', color: '#64748b', marginTop: '2px' }}>
                                   {p.remarks}
@@ -723,18 +738,28 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
                             {i.filing_date || i.protection_start || '-'}
                           </td>
                           <td style={{ padding: '10px 12px', textAlign: 'center' }}>
-                            <span
-                              style={{
-                                padding: '2px 8px',
-                                borderRadius: '6px',
-                                fontSize: '11px',
-                                fontWeight: 600,
-                                backgroundColor: '#ecfdf5',
-                                color: '#065f46',
-                              }}
-                            >
-                              {i.status || 'ได้รับความคุ้มครอง'}
-                            </span>
+                            {(() => {
+                              const st = String(i.status || '');
+                              const isProt = st.includes('คุ้มครอง');
+                              const isPend = !isProt && st.includes('ยื่น');
+                              const bg = isProt ? '#ecfdf5' : isPend ? '#f0f9ff' : '#fffbeb';
+                              const col = isProt ? '#059669' : isPend ? '#0284c7' : '#d97706';
+                              const label = isProt ? 'ได้รับความคุ้มครองแล้ว' : isPend ? 'ยื่นคำขอแล้ว' : 'เตรียมความพร้อมยื่นจด';
+                              return (
+                                <span
+                                  style={{
+                                    padding: '2px 8px',
+                                    borderRadius: '6px',
+                                    fontSize: '11px',
+                                    fontWeight: 600,
+                                    backgroundColor: bg,
+                                    color: col,
+                                  }}
+                                >
+                                  {label}
+                                </span>
+                              );
+                            })()}
                           </td>
                         </tr>
                       ))}

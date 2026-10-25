@@ -17,6 +17,7 @@ export function IPView() {
     pettyPatentCount,
     protectedCount,
     pendingCount,
+    inPrepCount,
     totalSupportAmount,
     uniqueDeptCount,
     searchTerm,
@@ -47,7 +48,7 @@ export function IPView() {
             {
               label: 'ได้รับความคุ้มครองแล้ว',
               value: `${protectedCount} รายการ`,
-              subtext: `อยู่ระหว่างยื่นคำขอ ${pendingCount} รายการ`,
+              subtext: `ยื่นคำขอ ${pendingCount} • เตรียมยื่นจด ${inPrepCount} รายการ`,
               accentColor: '#00A651',
             },
             {

@@ -98,11 +98,12 @@ export function useIPData(timeFilter?: TimeFilterState) {
     });
   }, [validIpData, searchTerm, deptFilter, typeFilter]);
 
-  const { patentCount, pettyPatentCount, protectedCount, pendingCount, totalSupportAmount } = useMemo(() => {
+  const { patentCount, pettyPatentCount, protectedCount, pendingCount, inPrepCount, totalSupportAmount } = useMemo(() => {
     let pat = 0;
     let petty = 0;
     let prot = 0;
     let pend = 0;
+    let inPrep = 0;
     let sup = 0;
 
     validIpData.forEach((item) => {
@@ -111,10 +112,12 @@ export function useIPData(timeFilter?: TimeFilterState) {
       else pat++;
 
       const st = String(item.status || '');
-      if (st.includes('คุ้มครอง') || Boolean(item.registration_number && String(item.registration_number).trim())) {
+      if (st.includes('คุ้มครอง') || Boolean(item.registration_number && String(item.registration_number).trim() && item.registration_number !== '-')) {
         prot++;
-      } else {
+      } else if (st.includes('ยื่นคำขอ')) {
         pend++;
+      } else {
+        inPrep++;
       }
 
       sup += Number(item.support_amount) || 0;
@@ -125,6 +128,7 @@ export function useIPData(timeFilter?: TimeFilterState) {
       pettyPatentCount: petty,
       protectedCount: prot,
       pendingCount: pend,
+      inPrepCount: inPrep,
       totalSupportAmount: sup,
     };
   }, [validIpData]);
@@ -139,6 +143,7 @@ export function useIPData(timeFilter?: TimeFilterState) {
     pettyPatentCount,
     protectedCount,
     pendingCount,
+    inPrepCount,
     totalSupportAmount,
     uniqueDeptCount,
     searchTerm,
