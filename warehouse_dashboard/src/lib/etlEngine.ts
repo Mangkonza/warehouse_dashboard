@@ -24,7 +24,7 @@ const COLUMN_ALIASES: Record<string, string[]> = {
   doi: ['doi', 'หมายเลข doi'],
   head: ['หัวหน้าโครงการ', 'หัวหน้า', 'pi', 'project_leader', 'head'],
   person: ['ผู้รับผิดชอบ', 'ผู้จัด', 'person', 'responsible'],
-  owner: ['เจ้าของผลงาน', 'ผู้แต่ง', 'ผู้ประพันธ์', 'owner', 'author'],
+  owner: ['เจ้าของผลงาน', 'ผู้แต่ง', 'ผู้ประพันธ์', 'owner', 'author', 'เจ้าของสิทธิ', 'เจ้าของลิขสิทธิ์'],
   creator: ['ผู้ประดิษฐ์', 'ผู้สร้างสรรค์', 'creator', 'inventor'],
   department: ['ภาควิชา', 'สังกัด', 'หน่วยงาน', 'department', 'dept'],
   budget_internal: ['งบภายใน', 'งบประมาณภายใน', 'internal_budget', 'ทุนภายใน'],
@@ -65,8 +65,10 @@ const COLUMN_ALIASES: Record<string, string[]> = {
   image_url: ['รูปภาพ', 'รูปภาพประจำตัว', 'รูปถ่าย', 'รูป', 'รูปโปรไฟล์', 'image', 'picture', 'photo', 'avatar', 'image_url'],
   title: ['ชื่อเรื่อง', 'title', 'ชื่อการประดิษฐ์', 'เรื่อง'],
   support_amount: ['คณะฯ สนับสนุน', 'เงินสนับสนุน', 'support_amount', 'คณะสนับสนุน', 'เงินรางวัลสนับสนุน'],
-  application_number: ['เลขที่คำขอ', 'application_number', 'app_no'],
-  registration_number: ['เลขที่', 'เลขที่ทะเบียน', 'registration_number', 'reg_no', 'เลขที่สิทธิบัตร'],
+  application_number: ['เลขที่คำขอ', 'application_number', 'app_no', 'คำขอแจ้งข้อมูลเลขที่', 'คำขอเลขที่', 'req_info', 'เลขคำขอ'],
+  registration_number: ['เลขที่', 'เลขทะเบียน', 'เลขที่ทะเบียน', 'registration_number', 'reg_no', 'เลขที่สิทธิบัตร', 'ทะเบียนข้อมูลเลขที่', 'reg_info'],
+  work_category: ['ประเภทงาน', 'ประเภทงานลิขสิทธิ์', 'work_category', 'หมวดหมู่งาน'],
+  work_character: ['ลักษณะงาน', 'ลักษณะงานลิขสิทธิ์', 'work_character'],
   filing_date: ['วันที่ยื่น', 'filing_date', 'ยื่นคำขอ'],
   protection_start: ['วันที่เริ่มต้น', 'protection_start', 'เริ่มคุ้มครอง'],
   protection_end: ['วันที่สิ้นสุด', 'protection_end', 'สิ้นสุดคุ้มครอง'],
@@ -587,6 +589,10 @@ export function exportTableToExcel(data: any[], categoryKey: CategoryKey, fileNa
       const colTitle = col.label.replace('\n', ' ');
       if (col.format) {
         item[colTitle] = col.format(row[col.key], row);
+      } else if (col.type === 'ip_req_info') {
+        item[colTitle] = row.application_number || row.req_no || '-';
+      } else if (col.type === 'ip_reg_info') {
+        item[colTitle] = row.registration_number || row.reg_no || '-';
       } else {
         item[colTitle] = row[col.key] !== undefined && row[col.key] !== null ? row[col.key] : '-';
       }

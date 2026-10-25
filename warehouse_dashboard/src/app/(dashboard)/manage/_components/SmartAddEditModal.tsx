@@ -217,7 +217,7 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
         return;
       }
       if (!formData.department || !String(formData.department).trim()) {
-        setErrorMsg('กรุณาระบุสังกัดภาควิชา/สาขาวิชา');
+        setErrorMsg('กรุณาระบุสังกัด');
         return;
       }
       if (formData.budget !== undefined && formData.budget !== null && formData.budget !== '') {
@@ -251,27 +251,35 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
     } else if (config.key === 'ip') {
       const title = formData.title || formData.name;
       if (!title || !String(title).trim()) {
-        setErrorMsg('กรุณากรอก "ชื่อเรื่อง"');
+        setErrorMsg('กรุณากรอก "ชื่อเรื่อง / ชื่อผลงาน"');
+        return;
+      }
+      const type = formData.type;
+      if (!type || !String(type).trim()) {
+        setErrorMsg('กรุณาเลือก "ประเภททรัพย์สินทางปัญญา" (อนุสิทธิบัตร, สิทธิบัตร หรือ ลิขสิทธิ์)');
         return;
       }
       const inventors = formData.inventors;
       const creator = formData.creator;
       const hasInventors = (Array.isArray(inventors) && inventors.length > 0) || (creator && String(creator).trim());
       if (!hasInventors) {
-        setErrorMsg('กรุณาระบุ "ผู้ประดิษฐ์" อย่างน้อย 1 ท่าน');
+        setErrorMsg(type === 'ลิขสิทธิ์' ? 'กรุณาระบุ "ผู้สร้างสรรค์" อย่างน้อย 1 ท่าน' : 'กรุณาระบุ "ผู้ประดิษฐ์" อย่างน้อย 1 ท่าน');
         return;
       }
-      if (!formData.type || !String(formData.type).trim()) {
-        setErrorMsg('กรุณาเลือก "ประเภททรัพย์สินทางปัญญา" (อนุสิทธิบัตร หรือ สิทธิบัตร)');
-        return;
-      }
-      if (formData.application_number && String(formData.application_number).length !== 10) {
-        setErrorMsg('"เลขที่คำขอ" ต้องมี 10 หลัก');
-        return;
-      }
-      if (formData.registration_number && String(formData.registration_number).length !== 10) {
-        setErrorMsg('"เลขที่" ต้องมี 10 หลัก');
-        return;
+      if (type === 'ลิขสิทธิ์') {
+        if (!formData.work_category || !String(formData.work_category).trim()) {
+          setErrorMsg('กรุณาเลือก "ประเภทงาน" สำหรับลิขสิทธิ์');
+          return;
+        }
+        if (formData.application_number && !/^\d{1,10}$/.test(String(formData.application_number))) {
+          setErrorMsg('"คำขอแจ้งข้อมูลเลขที่" ต้องเป็นตัวเลข 1-10 หลัก');
+          return;
+        }
+      } else {
+        if (formData.application_number && String(formData.application_number).length !== 10) {
+          setErrorMsg('"เลขที่คำขอ" ต้องมี 10 หลัก');
+          return;
+        }
       }
       if (formData.protection_start && formData.protection_end && formData.protection_end < formData.protection_start) {
         setErrorMsg('"วันที่สิ้นสุด" ต้องไม่เกิดขึ้นก่อน "วันที่เริ่มต้น"');

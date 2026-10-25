@@ -447,9 +447,10 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
         } else if (activeCategory === 'ip') {
           const stat = String(item.status || '').toLowerCase();
           const type = String(item.type || '').toLowerCase();
-          if (selectedSubFilter === 'granted' && !stat.includes('จดทะเบียน') && !stat.includes('สิทธิบัตร')) return false;
-          if (selectedSubFilter === 'patent' && !type.includes('สิทธิบัตรการประดิษฐ์')) return false;
+          if (selectedSubFilter === 'granted' && !stat.includes('จดทะเบียน') && !stat.includes('สิทธิบัตร') && !stat.includes('คุ้มครอง') && !item.registration_number) return false;
+          if (selectedSubFilter === 'patent' && (!type.includes('สิทธิบัตร') || type.includes('อนุสิทธิบัตร')) && type !== 'p') return false;
           if (selectedSubFilter === 'petty' && !type.includes('อนุสิทธิบัตร')) return false;
+          if (selectedSubFilter === 'copyright' && !type.includes('ลิขสิทธิ์')) return false;
         } else if (activeCategory === 'academic') {
           const chars = Array.isArray(item.characteristics)
             ? item.characteristics.join(' ')

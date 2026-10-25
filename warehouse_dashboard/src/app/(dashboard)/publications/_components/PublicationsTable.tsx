@@ -189,7 +189,7 @@ export function PublicationsTable({
               <th style={{ width: '115px', textAlign: 'right' }}>จำนวนเงินสนับสนุน</th>
               <th style={{ width: '140px' }}>เจ้าของผลงาน</th>
               <th style={{ width: '130px' }}>ผู้ร่วม</th>
-              <th style={{ width: '100px', textAlign: 'left' }}>สังกัดภาควิชา/สาขาวิชา</th>
+              <th style={{ width: '100px', textAlign: 'left' }}>สังกัด</th>
               <th style={{ width: '160px' }}>รายละเอียดวารสาร/การประชุม</th>
             </tr>
           </thead>

@@ -98,17 +98,23 @@ export function useIPData(timeFilter?: TimeFilterState) {
     });
   }, [validIpData, searchTerm, deptFilter, typeFilter]);
 
-  const { patentCount, pettyPatentCount, protectedCount, pendingCount, totalSupportAmount } = useMemo(() => {
+  const { patentCount, pettyPatentCount, copyrightCount, protectedCount, pendingCount, totalSupportAmount } = useMemo(() => {
     let pat = 0;
     let petty = 0;
+    let copy = 0;
     let prot = 0;
     let pend = 0;
     let sup = 0;
 
     validIpData.forEach((item) => {
-      const t = String(item.type || '');
-      if (t.includes('อนุสิทธิบัตร')) petty++;
-      else pat++;
+      const t = String(item.type || '').trim();
+      if (t.includes('อนุสิทธิบัตร')) {
+        petty++;
+      } else if (t.includes('ลิขสิทธิ์')) {
+        copy++;
+      } else {
+        pat++;
+      }
 
       const st = String(item.status || '');
       if (st.includes('คุ้มครอง') || Boolean(item.registration_number && String(item.registration_number).trim())) {
@@ -123,6 +129,7 @@ export function useIPData(timeFilter?: TimeFilterState) {
     return {
       patentCount: pat,
       pettyPatentCount: petty,
+      copyrightCount: copy,
       protectedCount: prot,
       pendingCount: pend,
       totalSupportAmount: sup,
@@ -137,6 +144,7 @@ export function useIPData(timeFilter?: TimeFilterState) {
     availableDepts,
     patentCount,
     pettyPatentCount,
+    copyrightCount,
     protectedCount,
     pendingCount,
     totalSupportAmount,

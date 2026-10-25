@@ -96,7 +96,7 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
       { key: 'id', label: 'รหัสโครงการ', type: 'text', width: '10%', align: 'center' },
       { key: 'name', label: 'ชื่อโครงการ', type: 'text', width: '26%', required: true },
       { key: 'head', label: 'หัวหน้าโครงการ', type: 'text', width: '14%', required: true },
-      { key: 'department', label: 'หน่วยงานรับผิดชอบ', type: 'badge', width: '10%' },
+      { key: 'department', label: 'สังกัดที่รับผิดชอบ', type: 'badge', width: '10%' },
       { key: 'budget', label: 'งบประมาณ', type: 'research_budget', width: '13%', align: 'right' },
       { key: 'fund_source', label: 'แหล่งทุนวิจัย', type: 'text', width: '12%' },
       { key: 'duration', label: 'ระยะเวลา', type: 'research_duration', width: '11%', align: 'center' },
@@ -116,7 +116,7 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
           },
           {
             key: 'department',
-            label: 'หน่วยงานรับผิดชอบ',
+            label: 'สังกัดที่รับผิดชอบ',
             type: 'department',
             getValue: (item) => item.departments || item.department,
           },
@@ -464,7 +464,7 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
       { key: 'name', label: 'เรื่อง', type: 'text', width: '26%', required: true },
       { key: 'service_type', label: 'ประเภท', type: 'badge', width: '11%', align: 'center' },
       { key: 'person', label: 'ชื่อ - นามสกุล', type: 'text', width: '14%', required: true },
-      { key: 'department', label: 'ภาควิชา/ศูนย์ฯ', type: 'badge', width: '10%' },
+      { key: 'department', label: 'สังกัด', type: 'badge', width: '10%' },
       { key: 'target_group', label: 'กลุ่มเป้าหมาย', type: 'text', width: '13%' },
       { key: 'hours_spent', label: 'จำนวนชั่วโมง', type: 'number', width: '8%', align: 'right', format: (val) => val !== undefined && val !== null && val !== '' ? `${val} ชม.` : '-' },
       { key: 'attendees_count', label: 'จำนวนคนเข้าร่วม', type: 'number', width: '8%', align: 'right', format: (val) => val !== undefined && val !== null && val !== '' ? `${val} คน` : '-' },
@@ -476,7 +476,7 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
           { key: 'target_group', label: 'กลุ่มเป้าหมาย' },
           { key: 'service_type', label: 'ประเภท', type: 'badge', getValue: (item) => item.service_type || item.service_category || '-' },
           { key: 'person', label: 'ชื่อ - นามสกุล', type: 'person' },
-          { key: 'department', label: 'ภาควิชา/ศูนย์ฯ', type: 'department' },
+          { key: 'department', label: 'สังกัด', type: 'department' },
           { key: 'date', label: 'วัน/เดือน/ปี', type: 'date' },
           { key: 'hours_spent', label: 'จำนวนชั่วโมง', format: (val) => val !== undefined && val !== null && val !== '' ? `${val} ชม.` : '-' },
           { key: 'attendees_count', label: 'จำนวนคนเข้าร่วม', format: (val) => val !== undefined && val !== null && val !== '' ? `${val} คน` : '-' },
@@ -508,7 +508,7 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
       { key: 'level', label: 'ระดับ', type: 'badge', width: '8%', align: 'center', required: true },
       { key: 'budget', label: 'จำนวนเงินสนับสนุน', type: 'currency', width: '11%', align: 'right' },
       { key: 'owner', label: 'เจ้าของผลงาน', type: 'text', width: '13%', required: true },
-      { key: 'department', label: 'สังกัดภาควิชา/สาขาวิชา', type: 'badge', width: '10%' },
+      { key: 'department', label: 'สังกัด', type: 'badge', width: '10%' },
       { key: 'journal_details', label: 'รายละเอียดวารสาร/การประชุม', type: 'publication_journal', width: '16%' },
     ],
     detailGroups: [
@@ -530,7 +530,7 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
       },
       {
         fields: [
-          { key: 'department', label: 'สังกัดภาควิชา/สาขาวิชา', type: 'department' },
+          { key: 'department', label: 'สังกัด', type: 'department' },
           { key: 'journal', label: 'รายละเอียดวารสาร/การประชุม', span: 2 },
           { key: 'volume', label: 'Volume' },
           { key: 'issue', label: 'Issue' },
@@ -559,21 +559,31 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
     departmentKey: 'department',
     personKey: 'creator',
     columns: [
-      { key: 'name', label: 'เรื่อง', type: 'text', width: '26%', required: true },
-      { key: 'type', label: 'ประเภททรัพย์สินทางปัญญา', type: 'badge', width: '12%', align: 'center', required: true },
-      { key: 'creator', label: 'ผู้ประดิษฐ์', type: 'text', width: '14%' },
+      { key: 'name', label: 'เรื่อง', type: 'text', width: '24%', required: true },
+      { key: 'type', label: 'ประเภท', type: 'badge', width: '12%', align: 'center', required: true },
+      { key: 'creator', label: 'ผู้ประดิษฐ์ / ผู้สร้างสรรค์', type: 'text', width: '13%' },
       { key: 'department', label: 'สังกัด', type: 'badge', width: '10%' },
-      { key: 'req_info', label: 'เลขที่คำขอ', type: 'ip_req_info', width: '13%', align: 'center' },
-      { key: 'reg_info', label: 'เลขที่', type: 'ip_reg_info', width: '12%', align: 'center' },
-      { key: 'support_amount', label: 'คณะฯ สนับสนุน', type: 'currency', width: '11%', align: 'right' },
+      { key: 'req_info', label: 'เลขที่คำขอ', type: 'ip_req_info', width: '14%', align: 'center' },
+      { key: 'reg_info', label: 'เลขทะเบียน', type: 'ip_reg_info', width: '14%', align: 'center' },
+      { key: 'support_amount', label: 'คณะฯ สนับสนุน', type: 'currency', width: '10%', align: 'right' },
     ],
     detailGroups: [
       {
         fields: [
           { key: 'title', label: 'เรื่อง', span: 2, getValue: (item) => item.title || item.name || '-' },
           {
+            key: 'type',
+            label: 'ประเภททรัพย์สินทางปัญญา',
+            type: 'badge',
+          },
+          {
+            key: 'owner',
+            label: 'เจ้าของสิทธิ',
+            getValue: (item) => item.owner || item.right_holder || 'มหาวิทยาลัยเกษตรศาสตร์',
+          },
+          {
             key: 'inventors',
-            label: 'ผู้ประดิษฐ์',
+            label: 'ผู้ประดิษฐ์ / ผู้สร้างสรรค์',
             type: 'person_list',
             span: 2,
             getValue: (item) => item.inventors || item.creator,
@@ -584,7 +594,16 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
             type: 'department',
             getValue: (item) => item.departments || item.department,
           },
-          { key: 'type', label: 'ประเภททรัพย์สินทางปัญญา', type: 'badge' },
+          {
+            key: 'work_category',
+            label: 'ประเภทงาน (ลิขสิทธิ์)',
+            getValue: (item) => item.work_category || (item.type === 'ลิขสิทธิ์' ? '-' : ''),
+          },
+          {
+            key: 'work_character',
+            label: 'ลักษณะงาน (ลิขสิทธิ์)',
+            getValue: (item) => item.work_character || (item.type === 'ลิขสิทธิ์' ? '-' : ''),
+          },
         ],
       },
       {
@@ -599,21 +618,24 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
         ],
       },
       {
-        groupLabel: 'ได้รับความคุ้มครอง',
+        groupLabel: 'ได้รับความคุ้มครอง / ออกให้',
         fields: [
           {
             key: 'registration_number',
-            label: 'เลขที่',
-            getValue: (item) => item.registration_number || '-',
+            label: 'เลขทะเบียน',
+            getValue: (item) => item.registration_number || item.reg_no || '-',
           },
           {
             key: 'protection_period',
             label: 'ระยะเวลาความคุ้มครอง',
             getValue: (item) => {
+              if (item.type === 'ลิขสิทธิ์') {
+                return item.protection_start ? ('ออกหนังสือรับรอง: ' + formatDateBE(item.protection_start)) : '-';
+              }
               if (item.protection_start || item.protection_end) {
-                const s = formatDateBE(item.protection_start);
-                const e = formatDateBE(item.protection_end);
-                return `${s} – ${e}`;
+                const s = item.protection_start ? formatDateBE(item.protection_start) : '-';
+                const e = item.protection_end ? formatDateBE(item.protection_end) : '-';
+                return s + ' – ' + e;
               }
               return item.protection_period || '-';
             },
@@ -628,9 +650,10 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
       },
     ],
     templateSampleRows: [
-      { name: 'เครื่องคัดแยกผลไม้ตามขนาดและสีอัตโนมัติ', creator: 'ศ.ดร.อนุพันธ์ เทอดวงศ์วรกุล', department: 'ภาควิชาวิศวกรรมการเกษตร', type: 'อนุสิทธิบัตร', req_no: '2303000652', filing_date: '2023-03-15', status: 'ได้รับความคุ้มครองแล้ว' },
+      { name: 'อุปกรณ์ไฟฟ้าช็อตที่มีค่ากระแสไฟฟ้าขาออกไม่เกินสองมิลลิแอมป์', creator: 'นายเชาว์ อินทร์ประสิทธิ์', department: 'ภาควิชาวิศวกรรมโยธา', type: 'อนุสิทธิบัตร', application_number: '2503003348', registration_number: '28565', filing_date: '2025-09-05', status: 'ได้รับความคุ้มครองแล้ว', support_amount: 10000, owner: 'มหาวิทยาลัยเกษตรศาสตร์' },
+      { name: 'โปรแกรมจำลองการเคลื่อนที่ของระบบกระพ้อลำเลียงแบบสามมิติด้วยซอฟต์แวร์ LIGGGHTS', creator: 'ผศ.ดร.สมชาย ใจดี', department: 'ภาควิชาวิศวกรรมเครื่องกล', type: 'ลิขสิทธิ์', application_number: '461933', registration_number: 'ว1.000033', filing_date: '2025-09-23', status: 'ได้รับความคุ้มครองแล้ว', work_category: 'วรรณกรรม', work_character: 'โปรแกรมคอมพิวเตอร์', support_amount: 5000, owner: 'มหาวิทยาลัยเกษตรศาสตร์' },
     ],
-    searchFields: ['name', 'creator', 'department', 'type', 'req_no', 'status'],
+    searchFields: ['name', 'title', 'creator', 'department', 'type', 'application_number', 'registration_number', 'req_no', 'status', 'work_category', 'work_character', 'owner'],
   },
 
   personnel: {

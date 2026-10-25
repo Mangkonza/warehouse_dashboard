@@ -4,6 +4,8 @@ import React, { useEffect, useRef } from 'react';
 import { CategoryConfig, CategoryKey } from '@/types/dataManagement';
 import { CATEGORIES_CONFIG } from '@/config/dataManagementConfig';
 import { DepartmentBadge } from '@/components/ui/department-badge';
+import { ServiceTypeBadge } from '@/components/ui/service-type-badge';
+import { IPTypeBadge } from '@/components/ui/ip-type-badge';
 import { EvaluationTags, LevelBadge, RecordEvaluationTags, getItemEvaluation } from '@/components/ui/evaluation-tag';
 import { Drawer } from '@/components/ui/Drawer';
 import { getCachedEvaluations } from '@/lib/dataService';
@@ -239,6 +241,22 @@ export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
       return (
         <div className="pt-0.5">
           <LevelBadge value={String(rawVal)} />
+        </div>
+      );
+    }
+
+    if (field.key === 'service_type' || field.key === 'service_category') {
+      return (
+        <div className="pt-0.5">
+          <ServiceTypeBadge value={String(rawVal)} />
+        </div>
+      );
+    }
+
+    if (field.key === 'type' && (categoryKey === 'ip' || ['สิทธิบัตร', 'อนุสิทธิบัตร', 'ลิขสิทธิ์'].some((t) => String(rawVal).includes(t)))) {
+      return (
+        <div className="pt-0.5">
+          <IPTypeBadge value={String(rawVal)} />
         </div>
       );
     }

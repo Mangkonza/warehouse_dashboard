@@ -240,7 +240,7 @@ export async function POST(
       const department = String(body.department || '').trim();
       if (!department) {
         return NextResponse.json(
-          { status: 'error', message: 'กรุณาระบุสังกัดภาควิชา/สาขาวิชา' },
+          { status: 'error', message: 'กรุณาระบุสังกัด' },
           { status: 400 }
         );
       }
@@ -311,41 +311,79 @@ export async function POST(
       const title = String(body.title || body.name || '').trim();
       if (!title) {
         return NextResponse.json(
-          { status: 'error', message: 'กรุณากรอกชื่อเรื่อง' },
+          { status: 'error', message: 'กรุณากรอกชื่อเรื่อง / ชื่อผลงาน' },
           { status: 400 }
+        );
+      }
+
+      const type = String(body.type || '').trim();
+      const validIpTypes = ['อนุสิทธิบัตร', 'สิทธิบัตร', 'ลิขสิทธิ์'];
+      if (!type || !validIpTypes.includes(type)) {
+        return NextResponse.json(
+          { status: 'error', message: 'กรุณาเลือกประเภททรัพย์สินทางปัญญา (อนุสิทธิบัตร, สิทธิบัตร หรือ ลิขสิทธิ์)' },
+          { status: 422 }
         );
       }
 
       const hasInventors = (Array.isArray(body.inventors) && body.inventors.length > 0) || (body.creator && String(body.creator).trim());
       if (!hasInventors) {
         return NextResponse.json(
-          { status: 'error', message: 'กรุณาระบุผู้ประดิษฐ์อย่างน้อย 1 ท่าน' },
+          { status: 'error', message: type === 'ลิขสิทธิ์' ? 'กรุณาระบุผู้สร้างสรรค์อย่างน้อย 1 ท่าน' : 'กรุณาระบุผู้ประดิษฐ์อย่างน้อย 1 ท่าน' },
           { status: 400 }
         );
       }
 
-      const type = String(body.type || '').trim();
-      if (!type || (type !== 'อนุสิทธิบัตร' && type !== 'สิทธิบัตร')) {
-        return NextResponse.json(
-          { status: 'error', message: 'กรุณาเลือกประเภททรัพย์สินทางปัญญา (อนุสิทธิบัตร หรือ สิทธิบัตร)' },
-          { status: 422 }
-        );
-      }
-
       const appNo = String(body.application_number || '').trim();
-      if (appNo && !/^\d{10}$/.test(appNo)) {
-        return NextResponse.json(
-          { status: 'error', message: 'เลขที่คำขอต้องมี 10 หลักและเป็นตัวเลขเท่านั้น' },
-          { status: 422 }
-        );
+      const regNo = String(body.registration_number || '').trim();
+
+      if (type === 'ลิขสิทธิ์') {
+        const workCategory = String(body.work_category || '').trim();
+        if (!workCategory) {
+          return NextResponse.json(
+            { status: 'error', message: 'กรุณาระบุประเภทงานสำหรับลิขสิทธิ์' },
+            { status: 422 }
+          );
+        }
+        if (appNo && !/^\d{1,10}$/.test(appNo)) {
+          return NextResponse.json(
+            { status: 'error', message: 'คำขอแจ้งข้อมูลเลขที่ต้องเป็นตัวเลข 1-10 หลัก' },
+            { status: 422 }
+          );
+        }
+        if (regNo && regNo.length > 50) {
+          return NextResponse.json(
+            { status: 'error', message: 'ทะเบียนข้อมูลเลขที่ต้องมีความยาวไม่เกิน 50 ตัวอักษร' },
+            { status: 422 }
+          );
+        }
+      } else {
+        if (appNo && !/^\d{10}$/.test(appNo)) {
+          return NextResponse.json(
+            { status: 'error', message: 'เลขที่คำขอต้องมี 10 หลักและเป็นตัวเลขเท่านั้น' },
+            { status: 422 }
+          );
+        }
+        if (regNo && regNo.length > 50) {
+          return NextResponse.json(
+            { status: 'error', message: 'เลขทะเบียนต้องมีความยาวไม่เกิน 50 ตัวอักษร' },
+            { status: 422 }
+          );
+        }
       }
 
-      const regNo = String(body.registration_number || '').trim();
-      if (regNo && !/^\d{10}$/.test(regNo)) {
-        return NextResponse.json(
-          { status: 'error', message: 'เลขที่ต้องมี 10 หลักและเป็นตัวเลขเท่านั้น' },
-          { status: 422 }
-        );
+      if (regNo) {
+        const existingList = readCategoryData('ip');
+        const isDuplicate = existingList.some((it) => {
+          const itType = String(it.type || '').trim();
+          const itReg = String(it.registration_number || '').trim();
+          return itType === type && itReg.toLowerCase() === regNo.toLowerCase();
+        });
+        if (isDuplicate) {
+          return NextResponse.json(
+            { status: 'error', message: 'เลขทะเบียน "' + regNo + '" ซ้ำกับรายการอื่นในหมวด' + type },
+            { status: 422 }
+          );
+        }
       }
 
       if (body.protection_start && body.protection_end && body.protection_end < body.protection_start) {
@@ -372,9 +410,18 @@ export async function POST(
       body.application_number = appNo;
       body.registration_number = regNo;
       body.support_amount = supportAmount;
+      body.owner = String(body.owner || body.right_holder || 'มหาวิทยาลัยเกษตรศาสตร์').trim();
+
+      if (type === 'ลิขสิทธิ์') {
+        body.work_category = String(body.work_category || '').trim();
+        body.work_character = String(body.work_character || '').trim();
+      } else {
+        delete body.work_category;
+        delete body.work_character;
+      }
 
       if (!body.req_no) {
-        body.req_no = appNo ? (regNo ? `${appNo} / ${regNo}` : appNo) : (regNo || '');
+        body.req_no = appNo ? (regNo ? (appNo + ' / ' + regNo) : appNo) : (regNo || '');
       }
       if (!body.status) {
         body.status = regNo || body.protection_start ? 'ได้รับความคุ้มครองแล้ว' : 'ยื่นคำขอแล้ว';
@@ -569,7 +616,7 @@ export async function PUT(
       const department = String(body.department || '').trim();
       if (!department) {
         return NextResponse.json(
-          { status: 'error', message: 'กรุณาระบุสังกัดภาควิชา/สาขาวิชา' },
+          { status: 'error', message: 'กรุณาระบุสังกัด' },
           { status: 400 }
         );
       }
@@ -640,41 +687,81 @@ export async function PUT(
       const title = String(body.title || body.name || '').trim();
       if (!title) {
         return NextResponse.json(
-          { status: 'error', message: 'กรุณากรอกชื่อเรื่อง' },
+          { status: 'error', message: 'กรุณากรอกชื่อเรื่อง / ชื่อผลงาน' },
           { status: 400 }
+        );
+      }
+
+      const type = String(body.type || '').trim();
+      const validIpTypes = ['อนุสิทธิบัตร', 'สิทธิบัตร', 'ลิขสิทธิ์'];
+      if (!type || !validIpTypes.includes(type)) {
+        return NextResponse.json(
+          { status: 'error', message: 'กรุณาเลือกประเภททรัพย์สินทางปัญญา (อนุสิทธิบัตร, สิทธิบัตร หรือ ลิขสิทธิ์)' },
+          { status: 422 }
         );
       }
 
       const hasInventors = (Array.isArray(body.inventors) && body.inventors.length > 0) || (body.creator && String(body.creator).trim());
       if (!hasInventors) {
         return NextResponse.json(
-          { status: 'error', message: 'กรุณาระบุผู้ประดิษฐ์อย่างน้อย 1 ท่าน' },
+          { status: 'error', message: type === 'ลิขสิทธิ์' ? 'กรุณาระบุผู้สร้างสรรค์อย่างน้อย 1 ท่าน' : 'กรุณาระบุผู้ประดิษฐ์อย่างน้อย 1 ท่าน' },
           { status: 400 }
         );
       }
 
-      const type = String(body.type || '').trim();
-      if (!type || (type !== 'อนุสิทธิบัตร' && type !== 'สิทธิบัตร')) {
-        return NextResponse.json(
-          { status: 'error', message: 'กรุณาเลือกประเภททรัพย์สินทางปัญญา (อนุสิทธิบัตร หรือ สิทธิบัตร)' },
-          { status: 422 }
-        );
-      }
-
       const appNo = String(body.application_number || '').trim();
-      if (appNo && !/^\d{10}$/.test(appNo)) {
-        return NextResponse.json(
-          { status: 'error', message: 'เลขที่คำขอต้องมี 10 หลักและเป็นตัวเลขเท่านั้น' },
-          { status: 422 }
-        );
+      const regNo = String(body.registration_number || '').trim();
+
+      if (type === 'ลิขสิทธิ์') {
+        const workCategory = String(body.work_category || '').trim();
+        if (!workCategory) {
+          return NextResponse.json(
+            { status: 'error', message: 'กรุณาระบุประเภทงานสำหรับลิขสิทธิ์' },
+            { status: 422 }
+          );
+        }
+        if (appNo && !/^\d{1,10}$/.test(appNo)) {
+          return NextResponse.json(
+            { status: 'error', message: 'คำขอแจ้งข้อมูลเลขที่ต้องเป็นตัวเลข 1-10 หลัก' },
+            { status: 422 }
+          );
+        }
+        if (regNo && regNo.length > 50) {
+          return NextResponse.json(
+            { status: 'error', message: 'ทะเบียนข้อมูลเลขที่ต้องมีความยาวไม่เกิน 50 ตัวอักษร' },
+            { status: 422 }
+          );
+        }
+      } else {
+        if (appNo && !/^\d{10}$/.test(appNo)) {
+          return NextResponse.json(
+            { status: 'error', message: 'เลขที่คำขอต้องมี 10 หลักและเป็นตัวเลขเท่านั้น' },
+            { status: 422 }
+          );
+        }
+        if (regNo && regNo.length > 50) {
+          return NextResponse.json(
+            { status: 'error', message: 'เลขทะเบียนต้องมีความยาวไม่เกิน 50 ตัวอักษร' },
+            { status: 422 }
+          );
+        }
       }
 
-      const regNo = String(body.registration_number || '').trim();
-      if (regNo && !/^\d{10}$/.test(regNo)) {
-        return NextResponse.json(
-          { status: 'error', message: 'เลขที่ต้องมี 10 หลักและเป็นตัวเลขเท่านั้น' },
-          { status: 422 }
-        );
+      if (regNo) {
+        const existingList = readCategoryData('ip');
+        const isDuplicate = existingList.some((it) => {
+          const sameId = String(it.id || it._id) === String(body.id || body._id);
+          if (sameId) return false;
+          const itType = String(it.type || '').trim();
+          const itReg = String(it.registration_number || '').trim();
+          return itType === type && itReg.toLowerCase() === regNo.toLowerCase();
+        });
+        if (isDuplicate) {
+          return NextResponse.json(
+            { status: 'error', message: 'เลขทะเบียน "' + regNo + '" ซ้ำกับรายการอื่นในหมวด' + type },
+            { status: 422 }
+          );
+        }
       }
 
       if (body.protection_start && body.protection_end && body.protection_end < body.protection_start) {
@@ -701,9 +788,18 @@ export async function PUT(
       body.application_number = appNo;
       body.registration_number = regNo;
       body.support_amount = supportAmount;
+      body.owner = String(body.owner || body.right_holder || 'มหาวิทยาลัยเกษตรศาสตร์').trim();
+
+      if (type === 'ลิขสิทธิ์') {
+        body.work_category = String(body.work_category || '').trim();
+        body.work_character = String(body.work_character || '').trim();
+      } else {
+        delete body.work_category;
+        delete body.work_character;
+      }
 
       if (!body.req_no) {
-        body.req_no = appNo ? (regNo ? `${appNo} / ${regNo}` : appNo) : (regNo || '');
+        body.req_no = appNo ? (regNo ? (appNo + ' / ' + regNo) : appNo) : (regNo || '');
       }
       if (!body.status) {
         body.status = regNo || body.protection_start ? 'ได้รับความคุ้มครองแล้ว' : 'ยื่นคำขอแล้ว';

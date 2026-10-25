@@ -53,7 +53,7 @@ export function ServiceView() {
               accentColor: '#0284c7',
             },
             {
-              label: 'ภาควิชา/ศูนย์ฯ ที่ร่วมจัด',
+              label: 'สังกัดที่ร่วมดำเนินการ',
               value: `${uniqueDepts.size || 7} ภาควิชา`,
               subtext: 'ทุกหน่วยงานในคณะฯ',
               accentColor: '#6a1b9a',

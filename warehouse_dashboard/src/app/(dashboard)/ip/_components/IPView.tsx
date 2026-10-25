@@ -15,6 +15,7 @@ export function IPView() {
     availableDepts,
     patentCount,
     pettyPatentCount,
+    copyrightCount,
     protectedCount,
     pendingCount,
     totalSupportAmount,
@@ -41,7 +42,7 @@ export function IPView() {
             {
               label: 'งานทรัพย์สินทางปัญญาทั้งหมด',
               value: `${validIpData.length} รายการ`,
-              subtext: `อนุสิทธิบัตร ${pettyPatentCount} • สิทธิบัตร ${patentCount}`,
+              subtext: `อนุสิทธิบัตร ${pettyPatentCount} • สิทธิบัตร ${patentCount} • ลิขสิทธิ์ ${copyrightCount}`,
               accentColor: '#6a1b9a',
             },
             {

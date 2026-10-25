@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { FaTable, FaFilter, FaTimes } from 'react-icons/fa';
-import { SearchInput, DepartmentBadge, DepartmentSelect, RecordDetailDrawer } from '@/components/ui';
+import { SearchInput, DepartmentBadge, DepartmentSelect, RecordDetailDrawer, IPTypeBadge } from '@/components/ui';
 import { IPItem } from '../_hooks/useIPData';
 
 interface IPTableProps {
@@ -86,7 +86,7 @@ export function IPTable({
             </span>
           )}
           <SearchInput
-            placeholder="ค้นหาชื่อเรื่อง / ผู้ประดิษฐ์ / เลขที่คำขอ..."
+            placeholder="ค้นหาชื่อเรื่อง / ผู้ประดิษฐ์ / เลขทะเบียน / เลขที่คำขอ..."
             value={searchTerm}
             onChange={onSearchChange}
             width="230px"
@@ -138,10 +138,10 @@ export function IPTable({
             <tr>
               <th style={{ width: '45px', textAlign: 'center' }}>#</th>
               <th style={{ minWidth: '220px' }}>ชื่อเรื่อง</th>
-              <th>ผู้ประดิษฐ์</th>
+              <th>ผู้ประดิษฐ์ / ผู้สร้างสรรค์</th>
               <th style={{ width: '120px', textAlign: 'left' }}>ภาควิชา</th>
               <th style={{ textAlign: 'center' }}>ประเภท</th>
-              <th>เลขที่คำขอ / เลขที่</th>
+              <th>เลขที่คำขอ / เลขทะเบียน</th>
               <th style={{ textAlign: 'center' }}>สถานะ</th>
               <th style={{ textAlign: 'right' }}>คณะฯ สนับสนุน</th>
             </tr>
@@ -206,24 +206,7 @@ export function IPTable({
                       </div>
                     </td>
                     <td style={{ textAlign: 'center' }}>
-                      {item.type && item.type !== 'nan' && item.type !== '-' ? (
-                        <span
-                          style={{
-                            display: 'inline-block',
-                            padding: '3px 8px',
-                            borderRadius: '6px',
-                            fontSize: '11.5px',
-                            fontWeight: 600,
-                            backgroundColor: '#faf5ff',
-                            color: '#6a1b9a',
-                            border: '1px solid #e9d5ff',
-                          }}
-                        >
-                          {item.type === 'P' ? 'สิทธิบัตร' : item.type}
-                        </span>
-                      ) : (
-                        '-'
-                      )}
+                      <IPTypeBadge value={item.type} />
                     </td>
                     <td style={{ fontFamily: 'monospace', fontSize: '12px', color: '#334155' }}>
                       {item.req_no && item.req_no !== 'nan'

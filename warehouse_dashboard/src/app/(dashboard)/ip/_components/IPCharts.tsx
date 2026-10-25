@@ -123,7 +123,7 @@ export function IPCharts({
     const typeGroups: Record<string, { label: string; count: number; items: IPItem[]; color: string }> = {
       'อนุสิทธิบัตร': { label: 'อนุสิทธิบัตร', count: 0, items: [], color: '#6a1b9a' },
       'สิทธิบัตร': { label: 'สิทธิบัตรการประดิษฐ์', count: 0, items: [], color: '#00A651' },
-      'ลิขสิทธิ์': { label: 'ลิขสิทธิ์', count: 0, items: [], color: '#0284c7' },
+      'ลิขสิทธิ์': { label: 'ลิขสิทธิ์', count: 0, items: [], color: '#D4AF37' },
     };
 
     validIpData.forEach((item) => {
@@ -153,7 +153,10 @@ export function IPCharts({
         }
       }
       if (!matched) {
-        if (rawType) {
+        if (rawType === 'P') {
+          typeGroups['สิทธิบัตร'].count += 1;
+          typeGroups['สิทธิบัตร'].items.push(item);
+        } else if (rawType) {
           typeGroups[rawType] = { label: rawType, count: 1, items: [item], color: '#f59e0b' };
         } else {
           typeGroups['อนุสิทธิบัตร'].count += 1;

@@ -327,7 +327,7 @@ export function PublicationForm({
         {/* 7. สังกัดภาควิชา/สาขาวิชา */}
         <div>
           <FormField
-            label="สังกัดภาควิชา/สาขาวิชา"
+            label="สังกัด"
             required
             error={errors.department}
           >
