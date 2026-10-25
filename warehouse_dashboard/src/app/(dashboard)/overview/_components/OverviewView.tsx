@@ -1,15 +1,19 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { TimeFilterBar, useTimeFilter } from '@/features/time-filter';
-import { useOverviewData, OverviewKpiScore } from '../_hooks/useOverviewData';
+import { useOverviewData } from '../_hooks/useOverviewData';
 import { OverviewHeaderToolbar } from './OverviewHeaderToolbar';
-import { KpiScorecardGrid } from './KpiScorecardGrid';
-import { BurnupCard } from './BurnupCard';
-import { ActionListCard } from './ActionListCard';
+import { ExecutiveMultiYearOverview } from './ExecutiveMultiYearOverview';
 import { PerspectiveSection } from './PerspectiveSection';
-import { DrillDownProjectDrawer } from '@/components/data-display';
 import { FaCheckCircle } from 'react-icons/fa';
+
+// โหลดชุดข้อมูลดิบเพื่อใช้วิเคราะห์ข้ามหลายปี
+import rawResearch from '@/data/research.json';
+import rawAcademic from '@/data/academic.json';
+import rawPublications from '@/data/publications.json';
+import rawServices from '@/data/services.json';
+import rawIP from '@/data/ip.json';
 
 export function OverviewView() {
   const { timeFilter, setTimeFilter, resetTimeFilter } = useTimeFilter();
@@ -17,9 +21,7 @@ export function OverviewView() {
     isLiveFromDb,
     isRefreshing,
     snapshotToast,
-    kpiScorecard,
     departmentStats,
-    actionList,
     validResearch,
     validAcademic,
     validPub,
@@ -29,11 +31,6 @@ export function OverviewView() {
     handleExportMaster,
     handleSnapshot,
   } = useOverviewData(timeFilter);
-
-  const [selectedBurnupKpi, setSelectedBurnupKpi] = useState('external_budget');
-  const [drillDownKpi, setDrillDownKpi] = useState<OverviewKpiScore | null>(null);
-
-  const selectedKpi = kpiScorecard.find((k) => k.id === selectedBurnupKpi) || kpiScorecard[0];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%' }}>
@@ -77,21 +74,21 @@ export function OverviewView() {
         totalCount={validResearch.length + validAcademic.length + validPub.length + validService.length + validIP.length}
       />
 
-      {/* 2. Core Strategic KPI Scorecard Cards */}
-      <KpiScorecardGrid
-        scorecards={kpiScorecard}
-        selectedBurnupId={selectedBurnupKpi}
-        onSelectKpi={setSelectedBurnupKpi}
-        onDrillDownKpi={(kpi) => setDrillDownKpi(kpi)}
+      {/* 2. Executive Multi-Year Overview (การ์ดสรุป 4 เสาหลัก + กราฟเปรียบเทียบรายปี 2566–2570) */}
+      <ExecutiveMultiYearOverview
+        researchList={validResearch}
+        academicList={validAcademic}
+        pubList={validPub}
+        serviceList={validService}
+        ipList={validIP}
+        allResearchRaw={rawResearch}
+        allAcademicRaw={rawAcademic}
+        allPubRaw={rawPublications}
+        allServiceRaw={rawServices}
+        allIpRaw={rawIP}
       />
 
-      {/* 3. Middle Row: Burn-up Chart + Early Warning Action List */}
-      <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-        {selectedKpi && <BurnupCard selectedKpi={selectedKpi} />}
-        <ActionListCard actionList={actionList} />
-      </div>
-
-      {/* 4. Strategic Perspectives Section */}
+      {/* 3. Strategic Perspectives Section (เจาะลึก 7 ภาควิชา & พันธกิจ) */}
       <PerspectiveSection
         departmentStats={departmentStats}
         validResearch={validResearch}
@@ -99,17 +96,6 @@ export function OverviewView() {
         validPub={validPub}
         validService={validService}
         validIP={validIP}
-      />
-
-      {/* KPI Scorecard Drill-Down Drawer */}
-      <DrillDownProjectDrawer
-        isOpen={Boolean(drillDownKpi)}
-        onClose={() => setDrillDownKpi(null)}
-        title={drillDownKpi ? `${drillDownKpi.code}: ${drillDownKpi.title}` : ''}
-        subtitle={drillDownKpi ? `ผลงานจริง ${drillDownKpi.actualFormatted} / เป้าหมาย ${drillDownKpi.targetFormatted} (${drillDownKpi.percent}%)` : ''}
-        accentColor={drillDownKpi?.status.color || '#00A651'}
-        categoryKey={drillDownKpi?.categoryKey || 'research'}
-        items={drillDownKpi?.items || []}
       />
     </div>
   );
