@@ -68,8 +68,6 @@ export const SmartExcelImportModal: React.FC<SmartExcelImportModalProps> = ({
     });
   };
 
-  if (!isOpen) return null;
-
   const currentCategoryConfig = CATEGORIES_CONFIG[activeCategory];
   const currentSheet = sheets[activeSheetIndex];
 
@@ -218,6 +216,8 @@ export const SmartExcelImportModal: React.FC<SmartExcelImportModalProps> = ({
   const usableCount = currentSheet
     ? currentSheet.rows.filter((r) => r.status !== 'error').length
     : 0;
+
+  if (!isOpen) return null;
 
   return (
     <div
