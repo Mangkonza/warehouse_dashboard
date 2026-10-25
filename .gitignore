@@ -47,6 +47,29 @@ Thumbs.db
 .idea/
 
 # ==========================================
+# Environment Variables & Secrets
+# ==========================================
+.env
+.env.local
+.env.*.local
+.env*.local
+backend/.env
+backend/.env.local
+warehouse_dashboard/.env
+warehouse_dashboard/.env.local
+warehouse_dashboard/.env*.local
+!*.example
+
+# ==========================================
+# Database Backups & Reports
+# ==========================================
+backups/
+backup/
+*.dump
+db/backups/
+reports/
+
+# ==========================================
 # AI Agent Workspaces
 # ==========================================
 .gemini/

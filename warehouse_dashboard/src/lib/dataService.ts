@@ -1,10 +1,15 @@
 'use client';
 import { EvaluationRecord } from '../types/evaluation';
-
 import { CategoryKey } from '../types/dataManagement';
 
 // Local storage prefix
 const LS_PREFIX = 'ku_dw_cache_';
+
+const getAuthHeaders = (): Record<string, string> => {
+  return {
+    'Content-Type': 'application/json',
+  };
+};
 
 export function getCachedCategoryData(category: string): any[] | null {
   if (typeof window === 'undefined') return null;
@@ -44,9 +49,10 @@ export function setCachedCategoryData(category: string, data: any[], broadcast =
 
 export async function fetchCategoryData(category: string): Promise<any[]> {
   try {
-    const res = await fetch(`/api/data/${category}`, {
+    const res = await fetch(`/api/v1/data/${category}`, {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
+      credentials: 'include',
       cache: 'no-store',
     });
     if (res.ok) {
@@ -81,11 +87,12 @@ export async function saveCategoryRecord(
     updatedAt: new Date().toISOString(),
   };
 
-  // 1. Send API request to Next.js route
+  // 1. Send API request to backend route
   try {
-    const res = await fetch(`/api/data/${category}`, {
+    const res = await fetch(`/api/v1/data/${category}`, {
       method,
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
+      credentials: 'include',
       body: JSON.stringify(recordToSave),
     });
 
@@ -132,23 +139,36 @@ export async function saveCategoryRecord(
 export async function deleteCategoryRecord(
   category: string,
   recordId: string
-): Promise<boolean> {
-  // 1. Optimistic update local cache
-  const currentList = getCachedCategoryData(category) || [];
-  const filtered = currentList.filter(
-    (item) => item._id !== recordId && item.id !== recordId
-  );
-  setCachedCategoryData(category, filtered, true);
-
-  // 2. Call API
+): Promise<{ success: boolean; error?: string }> {
   try {
-    const res = await fetch(`/api/data/${category}?id=${encodeURIComponent(recordId)}`, {
+    const res = await fetch(`/api/v1/data/${category}?id=${encodeURIComponent(recordId)}`, {
       method: 'DELETE',
+      headers: getAuthHeaders(),
+      credentials: 'include',
     });
-    return res.ok;
-  } catch (err) {
+
+    const result = await res.json().catch(() => ({}));
+
+    if (res.ok) {
+      // Update local cache only on success
+      const currentList = getCachedCategoryData(category) || [];
+      const filtered = currentList.filter(
+        (item) => item._id !== recordId && item.id !== recordId && String(item.dbId) !== String(recordId)
+      );
+      setCachedCategoryData(category, filtered, true);
+      return { success: true };
+    } else {
+      return {
+        success: false,
+        error: result.message || 'ไม่สามารถลบรายการได้ กรุณาลองใหม่อีกครั้ง',
+      };
+    }
+  } catch (err: any) {
     console.error(`[dataService] Error deleting record ${recordId} from API:`, err);
-    return false;
+    return {
+      success: false,
+      error: err?.message || 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้',
+    };
   }
 }
 
@@ -169,9 +189,10 @@ export async function batchImportCategoryRecords(
 
   // 2. Call API
   try {
-    const res = await fetch(`/api/data/${category}`, {
+    const res = await fetch(`/api/v1/data/${category}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
+      credentials: 'include',
       body: JSON.stringify({ mode, items: stampedItems }),
     });
     if (res.ok) {
@@ -226,10 +247,11 @@ export function setCachedEvaluations(data: Record<string, EvaluationRecord>, bro
 
 export async function fetchEvaluations(category?: string): Promise<Record<string, EvaluationRecord>> {
   try {
-    const url = category ? `/api/evaluation?category=${encodeURIComponent(category)}` : '/api/evaluation';
+    const url = category ? `/api/v1/evaluation?category=${encodeURIComponent(category)}` : '/api/v1/evaluation';
     const res = await fetch(url, {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
+      credentials: 'include',
       cache: 'no-store',
     });
     if (res.ok) {
@@ -238,8 +260,9 @@ export async function fetchEvaluations(category?: string): Promise<Record<string
         const cached = getCachedEvaluations();
         const map = { ...cached };
         result.data.forEach((it: EvaluationRecord) => {
-          if (it && it.category && it.record_id) {
-            const key = `${it.category.toLowerCase()}_${String(it.record_id).trim()}`;
+          if (it && it.category && (it.record_id || (it as any).recordId)) {
+            const rId = it.record_id || (it as any).recordId;
+            const key = `${it.category.toLowerCase()}_${String(rId).trim()}`;
             map[key] = it;
           }
         });
@@ -258,16 +281,18 @@ export async function saveEvaluationRecord(
   evalData: Partial<EvaluationRecord>
 ): Promise<{ success: boolean; data?: EvaluationRecord; error?: string }> {
   try {
-    const res = await fetch('/api/evaluation', {
+    const res = await fetch('/api/v1/evaluation', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
+      credentials: 'include',
       body: JSON.stringify(evalData),
     });
 
     const result = await res.json().catch(() => ({}));
     if (res.ok && result.data) {
       const cached = getCachedEvaluations();
-      const key = `${result.data.category.toLowerCase()}_${String(result.data.record_id).trim()}`;
+      const rId = result.data.record_id || result.data.recordId;
+      const key = `${result.data.category.toLowerCase()}_${String(rId).trim()}`;
       const updated = { ...cached, [key]: result.data };
       setCachedEvaluations(updated, true);
       return { success: true, data: result.data };
@@ -283,9 +308,10 @@ export async function bulkSaveEvaluationRecords(
   items: Partial<EvaluationRecord>[]
 ): Promise<{ success: boolean; data?: EvaluationRecord[]; error?: string }> {
   try {
-    const res = await fetch('/api/evaluation/bulk', {
+    const res = await fetch('/api/v1/evaluation/bulk', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
+      credentials: 'include',
       body: JSON.stringify({ items }),
     });
 
@@ -294,7 +320,8 @@ export async function bulkSaveEvaluationRecords(
       const cached = getCachedEvaluations();
       const updated = { ...cached };
       result.data.forEach((it: EvaluationRecord) => {
-        const key = `${it.category.toLowerCase()}_${String(it.record_id).trim()}`;
+        const rId = it.record_id || (it as any).recordId;
+        const key = `${it.category.toLowerCase()}_${String(rId).trim()}`;
         updated[key] = it;
       });
       setCachedEvaluations(updated, true);

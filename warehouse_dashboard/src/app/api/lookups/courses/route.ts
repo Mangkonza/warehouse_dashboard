@@ -1,40 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
+const BACKEND_URL = process.env.BACKEND_INTERNAL_URL || 'http://localhost:8000';
+
+const getForwardHeaders = (request: NextRequest): Record<string, string> => {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  const auth = request.headers.get('authorization');
+  if (auth) headers['authorization'] = auth;
+  const cookie = request.headers.get('cookie');
+  if (cookie) headers['cookie'] = cookie;
+  return headers;
+};
+
 export async function GET(request: NextRequest) {
   try {
-    const filePath = path.join(process.cwd(), 'src', 'data', 'course_catalog.json');
-    let courses: any[] = [];
-    if (fs.existsSync(filePath)) {
-      courses = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-    }
-
-    const { searchParams } = new URL(request.url);
-    const q = searchParams.get('q')?.trim().toLowerCase();
-
-    if (q) {
-      courses = courses.filter(
-        (c) =>
-          c.code.includes(q) ||
-          c.nameTh.toLowerCase().includes(q) ||
-          c.nameEn.toLowerCase().includes(q) ||
-          (c.department && c.department.toLowerCase().includes(q))
-      );
-    }
-
-    return NextResponse.json({
-      status: 'success',
-      total: courses.length,
-      data: courses,
+    const { search } = new URL(request.url);
+    const res = await fetch(`${BACKEND_URL}/api/v1/lookups/courses${search}`, {
+      method: 'GET',
+      headers: getForwardHeaders(request),
+      cache: 'no-store',
     });
+    const data = await res.json();
+    return NextResponse.json(data, { status: res.status });
   } catch (error: any) {
     return NextResponse.json(
-      { status: 'error', message: error?.message || 'Failed to fetch course catalog' },
-      { status: 500 }
+      { status: 'error', message: error?.message || 'Backend connection failed' },
+      { status: 502 }
     );
   }
 }
@@ -42,44 +37,17 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const code = body?.code?.trim();
-    const nameTh = body?.nameTh?.trim();
-    const nameEn = body?.nameEn?.trim() || '';
-    const department = body?.department?.trim() || '';
-
-    if (!code || !nameTh) {
-      return NextResponse.json(
-        { status: 'error', message: 'Course code and Thai name are required' },
-        { status: 400 }
-      );
-    }
-
-    const filePath = path.join(process.cwd(), 'src', 'data', 'course_catalog.json');
-    let courses: any[] = [];
-    if (fs.existsSync(filePath)) {
-      courses = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-    }
-
-    const existingIdx = courses.findIndex((c) => c.code === code);
-    const newCourse = { code, nameTh, nameEn, department };
-
-    if (existingIdx >= 0) {
-      courses[existingIdx] = { ...courses[existingIdx], ...newCourse };
-    } else {
-      courses.push(newCourse);
-    }
-
-    fs.writeFileSync(filePath, JSON.stringify(courses, null, 2), 'utf-8');
-
-    return NextResponse.json({
-      status: 'success',
-      message: 'Course saved successfully',
-      data: newCourse,
+    const res = await fetch(`${BACKEND_URL}/api/v1/lookups/courses`, {
+      method: 'POST',
+      headers: getForwardHeaders(request),
+      body: JSON.stringify(body),
     });
+    const data = await res.json();
+    return NextResponse.json(data, { status: res.status });
   } catch (error: any) {
     return NextResponse.json(
-      { status: 'error', message: error?.message || 'Failed to save course' },
-      { status: 500 }
+      { status: 'error', message: error?.message || 'Backend connection failed' },
+      { status: 502 }
     );
   }
 }

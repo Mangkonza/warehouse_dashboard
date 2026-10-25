@@ -423,7 +423,7 @@ export const EvaluationView: React.FC = () => {
       } else if (activeCategory === 'academic') {
         row['ชื่อโครงการ'] = item.name || '-';
         row['หัวหน้าโครงการ'] = item.head || '-';
-        row['หน่วยงานดำเนินการ'] = item.department || '-';
+        row['สังกัดที่ดำเนินการ'] = item.department || '-';
       } else if (activeCategory === 'publications') {
         row['ชื่อผลงานทางวิชาการ'] = item.name || '-';
         row['ชนิดของผลงาน'] = item.type || '-';

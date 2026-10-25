@@ -339,7 +339,7 @@ export const EvaluationDrawer: React.FC<EvaluationDrawerProps> = ({
                 )}
                 {record.creator && (
                   <div>
-                    <span className="text-slate-400 font-medium mr-1.5">ผู้ประดิษฐ์ / ผู้สร้างสรรค์:</span>
+                    <span className="text-slate-400 font-medium mr-1.5">ผู้ประดิษฐ์:</span>
                     <span className="font-semibold text-slate-800">{record.creator}</span>
                   </div>
                 )}

@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { ADMIN_TEST_CREDENTIALS } from '../constants/authConfig';
 import { FaRedo } from 'react-icons/fa';
 
 export const AuthModal: React.FC = () => {
@@ -31,15 +30,6 @@ export const AuthModal: React.FC = () => {
         return;
       }
 
-      // SECURITY: Verbatim check against admin credentials from authConfig
-      if (
-        username.trim().toLowerCase() === ADMIN_TEST_CREDENTIALS.username &&
-        password.trim().toLowerCase() !== ADMIN_TEST_CREDENTIALS.password
-      ) {
-        setErrorMsg('รหัสผ่านไม่ถูกต้อง');
-        return;
-      }
-
       // ไป Step 2: One-time code (ตรงตาม Screenshot 2 ของ มก.)
       setStep(2);
       return;
@@ -50,16 +40,7 @@ export const AuthModal: React.FC = () => {
       return;
     }
 
-    // SECURITY: Verbatim check against admin OTP from authConfig
-    if (
-      username.trim().toLowerCase() === ADMIN_TEST_CREDENTIALS.username &&
-      otp.trim() !== ADMIN_TEST_CREDENTIALS.otp
-    ) {
-      setErrorMsg('รหัส One-time code (OTP) ไม่ถูกต้อง');
-      return;
-    }
-
-    // Step 2: ตรวจสอบและล็อกอิน
+    // Step 2: ตรวจสอบและล็อกอินผ่าน Backend
     const result = await loginWithCredentials(username, password, otp);
     if (!result.success) {
       setErrorMsg(result.error || 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');

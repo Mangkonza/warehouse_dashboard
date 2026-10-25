@@ -15,27 +15,23 @@ export interface ApiResponse<T = any> {
   error?: string;
   token?: string;
   user?: any;
+  expiresAt?: number;
 }
 
 export const apiFetch = async <T = any>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> => {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('ku_token') : null;
-
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string>),
   };
 
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
   const baseUrl = getApiBaseUrl();
   let response: Response;
   try {
     response = await fetch(`${baseUrl}${endpoint}`, {
+      credentials: 'include',
       ...options,
       headers,
     });

@@ -142,6 +142,7 @@ export function PublicationForm({
               type="text"
               value={formData.name || ''}
               onChange={(e) => onChange('name', e.target.value)}
+              placeholder="กรอกชื่อผลงานทางวิชาการ..."
               className={cn(
                 'w-full h-9 px-3 rounded-md border text-sm outline-none transition-colors bg-white',
                 errors.name
@@ -304,7 +305,6 @@ export function PublicationForm({
               />
               <div className="flex flex-col">
                 <span className="text-sm font-semibold text-slate-800">มีผู้ร่วมต่างชาติ</span>
-                <span className="text-[11.5px] text-slate-500">ติ๊กเลือกหากผลงานนี้มีผู้ร่วมงานจากต่างประเทศ</span>
               </div>
             </label>
 
@@ -318,7 +318,6 @@ export function PublicationForm({
               />
               <div className="flex flex-col">
                 <span className="text-sm font-semibold text-slate-800">มีผู้ร่วมภายในประเทศ</span>
-                <span className="text-[11.5px] text-slate-500">ติ๊กเลือกหากผลงานนี้มีผู้ร่วมงานภายในประเทศ</span>
               </div>
             </label>
           </div>
@@ -348,7 +347,9 @@ export function PublicationForm({
           <div className="size-6 rounded-md bg-emerald-50 text-[#00A651] flex items-center justify-center text-xs font-bold">
             3
           </div>
-          <h4 className="text-sm font-bold text-slate-800 m-0">รายละเอียดการตีพิมพ์</h4>
+          <h4 className="text-sm font-bold text-slate-800 m-0">
+            รายละเอียดการตีพิมพ์
+          </h4>
         </div>
 
         {/* 8. รายละเอียดวารสาร/การประชุม */}
@@ -366,6 +367,7 @@ export function PublicationForm({
                 }
               }}
               disabled={isPatentType}
+              placeholder="กรอกชื่อวารสารหรือการประชุม..."
               className={cn(
                 'w-full h-9 px-3 rounded-md border text-sm outline-none transition-colors',
                 isPatentType
@@ -376,7 +378,7 @@ export function PublicationForm({
           </FormField>
         </div>
 
-        {/* 9. Volume, Issue, Page start, Page end (ซ่อนเมื่อเป็น เตรียมความพร้อมจดอนุสิทธิบัตร) */}
+        {/* 9. Volume, Issue, Page start, Page end */}
         {!isPatentType && (
           <div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -386,6 +388,7 @@ export function PublicationForm({
                     type="text"
                     value={formData.volume || ''}
                     onChange={(e) => onChange('volume', e.target.value)}
+                    placeholder="ระบุเล่มที่"
                     className="w-full h-9 px-3 rounded-md border border-slate-300 text-sm outline-none focus:border-[#00A651] bg-white"
                   />
                 </FormField>
@@ -397,6 +400,7 @@ export function PublicationForm({
                     type="text"
                     value={formData.issue || ''}
                     onChange={(e) => onChange('issue', e.target.value)}
+                    placeholder="ระบุฉบับที่"
                     className="w-full h-9 px-3 rounded-md border border-slate-300 text-sm outline-none focus:border-[#00A651] bg-white"
                   />
                 </FormField>
@@ -408,6 +412,7 @@ export function PublicationForm({
                     type="text"
                     value={formData.page_start || ''}
                     onChange={(e) => onChange('page_start', e.target.value)}
+                    placeholder="ระบุหน้าเริ่มต้น"
                     className="w-full h-9 px-3 rounded-md border border-slate-300 text-sm outline-none focus:border-[#00A651] bg-white"
                   />
                 </FormField>
@@ -419,6 +424,7 @@ export function PublicationForm({
                     type="text"
                     value={formData.page_end || ''}
                     onChange={(e) => onChange('page_end', e.target.value)}
+                    placeholder="ระบุหน้าสิ้นสุด"
                     className="w-full h-9 px-3 rounded-md border border-slate-300 text-sm outline-none focus:border-[#00A651] bg-white"
                   />
                 </FormField>
@@ -431,13 +437,14 @@ export function PublicationForm({
           </div>
         )}
 
-        {/* 10. หมายเหตุ (textarea, last field, optional) */}
+        {/* 10. หมายเหตุ */}
         <div>
           <FormField label="หมายเหตุ">
             <textarea
               rows={3}
               value={formData.remarks || ''}
               onChange={(e) => onChange('remarks', e.target.value)}
+              placeholder="กรอกหมายเหตุเพิ่มเติม..."
               className="w-full p-2.5 rounded-md border border-slate-300 text-sm outline-none focus:border-[#00A651] bg-white resize-y"
             />
           </FormField>

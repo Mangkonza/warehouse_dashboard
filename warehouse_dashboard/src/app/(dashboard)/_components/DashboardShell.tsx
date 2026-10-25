@@ -6,7 +6,9 @@ import { Sidebar, SidebarMenuItem } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 import { HeaderAuth, useAuth } from '@/features/auth';
 import { TimeFilterModal, useTimeFilter } from '@/features/time-filter';
+import { PageLoader } from '@/components/ui/PageLoader';
 import { SITE_CONFIG } from '@/config/site';
+import { canAccess, AppResource } from '@/config/permissions';
 import {
   FaThLarge,
   FaFlask,
@@ -24,18 +26,28 @@ import {
 } from 'react-icons/fa';
 
 function SessionTimer({ isExpanded }: { isExpanded: boolean }) {
-  const [timeLeft, setTimeLeft] = useState('07:59:45');
+  const { expiresAt } = useAuth();
+  const [timeLeft, setTimeLeft] = useState('--:--:--');
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      const now = new Date();
-      const hours = String(7 - (now.getMinutes() % 8)).padStart(2, '0');
-      const minutes = String(59 - now.getMinutes()).padStart(2, '0');
-      const seconds = String(59 - now.getSeconds()).padStart(2, '0');
+    if (!expiresAt) {
+      setTimeLeft('--:--:--');
+      return;
+    }
+
+    const updateTimer = () => {
+      const now = Date.now();
+      const diff = Math.max(0, expiresAt - now);
+      const hours = String(Math.floor(diff / (1000 * 60 * 60))).padStart(2, '0');
+      const minutes = String(Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
+      const seconds = String(Math.floor((diff % (1000 * 60)) / 1000)).padStart(2, '0');
       setTimeLeft(`${hours}:${minutes}:${seconds}`);
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [expiresAt]);
 
   return (
     <div
@@ -76,17 +88,32 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  const { user, isAdmin } = useAuth();
+  const { user, isLoading } = useAuth();
   const { timeFilter, setTimeFilter, isTimeModalOpen, setIsTimeModalOpen } = useTimeFilter();
 
   const [isSidebarHovered, setIsSidebarHovered] = useState(false);
-  const [isSidebarPinned, setIsSidebarPinned] = useState<boolean>(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('ku_sidebar_pinned') === 'true';
-    }
-    return false;
-  });
+  const [isSidebarPinned, setIsSidebarPinned] = useState<boolean>(false);
   const [isForceCollapsed, setIsForceCollapsed] = useState(false);
+
+  // แก้ไข Hydration Mismatch โดยอ่านค่า pinned จาก localStorage ใน useEffect
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('ku_sidebar_pinned');
+      if (saved === 'true') {
+        setIsSidebarPinned(true);
+      }
+    }
+  }, []);
+
+  // AuthGate: ถ้าไม่มี session และไม่ได้อยู่หน้า /login ให้นำทางไป /login ทันที
+  useEffect(() => {
+    if (!isLoading && !user && pathname !== '/login') {
+      const returnUrl = pathname && pathname.startsWith('/') && !pathname.startsWith('//')
+        ? pathname
+        : '/overview';
+      router.replace(`/login?returnUrl=${encodeURIComponent(returnUrl)}`);
+    }
+  }, [isLoading, user, pathname, router]);
 
   const handleTogglePin = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -118,9 +145,18 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, [isForceCollapsed]);
 
+  // AuthGate Loading Screen: ป้องกันหน้าวาบ ห้าม render Header/Sidebar/children ระหว่างโหลดหรือก่อนล็อกอิน
+  if (isLoading) {
+    return <PageLoader message="กำลังตรวจสอบสิทธิ์การเข้าใช้งาน..." />;
+  }
+
+  if (!user && pathname !== '/login') {
+    return <PageLoader message="กำลังนำคุณไปยังหน้าเข้าสู่ระบบ..." />;
+  }
+
   const getSingleRoleTitle = (): string => {
     if (!user) return 'ยังไม่ได้เข้าสู่ระบบ';
-    if (isAdmin || user.role === 'admin' || user.nontriAccount?.includes('admin') || user.nontriAccount === 'b6520503525') {
+    if (user.role === 'admin') {
       return 'ผู้ดูแลระบบ';
     }
     if (/^b\d+/i.test(user.nontriAccount) || user.typePerson === 'นิสิต') {
@@ -132,23 +168,36 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     return 'บุคลากร';
   };
 
-  const menuItems: SidebarMenuItem[] = [
-    { id: 'overview', label: 'แดชบอร์ด ภาพรวม', path: '/overview', icon: <FaThLarge />, group: 'มุมมองบริหารและยุทธศาสตร์' },
-    { id: 'personnel', label: 'วิเคราะห์บุคลากรและอาจารย์', path: '/personnel', icon: <FaUserTie />, group: 'มุมมองบริหารและยุทธศาสตร์' },
-    { id: 'kpi', label: 'ตัวชี้วัดตามแผนยุทธศาสตร์', path: '/kpi', icon: <FaBullseye />, group: 'มุมมองบริหารและยุทธศาสตร์' },
-    { id: 'monitoring', label: 'ติดตามสถานะโครงการ', path: '/monitoring', icon: <FaClock />, group: 'มุมมองบริหารและยุทธศาสตร์' },
-    { id: 'evaluation', label: 'การประเมิน', path: '/evaluation', icon: <FaClipboardCheck />, group: 'มุมมองบริหารและยุทธศาสตร์' },
-    { id: 'research', label: 'โครงการวิจัย', path: '/research', icon: <FaFlask />, group: 'พันธกิจหลัก 5 ด้าน' },
-    { id: 'academic', label: 'โครงการพัฒนาวิชาการ', path: '/academic', icon: <FaGraduationCap />, group: 'พันธกิจหลัก 5 ด้าน' },
-    { id: 'publications', label: 'ผลงานตีพิมพ์ทางวิชาการ', path: '/publications', icon: <FaBook />, group: 'พันธกิจหลัก 5 ด้าน' },
-    { id: 'service', label: 'งานบริการวิชาการ', path: '/service', icon: <FaHandsHelping />, group: 'พันธกิจหลัก 5 ด้าน' },
-    { id: 'ip', label: 'งานทรัพย์สินทางปัญญา', path: '/ip', icon: <FaCertificate />, group: 'พันธกิจหลัก 5 ด้าน' },
-    { id: 'studio', label: 'วิเคราะห์ข้อมูล (BI Studio)', path: '/studio', icon: <FaChartLine />, group: 'เครื่องมือวิเคราะห์' },
+  // กำหนดโครงสร้างเมนู 3 ช่วง ตามข้อกำหนด D5
+  const allMenuItems: (SidebarMenuItem & { id: AppResource })[] = [
+    // ช่วงบน: overview, research, academic, publications, service, ip
+    { id: 'overview', label: 'แดชบอร์ด ภาพรวม', path: '/overview', icon: <FaThLarge />, section: 'top' },
+    { id: 'research', label: 'โครงการวิจัย', path: '/research', icon: <FaFlask />, section: 'top' },
+    { id: 'academic', label: 'โครงการพัฒนาวิชาการ', path: '/academic', icon: <FaGraduationCap />, section: 'top' },
+    { id: 'publications', label: 'ผลงานตีพิมพ์ทางวิชาการ', path: '/publications', icon: <FaBook />, section: 'top' },
+    { id: 'service', label: 'งานบริการวิชาการ', path: '/service', icon: <FaHandsHelping />, section: 'top' },
+    { id: 'ip', label: 'งานทรัพย์สินทางปัญญา', path: '/ip', icon: <FaCertificate />, section: 'top' },
+
+    // ช่วงกลาง: kpi, personnel, studio
+    { id: 'kpi', label: 'ตัวชี้วัดตามแผนยุทธศาสตร์', path: '/kpi', icon: <FaBullseye />, section: 'middle' },
+    { id: 'personnel', label: 'วิเคราะห์บุคลากรและอาจารย์', path: '/personnel', icon: <FaUserTie />, section: 'middle' },
+    { id: 'studio', label: 'วิเคราะห์ข้อมูล (BI Studio)', path: '/studio', icon: <FaChartLine />, section: 'middle' },
+
+    // ช่วงล่าง: evaluation, monitoring, manage
+    { id: 'evaluation', label: 'การประเมิน', path: '/evaluation', icon: <FaClipboardCheck />, section: 'bottom' },
+    { id: 'monitoring', label: 'ติดตามสถานะโครงการ', path: '/monitoring', icon: <FaClock />, section: 'bottom' },
+    { id: 'manage', label: 'ระบบจัดการข้อมูล', path: '/manage', icon: <FaUserCog />, section: 'bottom' },
   ];
+
+  // กรองเมนูตามสิทธิ์ของผู้ใช้จาก DB (/api/v1/auth/me)
+  const userRole = user?.role || 'user';
+  const topItems = allMenuItems.filter((it) => it.section === 'top' && canAccess(userRole, it.id));
+  const middleItems = allMenuItems.filter((it) => it.section === 'middle' && canAccess(userRole, it.id));
+  const bottomItems = allMenuItems.filter((it) => it.section === 'bottom' && canAccess(userRole, it.id));
 
   const singleRole = getSingleRoleTitle();
   const isExpanded = !isForceCollapsed && (isSidebarPinned || isSidebarHovered);
-  const layoutLeftOffset = (isSidebarPinned && isExpanded) ? 255 : 70;
+  const layoutLeftOffset = isSidebarPinned && isExpanded ? 255 : 70;
 
   const userSlot = (
     <>
@@ -164,22 +213,20 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       >
         <div
           style={{
-            width: '38px',
-            height: '38px',
+            width: '40px',
+            height: '40px',
             borderRadius: '50%',
-            backgroundColor: '#374151',
-            border: '1.5px solid #4b5563',
+            backgroundColor: user ? '#00e676' : '#374151',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: '#00e676',
-            fontSize: '15px',
-            overflow: 'hidden',
+            fontSize: '18px',
+            boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
           }}
         >
           {user ? (
-            <span style={{ fontWeight: 700, color: '#fff', fontSize: '13px' }}>
-              {(user.nontriAccount || 'U').substring(0, 2).toUpperCase()}
+            <span style={{ color: '#111827', fontWeight: 800, fontSize: '15px' }}>
+              {(user.nontriAccount || 'U').charAt(0).toUpperCase()}
             </span>
           ) : (
             <FaUser style={{ color: '#9ca3af' }} />
@@ -207,7 +254,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             maxWidth: '140px',
           }}
         >
-          {user ? user.nameTh : 'บุคคลทั่วไป (Viewer)'}
+          {user?.nameTh || user?.nontriAccount || 'ผู้ใช้งาน'}
         </div>
         <div style={{ fontSize: '11px', color: '#00e676', fontWeight: 600, marginTop: '2px' }}>
           {singleRole}
@@ -216,76 +263,14 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     </>
   );
 
-  const adminSlot = isAdmin ? (
-    <div style={{ marginTop: '12px', borderTop: '1px solid #2d343c', paddingTop: '8px' }}>
-      <button
-        onClick={() => router.push('/manage')}
-        style={{
-          position: 'relative',
-          width: '100%',
-          height: '46px',
-          display: 'flex',
-          alignItems: 'center',
-          border: 'none',
-          backgroundColor: pathname === '/manage' ? '#00A651' : 'transparent',
-          color: pathname === '/manage' ? '#ffffff' : '#94a3b8',
-          fontWeight: pathname === '/manage' ? 700 : 500,
-          fontSize: '13.5px',
-          cursor: 'pointer',
-          textAlign: 'left',
-          transition: 'background 0.15s, color 0.15s',
-          padding: 0,
-          whiteSpace: 'nowrap',
-        }}
-        onMouseOver={(e) => {
-          if (pathname !== '/manage') {
-            e.currentTarget.style.backgroundColor = '#2d343c';
-            e.currentTarget.style.color = '#ffffff';
-          }
-        }}
-        onMouseOut={(e) => {
-          if (pathname !== '/manage') {
-            e.currentTarget.style.backgroundColor = 'transparent';
-            e.currentTarget.style.color = '#94a3b8';
-          }
-        }}
-      >
-        <div
-          style={{
-            width: '70px',
-            height: '46px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-            fontSize: '16px',
-          }}
-        >
-          <FaUserCog />
-        </div>
-
-        <div
-          style={{
-            opacity: isExpanded ? 1 : 0,
-            visibility: isExpanded ? 'visible' : 'hidden',
-            transition: 'opacity 0.2s ease',
-            paddingRight: '16px',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-          }}
-        >
-          ระบบจัดการข้อมูล
-        </div>
-      </button>
-    </div>
-  ) : null;
-
   const timerSlot = <SessionTimer isExpanded={isExpanded} />;
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f5f7f9' }}>
       <Sidebar
-        menuItems={menuItems}
+        topItems={topItems}
+        middleItems={middleItems}
+        bottomItems={bottomItems}
         activePath={pathname}
         isExpanded={isExpanded}
         isSidebarPinned={isSidebarPinned}
@@ -299,7 +284,6 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         }}
         onNavigate={(path) => router.push(path)}
         userSlot={userSlot}
-        adminSlot={adminSlot}
         timerSlot={timerSlot}
       />
 

@@ -13,6 +13,7 @@ const SHEET_NAME_KEYWORDS: Record<CategoryKey, string[]> = {
   ip: ['ทรัพย์สินทางปัญญา', 'ทรัพย์สิน', 'ip', 'สิทธิบัตร', 'อนุสิทธิบัตร', 'ลิขสิทธิ์'],
   personnel: ['บุคลากร', 'อาจารย์', 'personnel', 'faculty', 'เจ้าหน้าที่'],
   kpi: ['ตัวชี้วัด', 'kpi', 'ยุทธศาสตร์', 'เป้าหมาย'],
+  user_roles: ['สิทธิ์', 'บทบาท', 'users', 'roles', 'สิทธิ์ผู้ใช้'],
 };
 
 // Column aliases for resilient header matching
@@ -64,7 +65,7 @@ const COLUMN_ALIASES: Record<string, string[]> = {
   target_group: ['กลุ่มเป้าหมาย', 'ผู้เข้าร่วม', 'target_group', 'audience'],
   image_url: ['รูปภาพ', 'รูปภาพประจำตัว', 'รูปถ่าย', 'รูป', 'รูปโปรไฟล์', 'image', 'picture', 'photo', 'avatar', 'image_url'],
   title: ['ชื่อเรื่อง', 'title', 'ชื่อการประดิษฐ์', 'เรื่อง'],
-  support_amount: ['คณะฯ สนับสนุน', 'เงินสนับสนุน', 'support_amount', 'คณะสนับสนุน', 'เงินรางวัลสนับสนุน'],
+  support_amount: ['เงินสนับสนุนจากคณะ (บาท)', 'เงินสนับสนุน', 'support_amount', 'คณะสนับสนุน', 'เงินรางวัลสนับสนุน'],
   application_number: ['เลขที่คำขอ', 'application_number', 'app_no', 'คำขอแจ้งข้อมูลเลขที่', 'คำขอเลขที่', 'req_info', 'เลขคำขอ'],
   registration_number: ['เลขที่', 'เลขทะเบียน', 'เลขที่ทะเบียน', 'registration_number', 'reg_no', 'เลขที่สิทธิบัตร', 'ทะเบียนข้อมูลเลขที่', 'reg_info'],
   work_category: ['ประเภทงาน', 'ประเภทงานลิขสิทธิ์', 'work_category', 'หมวดหมู่งาน'],

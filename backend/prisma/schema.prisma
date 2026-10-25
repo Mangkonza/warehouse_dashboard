@@ -1,0 +1,383 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model SystemHealthCheck {
+  id        Int      @id @default(autoincrement())
+  status    String   @default("ok")
+  checkedAt DateTime @default(now()) @map("checked_at")
+
+  @@map("system_health_check")
+}
+
+// ==========================================
+// Organization & Personnel
+// ==========================================
+
+model Department {
+  code        String   @id @db.VarChar(10)
+  nameTh      String   @map("name_th") @db.VarChar(255)
+  nameEn      String?  @map("name_en") @db.VarChar(255)
+  isCanonical Boolean  @default(true) @map("is_canonical")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  personnel                  Personnel[]
+  researchProjects           ResearchProject[]           @relation("HeadDepartment")
+  researchProjectDepartments ResearchProjectDepartment[]
+  academicDevProjects        AcademicDevProject[]
+  publications               Publication[]
+  academicServices           AcademicService[]
+  ipDepartments              IpDepartment[]
+  courseCatalogs             CourseCatalog[]
+
+  @@map("departments")
+}
+
+model Personnel {
+  id             Int      @id @default(autoincrement())
+  personId       String?  @unique @map("person_id") @db.VarChar(50)
+  titleTh        String?  @map("title_th") @db.VarChar(50)
+  nameTh         String   @map("name_th") @db.VarChar(255)
+  nameEn         String?  @map("name_en") @db.VarChar(255)
+  position       String?  @db.VarChar(100)
+  departmentCode String?  @map("department_code") @db.VarChar(10)
+  email          String?  @db.VarChar(255)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  department             Department?             @relation(fields: [departmentCode], references: [code])
+  headResearchProjects   ResearchProject[]       @relation("HeadPersonnel")
+  researchProjectMembers ResearchProjectMember[]
+  academicDevProjects    AcademicDevProject[]    @relation("AcademicHeadPersonnel")
+  publicationAuthors     PublicationAuthor[]
+  academicServices       AcademicService[]       @relation("ServiceProvider")
+  ipInventors            IpInventor[]
+  createdIps             IntellectualProperty[]  @relation("IpCreator")
+
+  @@index([departmentCode])
+  @@index([nameTh])
+  @@map("personnel")
+}
+
+// ==========================================
+// 1. Research Projects (โครงการวิจัย)
+// ==========================================
+
+model ResearchProject {
+  id                 Int       @id @default(autoincrement())
+  legacyId           String?   @unique @map("legacy_id") @db.VarChar(100)
+  code               String?   @db.VarChar(100)
+  name               String    @db.VarChar(500)
+  nameEn             String?   @map("name_en") @db.VarChar(500)
+  headName           String?   @map("head_name") @db.VarChar(255)
+  headPersonnelId    Int?      @map("head_personnel_id")
+  headDepartmentCode String?   @map("head_department_code") @db.VarChar(10)
+  status             String?   @db.VarChar(50)
+  budgetInternal     Decimal   @default(0) @map("budget_internal") @db.Decimal(15, 2)
+  budgetExternal     Decimal   @default(0) @map("budget_external") @db.Decimal(15, 2)
+  fundSource         String?   @map("fund_source") @db.VarChar(255)
+  fundType           String?   @map("fund_type") @db.VarChar(100)
+  collaborationType  String?   @map("collaboration_type") @db.VarChar(100)
+  projectNature      String?   @map("project_nature") @db.VarChar(100)
+  startDate          DateTime? @map("start_date") @db.Date
+  endDate            DateTime? @map("end_date") @db.Date
+  fiscalYear         Int?      @map("fiscal_year")
+  trlOutputs         String?   @map("trl_outputs") @db.Text
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  headPersonnel  Personnel?                  @relation("HeadPersonnel", fields: [headPersonnelId], references: [id])
+  headDepartment Department?                 @relation("HeadDepartment", fields: [headDepartmentCode], references: [code])
+  members        ResearchProjectMember[]
+  departments    ResearchProjectDepartment[]
+
+  @@index([fiscalYear])
+  @@index([headDepartmentCode])
+  @@index([status])
+  @@map("research_projects")
+}
+
+model ResearchProjectMember {
+  id          Int     @id @default(autoincrement())
+  projectId   Int     @map("project_id")
+  personName  String  @map("person_name") @db.VarChar(255)
+  personnelId Int?    @map("personnel_id")
+  role        String? @db.VarChar(100)
+
+  project   ResearchProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  personnel Personnel?      @relation(fields: [personnelId], references: [id], onDelete: SetNull)
+
+  @@index([projectId])
+  @@index([personnelId])
+  @@map("research_project_members")
+}
+
+model ResearchProjectDepartment {
+  id             Int     @id @default(autoincrement())
+  projectId      Int     @map("project_id")
+  departmentCode String  @map("department_code") @db.VarChar(10)
+  otherName      String? @map("other_name") @db.VarChar(255)
+
+  project    ResearchProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  department Department      @relation(fields: [departmentCode], references: [code])
+
+  @@index([projectId])
+  @@index([departmentCode])
+  @@map("research_project_departments")
+}
+
+// ==========================================
+// 2. Academic Development Projects (โครงการพัฒนาวิชาการ)
+// ==========================================
+
+model AcademicDevProject {
+  id                   Int       @id @default(autoincrement())
+  legacyId             String?   @unique @map("legacy_id") @db.VarChar(100)
+  name                 String    @db.VarChar(500)
+  headName             String?   @map("head_name") @db.VarChar(255)
+  headPersonnelId      Int?      @map("head_personnel_id")
+  departmentCode       String?   @map("department_code") @db.VarChar(10)
+  client               String?   @db.VarChar(255)
+  budget               Decimal   @default(0) @db.Decimal(15, 2)
+  month                String?   @db.VarChar(50)
+  fiscalYear           Int?      @map("fiscal_year")
+  startDate            DateTime? @map("start_date") @db.Date
+  endDate              DateTime? @map("end_date") @db.Date
+  integrationStartDate DateTime? @map("integration_start_date") @db.Date
+  integrationEndDate   DateTime? @map("integration_end_date") @db.Date
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  headPersonnel Personnel?  @relation("AcademicHeadPersonnel", fields: [headPersonnelId], references: [id])
+  department    Department? @relation(fields: [departmentCode], references: [code])
+
+  @@index([fiscalYear])
+  @@index([departmentCode])
+  @@map("academic_dev_projects")
+}
+
+// ==========================================
+// 3. Publications (ผลงานตีพิมพ์)
+// ==========================================
+
+model Publication {
+  id                     Int      @id @default(autoincrement())
+  legacyId               String?  @unique @map("legacy_id") @db.VarChar(100)
+  title                  String   @db.VarChar(500)
+  type                   String?  @db.VarChar(100)
+  level                  String?  @db.VarChar(50)
+  journal                String?  @db.VarChar(500)
+  volume                 String?  @db.VarChar(50)
+  issue                  String?  @db.VarChar(50)
+  pageStart              String?  @map("page_start") @db.VarChar(50)
+  pageEnd                String?  @map("page_end") @db.VarChar(50)
+  budget                 Decimal  @default(0) @db.Decimal(15, 2)
+  firstAuthorName        String?  @map("first_author_name") @db.VarChar(255)
+  firstAuthorPersonnelId Int?     @map("first_author_personnel_id")
+  departmentCode         String?  @map("department_code") @db.VarChar(10)
+  fiscalYearBe           Int?     @map("fiscal_year_be")
+  month                  String?  @db.VarChar(50)
+  monthYear              String?  @map("month_year") @db.VarChar(50)
+  status                 String?  @db.VarChar(50)
+  remarks                String?  @db.Text
+  createdAt              DateTime @default(now()) @map("created_at")
+  updatedAt              DateTime @updatedAt @map("updated_at")
+
+  department Department?         @relation(fields: [departmentCode], references: [code])
+  authors    PublicationAuthor[]
+
+  @@index([fiscalYearBe])
+  @@index([departmentCode])
+  @@index([type])
+  @@map("publications")
+}
+
+model PublicationAuthor {
+  id              Int     @id @default(autoincrement())
+  publicationId   Int     @map("publication_id")
+  personName      String  @map("person_name") @db.VarChar(255)
+  personnelId     Int?    @map("personnel_id")
+  affiliationType String? @map("affiliation_type") @db.VarChar(50)
+
+  publication Publication @relation(fields: [publicationId], references: [id], onDelete: Cascade)
+  personnel   Personnel?  @relation(fields: [personnelId], references: [id], onDelete: SetNull)
+
+  @@index([publicationId])
+  @@index([personnelId])
+  @@map("publication_authors")
+}
+
+// ==========================================
+// 4. Academic Services (งานบริการวิชาการ)
+// ==========================================
+
+model AcademicService {
+  id                  Int       @id @default(autoincrement())
+  legacyId            String?   @unique @map("legacy_id") @db.VarChar(100)
+  name                String    @db.VarChar(500)
+  serviceCategory     String    @map("service_category") @db.VarChar(100)
+  providerName        String?   @map("provider_name") @db.VarChar(255)
+  providerPersonnelId Int?      @map("provider_personnel_id")
+  departmentCode      String?   @map("department_code") @db.VarChar(10)
+  targetGroup         String?   @map("target_group") @db.VarChar(255)
+  hoursSpent          Decimal   @default(0) @map("hours_spent") @db.Decimal(8, 2)
+  attendeesCount      Int       @default(0) @map("attendees_count")
+  date                DateTime? @db.Date
+  startDate           DateTime? @map("start_date") @db.Date
+  endDate             DateTime? @map("end_date") @db.Date
+  fiscalYear          Int?      @map("fiscal_year")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  provider   Personnel?  @relation("ServiceProvider", fields: [providerPersonnelId], references: [id])
+  department Department? @relation(fields: [departmentCode], references: [code])
+
+  @@index([fiscalYear])
+  @@index([departmentCode])
+  @@index([serviceCategory])
+  @@map("academic_services")
+}
+
+// ==========================================
+// 5. Intellectual Properties (งานทรัพย์สินทางปัญญา)
+// ==========================================
+
+model IntellectualProperty {
+  id                 Int       @id @default(autoincrement())
+  legacyId           String?   @unique @map("legacy_id") @db.VarChar(100)
+  title              String    @db.VarChar(500)
+  type               String    @db.VarChar(50)
+  workCategory       String?   @map("work_category") @db.VarChar(100)
+  workCharacter      String?   @map("work_character") @db.VarChar(100)
+  creatorName        String?   @map("creator_name") @db.VarChar(255)
+  creatorPersonnelId Int?      @map("creator_personnel_id")
+  departmentCode     String?   @map("department_code") @db.VarChar(10)
+  applicationNumber  String?   @map("application_number") @db.VarChar(50)
+  registrationNumber String?   @map("registration_number") @db.VarChar(50)
+  filingDate         DateTime? @map("filing_date") @db.Date
+  protectionStart    DateTime? @map("protection_start") @db.Date
+  protectionEnd      DateTime? @map("protection_end") @db.Date
+  supportAmount      Decimal   @default(0) @map("support_amount") @db.Decimal(15, 2)
+  status             String?   @db.VarChar(50)
+  fiscalYear         Int?      @map("fiscal_year")
+  remarks            String?   @db.Text
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  creator     Personnel?     @relation("IpCreator", fields: [creatorPersonnelId], references: [id])
+  inventors   IpInventor[]
+  departments IpDepartment[]
+
+  @@index([fiscalYear])
+  @@index([departmentCode])
+  @@index([type])
+  @@map("intellectual_properties")
+}
+
+model IpInventor {
+  id          Int     @id @default(autoincrement())
+  ipId        Int     @map("ip_id")
+  personName  String  @map("person_name") @db.VarChar(255)
+  personnelId Int?    @map("personnel_id")
+  isLead      Boolean @default(false) @map("is_lead")
+
+  ip        IntellectualProperty @relation(fields: [ipId], references: [id], onDelete: Cascade)
+  personnel Personnel?           @relation(fields: [personnelId], references: [id], onDelete: SetNull)
+
+  @@index([ipId])
+  @@index([personnelId])
+  @@map("ip_inventors")
+}
+
+model IpDepartment {
+  id             Int     @id @default(autoincrement())
+  ipId           Int     @map("ip_id")
+  departmentCode String  @map("department_code") @db.VarChar(10)
+  otherName      String? @map("other_name") @db.VarChar(255)
+
+  ip         IntellectualProperty @relation(fields: [ipId], references: [id], onDelete: Cascade)
+  department Department           @relation(fields: [departmentCode], references: [code])
+
+  @@index([ipId])
+  @@index([departmentCode])
+  @@map("ip_departments")
+}
+
+// ==========================================
+// 6. Evaluations (การประเมิน SDG, i-type, ดัชนีวารสาร)
+// ==========================================
+
+model Evaluation {
+  id           Int      @id @default(autoincrement())
+  category     String   @db.VarChar(50)
+  recordId     String   @map("record_id") @db.VarChar(100)
+  sdgIds       Int[]    @map("sdg_ids")
+  iType        String?  @map("i_type") @db.VarChar(50)
+  journalIndex String?  @map("journal_index") @db.VarChar(100)
+  evaluatedBy  String?  @map("evaluated_by") @db.VarChar(100)
+  evaluatedAt  DateTime @default(now()) @map("evaluated_at")
+
+  @@unique([category, recordId])
+  @@index([category])
+  @@map("evaluations")
+}
+
+// ==========================================
+// 7. Users, Roles & Security (ระบบสิทธิ์)
+// ==========================================
+
+model UserRole {
+  username    String   @id @db.VarChar(100)
+  role        String   @db.VarChar(50)
+  isProtected Boolean  @default(false) @map("is_protected")
+  displayName String?  @map("display_name") @db.VarChar(255)
+  grantedBy   String?  @map("granted_by") @db.VarChar(100)
+  grantedAt   DateTime @default(now()) @map("granted_at")
+  note        String?  @db.Text
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("user_roles")
+}
+
+model RoleAuditLog {
+  id             BigInt   @id @default(autoincrement())
+  actorUsername  String   @map("actor_username") @db.VarChar(100)
+  action         String   @db.VarChar(50)
+  targetUsername String   @map("target_username") @db.VarChar(100)
+  oldRole        String?  @map("old_role") @db.VarChar(50)
+  newRole        String   @map("new_role") @db.VarChar(50)
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@index([targetUsername])
+  @@index([actorUsername])
+  @@map("role_audit_logs")
+}
+
+// ==========================================
+// 8. Lookups
+// ==========================================
+
+model FundingSource {
+  id   Int     @id @default(autoincrement())
+  name String  @db.VarChar(255)
+  type String? @db.VarChar(100)
+
+  @@map("funding_sources")
+}
+
+model CourseCatalog {
+  courseCode     String  @id @map("course_code") @db.VarChar(20)
+  courseNameTh   String  @map("course_name_th") @db.VarChar(255)
+  courseNameEn   String? @map("course_name_en") @db.VarChar(255)
+  departmentCode String? @map("department_code") @db.VarChar(10)
+
+  department Department? @relation(fields: [departmentCode], references: [code])
+
+  @@map("course_catalog")
+}

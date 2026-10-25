@@ -10,6 +10,7 @@ import { EvaluationTags, LevelBadge, RecordEvaluationTags, getItemEvaluation } f
 import { Drawer } from '@/components/ui/Drawer';
 import { getCachedEvaluations } from '@/lib/dataService';
 import { EvaluationValue, isEvaluated } from '@/types/evaluation';
+import { useAuth } from '@/features/auth';
 import {
   FaTimes,
   FaChevronLeft,
@@ -120,6 +121,8 @@ export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
   totalInPage = 0,
   readOnly = false,
 }) => {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const item = itemProp ?? record ?? null;
   const config =
     configProp ??
@@ -465,7 +468,7 @@ export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
 
         {/* Actions: Edit, Delete, Close */}
         <div className="flex items-center gap-1.5">
-          {!readOnly && onEdit && (
+          {!readOnly && isAdmin && onEdit && (
             <button
               type="button"
               onClick={() => {
@@ -480,7 +483,7 @@ export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
             </button>
           )}
 
-          {!readOnly && onDelete && (
+          {!readOnly && isAdmin && onDelete && (
             <button
               type="button"
               onClick={() => {

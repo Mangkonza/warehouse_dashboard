@@ -3,6 +3,7 @@
 import React, { Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/features/auth';
+import { Spinner } from '@/components/ui/Spinner';
 import { DataManagementRoot } from './DataManagementRoot';
 
 export function ManageView() {
@@ -12,7 +13,7 @@ export function ManageView() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px] text-slate-500">
-        <div className="size-6 border-2 border-[#00A651] border-t-transparent rounded-full animate-spin mr-3" />
+        <Spinner size="md" className="mr-3" />
         <span className="text-sm font-medium">กำลังโหลดข้อมูล...</span>
       </div>
     );

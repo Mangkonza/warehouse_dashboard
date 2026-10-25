@@ -5,7 +5,6 @@ import { cn } from '@/lib/utils';
 import { BADGE_BASE_CLASSES } from '@/components/ui/badge-base';
 
 export const IP_TYPE_COLOR = '#D4AF37';
-export const IP_TYPE_BORDER = '#B8962E';
 
 export type IPType = 'อนุสิทธิบัตร' | 'สิทธิบัตร' | 'ลิขสิทธิ์';
 
@@ -68,12 +67,12 @@ export const IPTypeBadge: React.FC<IPTypeBadgeProps> = ({
     <span
       className={cn(
         BADGE_BASE_CLASSES,
-        'tag-ip-type bg-ip-type border border-ip-type-border text-white font-bold',
+        'tag-ip-type text-white font-bold border-0 shadow-none',
         className
       )}
       style={{
         backgroundColor: 'var(--color-ip-type, #D4AF37)',
-        borderColor: 'var(--color-ip-type-border, #B8962E)',
+
         color: '#ffffff',
         ...style,
       }}

@@ -138,12 +138,12 @@ export function IPTable({
             <tr>
               <th style={{ width: '45px', textAlign: 'center' }}>#</th>
               <th style={{ minWidth: '220px' }}>ชื่อเรื่อง</th>
-              <th>ผู้ประดิษฐ์ / ผู้สร้างสรรค์</th>
+              <th>ผู้ประดิษฐ์</th>
               <th style={{ width: '120px', textAlign: 'left' }}>ภาควิชา</th>
               <th style={{ textAlign: 'center' }}>ประเภท</th>
               <th>เลขที่คำขอ / เลขทะเบียน</th>
               <th style={{ textAlign: 'center' }}>สถานะ</th>
-              <th style={{ textAlign: 'right' }}>คณะฯ สนับสนุน</th>
+              <th style={{ textAlign: 'right' }}>เงินสนับสนุนจากคณะ (บาท)</th>
             </tr>
           </thead>
           <tbody>

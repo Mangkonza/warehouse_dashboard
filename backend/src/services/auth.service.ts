@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { env, adminAccounts } from '../config/env.js';
-import { AuthUser, JWTPayload, KUUserProfile, UserRole } from '../types/index.js';
+import { AuthUser, JWTPayload, KUUserProfile } from '../types/index.js';
+import { AppRole } from '../config/permissions.js';
 
 export class AuthService {
   static generateToken(user: AuthUser): string {
@@ -41,7 +42,7 @@ export class AuthService {
     return `${env.KU_AUTH_ENDPOINT}?${params.toString()}`;
   }
 
-  static getMockUser(role: UserRole = 'viewer'): AuthUser {
+  static getMockUser(role: AppRole = 'user'): AuthUser {
     if (role === 'admin') {
       return {
         id: 'admin-001',
@@ -52,7 +53,7 @@ export class AuthService {
         departmentName: 'สำนักงานเลขานุการ',
         campus: 'K',
         typePerson: '2',
-        role: 'admin',
+        role,
       };
     }
 
@@ -65,7 +66,7 @@ export class AuthService {
       departmentName: 'ภาควิชาวิศวกรรมคอมพิวเตอร์',
       campus: 'K',
       typePerson: '1',
-      role: 'viewer',
+      role: 'user',
     };
   }
 
@@ -119,7 +120,7 @@ export class AuthService {
         profile.cn ||
         'ผู้ใช้งาน มก.';
 
-      const role: UserRole = this.isAccountAdmin(nontriAccount) ? 'admin' : 'viewer';
+      const role: AppRole = this.isAccountAdmin(nontriAccount) ? 'admin' : 'user';
 
       return {
         id: profile.sub || `ku-${nontriAccount}`,
@@ -136,7 +137,7 @@ export class AuthService {
 
     // โหมดทดสอบ Sandbox
     const mockNontri = code.startsWith('admin') ? 'admin.eng' : `user_${code.substring(0, 8)}`;
-    const role: UserRole = this.isAccountAdmin(mockNontri) ? 'admin' : 'viewer';
+    const role: AppRole = this.isAccountAdmin(mockNontri) ? 'admin' : 'user';
 
     return {
       id: `ku-${mockNontri}`,

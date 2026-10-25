@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { FaExclamationTriangle, FaExternalLinkAlt } from 'react-icons/fa';
 import { DepartmentBadge, RecordDetailDrawer } from '@/components/ui';
+import { useAuth } from '@/features/auth';
+import { canAccess } from '@/config/permissions';
 
 interface ActionListCardProps {
   actionList: {
@@ -14,6 +16,8 @@ interface ActionListCardProps {
 }
 
 export const ActionListCard: React.FC<ActionListCardProps> = ({ actionList }) => {
+  const { user } = useAuth();
+  const canViewKpi = canAccess(user?.role || 'user', 'kpi');
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
 
   return (
@@ -87,32 +91,52 @@ export const ActionListCard: React.FC<ActionListCardProps> = ({ actionList }) =>
             <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#dc2626' }}>
               ตัวชี้วัดที่ต้องเร่งรัด ({actionList.redKpis.length})
             </span>
-            <Link href="/kpi" style={{ fontSize: '11px', color: '#dc2626', textDecoration: 'underline' }}>
-              ดูหน้า KPI
-            </Link>
+            {canViewKpi && (
+              <Link href="/kpi" style={{ fontSize: '11px', color: '#dc2626', textDecoration: 'underline' }}>
+                ดูหน้า KPI
+              </Link>
+            )}
           </div>
           {actionList.redKpis.length === 0 ? (
             <div style={{ fontSize: '12px', color: '#94a3b8' }}>ไม่มีตัวชี้วัดในระดับวิกฤต</div>
           ) : (
-            actionList.redKpis.map((kpi, idx) => (
-              <Link
-                key={idx}
-                href="/kpi"
-                style={{
-                  display: 'block',
-                  padding: '6px 10px',
-                  backgroundColor: '#fef2f2',
-                  borderRadius: '6px',
-                  fontSize: '11.5px',
-                  marginBottom: '4px',
-                  color: '#991b1b',
-                  border: '1px solid #fee2e2',
-                  textDecoration: 'none',
-                }}
-              >
-                {kpi.title}: <strong>{kpi.percent}%</strong> (เป้าเวลา {kpi.proRataTarget}%)
-              </Link>
-            ))
+            actionList.redKpis.map((kpi, idx) =>
+              canViewKpi ? (
+                <Link
+                  key={idx}
+                  href="/kpi"
+                  style={{
+                    display: 'block',
+                    padding: '6px 10px',
+                    backgroundColor: '#fef2f2',
+                    borderRadius: '6px',
+                    fontSize: '11.5px',
+                    marginBottom: '4px',
+                    color: '#991b1b',
+                    border: '1px solid #fee2e2',
+                    textDecoration: 'none',
+                  }}
+                >
+                  {kpi.title}: <strong>{kpi.percent}%</strong> (เป้าเวลา {kpi.proRataTarget}%)
+                </Link>
+              ) : (
+                <div
+                  key={idx}
+                  style={{
+                    display: 'block',
+                    padding: '6px 10px',
+                    backgroundColor: '#fef2f2',
+                    borderRadius: '6px',
+                    fontSize: '11.5px',
+                    marginBottom: '4px',
+                    color: '#991b1b',
+                    border: '1px solid #fee2e2',
+                  }}
+                >
+                  {kpi.title}: <strong>{kpi.percent}%</strong> (เป้าเวลา {kpi.proRataTarget}%)
+                </div>
+              )
+            )
           )}
         </div>
 

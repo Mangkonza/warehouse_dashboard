@@ -60,11 +60,7 @@ export function AcademicServiceForm({
     <div className="flex flex-col gap-4 text-slate-800">
       {/* 1. เรื่อง (Text with numbers allowed) */}
       <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-3.5">
-        <FormField
-          label="เรื่อง / ชื่องานบริการวิชาการ"
-          required
-          hint="ระบุชื่อหัวข้อ กิจกรรม หรือหลักสูตร (มีตัวเลขได้)"
-        >
+        <FormField label="ชื่องานบริการวิชาการ">
           <textarea
             rows={2}
             value={formData.name || formData.topic_title || ''}
@@ -73,8 +69,8 @@ export function AcademicServiceForm({
               onChange('name', val);
               onChange('topic_title', val);
             }}
-            placeholder="เช่น โครงการอบรมเชิงปฏิบัติการการใช้โดรนเพื่อการเกษตรแม่นยำ รุ่นที่ 2..."
-            className="w-full p-2.5 text-xs sm:text-sm rounded-lg border border-input bg-background shadow-2xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
+            placeholder="กรอกชื่องานบริการวิชาการ..."
+            className="w-full p-2.5 text-xs sm:text-sm rounded-lg border border-input bg-background shadow-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
             required
           />
         </FormField>
@@ -82,13 +78,12 @@ export function AcademicServiceForm({
         {/* 2. กลุ่มเป้าหมาย (Text) */}
         <FormField
           label="กลุ่มเป้าหมาย / ผู้เข้าร่วม"
-          hint="เช่น นิสิต, เกษตรกร, บุคลากรภาครัฐ, ผู้ประกอบการ, ชุมชน"
         >
           <input
             type="text"
             value={formData.target_group || ''}
             onChange={(e) => onChange('target_group', e.target.value)}
-            placeholder="เช่น เกษตรกรกลุ่มแปลงใหญ่ จ.นครปฐม, วิศวกรและสถาปนิก..."
+            placeholder="กรอกกลุ่มเป้าหมาย / ผู้เข้าร่วม..."
             className="w-full h-10 px-3 text-xs sm:text-sm rounded-lg border border-input bg-background shadow-2xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
           />
         </FormField>
@@ -101,9 +96,6 @@ export function AcademicServiceForm({
             <span>ประเภทงานบริการวิชาการ (เลือก 1 อย่าง)</span>
             <span className="text-red-500 font-bold">*</span>
           </label>
-          <span className="text-[11.5px] text-slate-400 font-normal">
-            กำหนดไว้ 6 ประเภทตามระเบียบคณะ
-          </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
@@ -186,7 +178,7 @@ export function AcademicServiceForm({
           <DepartmentSelect
             value={formData.department || ''}
             onChange={(dept) => onChange('department', dept)}
-            placeholder="-- เลือกภาควิชา / สังกัด --"
+            placeholder="-- เลือกสังกัด --"
           />
         </FormField>
       </div>
@@ -195,8 +187,7 @@ export function AcademicServiceForm({
       <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-3">
         <FormField
           label="วันเดือนปีที่จัดกิจกรรม (ช่วงเวลา พ.ศ.)"
-          hint="เลือกวันที่เริ่มต้นและสิ้นสุด (พุทธศักราช พ.ศ.)"
-        >
+          >
           <DateRangePickerBE
             value={dateRangeValue}
             onChange={handleDateRangeChange}
@@ -210,9 +201,7 @@ export function AcademicServiceForm({
       <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-2xs">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField
-            label="จำนวนชั่วโมง"
-            hint="ตัวเลข (ไม่บังคับใส่ เช่น 3, 6 หรือ 12.5)"
-          >
+            label="จำนวนชั่วโมง">
             <NumberUnitInput
               value={formData.hours_spent !== undefined && formData.hours_spent !== '' ? Number(formData.hours_spent) : null}
               onChange={(num) => onChange('hours_spent', num)}
@@ -223,9 +212,7 @@ export function AcademicServiceForm({
           </FormField>
 
           <FormField
-            label="จำนวนคนเข้าร่วม"
-            hint="ตัวเลขจำนวนเต็ม (ไม่บังคับใส่ เช่น 50, 120)"
-          >
+            label="จำนวนคนเข้าร่วม">
             <NumberUnitInput
               value={formData.attendees_count !== undefined && formData.attendees_count !== '' ? Number(formData.attendees_count) : null}
               onChange={(num) => onChange('attendees_count', num)}

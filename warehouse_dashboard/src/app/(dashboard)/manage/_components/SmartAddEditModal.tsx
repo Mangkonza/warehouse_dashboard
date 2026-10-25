@@ -37,6 +37,7 @@ import {
 } from '@/components/ui/select';
 import { DatePicker } from '@/components/ui/date-picker';
 import { DepartmentSelect } from '@/components/ui';
+import { Spinner } from '@/components/ui/Spinner';
 
 const getCategoryIcon = (key: string) => {
   switch (key) {
@@ -63,6 +64,7 @@ interface SmartAddEditModalProps {
   onSave: (record: Record<string, any>) => void;
   config: CategoryConfig;
   initialData?: Record<string, any> | null;
+  isSubmitting?: boolean;
 }
 
 export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
@@ -71,6 +73,7 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
   onSave,
   config,
   initialData,
+  isSubmitting = false,
 }) => {
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [errorMsg, setErrorMsg] = useState('');
@@ -164,7 +167,7 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
         return;
       }
       if (!formData.department || !String(formData.department).trim()) {
-        setErrorMsg('กรุณาระบุ "ภาควิชา / สังกัดหลักที่รับผิดชอบ"');
+        setErrorMsg('กรุณาระบุ "สังกัดที่รับผิดชอบ"');
         return;
       }
       if (!formData.fund_source || !String(formData.fund_source).trim()) {
@@ -604,7 +607,7 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
                     <DepartmentSelect
                       value={val ?? ''}
                       onChange={(newVal) => handleFieldChange(col.key, newVal)}
-                      placeholder={col.placeholder || '-- กรุณาเลือกภาควิชา / สังกัด --'}
+                      placeholder={col.placeholder || '-- เลือกสังกัด --'}
                       className="w-full"
                     />
                   ) : col.selectOptions ? (
@@ -742,6 +745,7 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
             </button>
             <button
               type="submit"
+              disabled={isSubmitting}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -755,12 +759,14 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
                 color: '#ffffff',
                 fontSize: '13.5px',
                 fontWeight: 600,
-                cursor: 'pointer',
+                cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                opacity: isSubmitting ? 0.75 : 1,
                 boxShadow: '0 2px 6px rgba(0, 166, 81, 0.25)',
                 transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
                 transform: 'translateY(0)',
               }}
               onMouseEnter={(e) => {
+                if (isSubmitting) return;
                 e.currentTarget.style.backgroundColor = '#0f172a';
                 e.currentTarget.style.borderColor = '#0f172a';
                 e.currentTarget.style.color = '#ffffff';
@@ -768,6 +774,7 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
                 e.currentTarget.style.transform = 'translateY(-1px)';
               }}
               onMouseLeave={(e) => {
+                if (isSubmitting) return;
                 e.currentTarget.style.backgroundColor = '#00A651';
                 e.currentTarget.style.borderColor = '#00A651';
                 e.currentTarget.style.color = '#ffffff';
@@ -775,8 +782,12 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
                 e.currentTarget.style.transform = 'translateY(0)';
               }}
             >
-              <FaSave style={{ fontSize: '14px', flexShrink: 0, color: 'currentColor' }} />
-              <span>{isEdit ? 'บันทึกการแก้ไข' : 'บันทึกรายการใหม่'}</span>
+              {isSubmitting ? (
+                <Spinner size="sm" />
+              ) : (
+                <FaSave style={{ fontSize: '14px', flexShrink: 0, color: 'currentColor' }} />
+              )}
+              <span>{isSubmitting ? 'กำลังบันทึก...' : isEdit ? 'บันทึกการแก้ไข' : 'บันทึกรายการใหม่'}</span>
             </button>
           </div>
         </form>

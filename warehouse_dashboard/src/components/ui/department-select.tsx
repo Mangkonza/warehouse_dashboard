@@ -42,7 +42,7 @@ function hexToRgba(hex: string, alpha: number): string {
 export function DepartmentSelect({
   value,
   onChange,
-  placeholder = '-- เลือกภาควิชา / สังกัด --',
+  placeholder = '-- เลือกสังกัด --',
   disabled = false,
   className,
   allowAll = false,

@@ -1,26 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAllPersonnel, searchPersonnel } from '@/lib/personnelService';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
+const BACKEND_URL = process.env.BACKEND_INTERNAL_URL || 'http://localhost:8000';
+
+const getForwardHeaders = (request: NextRequest): Record<string, string> => {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  const auth = request.headers.get('authorization');
+  if (auth) headers['authorization'] = auth;
+  const cookie = request.headers.get('cookie');
+  if (cookie) headers['cookie'] = cookie;
+  return headers;
+};
+
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const q = searchParams.get('q')?.trim() || '';
-    const limit = parseInt(searchParams.get('limit') || '50', 10);
-
-    const personnel = q ? searchPersonnel(q, limit) : getAllPersonnel().slice(0, limit);
-
-    return NextResponse.json({
-      status: 'success',
-      total: personnel.length,
-      data: personnel,
+    const { search } = new URL(request.url);
+    const res = await fetch(`${BACKEND_URL}/api/v1/personnel${search}`, {
+      method: 'GET',
+      headers: getForwardHeaders(request),
+      cache: 'no-store',
     });
+    const data = await res.json();
+    return NextResponse.json(data, { status: res.status });
   } catch (error: any) {
     return NextResponse.json(
-      { status: 'error', message: error?.message || 'Failed to fetch personnel' },
-      { status: 500 }
+      { status: 'error', message: error?.message || 'Backend connection failed' },
+      { status: 502 }
     );
   }
 }

@@ -244,7 +244,7 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
     columns: [
       { key: 'name', label: 'ชื่อโครงการ', type: 'text', width: '28%', required: true },
       { key: 'head', label: 'หัวหน้าโครงการ', type: 'text', width: '15%', required: true },
-      { key: 'department', label: 'หน่วยงานดำเนินการ', type: 'badge', width: '10%' },
+      { key: 'department', label: 'สังกัดที่ดำเนินการ', type: 'badge', width: '10%' },
       { key: 'budget', label: 'งบประมาณ', type: 'academic_budget', width: '15%', align: 'right' },
       { key: 'timeline', label: 'ระยะเวลาดำเนินการ', type: 'academic_timeline', width: '14%', align: 'center' },
       { key: 'record_number', label: 'เลขระเบียนโครงการ', type: 'text', width: '14%', align: 'center' },
@@ -256,7 +256,7 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
           { key: 'head', label: 'หัวหน้าโครงการ', type: 'person' },
           {
             key: 'department',
-            label: 'หน่วยงานดำเนินการ',
+            label: 'สังกัดที่ดำเนินการ',
             type: 'department',
             getValue: (item) => item.department || (item.head ? normalizeDepartmentName(item.head) : '-'),
           },
@@ -561,11 +561,11 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
     columns: [
       { key: 'name', label: 'เรื่อง', type: 'text', width: '24%', required: true },
       { key: 'type', label: 'ประเภท', type: 'badge', width: '12%', align: 'center', required: true },
-      { key: 'creator', label: 'ผู้ประดิษฐ์ / ผู้สร้างสรรค์', type: 'text', width: '13%' },
+      { key: 'creator', label: 'ผู้ประดิษฐ์', type: 'text', width: '13%' },
       { key: 'department', label: 'สังกัด', type: 'badge', width: '10%' },
       { key: 'req_info', label: 'เลขที่คำขอ', type: 'ip_req_info', width: '14%', align: 'center' },
       { key: 'reg_info', label: 'เลขทะเบียน', type: 'ip_reg_info', width: '14%', align: 'center' },
-      { key: 'support_amount', label: 'คณะฯ สนับสนุน', type: 'currency', width: '10%', align: 'right' },
+      { key: 'support_amount', label: 'เงินสนับสนุนจากคณะ (บาท)', type: 'currency', width: '10%', align: 'right' },
     ],
     detailGroups: [
       {
@@ -583,7 +583,7 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
           },
           {
             key: 'inventors',
-            label: 'ผู้ประดิษฐ์ / ผู้สร้างสรรค์',
+            label: 'ผู้ประดิษฐ์',
             type: 'person_list',
             span: 2,
             getValue: (item) => item.inventors || item.creator,
@@ -644,7 +644,7 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
       },
       {
         fields: [
-          { key: 'support_amount', label: 'คณะฯ สนับสนุน', type: 'currency' },
+          { key: 'support_amount', label: 'เงินสนับสนุนจากคณะ (บาท)', type: 'currency' },
           { key: 'remarks', label: 'หมายเหตุ', getValue: (item) => item.remarks || '-' },
         ],
       },
@@ -693,5 +693,19 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
     columns: [],
     templateSampleRows: [],
     searchFields: ['code', 'title', 'category', 'responsibleUnit'],
+  },
+
+  user_roles: {
+    key: 'user_roles',
+    title: 'จัดการสิทธิ์ผู้ใช้',
+    titleEn: 'User Role Management',
+    icon: 'fa-user-shield',
+    color: '#4f46e5',
+    description: 'กำหนดและเพิกถอนสิทธิ์การเข้าถึงข้อมูลระบบ Data Warehouse',
+    primaryKey: 'username',
+    nameKey: 'displayName',
+    columns: [],
+    templateSampleRows: [],
+    searchFields: ['username', 'displayName', 'note'],
   },
 };

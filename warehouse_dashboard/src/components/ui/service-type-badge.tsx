@@ -41,7 +41,7 @@ export const ServiceTypeBadge: React.FC<ServiceTypeBadgeProps> = ({
     <span
       className={cn(
         BADGE_BASE_CLASSES,
-        'tag-service-type bg-service-type border border-service-type-border text-white',
+        'tag-service-type bg-service-type text-white border-0 shadow-none',
         className
       )}
       style={{

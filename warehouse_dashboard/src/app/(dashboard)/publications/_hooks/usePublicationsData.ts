@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import pubData from '@/data/publications.json';
-import { getCachedCategoryData } from '@/lib/dataService';
+import { getCachedCategoryData, fetchCategoryData } from '@/lib/dataService';
 import { TimeFilterState, itemMatchesTimeFilter } from '@/types/timeFilter';
 import { isTestRecord } from '@/lib/sdgEngine';
 import { autoDetectJournalRanking } from '@/config/journalRankingConfig';
@@ -51,10 +51,9 @@ export function usePublicationsData(timeFilter?: TimeFilterState) {
   // Fetch real data from server API
   const refreshData = async () => {
     try {
-      const res = await fetch('/api/data/publications');
-      const json = await res.json();
-      if (json.status === 'success' && Array.isArray(json.data)) {
-        setDataList(json.data);
+      const fresh = await fetchCategoryData('publications');
+      if (Array.isArray(fresh) && fresh.length > 0) {
+        setDataList(fresh);
       }
     } catch (e) {
       console.error('[usePublicationsData] Fetch error:', e);

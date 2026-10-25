@@ -1,15 +1,15 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { FormField } from './FormField';
 import { PersonPicker, PersonValue } from './PersonPicker';
 import { DepartmentBadge } from '@/components/ui/department-badge';
 import { DepartmentSelect } from '@/components/ui/department-select';
 import { DatePicker } from '@/components/ui/date-picker';
 import { MoneyInput } from './MoneyInput';
-import { Check, AlertCircle, Info } from 'lucide-react';
+import { Check, Info, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { IP_TYPE_COLOR, IP_TYPE_BORDER } from '@/components/ui/ip-type-badge';
+import { IP_TYPE_COLOR } from '@/components/ui/ip-type-badge';
 
 export const IP_TYPES = [
   { id: 'petty_patent', label: 'อนุสิทธิบัตร' },
@@ -34,7 +34,7 @@ export interface IntellectualPropertyFormData {
   _id?: string;
   name?: string;               // ชื่อเรื่อง / ชื่อผลงาน
   title?: string;              // alias ชื่อเรื่อง
-  inventors?: PersonValue[];   // ผู้ประดิษฐ์ / ผู้สร้างสรรค์
+  inventors?: PersonValue[];   // ผู้ประดิษฐ์
   creator?: string;            // string fallback
   department?: string;         // สังกัด
   departments?: string[];      // รายการสังกัดที่ derived มา
@@ -48,7 +48,7 @@ export interface IntellectualPropertyFormData {
   protection_end?: string;     // วันหมดอายุ (เฉพาะสิทธิบัตร/อนุสิทธิบัตร)
   work_category?: string;      // ประเภทงาน (เฉพาะลิขสิทธิ์)
   work_character?: string;     // ลักษณะงาน (เฉพาะลิขสิทธิ์ e.g. โปรแกรมคอมพิวเตอร์)
-  support_amount?: number;     // คณะฯ สนับสนุน
+  support_amount?: number;     // เงินสนับสนุนจากคณะ (บาท)
   remarks?: string;            // หมายเหตุ
   req_no?: string;             // legacy combined string
   status?: string;             // status string
@@ -76,8 +76,29 @@ export function IntellectualPropertyForm({
   const isPettyPatent = currentType === 'อนุสิทธิบัตร';
   const isTypeSelected = Boolean(currentType);
 
+  // ตรวจสอบว่าประเภทงานปัจจุบันเป็นหนึ่งในตัวเลือกมาตรฐาน (ไม่รวม "อื่น ๆ") หรือไม่
+  const isStandardCategory = useMemo(() => {
+    return COPYRIGHT_WORK_CATEGORIES.filter((c) => c !== 'อื่น ๆ').includes(
+      formData.work_category as any
+    );
+  }, [formData.work_category]);
+
+  // สถานะว่าช่องประเภทงานกำลังอยู่ในโหมดพิมพ์เองหรือไม่
+  const [isCustomCategory, setIsCustomCategory] = useState<boolean>(() => {
+    return Boolean(formData.work_category && !isStandardCategory);
+  });
+
+  // Sync state ประเภทงานเมื่อโหลดข้อมูลมาแก้ไข
+  useEffect(() => {
+    if (formData.work_category && !isStandardCategory) {
+      setIsCustomCategory(true);
+    } else if (isStandardCategory) {
+      setIsCustomCategory(false);
+    }
+  }, [formData.work_category, isStandardCategory]);
+
   // Initialize default owner if empty
-  React.useEffect(() => {
+  useEffect(() => {
     if (!formData.owner && !formData.right_holder) {
       onChange('owner', 'มหาวิทยาลัยเกษตรศาสตร์');
       onChange('right_holder', 'มหาวิทยาลัยเกษตรศาสตร์');
@@ -117,10 +138,8 @@ export function IntellectualPropertyForm({
   // Handle inventors change: update inventors, creator string, and auto-populate department if needed
   const handleInventorsChange = (newInventors: PersonValue[]) => {
     onChange('inventors', newInventors);
-
     const creatorStr = newInventors.map((i) => i.name).filter(Boolean).join(', ');
     onChange('creator', creatorStr);
-
     const depts: string[] = [];
     newInventors.forEach((inv) => {
       if (inv.department && inv.department.trim() && inv.department !== '-' && inv.department !== 'nan') {
@@ -139,22 +158,20 @@ export function IntellectualPropertyForm({
   // Handle switching IP Type
   const handleSelectType = (targetType: string) => {
     if (currentType === targetType) return;
-
     if (isEdit && currentType) {
       const ok = window.confirm(
         `คุณต้องการเปลี่ยนประเภทจาก "${currentType}" เป็น "${targetType}" ใช่หรือไม่?\n(ข้อมูลเฉพาะประเภทเดิม เช่น ข้อมูลงานลิขสิทธิ์ หรือวันหมดอายุ จะถูกล้าง)`
       );
       if (!ok) return;
     }
-
     onChange('type', targetType);
-
     // Clear type-specific fields when switching
     if (targetType === 'ลิขสิทธิ์') {
       onChange('protection_end', '');
     } else {
       onChange('work_category', '');
       onChange('work_character', '');
+      setIsCustomCategory(false);
     }
   };
 
@@ -179,11 +196,9 @@ export function IntellectualPropertyForm({
             <span>ประเภททรัพย์สินทางปัญญา</span>
             <span className="text-red-500 font-bold">*</span>
           </label>
-
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
             {IP_TYPES.map((t) => {
               const isSelected = currentType === t.label;
-
               return (
                 <button
                   key={t.id}
@@ -250,8 +265,8 @@ export function IntellectualPropertyForm({
                 spellCheck={false}
                 placeholder={
                   isCopyright
-                    ? 'เช่น โปรแกรมจำลองการเคลื่อนที่ของระบบกระพ้อลำเลียงแบบสามมิติ...'
-                    : 'เช่น อุปกรณ์ไฟฟ้าช็อตที่มีค่ากระแสไฟฟ้าขาออกไม่เกินสองมิลลิแอมป์...'
+                    ? 'กรอกชื่อผลงานลิขสิทธิ์...'
+                    : 'กรอกชื่อผลงานหรือชื่อสิ่งประดิษฐ์...'
                 }
                 className={cn(
                   'w-full p-3 text-xs sm:text-sm rounded-lg border border-slate-300 bg-white shadow-2xs transition-colors',
@@ -268,42 +283,80 @@ export function IntellectualPropertyForm({
                   label="ประเภทงาน"
                   required
                   error={errors.work_category}
-                  hint="เลือกประเภทงานตามที่ระบุในหนังสือรับรอง"
+                  
                 >
-                  <select
-                    value={formData.work_category || ''}
-                    onChange={(e) => onChange('work_category', e.target.value)}
-                    className={cn(
-                      'w-full h-10 px-3 text-xs sm:text-sm rounded-lg border border-slate-300 bg-white shadow-2xs transition-colors',
-                      'focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20 focus:border-[#D4AF37]',
-                      errors.work_category && 'border-red-500'
+                  <div className="relative">
+                    {isCustomCategory ? (
+                      <div className="relative flex items-center">
+                        <input
+                          type="text"
+                          autoFocus
+                          value={formData.work_category || ''}
+                          onChange={(e) => onChange('work_category', e.target.value)}
+                          placeholder="พิมพ์ระบุประเภทงาน..."
+                          className={cn(
+                            'w-full h-10 pl-3 pr-9 text-xs sm:text-sm rounded-lg border border-slate-300 bg-white shadow-2xs transition-colors',
+                            'focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20 focus:border-[#D4AF37]',
+                            errors.work_category && 'border-red-500'
+                          )}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsCustomCategory(false);
+                            onChange('work_category', '');
+                          }}
+                          title="กลับไปเลือกรายการตัวเลือก"
+                          className="absolute right-2 p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                        >
+                          <RotateCcw className="size-3.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <select
+                        value={formData.work_category || ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val === 'อื่น ๆ') {
+                            setIsCustomCategory(true);
+                            onChange('work_category', '');
+                          } else {
+                            onChange('work_category', val);
+                          }
+                        }}
+                        className={cn(
+                          'w-full h-10 px-3 text-xs sm:text-sm rounded-lg border border-slate-300 bg-white shadow-2xs transition-colors',
+                          'focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20 focus:border-[#D4AF37]',
+                          errors.work_category && 'border-red-500'
+                        )}
+                      >
+                        <option value="">-- เลือกประเภทงานลิขสิทธิ์ --</option>
+                        {COPYRIGHT_WORK_CATEGORIES.map((cat) => (
+                          <option key={cat} value={cat}>
+                            {cat}
+                          </option>
+                        ))}
+                      </select>
                     )}
-                  >
-                    <option value="">-- เลือกประเภทงานลิขสิทธิ์ --</option>
-                    {COPYRIGHT_WORK_CATEGORIES.map((cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
-                      </option>
-                    ))}
-                  </select>
+                  </div>
                 </FormField>
 
                 <FormField
                   label="ลักษณะงาน"
-                  hint="เช่น โปรแกรมคอมพิวเตอร์, วิจัย, สื่อการสอน"
+
                 >
                   <input
                     type="text"
                     value={formData.work_character || ''}
                     onChange={(e) => onChange('work_character', e.target.value)}
-                    placeholder="เช่น โปรแกรมคอมพิวเตอร์"
+                    placeholder="ระบุลักษณะงานลิขสิทธิ์..."
                     className="w-full h-10 px-3 text-xs sm:text-sm rounded-lg border border-slate-300 bg-white shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20 focus:border-[#D4AF37]"
                   />
                 </FormField>
               </div>
             )}
 
-            {/* 2. ผู้ประดิษฐ์ / ผู้สร้างสรรค์ */}
+            {/* 2. ผู้ประดิษฐ์ */}
             <FormField
               label={isCopyright ? 'ผู้สร้างสรรค์' : 'ผู้ประดิษฐ์'}
               required
@@ -323,25 +376,17 @@ export function IntellectualPropertyForm({
 
             {/* 3. สังกัด */}
             <FormField label="สังกัด" error={errors.department}>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 flex-wrap min-h-8 p-2 rounded-lg bg-slate-50 border border-slate-200">
-                  <span className="text-xs font-semibold text-slate-500 mr-1 select-none">
-                    {isCopyright ? 'สังกัดของผู้สร้างสรรค์:' : 'สังกัดของผู้ประดิษฐ์:'}
-                  </span>
-                  {distinctAffiliations.length > 0 ? (
-                    distinctAffiliations.map((dept, idx) => (
-                      <DepartmentBadge key={idx} value={dept} />
-                    ))
-                  ) : (
-                    <span className="text-xs text-slate-400">-</span>
-                  )}
-                </div>
-
-                <DepartmentSelect
-                  value={formData.department || ''}
-                  onChange={(dept) => onChange('department', dept)}
-                  className="w-full"
-                />
+              <div className="flex items-center gap-2 flex-wrap min-h-10 px-3 py-2 rounded-lg bg-slate-50 border border-slate-200">
+                <span className="text-xs font-semibold text-slate-500 mr-1 select-none">
+                  {isCopyright ? 'สังกัดของผู้สร้างสรรค์:' : 'สังกัดของผู้ประดิษฐ์:'}
+                </span>
+                {distinctAffiliations.length > 0 ? (
+                  distinctAffiliations.map((dept, idx) => (
+                    <DepartmentBadge key={idx} value={dept} />
+                  ))
+                ) : (
+                  <span className="text-xs text-slate-400">ระบุสังกัดอัตโนมัติตามรายชื่อด้านบน</span>
+                )}
               </div>
             </FormField>
 
@@ -376,7 +421,6 @@ export function IntellectualPropertyForm({
             <h4 className="text-sm font-bold text-slate-800 border-b border-slate-100 pb-2">
               ขั้นตอนดำเนินการ
             </h4>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* วันที่ยื่นคำขอ */}
               <FormField
@@ -391,7 +435,7 @@ export function IntellectualPropertyForm({
                 <DatePicker
                   value={formData.filing_date || ''}
                   onChange={(_date, dateStr) => onChange('filing_date', dateStr)}
-                  placeholder="เลือกวันที่ยื่น (พ.ศ.)"
+                  placeholder={isCopyright ? 'เลือกวันที่แจ้งข้อมูลลิขสิทธิ์ (พ.ศ.)' : 'เลือกวันที่ยื่นคำขอ (พ.ศ.)'}
                 />
               </FormField>
 
@@ -404,11 +448,7 @@ export function IntellectualPropertyForm({
                 }
                 required
                 error={errors.application_number}
-                hint={
-                  isCopyright
-                    ? 'ตัวเลข 1-10 หลัก (เช่น 461933)'
-                    : 'ตัวเลข 10 หลัก (เช่น 2503003348)'
-                }
+                
               >
                 <div className="relative">
                   <input
@@ -417,7 +457,7 @@ export function IntellectualPropertyForm({
                     maxLength={10}
                     value={formData.application_number || ''}
                     onChange={(e) => handleAppNumberChange(e.target.value)}
-                    placeholder={isCopyright ? 'เช่น 461933' : 'เช่น 2503003348'}
+                    placeholder={isCopyright ? 'ระบุเลขที่คำขอแจ้งข้อมูลลิขสิทธิ์' : 'ระบุเลขที่คำขอ 10 หลัก'}
                     className={cn(
                       'w-full h-10 px-3 font-mono text-xs sm:text-sm rounded-lg border border-slate-300 bg-white shadow-2xs transition-colors',
                       'focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20 focus:border-[#D4AF37]',
@@ -437,7 +477,6 @@ export function IntellectualPropertyForm({
             <h4 className="text-sm font-bold text-slate-800 border-b border-slate-100 pb-2">
               {isCopyright ? 'การออกหนังสือรับรอง' : 'ได้รับความคุ้มครอง'}
             </h4>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* เลขทะเบียน (String, รองรับ ว1.000033) */}
               <FormField
@@ -449,11 +488,6 @@ export function IntellectualPropertyForm({
                     : 'เลขที่สิทธิบัตร'
                 }
                 error={errors.registration_number}
-                hint={
-                  isCopyright
-                    ? 'ตัวอักษร ตัวเลข และจุด (เช่น ว1.000033)'
-                    : 'ตัวเลข เช่น 28565'
-                }
               >
                 <div className="relative">
                   <input
@@ -461,7 +495,13 @@ export function IntellectualPropertyForm({
                     maxLength={50}
                     value={formData.registration_number || ''}
                     onChange={(e) => handleRegNumberChange(e.target.value)}
-                    placeholder={isCopyright ? 'เช่น ว1.000033' : isPettyPatent ? 'เช่น 28565' : 'เช่น 12345'}
+                    placeholder={
+                      isCopyright
+                        ? 'ระบุเลขทะเบียนลิขสิทธิ์รูปแบบ ว1.000033'
+                        : isPettyPatent
+                        ? 'กรอกเลขทะเบียนอนุสิทธิบัตร'
+                        : 'กรอกเลขทะเบียนสิทธิบัตร'
+                    }
                     className={cn(
                       'w-full h-10 px-3 font-mono text-xs sm:text-sm rounded-lg border border-slate-300 bg-white shadow-2xs transition-colors',
                       'focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20 focus:border-[#D4AF37]',
@@ -469,7 +509,7 @@ export function IntellectualPropertyForm({
                     )}
                   />
                   <span className="absolute right-3 top-2.5 text-xs text-slate-400 font-mono select-none">
-                    {(formData.registration_number || '').length}/50
+                    {(formData.registration_number || '').length}/{isCopyright ? 9 : 5}
                   </span>
                 </div>
               </FormField>
@@ -486,7 +526,7 @@ export function IntellectualPropertyForm({
                 <DatePicker
                   value={formData.protection_start || ''}
                   onChange={(_date, dateStr) => onChange('protection_start', dateStr)}
-                  placeholder="เลือกวันที่ออกให้ (พ.ศ.)"
+                  placeholder={isCopyright ? 'เลือกวันที่ออกหนังสือรับรอง (พ.ศ.)' : 'เลือกวันที่เริ่มคุ้มครอง (พ.ศ.)'}
                 />
               </FormField>
 
@@ -495,12 +535,11 @@ export function IntellectualPropertyForm({
                 <FormField
                   label="วันหมดอายุ (ระยะเวลาคุ้มครองสิ้นสุด)"
                   error={errors.protection_end}
-                  hint="กำหนดวันสิ้นสุดการคุ้มครองตามกฎหมาย"
                 >
                   <DatePicker
                     value={formData.protection_end || ''}
                     onChange={(_date, dateStr) => onChange('protection_end', dateStr)}
-                    placeholder="เลือกวันหมดอายุ (พ.ศ.)"
+                    placeholder="เลือกวันหมดอายุความคุ้มครอง (พ.ศ.)"
                   />
                 </FormField>
               )}
@@ -510,9 +549,9 @@ export function IntellectualPropertyForm({
           {/* SECTION 4: การสนับสนุนและหมายเหตุ */}
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-2xs space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* คณะฯ สนับสนุน */}
+              {/* เงินสนับสนุนจากคณะ (บาท) */}
               <FormField
-                label="คณะฯ สนับสนุน (บาท)"
+                label="เงินสนับสนุนจากคณะ (บาท) (บาท)"
                 error={errors.support_amount}
               >
                 <MoneyInput
@@ -529,7 +568,7 @@ export function IntellectualPropertyForm({
                   value={formData.remarks || ''}
                   onChange={(e) => onChange('remarks', e.target.value)}
                   rows={2}
-                  placeholder="หมายเหตุเพิ่มเติม (ถ้ามี)"
+                  placeholder="กรอกหมายเหตุเพิ่มเติม (ถ้ามี)..."
                   className="w-full p-2.5 text-xs sm:text-sm rounded-lg border border-slate-300 bg-white shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20 focus:border-[#D4AF37]"
                 />
               </FormField>

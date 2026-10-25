@@ -490,15 +490,15 @@ export const AcademicProjectForm: React.FC<AcademicProjectFormProps> = ({
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
-            {/* ภาควิชา / หน่วยงานดำเนินการ */}
+            {/* ภาควิชา / สังกัดที่ดำเนินการ */}
             <div>
               <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                ภาควิชา / หน่วยงานดำเนินการ
+                สังกัดที่ดำเนินการ
               </label>
               <DepartmentSelect
                 value={formData.department || ''}
                 onChange={(val) => onChange('department', val)}
-                placeholder="-- เลือกภาควิชา / หน่วยงาน --"
+                placeholder="-- เลือกสังกัด --"
                 className="w-full"
               />
             </div>
@@ -532,9 +532,6 @@ export const AcademicProjectForm: React.FC<AcademicProjectFormProps> = ({
               <label style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>
                 ลักษณะโครงการ
               </label>
-              <span style={{ fontSize: '11.5px', color: '#64748b' }}>
-                (สามารถเว้นว่างได้ ไม่บังคับ)
-              </span>
             </div>
 
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
@@ -665,9 +662,6 @@ export const AcademicProjectForm: React.FC<AcademicProjectFormProps> = ({
               <label style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>
                 จำนวนผู้ร่วมโครงการ (คน)
               </label>
-              <span style={{ fontSize: '12px', color: '#64748b' }}>
-                (ระบุเป็นจำนวนคน เนื่องจากไม่ทราบรายชื่อ ทราบเฉพาะหัวหน้าโครงการ)
-              </span>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
@@ -681,7 +675,7 @@ export const AcademicProjectForm: React.FC<AcademicProjectFormProps> = ({
                 }}
               >
                 <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 600, color: '#0369a1', marginBottom: '6px' }}>
-                  ผู้ร่วมโครงการ (ภายในคณะฯ)
+                  ผู้ร่วมโครงการ (ภายใน)
                 </label>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <input
@@ -749,7 +743,6 @@ export const AcademicProjectForm: React.FC<AcademicProjectFormProps> = ({
               <strong style={{ color: '#1e293b' }}>
                 {(Number(formData.co_members_internal) || 0) + (Number(formData.co_members_external) || 0)} คน
               </strong>{' '}
-              (ภายใน: {Number(formData.co_members_internal) || 0} คน, ภายนอก: {Number(formData.co_members_external) || 0} คน)
             </div>
           </div>
         </div>

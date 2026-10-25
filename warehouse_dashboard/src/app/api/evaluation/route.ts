@@ -1,51 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
-import {
-  readEvaluations,
-  getEvaluation,
-  saveEvaluation,
-  migrateExistingEvaluations,
-} from '@/lib/serverDataStore';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
+const BACKEND_URL = process.env.BACKEND_INTERNAL_URL || 'http://localhost:8000';
+
+const getForwardHeaders = (request: NextRequest): Record<string, string> => {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  const auth = request.headers.get('authorization');
+  if (auth) headers['authorization'] = auth;
+  const cookie = request.headers.get('cookie');
+  if (cookie) headers['cookie'] = cookie;
+  return headers;
+};
+
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const category = searchParams.get('category');
-    const recordId = searchParams.get('record_id');
-
-    // Run migration check once on query if needed
-    if (searchParams.get('migrate') === 'true') {
-      const mig = migrateExistingEvaluations();
-      return NextResponse.json({ status: 'success', migrated: mig });
-    }
-
-    if (category && recordId) {
-      const single = getEvaluation(category, recordId);
-      return NextResponse.json({
-        status: 'success',
-        data: single,
-      });
-    }
-
-    const all = readEvaluations();
-    let list = Object.values(all);
-
-    if (category) {
-      const catLower = category.toLowerCase();
-      list = list.filter((item) => item.category.toLowerCase() === catLower);
-    }
-
-    return NextResponse.json({
-      status: 'success',
-      total: list.length,
-      data: list,
+    const { search } = new URL(request.url);
+    const res = await fetch(`${BACKEND_URL}/api/v1/evaluation${search}`, {
+      method: 'GET',
+      headers: getForwardHeaders(request),
+      cache: 'no-store',
     });
+    const data = await res.json();
+    return NextResponse.json(data, { status: res.status });
   } catch (error: any) {
     return NextResponse.json(
-      { status: 'error', message: error?.message || 'Failed to fetch evaluations' },
-      { status: 500 }
+      { status: 'error', message: error?.message || 'Backend connection failed' },
+      { status: 502 }
     );
   }
 }
@@ -53,26 +37,17 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-
-    if (!body || !body.category || !body.record_id) {
-      return NextResponse.json(
-        { status: 'error', message: 'กรุณาระบุหมวดหมู่และรหัสรายการ' },
-        { status: 400 }
-      );
-    }
-
-    // Save and compute evaluation status
-    const saved = saveEvaluation(body);
-
-    return NextResponse.json({
-      status: 'success',
-      message: 'บันทึกการประเมินเรียบร้อยแล้ว',
-      data: saved,
+    const res = await fetch(`${BACKEND_URL}/api/v1/evaluation`, {
+      method: 'POST',
+      headers: getForwardHeaders(request),
+      body: JSON.stringify(body),
     });
+    const data = await res.json();
+    return NextResponse.json(data, { status: res.status });
   } catch (error: any) {
     return NextResponse.json(
-      { status: 'error', message: error?.message || 'Failed to save evaluation' },
-      { status: 500 }
+      { status: 'error', message: error?.message || 'Backend connection failed' },
+      { status: 502 }
     );
   }
 }
