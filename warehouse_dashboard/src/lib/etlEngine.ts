@@ -33,10 +33,30 @@ const COLUMN_ALIASES: Record<string, string[]> = {
   fund_source: ['แหล่งทุน', 'แหล่งเงินทุน', 'fund_source', 'sponsor'],
   month: ['เดือน', 'ช่วงเวลา', 'month', 'period'],
   client: ['ผู้ขอรับบริการ', 'ว่าจ้าง', 'ผู้ว่าจ้าง', 'ลูกค้า', 'client', 'customer'],
-  date: ['วันที่', 'วันจัดกิจกรรม', 'date', 'start_date'],
+  date: ['วันที่', 'วันจัดกิจกรรม', 'date'],
+  start_date: ['วันที่เริ่มต้น', 'วันเริ่มต้น', 'เริ่มโครงการ', 'start_date', 'start_date_be', 'start'],
+  end_date: ['วันที่สิ้นสุด', 'วันสิ้นสุด', 'สิ้นสุดโครงการ', 'end_date', 'end_date_be', 'end'],
+  service_type: ['ประเภทการบริการ', 'หมวดการบริการ', 'ประเภท', 'service_type', 'service_category'],
+  hours_spent: ['จำนวนชั่วโมง', 'ชั่วโมง', 'hours', 'hours_spent'],
+  attendees_count: ['จำนวนคนเข้าร่วม', 'จำนวนผู้เข้าร่วม', 'ผู้เข้าร่วม', 'attendees', 'attendees_count', 'participants'],
+  record_number: ['เลขระเบียน', 'เลขระเบียนโครงการ', 'record_number', 'record_no'],
+  co_members_internal: ['ผู้ร่วมภายใน', 'co_members_internal', 'co_internal'],
+  co_members_external: ['ผู้ร่วมภายนอก', 'co_members_external', 'co_external'],
+  co_authors_foreign: ['ผู้แต่งต่างชาติ', 'ผู้ร่วมต่างชาติ', 'co_authors_foreign', 'ต่างชาติ'],
+  co_authors_domestic: ['ผู้แต่งในประเทศ', 'ผู้ร่วมในประเทศ', 'co_authors_domestic', 'ในประเทศ'],
+  co_researchers: ['ผู้ร่วมวิจัย', 'ผู้ร่วมโครงการ', 'co_researchers', 'members'],
   type: ['ประเภท', 'ประเภทผลงาน', 'type', 'category'],
   level: ['ระดับ', 'ฐานข้อมูล', 'level', 'quartile', 'tier'],
   journal: ['วารสาร', 'แหล่งตีพิมพ์', 'journal', 'publisher'],
+  volume: ['volume', 'เล่มที่', 'ปีที่'],
+  issue: ['issue', 'ฉบับที่'],
+  page_start: ['page_start', 'หน้าเริ่มต้น'],
+  page_end: ['page_end', 'หน้าสิ้นสุด'],
+  trl: ['trl', 'ระดับ trl', 'trl_level'],
+  project_nature: ['ลักษณะโครงการ', 'project_nature'],
+  characteristics: ['ลักษณะงาน', 'characteristics'],
+  inventors: ['ผู้ประดิษฐ์ร่วม', 'inventors'],
+  fiscal_year_be: ['ปีงบประมาณ', 'ปี พ.ศ.', 'fiscal_year', 'fiscal_year_be'],
   req_no: ['เลขที่คำขอ', 'เลขที่สิทธิบัตร', 'req_no', 'patent_no'],
   title_th: ['คำนำหน้า', 'คำนำหน้านาม', 'title', 'prefix'],
   position: ['ตำแหน่ง', 'ตำแหน่งวิชาการ', 'position', 'role'],
@@ -144,12 +164,11 @@ function findMatchingColumnKey(header: string, validColumns: ColumnDef[]): strin
     }
   }
 
-  // 2. Alias match
-  for (const col of validColumns) {
-    const aliases = COLUMN_ALIASES[col.key] || [];
+  // 2. Alias match from all known aliases
+  for (const [key, aliases] of Object.entries(COLUMN_ALIASES)) {
     for (const alias of aliases) {
       if (normHeader === alias.toLowerCase() || normHeader.includes(alias.toLowerCase())) {
-        return col.key;
+        return key;
       }
     }
   }
@@ -184,51 +203,68 @@ export function transformAndValidateRow(
   const data: Record<string, any> = {};
   const issues: ValidationIssue[] = [];
 
-  // สร้าง Key Map จาก Header จริงในแถวสู่ Column Key
-  const keyMap: Record<string, string> = {};
-  for (const rawKey of Object.keys(rawRow)) {
+  // 1. นำข้อมูลทุกฟิลด์จาก rawRow มาจับคู่ alias และทำความสะอาด
+  for (const [rawKey, rawVal] of Object.entries(rawRow)) {
+    if (rawVal === undefined || rawVal === null || rawVal === '') continue;
+
     const matchedKey = findMatchingColumnKey(rawKey, config.columns);
-    if (matchedKey) {
-      keyMap[rawKey] = matchedKey;
+    const targetKey = matchedKey || rawKey;
+
+    const colDef = config.columns.find((c) => c.key === targetKey);
+    const isCurrencyOrNumber =
+      colDef?.type === 'currency' ||
+      colDef?.type === 'number' ||
+      colDef?.type === 'research_budget' ||
+      colDef?.type === 'academic_budget' ||
+      [
+        'budget',
+        'budget_internal',
+        'budget_external',
+        'support_amount',
+        'hours_spent',
+        'attendees_count',
+        'co_members_internal',
+        'co_members_external',
+        'fiscal_year_be',
+      ].includes(targetKey);
+
+    const isDate =
+      colDef?.type === 'date' ||
+      ['date', 'start_date', 'end_date', 'filing_date', 'protection_start', 'protection_end'].includes(targetKey);
+
+    if (isCurrencyOrNumber) {
+      data[targetKey] = parseBudget(rawVal);
+    } else if (isDate) {
+      data[targetKey] = parseDateOrYear(rawVal);
+    } else {
+      data[targetKey] = cleanText(rawVal);
     }
   }
 
-  // ประมวลผลค่าในแต่ละคอลัมน์ตาม Data Type
-  for (const col of config.columns) {
-    let rawVal: any = undefined;
-    for (const [rawKey, matchedColKey] of Object.entries(keyMap)) {
-      if (matchedColKey === col.key) {
-        rawVal = rawRow[rawKey];
-        break;
-      }
+  // 2. คำนวณงบประมาณพิเศษตามประเภทหมวด
+  if (categoryKey === 'research') {
+    const internal = parseBudget(data.budget_internal || 0);
+    const external = parseBudget(data.budget_external || 0);
+    if ((internal > 0 || external > 0) && (!data.budget || data.budget === 0)) {
+      data.budget = internal + external;
+    } else if (data.budget && !data.budget_internal && !data.budget_external) {
+      data.budget = parseBudget(data.budget);
     }
-
-    if (rawVal === undefined && rawRow[col.key] !== undefined) {
-      rawVal = rawRow[col.key];
-    }
-
-    switch (col.type) {
-      case 'currency':
-      case 'number':
-        data[col.key] = parseBudget(rawVal);
-        break;
-      case 'date':
-        data[col.key] = parseDateOrYear(rawVal);
-        break;
-      default:
-        data[col.key] = cleanText(rawVal);
+  } else if (categoryKey === 'academic') {
+    if (data.budget !== undefined) {
+      data.budget = parseBudget(data.budget);
     }
   }
 
-  // ปรับปรุงภาควิชา
+  // 3. ปรับปรุงภาควิชา
   if (config.departmentKey && data[config.departmentKey]) {
     data[config.departmentKey] = normalizeDepartment(data[config.departmentKey]);
   }
 
-  // Auto-matching ชื่ออาจารย์/บุคคลกับ Master Data 304 ท่าน
+  // 4. Auto-matching ชื่ออาจารย์/บุคคลกับ Master Data 304 ท่าน
   let matchedPerson: any = null;
   if (config.personKey && data[config.personKey]) {
-    const personRaw = data[config.personKey];
+    const personRaw = String(data[config.personKey]).trim();
     matchedPerson = matchPerson(personRaw);
     if (matchedPerson) {
       data[config.personKey] = matchedPerson.name;
@@ -236,23 +272,19 @@ export function transformAndValidateRow(
       if (config.departmentKey && (!data[config.departmentKey] || data[config.departmentKey] === '-')) {
         data[config.departmentKey] = matchedPerson.department;
       }
+      // หมายเหตุ: การจับคู่บุคลากรสำเร็จถือเป็นข้อมูลสมบูรณ์ (Valid) ไม่ปรับสถานะเป็น Warning
+    } else if (personRaw.length > 2 && personRaw !== '-' && personRaw !== 'nan') {
       issues.push({
         field: config.personKey,
         level: 'warning',
-        message: `Auto-matched: ${matchedPerson.name} (${matchedPerson.department})`,
-      });
-    } else if (personRaw.length > 2) {
-      issues.push({
-        field: config.personKey,
-        level: 'warning',
-        message: `ไม่พบชื่ออาจารย์ "${personRaw}" ใน Master Data 304 ท่าน (จะบันทึกตามข้อความเดิม)`,
+        message: `ไม่พบชื่ออาจารย์ "${personRaw}" ในฐานข้อมูลบุคลากร 304 ท่าน (จะบันทึกตามข้อความเดิม)`,
       });
     }
   }
 
-  // ตรวจสอบความถูกต้อง (Validation)
-  const nameVal = data[config.nameKey];
-  if (!nameVal || nameVal.length < 2) {
+  // 5. ตรวจสอบความถูกต้อง (Validation)
+  const nameVal = data[config.nameKey] || data.name || data.title;
+  if (!nameVal || String(nameVal).trim().length < 2 || nameVal === 'nan' || nameVal === 'NaT') {
     issues.push({
       field: config.nameKey,
       level: 'error',
