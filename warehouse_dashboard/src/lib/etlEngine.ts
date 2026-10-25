@@ -366,6 +366,7 @@ export function parseExcelFile(
     let warningCount = 0;
     let errorCount = 0;
     let displayRowIndex = 1;
+    const seenSignatures = new Map<string, number>();
 
     rawRows.forEach((r) => {
       const parsed = transformAndValidateRow(r, displayRowIndex, cat);
@@ -376,6 +377,41 @@ export function parseExcelFile(
       }
 
       parsed.rowNumber = displayRowIndex++;
+
+      // ตรวจสอบข้อมูลซ้ำซ้อนภายในแผ่นงาน (Intra-sheet Duplicate Detection)
+      const conf = CATEGORIES_CONFIG[cat];
+      const titleStr = String(parsed.data[conf.nameKey] || parsed.data.name || parsed.data.title || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[\s\r\n]/g, '');
+      const regStr = String(parsed.data.reg_info || parsed.data.req_info || parsed.data.id || '')
+        .trim()
+        .toLowerCase();
+      const personStr = String(conf.personKey ? parsed.data[conf.personKey] : '')
+        .trim()
+        .toLowerCase()
+        .replace(/[\s\r\n]/g, '');
+
+      if (titleStr.length >= 3) {
+        const sig = regStr && regStr !== '-' && regStr !== 'nan'
+          ? `${titleStr}__${regStr}`
+          : `${titleStr}__${personStr}`;
+
+        if (seenSignatures.has(sig)) {
+          const prevRow = seenSignatures.get(sig);
+          parsed.issues.push({
+            field: conf.nameKey,
+            level: 'warning',
+            message: `ข้อมูลซ้ำ: ตรวจพบรายการซ้ำกับแถวที่ ${prevRow} (ชื่อและเลขทะเบียนตรงกัน)`,
+          });
+          if (parsed.status === 'valid') {
+            parsed.status = 'warning';
+          }
+        } else {
+          seenSignatures.set(sig, parsed.rowNumber);
+        }
+      }
+
       if (parsed.status === 'valid') validCount++;
       else if (parsed.status === 'warning') warningCount++;
       else if (parsed.status === 'error') errorCount++;
