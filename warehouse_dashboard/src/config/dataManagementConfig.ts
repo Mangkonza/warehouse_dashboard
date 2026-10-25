@@ -496,7 +496,7 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
     title: 'ผลงานตีพิมพ์ทางวิชาการ',
     titleEn: 'Publications',
     icon: 'fa-book-open',
-    color: '#2e7d32',
+    color: '#e11d48',
     description: 'จัดการบทความวิชาการ วารสารนานาชาติ (Scopus/WoS) และ TCI',
     primaryKey: 'name',
     nameKey: 'name',

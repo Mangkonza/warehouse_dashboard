@@ -341,13 +341,13 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
             style={{
               padding: '10px 14px',
               borderRadius: '8px',
-              backgroundColor: activeTab === 'publications' ? '#f0fdf4' : '#f8fafc',
-              border: activeTab === 'publications' ? '1.5px solid #16a34a' : '1px solid #e2e8f0',
+              backgroundColor: activeTab === 'publications' ? '#fff1f2' : '#f8fafc',
+              border: activeTab === 'publications' ? '1.5px solid #e11d48' : '1px solid #e2e8f0',
               cursor: 'pointer',
               transition: 'all 0.15s ease',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#16a34a', fontSize: '12px', fontWeight: 600 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#e11d48', fontSize: '12px', fontWeight: 600 }}>
               <FaBook />
               <span>ผลงานตีพิมพ์</span>
             </div>
@@ -579,7 +579,7 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
                     margin: 0,
                     fontSize: '15px',
                     fontWeight: 700,
-                    color: '#16a34a',
+                    color: '#e11d48',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '8px',
@@ -661,7 +661,7 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
                             <td style={{ padding: '10px 12px', textAlign: 'center', color: '#64748b' }}>
                               {p.fiscal_year_be || p.month_year || p.month || '-'}
                             </td>
-                            <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 600, color: '#16a34a' }}>
+                            <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 600, color: '#e11d48' }}>
                               {p.budget ? `${Number(p.budget).toLocaleString('th-TH')} ฿` : '-'}
                             </td>
                           </tr>
