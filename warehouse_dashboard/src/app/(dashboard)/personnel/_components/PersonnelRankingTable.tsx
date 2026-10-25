@@ -70,13 +70,39 @@ export function PersonnelRankingTable({ metrics, departments }: PersonnelRanking
 
     // Sorting
     result.sort((a, b) => {
-      if (sortField === 'total') return b.counts.total - a.counts.total;
-      if (sortField === 'budget') return b.budgets.total - a.budgets.total;
-      if (sortField === 'research') return b.counts.research - a.counts.research;
-      if (sortField === 'academic') return b.counts.academic - a.counts.academic;
-      if (sortField === 'publications') return b.counts.publications - a.counts.publications;
-      if (sortField === 'service') return b.counts.service - a.counts.service;
-      if (sortField === 'ip') return b.counts.ip - a.counts.ip;
+      if (sortField === 'total') return b.counts.total - a.counts.total || b.budgets.total - a.budgets.total;
+      if (sortField === 'budget') return b.budgets.total - a.budgets.total || b.counts.total - a.counts.total;
+      if (sortField === 'research') {
+        return (
+          b.counts.research - a.counts.research ||
+          b.budgets.research - a.budgets.research ||
+          b.counts.total - a.counts.total
+        );
+      }
+      if (sortField === 'academic') {
+        return (
+          b.counts.academic - a.counts.academic ||
+          b.budgets.academic - a.budgets.academic ||
+          b.counts.total - a.counts.total
+        );
+      }
+      if (sortField === 'publications') {
+        return (
+          b.counts.publications - a.counts.publications ||
+          b.pubQuartiles.q1 + b.pubQuartiles.q2 - (a.pubQuartiles.q1 + a.pubQuartiles.q2) ||
+          b.counts.total - a.counts.total
+        );
+      }
+      if (sortField === 'service') {
+        return (
+          b.counts.service - a.counts.service ||
+          b.serviceHours - a.serviceHours ||
+          b.counts.total - a.counts.total
+        );
+      }
+      if (sortField === 'ip') {
+        return b.counts.ip - a.counts.ip || b.counts.total - a.counts.total;
+      }
       return 0;
     });
 
@@ -253,12 +279,12 @@ export function PersonnelRankingTable({ metrics, departments }: PersonnelRanking
         {/* Mission Filter Tabs */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
           {[
-            { id: 'all', label: 'ผลงานทั้งหมด' },
-            { id: 'research', label: 'โครงการวิจัย', icon: <FaFlask /> },
-            { id: 'publications', label: 'ผลงานตีพิมพ์', icon: <FaBook /> },
-            { id: 'ip', label: 'ทรัพย์สินทางปัญญา', icon: <FaCertificate /> },
-            { id: 'academic', label: 'พัฒนาวิชาการ', icon: <FaGraduationCap /> },
-            { id: 'service', label: 'บริการวิชาการ', icon: <FaHandsHelping /> },
+            { id: 'all', label: 'ผลงานทั้งหมด', color: '#00A651' },
+            { id: 'research', label: 'โครงการวิจัย', icon: <FaFlask />, color: '#00A651' },
+            { id: 'publications', label: 'ผลงานตีพิมพ์', icon: <FaBook />, color: '#e11d48' },
+            { id: 'ip', label: 'ทรัพย์สินทางปัญญา', icon: <FaCertificate />, color: '#7c3aed' },
+            { id: 'academic', label: 'พัฒนาวิชาการ', icon: <FaGraduationCap />, color: '#0284c7' },
+            { id: 'service', label: 'บริการวิชาการ', icon: <FaHandsHelping />, color: '#d97706' },
           ].map((tab) => {
             const isSel = activeMissionFilter === tab.id;
             return (
@@ -266,13 +292,14 @@ export function PersonnelRankingTable({ metrics, departments }: PersonnelRanking
                 key={tab.id}
                 onClick={() => {
                   setActiveMissionFilter(tab.id);
+                  setSortField(tab.id === 'all' ? 'total' : (tab.id as SortField));
                   setCurrentPage(1);
                 }}
                 style={{
                   padding: '5px 12px',
                   borderRadius: '6px',
-                  border: isSel ? '1px solid #00A651' : '1px solid #e2e8f0',
-                  backgroundColor: isSel ? '#00A651' : '#ffffff',
+                  border: isSel ? `1px solid ${tab.color}` : '1px solid #e2e8f0',
+                  backgroundColor: isSel ? tab.color : '#ffffff',
                   color: isSel ? '#ffffff' : '#475569',
                   fontSize: '12px',
                   fontWeight: isSel ? 700 : 500,
@@ -280,6 +307,7 @@ export function PersonnelRankingTable({ metrics, departments }: PersonnelRanking
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
+                  boxShadow: isSel ? `0 2px 5px ${tab.color}35` : 'none',
                   transition: 'all 0.15s ease',
                 }}
               >
@@ -316,15 +344,125 @@ export function PersonnelRankingTable({ metrics, departments }: PersonnelRanking
               <th style={{ padding: '12px 10px', textAlign: 'center', width: '50px' }}>อันดับ</th>
               <th style={{ padding: '12px 14px' }}>อาจารย์ / บุคลากร</th>
               <th style={{ padding: '12px 12px' }}>ภาควิชา / หน่วยงาน</th>
-              <th style={{ padding: '12px 10px', textAlign: 'center' }}>วิจัย</th>
-              <th style={{ padding: '12px 10px', textAlign: 'center' }}>ตีพิมพ์</th>
-              <th style={{ padding: '12px 10px', textAlign: 'center' }}>ทรัพย์สินฯ</th>
-              <th style={{ padding: '12px 10px', textAlign: 'center' }}>พัฒนาวิชาการ</th>
-              <th style={{ padding: '12px 10px', textAlign: 'center' }}>บริการวิชาการ</th>
-              <th style={{ padding: '12px 12px', textAlign: 'center', backgroundColor: '#e2e8f0' }}>
-                ผลงานรวม
+              <th
+                onClick={() => {
+                  setSortField('research');
+                  setCurrentPage(1);
+                }}
+                style={{
+                  padding: '12px 10px',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  backgroundColor: sortField === 'research' ? '#e2e8f0' : 'transparent',
+                  color: sortField === 'research' ? '#00A651' : undefined,
+                  userSelect: 'none',
+                }}
+                title="คลิกเพื่อจัดอันดับตามโครงการวิจัย"
+              >
+                วิจัย {sortField === 'research' && '▼'}
               </th>
-              <th style={{ padding: '12px 14px', textAlign: 'right' }}>งบประมาณรวม</th>
+              <th
+                onClick={() => {
+                  setSortField('publications');
+                  setCurrentPage(1);
+                }}
+                style={{
+                  padding: '12px 10px',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  backgroundColor: sortField === 'publications' ? '#e2e8f0' : 'transparent',
+                  color: sortField === 'publications' ? '#e11d48' : undefined,
+                  userSelect: 'none',
+                }}
+                title="คลิกเพื่อจัดอันดับตามผลงานตีพิมพ์"
+              >
+                ตีพิมพ์ {sortField === 'publications' && '▼'}
+              </th>
+              <th
+                onClick={() => {
+                  setSortField('ip');
+                  setCurrentPage(1);
+                }}
+                style={{
+                  padding: '12px 10px',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  backgroundColor: sortField === 'ip' ? '#e2e8f0' : 'transparent',
+                  color: sortField === 'ip' ? '#7c3aed' : undefined,
+                  userSelect: 'none',
+                }}
+                title="คลิกเพื่อจัดอันดับตามทรัพย์สินทางปัญญา"
+              >
+                ทรัพย์สินฯ {sortField === 'ip' && '▼'}
+              </th>
+              <th
+                onClick={() => {
+                  setSortField('academic');
+                  setCurrentPage(1);
+                }}
+                style={{
+                  padding: '12px 10px',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  backgroundColor: sortField === 'academic' ? '#e2e8f0' : 'transparent',
+                  color: sortField === 'academic' ? '#0284c7' : undefined,
+                  userSelect: 'none',
+                }}
+                title="คลิกเพื่อจัดอันดับตามโครงการพัฒนาวิชาการ"
+              >
+                พัฒนาวิชาการ {sortField === 'academic' && '▼'}
+              </th>
+              <th
+                onClick={() => {
+                  setSortField('service');
+                  setCurrentPage(1);
+                }}
+                style={{
+                  padding: '12px 10px',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  backgroundColor: sortField === 'service' ? '#e2e8f0' : 'transparent',
+                  color: sortField === 'service' ? '#d97706' : undefined,
+                  userSelect: 'none',
+                }}
+                title="คลิกเพื่อจัดอันดับตามงานบริการวิชาการ"
+              >
+                บริการวิชาการ {sortField === 'service' && '▼'}
+              </th>
+              <th
+                onClick={() => {
+                  setSortField('total');
+                  setCurrentPage(1);
+                }}
+                style={{
+                  padding: '12px 12px',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  backgroundColor: sortField === 'total' ? '#e2e8f0' : 'transparent',
+                  color: sortField === 'total' ? '#0f172a' : undefined,
+                  userSelect: 'none',
+                }}
+                title="คลิกเพื่อจัดอันดับตามผลงานรวม 5 ด้าน"
+              >
+                ผลงานรวม {sortField === 'total' && '▼'}
+              </th>
+              <th
+                onClick={() => {
+                  setSortField('budget');
+                  setCurrentPage(1);
+                }}
+                style={{
+                  padding: '12px 14px',
+                  textAlign: 'right',
+                  cursor: 'pointer',
+                  backgroundColor: sortField === 'budget' ? '#e2e8f0' : 'transparent',
+                  color: sortField === 'budget' ? '#047857' : undefined,
+                  userSelect: 'none',
+                }}
+                title="คลิกเพื่อจัดอันดับตามงบประมาณรวม"
+              >
+                งบประมาณรวม {sortField === 'budget' && '▼'}
+              </th>
               <th style={{ padding: '12px 14px', textAlign: 'center', width: '110px' }}>การดำเนินการ</th>
             </tr>
           </thead>
@@ -505,7 +643,13 @@ export function PersonnelRankingTable({ metrics, departments }: PersonnelRanking
                     </td>
 
                     {/* Research Count */}
-                    <td style={{ textAlign: 'center', padding: '12px 10px' }}>
+                    <td
+                      style={{
+                        textAlign: 'center',
+                        padding: '12px 10px',
+                        backgroundColor: sortField === 'research' ? '#f0fdf4' : undefined,
+                      }}
+                    >
                       {item.counts.research > 0 ? (
                         <span
                           style={{
@@ -525,7 +669,13 @@ export function PersonnelRankingTable({ metrics, departments }: PersonnelRanking
                     </td>
 
                     {/* Publications Count */}
-                    <td style={{ textAlign: 'center', padding: '12px 10px' }}>
+                    <td
+                      style={{
+                        textAlign: 'center',
+                        padding: '12px 10px',
+                        backgroundColor: sortField === 'publications' ? '#fff1f2' : undefined,
+                      }}
+                    >
                       {item.counts.publications > 0 ? (
                         <span
                           style={{
@@ -551,7 +701,13 @@ export function PersonnelRankingTable({ metrics, departments }: PersonnelRanking
                     </td>
 
                     {/* IP Count */}
-                    <td style={{ textAlign: 'center', padding: '12px 10px' }}>
+                    <td
+                      style={{
+                        textAlign: 'center',
+                        padding: '12px 10px',
+                        backgroundColor: sortField === 'ip' ? '#f5f3ff' : undefined,
+                      }}
+                    >
                       {item.counts.ip > 0 ? (
                         <span
                           style={{
@@ -571,7 +727,13 @@ export function PersonnelRankingTable({ metrics, departments }: PersonnelRanking
                     </td>
 
                     {/* Academic Development Count */}
-                    <td style={{ textAlign: 'center', padding: '12px 10px' }}>
+                    <td
+                      style={{
+                        textAlign: 'center',
+                        padding: '12px 10px',
+                        backgroundColor: sortField === 'academic' ? '#f0f9ff' : undefined,
+                      }}
+                    >
                       {item.counts.academic > 0 ? (
                         <span
                           style={{
@@ -591,7 +753,13 @@ export function PersonnelRankingTable({ metrics, departments }: PersonnelRanking
                     </td>
 
                     {/* Service Count */}
-                    <td style={{ textAlign: 'center', padding: '12px 10px' }}>
+                    <td
+                      style={{
+                        textAlign: 'center',
+                        padding: '12px 10px',
+                        backgroundColor: sortField === 'service' ? '#fffbeb' : undefined,
+                      }}
+                    >
                       {item.counts.service > 0 ? (
                         <span
                           style={{
@@ -616,7 +784,7 @@ export function PersonnelRankingTable({ metrics, departments }: PersonnelRanking
                       style={{
                         textAlign: 'center',
                         padding: '12px 12px',
-                        backgroundColor: '#f8fafc',
+                        backgroundColor: sortField === 'total' ? '#f8fafc' : undefined,
                       }}
                     >
                       <span
@@ -631,7 +799,13 @@ export function PersonnelRankingTable({ metrics, departments }: PersonnelRanking
                     </td>
 
                     {/* Total Budget */}
-                    <td style={{ textAlign: 'right', padding: '12px 14px' }}>
+                    <td
+                      style={{
+                        textAlign: 'right',
+                        padding: '12px 14px',
+                        backgroundColor: sortField === 'budget' ? '#f0fdf4' : undefined,
+                      }}
+                    >
                       {item.budgets.total > 0 ? (
                         <div>
                           <span style={{ fontWeight: 700, color: '#047857', fontSize: '13px' }}>
