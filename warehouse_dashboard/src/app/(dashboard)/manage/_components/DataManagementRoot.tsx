@@ -1467,6 +1467,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
         onClose={() => setIsImportModalOpen(false)}
         activeCategory={activeCategory}
         onCommitImport={handleCommitImport}
+        existingDatasets={datasets}
       />
 
       <ConfirmActionModal

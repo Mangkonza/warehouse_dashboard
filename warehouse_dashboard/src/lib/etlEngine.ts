@@ -338,12 +338,89 @@ export function isIgnorableExcelRow(
 }
 
 /**
+ * ตรวจสอบว่าข้อมูลแถวใหม่ซ้ำกับข้อมูลที่มีอยู่ในฐานข้อมูลเดิมหรือไม่
+ */
+export function findExistingDuplicate(
+  incoming: Record<string, any>,
+  existingList: Record<string, any>[],
+  categoryKey: CategoryKey
+): Record<string, any> | null {
+  if (!existingList || existingList.length === 0) return null;
+  const conf = CATEGORIES_CONFIG[categoryKey];
+
+  const incName = String(incoming[conf.nameKey] || incoming.name || incoming.title || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[\s\r\n]/g, '');
+
+  const incReg = String(incoming.reg_info || incoming.req_info || incoming.patent_no || incoming.id || '')
+    .trim()
+    .toLowerCase();
+
+  const incDoi = String(incoming.doi || '').trim().toLowerCase();
+
+  return (
+    existingList.find((ex) => {
+      // 1. Match by registration / request number / patent number (IP)
+      if (incReg && incReg !== '-' && incReg !== 'nan') {
+        const exReg = String(ex.reg_info || ex.req_info || ex.patent_no || ex.id || '')
+          .trim()
+          .toLowerCase();
+        if (exReg && exReg === incReg) return true;
+      }
+
+      // 2. Match by DOI (Publications)
+      if (incDoi && incDoi !== '-' && incDoi !== 'nan') {
+        const exDoi = String(ex.doi || '').trim().toLowerCase();
+        if (exDoi && exDoi === incDoi) return true;
+      }
+
+      // 3. Match by Project ID (Research, Academic, Service)
+      if (incoming.id && String(incoming.id).trim().length >= 3) {
+        const exId = String(ex.id || '').trim().toLowerCase();
+        if (exId === String(incoming.id).trim().toLowerCase()) return true;
+      }
+
+      // 4. Match by exact normalized title + person
+      if (incName && incName.length >= 4) {
+        const exName = String(ex[conf.nameKey] || ex.name || ex.title || '')
+          .trim()
+          .toLowerCase()
+          .replace(/[\s\r\n]/g, '');
+        if (exName === incName) {
+          const incPerson = String(conf.personKey ? incoming[conf.personKey] : '')
+            .trim()
+            .toLowerCase();
+          const exPerson = String(
+            conf.personKey ? ex[conf.personKey] : ex.person || ex.head || ex.creator || ex.author || ''
+          )
+            .trim()
+            .toLowerCase();
+          if (
+            !incPerson ||
+            !exPerson ||
+            incPerson === exPerson ||
+            exPerson.includes(incPerson) ||
+            incPerson.includes(exPerson)
+          ) {
+            return true;
+          }
+        }
+      }
+
+      return false;
+    }) || null
+  );
+}
+
+/**
  * อ่านไฟล์ Excel (ArrayBuffer) และประมวลผล Sheet ทั้งหมด
  */
 export function parseExcelFile(
   buffer: ArrayBuffer,
   fileName: string,
-  targetCategory: CategoryKey
+  targetCategory: CategoryKey,
+  existingRecordsOrDatasets?: Record<string, any>[] | Partial<Record<CategoryKey, Record<string, any>[]>>
 ): { mode: 'single' | 'master'; sheets: SheetParseResult[] } {
   const workbook = XLSX.read(buffer, { type: 'array' });
   const sheetNames = workbook.SheetNames;
@@ -360,6 +437,17 @@ export function parseExcelFile(
 
     // ตรวจจับหมวดหมู่
     const cat = isMultiSheet ? detectCategoryFromSheetName(sName, targetCategory) : targetCategory;
+
+    // ดึง existingRecords สำหรับหมวดหมู่นี้
+    let existingRecords: Record<string, any>[] = [];
+    if (Array.isArray(existingRecordsOrDatasets)) {
+      existingRecords = existingRecordsOrDatasets;
+    } else if (existingRecordsOrDatasets && typeof existingRecordsOrDatasets === 'object') {
+      const records = (existingRecordsOrDatasets as Record<string, Record<string, any>[]>)[cat];
+      if (Array.isArray(records)) {
+        existingRecords = records;
+      }
+    }
 
     const parsedRows: ParsedRowResult[] = [];
     let validCount = 0;
@@ -409,6 +497,24 @@ export function parseExcelFile(
           }
         } else {
           seenSignatures.set(sig, parsed.rowNumber);
+        }
+      }
+
+      // ตรวจสอบข้อมูลซ้ำกับฐานข้อมูลเดิม (Database Cross-check)
+      if (existingRecords && existingRecords.length > 0) {
+        const dbMatch = findExistingDuplicate(parsed.data, existingRecords, cat);
+        if (dbMatch) {
+          const matchLabel = dbMatch[conf.nameKey] || dbMatch.name || dbMatch.title || 'ข้อมูลเดิม';
+          const matchCode = dbMatch.reg_info || dbMatch.id || dbMatch.doi || '';
+          parsed.issues.push({
+            field: conf.nameKey,
+            level: 'warning',
+            message: `มีข้อมูลนี้อยู่ในระบบแล้ว: "${matchLabel}" ${matchCode ? `(${matchCode})` : ''}`,
+          });
+          parsed.isExistingDuplicate = true;
+          if (parsed.status === 'valid') {
+            parsed.status = 'warning';
+          }
         }
       }
 

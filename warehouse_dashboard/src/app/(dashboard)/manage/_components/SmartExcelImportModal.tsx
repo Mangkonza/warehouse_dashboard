@@ -32,6 +32,8 @@ interface SmartExcelImportModalProps {
     mode: 'append' | 'overwrite',
     targetCategory: CategoryKey
   ) => void;
+  existingDatasets?: Partial<Record<CategoryKey, Record<string, any>[]>>;
+  existingRecords?: Record<string, any>[];
 }
 
 export const SmartExcelImportModal: React.FC<SmartExcelImportModalProps> = ({
@@ -39,12 +41,15 @@ export const SmartExcelImportModal: React.FC<SmartExcelImportModalProps> = ({
   onClose,
   activeCategory,
   onCommitImport,
+  existingDatasets,
+  existingRecords,
 }) => {
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [sheets, setSheets] = useState<SheetParseResult[]>([]);
   const [activeSheetIndex, setActiveSheetIndex] = useState(0);
   const [importMode, setImportMode] = useState<'append' | 'overwrite'>('append');
+  const [skipExistingDuplicates, setSkipExistingDuplicates] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -81,7 +86,8 @@ export const SmartExcelImportModal: React.FC<SmartExcelImportModalProps> = ({
 
     try {
       const buffer = await selectedFile.arrayBuffer();
-      const result = parseExcelFile(buffer, selectedFile.name, activeCategory);
+      const recordsToCheck = existingDatasets || existingRecords;
+      const result = parseExcelFile(buffer, selectedFile.name, activeCategory, recordsToCheck);
       setSheets(result.sheets);
       setActiveSheetIndex(0);
       setExpandedRows(new Set());
@@ -171,12 +177,17 @@ export const SmartExcelImportModal: React.FC<SmartExcelImportModalProps> = ({
     if (!currentSheet) return;
 
     // กรองเฉพาะแถวที่พร้อมนำเข้า (valid หรือ warning) ไม่เอาแถว error
-    const usableRows = currentSheet.rows
-      .filter((r) => r.status !== 'error')
-      .map((r) => r.data);
+    let usableList = currentSheet.rows.filter((r) => r.status !== 'error');
+
+    // ถ้าอยู่ในโหมด append และเปิดตัวเลือกข้ามข้อมูลที่มีอยู่ในระบบแล้ว
+    if (importMode === 'append' && skipExistingDuplicates) {
+      usableList = usableList.filter((r) => !r.isExistingDuplicate);
+    }
+
+    const usableRows = usableList.map((r) => r.data);
 
     if (usableRows.length === 0) {
-      alert('ไม่มีแถวข้อมูลที่สมบูรณ์พร้อมนำเข้า กรุณาแก้ไขแถวที่มีข้อผิดพลาดก่อนบันทึก');
+      alert('ไม่มีแถวข้อมูลใหม่พร้อมนำเข้า (รายการทั้งหมดอาจซ้ำกับฐานข้อมูลเดิม หรือมีข้อผิดพลาด)');
       return;
     }
 
@@ -213,9 +224,19 @@ export const SmartExcelImportModal: React.FC<SmartExcelImportModalProps> = ({
     });
   }, [currentSheet, statusFilter, previewSearch]);
 
-  const usableCount = currentSheet
-    ? currentSheet.rows.filter((r) => r.status !== 'error').length
+  const existingDupCount = currentSheet
+    ? currentSheet.rows.filter((r) => r.isExistingDuplicate).length
     : 0;
+
+  const willImportCount = currentSheet
+    ? currentSheet.rows.filter((r) => {
+        if (r.status === 'error') return false;
+        if (importMode === 'append' && skipExistingDuplicates && r.isExistingDuplicate) return false;
+        return true;
+      }).length
+    : 0;
+
+  const usableCount = willImportCount;
 
   if (!isOpen) return null;
 
@@ -1140,7 +1161,7 @@ export const SmartExcelImportModal: React.FC<SmartExcelImportModalProps> = ({
                 </div>
               )}
 
-              {/* STEP 5: Mode Selection (Append vs Overwrite) */}
+              {/* STEP 5: Mode Selection (Append vs Overwrite) & Deduplication */}
               <div
                 style={{
                   padding: '14px 18px',
@@ -1160,7 +1181,7 @@ export const SmartExcelImportModal: React.FC<SmartExcelImportModalProps> = ({
                   </span>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
                   <label
                     style={{
                       display: 'flex',
@@ -1206,6 +1227,36 @@ export const SmartExcelImportModal: React.FC<SmartExcelImportModalProps> = ({
                     </span>
                   </label>
                 </div>
+
+                {importMode === 'append' && existingDupCount > 0 && (
+                  <div
+                    style={{
+                      width: '100%',
+                      marginTop: '4px',
+                      padding: '8px 12px',
+                      backgroundColor: '#fffbeb',
+                      border: '1px solid #fde68a',
+                      borderRadius: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      id="skipExistingDuplicates"
+                      checked={skipExistingDuplicates}
+                      onChange={(e) => setSkipExistingDuplicates(e.target.checked)}
+                      style={{ cursor: 'pointer', width: '16px', height: '16px', accentColor: '#00A651' }}
+                    />
+                    <label
+                      htmlFor="skipExistingDuplicates"
+                      style={{ cursor: 'pointer', fontSize: '12.5px', color: '#92400e', fontWeight: 600 }}
+                    >
+                      ข้ามรายการที่มีอยู่ในระบบแล้วอัตโนมัติ ({existingDupCount} รายการ เพื่อป้องกันข้อมูลซ้ำซ้อน)
+                    </label>
+                  </div>
+                )}
               </div>
             </>
           )}
@@ -1244,6 +1295,11 @@ export const SmartExcelImportModal: React.FC<SmartExcelImportModalProps> = ({
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <span style={{ fontSize: '13px', color: '#64748b' }}>
                 พร้อมบันทึก: <strong style={{ color: '#00A651' }}>{usableCount}</strong> รายการ
+                {importMode === 'append' && skipExistingDuplicates && existingDupCount > 0 && (
+                  <span style={{ color: '#b45309', marginLeft: '6px', fontSize: '12px', fontWeight: 600 }}>
+                    (ข้ามข้อมูลซ้ำในระบบ {existingDupCount} รายการ)
+                  </span>
+                )}
               </span>
               <button
                 type="button"

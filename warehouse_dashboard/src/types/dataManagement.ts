@@ -116,6 +116,7 @@ export interface ParsedRowResult {
   status: RowValidationStatus;
   issues: ValidationIssue[];
   matchedPerson?: PersonnelRecord;
+  isExistingDuplicate?: boolean;
 }
 
 export interface SheetParseResult {
