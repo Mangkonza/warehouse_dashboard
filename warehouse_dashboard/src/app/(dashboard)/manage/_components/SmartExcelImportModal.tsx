@@ -19,6 +19,8 @@ import {
   FaInfoCircle,
   FaCheck,
   FaListUl,
+  FaChevronDown,
+  FaChevronUp,
 } from 'react-icons/fa';
 
 interface SmartExcelImportModalProps {
@@ -54,6 +56,18 @@ export const SmartExcelImportModal: React.FC<SmartExcelImportModalProps> = ({
   const [editingRowIndex, setEditingRowIndex] = useState<number | null>(null);
   const [inlineNotice, setInlineNotice] = useState<string | null>(null);
 
+  // Expandable row state for inspecting full details
+  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
+
+  const toggleExpandRow = (rowNum: number) => {
+    setExpandedRows((prev) => {
+      const next = new Set(prev);
+      if (next.has(rowNum)) next.delete(rowNum);
+      else next.add(rowNum);
+      return next;
+    });
+  };
+
   if (!isOpen) return null;
 
   const currentCategoryConfig = CATEGORIES_CONFIG[activeCategory];
@@ -65,12 +79,14 @@ export const SmartExcelImportModal: React.FC<SmartExcelImportModalProps> = ({
     setPreviewSearch('');
     setStatusFilter('all');
     setInlineNotice(null);
+    setExpandedRows(new Set());
 
     try {
       const buffer = await selectedFile.arrayBuffer();
       const result = parseExcelFile(buffer, selectedFile.name, activeCategory);
       setSheets(result.sheets);
       setActiveSheetIndex(0);
+      setExpandedRows(new Set());
     } catch (err) {
       console.error('Error parsing Excel:', err);
       alert('เกิดข้อผิดพลาดในการอ่านไฟล์ Excel กรุณาตรวจสอบรูปแบบไฟล์');
@@ -222,7 +238,7 @@ export const SmartExcelImportModal: React.FC<SmartExcelImportModalProps> = ({
           backgroundColor: '#ffffff',
           borderRadius: '16px',
           width: '100%',
-          maxWidth: '1060px',
+          maxWidth: '1160px',
           maxHeight: '92vh',
           display: 'flex',
           flexDirection: 'column',
@@ -544,6 +560,7 @@ export const SmartExcelImportModal: React.FC<SmartExcelImportModalProps> = ({
                             setActiveSheetIndex(idx);
                             setPreviewSearch('');
                             setStatusFilter('all');
+                            setExpandedRows(new Set());
                           }}
                           style={{
                             padding: '6px 14px',
@@ -755,7 +772,7 @@ export const SmartExcelImportModal: React.FC<SmartExcelImportModalProps> = ({
                   </div>
 
                   {/* Table */}
-                  <div style={{ maxHeight: '280px', overflowY: 'auto' }}>
+                  <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px' }}>
                       <thead
                         style={{
@@ -768,19 +785,18 @@ export const SmartExcelImportModal: React.FC<SmartExcelImportModalProps> = ({
                         }}
                       >
                         <tr>
-                          <th style={{ width: '50px', padding: '10px 8px', textAlign: 'center', fontWeight: 600 }}>แถว</th>
-                          <th style={{ width: '80px', padding: '10px 8px', textAlign: 'center', fontWeight: 600 }}>สถานะ</th>
-                          <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600 }}>ชื่อรายการ / โครงการ</th>
-                          <th style={{ width: '180px', padding: '10px 12px', textAlign: 'left', fontWeight: 600 }}>ผู้รับผิดชอบ / สังกัด</th>
-                          <th style={{ width: '120px', padding: '10px 12px', textAlign: 'right', fontWeight: 600 }}>งบประมาณ</th>
-                          <th style={{ width: '220px', padding: '10px 12px', textAlign: 'left', fontWeight: 600 }}>รายละเอียดการตรวจสอบ</th>
-                          <th style={{ width: '110px', padding: '10px 8px', textAlign: 'center', fontWeight: 600 }}>จัดการ</th>
+                          <th style={{ width: '48px', padding: '11px 6px', textAlign: 'center', fontWeight: 600 }}>แถว</th>
+                          <th style={{ width: '80px', padding: '11px 6px', textAlign: 'center', fontWeight: 600 }}>สถานะ</th>
+                          <th style={{ padding: '11px 12px', textAlign: 'left', fontWeight: 600 }}>ชื่อรายการ / โครงการ &amp; ข้อมูลจำเพาะ</th>
+                          <th style={{ width: '220px', padding: '11px 12px', textAlign: 'left', fontWeight: 600 }}>อาจารย์ / ผู้รับผิดชอบ</th>
+                          <th style={{ width: '230px', padding: '11px 12px', textAlign: 'left', fontWeight: 600 }}>ผลการตรวจสอบ &amp; สังเกต</th>
+                          <th style={{ width: '135px', padding: '11px 8px', textAlign: 'center', fontWeight: 600 }}>จัดการ</th>
                         </tr>
                       </thead>
                       <tbody>
                         {filteredRows.length === 0 ? (
                           <tr>
-                            <td colSpan={7} style={{ textAlign: 'center', padding: '32px', color: '#94a3b8' }}>
+                            <td colSpan={6} style={{ textAlign: 'center', padding: '36px', color: '#94a3b8' }}>
                               ไม่พบแถวข้อมูลที่ตรงกับเงื่อนไขการค้นหา
                             </td>
                           </tr>
@@ -791,177 +807,386 @@ export const SmartExcelImportModal: React.FC<SmartExcelImportModalProps> = ({
                             const personVal = conf.personKey ? r.data[conf.personKey] : null;
                             const deptVal = conf.departmentKey ? r.data[conf.departmentKey] : null;
                             const budgetVal = r.data.budget !== undefined ? r.data.budget : r.data.support_amount;
+                            const isExpanded = expandedRows.has(r.rowNumber);
 
                             // Find original index in currentSheet.rows
                             const originalIdx = currentSheet.rows.findIndex((item) => item.rowNumber === r.rowNumber);
 
                             return (
-                              <tr
-                                key={r.rowNumber}
-                                style={{
-                                  borderBottom: '1px solid #f1f5f9',
-                                  backgroundColor: r.status === 'error' ? '#fef2f233' : '#ffffff',
-                                  transition: 'background-color 0.1s ease',
-                                }}
-                              >
-                                <td style={{ textAlign: 'center', padding: '10px 8px', color: '#64748b', fontWeight: 500 }}>
-                                  {r.rowNumber}
-                                </td>
-
-                                {/* Status */}
-                                <td style={{ textAlign: 'center', padding: '10px 8px' }}>
-                                  {r.status === 'valid' ? (
-                                    <span
-                                      style={{
-                                        backgroundColor: '#dcfce7',
-                                        color: '#166534',
-                                        padding: '2px 8px',
-                                        borderRadius: '6px',
-                                        fontSize: '11px',
-                                        fontWeight: 600,
-                                        display: 'inline-block',
-                                      }}
-                                    >
-                                      ผ่าน
-                                    </span>
-                                  ) : r.status === 'warning' ? (
-                                    <span
-                                      style={{
-                                        backgroundColor: '#fef3c7',
-                                        color: '#b45309',
-                                        padding: '2px 8px',
-                                        borderRadius: '6px',
-                                        fontSize: '11px',
-                                        fontWeight: 600,
-                                        display: 'inline-block',
-                                      }}
-                                    >
-                                      เตือน
-                                    </span>
-                                  ) : (
-                                    <span
-                                      style={{
-                                        backgroundColor: '#fee2e2',
-                                        color: '#dc2626',
-                                        padding: '2px 8px',
-                                        borderRadius: '6px',
-                                        fontSize: '11px',
-                                        fontWeight: 600,
-                                        display: 'inline-block',
-                                      }}
-                                    >
-                                      ผิดพลาด
-                                    </span>
-                                  )}
-                                </td>
-
-                                {/* Name */}
-                                <td style={{ padding: '10px 12px', fontWeight: 600, color: '#1e293b', lineHeight: 1.35 }}>
-                                  <div>{nameVal}</div>
-                                  {r.data.id && (
-                                    <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 400, marginTop: '2px' }}>
-                                      รหัส: {r.data.id}
-                                    </div>
-                                  )}
-                                </td>
-
-                                {/* Person & Dept */}
-                                <td style={{ padding: '10px 12px', color: '#475569' }}>
-                                  <div style={{ fontWeight: 500, color: '#1e293b' }}>{personVal || '-'}</div>
-                                  {r.matchedPerson && (
-                                    <div style={{ fontSize: '11px', color: '#15803d', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px' }}>
-                                      <FaCheckCircle style={{ fontSize: '10px' }} />
-                                      <span>ตรงกับฐานข้อมูลบุคลากร</span>
-                                    </div>
-                                  )}
-                                  {deptVal && (
-                                    <div style={{ marginTop: '3px' }}>
-                                      <DepartmentBadge value={deptVal} />
-                                    </div>
-                                  )}
-                                </td>
-
-                                {/* Budget */}
-                                <td
+                              <React.Fragment key={r.rowNumber}>
+                                <tr
                                   style={{
-                                    padding: '10px 12px',
-                                    textAlign: 'right',
-                                    fontWeight: 600,
-                                    color: '#0f172a',
-                                    fontVariantNumeric: 'tabular-nums',
+                                    borderBottom: isExpanded ? 'none' : '1px solid #f1f5f9',
+                                    backgroundColor: isExpanded ? '#f0fdf4' : r.status === 'error' ? '#fef2f233' : '#ffffff',
+                                    transition: 'background-color 0.15s ease',
                                   }}
                                 >
-                                  {typeof budgetVal === 'number' && budgetVal > 0
-                                    ? `${budgetVal.toLocaleString('th-TH')} ฿`
-                                    : '-'}
-                                </td>
+                                  {/* Row Number */}
+                                  <td style={{ textAlign: 'center', padding: '10px 6px', color: '#64748b', fontWeight: 600, fontSize: '12px' }}>
+                                    {r.rowNumber}
+                                  </td>
 
-                                {/* Issues */}
-                                <td style={{ padding: '10px 12px', fontSize: '11.5px', color: '#64748b' }}>
-                                  {r.issues.length > 0 ? (
-                                    r.issues.map((iss, iIdx) => (
-                                      <div
-                                        key={iIdx}
+                                  {/* Status */}
+                                  <td style={{ textAlign: 'center', padding: '10px 6px' }}>
+                                    {r.status === 'valid' ? (
+                                      <span
                                         style={{
-                                          color: iss.level === 'error' ? '#dc2626' : '#d97706',
-                                          lineHeight: 1.35,
+                                          backgroundColor: '#dcfce7',
+                                          color: '#166534',
+                                          padding: '2.5px 8px',
+                                          borderRadius: '6px',
+                                          fontSize: '11px',
+                                          fontWeight: 700,
+                                          display: 'inline-block',
                                         }}
                                       >
-                                        • {iss.message}
+                                        ผ่าน
+                                      </span>
+                                    ) : r.status === 'warning' ? (
+                                      <span
+                                        style={{
+                                          backgroundColor: '#fef3c7',
+                                          color: '#b45309',
+                                          padding: '2.5px 8px',
+                                          borderRadius: '6px',
+                                          fontSize: '11px',
+                                          fontWeight: 700,
+                                          display: 'inline-block',
+                                        }}
+                                      >
+                                        เตือน
+                                      </span>
+                                    ) : (
+                                      <span
+                                        style={{
+                                          backgroundColor: '#fee2e2',
+                                          color: '#dc2626',
+                                          padding: '2.5px 8px',
+                                          borderRadius: '6px',
+                                          fontSize: '11px',
+                                          fontWeight: 700,
+                                          display: 'inline-block',
+                                        }}
+                                      >
+                                        ผิดพลาด
+                                      </span>
+                                    )}
+                                  </td>
+
+                                  {/* Title & Metadata Specs */}
+                                  <td style={{ padding: '10px 12px' }}>
+                                    <div style={{ fontWeight: 600, color: '#0f172a', lineHeight: 1.4, fontSize: '13px' }}>
+                                      {nameVal}
+                                    </div>
+
+                                    {/* Category metadata pills */}
+                                    <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '6px', marginTop: '5px' }}>
+                                      {/* Type badge (สิทธิบัตร / อนุสิทธิบัตร / ลิขสิทธิ์ / วิจัย) */}
+                                      {r.data.type && (
+                                        <span
+                                          style={{
+                                            padding: '1.5px 7px',
+                                            borderRadius: '4px',
+                                            backgroundColor: '#f0f9ff',
+                                            color: '#0284c7',
+                                            border: '1px solid #bae6fd',
+                                            fontSize: '11px',
+                                            fontWeight: 600,
+                                          }}
+                                        >
+                                          {r.data.type}
+                                        </span>
+                                      )}
+
+                                      {/* Patent / Registration No */}
+                                      {r.data.reg_info && (
+                                        <span style={{ fontSize: '11px', color: '#475569', backgroundColor: '#f1f5f9', padding: '1.5px 6px', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
+                                          ทะเบียน: <strong>{r.data.reg_info}</strong>
+                                        </span>
+                                      )}
+
+                                      {/* Request No */}
+                                      {r.data.req_info && !r.data.reg_info && (
+                                        <span style={{ fontSize: '11px', color: '#64748b', backgroundColor: '#f8fafc', padding: '1.5px 6px', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
+                                          คำขอ: <strong>{r.data.req_info}</strong>
+                                        </span>
+                                      )}
+
+                                      {/* Project Code */}
+                                      {r.data.id && (
+                                        <span style={{ fontSize: '11px', color: '#475569', backgroundColor: '#f1f5f9', padding: '1.5px 6px', borderRadius: '4px' }}>
+                                          รหัส: <strong>{r.data.id}</strong>
+                                        </span>
+                                      )}
+
+                                      {/* Fiscal Year / Date */}
+                                      {(r.data.fiscal_year_be || r.data.year || r.data.month) && (
+                                        <span style={{ fontSize: '11px', color: '#64748b' }}>
+                                          ปี: {r.data.fiscal_year_be || r.data.year || r.data.month}
+                                        </span>
+                                      )}
+
+                                      {/* Budget */}
+                                      {typeof budgetVal === 'number' && budgetVal > 0 && (
+                                        <span style={{ fontSize: '11px', color: '#16a34a', fontWeight: 600 }}>
+                                          งบ: {budgetVal.toLocaleString('th-TH')} ฿
+                                        </span>
+                                      )}
+
+                                      {/* Journal / Level */}
+                                      {r.data.journal && (
+                                        <span style={{ fontSize: '11px', color: '#64748b' }}>
+                                          {r.data.journal} {r.data.level ? `(${r.data.level})` : ''}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </td>
+
+                                  {/* Person & Dept */}
+                                  <td style={{ padding: '10px 12px', color: '#475569' }}>
+                                    <div style={{ fontWeight: 600, color: '#1e293b', fontSize: '12.5px' }}>
+                                      {personVal || '-'}
+                                    </div>
+                                    {r.matchedPerson ? (
+                                      <div style={{ fontSize: '11px', color: '#15803d', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '3px' }}>
+                                        <FaCheckCircle style={{ fontSize: '10px' }} />
+                                        <span>ตรงกับฐานข้อมูลบุคลากร</span>
                                       </div>
-                                    ))
-                                  ) : (
-                                    <span style={{ color: '#15803d' }}>✓ ข้อมูลครบถ้วนสมบูรณ์</span>
-                                  )}
-                                </td>
+                                    ) : personVal && personVal !== '-' ? (
+                                      <div style={{ fontSize: '11px', color: '#b45309', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '3px' }}>
+                                        <FaExclamationTriangle style={{ fontSize: '10px' }} />
+                                        <span>ยังไม่พบใน Master Data</span>
+                                      </div>
+                                    ) : null}
+                                    {deptVal && (
+                                      <div style={{ marginTop: '4px' }}>
+                                        <DepartmentBadge value={deptVal} />
+                                      </div>
+                                    )}
+                                  </td>
 
-                                {/* Actions: Edit & Remove */}
-                                <td style={{ padding: '10px 8px', textAlign: 'center' }}>
-                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                                    <button
-                                      type="button"
-                                      onClick={() => setEditingRowIndex(originalIdx)}
-                                      title="แก้ไขข้อมูลแถวนี้ก่อนนำเข้า"
-                                      style={{
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                        gap: '4px',
-                                        padding: '4px 8px',
-                                        borderRadius: '6px',
-                                        border: '1px solid #cbd5e1',
-                                        backgroundColor: '#ffffff',
-                                        color: '#00A651',
-                                        fontSize: '11px',
-                                        fontWeight: 600,
-                                        cursor: 'pointer',
-                                      }}
-                                    >
-                                      <FaEdit style={{ fontSize: '10px' }} />
-                                      <span>แก้ไข</span>
-                                    </button>
+                                  {/* Issues */}
+                                  <td style={{ padding: '10px 12px', fontSize: '11.5px', color: '#64748b' }}>
+                                    {r.issues.length > 0 ? (
+                                      r.issues.map((iss, iIdx) => (
+                                        <div
+                                          key={iIdx}
+                                          style={{
+                                            color: iss.level === 'error' ? '#dc2626' : '#d97706',
+                                            lineHeight: 1.35,
+                                            fontWeight: 500,
+                                          }}
+                                        >
+                                          • {iss.message}
+                                        </div>
+                                      ))
+                                    ) : (
+                                      <span style={{ color: '#15803d', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                        <FaCheckCircle style={{ fontSize: '11px' }} />
+                                        <span>ข้อมูลครบถ้วนสมบูรณ์</span>
+                                      </span>
+                                    )}
+                                  </td>
 
-                                    <button
-                                      type="button"
-                                      onClick={() => handleRemoveRow(originalIdx)}
-                                      title="ตัดแถวนี้ออกจากการนำเข้า"
-                                      style={{
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        padding: '4px 6px',
-                                        borderRadius: '6px',
-                                        border: '1px solid #fecaca',
-                                        backgroundColor: '#fff5f5',
-                                        color: '#dc2626',
-                                        fontSize: '11px',
-                                        cursor: 'pointer',
-                                      }}
-                                    >
-                                      <FaTrashAlt style={{ fontSize: '10px' }} />
-                                    </button>
-                                  </div>
-                                </td>
-                              </tr>
+                                  {/* Actions: Edit, Toggle Details, Remove */}
+                                  <td style={{ padding: '10px 8px', textAlign: 'center' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                                      {/* Edit Button */}
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setEditingRowIndex(originalIdx);
+                                        }}
+                                        title="แก้ไขข้อมูลแถวนี้ก่อนนำเข้า"
+                                        style={{
+                                          display: 'inline-flex',
+                                          alignItems: 'center',
+                                          gap: '4px',
+                                          padding: '5px 9px',
+                                          borderRadius: '6px',
+                                          border: '1px solid #86efac',
+                                          backgroundColor: '#f0fdf4',
+                                          color: '#15803d',
+                                          fontSize: '11.5px',
+                                          fontWeight: 600,
+                                          cursor: 'pointer',
+                                          transition: 'all 0.15s ease',
+                                        }}
+                                      >
+                                        <FaEdit style={{ fontSize: '11px' }} />
+                                        <span>แก้ไข</span>
+                                      </button>
+
+                                      {/* Toggle Expand / Full Details Button */}
+                                      <button
+                                        type="button"
+                                        onClick={() => toggleExpandRow(r.rowNumber)}
+                                        title={isExpanded ? 'ซ่อนรายละเอียด' : 'ดูข้อมูลทุกฟิลด์ที่สกัดได้จาก Excel'}
+                                        style={{
+                                          display: 'inline-flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
+                                          padding: '5px 7px',
+                                          borderRadius: '6px',
+                                          border: '1px solid #cbd5e1',
+                                          backgroundColor: isExpanded ? '#e2e8f0' : '#ffffff',
+                                          color: '#475569',
+                                          fontSize: '11px',
+                                          cursor: 'pointer',
+                                          transition: 'all 0.15s ease',
+                                        }}
+                                      >
+                                        {isExpanded ? <FaChevronUp style={{ fontSize: '10px' }} /> : <FaChevronDown style={{ fontSize: '10px' }} />}
+                                      </button>
+
+                                      {/* Remove Row Button */}
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleRemoveRow(originalIdx);
+                                        }}
+                                        title="ตัดแถวนี้ออกจากการนำเข้า"
+                                        style={{
+                                          display: 'inline-flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
+                                          padding: '5px 7px',
+                                          borderRadius: '6px',
+                                          border: '1px solid #fecaca',
+                                          backgroundColor: '#fff5f5',
+                                          color: '#dc2626',
+                                          fontSize: '11px',
+                                          cursor: 'pointer',
+                                          transition: 'all 0.15s ease',
+                                        }}
+                                      >
+                                        <FaTrashAlt style={{ fontSize: '10px' }} />
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+
+                                {/* Expanded Full Detail Row */}
+                                {isExpanded && (
+                                  <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
+                                    <td colSpan={6} style={{ padding: '14px 20px' }}>
+                                      <div
+                                        style={{
+                                          backgroundColor: '#ffffff',
+                                          borderRadius: '10px',
+                                          border: '1px solid #cbd5e1',
+                                          padding: '14px 18px',
+                                          boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                                        }}
+                                      >
+                                        {/* Drawer Header */}
+                                        <div
+                                          style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'space-between',
+                                            marginBottom: '12px',
+                                            paddingBottom: '8px',
+                                            borderBottom: '1px solid #f1f5f9',
+                                          }}
+                                        >
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <span
+                                              style={{
+                                                width: '22px',
+                                                height: '22px',
+                                                borderRadius: '50%',
+                                                backgroundColor: '#00A651',
+                                                color: '#ffffff',
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                fontSize: '11px',
+                                                fontWeight: 700,
+                                              }}
+                                            >
+                                              {r.rowNumber}
+                                            </span>
+                                            <span style={{ fontWeight: 700, fontSize: '13px', color: '#1e293b' }}>
+                                              รายละเอียดข้อมูลทั้งหมดที่สกัดได้จาก Excel (แถวที่ {r.rowNumber})
+                                            </span>
+                                          </div>
+
+                                          <button
+                                            type="button"
+                                            onClick={() => setEditingRowIndex(originalIdx)}
+                                            style={{
+                                              display: 'inline-flex',
+                                              alignItems: 'center',
+                                              gap: '6px',
+                                              padding: '5px 12px',
+                                              borderRadius: '6px',
+                                              backgroundColor: '#00A651',
+                                              color: '#ffffff',
+                                              fontSize: '12px',
+                                              fontWeight: 600,
+                                              border: 'none',
+                                              cursor: 'pointer',
+                                              boxShadow: '0 2px 4px rgba(0,166,81,0.2)',
+                                            }}
+                                          >
+                                            <FaEdit style={{ fontSize: '11px' }} />
+                                            <span>แก้ไขข้อมูลแถวนี้ (Smart Edit)</span>
+                                          </button>
+                                        </div>
+
+                                        {/* Key-Value Grid */}
+                                        <div
+                                          style={{
+                                            display: 'grid',
+                                            gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))',
+                                            gap: '10px',
+                                            fontSize: '12px',
+                                          }}
+                                        >
+                                          {Object.entries(r.data).map(([k, v]) => {
+                                            if (k === '_id' || v === undefined || v === null || v === '') return null;
+                                            const colDef = conf.columns.find((c) => c.key === k);
+                                            const label = colDef?.label || k;
+
+                                            return (
+                                              <div
+                                                key={k}
+                                                style={{
+                                                  backgroundColor: '#f8fafc',
+                                                  padding: '8px 12px',
+                                                  borderRadius: '6px',
+                                                  border: '1px solid #e2e8f0',
+                                                }}
+                                              >
+                                                <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>
+                                                  {label}
+                                                </div>
+                                                <div
+                                                  style={{
+                                                    color: '#0f172a',
+                                                    fontWeight: 600,
+                                                    marginTop: '2px',
+                                                    wordBreak: 'break-word',
+                                                  }}
+                                                >
+                                                  {typeof v === 'number' && (k.toLowerCase().includes('budget') || k.toLowerCase().includes('amount'))
+                                                    ? `${v.toLocaleString('th-TH')} ฿`
+                                                    : typeof v === 'object'
+                                                    ? JSON.stringify(v)
+                                                    : String(v)}
+                                                </div>
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                )}
+                              </React.Fragment>
                             );
                           })
                         )}
