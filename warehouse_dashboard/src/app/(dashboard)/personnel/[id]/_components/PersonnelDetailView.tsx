@@ -209,6 +209,7 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
                   height: '68px',
                   borderRadius: '14px',
                   objectFit: 'cover',
+                  objectPosition: 'top center',
                   border: '1.5px solid #e2e8f0',
                   boxShadow: '0 4px 14px rgba(0, 0, 0, 0.08)',
                   flexShrink: 0,

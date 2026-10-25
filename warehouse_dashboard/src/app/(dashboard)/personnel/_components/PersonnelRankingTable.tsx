@@ -555,6 +555,7 @@ export function PersonnelRankingTable({ metrics, departments }: PersonnelRanking
                               height: '38px',
                               borderRadius: '8px',
                               objectFit: 'cover',
+                              objectPosition: 'top center',
                               border: '1px solid #e2e8f0',
                               flexShrink: 0,
                             }}
