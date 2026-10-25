@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { FaTable, FaFilter, FaTimes } from 'react-icons/fa';
-import { SearchInput, DepartmentBadge, DepartmentSelect, RecordDetailDrawer } from '@/components/ui';
+import { SearchInput, DepartmentBadge, DepartmentSelect, RecordDetailDrawer, IPTypeBadge } from '@/components/ui';
 import { IPItem } from '../_hooks/useIPData';
 
 interface IPTableProps {
@@ -86,7 +86,7 @@ export function IPTable({
             </span>
           )}
           <SearchInput
-            placeholder="ค้นหาชื่อเรื่อง / ผู้ประดิษฐ์ / เลขที่คำขอ..."
+            placeholder="ค้นหาชื่อเรื่อง / ผู้ประดิษฐ์ / เลขทะเบียน / เลขที่คำขอ..."
             value={searchTerm}
             onChange={onSearchChange}
             width="230px"
@@ -141,9 +141,9 @@ export function IPTable({
               <th>ผู้ประดิษฐ์</th>
               <th style={{ width: '120px', textAlign: 'left' }}>ภาควิชา</th>
               <th style={{ textAlign: 'center' }}>ประเภท</th>
-              <th>เลขที่คำขอ / เลขที่</th>
+              <th>เลขที่คำขอ / เลขทะเบียน</th>
               <th style={{ textAlign: 'center' }}>สถานะ</th>
-              <th style={{ textAlign: 'right' }}>คณะฯ สนับสนุน</th>
+              <th style={{ textAlign: 'right' }}>เงินสนับสนุนจากคณะ (บาท)</th>
             </tr>
           </thead>
           <tbody>
@@ -164,9 +164,20 @@ export function IPTable({
                       .filter(Boolean)
                   )
                 );
+                const st = String(item.status || '');
                 const isProtected =
-                  String(item.status || '').includes('คุ้มครอง') ||
-                  Boolean(item.registration_number && String(item.registration_number).trim());
+                  st.includes('คุ้มครอง') ||
+                  Boolean(item.registration_number && String(item.registration_number).trim() && item.registration_number !== '-');
+                const isPending = !isProtected && st.includes('ยื่นคำขอ');
+
+                const badgeBg = isProtected ? '#ecfdf5' : isPending ? '#f0f9ff' : '#fffbeb';
+                const badgeColor = isProtected ? '#059669' : isPending ? '#0284c7' : '#d97706';
+                const badgeBorder = isProtected ? '#a7f3d0' : isPending ? '#bae6fd' : '#fde68a';
+                const statusLabel = isProtected
+                  ? 'ได้รับความคุ้มครองแล้ว'
+                  : isPending
+                  ? 'ยื่นคำขอแล้ว'
+                  : 'เตรียมความพร้อมยื่นจด';
 
                 return (
                   <tr
@@ -179,7 +190,22 @@ export function IPTable({
                       {item.title || item.name}
                     </td>
                     <td style={{ fontWeight: 400, color: '#334155' }}>
-                      {item.creator && item.creator !== 'nan' ? item.creator : '-'}
+                      {item.creator && item.creator !== 'nan' ? (
+                        item.person_id ? (
+                          <a
+                            href={`/personnel/${item.person_id}`}
+                            onClick={(e) => e.stopPropagation()}
+                            style={{ color: '#7c3aed', fontWeight: 600, textDecoration: 'none' }}
+                            title="คลิกเพื่อดูแฟ้มผลงานอาจารย์"
+                          >
+                            {item.creator}
+                          </a>
+                        ) : (
+                          item.creator
+                        )
+                      ) : (
+                        '-'
+                      )}
                     </td>
                     <td style={{ padding: '8px 10px' }}>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
@@ -191,24 +217,7 @@ export function IPTable({
                       </div>
                     </td>
                     <td style={{ textAlign: 'center' }}>
-                      {item.type && item.type !== 'nan' && item.type !== '-' ? (
-                        <span
-                          style={{
-                            display: 'inline-block',
-                            padding: '3px 8px',
-                            borderRadius: '6px',
-                            fontSize: '11.5px',
-                            fontWeight: 600,
-                            backgroundColor: '#faf5ff',
-                            color: '#6a1b9a',
-                            border: '1px solid #e9d5ff',
-                          }}
-                        >
-                          {item.type === 'P' ? 'สิทธิบัตร' : item.type}
-                        </span>
-                      ) : (
-                        '-'
-                      )}
+                      <IPTypeBadge value={item.type} />
                     </td>
                     <td style={{ fontFamily: 'monospace', fontSize: '12px', color: '#334155' }}>
                       {item.req_no && item.req_no !== 'nan'
@@ -227,12 +236,12 @@ export function IPTable({
                           borderRadius: '12px',
                           fontSize: '11px',
                           fontWeight: 600,
-                          backgroundColor: isProtected ? '#ecfdf5' : '#f0f9ff',
-                          color: isProtected ? '#059669' : '#0284c7',
-                          border: `1px solid ${isProtected ? '#a7f3d0' : '#bae6fd'}`,
+                          backgroundColor: badgeBg,
+                          color: badgeColor,
+                          border: `1px solid ${badgeBorder}`,
                         }}
                       >
-                        {isProtected ? 'ได้รับความคุ้มครองแล้ว' : 'ยื่นคำขอ'}
+                        {statusLabel}
                       </span>
                     </td>
                     <td className="budget-cell">

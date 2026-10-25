@@ -1,13 +1,26 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { FaTimes, FaSearch, FaFolderOpen } from 'react-icons/fa';
+import { FaTimes, FaSearch, FaFolderOpen, FaCoins } from 'react-icons/fa';
 import { DepartmentBadge } from '@/components/ui/department-badge';
 import { formatMoney, formatDateBE } from '@/components/ui/RecordDetailDrawer';
 import { CATEGORIES_CONFIG } from '@/config/dataManagementConfig';
 import { CategoryKey } from '@/types/dataManagement';
 import { extractItemBudget } from '@/lib/sdgEngine';
 import { autoDetectJournalRanking, JOURNAL_TIER_STYLES } from '@/config/journalRankingConfig';
+
+const FUND_PALETTE = [
+  '#00A651',
+  '#0284c7',
+  '#7c3aed',
+  '#d97706',
+  '#059669',
+  '#ea580c',
+  '#4338ca',
+  '#db2777',
+  '#0891b2',
+  '#64748b',
+];
 
 export interface DrillDownProjectDrawerProps {
   isOpen: boolean;
@@ -29,10 +42,12 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
   items,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedFundSource, setSelectedFundSource] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isOpen) {
       setSearchTerm('');
+      setSelectedFundSource(null);
     }
   }, [isOpen]);
 
@@ -47,8 +62,64 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
+  // Compute Funding Sources Breakdown & Proportions
+  const fundingBreakdown = useMemo(() => {
+    if (!items || items.length === 0) return null;
+
+    let grandBudget = 0;
+    let extBudget = 0;
+    let intBudget = 0;
+    const sourceMap: Record<string, { name: string; budget: number; count: number }> = {};
+
+    items.forEach((item) => {
+      const b = extractItemBudget(item);
+      const ext = Number(item.budget_external) || 0;
+      const int = Number(item.budget_internal) || 0;
+      grandBudget += b;
+      extBudget += ext;
+      intBudget += int;
+
+      const rawName = String(item.fund_source || item.client || '').replace(/[\r\n]+/g, ' ').trim();
+      let fName = rawName;
+      if (!fName || fName === 'nan' || fName === 'NaT' || fName === '-') {
+        fName = 'ไม่ระบุแหล่งทุน';
+      }
+      if (!sourceMap[fName]) {
+        sourceMap[fName] = { name: fName, budget: 0, count: 0 };
+      }
+      sourceMap[fName].budget += b;
+      sourceMap[fName].count += 1;
+    });
+
+    const sources = Object.values(sourceMap).sort((a, b) => b.budget - a.budget || b.count - a.count);
+
+    // Only display funding breakdown if there is at least one identifiable named source
+    // Prevents displaying a redundant "100% ไม่ระบุแหล่งทุน" card on publications or non-grant lists
+    const hasNamedSource = sources.some((s) => s.name !== 'ไม่ระบุแหล่งทุน');
+    if (!hasNamedSource) return null;
+
+    return {
+      grandBudget,
+      extBudget,
+      intBudget,
+      sources: sources.map((s) => ({
+        ...s,
+        percent: grandBudget > 0 ? (s.budget / grandBudget) * 100 : (s.count / items.length) * 100,
+      })),
+    };
+  }, [items]);
+
   const filteredItems = useMemo(() => {
-    const list = items || [];
+    let list = items || [];
+    if (selectedFundSource) {
+      list = list.filter((it) => {
+        const rawName = String(it.fund_source || it.client || '').replace(/[\r\n]+/g, ' ').trim();
+        const fName = (!rawName || rawName === 'nan' || rawName === 'NaT' || rawName === '-')
+          ? 'ไม่ระบุแหล่งทุน'
+          : rawName;
+        return fName === selectedFundSource;
+      });
+    }
     if (!searchTerm.trim()) return list;
     const q = searchTerm.toLowerCase().trim();
     return list.filter((it) => {
@@ -59,7 +130,7 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
       const extra = String(it.fund_source || it.client || it.journal || it.location || '').toLowerCase();
       return name.includes(q) || person.includes(q) || dept.includes(q) || id.includes(q) || extra.includes(q);
     });
-  }, [items, searchTerm]);
+  }, [items, searchTerm, selectedFundSource]);
 
   const totalBudget = useMemo(() => {
     return filteredItems.reduce((sum, it) => sum + extractItemBudget(it), 0);
@@ -173,7 +244,7 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
                   <>
                     <span>•</span>
                     <span>
-                      งบประมาณรวม{' '}
+                      {categoryKey === 'publications' ? 'เงินสนับสนุนรวม' : 'งบประมาณรวม'}{' '}
                       <strong style={{ color: '#059669', fontFamily: 'monospace' }}>
                         {formatMoney(totalBudget)} บาท
                       </strong>
@@ -271,6 +342,162 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
 
         {/* Scrollable Self-Contained Project Cards */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '14px 20px', backgroundColor: '#ffffff' }}>
+          {/* แหล่งทุนและสัดส่วนงบประมาณ (Funding Sources & Proportions) */}
+          {fundingBreakdown && fundingBreakdown.sources.length > 0 && (
+            <div
+              style={{
+                backgroundColor: '#f8fafc',
+                borderRadius: '12px',
+                border: '1px solid #e2e8f0',
+                padding: '14px 16px',
+                marginBottom: '16px',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '8px',
+                  marginBottom: '10px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <FaCoins style={{ color: '#00A651', fontSize: '15px' }} />
+                  <span style={{ fontSize: '13.5px', fontWeight: 700, color: '#0f172a' }}>
+                    แหล่งที่มาของทุนและสัดส่วน ({fundingBreakdown.sources.length} แหล่งทุน)
+                  </span>
+                </div>
+                {selectedFundSource ? (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedFundSource(null)}
+                    style={{
+                      padding: '3px 10px',
+                      borderRadius: '6px',
+                      border: '1px solid #cbd5e1',
+                      backgroundColor: '#ffffff',
+                      color: '#00A651',
+                      fontSize: '11.5px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    แสดงทุกแหล่งทุน
+                  </button>
+                ) : (
+                  fundingBreakdown.grandBudget > 0 && (
+                    <span style={{ fontSize: '12px', color: '#64748b' }}>
+                      {categoryKey === 'publications' ? 'เงินสนับสนุนรวม' : 'งบประมาณรวม'} {formatMoney(fundingBreakdown.grandBudget)} บาท
+                    </span>
+                  )
+                )}
+              </div>
+
+              {/* Multi-segment Proportional Stacked Bar */}
+              <div
+                style={{
+                  display: 'flex',
+                  height: '8px',
+                  borderRadius: '4px',
+                  overflow: 'hidden',
+                  backgroundColor: '#e2e8f0',
+                  marginBottom: '12px',
+                }}
+              >
+                {fundingBreakdown.sources.map((src, sIdx) => {
+                  const color = FUND_PALETTE[sIdx % FUND_PALETTE.length];
+                  return (
+                    <div
+                      key={sIdx}
+                      style={{
+                        width: `${Math.max(src.percent, 1)}%`,
+                        backgroundColor: color,
+                      }}
+                      title={`${src.name}: ${src.percent.toFixed(1)}% (${formatMoney(src.budget)} บาท)`}
+                    />
+                  );
+                })}
+              </div>
+
+              {/* Funding Source Items Grid / List */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                {fundingBreakdown.sources.map((src, sIdx) => {
+                  const isSelected = selectedFundSource === src.name;
+                  const color = FUND_PALETTE[sIdx % FUND_PALETTE.length];
+                  return (
+                    <div
+                      key={sIdx}
+                      onClick={() => setSelectedFundSource(isSelected ? null : src.name)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '12px',
+                        padding: '7px 12px',
+                        borderRadius: '8px',
+                        backgroundColor: isSelected ? '#ecfdf5' : '#ffffff',
+                        border: isSelected ? '1.5px solid #00A651' : '1px solid #e2e8f0',
+                        cursor: 'pointer',
+                        fontSize: '12.5px',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
+                        <span
+                          style={{
+                            width: '9px',
+                            height: '9px',
+                            borderRadius: '50%',
+                            backgroundColor: color,
+                            flexShrink: 0,
+                          }}
+                        />
+                        <span
+                          style={{
+                            fontWeight: isSelected ? 700 : 500,
+                            color: isSelected ? '#065f46' : '#1e293b',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {src.name}
+                        </span>
+                        <span style={{ fontSize: '11px', color: '#64748b', flexShrink: 0 }}>
+                          ({src.count} โครงการ)
+                        </span>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+                        {src.budget > 0 && (
+                          <span style={{ fontWeight: 600, color: '#334155' }}>
+                            {formatMoney(src.budget)} ฿
+                          </span>
+                        )}
+                        <span
+                          style={{
+                            padding: '2px 8px',
+                            borderRadius: '6px',
+                            backgroundColor: `${color}18`,
+                            color: color,
+                            fontWeight: 700,
+                            fontSize: '11.5px',
+                            minWidth: '48px',
+                            textAlign: 'right',
+                          }}
+                        >
+                          {src.percent.toFixed(1)}%
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {filteredItems.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '48px 16px', color: '#94a3b8' }}>
               <FaFolderOpen style={{ fontSize: '32px', color: '#cbd5e1', margin: '0 auto 8px auto', display: 'block' }} />
@@ -369,7 +596,7 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
 
                 return (
                   <div
-                    key={item._id || `${itemName}_${idx}`}
+                    key={`${item._category || cat}_${item._id || item.id || itemName || 'item'}_${idx}`}
                     style={{
                       padding: '13px 16px',
                       borderRadius: '10px',

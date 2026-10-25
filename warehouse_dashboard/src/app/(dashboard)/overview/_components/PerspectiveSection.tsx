@@ -124,10 +124,12 @@ export const PerspectiveSection: React.FC<PerspectiveSectionProps> = ({
               if (hit) {
                 const d = departmentStats[hit.index];
                 if (d) {
+                  const totalB = totals.budget || 1;
+                  const pct = ((d.budget / totalB) * 100).toFixed(1);
                   setDrillDownState({
                     isOpen: true,
                     title: `โครงการวิจัย: ภาควิชา${d.name} (${d.code})`,
-                    subtitle: `รวม ${d.researchCount} โครงการ • งบประมาณรวม ${d.budget.toLocaleString('th-TH')} บาท`,
+                    subtitle: `สัดส่วน ${pct}% ของงบวิจัยคณะ • รวม ${d.researchCount} โครงการ • งบประมาณรวม ${d.budget.toLocaleString('th-TH')} บาท`,
                     accentColor: getDepartmentColor(d.code),
                     categoryKey: 'research',
                     items: d.researchItems,
@@ -276,7 +278,7 @@ export const PerspectiveSection: React.FC<PerspectiveSectionProps> = ({
                       const key = tierKeys[dsIdx] || 'Q1';
                       return formatTopItemsForTooltip(pubByTier[key] || [], { maxItems: 3, showBudget: false });
                     }
-                    return ['💡 คลิกที่แท่งกราฟเพื่อดูรายชื่อบทความในระดับควอร์ไทล์นี้'];
+                    return [];
                   },
                 },
               },

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { FaTable, FaTimes } from 'react-icons/fa';
-import { SearchInput, DepartmentBadge, DepartmentSelect, RecordDetailDrawer, formatDateBE } from '@/components/ui';
+import { SearchInput, DepartmentBadge, DepartmentSelect, RecordDetailDrawer, ServiceTypeBadge, formatDateBE } from '@/components/ui';
 import { ServiceItem } from '../_hooks/useServiceData';
 
 interface ServiceTableProps {
@@ -14,28 +14,6 @@ interface ServiceTableProps {
   onDeptChange?: (value: string) => void;
   selectedType?: string;
   onTypeChange?: (value: string) => void;
-}
-
-function getServiceTypeBadgeStyle(rawVal?: string) {
-  if (rawVal === 'วิทยากร/อาจารย์พิเศษ') {
-    return { bg: '#eff6ff', text: '#1d4ed8', border: '#bfdbfe' };
-  }
-  if (rawVal === 'วิชาการ') {
-    return { bg: '#ecfdf5', text: '#047857', border: '#a7f3d0' };
-  }
-  if (rawVal === 'วิชาชีพ') {
-    return { bg: '#faf5ff', text: '#7e22ce', border: '#e9d5ff' };
-  }
-  if (rawVal === 'ผู้ทรงคุณวุฒิ') {
-    return { bg: '#fffbeb', text: '#b45309', border: '#fde68a' };
-  }
-  if (rawVal === 'วิทยานิพนธ์ภายนอก') {
-    return { bg: '#f0fdfa', text: '#0f766e', border: '#99f6e4' };
-  }
-  if (rawVal === 'ศึกษาดูงาน วศ.กพส.') {
-    return { bg: '#fff1f2', text: '#be123c', border: '#fecdd3' };
-  }
-  return { bg: '#f8fafc', text: '#475569', border: '#e2e8f0' };
 }
 
 export function ServiceTable({
@@ -147,7 +125,6 @@ export function ServiceTable({
           <tbody>
             {filteredData.map((item, index) => {
               const typeVal = item._resolvedType || item.service_type || item.service_category || 'วิชาการ';
-              const badgeStyle = getServiceTypeBadgeStyle(typeVal);
               return (
                 <tr
                   key={item.id || item._id || index}
@@ -162,24 +139,25 @@ export function ServiceTable({
                     {item.name || item.topic_title}
                   </td>
                   <td style={{ textAlign: 'center' }}>
-                    <span
-                      style={{
-                        display: 'inline-block',
-                        padding: '3px 8px',
-                        borderRadius: '6px',
-                        fontSize: '11.5px',
-                        fontWeight: 600,
-                        backgroundColor: badgeStyle.bg,
-                        color: badgeStyle.text,
-                        border: `1px solid ${badgeStyle.border}`,
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {typeVal}
-                    </span>
+                    <ServiceTypeBadge value={typeVal} />
                   </td>
                   <td style={{ fontWeight: 400, color: '#334155' }}>
-                    {item.person && item.person !== 'nan' ? item.person : '-'}
+                    {item.person && item.person !== 'nan' ? (
+                      item.person_id ? (
+                        <a
+                          href={`/personnel/${item.person_id}`}
+                          onClick={(e) => e.stopPropagation()}
+                          style={{ color: '#d97706', fontWeight: 600, textDecoration: 'none' }}
+                          title="คลิกเพื่อดูแฟ้มผลงานอาจารย์"
+                        >
+                          {item.person}
+                        </a>
+                      ) : (
+                        item.person
+                      )
+                    ) : (
+                      '-'
+                    )}
                   </td>
                   <td style={{ padding: '8px 10px' }}>
                     <DepartmentBadge value={item.department} />

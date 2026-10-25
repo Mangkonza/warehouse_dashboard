@@ -1,8 +1,14 @@
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
-import { authenticateJWT, requireAdmin } from '../middleware/auth.js';
+import { requireSession, requireRole } from '../middleware/auth.js';
+import { prisma } from '../db/prisma.js';
+import { ProjectService } from '../services/project.service.js';
+import { ServiceService } from '../services/service.service.js';
+import { IpService } from '../services/ip.service.js';
+import { PersonnelService } from '../services/personnel.service.js';
+import { RoleService, RoleError } from '../services/role.service.js';
 
 const uploadDir = path.resolve(process.cwd(), 'uploads');
 if (!fs.existsSync(uploadDir)) {
@@ -30,9 +36,10 @@ const upload = multer({
 
 export const adminRouter = Router();
 
-// ป้องกันด้วย authentication และ requireAdmin ทุก endpoints
-adminRouter.use(authenticateJWT);
-adminRouter.use(requireAdmin);
+// ป้องกันด้วย authentication ทุก endpoints
+adminRouter.use(requireSession);
+// สำหรับ operations ทั่วไปของ adminRouter ต้องมีสิทธิ์ระดับ admin (manage)
+adminRouter.use(requireRole('manage'));
 
 // 1. ตรวจสอบสิทธิ์ Admin
 adminRouter.get('/verify', (req: Request, res: Response) => {
@@ -59,116 +66,239 @@ adminRouter.post('/etl/upload', upload.single('file'), (req: Request, res: Respo
   });
 });
 
-// 3. Persistent CRUD endpoints
-const FILE_MAP: Record<string, string> = {
-  research: 'research.json',
-  monitoring: 'research.json',
-  academic: 'academic.json',
-  publications: 'publications.json',
-  service: 'services.json',
-  services: 'services.json',
-  ip: 'ip.json',
-  personnel: 'personnel.json',
-};
-
-const getDataFilePath = (category: string) => {
-  const baseName = FILE_MAP[category.toLowerCase()] || `${category.toLowerCase()}.json`;
-  return path.resolve(process.cwd(), '..', 'warehouse_dashboard', 'src', 'data', baseName);
-};
-
-const getPersistedDataFilePath = (category: string) => {
-  const baseName = FILE_MAP[category.toLowerCase()] || `${category.toLowerCase()}.json`;
-  return path.resolve(process.cwd(), '..', 'warehouse_dashboard', 'src', 'data', `persisted_${baseName}`);
-};
-
-const readCategoryData = (category: string): any[] => {
+// 3. Persistent CRUD endpoints connected to PostgreSQL Database
+adminRouter.post('/records', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const pPath = getPersistedDataFilePath(category);
-    const oPath = getDataFilePath(category);
-    const targetPath = fs.existsSync(pPath) ? pPath : oPath;
-    if (fs.existsSync(targetPath)) {
-      const raw = fs.readFileSync(targetPath, 'utf-8');
-      return JSON.parse(raw);
-    }
-  } catch (err) {
-    console.error(`Error reading data for ${category}:`, err);
-  }
-  return [];
-};
+    const category = (req.body.category || 'research').toLowerCase();
+    const record = req.body.record || req.body;
 
-const writeCategoryData = (category: string, items: any[]): boolean => {
+    let created: any = null;
+    switch (category) {
+      case 'research':
+      case 'monitoring':
+        created = await ProjectService.createResearch(record);
+        break;
+      case 'academic':
+        created = await ProjectService.createAcademic(record);
+        break;
+      case 'publications':
+        created = await ProjectService.createPublication(record);
+        break;
+      case 'service':
+      case 'services':
+        created = await ServiceService.create(record);
+        break;
+      case 'ip':
+        created = await IpService.create(record);
+        break;
+      case 'personnel':
+        created = await PersonnelService.create(record);
+        break;
+      default:
+        res.status(400).json({ status: 'error', message: `Unknown category: ${category}` });
+        return;
+    }
+
+    res.status(201).json({
+      status: 'success',
+      message: 'Record created and persisted successfully in database',
+      data: created,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.put('/records/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const pPath = getPersistedDataFilePath(category);
-    const oPath = getDataFilePath(category);
-    const content = JSON.stringify(items, null, 2);
-    fs.writeFileSync(pPath, content, 'utf-8');
-    fs.writeFileSync(oPath, content, 'utf-8');
-    return true;
-  } catch (err) {
-    console.error(`Error writing data for ${category}:`, err);
-    return false;
-  }
-};
+    const category = (req.body.category || 'research').toLowerCase();
+    const targetId = String(req.params.id);
+    const record = req.body.record || req.body;
 
-adminRouter.post('/records', (req: Request, res: Response) => {
-  const category = (req.body.category || 'research').toLowerCase();
-  const record = req.body.record || req.body;
-  const items = readCategoryData(category);
-  const newRecord = {
-    ...record,
-    _id: record._id || `${category}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-    updatedAt: new Date().toISOString(),
-  };
-  items.unshift(newRecord);
-  writeCategoryData(category, items);
-
-  res.json({
-    status: 'success',
-    message: 'Record created and persisted successfully',
-    data: newRecord,
-  });
-});
-
-adminRouter.put('/records/:id', (req: Request, res: Response) => {
-  const category = (req.body.category || 'research').toLowerCase();
-  const targetId = req.params.id;
-  const record = req.body.record || req.body;
-  const items = readCategoryData(category);
-
-  let updatedRecord = null;
-  const updatedItems = items.map((item) => {
-    if (item._id === targetId || item.id === targetId) {
-      updatedRecord = { ...item, ...record, updatedAt: new Date().toISOString() };
-      return updatedRecord;
+    let updated: any = null;
+    switch (category) {
+      case 'research':
+      case 'monitoring':
+        updated = await ProjectService.updateResearch(targetId, record);
+        break;
+      case 'academic':
+        updated = await ProjectService.updateAcademic(targetId, record);
+        break;
+      case 'publications':
+        updated = await ProjectService.updatePublication(targetId, record);
+        break;
+      case 'service':
+      case 'services':
+        updated = await ServiceService.update(targetId, record);
+        break;
+      case 'ip':
+        updated = await IpService.update(targetId, record);
+        break;
+      case 'personnel':
+        updated = await PersonnelService.update(targetId, record);
+        break;
+      default:
+        res.status(400).json({ status: 'error', message: `Unknown category: ${category}` });
+        return;
     }
-    return item;
-  });
 
-  if (!updatedRecord) {
-    updatedRecord = { ...record, _id: targetId, updatedAt: new Date().toISOString() };
-    updatedItems.unshift(updatedRecord);
+    res.json({
+      status: 'success',
+      message: `Record ${targetId} updated and persisted successfully in database`,
+      data: updated,
+    });
+  } catch (err) {
+    next(err);
   }
-
-  writeCategoryData(category, updatedItems);
-
-  res.json({
-    status: 'success',
-    message: `Record ${targetId} updated and persisted successfully`,
-    data: updatedRecord,
-  });
 });
 
-adminRouter.delete('/records/:id', (req: Request, res: Response) => {
-  const category = (req.query.category as string || 'research').toLowerCase();
-  const targetId = req.params.id;
-  const items = readCategoryData(category);
-  const filtered = items.filter((item) => item._id !== targetId && item.id !== targetId);
+adminRouter.delete('/records/:id', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const category = (req.query.category as string || 'research').toLowerCase();
+    const targetId = String(req.params.id);
 
-  writeCategoryData(category, filtered);
+    switch (category) {
+      case 'research':
+      case 'monitoring':
+        await ProjectService.deleteResearch(targetId);
+        break;
+      case 'academic':
+        await ProjectService.deleteAcademic(targetId);
+        break;
+      case 'publications':
+        await ProjectService.deletePublication(targetId);
+        break;
+      case 'service':
+      case 'services':
+        await ServiceService.delete(targetId);
+        break;
+      case 'ip':
+        await IpService.delete(targetId);
+        break;
+      case 'personnel':
+        await PersonnelService.delete(targetId);
+        break;
+      default:
+        res.status(400).json({ status: 'error', message: `Unknown category: ${category}` });
+        return;
+    }
 
-  res.json({
-    status: 'success',
-    message: `Record ${targetId} deleted and persisted successfully`,
-  });
+    res.json({
+      status: 'success',
+      message: `Record ${targetId} deleted and persisted successfully in database`,
+    });
+  } catch (err) {
+    next(err);
+  }
 });
 
+// 4. Role Management Endpoints (Admin & Super Admin)
+adminRouter.get('/roles', requireRole('user_roles'), async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const search = typeof req.query.search === 'string' ? req.query.search : undefined;
+    const role = typeof req.query.role === 'string' ? req.query.role : undefined;
+    const page = req.query.page ? parseInt(String(req.query.page), 10) : undefined;
+    const limit = req.query.limit ? parseInt(String(req.query.limit), 10) : undefined;
+
+    const result = await RoleService.listRoles({ search, role, page, limit });
+    res.json({
+      status: 'success',
+      data: result.items,
+      total: result.total,
+      page: result.page,
+      limit: result.limit,
+      totalPages: result.totalPages,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.get('/roles/audit-logs', requireRole('user_roles'), async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const limit = req.query.limit ? parseInt(String(req.query.limit), 10) : 100;
+    const logs = await RoleService.getAuditLogs(limit);
+    res.json({ status: 'success', data: logs });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.post('/roles', requireRole('user_roles'), async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const actor = {
+      username: req.user?.nontriAccount || 'system',
+      role: (req.user?.role as any) || 'user',
+    };
+
+    const created = await RoleService.grantRole(actor, req.body);
+    res.status(201).json({
+      status: 'success',
+      message: `เพิ่มสิทธิ์ให้ ${created.username} เรียบร้อยแล้ว`,
+      data: created,
+    });
+  } catch (err: any) {
+    if (err instanceof RoleError) {
+      res.status(err.statusCode).json({
+        status: 'error',
+        code: err.code,
+        message: err.message,
+      });
+      return;
+    }
+    next(err);
+  }
+});
+
+adminRouter.patch('/roles/:username', requireRole('user_roles'), async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const actor = {
+      username: req.user?.nontriAccount || 'system',
+      role: (req.user?.role as any) || 'user',
+    };
+
+    const targetUsername = String(req.params.username);
+    const updated = await RoleService.changeRole(actor, targetUsername, req.body);
+    res.json({
+      status: 'success',
+      message: `แก้ไขสิทธิ์ของ ${updated.username} เรียบร้อยแล้ว`,
+      data: updated,
+    });
+  } catch (err: any) {
+    if (err instanceof RoleError) {
+      res.status(err.statusCode).json({
+        status: 'error',
+        code: err.code,
+        message: err.message,
+      });
+      return;
+    }
+    next(err);
+  }
+});
+
+adminRouter.delete('/roles/:username', requireRole('user_roles'), async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const actor = {
+      username: req.user?.nontriAccount || 'system',
+      role: (req.user?.role as any) || 'user',
+    };
+
+    const targetUsername = String(req.params.username);
+    const result = await RoleService.revokeRole(actor, targetUsername);
+    res.json({
+      status: 'success',
+      message: result.message,
+    });
+  } catch (err: any) {
+    if (err instanceof RoleError) {
+      res.status(err.statusCode).json({
+        status: 'error',
+        code: err.code,
+        message: err.message,
+      });
+      return;
+    }
+    next(err);
+  }
+});

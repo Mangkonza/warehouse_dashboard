@@ -6,6 +6,8 @@ import { EvaluationValue, isEvaluated } from '@/types/evaluation';
 import { EvaluationFields } from '@/components/evaluation/EvaluationFields';
 import { DepartmentBadge } from '@/components/ui/department-badge';
 import { LevelBadge } from '@/components/ui/evaluation-tag';
+import { ServiceTypeBadge } from '@/components/ui/service-type-badge';
+import { IPTypeBadge } from '@/components/ui/ip-type-badge';
 import { formatDateBE } from '@/components/ui/RecordDetailDrawer';
 import { Drawer } from '@/components/ui/Drawer';
 import { Button } from '@/components/ui/button';
@@ -245,7 +247,7 @@ export const EvaluationDrawer: React.FC<EvaluationDrawerProps> = ({
                 )}
                 {record.department && (
                   <div className="col-span-2 flex items-center gap-1.5 pt-0.5">
-                    <span className="text-slate-400 font-medium">หน่วยงานรับผิดชอบ:</span>
+                    <span className="text-slate-400 font-medium">สังกัดที่รับผิดชอบ:</span>
                     <DepartmentBadge value={record.department} />
                   </div>
                 )}
@@ -262,7 +264,7 @@ export const EvaluationDrawer: React.FC<EvaluationDrawerProps> = ({
                 )}
                 {record.department && (
                   <div className="flex items-center gap-1.5">
-                    <span className="text-slate-400 font-medium">หน่วยงานดำเนินการ:</span>
+                    <span className="text-slate-400 font-medium">สังกัดทีร่วมดำเนินการ:</span>
                     <DepartmentBadge value={record.department} />
                   </div>
                 )}
@@ -307,9 +309,9 @@ export const EvaluationDrawer: React.FC<EvaluationDrawerProps> = ({
                   </div>
                 )}
                 {record.service_type && (
-                  <div>
+                  <div className="flex items-center gap-1.5">
                     <span className="text-slate-400 font-medium mr-1.5">ประเภท:</span>
-                    <span className="font-semibold text-slate-800">{record.service_type}</span>
+                    <ServiceTypeBadge value={record.service_type} />
                   </div>
                 )}
                 {record.person && (
@@ -320,7 +322,7 @@ export const EvaluationDrawer: React.FC<EvaluationDrawerProps> = ({
                 )}
                 {record.department && (
                   <div className="flex items-center gap-1.5">
-                    <span className="text-slate-400 font-medium">ภาควิชา/ศูนย์ฯ:</span>
+                    <span className="text-slate-400 font-medium">สังกัด:</span>
                     <DepartmentBadge value={record.department} />
                   </div>
                 )}
@@ -332,7 +334,7 @@ export const EvaluationDrawer: React.FC<EvaluationDrawerProps> = ({
                 {record.type && (
                   <div>
                     <span className="text-slate-400 font-medium mr-1.5">ประเภท:</span>
-                    <span className="font-semibold text-slate-800">{record.type}</span>
+                    <IPTypeBadge value={record.type} />
                   </div>
                 )}
                 {record.creator && (

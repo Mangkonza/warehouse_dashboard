@@ -94,7 +94,7 @@ export const FACT_DOMAINS_CONFIG: Record<FactDomainId, FactDomainDef> = {
       { id: 'type', label: 'ประเภททรัพย์สินทางปัญญา', field: 'type', type: 'categorical', description: 'สิทธิบัตรการประดิษฐ์, อนุสิทธิบัตร, ลิขสิทธิ์' },
       { id: 'status', label: 'สถานะการคุ้มครอง / ยื่นขอ', field: 'status', type: 'categorical', description: 'ยื่นคำขอแล้ว, ประกาศโฆษณา, รับจดทะเบียนแล้ว' },
       { id: 'department', label: 'ภาควิชา / สังกัด', field: 'department', type: 'categorical', description: 'ภาควิชาของผู้ประดิษฐ์' },
-      { id: 'creator', label: 'ผู้ประดิษฐ์ / ผู้สร้างสรรค์', field: 'creator', type: 'categorical', description: 'ชื่ออาจารย์ผู้ประดิษฐ์' },
+      { id: 'creator', label: 'ผู้ประดิษฐ์', field: 'creator', type: 'categorical', description: 'ชื่ออาจารย์ผู้ประดิษฐ์' },
     ],
   },
 

@@ -130,7 +130,8 @@ export function PublicationsTable({
               <SelectItem value="TCI">TCI (ระดับชาติ)</SelectItem>
               <SelectItem value="นานาชาติ">ระดับนานาชาติ</SelectItem>
               <SelectItem value="ชาติ">ระดับชาติ</SelectItem>
-              <SelectItem value="อนุสิทธิบัตร">เตรียมความพร้อมจดอนุสิทธิบัตร</SelectItem>
+              <SelectItem value="ตีพิมพ์">ตีพิมพ์แล้ว</SelectItem>
+              <SelectItem value="เตรียมความพร้อม">เตรียมความพร้อมตีพิมพ์</SelectItem>
             </SelectContent>
           </Select>
 
@@ -189,7 +190,7 @@ export function PublicationsTable({
               <th style={{ width: '115px', textAlign: 'right' }}>จำนวนเงินสนับสนุน</th>
               <th style={{ width: '140px' }}>เจ้าของผลงาน</th>
               <th style={{ width: '130px' }}>ผู้ร่วม</th>
-              <th style={{ width: '100px', textAlign: 'left' }}>สังกัดภาควิชา/สาขาวิชา</th>
+              <th style={{ width: '100px', textAlign: 'left' }}>สังกัด</th>
               <th style={{ width: '160px' }}>รายละเอียดวารสาร/การประชุม</th>
             </tr>
           </thead>
@@ -237,17 +238,22 @@ export function PublicationsTable({
                           {item.name}
                         </td>
                         <td>
-                          <span
-                            className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${
-                              item.type === 'ตีพิมพ์'
-                                ? 'bg-emerald-50 text-[#006838] border border-emerald-200'
-                                : item.type === 'เตรียมความพร้อมจดอนุสิทธิบัตร'
-                                ? 'bg-amber-50 text-amber-800 border border-amber-200'
-                                : 'bg-blue-50 text-blue-800 border border-blue-200'
-                            }`}
-                          >
-                            {item.type || '-'}
-                          </span>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                            <span
+                              className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${
+                                item.type === 'ตีพิมพ์'
+                                  ? 'bg-emerald-50 text-[#006838] border border-emerald-200'
+                                  : 'bg-blue-50 text-blue-800 border border-blue-200'
+                              }`}
+                            >
+                              {item.status || item.type || '-'}
+                            </span>
+                            {item.prep_budget ? (
+                              <span style={{ fontSize: '10.5px', color: '#64748b' }}>
+                                (มีงบเตรียมฯ {Number(item.prep_budget).toLocaleString()} ฿)
+                              </span>
+                            ) : null}
+                          </div>
                         </td>
                         <td style={{ textAlign: 'center' }}>
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
@@ -277,7 +283,22 @@ export function PublicationsTable({
                           บาท
                         </td>
                         <td style={{ fontWeight: 400, color: '#334155' }}>
-                          {item.owner && item.owner !== 'nan' ? item.owner : '-'}
+                          {item.owner && item.owner !== 'nan' ? (
+                            item.person_id || item.owner_id ? (
+                              <a
+                                href={`/personnel/${item.person_id || item.owner_id}`}
+                                onClick={(e) => e.stopPropagation()}
+                                style={{ color: '#16a34a', fontWeight: 600, textDecoration: 'none' }}
+                                title="คลิกเพื่อดูแฟ้มผลงานอาจารย์"
+                              >
+                                {item.owner}
+                              </a>
+                            ) : (
+                              item.owner
+                            )
+                          ) : (
+                            '-'
+                          )}
                         </td>
                         <td>
                           {hasCoAuthors ? (

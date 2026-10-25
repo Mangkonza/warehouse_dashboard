@@ -350,9 +350,10 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__all__">ทุกสถานะและประเภท</SelectItem>
-                  <SelectItem value="granted">ออกสิทธิบัตร / รับจดทะเบียนแล้ว</SelectItem>
+                  <SelectItem value="granted">ออกให้ / รับจดทะเบียน / ได้รับความคุ้มครองแล้ว</SelectItem>
                   <SelectItem value="patent">สิทธิบัตรการประดิษฐ์</SelectItem>
                   <SelectItem value="petty">อนุสิทธิบัตร</SelectItem>
+                  <SelectItem value="copyright">ลิขสิทธิ์</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -45,7 +45,11 @@
     "date": "1968-01-07 00:00:00",
     "person_id": 81,
     "_id": "service_idx_0",
-    "evaluation": null
+    "evaluation": null,
+    "service_type": "ผู้ทรงคุณวุฒิ",
+    "service_category": "ผู้ทรงคุณวุฒิ",
+    "updatedAt": "2026-10-25T06:42:54.877Z",
+    "topic_title": "คณะทำงานร่างแก้ไขข้อกำหนดการตรวจสภาท่า"
   },
   {
     "name": "ประเมินข้อเสนอโครงการวิจัย\nประจำปีงบประมาณ 2568 ภายใต้แผนงาน Global Partnership",
@@ -55,7 +59,11 @@
     "date": "1968-01-14 00:00:00",
     "person_id": null,
     "_id": "service_idx_1",
-    "evaluation": null
+    "evaluation": null,
+    "service_type": "ศึกษาดูงาน วศ.กพส.",
+    "service_category": "ศึกษาดูงาน วศ.กพส.",
+    "updatedAt": "2026-10-25T06:42:58.780Z",
+    "topic_title": "ประเมินข้อเสนอโครงการวิจัย\nประจำปีงบประมาณ 2568 ภายใต้แผนงาน Global Partnership"
   },
   {
     "name": "พิจารณาผลงานทางวิชาการ",
@@ -65,7 +73,11 @@
     "date": "1968-01-20 00:00:00",
     "person_id": null,
     "_id": "service_idx_2",
-    "evaluation": null
+    "evaluation": null,
+    "service_type": "วิชาชีพ",
+    "service_category": "วิชาชีพ",
+    "updatedAt": "2026-10-25T06:43:02.982Z",
+    "topic_title": "พิจารณาผลงานทางวิชาการ"
   },
   {
     "name": "เป็นผู้ทรงคุณวุฒิพิจารณาหลักสูตร\nระดับปริญญาตรี ระดับปริญญาโท สาขาวิชาวิศวกรรมอาหาร",
@@ -75,7 +87,11 @@
     "date": "1968-01-31 00:00:00",
     "person_id": null,
     "_id": "service_idx_3",
-    "evaluation": null
+    "evaluation": null,
+    "service_type": "วิทยากร/อาจารย์พิเศษ",
+    "service_category": "วิทยากร/อาจารย์พิเศษ",
+    "updatedAt": "2026-10-25T06:43:09.711Z",
+    "topic_title": "เป็นผู้ทรงคุณวุฒิพิจารณาหลักสูตร\nระดับปริญญาตรี ระดับปริญญาโท สาขาวิชาวิศวกรรมอาหาร"
   },
   {
     "name": "วิชา 01418385 Digital Image Processing หมู่ 800",
@@ -85,7 +101,11 @@
     "date": "1968-02-01 00:00:00",
     "person_id": 147,
     "_id": "service_idx_4",
-    "evaluation": null
+    "evaluation": null,
+    "service_type": "วิทยานิพนธ์ภายนอก",
+    "service_category": "วิทยานิพนธ์ภายนอก",
+    "updatedAt": "2026-10-25T06:43:47.392Z",
+    "topic_title": "วิชา 01418385 Digital Image Processing หมู่ 800"
   },
   {
     "name": "ประชุมคณะกรรมการทรัพยากรน้ำแห่งชาติ ครั้งที่ 1/2568",
@@ -375,7 +395,11 @@
     "date": "1968-02-28 00:00:00",
     "person_id": 125,
     "_id": "service_idx_33",
-    "evaluation": null
+    "evaluation": null,
+    "service_type": "ศึกษาดูงาน วศ.กพส.",
+    "service_category": "ศึกษาดูงาน วศ.กพส.",
+    "updatedAt": "2026-10-25T06:31:05.126Z",
+    "topic_title": "เป็นอาจารย์พิเศษ \nบรรยายในหัวข้อ \"Quality Management and Control\""
   },
   {
     "name": "ร่วมจัดแสดงนิทรรศการผลงานวิจัยนวัตกรรมในงานเกษตรแฟร์ 2568 ณ โดมแอร์หน้าอาคารจักรพันธ์เพ็ญศิริ มหาวิทยาลัยเกษตรศาสตร์",

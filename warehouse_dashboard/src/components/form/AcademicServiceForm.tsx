@@ -18,14 +18,15 @@ import { NumberUnitInput } from './NumberUnitInput';
 import { DateRangePickerBE, DateRangeBEValue } from './DateRangePickerBE';
 import { DepartmentSelect } from '@/components/ui/department-select';
 import { PersonPicker, PersonValue } from './PersonPicker';
+import { SERVICE_TYPE_COLOR } from '@/components/ui/service-type-badge';
 
 export const ACADEMIC_SERVICE_TYPES = [
-  { id: 'lecturer', label: 'วิทยากร/อาจารย์พิเศษ', desc: 'บรรยายพิเศษ, วิทยากร, สอนหลักสูตรพิเศษ' },
-  { id: 'academic', label: 'วิชาการ', desc: 'บริการวิชาการ, ฝึกอบรม, เผยแพร่ความรู้' },
-  { id: 'professional', label: 'วิชาชีพ', desc: 'งานที่ปรึกษาวิชาชีพ, ตรวจสอบ, ทดสอบ' },
-  { id: 'expert', label: 'ผู้ทรงคุณวุฒิ', desc: 'กรรมการผู้ทรงคุณวุฒิ, ประเมินผลงาน, กลั่นกรอง' },
-  { id: 'external_thesis', label: 'วิทยานิพนธ์ภายนอก', desc: 'กรรมการสอบวิทยานิพนธ์สถาบันภายนอก' },
-  { id: 'study_visit', label: 'ศึกษาดูงาน วศ.กพส.', desc: 'ต้อนรับและบรรยายคณะศึกษาดูงาน ณ คณะ' },
+  { id: 'lecturer', label: 'วิทยากร/อาจารย์พิเศษ' },
+  { id: 'academic', label: 'วิชาการ' },
+  { id: 'professional', label: 'วิชาชีพ' },
+  { id: 'expert', label: 'ผู้ทรงคุณวุฒิ' },
+  { id: 'external_thesis', label: 'วิทยานิพนธ์ภายนอก' },
+  { id: 'study_visit', label: 'ศึกษาดูงาน วศ.กพส.' },
 ] as const;
 
 export interface AcademicServiceFormProps {
@@ -59,11 +60,7 @@ export function AcademicServiceForm({
     <div className="flex flex-col gap-4 text-slate-800">
       {/* 1. เรื่อง (Text with numbers allowed) */}
       <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-3.5">
-        <FormField
-          label="เรื่อง / ชื่องานบริการวิชาการ"
-          required
-          hint="ระบุชื่อหัวข้อ กิจกรรม หรือหลักสูตร (มีตัวเลขได้)"
-        >
+        <FormField label="ชื่องานบริการวิชาการ">
           <textarea
             rows={2}
             value={formData.name || formData.topic_title || ''}
@@ -72,8 +69,8 @@ export function AcademicServiceForm({
               onChange('name', val);
               onChange('topic_title', val);
             }}
-            placeholder="เช่น โครงการอบรมเชิงปฏิบัติการการใช้โดรนเพื่อการเกษตรแม่นยำ รุ่นที่ 2..."
-            className="w-full p-2.5 text-xs sm:text-sm rounded-lg border border-input bg-background shadow-2xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
+            placeholder="กรอกชื่องานบริการวิชาการ..."
+            className="w-full p-2.5 text-xs sm:text-sm rounded-lg border border-input bg-background shadow-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
             required
           />
         </FormField>
@@ -81,13 +78,12 @@ export function AcademicServiceForm({
         {/* 2. กลุ่มเป้าหมาย (Text) */}
         <FormField
           label="กลุ่มเป้าหมาย / ผู้เข้าร่วม"
-          hint="เช่น นิสิต, เกษตรกร, บุคลากรภาครัฐ, ผู้ประกอบการ, ชุมชน"
         >
           <input
             type="text"
             value={formData.target_group || ''}
             onChange={(e) => onChange('target_group', e.target.value)}
-            placeholder="เช่น เกษตรกรกลุ่มแปลงใหญ่ จ.นครปฐม, วิศวกรและสถาปนิก..."
+            placeholder="กรอกกลุ่มเป้าหมาย / ผู้เข้าร่วม..."
             className="w-full h-10 px-3 text-xs sm:text-sm rounded-lg border border-input bg-background shadow-2xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
           />
         </FormField>
@@ -100,9 +96,6 @@ export function AcademicServiceForm({
             <span>ประเภทงานบริการวิชาการ (เลือก 1 อย่าง)</span>
             <span className="text-red-500 font-bold">*</span>
           </label>
-          <span className="text-[11.5px] text-slate-400 font-normal">
-            กำหนดไว้ 6 ประเภทตามระเบียบคณะ
-          </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
@@ -121,28 +114,31 @@ export function AcademicServiceForm({
                   onChange('service_category', t.label);
                 }}
                 className={cn(
-                  'flex flex-col text-left p-3 rounded-xl border transition-all cursor-pointer relative select-none group',
+                  'flex items-center justify-between min-h-[46px] px-3.5 py-2.5 rounded-xl border transition-all cursor-pointer relative select-none text-left',
                   isSelected
-                    ? 'border-emerald-500 bg-emerald-50/70 shadow-xs ring-2 ring-emerald-500/20'
-                    : 'border-slate-200 bg-slate-50/50 hover:bg-white hover:border-emerald-300'
+                    ? 'border-[#2F007F] bg-[#2F007F] text-white shadow-xs'
+                    : 'border-slate-200 bg-slate-50/50 hover:bg-white hover:border-[#2F007F]/40 text-slate-700 hover:text-slate-900'
                 )}
+                style={
+                  isSelected
+                    ? {
+                        backgroundColor: SERVICE_TYPE_COLOR,
+                        borderColor: SERVICE_TYPE_COLOR,
+                      }
+                    : undefined
+                }
               >
-                <div className="flex items-center justify-between gap-1 w-full mb-1">
-                  <span
-                    className={cn(
-                      'text-xs font-bold leading-tight',
-                      isSelected ? 'text-emerald-950' : 'text-slate-700 group-hover:text-emerald-900'
-                    )}
-                  >
-                    {t.label}
-                  </span>
-                  {isSelected && (
-                    <CheckCircle2 className="size-4 text-emerald-600 shrink-0" />
+                <span
+                  className={cn(
+                    'text-xs sm:text-sm font-normal leading-normal',
+                    isSelected ? 'text-white' : 'text-slate-700'
                   )}
-                </div>
-                <span className="text-[11px] text-slate-500 line-clamp-1 leading-snug">
-                  {t.desc}
+                >
+                  {t.label}
                 </span>
+                {isSelected && (
+                  <CheckCircle2 className="size-4 text-white shrink-0 ml-2" />
+                )}
               </button>
             );
           })}
@@ -151,13 +147,7 @@ export function AcademicServiceForm({
 
       {/* 4. ผู้รับผิดชอบ / ผู้ให้บริการ */}
       <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-3.5">
-        <h4 className="text-sm font-semibold text-slate-800 flex items-center gap-2 m-0">
-          <UserCheck className="size-4 text-emerald-600" />
-          ผู้ให้บริการ / ผู้รับผิดชอบ
-          <span className="text-[11px] font-normal text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-            จำเป็น
-          </span>
-        </h4>
+        
 
         <FormField label="ผู้ให้บริการ / ผู้รับผิดชอบ" required>
           <PersonPicker
@@ -188,7 +178,7 @@ export function AcademicServiceForm({
           <DepartmentSelect
             value={formData.department || ''}
             onChange={(dept) => onChange('department', dept)}
-            placeholder="-- เลือกภาควิชา / สังกัด --"
+            placeholder="-- เลือกสังกัด --"
           />
         </FormField>
       </div>
@@ -197,8 +187,7 @@ export function AcademicServiceForm({
       <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-3">
         <FormField
           label="วันเดือนปีที่จัดกิจกรรม (ช่วงเวลา พ.ศ.)"
-          hint="เลือกวันที่เริ่มต้นและสิ้นสุด (พุทธศักราช พ.ศ.)"
-        >
+          >
           <DateRangePickerBE
             value={dateRangeValue}
             onChange={handleDateRangeChange}
@@ -212,9 +201,7 @@ export function AcademicServiceForm({
       <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-2xs">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField
-            label="จำนวนชั่วโมง"
-            hint="ตัวเลข (ไม่บังคับใส่ เช่น 3, 6 หรือ 12.5)"
-          >
+            label="จำนวนชั่วโมง">
             <NumberUnitInput
               value={formData.hours_spent !== undefined && formData.hours_spent !== '' ? Number(formData.hours_spent) : null}
               onChange={(num) => onChange('hours_spent', num)}
@@ -225,9 +212,7 @@ export function AcademicServiceForm({
           </FormField>
 
           <FormField
-            label="จำนวนคนเข้าร่วม"
-            hint="ตัวเลขจำนวนเต็ม (ไม่บังคับใส่ เช่น 50, 120)"
-          >
+            label="จำนวนคนเข้าร่วม">
             <NumberUnitInput
               value={formData.attendees_count !== undefined && formData.attendees_count !== '' ? Number(formData.attendees_count) : null}
               onChange={(num) => onChange('attendees_count', num)}

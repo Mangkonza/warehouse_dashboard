@@ -8,6 +8,8 @@ import { CATEGORIES_CONFIG, DEPARTMENTS, getDepartmentAbbr } from '@/config/data
 import { EvaluationRecord, EvaluationValue, isEvaluated, formatSdgLabel } from '@/types/evaluation';
 import { TopSegmentedTabs, TabItem } from '@/components/ui/TopSegmentedTabs';
 import { DepartmentBadge } from '@/components/ui/department-badge';
+import { ServiceTypeBadge } from '@/components/ui/service-type-badge';
+import { IPTypeBadge } from '@/components/ui/ip-type-badge';
 import { EvaluationTag, EvaluationTags, LevelBadge, SdgTagList } from '@/components/ui/evaluation-tag';
 import { formatDateBE } from '@/components/ui/RecordDetailDrawer';
 import { FilterModal } from '@/app/(dashboard)/manage/_components/FilterModal';
@@ -417,17 +419,17 @@ export const EvaluationView: React.FC = () => {
         row['รหัสโครงการ'] = item.id || '-';
         row['ชื่อโครงการ'] = item.name || '-';
         row['หัวหน้าโครงการ'] = item.head || '-';
-        row['หน่วยงานรับผิดชอบ'] = item.department || '-';
+        row['สังกัดที่รับผิดชอบ'] = item.department || '-';
       } else if (activeCategory === 'academic') {
         row['ชื่อโครงการ'] = item.name || '-';
         row['หัวหน้าโครงการ'] = item.head || '-';
-        row['หน่วยงานดำเนินการ'] = item.department || '-';
+        row['สังกัดที่ดำเนินการ'] = item.department || '-';
       } else if (activeCategory === 'publications') {
         row['ชื่อผลงานทางวิชาการ'] = item.name || '-';
         row['ชนิดของผลงาน'] = item.type || '-';
         row['ระดับ'] = item.level || '-';
         row['เจ้าของผลงาน'] = item.owner || '-';
-        row['สังกัดภาควิชา/สาขาวิชา'] = item.department || '-';
+        row['สังกัด'] = item.department || '-';
       } else if (activeCategory === 'service') {
         row['วัน/เดือน/ปี'] = formatDateBE(item.date);
         row['เรื่อง'] = item.name || '-';
@@ -1076,9 +1078,7 @@ export const EvaluationView: React.FC = () => {
                             </div>
                           </td>
                           <td style={{ padding: '10px 10px', textAlign: 'center' }}>
-                            <span className="inline-block px-2 py-0.5 rounded text-xs bg-slate-100 text-slate-700">
-                              {item.service_type || '-'}
-                            </span>
+                            <ServiceTypeBadge value={item.service_type} />
                           </td>
                           <td style={{ padding: '10px 10px', color: '#334155' }}>
                             {item.person || '-'}
@@ -1098,9 +1098,7 @@ export const EvaluationView: React.FC = () => {
                             </div>
                           </td>
                           <td style={{ padding: '10px 10px', textAlign: 'center' }}>
-                            <span className="inline-block px-2 py-0.5 rounded text-xs bg-purple-50 text-purple-700 font-medium">
-                              {item.type || '-'}
-                            </span>
+                            <IPTypeBadge value={item.type} />
                           </td>
                           <td style={{ padding: '10px 10px', color: '#334155' }}>
                             {item.creator || '-'}

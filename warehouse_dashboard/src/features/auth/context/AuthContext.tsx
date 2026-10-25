@@ -1,68 +1,96 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { apiFetch } from '@/lib/api';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { User, AuthContextType } from '../types/auth';
-import { ADMIN_ACCOUNTS, ADMIN_TEST_CREDENTIALS, SESSION_STORAGE_KEYS } from '../constants/authConfig';
+import { AppRole } from '@/config/permissions';
+import { SESSION_STORAGE_KEYS } from '../constants/authConfig';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export const isAccountAdmin = (u: User | null): boolean => {
-  if (!u) return false;
-  if (u.role === 'admin') return true;
-  const acc = (u.nontriAccount || '').toLowerCase().trim();
-  return ADMIN_ACCOUNTS.includes(acc) || acc.includes('admin');
-};
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [expiresAt, setExpiresAt] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
 
-  useEffect(() => {
-    const savedToken = localStorage.getItem(SESSION_STORAGE_KEYS.token);
-    const savedUser = localStorage.getItem(SESSION_STORAGE_KEYS.user);
-
-    if (savedToken && savedUser) {
-      try {
-        setToken(savedToken);
-        const parsed: User = JSON.parse(savedUser);
-        if (isAccountAdmin(parsed)) {
-          parsed.role = 'admin';
-          parsed.typePerson = 'ผู้ดูแลระบบ';
-          localStorage.setItem(SESSION_STORAGE_KEYS.user, JSON.stringify(parsed));
-        }
-        setUser(parsed);
-      } catch (e) {
-        console.error('Failed to parse saved user:', e);
-      }
-    }
-    setIsLoading(false);
-  }, []);
-
-  const loginWithMock = async (role: 'admin' | 'viewer') => {
-    setIsLoading(true);
+  // ตรวจสอบ session กับเซิร์ฟเวอร์ Backend (/api/v1/auth/me) เป็น Single Source of Truth
+  const checkSession = useCallback(async () => {
     try {
-      const res = await apiFetch('/auth/mock-login', {
-        method: 'POST',
-        body: JSON.stringify({ role }),
+      const res = await fetch('/api/v1/auth/me', {
+        credentials: 'include',
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+        },
       });
 
-      if (res.token && res.user) {
-        setToken(res.token);
-        setUser(res.user);
-        localStorage.setItem(SESSION_STORAGE_KEYS.token, res.token);
-        localStorage.setItem(SESSION_STORAGE_KEYS.user, JSON.stringify(res.user));
-        setIsLoginModalOpen(false);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.status === 'success' && data.user) {
+          setUser(data.user);
+          setExpiresAt(data.expiresAt || null);
+          return;
+        }
       }
+
+      // หากไม่มี session หรือหมดอายุ
+      setUser(null);
+      setExpiresAt(null);
+      setToken(null);
+      try {
+        localStorage.removeItem(SESSION_STORAGE_KEYS.token);
+        localStorage.removeItem(SESSION_STORAGE_KEYS.user);
+      } catch {}
     } catch (err) {
-      console.error('Login error:', err);
-      alert('เข้าสู่ระบบไม่สำเร็จ กรุณาตรวจสอบว่า Backend กำลังทำงาน');
+      console.warn('[AuthContext] Session verification failed:', err);
+      setUser(null);
+      setExpiresAt(null);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    checkSession();
+  }, [checkSession]);
+
+  const logout = useCallback(async () => {
+    try {
+      await fetch('/api/v1/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } catch (e) {
+      console.error('[AuthContext] Logout error:', e);
+    } finally {
+      setUser(null);
+      setToken(null);
+      setExpiresAt(null);
+      try {
+        localStorage.removeItem(SESSION_STORAGE_KEYS.token);
+        localStorage.removeItem(SESSION_STORAGE_KEYS.user);
+      } catch {}
+      if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
+    }
+  }, []);
+
+  // ตัวนับเวลา Session Timer อัตโนมัติ: หากหมดอายุ ให้ logout ทันที
+  useEffect(() => {
+    if (!expiresAt || !user) return;
+
+    const checkTimer = () => {
+      const now = Date.now();
+      if (now >= expiresAt) {
+        console.warn('[AuthContext] Session expired. Logging out...');
+        logout();
+      }
+    };
+
+    const interval = setInterval(checkTimer, 1000);
+    return () => clearInterval(interval);
+  }, [expiresAt, user, logout]);
 
   const loginWithCredentials = async (
     username: string,
@@ -71,86 +99,55 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   ): Promise<{ success: boolean; error?: string }> => {
     setIsLoading(true);
     try {
-      const normalizedUser = String(username).trim();
-      const normalizedPass = String(password).trim();
-      const normalizedOtp = otp ? String(otp).trim() : '';
+      const res = await fetch('/api/v1/auth/login', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password, otp }),
+      });
 
-      // SECURITY: Local fallback check matching existing behavior
-      if (normalizedUser.toLowerCase() === ADMIN_TEST_CREDENTIALS.username) {
-        if (normalizedPass.toLowerCase() !== ADMIN_TEST_CREDENTIALS.password) {
-          return { success: false, error: 'รหัสผ่านไม่ถูกต้อง (รหัสผ่านคือ Admin)' };
+      const data = await res.json().catch(() => ({}));
+
+      if (res.ok && data.status === 'success' && data.user) {
+        setUser(data.user);
+        setExpiresAt(data.expiresAt || null);
+        if (data.token) {
+          setToken(data.token);
         }
-        if (normalizedOtp && normalizedOtp !== ADMIN_TEST_CREDENTIALS.otp) {
-          return { success: false, error: 'รหัส One-time code (OTP) ไม่ถูกต้อง (ระบุ: 111111)' };
-        }
+        setIsLoginModalOpen(false);
+
+        // ล้าง token/user ใน localStorage เพื่อไม่ให้ใช้ตัดสินสิทธิ์ฝั่ง client
+        try {
+          localStorage.removeItem(SESSION_STORAGE_KEYS.token);
+          localStorage.removeItem(SESSION_STORAGE_KEYS.user);
+        } catch {}
+
+        return { success: true };
       }
 
-      // พยายามส่งไปหา Backend
-      try {
-        const res = await apiFetch('/auth/login', {
-          method: 'POST',
-          body: JSON.stringify({ username, password, otp }),
-        });
-
-        if (res.token && res.user) {
-          if (isAccountAdmin(res.user) || normalizedUser.toLowerCase() === 'admin') {
-            res.user.role = 'admin';
-            res.user.typePerson = 'ผู้ดูแลระบบ';
-            res.user.nontriAccount = 'Admin';
-          }
-          setToken(res.token);
-          setUser(res.user);
-          localStorage.setItem(SESSION_STORAGE_KEYS.token, res.token);
-          localStorage.setItem(SESSION_STORAGE_KEYS.user, JSON.stringify(res.user));
-          setIsLoginModalOpen(false);
-          return { success: true };
-        }
-      } catch (backendErr) {
-        // Fallback Client-side Login หาก Backend ยังไม่พร้อม หรือรันแบบ Standalone
-        if (
-          normalizedUser.toLowerCase() === ADMIN_TEST_CREDENTIALS.username &&
-          normalizedPass.toLowerCase() === ADMIN_TEST_CREDENTIALS.password &&
-          (!normalizedOtp || normalizedOtp === ADMIN_TEST_CREDENTIALS.otp)
-        ) {
-          const adminUser: User = {
-            id: 'ku-admin-local',
-            nontriAccount: 'Admin',
-            nameTh: 'ผู้ดูแลระบบ (Admin)',
-            email: 'admin@ku.th',
-            facultyName: 'คณะวิศวกรรมศาสตร์ กำแพงแสน',
-            departmentName: 'สำนักงานเลขานุการ คณะวิศวกรรมศาสตร์',
-            typePerson: 'ผู้ดูแลระบบ',
-            role: 'admin',
-          };
-          const mockToken = 'mock_jwt_token_admin_2026';
-          setToken(mockToken);
-          setUser(adminUser);
-          localStorage.setItem(SESSION_STORAGE_KEYS.token, mockToken);
-          localStorage.setItem(SESSION_STORAGE_KEYS.user, JSON.stringify(adminUser));
-          setIsLoginModalOpen(false);
-          return { success: true };
-        }
-        throw backendErr;
-      }
-
-      return { success: false, error: 'เข้าสู่ระบบไม่สำเร็จ ข้อมูลไม่ครบถ้วน' };
-    } catch (err: any) {
-      console.error('Login error:', err);
       return {
         success: false,
-        error: err.message || 'เข้าสู่ระบบไม่สำเร็จ กรุณาตรวจสอบชื่อผู้ใช้และรหัสผ่าน',
+        error: data.error || data.message || 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง',
+      };
+    } catch (err: any) {
+      console.error('[AuthContext] Login error:', err);
+      return {
+        success: false,
+        error: err.message || 'เข้าสู่ระบบไม่สำเร็จ กรุณาตรวจสอบการเชื่อมต่อกับเซิร์ฟเวอร์',
       };
     } finally {
       setIsLoading(false);
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem(SESSION_STORAGE_KEYS.token);
-    localStorage.removeItem(SESSION_STORAGE_KEYS.user);
+  const loginWithMock = async (_role: AppRole) => {
+    // Disabled in Phase D as requested: provider mock is turned off
+    console.warn('[AuthContext] Mock login is disabled in Phase D');
   };
+
+  const isAdmin = user?.role === 'admin';
 
   return (
     <AuthContext.Provider
@@ -158,7 +155,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user,
         token,
         isLoading,
-        isAdmin: isAccountAdmin(user),
+        isAdmin,
+        expiresAt,
         loginWithMock,
         loginWithCredentials,
         logout,

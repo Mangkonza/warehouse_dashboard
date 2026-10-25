@@ -25,3 +25,5 @@ export * from '../data-display/DrillDownProjectDrawer';
 export { MoneyInput, CurrencyInput } from '../form/MoneyInput';
 
 export * from './TopSegmentedTabs';
+export * from './service-type-badge';
+export * from './ip-type-badge';

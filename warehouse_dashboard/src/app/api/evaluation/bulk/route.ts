@@ -1,32 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { bulkSaveEvaluations } from '@/lib/serverDataStore';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
+const BACKEND_URL = process.env.BACKEND_INTERNAL_URL || 'http://localhost:8000';
+
+const getForwardHeaders = (request: NextRequest): Record<string, string> => {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  const auth = request.headers.get('authorization');
+  if (auth) headers['authorization'] = auth;
+  const cookie = request.headers.get('cookie');
+  if (cookie) headers['cookie'] = cookie;
+  return headers;
+};
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-
-    if (!body || !Array.isArray(body.items) || body.items.length === 0) {
-      return NextResponse.json(
-        { status: 'error', message: 'กรุณาส่งรายการที่ต้องการประเมิน' },
-        { status: 400 }
-      );
-    }
-
-    const savedList = bulkSaveEvaluations(body.items);
-
-    return NextResponse.json({
-      status: 'success',
-      message: `ประเมินรายการที่เลือกสำเร็จ (${savedList.length} รายการ)`,
-      total: savedList.length,
-      data: savedList,
+    const res = await fetch(`${BACKEND_URL}/api/v1/evaluation/bulk`, {
+      method: 'POST',
+      headers: getForwardHeaders(request),
+      body: JSON.stringify(body),
     });
+    const data = await res.json();
+    return NextResponse.json(data, { status: res.status });
   } catch (error: any) {
     return NextResponse.json(
-      { status: 'error', message: error?.message || 'Failed to bulk save evaluations' },
-      { status: 500 }
+      { status: 'error', message: error?.message || 'Backend connection failed' },
+      { status: 502 }
     );
   }
 }

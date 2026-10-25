@@ -21,6 +21,8 @@ import { FilterModal } from './FilterModal';
 import { downloadExcelTemplate, exportTableToExcel } from '@/lib/etlEngine';
 import {
   FaCheckCircle,
+  FaTimesCircle,
+  FaExclamationTriangle,
   FaArrowLeft,
   FaSearch,
   FaFilter,
@@ -44,6 +46,9 @@ import rawServices from '@/data/services.json';
 import rawIP from '@/data/ip.json';
 import rawPersonnel from '@/data/personnel.json';
 import { KPIManagementTab } from './KPIManagementTab';
+import { UserRoleManagementTab } from './UserRoleManagementTab';
+import { RoleManagementService } from '@/services/roleManagement.service';
+import { useAuth } from '@/features/auth';
 import { getStoredKPIs } from '@/lib/kpiEngine';
 import { ProjectMonitoringView } from './ProjectMonitoringView';
 import {
@@ -97,6 +102,7 @@ const VALID_CATEGORIES: readonly CategoryKey[] = [
   'personnel',
   'kpi',
   'monitoring',
+  'user_roles',
 ];
 
 const LS_MANAGE_TAB_KEY = 'ku_dw_manage_active_tab';
@@ -141,6 +147,29 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
   onNavigateToMonitoring,
 }) => {
   const router = useRouter();
+  const { user } = useAuth();
+  const canManageRoles = user?.role === 'admin';
+  const [adminCount, setAdminCount] = useState<number | undefined>(undefined);
+
+  const fetchAdminCount = useCallback(async () => {
+    if (!canManageRoles) return;
+    try {
+      const res = await RoleManagementService.listRoles({ limit: 1 });
+      if (res && typeof res.total === 'number') {
+        setAdminCount(res.total);
+      }
+    } catch {
+      // Ignore
+    }
+  }, [canManageRoles]);
+
+  useEffect(() => {
+    fetchAdminCount();
+    const handleUpdate = () => fetchAdminCount();
+    window.addEventListener('ku_roles_updated', handleUpdate);
+    return () => window.removeEventListener('ku_roles_updated', handleUpdate);
+  }, [fetchAdminCount]);
+
   // Datasets state with sanitized data and stable unique IDs
   const [datasets, setDatasets] = useState<Record<CategoryKey, any[]>>(() => ({
     monitoring: getInitialDataset('research', rawResearch),
@@ -151,6 +180,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
     ip: getInitialDataset('ip', rawIP),
     personnel: getInitialDataset('personnel', rawPersonnel as PersonnelRecord[]),
     kpi: [],
+    user_roles: [],
   }));
 
   // Synchronize with server on mount, tab focus, and evaluation updates
@@ -341,18 +371,37 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ item: any; index: number } | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  // Toast Notification
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [toastAction, setToastAction] = useState<{ label: string; onClick: () => void } | null>(null);
+  // Toast Notification System (success, error, warning)
+  const [toast, setToast] = useState<{
+    message: string;
+    type: 'success' | 'error' | 'warning';
+    action?: { label: string; onClick: () => void } | null;
+  } | null>(null);
 
-  const showToast = (msg: string, action?: { label: string; onClick: () => void }) => {
-    setToastMessage(msg);
-    setToastAction(action || null);
-    setTimeout(() => {
-      setToastMessage(null);
-      setToastAction(null);
-    }, action ? 6000 : 3500);
+  const showToast = (
+    msg: string,
+    typeOrAction?: 'success' | 'error' | 'warning' | { label: string; onClick: () => void },
+    action?: { label: string; onClick: () => void }
+  ) => {
+    let resolvedType: 'success' | 'error' | 'warning' = 'success';
+    let resolvedAction: { label: string; onClick: () => void } | null = action || null;
+
+    if (typeof typeOrAction === 'string') {
+      resolvedType = typeOrAction;
+    } else if (typeOrAction && typeof typeOrAction === 'object') {
+      resolvedAction = typeOrAction;
+    }
+
+    setToast({ message: msg, type: resolvedType, action: resolvedAction });
+    setTimeout(
+      () => {
+        setToast((cur) => (cur?.message === msg ? null : cur));
+      },
+      resolvedType === 'error' ? 5500 : resolvedAction ? 6000 : 3500
+    );
   };
 
   const currentConfig = CATEGORIES_CONFIG[activeCategory];
@@ -447,9 +496,10 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
         } else if (activeCategory === 'ip') {
           const stat = String(item.status || '').toLowerCase();
           const type = String(item.type || '').toLowerCase();
-          if (selectedSubFilter === 'granted' && !stat.includes('จดทะเบียน') && !stat.includes('สิทธิบัตร')) return false;
-          if (selectedSubFilter === 'patent' && !type.includes('สิทธิบัตรการประดิษฐ์')) return false;
+          if (selectedSubFilter === 'granted' && !stat.includes('จดทะเบียน') && !stat.includes('สิทธิบัตร') && !stat.includes('คุ้มครอง') && !item.registration_number) return false;
+          if (selectedSubFilter === 'patent' && (!type.includes('สิทธิบัตร') || type.includes('อนุสิทธิบัตร')) && type !== 'p') return false;
           if (selectedSubFilter === 'petty' && !type.includes('อนุสิทธิบัตร')) return false;
+          if (selectedSubFilter === 'copyright' && !type.includes('ลิขสิทธิ์')) return false;
         } else if (activeCategory === 'academic') {
           const chars = Array.isArray(item.characteristics)
             ? item.characteristics.join(' ')
@@ -507,8 +557,31 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
       ip: datasets.ip.length,
       personnel: datasets.personnel.length,
       kpi: getStoredKPIs().length,
+      user_roles: adminCount,
     };
-  }, [datasets]);
+  }, [datasets, adminCount]);
+
+  const managementTabs = useMemo(() => {
+    const tabsList: { key: CategoryKey; label: string; count?: number }[] = [
+      { key: 'research', label: 'โครงงานวิจัย', count: counts.research },
+      { key: 'academic', label: 'โครงการพัฒนาวิชาการ', count: counts.academic },
+      { key: 'publications', label: 'ผลงานตีพิมพ์ทางวิชาการ', count: counts.publications },
+      { key: 'service', label: 'งานบริการวิชาการ', count: counts.service },
+      { key: 'ip', label: 'งานทรัพย์สินทางปัญญา', count: counts.ip },
+      { key: 'personnel', label: 'บุคลากรและอาจารย์', count: counts.personnel },
+      { key: 'kpi', label: 'ตัวชี้วัดตามแผนยุทธศาสตร์', count: counts.kpi },
+    ];
+
+    if (canManageRoles) {
+      tabsList.push({
+        key: 'user_roles',
+        label: 'จัดการสิทธิ์ผู้ใช้',
+        count: adminCount,
+      });
+    }
+
+    return tabsList;
+  }, [counts, canManageRoles, adminCount]);
 
   // Handle Tab Change
   const handleTabChange = (key: CategoryKey) => {
@@ -572,54 +645,76 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
     const isNew = !(editingIndex !== null && editingIndex >= 0);
     const targetCategory = activeCategory === 'monitoring' ? 'research' : activeCategory;
 
-    const saveResult = await saveCategoryRecord(targetCategory, record, isNew);
-    if (!saveResult.success) {
-      showToast(saveResult.error || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล');
-      return;
-    }
-
-    const savedRecord = saveResult.data || record;
-
-    setDatasets((prev) => {
-      const list = [...(prev[targetCategory] || [])];
-      if (!isNew && editingIndex !== null && editingIndex >= 0) {
-        const prevId = list[editingIndex]._id || `${targetCategory}_${editingIndex}`;
-        list[editingIndex] = { ...list[editingIndex], ...savedRecord, _id: prevId };
-        showToast(`แก้ไขข้อมูล "${record[currentConfig.nameKey] || record.name}" สำเร็จ`);
-      } else {
-        list.unshift(savedRecord);
-        showToast(`เพิ่มรายการ "${record[currentConfig.nameKey] || record.name}" เรียบร้อยแล้ว`);
+    try {
+      setIsSaving(true);
+      const saveResult = await saveCategoryRecord(targetCategory, record, isNew);
+      if (!saveResult.success) {
+        showToast(saveResult.error || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล', 'error');
+        return;
       }
-      return {
-        ...prev,
-        [targetCategory]: list,
-        ...(targetCategory === 'research' ? { monitoring: list } : {}),
-      };
-    });
-    setEditingItem(null);
-    setEditingIndex(null);
+
+      const savedRecord = saveResult.data || record;
+
+      setDatasets((prev) => {
+        const list = [...(prev[targetCategory] || [])];
+        if (!isNew && editingIndex !== null && editingIndex >= 0) {
+          const prevId = list[editingIndex]._id || `${targetCategory}_${editingIndex}`;
+          list[editingIndex] = { ...list[editingIndex], ...savedRecord, _id: prevId };
+          showToast(`แก้ไขข้อมูล "${record[currentConfig.nameKey] || record.name}" สำเร็จ`, 'success');
+        } else {
+          list.unshift(savedRecord);
+          showToast(`เพิ่มรายการ "${record[currentConfig.nameKey] || record.name}" เรียบร้อยแล้ว`, 'success');
+        }
+        return {
+          ...prev,
+          [targetCategory]: list,
+          ...(targetCategory === 'research' ? { monitoring: list } : {}),
+        };
+      });
+      setEditingItem(null);
+      setEditingIndex(null);
+      setIsAddEditModalOpen(false);
+      await syncServerData(true);
+    } catch (err: any) {
+      showToast(err?.message || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล', 'error');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleDeleteConfirm = async () => {
     if (!deleteTarget) return;
     const targetCategory = activeCategory === 'monitoring' ? 'research' : activeCategory;
     const targetId = deleteTarget.item._id || deleteTarget.item.id;
-    if (targetId) {
-      await deleteCategoryRecord(targetCategory, targetId);
-    }
+    const targetName = deleteTarget.item[currentConfig.nameKey] || deleteTarget.item.name || '';
 
-    setDatasets((prev) => {
-      const list = [...(prev[targetCategory] || [])];
-      const targetName = deleteTarget.item[currentConfig.nameKey] || deleteTarget.item.name || '';
-      list.splice(deleteTarget.index, 1);
-      showToast(`ลบรายการ "${targetName}" เรียบร้อยแล้ว`);
-      return {
-        ...prev,
-        [targetCategory]: list,
-        ...(targetCategory === 'research' ? { monitoring: list } : {}),
-      };
-    });
-    setDeleteTarget(null);
+    try {
+      setIsDeleting(true);
+      if (targetId) {
+        const deleteResult = await deleteCategoryRecord(targetCategory, targetId);
+        if (!deleteResult.success) {
+          showToast(deleteResult.error || 'เกิดข้อผิดพลาดในการลบข้อมูล', 'error');
+          return;
+        }
+      }
+
+      setDatasets((prev) => {
+        const list = [...(prev[targetCategory] || [])];
+        list.splice(deleteTarget.index, 1);
+        showToast(`ลบรายการ "${targetName}" เรียบร้อยแล้ว`, 'success');
+        return {
+          ...prev,
+          [targetCategory]: list,
+          ...(targetCategory === 'research' ? { monitoring: list } : {}),
+        };
+      });
+      setDeleteTarget(null);
+      await syncServerData(true);
+    } catch (err: any) {
+      showToast(err?.message || 'เกิดข้อผิดพลาดในการลบข้อมูล', 'error');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const handleCommitImport = async (
@@ -710,6 +805,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
     if (unevaluatedCount > 0) {
       showToast(
         `นำเข้าข้อมูลสำเร็จ ${importedRows.length} รายการ (ยังไม่ประเมิน ${unevaluatedCount} รายการ)`,
+        'warning',
         {
           label: 'ไปที่หน้าการประเมิน',
           onClick: () => router.push(`/evaluation?category=${resolvedCategory}&status=unevaluated`),
@@ -719,51 +815,70 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
       showToast(
         `นำเข้าข้อมูลเข้าหมวด ${CATEGORIES_CONFIG[targetCategory].title} สำเร็จ (${importedRows.length} รายการ - ${
           mode === 'append' ? 'โหมดต่อท้าย' : 'โหมดเขียนทับ'
-        })`
+        })`,
+        'success'
       );
     }
+    await syncServerData(true);
   };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
       {/* Toast Alert */}
-      {toastMessage && (
+      {toast && (
         <div
+          role="status"
+          aria-live="polite"
           style={{
             position: 'fixed',
             bottom: '24px',
             right: '24px',
-            backgroundColor: '#00A651',
+            backgroundColor:
+              toast.type === 'error' ? '#dc2626' : toast.type === 'warning' ? '#d97706' : '#00A651',
             color: '#ffffff',
-            padding: '10px 18px',
+            padding: '12px 20px',
             borderRadius: '8px',
-            boxShadow: '0 8px 24px rgba(0, 166, 81, 0.3)',
+            boxShadow:
+              toast.type === 'error'
+                ? '0 8px 24px rgba(220, 38, 38, 0.35)'
+                : toast.type === 'warning'
+                ? '0 8px 24px rgba(217, 119, 6, 0.35)'
+                : '0 8px 24px rgba(0, 166, 81, 0.35)',
             zIndex: 99999,
             display: 'flex',
             alignItems: 'center',
-            gap: '10px',
+            gap: '12px',
             fontWeight: 500,
             fontSize: '13px',
+            maxWidth: '460px',
+            wordBreak: 'break-word',
           }}
         >
-          <FaCheckCircle style={{ fontSize: '16px' }} />
-          <span>{toastMessage}</span>
-          {toastAction && (
+          {toast.type === 'error' ? (
+            <FaTimesCircle style={{ fontSize: '18px', flexShrink: 0 }} />
+          ) : toast.type === 'warning' ? (
+            <FaExclamationTriangle style={{ fontSize: '18px', flexShrink: 0 }} />
+          ) : (
+            <FaCheckCircle style={{ fontSize: '18px', flexShrink: 0 }} />
+          )}
+          <span style={{ lineHeight: 1.4 }}>{toast.message}</span>
+          {toast.action && (
             <button
-              onClick={toastAction.onClick}
+              onClick={toast.action.onClick}
               style={{
                 marginLeft: '8px',
                 padding: '4px 10px',
                 borderRadius: '6px',
                 backgroundColor: '#ffffff',
-                color: '#00A651',
+                color: toast.type === 'warning' ? '#d97706' : '#00A651',
                 border: 'none',
                 fontWeight: 700,
                 fontSize: '12px',
                 cursor: 'pointer',
+                flexShrink: 0,
               }}
             >
-              {toastAction.label}
+              {toast.action.label}
             </button>
           )}
         </div>
@@ -866,7 +981,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
             scrollbarWidth: 'none',
             msOverflowStyle: 'none',
             WebkitOverflowScrolling: 'touch',
-            padding: '2px 34px 6px 34px',
+            padding: '2px 0px 6px 0px',
             cursor: 'grab',
           }}
         >
@@ -875,6 +990,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
               activeCategory={activeCategory}
               onSelectCategory={handleTabChange}
               counts={counts}
+              tabs={managementTabs}
             />
           </div>
         </div>
@@ -911,7 +1027,19 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
         )}
       </div>
 
-      {activeCategory === 'kpi' ? (
+      {activeCategory === 'user_roles' ? (
+        <div
+          style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '12px',
+            border: '1px solid #e2e8f0',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+            padding: '24px',
+          }}
+        >
+          <UserRoleManagementTab />
+        </div>
+      ) : activeCategory === 'kpi' ? (
         <KPIManagementTab datasets={datasets} />
       ) : (
         /* 3. กล่องเนื้อหาหลัก */
@@ -1260,7 +1388,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
                     research: updatedResearch,
                     monitoring: updatedResearch,
                   }));
-                  showToast('อัปเดตกำหนดการและสถานะโครงการเรียบร้อยแล้ว');
+                  showToast('อัปเดตกำหนดการและสถานะโครงการเรียบร้อยแล้ว', 'success');
                 }}
               />
             </div>
@@ -1452,7 +1580,9 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
       {/* Modals */}
       <SmartAddEditModal
         isOpen={isAddEditModalOpen}
+        isSubmitting={isSaving}
         onClose={() => {
+          if (isSaving) return;
           setIsAddEditModalOpen(false);
           setEditingItem(null);
           setEditingIndex(null);
@@ -1472,6 +1602,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
 
       <ConfirmActionModal
         isOpen={Boolean(deleteTarget)}
+        isLoading={isDeleting}
         type="danger"
         title="ยืนยันการลบรายการ?"
         message={`คุณต้องการลบข้อมูล "${deleteTarget ? deleteTarget.item[currentConfig.nameKey] || deleteTarget.item.name || '' : ''}" ในหมวด ${currentConfig.title} ใช่หรือไม่?`}
@@ -1500,10 +1631,13 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
             return 'การดำเนินการนี้จะไม่สามารถย้อนกลับได้';
           })() : 'การดำเนินการนี้จะไม่สามารถย้อนกลับได้'
         }
-        confirmText="ยืนยันการลบ"
+        confirmText={isDeleting ? 'กำลังลบ...' : 'ยืนยันการลบ'}
         cancelText="ยกเลิก"
         onConfirm={handleDeleteConfirm}
-        onCancel={() => setDeleteTarget(null)}
+        onCancel={() => {
+          if (isDeleting) return;
+          setDeleteTarget(null);
+        }}
       />
 
       <FilterModal

@@ -1,0 +1,89 @@
+<USER_REQUEST>
+รวมงาน 3 เรื่อง: (A) ลดบทบาทเหลือ admin กับ user (B) แก้บั๊กเพิ่ม/แก้ไข/ลบข้อมูลไม่ได้ และกล่องแจ้งผลสีผิด (C) ทดสอบทั้งระบบทุก feature ด้วย test data
+
+## กฎ
+- ทำเฉพาะที่ระบุ ห้ามเพิ่มฟีเจอร์หรือรีแฟกเตอร์ที่ไม่ได้สั่ง
+- ห้ามแก้ระบบล็อกอินที่ใช้อยู่ (AuthModal, ขั้นตอนยืนยันตัวตน, ไฟล์/env ที่เกี่ยวข้อง) งานนี้แตะเฉพาะบทบาท/สิทธิ์หลังล็อกอิน
+- ลังเลหรือพบสิ่งที่ไม่ได้ระบุ ให้หยุดถามก่อน
+- ห้ามแตะ git commit/push/merge ห้าม down -v, volume rm, rm -rf, DROP ยกเว้นลบแถวตามที่ระบุ
+- ก่อนเริ่ม: db:backup 1 ครั้ง
+- ลำดับ: B1 → A → B2 → C จบแต่ละส่วนรายงานสั้น ๆ แล้วทำต่อ
+
+## B1. หาสาเหตุบั๊กเขียนข้อมูลไม่ได้ (ห้ามเดา)
+อาการ: ทุกหมวดใน /manage เพิ่ม/แก้/ลบไม่ได้ ขึ้น "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์..." และแสดงเป็นสีเขียวเครื่องหมายถูก
+1. ใช้บัญชี admin ยิง POST/PUT/DELETE ทุก category (research, academic, publications, service, ip, personnel, evaluation, user_roles) ทั้ง :8000 และผ่าน :3000 พร้อม cookie เก็บ status+body
+2. ดู backend log หา error จริง (Prisma code, permission denied, null constraint, type mismatch, sequence) รายงานตาราง category × method × status × สาเหตุ
+3. ตรวจสิทธิ์ ku_app: GRANT ครบทุกตารางและ sequence + ALTER DEFAULT PRIVILEGES ถ้าขาดเพิ่มผ่าน migration ด้วย ku_owner
+4. เทียบ payload จากฟอร์มจริง (ชื่อฟิลด์ ชนิด วันที่ พ.ศ./ค.ศ. ตัวเลขเป็นสตริง "") กับ zod/Prisma รายงานฟิลด์ที่ไม่ตรง
+5. ตรวจว่าผ่าน :3000 ส่ง cookie ku_session ครบ และ 401/403 ไม่ถูก UI แปลงเป็น "ภายในเซิร์ฟเวอร์"
+แก้ที่ต้นเหตุ ไม่ใช่กลบ error
+
+## A. บทบาท 2 ระดับ
+**A1 กติกา**
+- user (ค่าเริ่มต้นของทุกคนที่ล็อกอิน ไม่ต้องมีรายการใน DB): อ่านอย่างเดียว เข้าได้เฉพาะ /overview /research /academic /publications /service /ip
+- admin: ทำได้ทุกอย่าง
+- ลบบทบาท management และ super_admin ออกทั้งระบบ (permissions.ts ทั้งสองฝั่ง, canAccess, RoleBadge, dropdown, ข้อความ UI) grep ให้ครบ
+
+**A2 Migration (ใหม่ reversible ห้ามแก้ migration เก่า)**
+- user_roles เพิ่ม is_protected BOOLEAN DEFAULT false
+- super_admin → admin + is_protected=true (b6520503525, b0123456789) ; management → ลบรายการ ; admin เดิมคงไว้ ; CHECK role IN ('admin','user')
+- role_audit_logs append-only ห้ามแก้ข้อมูลเก่า ถ้ามี CHECK บน role ให้ผ่อนให้รับค่าเดิม UI แสดงบทบาทเก่าพร้อมกำกับว่าเป็นบทบาทเดิม
+- เขียน audit การแปลงเป็น 1 รายการ (actor=system) ; seed สองบัญชีข้างต้นเป็น admin is_protected (idempotent)
+
+**A3 กฎที่บังคับที่ server**
+- admin ให้/ถอน admin คนอื่นได้ ; ห้ามแก้/ถอน/ลดบัญชี is_protected และห้ามตั้ง is_protected ผ่าน API/UI ; ห้ามเปลี่ยนสิทธิ์ตัวเอง ; ห้ามถอน admin คนสุดท้าย
+- ใช้บทบาทจาก session+DB เสมอ ไม่เชื่อ body/query/header ; มีผลทันทีไม่ต้องล็อกอินใหม่
+- username ต้องตรง ^b\d{10}$ (ยกเว้นบัญชีที่ seed) ซ้ำคืน 409 ; ทุกการเปลี่ยนเขียน audit ใน transaction เดียวกัน audit ล้ม = rollback
+
+**A4 Guard**
+- backend: GET ข้อมูล 5 พันธกิจและ endpoint ที่ overview ใช้ = user ขึ้นไป ; kpi, personnel, studio, evaluation, monitoring, GET /data/personnel, lookups เฉพาะฟอร์มจัดการ และทุก POST/PUT/DELETE/import/export = admin (ไม่มี session 401, สิทธิ์ไม่พอ 403 ข้อความไทย)
+- ตรวจว่า overview และ 5 หน้าพันธกิจไม่ดึงจาก endpoint ที่จำกัด admin ถ้าดึง ให้หยุดถามผม พร้อมรายงานหน้าไหนดึงอะไร
+- user: sidebar เหลือช่วงบน (overview + 5 พันธกิจ) ซ่อนช่วงกลาง/ล่างและเส้นคั่นของช่วงว่าง ซ่อนปุ่มแก้/ลบ/เพิ่ม/นำเข้า และลิงก์ไปหน้า admin (เช่น "ดูหน้า KPI") ; พิมพ์ URL หน้า admin → /unauthorized
+- server layout ของ /kpi /personnel /studio /evaluation /monitoring /manage ตรวจเป็น admin
+
+**A5 แท็บ "จัดการสิทธิ์ผู้ใช้" (/manage เฉพาะ admin)**
+- ตารางแสดงเฉพาะผู้มีรายการ admin ; ปุ่ม "เพิ่มผู้ดูแลระบบ" (username, ชื่อ/หมายเหตุไม่บังคับ) ; แถวบัญชีป้องกันและแถวตัวเองปุ่มแก้/ลบ disabled พร้อมคำอธิบาย ; ถอนสิทธิ์ต้อง confirm ระบุ username
+- RoleBadge 2 แบบ (admin, user) สไตล์เดียวกับ badge สังกัด สีผ่าน token
+- แก้ตัวนับป้ายแท็บที่ขึ้น 0 ให้ตรงจริง ; sub-tab ประวัติการเปลี่ยนสิทธิ์ ดูอย่างเดียว
+- ลบแถวทดสอบ: รายงาน user_roles ทั้งหมดก่อน แล้วลบเฉพาะ b9999999992, b9999999993, b1111111111, b6400000010 ผ่านเส้นทางปกติ (ให้ขึ้น audit) บัญชีอื่นห้ามแตะ
+
+## B2. UI แจ้งผล
+1. รวม toast/alert/banner ที่แจ้งผลบันทึกใน /manage (grep "เกิดข้อผิดพลาด") เป็น component กลางเดียว: success (เขียว ✓), error (แดง ✗), warning (เหลือง/ส้ม) สีผ่าน token
+2. API error แสดง error เสมอ ใช้ข้อความจาก API ; success เฉพาะเมื่อ 2xx จริง
+3. backend: 4xx ข้อความตรงสาเหตุ (400 ระบุฟิลด์, 401, 403 "ไม่มีสิทธิ์...", 409 ซ้ำ) ; 5xx ข้อความทั่วไป + log สาเหตุจริงพร้อม request id
+4. ปุ่มบันทึกมี loading กันกดซ้ำ ; หลังสำเร็จ refresh ตารางและตัวเลขแท็บ
+
+## C. ทดสอบทั้งระบบทุก feature ด้วย test data
+หลักการ
+- สร้าง test data ผ่านหน้าเว็บจริง: ใช้เบราว์เซอร์อัตโนมัติ (Playwright ถ้ามี/ติดตั้งเป็น devDependency ของ warehouse_dashboard เท่านั้น) กรอกฟอร์มและกดปุ่มเหมือนผู้ใช้ ไม่ insert DB ตรงและไม่ข้ามหน้าเว็บ เพื่อพิสูจน์ว่าใช้งานได้จริง ใช้ API ตรงเฉพาะตรวจผลเพิ่มเติม
+- ล็อกอินด้วยกลไกที่มีอยู่ ถ้าล็อกอินอัตโนมัติไม่ได้ให้หยุดถามผม
+- ทุก record ทดสอบต้องมี prefix "[TEST]" ในชื่อ เพื่อเก็บกวาดได้ปลอดภัย เก็บรายการ id ที่สร้างไว้ในไฟล์ reports/test-data-manifest.json
+- ก่อนเริ่มเก็บจำนวนแถวต่อตาราง (research 32, academic 69, publications 68, service 307, ip 21, personnel 308 ฯลฯ) ; หลังจบต้องกลับมาเท่าเดิม ลบเฉพาะ record ที่อยู่ใน manifest ผ่านหน้าเว็บ/เส้นทางปกติ ห้ามลบข้อมูลจริง
+- ถ้าลบข้อมูลทดสอบไม่ได้ ให้รายงาน id ค้าง อย่าลบข้อมูลอื่นแทน
+
+ขอบเขตทดสอบ (ทำในฐานะ admin ก่อน แล้วทดสอบสิทธิ์ในฐานะ user)
+1. CRUD ผ่านฟอร์มของทุกหมวดใน /manage: research, academic, publications, service (ครบ 6 ประเภท), ip (อนุสิทธิบัตร, สิทธิบัตร, ลิขสิทธิ์ ว1.000033 ; เลขทะเบียนซ้ำต้อง 409 ; เปลี่ยนประเภทตอนแก้), personnel, evaluation, ตัวชี้วัด/KPI ที่แก้ไขได้ ; ทดสอบ เพิ่ม → เห็นในตาราง+ตัวเลขแท็บเพิ่ม → แก้ → ลบ ; ฟิลด์บังคับว่างต้องขึ้นกล่องแดงบอกฟิลด์
+2. ค้นหา กรอง แบ่งหน้า เรียงลำดับ ของแต่ละตาราง ; ตัวเลขแท็บตรงจำนวนจริง
+3. Excel import/export ทุกหมวด (ใช้ไฟล์ทดสอบที่มี prefix [TEST]) รวมไฟล์ผิดรูปแบบต้องขึ้น error อ่านเข้าใจ
+4. ผลงานที่เพิ่มแล้วต้องสะท้อนในหน้า dashboard ที่เกี่ยวข้อง (overview, 5 พันธกิจ, kpi, monitoring, evaluation) ตัวเลขเพิ่มตรงตามที่เพิ่ม และกลับเท่าเดิมหลังลบ
+5. แท็บจัดการสิทธิ์: เพิ่ม/ถอน admin คนอื่นได้ มีผลทันที ; บัญชีป้องกัน/ตัวเอง/admin คนสุดท้ายถูกบล็อก ; audit ขึ้นครบ
+6. สิทธิ์ user: เห็นเฉพาะเมนู 6 รายการ ดูข้อมูลได้ ตัวเลขเท่าเดิม ; URL หน้า admin → /unauthorized ; curl เขียน/ลบ/GET ของ admin → 403 ; ไม่ล็อกอิน curl ทุก endpoint → 401 (ยกเว้น /health, /auth/*) ไม่เห็นหน้า dashboard วาบ
+7. ความทนทาน: หยุด container postgres แล้วบันทึกต้องขึ้นกล่องแดงข้อความเข้าใจได้ แล้วเปิดกลับใช้ได้ ; SQL injection ที่ช่องค้นหา/กรองไม่ทำงาน ; กดบันทึกซ้ำไม่เกิดแถวซ้ำ
+8. migration: รันจากศูนย์และ rollback ได้ ข้อมูลเดิมแปลงถูก ประวัติเก่าแสดงได้
+9. Regression: ทุกหน้า (overview, research, academic, publications, service, ip, kpi, personnel, studio, evaluation, monitoring, manage) โหลดได้ ไม่มี console error ไม่มี hydration warning ; build/lint ผ่านทั้งสองโปรเจกต์
+10. เก็บ screenshot ของแต่ละขั้นที่ล้มเหลวไว้ใน reports/
+
+ผลลัพธ์ที่ต้องส่ง: ตาราง feature × ขั้นตอน × PASS/FAIL × หมายเหตุ ; บั๊กที่พบระหว่างทดสอบ พร้อมแก้ถ้าอยู่ในขอบเขต prompt นี้ ถ้านอกขอบเขตให้รายงานและถามผม ; ยืนยันจำนวนแถวหลังเก็บกวาดเท่าก่อนเริ่มทุกตาราง
+
+## จุดที่ต้องหยุดถามผม
+- ต้องเปลี่ยน response ของ API ที่หน้าอื่นพึ่งพา
+- overview/5 พันธกิจพึ่งข้อมูลที่ user ไม่ควรเห็น
+- ล็อกอินอัตโนมัติสำหรับทดสอบไม่ได้ หรือต้องมี secret ที่ผมต้องตั้งเอง (บอกชื่อตัวแปรแล้วทำส่วนอื่นต่อ)
+- สิ่งใดที่ prompt ไม่ได้ระบุและมีหลายทางเลือก
+
+## สรุปเมื่อเสร็จ
+(1) สาเหตุจริงบั๊กเขียนข้อมูลเป็นตาราง (2) ไฟล์ที่สร้าง/แก้ + migration (3) endpoint × สิทธิ์ (4) endpoint ที่แยกให้ user (ถ้ามี) (5) env ที่ผมต้องตั้งเอง (6) แถวที่ลบ (7) ตารางผลทดสอบระบบทั้งหมด (8) จำนวนแถวก่อน/หลัง (9) สิ่งที่ลังเลหรือไม่ได้ทำ แล้วหยุดรอผม
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-10-25T20:41:37+07:00.
+</ADDITIONAL_METADATA>

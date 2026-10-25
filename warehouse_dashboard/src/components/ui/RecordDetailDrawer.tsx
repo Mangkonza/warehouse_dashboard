@@ -4,10 +4,13 @@ import React, { useEffect, useRef } from 'react';
 import { CategoryConfig, CategoryKey } from '@/types/dataManagement';
 import { CATEGORIES_CONFIG } from '@/config/dataManagementConfig';
 import { DepartmentBadge } from '@/components/ui/department-badge';
+import { ServiceTypeBadge } from '@/components/ui/service-type-badge';
+import { IPTypeBadge } from '@/components/ui/ip-type-badge';
 import { EvaluationTags, LevelBadge, RecordEvaluationTags, getItemEvaluation } from '@/components/ui/evaluation-tag';
 import { Drawer } from '@/components/ui/Drawer';
 import { getCachedEvaluations } from '@/lib/dataService';
 import { EvaluationValue, isEvaluated } from '@/types/evaluation';
+import { useAuth } from '@/features/auth';
 import {
   FaTimes,
   FaChevronLeft,
@@ -118,6 +121,8 @@ export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
   totalInPage = 0,
   readOnly = false,
 }) => {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const item = itemProp ?? record ?? null;
   const config =
     configProp ??
@@ -239,6 +244,22 @@ export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
       return (
         <div className="pt-0.5">
           <LevelBadge value={String(rawVal)} />
+        </div>
+      );
+    }
+
+    if (field.key === 'service_type' || field.key === 'service_category') {
+      return (
+        <div className="pt-0.5">
+          <ServiceTypeBadge value={String(rawVal)} />
+        </div>
+      );
+    }
+
+    if (field.key === 'type' && (categoryKey === 'ip' || ['สิทธิบัตร', 'อนุสิทธิบัตร', 'ลิขสิทธิ์'].some((t) => String(rawVal).includes(t)))) {
+      return (
+        <div className="pt-0.5">
+          <IPTypeBadge value={String(rawVal)} />
         </div>
       );
     }
@@ -447,7 +468,7 @@ export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
 
         {/* Actions: Edit, Delete, Close */}
         <div className="flex items-center gap-1.5">
-          {!readOnly && onEdit && (
+          {!readOnly && isAdmin && onEdit && (
             <button
               type="button"
               onClick={() => {
@@ -462,7 +483,7 @@ export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
             </button>
           )}
 
-          {!readOnly && onDelete && (
+          {!readOnly && isAdmin && onDelete && (
             <button
               type="button"
               onClick={() => {

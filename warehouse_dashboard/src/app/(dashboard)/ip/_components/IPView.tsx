@@ -15,8 +15,10 @@ export function IPView() {
     availableDepts,
     patentCount,
     pettyPatentCount,
+    copyrightCount,
     protectedCount,
     pendingCount,
+    inPrepCount,
     totalSupportAmount,
     uniqueDeptCount,
     searchTerm,
@@ -41,13 +43,13 @@ export function IPView() {
             {
               label: 'งานทรัพย์สินทางปัญญาทั้งหมด',
               value: `${validIpData.length} รายการ`,
-              subtext: `อนุสิทธิบัตร ${pettyPatentCount} • สิทธิบัตร ${patentCount}`,
+              subtext: `อนุสิทธิบัตร ${pettyPatentCount} • สิทธิบัตร ${patentCount} • ลิขสิทธิ์ ${copyrightCount}`,
               accentColor: '#6a1b9a',
             },
             {
               label: 'ได้รับความคุ้มครองแล้ว',
               value: `${protectedCount} รายการ`,
-              subtext: `อยู่ระหว่างยื่นคำขอ ${pendingCount} รายการ`,
+              subtext: `ยื่นคำขอ ${pendingCount} • เตรียมยื่นจด ${inPrepCount} รายการ`,
               accentColor: '#00A651',
             },
             {

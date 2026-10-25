@@ -51,10 +51,10 @@ const COLLABORATION_OPTIONS = [
 ];
 
 const PROJECT_NATURE_OPTIONS = [
-  { label: 'การวิจัยพื้นฐาน (Basic Research)', value: 'basic', hint: 'สร้างองค์ความรู้ใหม่' },
-  { label: 'การวิจัยประยุกต์ (Applied Research)', value: 'applied', hint: 'ประยุกต์ใช้แก้ปัญหา' },
-  { label: 'การพัฒนาเชิงทดลอง (Experimental Development)', value: 'experimental', hint: 'สร้างต้นแบบ/กระบวนการ' },
-  { label: 'การถ่ายทอดเทคโนโลยีหรือเชิงพาณิชย์', value: 'commercialization', hint: 'พร้อมขยายผลเชิงพาณิชย์' },
+  { label: 'การวิจัยพื้นฐาน (Basic Research)', value: 'basic'},
+  { label: 'การวิจัยประยุกต์ (Applied Research)', value: 'applied'},
+  { label: 'การพัฒนาเชิงทดลอง (Experimental Development)', value: 'experimental'},
+  { label: 'การถ่ายทอดเทคโนโลยีหรือเชิงพาณิชย์', value: 'commercialization'},
 ];
 
 export function ResearchProjectForm({
@@ -171,7 +171,6 @@ export function ResearchProjectForm({
                   label="รหัสโครงการวิจัย"
                   required
                   error={duplicateCodeWarning}
-                  hint="เช่น วศ.กพส. 1/2568"
                 >
                   <input
                     type="text"
@@ -188,7 +187,7 @@ export function ResearchProjectForm({
               </div>
 
               <div className="sm:col-span-4">
-                <FormField label="ปีงบประมาณ (พ.ศ.)" hint="เช่น 2568">
+                <FormField label="ปีงบประมาณ (พ.ศ.)">
                   <input
                     type="number"
                     value={formData.fiscal_year_be || ''}
@@ -228,7 +227,7 @@ export function ResearchProjectForm({
             {/* แหล่งทุนวิจัย และ ประเภททุน */}
             <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
               <div className="sm:col-span-8">
-                <FormField label="แหล่งทุนวิจัย" required hint="เลือกจากรายการหรือพิมพ์ระบุแหล่งทุนใหม่">
+                <FormField label="แหล่งทุนวิจัย">
                   <CreatableCombobox
                     options={fundingOptions}
                     value={formData.fund_source || ''}
@@ -279,7 +278,7 @@ export function ResearchProjectForm({
             </div>
 
             {/* ช่วงเวลาดำเนินโครงการ (พ.ศ.) */}
-            <FormField label="ระยะเวลาดำเนินโครงการ (เดือน/ปี พ.ศ.)" hint="เลือกช่วงเวลาเริ่มต้นและสิ้นสุด">
+            <FormField label="ระยะเวลาดำเนินโครงการ (เดือน/ปี พ.ศ.)">
               <MonthYearRangePicker
                 value={dateRangeValue}
                 onChange={({ start, end }) => {
@@ -327,7 +326,7 @@ export function ResearchProjectForm({
             {/* หัวหน้าโครงการ และ สังกัดหลัก */}
             <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
               <div className="sm:col-span-6">
-                <FormField label="หัวหน้าโครงการวิจัย" required hint="ค้นหาอาจารย์/นักวิจัย หรือพิมพ์ระบุ">
+                <FormField label="หัวหน้าโครงการวิจัย">
                   <PersonPicker
                     value={formData.head ? {
                       person_id: formData.head_id || null,
@@ -352,11 +351,11 @@ export function ResearchProjectForm({
               </div>
 
               <div className="sm:col-span-6">
-                <FormField label="ภาควิชา / สังกัดหลักที่รับผิดชอบ" required>
+                <FormField label="สังกัดที่รับผิดชอบ">
                   <DepartmentSelect
                     value={formData.department || ''}
                     onChange={(val) => onChange('department', val)}
-                    placeholder="-- เลือกภาควิชาหลัก --"
+                    placeholder="-- เลือกสังกัด --"
                   />
                 </FormField>
               </div>
@@ -364,8 +363,8 @@ export function ResearchProjectForm({
 
             {/* หน่วยงานร่วมรับผิดชอบ (หลายสังกัด) */}
             <FormField
-              label="หน่วยงาน / ภาควิชาร่วมรับผิดชอบ (ถ้ามีหลายสังกัด)"
-              hint="เลือกได้หลายภาควิชา/ศูนย์"
+              label="สังกัดที่ร่วมรับผิดชอบ (ถ้ามีหลายสังกัด)"
+              hint="เลือกได้หลายสังกัด"
             >
               <DepartmentMultiSelect
                 value={formData.departments || []}
@@ -447,7 +446,7 @@ export function ResearchProjectForm({
               </h5>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <FormField label="งบประมาณภายใน" hint="เช่น ทุนคณะ, ทุน มก.">
+                <FormField label="งบประมาณภายใน">
                   <MoneyInput
                     value={formData.budget_internal}
                     onChange={(num) => onChange('budget_internal', num ?? 0)}
@@ -455,7 +454,7 @@ export function ResearchProjectForm({
                   />
                 </FormField>
 
-                <FormField label="งบประมาณภายนอก" hint="เช่น วช., สวก., บพข.">
+                <FormField label="งบประมาณภายนอก">
                   <MoneyInput
                     value={formData.budget_external}
                     onChange={(num) => onChange('budget_external', num ?? 0)}
@@ -471,7 +470,6 @@ export function ResearchProjectForm({
                     <span>{budgetTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                     <span className="text-xs font-semibold text-emerald-700">บาท</span>
                   </div>
-                  <span className="text-[11px] text-slate-400">ภายใน + ภายนอก</span>
                 </div>
               </div>
             </div>

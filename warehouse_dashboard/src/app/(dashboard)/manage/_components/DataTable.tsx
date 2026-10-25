@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { ColumnDef, CategoryKey } from '@/types/dataManagement';
 import { getDepartmentAbbr, CATEGORIES_CONFIG } from '@/config/dataManagementConfig';
-import { DepartmentBadge, RecordDetailDrawer, LevelBadge, formatDateBE, formatMoney } from '@/components/ui';
+import { DepartmentBadge, RecordDetailDrawer, LevelBadge, ServiceTypeBadge, IPTypeBadge, formatDateBE, formatMoney } from '@/components/ui';
 import { getCachedEvaluations } from '@/lib/dataService';
 import {
   FaUser,
@@ -146,6 +146,14 @@ export const DataTable: React.FC<DataTableProps> = ({
           );
         }
 
+        if (col.key === 'service_type' || col.key === 'service_category') {
+          return <ServiceTypeBadge value={rawVal ? String(rawVal) : null} />;
+        }
+
+        if (col.key === 'type' && (categoryKey === 'ip' || ['สิทธิบัตร', 'อนุสิทธิบัตร', 'ลิขสิทธิ์'].some((t) => String(rawVal).includes(t)))) {
+          return <IPTypeBadge value={rawVal ? String(rawVal) : null} />;
+        }
+
         if (col.badgeColorMap) {
           const colors = col.badgeColorMap(rawVal);
           bg = colors.bg;
@@ -155,22 +163,6 @@ export const DataTable: React.FC<DataTableProps> = ({
           bg = '#eff6ff';
           text = '#1d4ed8';
           border = '#bfdbfe';
-        } else if (col.key === 'service_type' || col.key === 'service_category') {
-          if (rawVal === 'วิทยากร/อาจารย์พิเศษ') {
-            bg = '#eff6ff'; text = '#1d4ed8'; border = '#bfdbfe';
-          } else if (rawVal === 'วิชาการ') {
-            bg = '#ecfdf5'; text = '#047857'; border = '#a7f3d0';
-          } else if (rawVal === 'วิชาชีพ') {
-            bg = '#faf5ff'; text = '#7e22ce'; border = '#e9d5ff';
-          } else if (rawVal === 'ผู้ทรงคุณวุฒิ') {
-            bg = '#fffbeb'; text = '#b45309'; border = '#fde68a';
-          } else if (rawVal === 'วิทยานิพนธ์ภายนอก') {
-            bg = '#f0fdfa'; text = '#0f766e'; border = '#99f6e4';
-          } else if (rawVal === 'ศึกษาดูงาน วศ.กพส.') {
-            bg = '#fff1f2'; text = '#be123c'; border = '#fecdd3';
-          } else {
-            bg = '#f8fafc'; text = '#475569'; border = '#e2e8f0';
-          }
         }
 
         return (
@@ -192,9 +184,7 @@ export const DataTable: React.FC<DataTableProps> = ({
             }}
             title={String(rawVal || '')}
           >
-            {col.key === 'service_type' || col.key === 'service_category'
-              ? String(rawVal || '-')
-              : String(rawVal).replace('ภาควิชา', '')}
+            {String(rawVal).replace('ภาควิชา', '')}
           </span>
         );
 
@@ -555,14 +545,17 @@ export const DataTable: React.FC<DataTableProps> = ({
 
       case 'ip_reg_info': {
         const regNo = item.registration_number || item.reg_no || '-';
-        const prot = item.protection_period || (item.protection_start ? `${formatDateBE(item.protection_start)} – ${formatDateBE(item.protection_end)}` : '-');
+        const isCopyright = item.type === 'ลิขสิทธิ์';
+        const prot = isCopyright
+          ? (item.protection_start ? `ออกให้: ${formatDateBE(item.protection_start)}` : '-')
+          : (item.protection_period || (item.protection_start || item.protection_end ? `${item.protection_start ? formatDateBE(item.protection_start) : '-'} – ${item.protection_end ? formatDateBE(item.protection_end) : '-'}` : '-'));
         return (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px' }}>
             <span style={{ fontFamily: 'monospace', fontSize: '12.5px', fontWeight: 500, color: '#334155', whiteSpace: 'nowrap' }}>
               {regNo}
             </span>
             <span style={{ fontSize: '11px', color: '#64748b', whiteSpace: 'nowrap' }}>
-              ระยะเวลาความคุ้มครอง: {prot}
+              {isCopyright ? `วันที่ออกให้: ${item.protection_start ? formatDateBE(item.protection_start) : '-'}` : `ระยะเวลาความคุ้มครอง: ${prot}`}
             </span>
           </div>
         );

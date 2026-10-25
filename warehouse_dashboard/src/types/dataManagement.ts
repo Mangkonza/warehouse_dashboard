@@ -6,7 +6,8 @@ export type CategoryKey =
   | 'publications' 
   | 'ip' 
   | 'personnel'
-  | 'kpi';
+  | 'kpi'
+  | 'user_roles';
 
 export type ColumnType = 
   | 'text' 
