@@ -4,6 +4,7 @@ import React from 'react';
 import { FaCalendarAlt, FaTimes, FaSlidersH } from 'react-icons/fa';
 import { useTimeFilter } from '../context/TimeFilterContext';
 import { getTimeFilterLabel, TimeFilterState } from '@/types/timeFilter';
+import { QUICK_FISCAL_YEARS } from '../constants/timeFilterPresets';
 
 export interface TimeFilterBarProps {
   value?: TimeFilterState;
@@ -15,7 +16,7 @@ export interface TimeFilterBarProps {
 export const TimeFilterBar: React.FC<TimeFilterBarProps> = ({ totalCount }) => {
   const { timeFilter, setTimeFilter, resetTimeFilter, setIsTimeModalOpen } = useTimeFilter();
 
-  const quickFiscalYears = ['2569', '2568', '2567'];
+  const quickFiscalYears = QUICK_FISCAL_YEARS;
 
   const handleSelectQuickYear = (fy: string) => {
     setTimeFilter({

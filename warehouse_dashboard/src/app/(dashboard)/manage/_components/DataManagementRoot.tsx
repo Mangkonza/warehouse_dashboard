@@ -55,11 +55,14 @@ import {
   getCachedCategoryData,
   fetchCategoryData,
   fetchEvaluations,
+  getCachedEvaluations,
   saveCategoryRecord,
   deleteCategoryRecord,
   batchImportCategoryRecords,
   bulkSaveEvaluationRecords,
 } from '@/lib/dataService';
+import { getDepartment } from '@/lib/departments';
+import { EvalFramework } from './FilterModal';
 import { isEvaluated, parseSdgNumber } from '@/types/evaluation';
 
 interface DataManagementRootProps {
@@ -141,6 +144,110 @@ function resolveInitialPersonnelViewMode(): 'grid' | 'table' {
   }
   return 'table';
 }
+
+
+// ---------------------------------------------------------------------------
+// Filtering Helper Functions
+// ---------------------------------------------------------------------------
+const parseBudget = (val: any): number => {
+  if (typeof val === 'number') return isNaN(val) ? 0 : val;
+  if (!val || val === '-' || val === 'nan') return 0;
+  const cleaned = String(val).replace(/,/g, '').trim();
+  const n = parseFloat(cleaned);
+  return isNaN(n) ? 0 : n;
+};
+
+const itemMatchesDepartment = (item: any, selectedDept: string): boolean => {
+  if (!selectedDept) return true;
+  const target = getDepartment(selectedDept);
+  const targetCode = target.code;
+  if (!targetCode || targetCode === '-') return true;
+
+  const rawValues: any[] = [];
+  if (item.department !== undefined && item.department !== null) {
+    if (Array.isArray(item.department)) rawValues.push(...item.department);
+    else rawValues.push(item.department);
+  }
+  if (item.departments !== undefined && item.departments !== null) {
+    if (Array.isArray(item.departments)) rawValues.push(...item.departments);
+    else rawValues.push(item.departments);
+  }
+
+  for (const raw of rawValues) {
+    if (!raw) continue;
+    const str = String(raw).trim();
+    if (!str || str === '-' || str === 'nan') continue;
+
+    if (str.startsWith('[') && str.endsWith(']')) {
+      try {
+        const parsed = JSON.parse(str);
+        if (Array.isArray(parsed)) {
+          for (const p of parsed) {
+            if (getDepartment(p).code === targetCode) return true;
+          }
+          continue;
+        }
+      } catch {}
+    }
+
+    const parts = str.split(/[,;\n\r]+/);
+    for (const part of parts) {
+      const trimmed = part.trim();
+      if (!trimmed) continue;
+      if (getDepartment(trimmed).code === targetCode) return true;
+    }
+
+    if (getDepartment(str).code === targetCode) return true;
+  }
+
+  return false;
+};
+
+const getEvaluationForItem = (item: any, category: string): { sdg_ids: number[]; i_type: string | null } => {
+  const sdgs: number[] = [];
+  if (Array.isArray(item.sdg_ids)) {
+    sdgs.push(...item.sdg_ids);
+  }
+  let iType: string | null = item.i_type || null;
+
+  if (item.evaluation) {
+    if (Array.isArray(item.evaluation.sdg_ids)) {
+      sdgs.push(...item.evaluation.sdg_ids);
+    }
+    if (!iType && item.evaluation.i_type) {
+      iType = item.evaluation.i_type;
+    }
+  }
+
+  const cachedEvals = getCachedEvaluations();
+  const catKey = category.toLowerCase();
+  const idVal = String(item.id || '').trim();
+  const idUnderVal = String(item._id || '').trim();
+  const nameVal = String(item.name || '').trim();
+
+  const possibleKeys = [
+    `${catKey}_${idVal}`,
+    `${catKey}_${idUnderVal}`,
+    `${catKey}_${nameVal}`,
+  ];
+
+  for (const k of possibleKeys) {
+    if (k === `${catKey}_`) continue;
+    const ev = cachedEvals[k];
+    if (ev) {
+      if (Array.isArray(ev.sdg_ids)) {
+        sdgs.push(...ev.sdg_ids);
+      }
+      if (!iType && ev.i_type) {
+        iType = ev.i_type;
+      }
+      break;
+    }
+  }
+
+  const uniqueSdgs = Array.from(new Set(sdgs.map((n) => Number(n)).filter((n) => !isNaN(n) && n >= 1 && n <= 17)));
+  return { sdg_ids: uniqueSdgs, i_type: iType };
+};
 
 export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
   goBack,
@@ -286,6 +393,8 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
   const [selectedImageStatus, setSelectedImageStatus] = useState<'all' | 'has_image' | 'no_image'>('all');
   const [selectedCompleteness, setSelectedCompleteness] = useState<'all' | 'complete' | 'incomplete'>('all');
   const [selectedSubFilter, setSelectedSubFilter] = useState('');
+  const [selectedSdgs, setSelectedSdgs] = useState<string[]>([]);
+  const [selectedFramework, setSelectedFramework] = useState<EvalFramework>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [personnelViewMode, setPersonnelViewMode] = useState<'grid' | 'table'>(resolveInitialPersonnelViewMode);
@@ -412,14 +521,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
     return currentList.filter((item: any) => {
       // 1. Department filter
       if (selectedDept) {
-        const itemDept = item.department || '';
-        const selectedAbbr = getDepartmentAbbr(selectedDept);
-        const cleanSelected = selectedDept.replace('ภาควิชา', '');
-        if (
-          !itemDept.includes(cleanSelected) &&
-          getDepartmentAbbr(itemDept) !== selectedAbbr &&
-          !itemDept.includes(selectedDept)
-        ) {
+        if (!itemMatchesDepartment(item, selectedDept)) {
           return false;
         }
       }
@@ -430,34 +532,23 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
         const title = String(item.title_th || '').toLowerCase();
         const name = String(item.name || '').toLowerCase();
 
-        if (selectedRole === 'professor') {
-          if (!title.includes('ศ.') && !name.includes('ศ.ดร.') && !pos.includes('ศาสตราจารย์')) return false;
-        } else if (selectedRole === 'assoc_prof') {
-          if (!title.includes('รศ.') && !name.includes('รศ.') && !pos.includes('รองศาสตราจารย์')) return false;
-        } else if (selectedRole === 'asst_prof') {
-          if (!title.includes('ผศ.') && !name.includes('ผศ.') && !pos.includes('ผู้ช่วยศาสตราจารย์')) return false;
-        } else if (selectedRole === 'lecturer') {
-          if (!title.includes('อ.') && !title.includes('ดร.') && !pos.includes('อาจารย์')) return false;
-        } else if (selectedRole === 'executive') {
-          if (
-            !pos.includes('หัวหน้า') &&
-            !pos.includes('คณบดี') &&
-            !pos.includes('ประธาน') &&
-            !pos.includes('ผู้อำนวยการ')
-          ) {
-            return false;
-          }
-        } else if (selectedRole === 'staff') {
-          if (
-            title.includes('ศ.') ||
-            title.includes('รศ.') ||
-            title.includes('ผศ.') ||
-            pos.includes('อาจารย์') ||
-            pos.includes('ศาสตราจารย์')
-          ) {
-            return false;
-          }
-        }
+        const isProf = (title.includes('ศ.') || name.includes('ศ.ดร.') || pos.includes('ศาสตราจารย์')) &&
+                       !title.includes('ผศ.') && !title.includes('รศ.') &&
+                       !pos.includes('ผู้ช่วย') && !pos.includes('รอง');
+        const isAssoc = (title.includes('รศ.') || name.includes('รศ.') || pos.includes('รองศาสตราจารย์')) &&
+                        !title.includes('ผศ.') && !pos.includes('ผู้ช่วย');
+        const isAsst = (title.includes('ผศ.') || name.includes('ผศ.') || pos.includes('ผู้ช่วยศาสตราจารย์'));
+        const isLecturer = !isProf && !isAssoc && !isAsst &&
+                           (title.includes('อ.') || title.includes('ดร.') || pos.includes('อาจารย์'));
+        const isExecutive = pos.includes('หัวหน้า') || pos.includes('คณบดี') || pos.includes('ประธาน') || pos.includes('ผู้อำนวยการ');
+        const isStaff = !isProf && !isAssoc && !isAsst && !isLecturer;
+
+        if (selectedRole === 'professor' && !isProf) return false;
+        if (selectedRole === 'assoc_prof' && !isAssoc) return false;
+        if (selectedRole === 'asst_prof' && !isAsst) return false;
+        if (selectedRole === 'lecturer' && !isLecturer) return false;
+        if (selectedRole === 'executive' && !isExecutive) return false;
+        if (selectedRole === 'staff' && !isStaff) return false;
       }
 
       // 3. Personnel: Profile Image Status Filter
@@ -478,43 +569,91 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
         if (selectedCompleteness === 'complete' && isIncomplete) return false;
       }
 
-      // 4. Dynamic SubFilter for other categories
+      // 4. Dynamic SubFilter for categories
       if (selectedSubFilter) {
-        if (activeCategory === 'research') {
-          if (selectedSubFilter === 'external' && (!item.budget_external || Number(item.budget_external) === 0)) return false;
-          if (selectedSubFilter === 'internal' && (!item.budget_internal || Number(item.budget_internal) === 0)) return false;
+        if (activeCategory === 'research' || activeCategory === 'monitoring') {
+          const ext = parseBudget(item.budget_external);
+          const int = parseBudget(item.budget_internal);
+          if (selectedSubFilter === 'external' && ext <= 0) return false;
+          if (selectedSubFilter === 'internal' && int <= 0) return false;
           if (selectedSubFilter === 'high_budget') {
-            const tot = (Number(item.budget_internal) || 0) + (Number(item.budget_external) || 0);
+            const tot = ext + int;
             if (tot < 1000000) return false;
           }
         } else if (activeCategory === 'publications') {
           const lvl = String(item.level || '').toLowerCase();
-          if (selectedSubFilter === 'q1' && !lvl.includes('q1')) return false;
-          if (selectedSubFilter === 'q2' && !lvl.includes('q2')) return false;
-          if (selectedSubFilter === 'inter' && !lvl.includes('นานาชาติ')) return false;
-          if (selectedSubFilter === 'tci' && !lvl.includes('tci') && !lvl.includes('ระดับชาติ')) return false;
+          const jIndexVal = String(item.journal_index?.value || item.evaluation?.journal_index?.value || '').toLowerCase();
+          const remarks = String(item.remarks || '').toLowerCase();
+          const jName = String(item.journal || '').toLowerCase();
+
+          if (selectedSubFilter === 'q1') {
+            const isQ1 = lvl.includes('q1') || jIndexVal.includes('q1') || remarks.includes('q1') || jName.includes('q1');
+            if (!isQ1) return false;
+          } else if (selectedSubFilter === 'q2') {
+            const isQ2 = lvl.includes('q2') || jIndexVal.includes('q2') || remarks.includes('q2') || jName.includes('q2');
+            if (!isQ2) return false;
+          } else if (selectedSubFilter === 'inter') {
+            const isInter = lvl.includes('นานาชาติ') || jIndexVal.startsWith('q') || remarks.includes('นานาชาติ');
+            if (!isInter) return false;
+          } else if (selectedSubFilter === 'tci') {
+            const isTci = (lvl.includes('ชาติ') && !lvl.includes('นานาชาติ')) ||
+                          lvl.includes('tci') ||
+                          jIndexVal.includes('tci') ||
+                          remarks.includes('tci');
+            if (!isTci) return false;
+          }
         } else if (activeCategory === 'ip') {
           const stat = String(item.status || '').toLowerCase();
           const type = String(item.type || '').toLowerCase();
-          if (selectedSubFilter === 'granted' && !stat.includes('จดทะเบียน') && !stat.includes('สิทธิบัตร') && !stat.includes('คุ้มครอง') && !item.registration_number) return false;
-          if (selectedSubFilter === 'patent' && (!type.includes('สิทธิบัตร') || type.includes('อนุสิทธิบัตร')) && type !== 'p') return false;
-          if (selectedSubFilter === 'petty' && !type.includes('อนุสิทธิบัตร')) return false;
-          if (selectedSubFilter === 'copyright' && !type.includes('ลิขสิทธิ์')) return false;
+          const regNo = String(item.registration_number || item.reg_info || item.reg_no || '').trim();
+          if (selectedSubFilter === 'granted') {
+            const isGranted = stat.includes('คุ้มครอง') || stat.includes('จดทะเบียน') || stat === 'granted' || (regNo !== '' && regNo !== '-');
+            if (!isGranted) return false;
+          } else if (selectedSubFilter === 'patent') {
+            if ((!type.includes('สิทธิบัตร') || type.includes('อนุสิทธิบัตร')) && type !== 'p') return false;
+          } else if (selectedSubFilter === 'petty') {
+            if (!type.includes('อนุสิทธิบัตร')) return false;
+          } else if (selectedSubFilter === 'copyright') {
+            if (!type.includes('ลิขสิทธิ์')) return false;
+          }
         } else if (activeCategory === 'academic') {
           const chars = Array.isArray(item.characteristics)
             ? item.characteristics.join(' ')
             : String(item.characteristics || '');
-          const resCount = Array.isArray(item.research_projects) ? item.research_projects.length : 0;
+          const resCount = Array.isArray(item.research_projects)
+            ? item.research_projects.length
+            : (item.research_projects && item.research_projects !== '-' ? 1 : 0);
           const patent = String(item.patent_integration || '').trim();
+          const coExt = Number(item.co_members_external) || 0;
+
           if (selectedSubFilter === 'policy' && !chars.includes('นโยบาย')) return false;
           if (selectedSubFilter === 'value_add' && !chars.includes('เพิ่มมูลค่า')) return false;
           if (selectedSubFilter === 'has_research' && resCount === 0) return false;
-          if (selectedSubFilter === 'has_patent' && !patent) return false;
-          if (selectedSubFilter === 'has_external_members' && (!item.co_members_external || Number(item.co_members_external) === 0)) return false;
+          if (selectedSubFilter === 'has_patent' && (!patent || patent === '-')) return false;
+          if (selectedSubFilter === 'has_external_members' && coExt === 0) return false;
         }
       }
 
-      // 5. Search term filter
+      // 5. Evaluation filters (SDGs and Framework)
+      const isEvaluatedCategory = ['research', 'academic', 'publications', 'service', 'services', 'ip', 'monitoring'].includes(activeCategory);
+      if (isEvaluatedCategory) {
+        const { sdg_ids, i_type } = getEvaluationForItem(item, activeCategory === 'monitoring' ? 'research' : activeCategory);
+
+        // SDGs Filter (multi-select OR match)
+        if (selectedSdgs && selectedSdgs.length > 0) {
+          const selectedSdgNums = selectedSdgs.map((s) => Number(s));
+          const hasMatchingSdg = selectedSdgNums.some((s) => sdg_ids.includes(s));
+          if (!hasMatchingSdg) return false;
+        }
+
+        // Framework Filter ('all' | 'i_am' | 'i_see')
+        if (selectedFramework && selectedFramework !== 'all') {
+          const targetType = selectedFramework === 'i_am' ? 'I_AM' : 'I_SEE';
+          if (i_type !== targetType) return false;
+        }
+      }
+
+      // 6. Search term filter
       if (!searchTerm.trim()) return true;
       const q = searchTerm.toLowerCase().trim();
 
@@ -534,6 +673,8 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
     selectedImageStatus,
     selectedCompleteness,
     selectedSubFilter,
+    selectedSdgs,
+    selectedFramework,
     searchTerm,
     currentConfig,
     activeCategory,
@@ -593,6 +734,8 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
     setSelectedImageStatus('all');
     setSelectedCompleteness('all');
     setSelectedSubFilter('');
+    setSelectedSdgs([]);
+    setSelectedFramework('all');
 
     try {
       localStorage.setItem(LS_MANAGE_TAB_KEY, key);
@@ -621,24 +764,30 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
     setSelectedImageStatus('all');
     setSelectedCompleteness('all');
     setSelectedSubFilter('');
+    setSelectedSdgs([]);
+    setSelectedFramework('all');
     setCurrentPage(1);
   };
 
   const hasActiveFilters = Boolean(
     searchTerm.trim() ||
     selectedDept ||
-    selectedRole ||
-    selectedImageStatus !== 'all' ||
-    selectedCompleteness !== 'all' ||
-    selectedSubFilter
+    (activeCategory === 'personnel' && selectedRole) ||
+    (activeCategory === 'personnel' && selectedImageStatus !== 'all') ||
+    (activeCategory === 'personnel' && selectedCompleteness !== 'all') ||
+    selectedSubFilter ||
+    selectedSdgs.length > 0 ||
+    selectedFramework !== 'all'
   );
 
   const activeFilterCount =
     (selectedDept ? 1 : 0) +
-    (selectedRole ? 1 : 0) +
-    (selectedImageStatus !== 'all' ? 1 : 0) +
-    (selectedCompleteness !== 'all' ? 1 : 0) +
-    (selectedSubFilter ? 1 : 0);
+    (activeCategory === 'personnel' && selectedRole ? 1 : 0) +
+    (activeCategory === 'personnel' && selectedImageStatus !== 'all' ? 1 : 0) +
+    (activeCategory === 'personnel' && selectedCompleteness !== 'all' ? 1 : 0) +
+    (selectedSubFilter ? 1 : 0) +
+    (selectedSdgs.length > 0 ? 1 : 0) +
+    (selectedFramework !== 'all' ? 1 : 0);
 
   // CRUD Operations
   const handleSaveItem = async (record: Record<string, any>) => {
@@ -908,7 +1057,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
             ระบบจัดการข้อมูล
           </h2>
           <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
-            จัดการและนำเข้าข้อมูลโครงการวิจัย โครงการพัฒนาวิชาการ ผลงานตีพิมพ์ทางวิชาการ งานบริการวิชาการ งานทรัพย์สินทางปัญญา และฐานข้อมูลบุคลากร
+            จัดการและนำเข้าข้อมูลโครงการวิจัย โครงการพัฒนาวิชาการ ผลงานตีพิมพ์ทางวิชาการ งานบริการวิชาการ งานทรัพย์สินทางปัญญา ข้อมูลบุคลากรและอาจารย์ ตัวชี้วัดตามแผนยุทธศาสตร์ และจัดการสิทธิ์ผู้ใช้
           </div>
         </div>
       </div>
@@ -1364,7 +1513,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
                   whiteSpace: 'nowrap',
                   transition: 'background-color 0.15s ease',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#008f44')}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#00A651')}
                 onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#00A651')}
               >
                 <FaFileExcel style={{ fontSize: '14px' }} />
@@ -1650,12 +1799,16 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
         selectedImageStatus={selectedImageStatus}
         selectedSubFilter={selectedSubFilter}
         selectedCompleteness={selectedCompleteness}
+        selectedSdgs={selectedSdgs}
+        selectedFramework={selectedFramework}
         onApply={(filters) => {
           setSelectedDept(filters.selectedDept);
           setSelectedRole(filters.selectedRole);
           setSelectedImageStatus(filters.selectedImageStatus);
           setSelectedSubFilter(filters.selectedSubFilter);
           setSelectedCompleteness(filters.selectedCompleteness || 'all');
+          setSelectedSdgs(filters.selectedSdgs || []);
+          setSelectedFramework(filters.selectedFramework || 'all');
           setCurrentPage(1);
         }}
         onReset={handleResetFilters}

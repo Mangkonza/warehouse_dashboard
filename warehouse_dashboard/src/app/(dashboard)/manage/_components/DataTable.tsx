@@ -69,7 +69,16 @@ export const DataTable: React.FC<DataTableProps> = ({
       return col.format(rawVal, item);
     }
 
-    if (rawVal === undefined || rawVal === null || rawVal === '' || rawVal === 'nan' || rawVal === 'NaT') {
+    if (col.key === 'id' && typeof rawVal === 'string' && /^research_idx_\d+$/i.test(rawVal.trim())) {
+      return <span style={{ color: '#cbd5e1' }}>-</span>;
+    }
+
+    if (
+      (rawVal === undefined || rawVal === null || rawVal === '' || rawVal === 'nan' || rawVal === 'NaT') &&
+      col.type !== 'publication_journal' &&
+      col.type !== 'ip_req_info' &&
+      col.type !== 'ip_reg_info'
+    ) {
       return <span style={{ color: '#cbd5e1' }}>-</span>;
     }
 
@@ -91,14 +100,23 @@ export const DataTable: React.FC<DataTableProps> = ({
             }}
           >
             {rawVal ? (
-              <img
-                src={rawVal}
-                alt="Profile"
-                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }}
-                onError={(e) => {
-                  (e.target as HTMLElement).style.display = 'none';
-                }}
-              />
+              <>
+                <img
+                  src={encodeURI(String(rawVal))}
+                  alt="Profile"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }}
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    target.style.display = 'none';
+                    if (target.nextElementSibling) {
+                      (target.nextElementSibling as HTMLElement).style.display = 'flex';
+                    }
+                  }}
+                />
+                <span style={{ display: 'none', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
+                  <FaUser style={{ color: '#94a3b8', fontSize: '14px' }} />
+                </span>
+              </>
             ) : (
               <FaUser style={{ color: '#94a3b8', fontSize: '14px' }} />
             )}
@@ -419,32 +437,11 @@ export const DataTable: React.FC<DataTableProps> = ({
       case 'academic_budget': {
         const b = Number(rawVal !== undefined && rawVal !== null && rawVal !== '' ? rawVal : item.budget || 0);
         if (isNaN(b) || b === 0) return <span style={{ color: '#94a3b8', fontSize: '13px' }}>-</span>;
-        const facPercent = item.percent_faculty !== undefined && item.percent_faculty !== null ? Number(item.percent_faculty) : 5;
-        const depPercent = item.percent_dept !== undefined && item.percent_dept !== null ? Number(item.percent_dept) : 5;
-        const kuPercent = item.percent_ku !== undefined && item.percent_ku !== null ? Number(item.percent_ku) : 5;
-        const fac =
-          item.alloc_faculty !== undefined && item.alloc_faculty !== null && item.alloc_faculty !== ''
-            ? Number(item.alloc_faculty)
-            : (b * facPercent) / 100;
-        const dep =
-          item.alloc_dept !== undefined && item.alloc_dept !== null && item.alloc_dept !== ''
-            ? Number(item.alloc_dept)
-            : (b * depPercent) / 100;
-        const ku =
-          item.alloc_ku !== undefined && item.alloc_ku !== null && item.alloc_ku !== ''
-            ? Number(item.alloc_ku)
-            : (b * kuPercent) / 100;
-        const totalDeduct = fac + dep + ku;
 
         return (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '1px' }}>
-            <span style={{ fontWeight: 600, color: '#059669', fontFamily: 'monospace', fontSize: '13px', whiteSpace: 'nowrap' }}>
-              {formatMoney(b)} บาท
-            </span>
-            <span style={{ fontSize: '11px', color: '#64748b', whiteSpace: 'nowrap' }}>
-              หักรวม: {formatMoney(totalDeduct)} บาท
-            </span>
-          </div>
+          <span style={{ fontWeight: 600, color: '#059669', fontFamily: 'monospace', fontSize: '13px', whiteSpace: 'nowrap' }}>
+            {formatMoney(b)}
+          </span>
         );
       }
 
@@ -493,16 +490,22 @@ export const DataTable: React.FC<DataTableProps> = ({
       }
 
       case 'publication_journal': {
-        const journal = item.journal || rawVal || '-';
+        const journal = item.journal || rawVal;
         const volParts: string[] = [];
         if (item.volume) volParts.push(`Volume ${item.volume}`);
         if (item.issue) volParts.push(`Issue ${item.issue}`);
-        if (item.page_start || item.page_end) {
-          volParts.push(`Page ${item.page_start || '-'}${item.page_end ? '–' + item.page_end : ''}`);
+        const pStart = item.page_start || item.pageStart;
+        const pEnd = item.page_end || item.pageEnd;
+        if (pStart || pEnd) {
+          volParts.push(`Page ${pStart || '-'}${pEnd ? '–' + pEnd : ''}`);
         }
         const line2 = volParts.length > 0
           ? volParts.join(', ')
           : 'Volume -, Issue -, Page -';
+
+        if ((!journal || journal === '-' || journal === 'nan') && volParts.length === 0) {
+          return <span style={{ color: '#cbd5e1' }}>-</span>;
+        }
 
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
@@ -517,9 +520,9 @@ export const DataTable: React.FC<DataTableProps> = ({
                 WebkitLineClamp: 2,
                 WebkitBoxOrient: 'vertical',
               }}
-              title={String(journal)}
+              title={String(journal || '')}
             >
-              {journal}
+              {journal || '-'}
             </span>
             <span style={{ fontSize: '11px', color: '#64748b', whiteSpace: 'nowrap' }}>
               {line2}
@@ -529,33 +532,95 @@ export const DataTable: React.FC<DataTableProps> = ({
       }
 
       case 'ip_req_info': {
-        const reqNo = item.application_number || item.req_no || rawVal || '-';
-        const filing = item.filing_date ? formatDateBE(item.filing_date) : '-';
+        let reqNo =
+          item.application_number ||
+          item.applicationNumber ||
+          item.app_no ||
+          item.filing_number ||
+          item.request_number ||
+          item.req_info ||
+          '';
+
+        if (!reqNo && item.req_no) {
+          const parts = String(item.req_no).split('/');
+          reqNo = parts[0]?.trim() || String(item.req_no);
+        }
+
+        if (!reqNo && rawVal && rawVal !== 'nan' && rawVal !== 'NaT') {
+          reqNo = String(rawVal);
+        }
+
+        const filing = item.filing_date || item.filingDate || item.request_date || item.app_date;
+        const filingFormatted = filing ? formatDateBE(filing) : '-';
+
+        if ((!reqNo || reqNo === '-' || reqNo === 'nan') && filingFormatted === '-') {
+          return <span style={{ color: '#cbd5e1' }}>-</span>;
+        }
+
         return (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px' }}>
             <span style={{ fontFamily: 'monospace', fontSize: '12.5px', fontWeight: 500, color: '#334155', whiteSpace: 'nowrap' }}>
-              {reqNo}
+              {reqNo || '-'}
             </span>
             <span style={{ fontSize: '11px', color: '#64748b', whiteSpace: 'nowrap' }}>
-              วันที่ยื่นคำขอ: {filing}
+              วันที่ยื่นคำขอ: {filingFormatted}
             </span>
           </div>
         );
       }
 
       case 'ip_reg_info': {
-        const regNo = item.registration_number || item.reg_no || '-';
+        let regNo =
+          item.registration_number ||
+          item.registrationNumber ||
+          item.reg_no ||
+          item.patent_number ||
+          item.petty_patent_number ||
+          item.copyright_number ||
+          item.reg_info ||
+          '';
+
+        if (!regNo && item.req_no && String(item.req_no).includes('/')) {
+          const parts = String(item.req_no).split('/');
+          regNo = parts[1]?.trim() || '';
+        }
+
+        if (!regNo && rawVal && rawVal !== 'nan' && rawVal !== 'NaT') {
+          regNo = String(rawVal);
+        }
+
         const isCopyright = item.type === 'ลิขสิทธิ์';
-        const prot = isCopyright
-          ? (item.protection_start ? `ออกให้: ${formatDateBE(item.protection_start)}` : '-')
-          : (item.protection_period || (item.protection_start || item.protection_end ? `${item.protection_start ? formatDateBE(item.protection_start) : '-'} – ${item.protection_end ? formatDateBE(item.protection_end) : '-'}` : '-'));
+        const start = item.protection_start || item.protectionStart || item.issue_date || item.registration_date;
+        const end = item.protection_end || item.protectionEnd || item.expiration_date;
+        const protPeriod = item.protection_period;
+
+        const startBE = start ? formatDateBE(start) : '-';
+        const endBE = end ? formatDateBE(end) : '-';
+
+        let protLine = '-';
+        if (isCopyright) {
+          protLine = startBE !== '-' ? `วันที่ออกให้: ${startBE}` : '-';
+        } else {
+          if (protPeriod && protPeriod !== '-' && protPeriod !== 'nan') {
+            protLine = `ระยะเวลาความคุ้มครอง: ${protPeriod}`;
+          } else if (startBE !== '-' || endBE !== '-') {
+            protLine = `ระยะเวลาความคุ้มครอง: ${startBE} – ${endBE}`;
+          } else {
+            protLine = '-';
+          }
+        }
+
+        if ((!regNo || regNo === '-' || regNo === 'nan') && protLine === '-') {
+          return <span style={{ color: '#cbd5e1' }}>-</span>;
+        }
+
         return (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px' }}>
             <span style={{ fontFamily: 'monospace', fontSize: '12.5px', fontWeight: 500, color: '#334155', whiteSpace: 'nowrap' }}>
-              {regNo}
+              {regNo || '-'}
             </span>
             <span style={{ fontSize: '11px', color: '#64748b', whiteSpace: 'nowrap' }}>
-              {isCopyright ? `วันที่ออกให้: ${item.protection_start ? formatDateBE(item.protection_start) : '-'}` : `ระยะเวลาความคุ้มครอง: ${prot}`}
+              {protLine !== '-' ? protLine : (isCopyright ? 'วันที่ออกให้: -' : 'ระยะเวลาความคุ้มครอง: -')}
             </span>
           </div>
         );
@@ -764,20 +829,20 @@ export const DataTable: React.FC<DataTableProps> = ({
           <tr style={{ backgroundColor: '#00A651' }}>
             <th
               style={{
-                width: '4%',
-                minWidth: '42px',
+                width: '5%',
+                minWidth: '65px',
                 textAlign: 'center',
                 padding: '12px 6px',
                 color: '#ffffff',
                 fontWeight: 600,
                 fontSize: '13px',
                 backgroundColor: '#00A651',
-                borderBottom: '2px solid #008f44',
+                borderBottom: '2px solid #00A651',
                 verticalAlign: 'middle',
                 whiteSpace: 'nowrap',
               }}
             >
-              #
+              ลำดับที่
             </th>
             {columns.map((col) => {
               const isDept = col.key === 'department';
@@ -786,7 +851,7 @@ export const DataTable: React.FC<DataTableProps> = ({
                   key={col.key}
                   style={{
                     width: col.width || (isDept ? '10%' : 'auto'),
-                    textAlign: isDept ? 'left' : col.align || 'left',
+                    textAlign: 'center',
                     padding: col.type === 'avatar' ? '10px 4px' : '11px 8px',
                     color: '#ffffff',
                     fontWeight: 600,
@@ -795,7 +860,7 @@ export const DataTable: React.FC<DataTableProps> = ({
                     whiteSpace: 'nowrap', // หัวตารางทุกหน้ามีบรรทัดเดียวเสมอ เพื่อความ Consistent
                     lineHeight: '1.2',
                     verticalAlign: 'middle',
-                    borderBottom: '2px solid #008f44',
+                    borderBottom: '2px solid #00A651',
                   }}
                   title={col.key === 'image_url' ? 'รูปภาพประจำตัว / รูปโปรไฟล์' : col.label.replace('\n', ' ')}
                 >
@@ -814,7 +879,7 @@ export const DataTable: React.FC<DataTableProps> = ({
                   fontWeight: 600,
                   fontSize: '13px',
                   backgroundColor: '#00A651',
-                  borderBottom: '2px solid #008f44',
+                  borderBottom: '2px solid #00A651',
                   verticalAlign: 'middle',
                   whiteSpace: 'nowrap',
                 }}

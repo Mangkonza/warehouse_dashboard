@@ -56,8 +56,16 @@ function formatResearch(item: any) {
     budget: Number(item.budgetInternal || 0) + Number(item.budgetExternal || 0),
     fund_source: item.fundSource || '',
     fund_type: item.fundType || '',
-    collaboration_type: item.collaborationType || '',
-    project_nature: item.projectNature || '',
+    collaboration_type: item.collaborationType
+      ? (item.collaborationType.includes(',')
+          ? item.collaborationType.split(',').map((s: string) => s.trim()).filter(Boolean)
+          : [item.collaborationType.trim()].filter(Boolean))
+      : [],
+    project_nature: item.projectNature
+      ? (item.projectNature.includes(',')
+          ? item.projectNature.split(',').map((s: string) => s.trim()).filter(Boolean)
+          : [item.projectNature.trim()].filter(Boolean))
+      : [],
     start_date: item.startDate ? item.startDate.toISOString().split('T')[0] : '',
     end_date: item.endDate ? item.endDate.toISOString().split('T')[0] : '',
     fiscal_year: item.fiscalYear || '',

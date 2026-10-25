@@ -5,76 +5,86 @@ import { matchPerson, normalizePersonName } from './personnelService';
 
 // Sheet name mapping keywords
 const SHEET_NAME_KEYWORDS: Record<CategoryKey, string[]> = {
-  monitoring: ['ติดตาม', 'monitoring', 'ติดตามโครงการ', 'กำหนดการ'],
-  research: ['วิจัย', 'โครงการวิจัย', 'research'],
-  academic: ['พัฒนาวิชาการ', 'วิชาการ', 'academic'],
-  service: ['บริการวิชาการ', 'บริการ', 'service', 'กิจกรรม'],
-  publications: ['ผลงานตีพิมพ์', 'ตีพิมพ์', 'publication', 'publications', 'วารสาร'],
-  ip: ['ทรัพย์สินทางปัญญา', 'ทรัพย์สิน', 'ip', 'สิทธิบัตร', 'อนุสิทธิบัตร', 'ลิขสิทธิ์'],
+  monitoring: ['ติดตามโครงการ', 'ติดตาม', 'monitoring', 'กำหนดการ'],
+  research: ['โครงการวิจัย', 'วิจัย', 'research'],
+  academic: ['โครงการพัฒนาวิชาการ', 'พัฒนาวิชาการ', 'academic'],
+  service: ['งานบริการวิชาการ', 'บริการวิชาการ', 'ผลงานบริการ', 'บริการ', 'service', 'กิจกรรม'],
+  publications: ['ผลงานทางวิชาการ', 'ผลงานตีพิมพ์', 'ตีพิมพ์', 'publication', 'publications', 'วารสาร'],
+  ip: ['งานทรัพย์สินทางปัญญา', 'ทรัพย์สินทางปัญญา', 'ทรัพย์สิน', 'ip', 'สิทธิบัตร', 'อนุสิทธิบัตร', 'ลิขสิทธิ์'],
   personnel: ['บุคลากร', 'อาจารย์', 'personnel', 'faculty', 'เจ้าหน้าที่'],
   kpi: ['ตัวชี้วัด', 'kpi', 'ยุทธศาสตร์', 'เป้าหมาย'],
-  user_roles: ['สิทธิ์', 'บทบาท', 'users', 'roles', 'สิทธิ์ผู้ใช้'],
+  user_roles: ['สิทธิ์ผู้ใช้', 'สิทธิ์', 'บทบาท', 'users', 'roles'],
 };
 
 // Column aliases for resilient header matching
 const COLUMN_ALIASES: Record<string, string[]> = {
-  id: ['รหัส', 'รหัสโครงการ', 'code', 'id', 'project_id', 'no'],
-  name: ['ชื่อโครงการ', 'ชื่อโครงการวิจัย', 'ชื่อผลงาน', 'ชื่อกิจกรรม', 'เรื่อง', 'ชื่อ', 'name', 'title', 'project_name'],
-  status: ['สถานะ', 'สถานะโครงการ', 'สถานะคำขอ', 'status', 'project_status'],
-  sdg_code: ['sdg', 'sdgs', 'เป้าหมายความยั่งยืน', 'green_metric'],
-  doi: ['doi', 'หมายเลข doi'],
-  head: ['หัวหน้าโครงการ', 'หัวหน้า', 'pi', 'project_leader', 'head'],
-  person: ['ผู้รับผิดชอบ', 'ผู้จัด', 'person', 'responsible'],
-  owner: ['เจ้าของผลงาน', 'ผู้แต่ง', 'ผู้ประพันธ์', 'owner', 'author', 'เจ้าของสิทธิ', 'เจ้าของลิขสิทธิ์'],
+  id: ['รหัสโครงการวิจัย', 'รหัสโครงการ', 'รหัส', 'code', 'id', 'project_id'],
+  seq_no: ['ลำดับที่', 'ลำดับ', 'no', 'ที่'],
+  name: ['ชื่อโครงการวิจัย', 'ชื่อโครงการ', 'ชื่อผลงานทางวิชาการ', 'ชื่อผลงาน', 'ชื่อกิจกรรม', 'ชื่อการประดิษฐ์', 'ชื่อเรื่อง', 'เรื่อง', 'title', 'project_name'],
+  status: ['สถานะโครงการ', 'สถานะคำขอ', 'สถานะ', 'status', 'project_status'],
+  sdg_code: ['sdgs', 'sdg', 'เป้าหมายความยั่งยืน', 'green_metric'],
+  doi: ['หมายเลข doi', 'doi'],
+  head: ['หัวหน้าโครงการวิจัย', 'หัวหน้าโครงการ', 'หัวหน้า', 'pi', 'project_leader', 'head'],
+  person: ['ชื่อ - นามสกุล', 'ชื่อ-นามสกุล', 'ชื่อ - สกุล', 'ผู้รับผิดชอบ', 'ผู้จัด', 'person', 'responsible'],
+  owner: ['เจ้าของผลงาน', 'เจ้าของสิทธิ', 'เจ้าของลิขสิทธิ์', 'ผู้แต่ง', 'ผู้ประพันธ์', 'owner', 'author'],
   creator: ['ผู้ประดิษฐ์', 'ผู้สร้างสรรค์', 'creator', 'inventor'],
-  department: ['ภาควิชา', 'สังกัด', 'หน่วยงาน', 'department', 'dept'],
-  budget_internal: ['งบภายใน', 'งบประมาณภายใน', 'internal_budget', 'ทุนภายใน'],
-  budget_external: ['งบภายนอก', 'งบประมาณภายนอก', 'external_budget', 'ทุนภายนอก'],
-  budget: ['งบประมาณ', 'งบ', 'จำนวนเงิน', 'เงินสนับสนุน', 'budget', 'amount'],
-  fund_source: ['แหล่งทุน', 'แหล่งเงินทุน', 'fund_source', 'sponsor'],
-  month: ['เดือน', 'ช่วงเวลา', 'month', 'period'],
-  client: ['ผู้ขอรับบริการ', 'ว่าจ้าง', 'ผู้ว่าจ้าง', 'ลูกค้า', 'client', 'customer'],
-  date: ['วันที่', 'วันจัดกิจกรรม', 'date'],
-  start_date: ['วันที่เริ่มต้น', 'วันเริ่มต้น', 'เริ่มโครงการ', 'start_date', 'start_date_be', 'start'],
-  end_date: ['วันที่สิ้นสุด', 'วันสิ้นสุด', 'สิ้นสุดโครงการ', 'end_date', 'end_date_be', 'end'],
+  department: ['หน่วยงานรับผิดชอบ', 'หน่วยงานดำเนินการ', 'สังกัดภาควิชา/สาขาวิชา', 'ภาควิชา/ศูนย์ฯ', 'ภาควิชา', 'สังกัด', 'หน่วยงาน', 'department', 'dept'],
+  budget_internal: ['งบประมาณภายใน', 'งบประมาณ ภายใน', 'งบภายใน', 'internal_budget', 'ทุนภายใน'],
+  budget_external: ['งบประมาณภายนอก', 'งบประมาณ ภายนอก', 'งบภายนอก', 'external_budget', 'ทุนภายนอก'],
+  budget: ['จำนวนเงินสนับสนุน', 'งบประมาณ', 'จำนวนเงิน', 'เงินสนับสนุน', 'budget', 'amount', 'งบ'],
+  fund_source: ['แหล่งทุนวิจัย', 'แหล่งเงินทุน', 'แหล่งทุน', 'fund_source', 'sponsor'],
+  month: ['ช่วงเวลา', 'เดือน', 'month', 'period'],
+  client: ['ผู้ขอรับบริการ', 'ผู้ว่าจ้าง', 'ว่าจ้าง', 'ลูกค้า', 'client', 'customer'],
+  date: ['วัน/เดือน/ปี ที่จัด', 'วัน/เดือน/ปี', 'วันจัดกิจกรรม', 'วันที่', 'date'],
+  start_date: ['ระยะเวลาเริ่มดำเนินการ', 'วันที่เริ่มต้น', 'วันเริ่มต้น', 'เริ่มโครงการ', 'start_date', 'start_date_be', 'start'],
+  end_date: ['ระยะเวลาสิ้นสุดการดำเนินการ', 'วันที่สิ้นสุด', 'วันสิ้นสุด', 'สิ้นสุดโครงการ', 'end_date', 'end_date_be', 'end'],
   service_type: ['ประเภทการบริการ', 'หมวดการบริการ', 'ประเภท', 'service_type', 'service_category'],
   hours_spent: ['จำนวนชั่วโมง', 'ชั่วโมง', 'hours', 'hours_spent'],
   attendees_count: ['จำนวนคนเข้าร่วม', 'จำนวนผู้เข้าร่วม', 'ผู้เข้าร่วม', 'attendees', 'attendees_count', 'participants'],
-  record_number: ['เลขระเบียน', 'เลขระเบียนโครงการ', 'record_number', 'record_no'],
+  record_number: ['เลขระเบียนโครงการ', 'เลขระเบียน', 'record_number', 'record_no'],
   co_members_internal: ['ผู้ร่วมภายใน', 'co_members_internal', 'co_internal'],
   co_members_external: ['ผู้ร่วมภายนอก', 'co_members_external', 'co_external'],
   co_authors_foreign: ['ผู้แต่งต่างชาติ', 'ผู้ร่วมต่างชาติ', 'co_authors_foreign', 'ต่างชาติ'],
   co_authors_domestic: ['ผู้แต่งในประเทศ', 'ผู้ร่วมในประเทศ', 'co_authors_domestic', 'ในประเทศ'],
-  co_researchers: ['ผู้ร่วมวิจัย', 'ผู้ร่วมโครงการ', 'co_researchers', 'members'],
-  type: ['ประเภท', 'ประเภทผลงาน', 'type', 'category'],
-  level: ['ระดับ', 'ฐานข้อมูล', 'level', 'quartile', 'tier'],
-  journal: ['วารสาร', 'แหล่งตีพิมพ์', 'journal', 'publisher'],
+  co_researchers: ['ผู้ร่วมวิจัย', 'ผู้ร่วมโครงการ', 'ผู้ร่วม', 'co_researchers', 'members'],
+  type: ['ประเภททรัพย์สินทางปัญญา', 'ประเภท ทรัพย์สินทางปัญญา', 'ชนิดของผลงาน', 'ประเภทผลงาน', 'ประเภท', 'type', 'category'],
+  level: ['ฐานข้อมูล', 'ระดับ', 'level', 'quartile', 'tier'],
+  journal: ['แหล่งตีพิมพ์', 'วารสาร', 'journal', 'publisher'],
   volume: ['volume', 'เล่มที่', 'ปีที่'],
   issue: ['issue', 'ฉบับที่'],
-  page_start: ['page_start', 'หน้าเริ่มต้น'],
-  page_end: ['page_end', 'หน้าสิ้นสุด'],
-  trl: ['trl', 'ระดับ trl', 'trl_level'],
+  page_start: ['หน้าเริ่มต้น', 'page_start'],
+  page_end: ['หน้าสิ้นสุด', 'page_end'],
+  trl: ['ระดับ trl', 'ระดับtrl', 'trl_level', 'trl'],
   project_nature: ['ลักษณะโครงการ', 'project_nature'],
   characteristics: ['ลักษณะงาน', 'characteristics'],
   inventors: ['ผู้ประดิษฐ์ร่วม', 'inventors'],
   fiscal_year_be: ['ปีงบประมาณ', 'ปี พ.ศ.', 'fiscal_year', 'fiscal_year_be'],
   req_no: ['เลขที่คำขอ', 'เลขที่สิทธิบัตร', 'req_no', 'patent_no'],
-  title_th: ['คำนำหน้า', 'คำนำหน้านาม', 'title', 'prefix'],
-  position: ['ตำแหน่ง', 'ตำแหน่งวิชาการ', 'position', 'role'],
+  title_th: ['คำนำหน้านาม', 'คำนำหน้า', 'title', 'prefix'],
+  position: ['ตำแหน่งวิชาการ', 'ตำแหน่ง', 'position', 'role'],
   email: ['อีเมล', 'e-mail', 'email'],
   target_group: ['กลุ่มเป้าหมาย', 'ผู้เข้าร่วม', 'target_group', 'audience'],
-  image_url: ['รูปภาพ', 'รูปภาพประจำตัว', 'รูปถ่าย', 'รูป', 'รูปโปรไฟล์', 'image', 'picture', 'photo', 'avatar', 'image_url'],
-  title: ['ชื่อเรื่อง', 'title', 'ชื่อการประดิษฐ์', 'เรื่อง'],
-  support_amount: ['เงินสนับสนุนจากคณะ (บาท)', 'เงินสนับสนุน', 'support_amount', 'คณะสนับสนุน', 'เงินรางวัลสนับสนุน'],
-  application_number: ['เลขที่คำขอ', 'application_number', 'app_no', 'คำขอแจ้งข้อมูลเลขที่', 'คำขอเลขที่', 'req_info', 'เลขคำขอ'],
-  registration_number: ['เลขที่', 'เลขทะเบียน', 'เลขที่ทะเบียน', 'registration_number', 'reg_no', 'เลขที่สิทธิบัตร', 'ทะเบียนข้อมูลเลขที่', 'reg_info'],
-  work_category: ['ประเภทงาน', 'ประเภทงานลิขสิทธิ์', 'work_category', 'หมวดหมู่งาน'],
-  work_character: ['ลักษณะงาน', 'ลักษณะงานลิขสิทธิ์', 'work_character'],
-  filing_date: ['วันที่ยื่น', 'filing_date', 'ยื่นคำขอ'],
-  protection_start: ['วันที่เริ่มต้น', 'protection_start', 'เริ่มคุ้มครอง'],
-  protection_end: ['วันที่สิ้นสุด', 'protection_end', 'สิ้นสุดคุ้มครอง'],
+  image_url: ['รูปภาพประจำตัว', 'รูปโปรไฟล์', 'รูปภาพ', 'รูปถ่าย', 'รูป', 'image', 'picture', 'photo', 'avatar', 'image_url'],
+  support_amount: ['เงินสนับสนุนจากคณะ (บาท)', 'เงินรางวัลสนับสนุน', 'คณะฯ สนับสนุน', 'คณะฯสนับสนุน', 'คณะสนับสนุน', 'เงินสนับสนุน', 'support_amount'],
+  application_number: ['ขั้นตอนดำเนินการ เลขที่คำขอ', 'คำขอแจ้งข้อมูลเลขที่', 'คำขอเลขที่', 'เลขที่คำขอ', 'เลขคำขอ', 'application_number', 'app_no', 'req_info'],
+  registration_number: ['ได้รับความคุ้มครอง เลขที่', 'ทะเบียนข้อมูลเลขที่', 'เลขที่ทะเบียน', 'เลขที่สิทธิบัตร', 'เลขทะเบียน', 'registration_number', 'reg_no', 'เลขที่', 'reg_info'],
+  work_category: ['ประเภทงานลิขสิทธิ์', 'หมวดหมู่งาน', 'ประเภทงาน', 'work_category'],
+  work_character: ['ลักษณะงานลิขสิทธิ์', 'ลักษณะงาน', 'work_character'],
+  filing_date: ['ขั้นตอนดำเนินการ วันที่ยื่นคำขอ', 'วันที่ยื่นคำขอ', 'ยื่นคำขอ', 'วันที่ยื่น', 'filing_date'],
+  protection_start: ['วันที่เริ่มต้น', 'เริ่มคุ้มครอง', 'protection_start'],
+  protection_end: ['ได้รับความคุ้มครอง ระยะเวลาความคุ้มครอง', 'ระยะเวลาความคุ้มครอง', 'วันที่สิ้นสุด', 'สิ้นสุดคุ้มครอง', 'protection_end'],
+  integration: ['การบูรณาการ', 'บูรณาการ', 'การนำความรู้'],
   remarks: ['หมายเหตุ', 'remarks', 'comment', 'note'],
 };
+
+// Flatten and sort aliases by length descending for accurate longest-match-first resolution
+const ALL_ALIASES_SORTED: { key: string; alias: string; norm: string }[] = [];
+for (const [key, aliases] of Object.entries(COLUMN_ALIASES)) {
+  for (const alias of aliases) {
+    ALL_ALIASES_SORTED.push({ key, alias, norm: alias.toLowerCase().trim() });
+  }
+}
+ALL_ALIASES_SORTED.sort((a, b) => b.norm.length - a.norm.length);
 
 /**
  * ทำความสะอาดข้อความ ตัดช่องว่าง แปลง nan/NaT
@@ -106,7 +116,7 @@ export function parseDateOrYear(val: any): string {
   if (!val) return '';
   
   // กรณีเป็นตัวเลข Serial Date ของ Excel
-  if (typeof val === 'number' && val > 30000 && val < 60000) {
+  if (typeof val === 'number' && val > 10000 && val < 70000) {
     const utcDays = Math.floor(val - 25569);
     const utcValue = utcDays * 86400;
     const dateInfo = new Date(utcValue * 1000);
@@ -157,22 +167,46 @@ export function normalizeDepartment(deptName: string): string {
 /**
  * จับคู่ชื่อคอลัมน์จาก Header ของไฟล์ Excel เข้ากับ Column Key ของ Schema
  */
+/**
+ * จับคู่ชื่อคอลัมน์จาก Header ของไฟล์ Excel เข้ากับ Column Key ของ Schema
+ */
 function findMatchingColumnKey(header: string, validColumns: ColumnDef[]): string | null {
   const normHeader = cleanText(header).toLowerCase();
-  
+  if (!normHeader) return null;
+
   // 1. Direct match with column key or label
   for (const col of validColumns) {
-    if (col.key.toLowerCase() === normHeader || col.label.toLowerCase() === normHeader) {
+    const colKeyNorm = col.key.toLowerCase();
+    const colLabelNorm = cleanText(col.label).toLowerCase();
+    if (colKeyNorm === normHeader || colLabelNorm === normHeader) {
       return col.key;
     }
   }
 
-  // 2. Alias match from all known aliases
-  for (const [key, aliases] of Object.entries(COLUMN_ALIASES)) {
-    for (const alias of aliases) {
-      if (normHeader === alias.toLowerCase() || normHeader.includes(alias.toLowerCase())) {
-        return key;
-      }
+  // 2. Protection against integration overriding project name
+  if (normHeader.includes('การบูรณาการ') || normHeader.includes('บูรณาการ')) {
+    return 'integration';
+  }
+
+  // 3. Exact alias match
+  for (const item of ALL_ALIASES_SORTED) {
+    if (normHeader === item.norm) {
+      return item.key;
+    }
+  }
+
+  // 4. Exact alias match without whitespace
+  const noSpace = normHeader.replace(/\s+/g, '');
+  for (const item of ALL_ALIASES_SORTED) {
+    if (noSpace === item.norm.replace(/\s+/g, '')) {
+      return item.key;
+    }
+  }
+
+  // 5. Longest substring alias match
+  for (const item of ALL_ALIASES_SORTED) {
+    if (normHeader.includes(item.norm)) {
+      return item.key;
     }
   }
 
@@ -184,12 +218,17 @@ function findMatchingColumnKey(header: string, validColumns: ColumnDef[]): strin
  */
 export function detectCategoryFromSheetName(sheetName: string, fallback: CategoryKey): CategoryKey {
   const norm = sheetName.toLowerCase().trim();
+  const candidates: { cat: CategoryKey; len: number }[] = [];
   for (const [catKey, keywords] of Object.entries(SHEET_NAME_KEYWORDS)) {
     for (const kw of keywords) {
       if (norm.includes(kw.toLowerCase())) {
-        return catKey as CategoryKey;
+        candidates.push({ cat: catKey as CategoryKey, len: kw.length });
       }
     }
+  }
+  if (candidates.length > 0) {
+    candidates.sort((a, b) => b.len - a.len);
+    return candidates[0].cat;
   }
   return fallback;
 }
@@ -242,6 +281,11 @@ export function transformAndValidateRow(
     } else {
       data[targetKey] = cleanText(rawVal);
     }
+  }
+
+  // Fallback รหัสโครงการจากเลขลำดับหากไม่มีรหัสระบุ
+  if ((!data.id || data.id === '-') && data.seq_no) {
+    data.id = String(data.seq_no);
   }
 
   // 2. คำนวณงบประมาณพิเศษตามประเภทหมวด
@@ -433,13 +477,14 @@ export function parseExcelFile(
 
   for (const sName of sheetNames) {
     const worksheet = workbook.Sheets[sName];
-    const rawRows: Record<string, any>[] = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+    const matrix: any[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
 
     // ข้าม sheet ว่าง
-    if (!rawRows || rawRows.length === 0) continue;
+    if (!matrix || matrix.length === 0) continue;
 
     // ตรวจจับหมวดหมู่
     const cat = isMultiSheet ? detectCategoryFromSheetName(sName, targetCategory) : targetCategory;
+    const config = CATEGORIES_CONFIG[cat];
 
     // ดึง existingRecords สำหรับหมวดหมู่นี้
     let existingRecords: Record<string, any>[] = [];
@@ -452,6 +497,62 @@ export function parseExcelFile(
       }
     }
 
+    // 1. ตรวจจับตำแหน่ง Header row(s) โดยการนับคะแนนคอลัมน์ที่ตรงกับ Schema
+    let bestRowIdx = 0;
+    let maxMatches = 0;
+    for (let r = 0; r < Math.min(12, matrix.length); r++) {
+      const row = matrix[r] || [];
+      let matches = 0;
+      for (const cell of row) {
+        if (findMatchingColumnKey(String(cell || ''), config.columns)) {
+          matches++;
+        }
+      }
+      if (matches > maxMatches) {
+        maxMatches = matches;
+        bestRowIdx = r;
+      }
+    }
+
+    // ตรวจสอบว่าแถวถัดไปเป็นแถวหัวตารางย่อย (Sub-headers จาก Merged Header) หรือไม่
+    const headerRows = [bestRowIdx];
+    if (bestRowIdx + 1 < matrix.length) {
+      const nextRow = matrix[bestRowIdx + 1] || [];
+      let nextRowMatches = 0;
+      for (const cell of nextRow) {
+        if (findMatchingColumnKey(String(cell || ''), config.columns)) {
+          nextRowMatches++;
+        }
+      }
+      const firstCell = String(nextRow[0] || '').trim();
+      const isLikelyData = /^\d+$/.test(firstCell) || firstCell.startsWith('วศ.') || firstCell.length > 25;
+      if (nextRowMatches >= 2 && !isLikelyData) {
+        headerRows.push(bestRowIdx + 1);
+      }
+    }
+
+    // สร้าง Header แบบผสมผสาน (Combined Headers)
+    const maxCols = Math.max(...matrix.slice(0, 15).map((r) => (r ? r.length : 0)));
+    const finalHeaders: string[] = [];
+    let lastParentHeader = '';
+
+    for (let c = 0; c < maxCols; c++) {
+      const top = cleanText(matrix[headerRows[0]]?.[c]);
+      if (top) lastParentHeader = top;
+      const sub = headerRows.length > 1 ? cleanText(matrix[headerRows[1]]?.[c]) : '';
+
+      let combined = '';
+      if (top && sub) {
+        combined = `${top} ${sub}`;
+      } else if (sub && lastParentHeader) {
+        combined = `${lastParentHeader} ${sub}`;
+      } else {
+        combined = top || sub || `col_${c}`;
+      }
+      finalHeaders.push(combined);
+    }
+
+    const dataStartRow = headerRows[headerRows.length - 1] + 1;
     const parsedRows: ParsedRowResult[] = [];
     let validCount = 0;
     let warningCount = 0;
@@ -459,12 +560,22 @@ export function parseExcelFile(
     let displayRowIndex = 1;
     const seenSignatures = new Map<string, number>();
 
-    rawRows.forEach((r) => {
-      const parsed = transformAndValidateRow(r, displayRowIndex, cat);
+    for (let r = dataStartRow; r < matrix.length; r++) {
+      const rowArr = matrix[r] || [];
+      const nonEmpties = rowArr.filter((c: any) => cleanText(c) !== '');
+      if (nonEmpties.length === 0) continue;
+
+      const rawRow: Record<string, any> = {};
+      for (let c = 0; c < maxCols; c++) {
+        const h = finalHeaders[c] || `col_${c}`;
+        rawRow[h] = rowArr[c] !== undefined ? rowArr[c] : '';
+      }
+
+      const parsed = transformAndValidateRow(rawRow, displayRowIndex, cat);
 
       // กรองแถวว่าง แถวหัวตารางย่อย และแถวขยะออก ไม่นำเข้าสู่ระบบ
-      if (isIgnorableExcelRow(r, parsed.data, cat)) {
-        return;
+      if (isIgnorableExcelRow(rawRow, parsed.data, cat)) {
+        continue;
       }
 
       parsed.rowNumber = displayRowIndex++;
@@ -525,7 +636,7 @@ export function parseExcelFile(
       else if (parsed.status === 'warning') warningCount++;
       else if (parsed.status === 'error') errorCount++;
       parsedRows.push(parsed);
-    });
+    }
 
     sheets.push({
       sheetName: sName,

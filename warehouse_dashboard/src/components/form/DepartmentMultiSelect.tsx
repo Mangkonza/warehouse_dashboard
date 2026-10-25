@@ -18,7 +18,7 @@ import {
 import { DepartmentBadge } from '@/components/ui/department-badge';
 
 export interface DepartmentMultiSelectProps {
-  value?: string[];
+  value?: string[] | string | null;
   onChange: (value: string[]) => void;
   placeholder?: string;
   disabled?: boolean;
@@ -55,8 +55,19 @@ export function DepartmentMultiSelect({
 
   const groups: DepartmentGroup[] = ['ภาควิชา', 'ศูนย์', 'สำนักงาน', 'อื่นๆ'];
 
+  // Normalize value to an array of strings (handles string, comma-separated string, array, null, undefined)
+  const safeValue: string[] = React.useMemo(() => {
+    if (Array.isArray(value)) return value;
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      if (!trimmed) return [];
+      return trimmed.split(',').map((s) => s.trim()).filter(Boolean);
+    }
+    return [];
+  }, [value]);
+
   const selectedDepts = React.useMemo(() => {
-    return (value || []).map((val) => {
+    return safeValue.map((val) => {
       const dept = getDepartment(val);
       return {
         raw: val,
@@ -65,10 +76,10 @@ export function DepartmentMultiSelect({
         color: dept.color,
       };
     });
-  }, [value]);
+  }, [safeValue]);
 
   const isSelected = (dept: DepartmentInfo) => {
-    return value.some((v) => {
+    return safeValue.some((v) => {
       if (v === dept.name || v === dept.code) return true;
       if (dept.code === 'OTH' && v.startsWith('OTH:')) return true;
       return false;
@@ -82,13 +93,13 @@ export function DepartmentMultiSelect({
     }
 
     const itemVal = returnFormat === 'code' ? dept.code : dept.name;
-    const exists = value.some((v) => v === itemVal || v === dept.code || v === dept.name);
+    const exists = safeValue.some((v) => v === itemVal || v === dept.code || v === dept.name);
 
     if (exists) {
-      onChange(value.filter((v) => v !== itemVal && v !== dept.code && v !== dept.name));
+      onChange(safeValue.filter((v) => v !== itemVal && v !== dept.code && v !== dept.name));
     } else {
-      if (maxSelections && value.length >= maxSelections) return;
-      onChange([...value, itemVal]);
+      if (maxSelections && safeValue.length >= maxSelections) return;
+      onChange([...safeValue, itemVal]);
     }
   };
 
@@ -96,9 +107,9 @@ export function DepartmentMultiSelect({
     const trimmed = customText.trim();
     if (!trimmed) return;
     const customVal = `OTH: ${trimmed}`;
-    if (!value.includes(customVal)) {
-      if (!maxSelections || value.length < maxSelections) {
-        onChange([...value, customVal]);
+    if (!safeValue.includes(customVal)) {
+      if (!maxSelections || safeValue.length < maxSelections) {
+        onChange([...safeValue, customVal]);
       }
     }
     setCustomText('');
@@ -107,7 +118,7 @@ export function DepartmentMultiSelect({
 
   const handleRemove = (rawVal: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    onChange(value.filter((v) => v !== rawVal));
+    onChange(safeValue.filter((v) => v !== rawVal));
   };
 
   const handleClearAll = (e: React.MouseEvent) => {

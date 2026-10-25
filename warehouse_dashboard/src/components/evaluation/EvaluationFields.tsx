@@ -87,9 +87,9 @@ export const EvaluationFields: React.FC<EvaluationFieldsProps> = ({
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
           <label className="text-xs font-bold text-slate-800">
-            กรอบประเมิน I am / I see
+            กรอบประเมิน
           </label>
-          <span className="text-[11px] text-slate-500">เลือกได้ 1 รายการ (คลิกซ้ำเพื่อยกเลิก)</span>
+          <span className="text-[11px] text-slate-500">เลือกได้ 1 รายการ</span>
         </div>
 
         <BlockSingleSelect<IType>
@@ -97,7 +97,7 @@ export const EvaluationFields: React.FC<EvaluationFieldsProps> = ({
           value={value.i_type ?? null}
           onChange={handleITypeChange}
           colorVariant="iam"
-          aria-label="กรอบประเมิน I am / I see"
+          aria-label="กรอบประเมิน"
         />
       </div>
 
@@ -106,7 +106,7 @@ export const EvaluationFields: React.FC<EvaluationFieldsProps> = ({
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <label className="text-xs font-bold text-slate-800">
-              ระดับคุณภาพวารสาร (Q / TCI)
+              ระดับคุณภาพวารสาร
             </label>
             <span className="text-[11px] text-slate-500">
               {recordLevel ? `ระดับ: ${recordLevel}` : 'ยังไม่ระบุระดับ'}

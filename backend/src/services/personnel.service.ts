@@ -18,7 +18,7 @@ export function formatPersonnel(p: any) {
     department: deptName,
     department_code: p.departmentCode || '',
     email: p.email || '',
-    image_url: '',
+    image_url: p.imageUrl || '',
     createdAt: p.createdAt,
     updatedAt: p.updatedAt,
   };
@@ -75,6 +75,12 @@ export class PersonnelService {
   }
 
   static async getById(identifier: string | number) {
+    const byPersonId = await prisma.personnel.findUnique({
+      where: { personId: String(identifier) },
+      include: { department: true },
+    });
+    if (byPersonId) return formatPersonnel(byPersonId);
+
     const numId = extractNumericId(identifier);
     if (numId !== null) {
       const byId = await prisma.personnel.findUnique({
@@ -84,11 +90,7 @@ export class PersonnelService {
       if (byId) return formatPersonnel(byId);
     }
 
-    const byPersonId = await prisma.personnel.findUnique({
-      where: { personId: String(identifier) },
-      include: { department: true },
-    });
-    return formatPersonnel(byPersonId);
+    return null;
   }
 
   static async getDepartments() {
@@ -139,6 +141,7 @@ export class PersonnelService {
 
     const deptCode = await resolveDepartmentCode(body.departmentCode || body.department_code || body.department);
 
+    const imgVal = body.imageUrl !== undefined ? body.imageUrl : (body.image_url !== undefined ? body.image_url : null);
     const created = await prisma.personnel.create({
       data: {
         personId: body.personId || body.person_id || body.id || null,
@@ -148,6 +151,7 @@ export class PersonnelService {
         position: body.position || null,
         departmentCode: deptCode,
         email: body.email || null,
+        imageUrl: imgVal || null,
       },
       include: { department: true },
     });
@@ -157,14 +161,23 @@ export class PersonnelService {
 
   static async update(identifier: string | number, body: any) {
     let existingId: number | null = null;
-    const numId = extractNumericId(identifier);
-    if (numId !== null) {
-      const found = await prisma.personnel.findUnique({ where: { id: numId } });
-      if (found) existingId = found.id;
+    if (body?.dbId) {
+      const numDbId = extractNumericId(body.dbId);
+      if (numDbId !== null) {
+        const found = await prisma.personnel.findUnique({ where: { id: numDbId } });
+        if (found) existingId = found.id;
+      }
     }
     if (!existingId) {
       const found = await prisma.personnel.findUnique({ where: { personId: String(identifier) } });
       if (found) existingId = found.id;
+    }
+    if (!existingId) {
+      const numId = extractNumericId(identifier);
+      if (numId !== null) {
+        const found = await prisma.personnel.findUnique({ where: { id: numId } });
+        if (found) existingId = found.id;
+      }
     }
     if (!existingId) {
       const err: any = new Error('ไม่พบข้อมูลบุคลากร');
@@ -184,6 +197,11 @@ export class PersonnelService {
         ...(body.position !== undefined ? { position: body.position } : {}),
         ...(deptCode !== undefined ? { departmentCode: deptCode } : {}),
         ...(body.email !== undefined ? { email: body.email } : {}),
+        ...(body.imageUrl !== undefined
+          ? { imageUrl: body.imageUrl || null }
+          : body.image_url !== undefined
+            ? { imageUrl: body.image_url || null }
+            : {}),
       },
       include: { department: true },
     });
@@ -193,14 +211,15 @@ export class PersonnelService {
 
   static async delete(identifier: string | number) {
     let existingId: number | null = null;
-    const numId = extractNumericId(identifier);
-    if (numId !== null) {
-      const found = await prisma.personnel.findUnique({ where: { id: numId } });
-      if (found) existingId = found.id;
-    }
+    const foundByPerson = await prisma.personnel.findUnique({ where: { personId: String(identifier) } });
+    if (foundByPerson) existingId = foundByPerson.id;
+
     if (!existingId) {
-      const found = await prisma.personnel.findUnique({ where: { personId: String(identifier) } });
-      if (found) existingId = found.id;
+      const numId = extractNumericId(identifier);
+      if (numId !== null) {
+        const found = await prisma.personnel.findUnique({ where: { id: numId } });
+        if (found) existingId = found.id;
+      }
     }
     if (!existingId) {
       const err: any = new Error('ไม่พบข้อมูลบุคลากร');

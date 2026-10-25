@@ -1,5 +1,5 @@
 import { prisma } from '../db/prisma.js';
-import { parseSafeDate, parseSafeNumber, parseSafeInt, extractNumericId } from '../utils/sanitize.js';
+import { parseSafeDate, parseSafeNumber, parseSafeInt, extractNumericId, parseSafeStringOrArray, parseSafeJsonOrString } from '../utils/sanitize.js';
 
 export class ProjectRepository {
   // ==========================================
@@ -104,12 +104,12 @@ export class ProjectRepository {
           budgetExternal: parseSafeNumber(data.budgetExternal ?? data.budget_external, 0),
           fundSource: data.fundSource || data.fund_source || null,
           fundType: data.fundType || data.fund_type || null,
-          collaborationType: data.collaborationType || data.collaboration_type || null,
-          projectNature: data.projectNature || data.project_nature || null,
+          collaborationType: parseSafeStringOrArray(data.collaborationType ?? data.collaboration_type),
+          projectNature: parseSafeStringOrArray(data.projectNature ?? data.project_nature),
           startDate: parseSafeDate(data.startDate || data.start_date),
           endDate: parseSafeDate(data.endDate || data.end_date),
-          fiscalYear: parseSafeInt(data.fiscalYear || data.fiscal_year),
-          trlOutputs: data.trlOutputs || data.trl_outputs || null,
+          fiscalYear: parseSafeInt(data.fiscalYear ?? data.fiscal_year ?? data.fiscal_year_be),
+          trlOutputs: parseSafeJsonOrString(data.trlOutputs ?? data.trl_outputs),
         },
       });
 
@@ -176,17 +176,23 @@ export class ProjectRepository {
           ...(data.fundType !== undefined || data.fund_type !== undefined
             ? { fundType: data.fundType || data.fund_type }
             : {}),
+          ...(data.collaborationType !== undefined || data.collaboration_type !== undefined
+            ? { collaborationType: parseSafeStringOrArray(data.collaborationType ?? data.collaboration_type) }
+            : {}),
+          ...(data.projectNature !== undefined || data.project_nature !== undefined
+            ? { projectNature: parseSafeStringOrArray(data.projectNature ?? data.project_nature) }
+            : {}),
           ...(data.startDate !== undefined || data.start_date !== undefined
             ? { startDate: parseSafeDate(data.startDate || data.start_date) }
             : {}),
           ...(data.endDate !== undefined || data.end_date !== undefined
             ? { endDate: parseSafeDate(data.endDate || data.end_date) }
             : {}),
-          ...(data.fiscalYear !== undefined || data.fiscal_year !== undefined
-            ? { fiscalYear: parseSafeInt(data.fiscalYear || data.fiscal_year) }
+          ...(data.fiscalYear !== undefined || data.fiscal_year !== undefined || data.fiscal_year_be !== undefined
+            ? { fiscalYear: parseSafeInt(data.fiscalYear ?? data.fiscal_year ?? data.fiscal_year_be) }
             : {}),
           ...(data.trlOutputs !== undefined || data.trl_outputs !== undefined
-            ? { trlOutputs: data.trlOutputs || data.trl_outputs }
+            ? { trlOutputs: parseSafeJsonOrString(data.trlOutputs ?? data.trl_outputs) }
             : {}),
         },
       });

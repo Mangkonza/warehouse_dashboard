@@ -66,3 +66,27 @@ export async function resolveDepartmentCode(deptInput?: string | null): Promise<
   });
   return matched ? matched.code : null;
 }
+
+export function parseSafeStringOrArray(val: any, maxLen = 100): string | null {
+  if (val === null || val === undefined) return null;
+  if (Array.isArray(val)) {
+    const joined = val.map((s) => String(s).trim()).filter(Boolean).join(', ');
+    return joined ? (maxLen ? joined.slice(0, maxLen) : joined) : null;
+  }
+  const str = String(val).trim();
+  if (!str) return null;
+  return maxLen ? str.slice(0, maxLen) : str;
+}
+
+export function parseSafeJsonOrString(val: any): string | null {
+  if (val === null || val === undefined) return null;
+  if (typeof val === 'object') {
+    try {
+      return JSON.stringify(val);
+    } catch {
+      return null;
+    }
+  }
+  const str = String(val).trim();
+  return str || null;
+}

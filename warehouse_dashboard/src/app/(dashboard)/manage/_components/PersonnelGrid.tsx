@@ -67,14 +67,23 @@ export const PersonnelGrid: React.FC<PersonnelGridProps> = ({
               }}
             >
               {p.image_url ? (
-                <img
-                  src={p.image_url}
-                  alt={p.name}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }}
-                  onError={(e) => {
-                    (e.target as HTMLElement).style.display = 'none';
-                  }}
-                />
+                <>
+                  <img
+                    src={encodeURI(p.image_url)}
+                    alt={p.name}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }}
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      target.style.display = 'none';
+                      if (target.nextElementSibling) {
+                        (target.nextElementSibling as HTMLElement).style.display = 'flex';
+                      }
+                    }}
+                  />
+                  <span style={{ display: 'none', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
+                    <FaUserTie style={{ color: '#94a3b8', fontSize: '24px' }} />
+                  </span>
+                </>
               ) : (
                 <FaUserTie style={{ color: '#94a3b8', fontSize: '24px' }} />
               )}

@@ -38,9 +38,9 @@ export const HeaderAuth: React.FC = () => {
   }
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#fff', fontSize: '13.5px' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#fff', fontSize: '16px' }}>
       {/* รหัสบัญชีผู้ใช้ (Dynamic ตามที่ login เช่น b6520503525) */}
-      <span style={{ fontWeight: 600, letterSpacing: '0.2px' }}>
+      <span style={{ fontWeight: 500, letterSpacing: '0.2px' }}>
         {user.nontriAccount}
       </span>
 

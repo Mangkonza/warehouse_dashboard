@@ -89,7 +89,8 @@ export const SmartExcelImportModal: React.FC<SmartExcelImportModalProps> = ({
       const recordsToCheck = existingDatasets || existingRecords;
       const result = parseExcelFile(buffer, selectedFile.name, activeCategory, recordsToCheck);
       setSheets(result.sheets);
-      setActiveSheetIndex(0);
+      const firstNonEmptyIndex = result.sheets.findIndex((s) => s.totalRows > 0);
+      setActiveSheetIndex(firstNonEmptyIndex >= 0 ? firstNonEmptyIndex : 0);
       setExpandedRows(new Set());
     } catch (err) {
       console.error('Error parsing Excel:', err);

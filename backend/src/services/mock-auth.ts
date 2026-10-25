@@ -175,7 +175,7 @@ export class MockAuthService {
         id: `ku-${normalized}`,
         nontriAccount: normalized,
         email: `${normalized}@ku.th`,
-        nameTh: dbRole?.displayName || (normalized === 'b0123456789' ? 'Admin (Mock)' : 'Admin'),
+        nameTh: dbRole?.displayName || (normalized === 'b0123456789' ? 'Admin' : 'Admin'),
         facultyName: 'คณะวิศวกรรมศาสตร์ กำแพงแสน',
         departmentName: 'สำนักงานเลขานุการ คณะวิศวกรรมศาสตร์',
         campus: 'K',

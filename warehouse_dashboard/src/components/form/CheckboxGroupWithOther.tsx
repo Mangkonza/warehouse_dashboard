@@ -12,7 +12,7 @@ export interface CheckboxOption {
 
 export interface CheckboxGroupWithOtherProps {
   options: CheckboxOption[];
-  value?: string[];
+  value?: string[] | string | null;
   onChange: (value: string[]) => void;
   allowOther?: boolean;
   otherOptionLabel?: string;
@@ -35,10 +35,21 @@ export function CheckboxGroupWithOther({
   disabled = false,
   className,
 }: CheckboxGroupWithOtherProps) {
+  // Normalize value to string array
+  const safeValue: string[] = React.useMemo(() => {
+    if (Array.isArray(value)) return value;
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      if (!trimmed) return [];
+      return trimmed.split(',').map((s) => s.trim()).filter(Boolean);
+    }
+    return [];
+  }, [value]);
+
   // Find if there is an "other" value currently in the array
   const otherItem = React.useMemo(() => {
-    return value.find((v) => v.startsWith(otherPrefix) || v === 'other' || v === 'อื่นๆ');
-  }, [value, otherPrefix]);
+    return safeValue.find((v) => v.startsWith(otherPrefix) || v === 'other' || v === 'อื่นๆ');
+  }, [safeValue, otherPrefix]);
 
   const isOtherChecked = Boolean(otherItem !== undefined);
 
@@ -62,10 +73,10 @@ export function CheckboxGroupWithOther({
 
   const handleToggleOption = (optVal: string) => {
     if (disabled) return;
-    if (value.includes(optVal)) {
-      onChange(value.filter((v) => v !== optVal));
+    if (safeValue.includes(optVal)) {
+      onChange(safeValue.filter((v) => v !== optVal));
     } else {
-      onChange([...value, optVal]);
+      onChange([...safeValue, optVal]);
     }
   };
 
@@ -73,12 +84,12 @@ export function CheckboxGroupWithOther({
     if (disabled) return;
     if (isOtherChecked) {
       // Remove other item
-      onChange(value.filter((v) => !v.startsWith(otherPrefix) && v !== 'other' && v !== 'อื่นๆ'));
+      onChange(safeValue.filter((v) => !v.startsWith(otherPrefix) && v !== 'other' && v !== 'อื่นๆ'));
       setLocalOtherText('');
     } else {
       // Add other item
       const newEntry = localOtherText.trim() ? `${otherPrefix}${localOtherText.trim()}` : `${otherPrefix}`;
-      onChange([...value, newEntry]);
+      onChange([...safeValue, newEntry]);
     }
   };
 
@@ -89,7 +100,7 @@ export function CheckboxGroupWithOther({
     // Update parent
     const clean = text.trim();
     const newEntry = clean ? `${otherPrefix}${clean}` : `${otherPrefix}`;
-    const next = value.filter((v) => !v.startsWith(otherPrefix) && v !== 'other' && v !== 'อื่นๆ');
+    const next = safeValue.filter((v) => !v.startsWith(otherPrefix) && v !== 'other' && v !== 'อื่นๆ');
     next.push(newEntry);
     onChange(next);
   };
@@ -105,7 +116,7 @@ export function CheckboxGroupWithOther({
       )}
     >
       {options.map((opt) => {
-        const checked = value.includes(opt.value);
+        const checked = safeValue.includes(opt.value);
         return (
           <label
             key={opt.value}

@@ -61,8 +61,8 @@ export function AvatarImageField({
   return (
     <div className={cn('p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 space-y-3', className)}>
       <div className="flex items-center gap-4 flex-wrap">
-        {/* Avatar Display Frame */}
-        <div className="relative size-18 rounded-xl overflow-hidden bg-slate-200 border-2 border-white shadow-xs shrink-0 flex items-center justify-center">
+        {/* Avatar Display Frame (วงกลม) */}
+        <div className="relative size-18 rounded-full overflow-hidden bg-slate-200 border-2 border-white shadow-xs shrink-0 flex items-center justify-center">
           {hasImage ? (
             <img
               src={value || ''}
@@ -129,7 +129,7 @@ export function AvatarImageField({
             )}
           </div>
           <span className="text-[11px] text-slate-500">
-            เลือกไฟล์ภาพจากเครื่องเพื่อตัดภาพเป็นสี่เหลี่ยมจัตุรัส หรือระบุ URL / Path ด้านล่าง
+            เลือกไฟล์ภาพจากเครื่องเพื่อตัดภาพเป็นสี่เหลี่ยมจัตุรัส (แสดงผลเป็นวงกลม) หรือระบุ URL / Path ด้านล่าง
           </span>
         </div>
       </div>

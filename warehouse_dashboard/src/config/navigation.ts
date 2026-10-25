@@ -49,7 +49,7 @@ export const TAB_TITLES: Record<string, string> = {
 
 export const MAIN_MENU_ITEMS: MenuItemConfig[] = [
   { id: "overview", label: "แดชบอร์ด ภาพรวม", path: "/overview", iconName: "FaThLarge" },
-  { id: "studio", label: "วิเคราะห์ข้อมูล (BI Studio)", path: "/studio", iconName: "FaChartLine" },
+  { id: "studio", label: "วิเคราะห์ข้อมูล", path: "/studio", iconName: "FaChartLine" },
   { id: "monitoring", label: "ติดตามสถานะโครงการ", path: "/monitoring", iconName: "FaClock" },
   { id: "evaluation", label: "การประเมิน", path: "/evaluation", iconName: "FaClipboardCheck" },
   { id: "research", label: "โครงการวิจัย", path: "/research", iconName: "FaFlask" },

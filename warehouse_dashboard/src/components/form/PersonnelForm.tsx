@@ -52,8 +52,9 @@ export function PersonnelForm({
               type="text"
               value={formData.name || ''}
               onChange={(e) => onChange('name', e.target.value)}
+              placeholder="กรอกชื่อ-นามสกุล"
               className={cn(
-                'w-full h-10 px-3 rounded-lg border border-input bg-background text-sm font-normal outline-none transition-colors shadow-2xs hover:border-slate-400 focus:border-[#00A651] focus:ring-1 focus:ring-[#00A651]',
+                'w-full h-10 px-3 rounded-lg border border-input bg-background text-sm font-normal outline-none transition-colors shadow-2xs placeholder:text-slate-400 hover:border-slate-400 focus:border-[#00A651] focus:ring-1 focus:ring-[#00A651]',
                 errors.name && 'border-destructive focus:border-destructive ring-1 ring-destructive'
               )}
             />
@@ -67,8 +68,9 @@ export function PersonnelForm({
           type="text"
           value={formData.position || ''}
           onChange={(e) => onChange('position', e.target.value)}
+          placeholder="ระบุตำแหน่งทางวิชาการ เช่น ผู้ช่วยศาสตราจารย์"
           className={cn(
-            'w-full h-10 px-3 rounded-lg border border-input bg-background text-sm font-normal outline-none transition-colors shadow-2xs hover:border-slate-400 focus:border-[#00A651] focus:ring-1 focus:ring-[#00A651]',
+            'w-full h-10 px-3 rounded-lg border border-input bg-background text-sm font-normal outline-none transition-colors shadow-2xs placeholder:text-slate-400 hover:border-slate-400 focus:border-[#00A651] focus:ring-1 focus:ring-[#00A651]',
             errors.position && 'border-destructive focus:border-destructive ring-1 ring-destructive'
           )}
         />
@@ -93,8 +95,9 @@ export function PersonnelForm({
           type="email"
           value={formData.email || ''}
           onChange={(e) => onChange('email', e.target.value)}
+          placeholder="ระบุอีเมล เช่น name@ku.th"
           className={cn(
-            'w-full h-10 px-3 rounded-lg border border-input bg-background text-sm font-normal outline-none transition-colors shadow-2xs hover:border-slate-400 focus:border-[#00A651] focus:ring-1 focus:ring-[#00A651]',
+            'w-full h-10 px-3 rounded-lg border border-input bg-background text-sm font-normal outline-none transition-colors shadow-2xs placeholder:text-slate-400 hover:border-slate-400 focus:border-[#00A651] focus:ring-1 focus:ring-[#00A651]',
             errors.email && 'border-destructive focus:border-destructive ring-1 ring-destructive'
           )}
         />

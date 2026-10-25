@@ -93,7 +93,7 @@ const server = app.listen(env.PORT, '127.0.0.1', () => {
           username: 'b0123456789',
           role: 'admin',
           isProtected: true,
-          displayName: 'Admin (Mock)',
+          displayName: 'Admin',
           grantedBy: 'system',
           note: 'Mock Protected Admin for testing environment',
         },

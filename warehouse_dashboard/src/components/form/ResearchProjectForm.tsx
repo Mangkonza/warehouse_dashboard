@@ -367,7 +367,13 @@ export function ResearchProjectForm({
               hint="เลือกได้หลายสังกัด"
             >
               <DepartmentMultiSelect
-                value={formData.departments || []}
+                value={
+                  Array.isArray(formData.departments)
+                    ? formData.departments
+                    : typeof formData.departments === 'string' && formData.departments.trim()
+                    ? formData.departments.split(',').map((s: string) => s.trim()).filter(Boolean)
+                    : []
+                }
                 onChange={(depts) => onChange('departments', depts)}
                 placeholder="-- เลือกหน่วยงานร่วมรับผิดชอบเพิ่มเติม --"
               />
@@ -379,7 +385,20 @@ export function ResearchProjectForm({
               hint="ระบุชื่อผู้ร่วมวิจัยและสัดส่วนการมีส่วนร่วม (ถ้ามี)"
             >
               <PersonListField
-                items={formData.co_researchers || []}
+                items={
+                  Array.isArray(formData.co_researchers)
+                    ? formData.co_researchers
+                    : typeof formData.co_researchers === 'string' && formData.co_researchers.trim()
+                    ? formData.co_researchers.split(',').map((name: string) => ({
+                        name: name.trim(),
+                        department: '',
+                        person_id: null,
+                        is_custom: true,
+                        role: 'ผู้ร่วมวิจัย',
+                        contributionPercent: null,
+                      })).filter((i: any) => Boolean(i.name))
+                    : []
+                }
                 onChange={(items: CoResearcherItem[]) => onChange('co_researchers', items)}
                 showContribution
               />
@@ -421,7 +440,13 @@ export function ResearchProjectForm({
             <FormField label="ลักษณะความร่วมมือของโครงการวิจัย" hint="เลือกได้มากกว่า 1 ข้อ">
               <CheckboxGroupWithOther
                 options={COLLABORATION_OPTIONS}
-                value={formData.collaboration_type || []}
+                value={
+                  Array.isArray(formData.collaboration_type)
+                    ? formData.collaboration_type
+                    : typeof formData.collaboration_type === 'string' && formData.collaboration_type.trim()
+                    ? formData.collaboration_type.split(',').map((s: string) => s.trim()).filter(Boolean)
+                    : []
+                }
                 onChange={(vals) => onChange('collaboration_type', vals)}
                 otherOptionLabel="ความร่วมมืออื่นๆ (โปรดระบุ)"
                 orientation="grid"
@@ -432,7 +457,13 @@ export function ResearchProjectForm({
             <FormField label="ลักษณะโครงการวิจัย" hint="เลือกได้มากกว่า 1 ข้อ">
               <CheckboxGroupWithOther
                 options={PROJECT_NATURE_OPTIONS}
-                value={formData.project_nature || []}
+                value={
+                  Array.isArray(formData.project_nature)
+                    ? formData.project_nature
+                    : typeof formData.project_nature === 'string' && formData.project_nature.trim()
+                    ? formData.project_nature.split(',').map((s: string) => s.trim()).filter(Boolean)
+                    : []
+                }
                 onChange={(vals) => onChange('project_nature', vals)}
                 otherOptionLabel="ลักษณะอื่นๆ (โปรดระบุ)"
                 orientation="grid"

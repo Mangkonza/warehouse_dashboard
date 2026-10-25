@@ -79,7 +79,7 @@ export interface CategoryConfig {
   titleEn: string;
   icon: string;
   color: string;
-  description: string;
+  description?: string;
   primaryKey: string;
   nameKey: string;
   departmentKey?: string;

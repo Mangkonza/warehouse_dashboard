@@ -105,6 +105,41 @@ export function IntellectualPropertyForm({
     }
   }, [formData.owner, formData.right_holder, onChange]);
 
+  // Synchronize and normalize application_number and registration_number across variations (req_no, reg_no, req_info, reg_info)
+  useEffect(() => {
+    if (!formData.application_number) {
+      let app = formData.req_info || formData.app_no || '';
+      if (!app && formData.req_no) {
+        const parts = String(formData.req_no).split('/');
+        app = parts[0]?.trim() || String(formData.req_no);
+      }
+      if (app && app !== '-' && app !== 'nan') {
+        onChange('application_number', app);
+      }
+    }
+
+    if (!formData.registration_number) {
+      let reg = formData.reg_info || formData.reg_no || formData.patent_number || '';
+      if (!reg && formData.req_no && String(formData.req_no).includes('/')) {
+        const parts = String(formData.req_no).split('/');
+        reg = parts[1]?.trim() || '';
+      }
+      if (reg && reg !== '-' && reg !== 'nan') {
+        onChange('registration_number', reg);
+      }
+    }
+  }, [
+    formData.application_number,
+    formData.registration_number,
+    formData.req_no,
+    formData.reg_no,
+    formData.req_info,
+    formData.reg_info,
+    formData.app_no,
+    formData.patent_number,
+    onChange,
+  ]);
+
   // Normalize inventors / creators list
   const selectedInventors: PersonValue[] = useMemo(() => {
     if (Array.isArray(formData.inventors) && formData.inventors.length > 0) {
@@ -175,15 +210,31 @@ export function IntellectualPropertyForm({
     }
   };
 
-  // Handle numeric application number
+  // Handle numeric application number (support aliases req_no, req_info, app_no)
   const handleAppNumberChange = (raw: string) => {
     const digitsOnly = raw.replace(/\D/g, '').slice(0, 10);
     onChange('application_number', digitsOnly);
+    onChange('req_info', digitsOnly);
+    onChange('app_no', digitsOnly);
+    const reg = formData.registration_number || formData.reg_no || formData.reg_info || '';
+    if (reg) {
+      onChange('req_no', `${digitsOnly} / ${reg}`);
+    } else {
+      onChange('req_no', digitsOnly);
+    }
   };
 
-  // Handle registration number (can be letters, numbers, dots for copyright; string for patents)
+  // Handle registration number (can be letters, numbers, dots for copyright; string for patents, sync reg_no, reg_info)
   const handleRegNumberChange = (raw: string) => {
-    onChange('registration_number', raw.slice(0, 50));
+    const clean = raw.slice(0, 50);
+    onChange('registration_number', clean);
+    onChange('reg_info', clean);
+    onChange('reg_no', clean);
+    const app = formData.application_number || formData.req_no || formData.req_info || '';
+    if (app) {
+      const appOnly = String(app).includes('/') ? String(app).split('/')[0]?.trim() : app;
+      onChange('req_no', `${appOnly} / ${clean}`);
+    }
   };
 
   return (
@@ -455,7 +506,7 @@ export function IntellectualPropertyForm({
                     type="text"
                     inputMode="numeric"
                     maxLength={10}
-                    value={formData.application_number || ''}
+                    value={formData.application_number || formData.req_info || formData.app_no || (formData.req_no ? String(formData.req_no).split('/')[0]?.trim() : '') || ''}
                     onChange={(e) => handleAppNumberChange(e.target.value)}
                     placeholder={isCopyright ? 'ระบุเลขที่คำขอแจ้งข้อมูลลิขสิทธิ์' : 'ระบุเลขที่คำขอ 10 หลัก'}
                     className={cn(
@@ -465,7 +516,7 @@ export function IntellectualPropertyForm({
                     )}
                   />
                   <span className="absolute right-3 top-2.5 text-xs text-slate-400 font-mono select-none">
-                    {(formData.application_number || '').length}/10
+                    {(formData.application_number || formData.req_info || formData.app_no || '').length}/10
                   </span>
                 </div>
               </FormField>
@@ -493,7 +544,7 @@ export function IntellectualPropertyForm({
                   <input
                     type="text"
                     maxLength={50}
-                    value={formData.registration_number || ''}
+                    value={formData.registration_number || formData.reg_info || formData.reg_no || formData.patent_number || (formData.req_no && String(formData.req_no).includes('/') ? String(formData.req_no).split('/')[1]?.trim() : '') || ''}
                     onChange={(e) => handleRegNumberChange(e.target.value)}
                     placeholder={
                       isCopyright
@@ -509,7 +560,7 @@ export function IntellectualPropertyForm({
                     )}
                   />
                   <span className="absolute right-3 top-2.5 text-xs text-slate-400 font-mono select-none">
-                    {(formData.registration_number || '').length}/{isCopyright ? 9 : 5}
+                    {(formData.registration_number || formData.reg_info || formData.reg_no || '').length}/{isCopyright ? 9 : 5}
                   </span>
                 </div>
               </FormField>

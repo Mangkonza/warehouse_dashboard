@@ -858,7 +858,7 @@ export default function SelfServiceStudio() {
               {/* A. X-Axis */}
               <div>
                 <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-                  <FaThList style={{ marginRight: '6px', color: '#7c3aed' }} /> 1. แกน X (มิติหลัก / จัดกลุ่ม)
+                 1. แกน X (มิติหลัก / จัดกลุ่ม)
                 </label>
                 <Select
                   value={query.primaryDimensionId}
@@ -884,7 +884,7 @@ export default function SelfServiceStudio() {
               {/* B. Y-Axis */}
               <div>
                 <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-                  <FaCalculator style={{ marginRight: '6px', color: '#0284c7' }} /> 2. แกน Y (ตัววัดเชิงปริมาณ)
+                  2. แกน Y (ตัววัดเชิงปริมาณ)
                 </label>
                 <Select
                   value={query.measureId}
@@ -910,7 +910,7 @@ export default function SelfServiceStudio() {
               {/* C. Aggregation */}
               <div>
                 <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-                  <FaMagic style={{ marginRight: '6px', color: '#00a859' }} /> 3. ฟังก์ชันรวมค่า (Aggregation)
+                  3. ฟังก์ชันรวมค่า (Aggregation)
                 </label>
                 <Select
                   value={query.aggregationFn || currentDomainDef.measures.find((m) => m.id === query.measureId)?.aggregation || 'SUM'}
@@ -941,7 +941,7 @@ export default function SelfServiceStudio() {
               {/* D. Z-Axis */}
               <div>
                 <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-                  <FaLayerGroup style={{ marginRight: '6px', color: '#f59e0b' }} /> 4. มิติย่อยซ้อน (Series / Z-Axis)
+                  4. มิติย่อยซ้อน (Series / Z-Axis)
                 </label>
                 <Select
                   value={query.secondaryDimensionId || '__none__'}
@@ -975,7 +975,7 @@ export default function SelfServiceStudio() {
               {/* E. Filter Dept */}
               <div>
                 <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-                  <FaBuilding style={{ marginRight: '6px', color: '#059669' }} /> 5. กรองภาควิชา (Department)
+                   5. กรองภาควิชา (Department)
                 </label>
                 <DepartmentSelect
                   value={query.selectedDept || 'all'}

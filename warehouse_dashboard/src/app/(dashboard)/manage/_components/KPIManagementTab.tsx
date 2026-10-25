@@ -1317,9 +1317,6 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets }) 
                   <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600 }}>
                     {editingKpi ? 'แก้ไขตัวชี้วัดตามแผนยุทธศาสตร์' : 'เพิ่มตัวชี้วัดตามแผนยุทธศาสตร์'}
                   </h3>
-                  <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#dcfce7' }}>
-                    กำหนดการประเมินผลและการเชื่อมโยงข้อมูลกับคลังข้อมูลโดยตรง
-                  </p>
                 </div>
               </div>
               <button

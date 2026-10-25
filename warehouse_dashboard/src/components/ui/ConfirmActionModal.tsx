@@ -53,7 +53,7 @@ export const ConfirmActionModal: React.FC<ConfirmActionModalProps> = ({
         };
       case 'success':
         return {
-          background: 'linear-gradient(135deg, #00A651 0%, #008f44 100%)',
+          background: 'linear-gradient(135deg, #00A651 0%, #00A651 100%)',
           color: '#ffffff',
           boxShadow: '0 4px 14px rgba(0, 166, 81, 0.35)',
         };

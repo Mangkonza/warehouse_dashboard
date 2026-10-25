@@ -35,33 +35,35 @@ export function RepeatableList<T>({
   className,
   itemContainerClassName,
 }: RepeatableListProps<T>) {
+  const safeItems = Array.isArray(items) ? items : [];
+
   const handleAdd = () => {
-    if (maxItems && items.length >= maxItems) return;
-    onChange([...items, createItem()]);
+    if (maxItems && safeItems.length >= maxItems) return;
+    onChange([...safeItems, createItem()]);
   };
 
   const handleRemove = (index: number) => {
-    if (items.length <= minItems) return;
-    const next = [...items];
+    if (safeItems.length <= minItems) return;
+    const next = [...safeItems];
     next.splice(index, 1);
     onChange(next);
   };
 
   const handleChangeItem = (index: number, updated: T) => {
-    const next = [...items];
+    const next = [...safeItems];
     next[index] = updated;
     onChange(next);
   };
 
   return (
     <div className={cn('flex flex-col gap-2 w-full', className)}>
-      {items.length === 0 ? (
+      {safeItems.length === 0 ? (
         <div className="text-xs text-slate-400 italic py-2 px-3 border border-dashed border-slate-200 rounded-lg text-center bg-slate-50/50">
           {emptyMessage}
         </div>
       ) : (
         <div className="flex flex-col gap-2">
-          {items.map((item, index) => (
+          {safeItems.map((item, index) => (
             <div
               key={index}
               className={cn(

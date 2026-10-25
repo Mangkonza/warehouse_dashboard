@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { CategoryKey, CategoryConfig } from '@/types/dataManagement';
-import { DEPARTMENTS, getDepartmentAbbr } from '@/config/dataManagementConfig';
+import { SDGS_DATA } from '@/config/sdgConfig';
 import { FaFilter, FaTimes, FaUndo, FaCheck } from 'react-icons/fa';
 import { DepartmentSelect } from '@/components/ui';
 import {
@@ -13,6 +13,20 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
+type ImageStatus = 'all' | 'has_image' | 'no_image';
+type Completeness = 'all' | 'complete' | 'incomplete';
+export type EvalFramework = 'all' | 'i_am' | 'i_see';
+
+export interface FilterValues {
+  selectedDept: string;
+  selectedRole: string;
+  selectedImageStatus: ImageStatus;
+  selectedSubFilter: string;
+  selectedCompleteness?: Completeness;
+  selectedSdgs?: string[]; // เลขเป้าหมาย '1'..'17' (หลายค่า)
+  selectedFramework?: EvalFramework; // กรอบประเมิน (1 ค่า)
+}
+
 interface FilterModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -20,19 +34,230 @@ interface FilterModalProps {
   config: CategoryConfig;
   selectedDept: string;
   selectedRole: string;
-  selectedImageStatus: 'all' | 'has_image' | 'no_image';
+  selectedImageStatus: ImageStatus;
   selectedSubFilter: string;
-  selectedCompleteness?: 'all' | 'complete' | 'incomplete';
-  onApply: (filters: {
-    selectedDept: string;
-    selectedRole: string;
-    selectedImageStatus: 'all' | 'has_image' | 'no_image';
-    selectedSubFilter: string;
-    selectedCompleteness?: 'all' | 'complete' | 'incomplete';
-  }) => void;
+  selectedCompleteness?: Completeness;
+  selectedSdgs?: string[];
+  selectedFramework?: EvalFramework;
+  onApply: (filters: FilterValues) => void;
   onReset: () => void;
 }
 
+// ---------------------------------------------------------------------------
+// สี (ให้ตรงกับหน้าฟอร์มประเมิน)
+// ---------------------------------------------------------------------------
+const COLORS = {
+  brand: '#00A651',
+  teal: '#0f766e', // SDGs / ตัวเลือกทั่วไปที่เลือก
+  red: '#991b1b', // กรอบประเมิน (I AM / I SEE)
+  brown: '#7c2d12', // ระดับคุณภาพ / ตัวเลือกย่อย (Q1-Q4)
+  pillBg: '#f1f5f9',
+  pillText: '#334155',
+  border: '#e2e8f0',
+};
+
+// ---------------------------------------------------------------------------
+// ตัวเลือกคงที่ (แก้ค่าที่นี่ที่เดียว)
+// ---------------------------------------------------------------------------
+const EMPTY_SDGS: string[] = [];
+const SDG_NUMBERS = Array.from({ length: 17 }, (_, i) => String(i + 1));
+
+/** แท็บที่มีการประเมิน (SDG + กรอบประเมิน) บุคลากรไม่มี */
+const EVALUATED_CATEGORIES: string[] = ['research', 'academic', 'publications', 'services', 'service', 'ip'];
+
+const FRAMEWORK_OPTIONS: { key: EvalFramework; label: string }[] = [
+  { key: 'all', label: 'ทั้งหมด' },
+  { key: 'i_am', label: 'I AM' },
+  { key: 'i_see', label: 'I SEE' },
+];
+
+const IMAGE_OPTIONS: { key: ImageStatus; label: string }[] = [
+  { key: 'all', label: 'ทั้งหมด' },
+  { key: 'has_image', label: 'มีรูปภาพแล้ว' },
+  { key: 'no_image', label: 'ยังไม่มีรูปภาพ' },
+];
+
+const COMPLETENESS_OPTIONS: { key: Completeness; label: string }[] = [
+  { key: 'all', label: 'ทั้งหมด' },
+  { key: 'incomplete', label: 'ข้อมูลไม่ครบ' },
+  { key: 'complete', label: 'ข้อมูลครบถ้วน' },
+];
+
+const ROLE_OPTIONS = [
+  { value: 'professor', label: 'ศาสตราจารย์ (ศ.)' },
+  { value: 'assoc_prof', label: 'รองศาสตราจารย์ (รศ.)' },
+  { value: 'asst_prof', label: 'ผู้ช่วยศาสตราจารย์ (ผศ.)' },
+  { value: 'lecturer', label: 'อาจารย์ / ดร.' },
+  { value: 'executive', label: 'หัวหน้าภาควิชา / คณะผู้บริหาร' },
+  { value: 'staff', label: 'สายสนับสนุน / พนักงานและเจ้าหน้าที่' },
+];
+
+interface SubFilterDef {
+  title: string;
+  options: { value: string; label: string }[];
+}
+
+const SUB_FILTERS: Partial<Record<string, SubFilterDef>> = {
+  research: {
+    title: 'ประเภทงบประมาณและแหล่งทุน',
+    options: [
+      { value: '', label: 'ทั้งหมด' },
+      { value: 'external', label: 'มีงบภายนอก' },
+      { value: 'internal', label: 'มีงบภายใน' },
+      { value: 'high_budget', label: 'งบรวม > 1 ล้านบาท' },
+    ],
+  },
+  academic: {
+    title: 'ลักษณะโครงการและการบูรณาการ',
+    options: [
+      { value: '', label: 'ทั้งหมด' },
+      { value: 'policy', label: 'สอดคล้องนโยบายชาติ' },
+      { value: 'value_add', label: 'เพิ่มมูลค่า' },
+      { value: 'has_research', label: 'บูรณาการกับวิจัย' },
+      { value: 'has_patent', label: 'บูรณาการกับสิทธิบัตร' },
+      { value: 'has_external_members', label: 'มีผู้ร่วมภายนอก' },
+    ],
+  },
+  publications: {
+    title: 'ระดับคุณภาพวารสาร',
+    options: [
+      { value: '', label: 'ทั้งหมด' },
+      { value: 'q1', label: 'นานาชาติ Q1' },
+      { value: 'q2', label: 'นานาชาติ Q2' },
+      { value: 'inter', label: 'นานาชาติทั้งหมด' },
+      { value: 'tci', label: 'ระดับชาติ / TCI' },
+    ],
+  },
+  ip: {
+    title: 'สถานะและประเภทงานทรัพย์สินทางปัญญา',
+    options: [
+      { value: '', label: 'ทั้งหมด' },
+      { value: 'granted', label: 'ได้รับความคุ้มครองแล้ว' },
+      { value: 'patent', label: 'สิทธิบัตรการประดิษฐ์' },
+      { value: 'petty', label: 'อนุสิทธิบัตร' },
+      { value: 'copyright', label: 'ลิขสิทธิ์' },
+    ],
+  },
+};
+
+// ---------------------------------------------------------------------------
+// ส่วนประกอบย่อย
+// ---------------------------------------------------------------------------
+const labelStyle: React.CSSProperties = {
+  fontSize: '13px',
+  fontWeight: 700,
+  color: '#0f172a',
+};
+
+const Field: React.FC<{ label: string; hint?: React.ReactNode; children: React.ReactNode }> = ({
+  label,
+  hint,
+  children,
+}) => (
+  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', minWidth: 0 }}>
+    <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px' }}>
+      <label style={labelStyle}>{label}</label>
+      {hint && <span style={{ fontSize: '11.5px', color: '#64748b' }}>{hint}</span>}
+    </div>
+    {children}
+  </div>
+);
+
+/** หัวข้อ section: แถบเขียวด้านซ้าย + ชื่อ + เส้นคั่น */
+const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
+  <section style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <span
+        style={{
+          width: '4px',
+          height: '14px',
+          borderRadius: '2px',
+          backgroundColor: COLORS.brand,
+          flexShrink: 0,
+        }}
+      />
+      <span style={{ fontSize: '13px', fontWeight: 700, color: '#334155', whiteSpace: 'nowrap' }}>
+        {title}
+      </span>
+      <span style={{ flex: 1, height: '1px', backgroundColor: COLORS.border }} />
+    </div>
+    {children}
+  </section>
+);
+
+/** ปุ่มทรงแคปซูลพื้นเทาอ่อน เมื่อเลือกจะเป็นสีเข้มตาม activeColor */
+const Pill: React.FC<{
+  selected: boolean;
+  onClick: () => void;
+  activeColor: string;
+  children: React.ReactNode;
+  flex?: boolean;
+}> = ({ selected, onClick, activeColor, children, flex }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    style={{
+      flex: flex ? 1 : undefined,
+      minWidth: flex ? 0 : '64px',
+      height: '36px',
+      padding: '0 18px',
+      borderRadius: '10px',
+      border: `1px solid ${selected ? activeColor : COLORS.border}`,
+      backgroundColor: selected ? activeColor : COLORS.pillBg,
+      color: selected ? '#ffffff' : COLORS.pillText,
+      fontWeight: 700,
+      fontSize: '13px',
+      cursor: 'pointer',
+      whiteSpace: 'nowrap',
+      boxShadow: selected ? '0 2px 6px rgba(0, 0, 0, 0.18)' : 'none',
+      transition: 'background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease',
+    }}
+  >
+    {children}
+  </button>
+);
+
+/** ปุ่มแบ่งเท่า ๆ กัน (เลือกได้ 1 ค่า) */
+function Segmented<T extends string>({
+  options,
+  value,
+  onChange,
+  activeColor = COLORS.teal,
+}: {
+  options: { key: T; label: string }[];
+  value: T;
+  onChange: (v: T) => void;
+  activeColor?: string;
+}) {
+  return (
+    <div style={{ display: 'flex', gap: '8px' }}>
+      {options.map((opt) => (
+        <Pill
+          key={opt.key}
+          flex
+          selected={value === opt.key}
+          activeColor={activeColor}
+          onClick={() => onChange(opt.key)}
+        >
+          {opt.label}
+        </Pill>
+      ))}
+    </div>
+  );
+}
+
+const sdgName = (n: string): string => {
+  const info = (SDGS_DATA as any)?.[Number(n)];
+  return info?.nameTh || `SDG ${n}`;
+};
+const sdgTitle = (n: string): string => {
+  const info = (SDGS_DATA as any)?.[Number(n)];
+  return info ? `${info.code}: ${info.nameTh}` : `SDG ${n}`;
+};
+
+// ---------------------------------------------------------------------------
+// Modal หลัก
+// ---------------------------------------------------------------------------
 export const FilterModal: React.FC<FilterModalProps> = ({
   isOpen,
   onClose,
@@ -43,15 +268,18 @@ export const FilterModal: React.FC<FilterModalProps> = ({
   selectedImageStatus,
   selectedSubFilter,
   selectedCompleteness = 'all',
+  selectedSdgs = EMPTY_SDGS,
+  selectedFramework = 'all',
   onApply,
   onReset,
 }) => {
-  // Local draft state for filters inside the modal
   const [draftDept, setDraftDept] = useState(selectedDept);
   const [draftRole, setDraftRole] = useState(selectedRole);
-  const [draftImageStatus, setDraftImageStatus] = useState(selectedImageStatus);
+  const [draftImageStatus, setDraftImageStatus] = useState<ImageStatus>(selectedImageStatus);
   const [draftSubFilter, setDraftSubFilter] = useState(selectedSubFilter);
-  const [draftCompleteness, setDraftCompleteness] = useState<'all' | 'complete' | 'incomplete'>(selectedCompleteness);
+  const [draftCompleteness, setDraftCompleteness] = useState<Completeness>(selectedCompleteness);
+  const [draftSdgs, setDraftSdgs] = useState<string[]>(selectedSdgs);
+  const [draftFramework, setDraftFramework] = useState<EvalFramework>(selectedFramework);
 
   useEffect(() => {
     if (isOpen) {
@@ -60,18 +288,39 @@ export const FilterModal: React.FC<FilterModalProps> = ({
       setDraftImageStatus(selectedImageStatus);
       setDraftSubFilter(selectedSubFilter);
       setDraftCompleteness(selectedCompleteness);
+      setDraftSdgs(selectedSdgs);
+      setDraftFramework(selectedFramework);
     }
-  }, [isOpen, selectedDept, selectedRole, selectedImageStatus, selectedSubFilter, selectedCompleteness]);
+  }, [
+    isOpen,
+    selectedDept,
+    selectedRole,
+    selectedImageStatus,
+    selectedSubFilter,
+    selectedCompleteness,
+    selectedSdgs,
+    selectedFramework,
+  ]);
 
   if (!isOpen) return null;
+
+  const isPersonnel = activeCategory === 'personnel';
+  const hasEvaluation = EVALUATED_CATEGORIES.includes(activeCategory as string);
+  const subFilterDef = SUB_FILTERS[activeCategory as string];
+
+  const toggleSdg = (n: string) => {
+    setDraftSdgs((prev) => (prev.includes(n) ? prev.filter((x) => x !== n) : [...prev, n]));
+  };
 
   const handleApply = () => {
     onApply({
       selectedDept: draftDept,
-      selectedRole: draftRole,
-      selectedImageStatus: draftImageStatus,
-      selectedSubFilter: draftSubFilter,
-      selectedCompleteness: draftCompleteness,
+      selectedRole: isPersonnel ? draftRole : '',
+      selectedImageStatus: isPersonnel ? draftImageStatus : 'all',
+      selectedSubFilter: subFilterDef ? draftSubFilter : '',
+      selectedCompleteness: isPersonnel ? draftCompleteness : 'all',
+      selectedSdgs: hasEvaluation ? draftSdgs : [],
+      selectedFramework: hasEvaluation ? draftFramework : 'all',
     });
     onClose();
   };
@@ -82,16 +331,20 @@ export const FilterModal: React.FC<FilterModalProps> = ({
     setDraftImageStatus('all');
     setDraftSubFilter('');
     setDraftCompleteness('all');
+    setDraftSdgs([]);
+    setDraftFramework('all');
     onReset();
     onClose();
   };
 
   const activeDraftCount =
     (draftDept ? 1 : 0) +
-    (draftRole ? 1 : 0) +
-    (draftImageStatus !== 'all' ? 1 : 0) +
-    (draftSubFilter ? 1 : 0) +
-    (draftCompleteness !== 'all' ? 1 : 0);
+    (isPersonnel && draftRole ? 1 : 0) +
+    (isPersonnel && draftImageStatus !== 'all' ? 1 : 0) +
+    (isPersonnel && draftCompleteness !== 'all' ? 1 : 0) +
+    (subFilterDef && draftSubFilter ? 1 : 0) +
+    (hasEvaluation && draftSdgs.length > 0 ? 1 : 0) +
+    (hasEvaluation && draftFramework !== 'all' ? 1 : 0);
 
   return (
     <div
@@ -110,28 +363,31 @@ export const FilterModal: React.FC<FilterModalProps> = ({
         if (e.target === e.currentTarget) onClose();
       }}
     >
+      <style>{`@keyframes filterModalIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}`}</style>
       <div
         style={{
           backgroundColor: '#ffffff',
           borderRadius: '16px',
           width: '100%',
-          maxWidth: '520px',
+          maxWidth: '680px',
+          maxHeight: '90vh',
           boxShadow: '0 20px 40px rgba(0, 0, 0, 0.18)',
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
-          animation: 'fadeIn 0.15s ease-out',
+          animation: 'filterModalIn 0.15s ease-out',
         }}
       >
-        {/* Header: ยุบเหลือบรรทัดเดียวตามที่ผู้ใช้ต้องการ */}
+        {/* Header */}
         <div
           style={{
             padding: '14px 20px',
-            backgroundColor: '#00A651',
+            backgroundColor: COLORS.brand,
             color: '#ffffff',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
+            flexShrink: 0,
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
@@ -141,6 +397,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
             </h3>
           </div>
           <button
+            type="button"
             onClick={onClose}
             style={{
               background: 'none',
@@ -156,207 +413,169 @@ export const FilterModal: React.FC<FilterModalProps> = ({
           </button>
         </div>
 
-        {/* Body Content */}
-        <div style={{ padding: '22px 24px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
-          {/* 1. Department Filter */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>
-              ภาควิชา / ศูนย์สังกัด
-            </label>
-            <DepartmentSelect
-              value={draftDept}
-              onChange={(val) => setDraftDept(val === '__all__' ? '' : val)}
-              allowAll
-              allLabel="ทุกภาควิชา / ศูนย์สังกัด"
-              allValue=""
-              className="w-full"
-            />
-          </div>
+        {/* Body (เลื่อนได้) */}
+        <div
+          style={{
+            padding: '22px 24px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '26px',
+            overflowY: 'auto',
+            flex: 1,
+          }}
+        >
+          {/* ---------- ข้อมูลทั่วไป ---------- */}
+          <Section title="ข้อมูลทั่วไป">
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: isPersonnel ? 'repeat(2, minmax(0, 1fr))' : 'minmax(0, 1fr)',
+                gap: '16px',
+              }}
+            >
+              <Field label="ภาควิชา / ศูนย์สังกัด">
+                <DepartmentSelect
+                  value={draftDept}
+                  onChange={(val) => setDraftDept(val === '__all__' ? '' : val)}
+                  allowAll
+                  allLabel="ทุกภาควิชา / ศูนย์สังกัด"
+                  allValue=""
+                  className="w-full"
+                />
+              </Field>
 
-          {/* 2. Personnel Category Filters */}
-          {activeCategory === 'personnel' && (
-            <>
-              {/* Role / Rank */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>
-                  ตำแหน่งทางวิชาการ / สายงาน
-                </label>
-                <Select value={draftRole || '__all__'} onValueChange={(val) => setDraftRole(val === '__all__' ? '' : (val ?? ''))}>
-                  <SelectTrigger className="w-full bg-white text-slate-800">
-                    <SelectValue placeholder="ทุกตำแหน่ง / ทุกสายงาน" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__all__">ทุกตำแหน่ง / ทุกสายงาน</SelectItem>
-                    <SelectItem value="professor">ศาสตราจารย์ (ศ.)</SelectItem>
-                    <SelectItem value="assoc_prof">รองศาสตราจารย์ (รศ.)</SelectItem>
-                    <SelectItem value="asst_prof">ผู้ช่วยศาสตราจารย์ (ผศ.)</SelectItem>
-                    <SelectItem value="lecturer">อาจารย์ / ดร.</SelectItem>
-                    <SelectItem value="executive">หัวหน้าภาควิชา / คณะผู้บริหาร</SelectItem>
-                    <SelectItem value="staff">สายสนับสนุน / พนักงานและเจ้าหน้าที่</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {isPersonnel && (
+                <Field label="ตำแหน่งทางวิชาการ / สายงาน">
+                  <Select
+                    value={draftRole || ''}
+                    onValueChange={(val) => setDraftRole(val === '__all__' ? '' : (val ?? ''))}
+                  >
+                    <SelectTrigger className="w-full bg-white text-slate-800">
+                      <SelectValue placeholder="ทุกตำแหน่ง / ทุกสายงาน" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__all__">ทุกตำแหน่ง / ทุกสายงาน</SelectItem>
+                      {ROLE_OPTIONS.map((r) => (
+                        <SelectItem key={r.value} value={r.value}>
+                          {r.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+              )}
+            </div>
 
-              {/* Profile Image Status */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>
-                  สถานะรูปภาพประจำตัว
-                </label>
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  {[
-                    { key: 'all', label: 'ทั้งหมด' },
-                    { key: 'has_image', label: 'มีรูปภาพแล้ว' },
-                    { key: 'no_image', label: 'ยังไม่มีรูปภาพ' },
-                  ].map((opt) => (
-                    <button
-                      key={opt.key}
-                      type="button"
-                      onClick={() => setDraftImageStatus(opt.key as any)}
-                      style={{
-                        flex: 1,
-                        padding: '8px 10px',
-                        borderRadius: '8px',
-                        border:
-                          draftImageStatus === opt.key
-                            ? '1.5px solid #00A651'
-                            : '1px solid #cbd5e1',
-                        backgroundColor:
-                          draftImageStatus === opt.key ? '#f0fbf5' : '#ffffff',
-                        color: draftImageStatus === opt.key ? '#00A651' : '#475569',
-                        fontWeight: draftImageStatus === opt.key ? 600 : 400,
-                        fontSize: '13px',
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease',
-                      }}
+            {isPersonnel && (
+              <>
+                <Field label="สถานะรูปภาพประจำตัว">
+                  <Segmented options={IMAGE_OPTIONS} value={draftImageStatus} onChange={setDraftImageStatus} />
+                </Field>
+                <Field label="สถานะความครบถ้วนของข้อมูล">
+                  <Segmented options={COMPLETENESS_OPTIONS} value={draftCompleteness} onChange={setDraftCompleteness} />
+                </Field>
+              </>
+            )}
+
+            {subFilterDef && (
+              <Field label={subFilterDef.title}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {subFilterDef.options.map((opt) => (
+                    <Pill
+                      key={opt.value || '__all__'}
+                      selected={draftSubFilter === opt.value}
+                      activeColor={COLORS.brown}
+                      onClick={() => setDraftSubFilter(opt.value)}
                     >
                       {opt.label}
-                    </button>
+                    </Pill>
                   ))}
                 </div>
-              </div>
+              </Field>
+            )}
+          </Section>
 
-              {/* Profile Completeness Status */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>
-                  สถานะความครบถ้วนของข้อมูล
-                </label>
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  {[
-                    { key: 'all', label: 'ทั้งหมด' },
-                    { key: 'incomplete', label: 'ข้อมูลไม่ครบ' },
-                    { key: 'complete', label: 'ข้อมูลครบถ้วน' },
-                  ].map((opt) => (
+          {/* ---------- การประเมิน ---------- */}
+          {hasEvaluation && (
+            <Section title="การประเมิน">
+              <Field
+                label="สอดคล้องตามเป้าหมายการพัฒนาที่ยั่งยืน (SDGs)"
+                hint={
+                  <span style={{ display: 'inline-flex', gap: '10px', alignItems: 'center' }}>
+                    <span>
+                      {draftSdgs.length > 0 ? `เลือกแล้ว ${draftSdgs.length} เป้าหมาย` : 'เลือกได้หลายเป้าหมาย'}
+                    </span>
                     <button
-                      key={opt.key}
                       type="button"
-                      onClick={() => setDraftCompleteness(opt.key as any)}
+                      onClick={() => setDraftSdgs(draftSdgs.length === 17 ? [] : SDG_NUMBERS)}
                       style={{
-                        flex: 1,
-                        padding: '8px 10px',
-                        borderRadius: '8px',
-                        border:
-                          draftCompleteness === opt.key
-                            ? '1.5px solid #00A651'
-                            : '1px solid #cbd5e1',
-                        backgroundColor:
-                          draftCompleteness === opt.key ? '#f0fbf5' : '#ffffff',
-                        color: draftCompleteness === opt.key ? '#00A651' : '#475569',
-                        fontWeight: draftCompleteness === opt.key ? 600 : 400,
-                        fontSize: '13px',
+                        background: 'none',
+                        border: 'none',
+                        padding: 0,
+                        color: COLORS.brand,
+                        fontSize: '11.5px',
+                        fontWeight: 600,
                         cursor: 'pointer',
-                        transition: 'all 0.15s ease',
                       }}
                     >
-                      {opt.label}
+                      {draftSdgs.length === 17 ? 'ล้างทั้งหมด' : 'เลือกทั้งหมด'}
                     </button>
-                  ))}
+                  </span>
+                }
+              >
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '8px' }}>
+                  {SDG_NUMBERS.map((n) => {
+                    const selected = draftSdgs.includes(n);
+                    return (
+                      <button
+                        key={n}
+                        type="button"
+                        title={sdgTitle(n)}
+                        onClick={() => toggleSdg(n)}
+                        style={{
+                          minHeight: '40px',
+                          padding: '0 12px',
+                          borderRadius: '8px',
+                          border: `1px solid ${selected ? COLORS.teal : COLORS.border}`,
+                          backgroundColor: selected ? COLORS.teal : '#ffffff',
+                          color: selected ? '#ffffff' : '#1e293b',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '12px',
+                          textAlign: 'left',
+                          boxShadow: selected ? '0 2px 6px rgba(15, 118, 110, 0.25)' : 'none',
+                          transition: 'background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease',
+                        }}
+                      >
+                        <span style={{ fontSize: '13px', fontWeight: 700, minWidth: '18px' }}>{n}</span>
+                        <span
+                          style={{
+                            fontSize: '13px',
+                            fontWeight: selected ? 600 : 500,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            minWidth: 0,
+                          }}
+                        >
+                          {sdgName(n)}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
-              </div>
-            </>
-          )}
+              </Field>
 
-          {/* 3. Research Category Filter */}
-          {activeCategory === 'research' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>
-                ประเภทงบประมาณและแหล่งทุน
-              </label>
-              <Select value={draftSubFilter || '__all__'} onValueChange={(val) => setDraftSubFilter(val === '__all__' ? '' : (val ?? ''))}>
-                <SelectTrigger className="w-full bg-white text-slate-800">
-                  <SelectValue placeholder="ทุกแหล่งทุนและงบประมาณ" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__all__">ทุกแหล่งทุนและงบประมาณ</SelectItem>
-                  <SelectItem value="external">โครงการที่มีงบประมาณภายนอก</SelectItem>
-                  <SelectItem value="internal">โครงการที่มีงบประมาณภายใน</SelectItem>
-                  <SelectItem value="high_budget">โครงการงบประมาณรวม &gt; 1 ล้านบาท</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          {/* Academic Development Projects Category Filter */}
-          {activeCategory === 'academic' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>
-                ลักษณะโครงการและการบูรณาการ
-              </label>
-              <Select value={draftSubFilter || '__all__'} onValueChange={(val) => setDraftSubFilter(val === '__all__' ? '' : (val ?? ''))}>
-                <SelectTrigger className="w-full bg-white text-slate-800">
-                  <SelectValue placeholder="ทุกลักษณะและการบูรณาการ" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__all__">ทุกลักษณะและการบูรณาการ</SelectItem>
-                  <SelectItem value="policy">สอดคล้องกับนโยบายชาติ</SelectItem>
-                  <SelectItem value="value_add">เพิ่มมูลค่า</SelectItem>
-                  <SelectItem value="has_research">มีการบูรณาการกับโครงการวิจัย</SelectItem>
-                  <SelectItem value="has_patent">มีการบูรณาการกับสิทธิบัตร</SelectItem>
-                  <SelectItem value="has_external_members">มีผู้ร่วมโครงการภายนอก</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          {/* 4. Publications Category Filter */}
-          {activeCategory === 'publications' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>
-                ระดับและฐานข้อมูลวารสาร
-              </label>
-              <Select value={draftSubFilter || '__all__'} onValueChange={(val) => setDraftSubFilter(val === '__all__' ? '' : (val ?? ''))}>
-                <SelectTrigger className="w-full bg-white text-slate-800">
-                  <SelectValue placeholder="ทุกระดับ / ฐานข้อมูล" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__all__">ทุกระดับ / ฐานข้อมูล</SelectItem>
-                  <SelectItem value="q1">เฉพาะนานาชาติ Q1</SelectItem>
-                  <SelectItem value="q2">เฉพาะนานาชาติ Q2</SelectItem>
-                  <SelectItem value="inter">วารสารนานาชาติทั้งหมด</SelectItem>
-                  <SelectItem value="tci">วารสารระดับชาติ / TCI</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          {/* 5. IP Category Filter */}
-          {activeCategory === 'ip' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>
-                สถานะและประเภทงานทรัพย์สินทางปัญญา
-              </label>
-              <Select value={draftSubFilter || '__all__'} onValueChange={(val) => setDraftSubFilter(val === '__all__' ? '' : (val ?? ''))}>
-                <SelectTrigger className="w-full bg-white text-slate-800">
-                  <SelectValue placeholder="ทุกสถานะและประเภท" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__all__">ทุกสถานะและประเภท</SelectItem>
-                  <SelectItem value="granted">ออกให้ / รับจดทะเบียน / ได้รับความคุ้มครองแล้ว</SelectItem>
-                  <SelectItem value="patent">สิทธิบัตรการประดิษฐ์</SelectItem>
-                  <SelectItem value="petty">อนุสิทธิบัตร</SelectItem>
-                  <SelectItem value="copyright">ลิขสิทธิ์</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+              <Field label="กรอบประเมิน" hint="เลือกได้ 1 รายการ">
+                <Segmented
+                  options={FRAMEWORK_OPTIONS}
+                  value={draftFramework}
+                  onChange={setDraftFramework}
+                  activeColor={COLORS.red}
+                />
+              </Field>
+            </Section>
           )}
         </div>
 
@@ -365,10 +584,11 @@ export const FilterModal: React.FC<FilterModalProps> = ({
           style={{
             padding: '16px 24px',
             backgroundColor: '#f8fafc',
-            borderTop: '1px solid #e2e8f0',
+            borderTop: `1px solid ${COLORS.border}`,
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
+            flexShrink: 0,
           }}
         >
           <button
@@ -419,7 +639,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                 padding: '8px 20px',
                 borderRadius: '8px',
                 border: 'none',
-                backgroundColor: '#00A651',
+                backgroundColor: COLORS.brand,
                 color: '#ffffff',
                 fontSize: '13px',
                 fontWeight: 600,

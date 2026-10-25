@@ -12,7 +12,7 @@ export interface CoResearcherItem extends PersonValue {
 }
 
 export interface PersonListFieldProps {
-  items?: CoResearcherItem[];
+  items?: CoResearcherItem[] | string | null;
   onChange: (items: CoResearcherItem[]) => void;
   addLabel?: string;
   emptyMessage?: string;
@@ -32,6 +32,23 @@ export function PersonListField({
   className,
   showContribution = false,
 }: PersonListFieldProps) {
+  const safeItems: CoResearcherItem[] = React.useMemo(() => {
+    if (Array.isArray(items)) return items;
+    if (typeof items === 'string') {
+      const trimmed = items.trim();
+      if (!trimmed) return [];
+      return trimmed.split(',').map((name) => ({
+        name: name.trim(),
+        department: '',
+        person_id: null,
+        is_custom: true,
+        role: 'ผู้ร่วมวิจัย',
+        contributionPercent: null,
+      })).filter((i) => Boolean(i.name));
+    }
+    return [];
+  }, [items]);
+
   const createItem = (): CoResearcherItem => ({
     name: '',
     department: '',
@@ -44,7 +61,7 @@ export function PersonListField({
   return (
     <div className={cn('w-full', className)}>
       <RepeatableList<CoResearcherItem>
-        items={items}
+        items={safeItems}
         onChange={onChange}
         createItem={createItem}
         addLabel={addLabel}

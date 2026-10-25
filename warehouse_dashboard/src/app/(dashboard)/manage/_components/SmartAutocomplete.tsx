@@ -138,15 +138,23 @@ export const SmartAutocomplete: React.FC<SmartAutocompleteProps> = ({
                 }}
               >
                 {p.image_url ? (
-                  <img
-                    src={p.image_url}
-                    alt={p.name}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }}
-                    onError={(e) => {
-                      // Fallback icon
-                      (e.target as HTMLElement).style.display = 'none';
-                    }}
-                  />
+                  <>
+                    <img
+                      src={encodeURI(p.image_url)}
+                      alt={p.name}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }}
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        target.style.display = 'none';
+                        if (target.nextElementSibling) {
+                          (target.nextElementSibling as HTMLElement).style.display = 'flex';
+                        }
+                      }}
+                    />
+                    <span style={{ display: 'none', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
+                      <FaUser style={{ color: '#94a3b8', fontSize: '16px' }} />
+                    </span>
+                  </>
                 ) : (
                   <FaUser style={{ color: '#94a3b8', fontSize: '16px' }} />
                 )}
