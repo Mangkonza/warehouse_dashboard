@@ -307,6 +307,37 @@ export function transformAndValidateRow(
 }
 
 /**
+ * ตรวจสอบว่าเป็นแถวที่ควรข้ามหรือไม่ (แถวว่าง, แถวหัวตารางย่อย, แถวสรุปที่ไม่มีข้อมูลจริง)
+ */
+export function isIgnorableExcelRow(
+  rawRow: Record<string, any>,
+  data: Record<string, any>,
+  categoryKey: CategoryKey
+): boolean {
+  const config = CATEGORIES_CONFIG[categoryKey];
+  const nameVal = data[config.nameKey] || data.name || data.title;
+  const personVal = config.personKey ? data[config.personKey] : null;
+
+  const hasName = Boolean(nameVal && String(nameVal).trim().length >= 2 && nameVal !== '-' && nameVal !== 'nan');
+  const hasPerson = Boolean(personVal && String(personVal).trim().length >= 2 && personVal !== '-' && personVal !== 'nan');
+
+  // ถ้าไม่มีทั้งชื่อรายการ และไม่มีชื่อผู้รับผิดชอบ/อาจารย์
+  if (!hasName && !hasPerson) {
+    return true;
+  }
+
+  // ตรวจสอบกรณีแถวที่มีเฉพาะข้อความหัวตารางย่อย เช่น "ออกให้", "หมดอายุ", "ยอดรวม"
+  const rawValues = Object.values(rawRow).map((v) => String(v).trim()).filter(Boolean);
+  const subheaders = ['ออกให้', 'หมดอายุ', 'ลำดับที่', 'หมายเหตุ', '.', '-', 'รวม', 'ยอดรวม', 'ในประเทศ', 'ต่างประเทศ'];
+  const meaningfulValues = rawValues.filter((v) => !subheaders.includes(v) && v.length >= 2);
+  if (meaningfulValues.length === 0) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
  * อ่านไฟล์ Excel (ArrayBuffer) และประมวลผล Sheet ทั้งหมด
  */
 export function parseExcelFile(
@@ -334,9 +365,17 @@ export function parseExcelFile(
     let validCount = 0;
     let warningCount = 0;
     let errorCount = 0;
+    let displayRowIndex = 1;
 
-    rawRows.forEach((r, idx) => {
-      const parsed = transformAndValidateRow(r, idx + 2, cat);
+    rawRows.forEach((r) => {
+      const parsed = transformAndValidateRow(r, displayRowIndex, cat);
+
+      // กรองแถวว่าง แถวหัวตารางย่อย และแถวขยะออก ไม่นำเข้าสู่ระบบ
+      if (isIgnorableExcelRow(r, parsed.data, cat)) {
+        return;
+      }
+
+      parsed.rowNumber = displayRowIndex++;
       if (parsed.status === 'valid') validCount++;
       else if (parsed.status === 'warning') warningCount++;
       else if (parsed.status === 'error') errorCount++;

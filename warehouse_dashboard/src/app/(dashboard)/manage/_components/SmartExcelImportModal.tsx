@@ -443,104 +443,48 @@ export const SmartExcelImportModal: React.FC<SmartExcelImportModalProps> = ({
             </div>
           ) : (
             <>
-              {/* STEP 2: Alert Notification Banner (แจ้งเตือนข้อมูล) */}
-              {currentSheet && (
+              {/* STEP 2: File Info Bar */}
+              {file && (
                 <div
                   style={{
                     backgroundColor: '#ffffff',
-                    borderRadius: '12px',
-                    border: '1.5px solid #00A651',
-                    boxShadow: '0 2px 8px rgba(0, 166, 81, 0.08)',
-                    padding: '16px 20px',
+                    borderRadius: '10px',
+                    border: '1px solid #e2e8f0',
+                    padding: '10px 16px',
                     display: 'flex',
-                    flexDirection: 'column',
-                    gap: '12px',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
                   }}
                 >
-                  {/* Row 1: File info bar & switch button */}
-                  <div
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <FaFileExcel style={{ color: '#00A651', fontSize: '18px' }} />
+                    <span style={{ fontWeight: 700, fontSize: '13.5px', color: '#0f172a' }}>
+                      {file.name}
+                    </span>
+                    <span style={{ fontSize: '12px', color: '#64748b' }}>
+                      ({(file.size / 1024).toFixed(1)} KB)
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFile(null);
+                      setSheets([]);
+                      setPreviewSearch('');
+                    }}
                     style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      flexWrap: 'wrap',
-                      gap: '10px',
-                      borderBottom: '1px solid #f1f5f9',
-                      paddingBottom: '10px',
+                      padding: '4px 10px',
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                      color: '#475569',
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <FaFileExcel style={{ color: '#00A651', fontSize: '18px' }} />
-                      <span style={{ fontWeight: 700, fontSize: '14px', color: '#0f172a' }}>
-                        {file.name}
-                      </span>
-                      <span style={{ fontSize: '12px', color: '#64748b' }}>
-                        ({(file.size / 1024).toFixed(1)} KB)
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setFile(null);
-                        setSheets([]);
-                        setPreviewSearch('');
-                      }}
-                      style={{
-                        padding: '4px 10px',
-                        backgroundColor: '#ffffff',
-                        border: '1px solid #cbd5e1',
-                        borderRadius: '6px',
-                        fontSize: '12px',
-                        fontWeight: 500,
-                        cursor: 'pointer',
-                        color: '#475569',
-                      }}
-                    >
-                      เปลี่ยนไฟล์
-                    </button>
-                  </div>
-
-                  {/* Row 2: Headline & Summary Message */}
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-                    <div
-                      style={{
-                        width: '24px',
-                        height: '24px',
-                        borderRadius: '50%',
-                        backgroundColor: '#f0fbf5',
-                        color: '#00A651',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                        marginTop: '2px',
-                      }}
-                    >
-                      <FaInfoCircle style={{ fontSize: '13px' }} />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '14px', fontWeight: 700, color: '#1e293b' }}>
-                        ตรวจพบข้อมูลทั้งหมด {currentSheet.totalRows} รายการ ในหมวด &quot;{CATEGORIES_CONFIG[currentSheet.categoryKey].title}&quot;
-                      </div>
-                      <div style={{ fontSize: '12.5px', color: '#475569', marginTop: '3px' }}>
-                        พร้อมนำเข้าเข้าสู่ระบบ <strong>{usableCount} รายการ</strong> (ผ่านสมบูรณ์ {currentSheet.validRows} รายการ, มีข้อควรตรวจทาน {currentSheet.warningRows} รายการ, ข้อผิดพลาด {currentSheet.errorRows} รายการ)
-                      </div>
-                      <div
-                        style={{
-                          fontSize: '12px',
-                          color: '#059669',
-                          fontWeight: 600,
-                          marginTop: '6px',
-                          backgroundColor: '#f0fdf4',
-                          padding: '6px 10px',
-                          borderRadius: '6px',
-                          display: 'inline-block',
-                        }}
-                      >
-                        💡 ท่านสามารถตรวจสอบรายการในตารางด้านล่าง และคลิกปุ่ม <strong>&quot;แก้ไข&quot;</strong> เพื่อปรับปรุงข้อมูล หรือกด <strong>&quot;ลบ&quot;</strong> เพื่อตัดรายการที่ไม่ต้องการออกได้ ก่อนกดยืนยันบันทึก
-                      </div>
-                    </div>
-                  </div>
+                    เปลี่ยนไฟล์
+                  </button>
                 </div>
               )}
 
