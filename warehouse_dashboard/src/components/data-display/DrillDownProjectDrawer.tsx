@@ -369,7 +369,7 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
 
                 return (
                   <div
-                    key={item._id || `${itemName}_${idx}`}
+                    key={`${item._category || cat}_${item._id || item.id || itemName || 'item'}_${idx}`}
                     style={{
                       padding: '13px 16px',
                       borderRadius: '10px',

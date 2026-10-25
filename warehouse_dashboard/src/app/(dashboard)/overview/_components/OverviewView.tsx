@@ -87,7 +87,7 @@ export function OverviewView() {
 
       {/* 3. Middle Row: Burn-up Chart + Early Warning Action List */}
       <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-        {selectedKpi && <BurnupCard selectedKpi={selectedKpi} />}
+        {selectedKpi && <BurnupCard selectedKpi={selectedKpi} onDrillDown={(kpi) => setDrillDownKpi(kpi)} />}
         <ActionListCard actionList={actionList} />
       </div>
 

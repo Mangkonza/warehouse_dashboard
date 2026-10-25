@@ -179,7 +179,22 @@ export function ServiceTable({
                     </span>
                   </td>
                   <td style={{ fontWeight: 400, color: '#334155' }}>
-                    {item.person && item.person !== 'nan' ? item.person : '-'}
+                    {item.person && item.person !== 'nan' ? (
+                      item.person_id ? (
+                        <a
+                          href={`/personnel/${item.person_id}`}
+                          onClick={(e) => e.stopPropagation()}
+                          style={{ color: '#d97706', fontWeight: 600, textDecoration: 'none' }}
+                          title="คลิกเพื่อดูแฟ้มผลงานอาจารย์"
+                        >
+                          {item.person}
+                        </a>
+                      ) : (
+                        item.person
+                      )
+                    ) : (
+                      '-'
+                    )}
                   </td>
                   <td style={{ padding: '8px 10px' }}>
                     <DepartmentBadge value={item.department} />

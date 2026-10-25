@@ -1,15 +1,26 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import Chart from 'chart.js/auto';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
-import { FaChartBar, FaChartLine, FaChartPie } from 'react-icons/fa';
+import { useRouter } from 'next/navigation';
+import {
+  FaChartBar,
+  FaChartLine,
+  FaChartPie,
+  FaAward,
+  FaBuilding,
+  FaUserTie,
+  FaBookOpen,
+  FaLeaf,
+  FaChevronRight,
+} from 'react-icons/fa';
 import { PublicationItem } from '../_hooks/usePublicationsData';
 import { getDepartment, getDepartmentColor } from '@/lib/departments';
-import { JOURNAL_TIER_STYLES } from '@/config/journalRankingConfig';
+import { autoDetectJournalRanking, JOURNAL_TIER_STYLES } from '@/config/journalRankingConfig';
 import { formatTopItemsForTooltip, getClickedChartElement } from '@/lib/chartTooltipHelper';
 import { HybridSdgCard } from '@/components/data-display';
-import { DrillDownProjectDrawer } from '@/components/ui';
+import { DrillDownProjectDrawer, DepartmentBadge } from '@/components/ui';
 
 interface PublicationsChartsProps {
   validData: PublicationItem[];
@@ -17,11 +28,15 @@ interface PublicationsChartsProps {
   onSelectLevel?: (levelKey: string) => void;
 }
 
+export type PubPerspective = 'quartile_timeline' | 'department' | 'faculty' | 'journals' | 'sdg';
+
 export function PublicationsCharts({
   validData,
   onSelectDept,
   onSelectLevel,
 }: PublicationsChartsProps) {
+  const router = useRouter();
+  const [activePerspective, setActivePerspective] = useState<PubPerspective>('quartile_timeline');
   const chartInstances = useRef<Chart[]>([]);
   const [drillDown, setDrillDown] = useState<{
     isOpen: boolean;
@@ -36,6 +51,54 @@ export function PublicationsCharts({
     accentColor: '#2e7d32',
     items: [],
   });
+
+  // Calculate top publishing authors
+  const topAuthorsRanking = useMemo(() => {
+    const map: Record<string, { name: string; person_id?: number | string; dept: string; count: number; q1q2: number; tci: number; budget: number; items: PublicationItem[] }> = {};
+    validData.forEach((item) => {
+      const ownerName = String(item.owner || '').trim();
+      if (!ownerName || ownerName === '-' || ownerName === 'nan') return;
+
+      const pId = item.person_id || item.owner_id;
+      const key = pId ? `id_${pId}` : ownerName;
+      if (!map[key]) {
+        map[key] = {
+          name: ownerName,
+          person_id: pId,
+          dept: item.department || '-',
+          count: 0,
+          q1q2: 0,
+          tci: 0,
+          budget: 0,
+          items: [],
+        };
+      }
+      const tier = autoDetectJournalRanking(item.journal || '', item.level || '');
+      map[key].count++;
+      if (tier === 'Scopus Q1' || tier === 'Scopus Q2') map[key].q1q2++;
+      if (tier === 'TCI 1' || tier === 'TCI 2') map[key].tci++;
+      map[key].budget += Number(item.budget) || 0;
+      map[key].items.push(item);
+    });
+
+    return Object.values(map).sort((a, b) => b.count - a.count || b.q1q2 - a.q1q2);
+  }, [validData]);
+
+  // Calculate top journals
+  const topJournalsRanking = useMemo(() => {
+    const map: Record<string, { journal: string; count: number; tier: string; items: PublicationItem[] }> = {};
+    validData.forEach((item) => {
+      const jName = String(item.journal || '').trim();
+      if (!jName || jName === '-' || jName === 'nan') return;
+      if (!map[jName]) {
+        const tier = autoDetectJournalRanking(jName, item.level || '');
+        map[jName] = { journal: jName, count: 0, tier, items: [] };
+      }
+      map[jName].count++;
+      map[jName].items.push(item);
+    });
+    return Object.values(map).sort((a, b) => b.count - a.count).slice(0, 10);
+  }, [validData]);
 
   useEffect(() => {
     chartInstances.current.forEach((c) => c.destroy());
@@ -63,56 +126,65 @@ export function PublicationsCharts({
       monthBuckets[m] = { q1: 0, q2: 0, tci: 0, other: 0, budget: 0, items: [] };
     });
 
-    const tierGroups: Record<string, PublicationItem[]> = {
-      Q1: [],
-      Q2: [],
-      TCI: [],
-      เตรียมอนุสิทธิบัตร: [],
+    const levelGroups: Record<string, { label: string; count: number; items: PublicationItem[]; color: string }> = {
+      'Scopus Q1': { label: 'Scopus Q1 (นานาชาติ)', count: 0, items: [], color: JOURNAL_TIER_STYLES['Scopus Q1'].text },
+      'Scopus Q2': { label: 'Scopus Q2 (นานาชาติ)', count: 0, items: [], color: JOURNAL_TIER_STYLES['Scopus Q2'].text },
+      'TCI': { label: 'TCI กลุ่ม 1 / กลุ่ม 2 (ระดับชาติ)', count: 0, items: [], color: JOURNAL_TIER_STYLES['TCI 1'].text },
+      'อนุสิทธิบัตร': { label: 'เตรียมความพร้อมจดอนุสิทธิบัตร', count: 0, items: [], color: '#d97706' },
+      'อื่นๆ': { label: 'วารสารอื่นๆ', count: 0, items: [], color: '#64748b' },
     };
 
-    const deptGroups: Record<string, { code: string; name: string; count: number; items: PublicationItem[] }> = {};
+    const deptGroups: Record<string, { code: string; name: string; count: number; q1Count: number; items: PublicationItem[] }> = {};
 
     validData.forEach((item) => {
-      const tier = String(item._detectedTier || '');
-      const typ = String(item.type || '');
-      const budget = Number(item.budget) || 0;
-      const m = String(item.month || '').trim();
+      const budget = typeof item.budget === 'number' ? item.budget : Number(item.budget) || 0;
+      const detectedTier = autoDetectJournalRanking(item.journal || '', item.level || '');
+      const rawMonth = String(item.month || '').trim();
+      const mKey = ALL_MONTHS.find((m) => rawMonth.includes(m)) || null;
 
-      let catKey: 'Q1' | 'Q2' | 'TCI' | 'เตรียมอนุสิทธิบัตร' = 'เตรียมอนุสิทธิบัตร';
-      if (typ.includes('อนุสิทธิบัตร')) {
-        catKey = 'เตรียมอนุสิทธิบัตร';
-      } else if (tier === 'Scopus Q1') {
-        catKey = 'Q1';
-      } else if (tier.startsWith('Scopus')) {
-        catKey = 'Q2';
-      } else if (tier.startsWith('TCI')) {
-        catKey = 'TCI';
+      if (mKey && monthBuckets[mKey]) {
+        monthBuckets[mKey].budget += budget;
+        monthBuckets[mKey].items.push(item);
+        if (detectedTier === 'Scopus Q1') monthBuckets[mKey].q1++;
+        else if (detectedTier === 'Scopus Q2') monthBuckets[mKey].q2++;
+        else if (detectedTier === 'TCI 1' || detectedTier === 'TCI 2') monthBuckets[mKey].tci++;
+        else monthBuckets[mKey].other++;
       }
 
-      tierGroups[catKey].push(item);
-
-      if (monthBuckets[m]) {
-        if (catKey === 'Q1') monthBuckets[m].q1++;
-        else if (catKey === 'Q2') monthBuckets[m].q2++;
-        else if (catKey === 'TCI') monthBuckets[m].tci++;
-        else monthBuckets[m].other++;
-        monthBuckets[m].budget += budget;
-        monthBuckets[m].items.push(item);
+      if (detectedTier === 'Scopus Q1') {
+        levelGroups['Scopus Q1'].count++;
+        levelGroups['Scopus Q1'].items.push(item);
+      } else if (detectedTier === 'Scopus Q2') {
+        levelGroups['Scopus Q2'].count++;
+        levelGroups['Scopus Q2'].items.push(item);
+      } else if (detectedTier === 'TCI 1' || detectedTier === 'TCI 2') {
+        levelGroups['TCI'].count++;
+        levelGroups['TCI'].items.push(item);
+      } else if (item.type === 'เตรียมความพร้อมจดอนุสิทธิบัตร') {
+        levelGroups['อนุสิทธิบัตร'].count++;
+        levelGroups['อนุสิทธิบัตร'].items.push(item);
+      } else {
+        levelGroups['อื่นๆ'].count++;
+        levelGroups['อื่นๆ'].items.push(item);
       }
 
-      const deptInfo = getDepartment(item.department);
-      const deptCode = deptInfo.code !== '-' ? deptInfo.code : 'OTH';
-      if (!deptGroups[deptCode]) {
-        deptGroups[deptCode] = { code: deptCode, name: deptInfo.name, count: 0, items: [] };
+      const d = getDepartment(item.department);
+      const code = d.code !== '-' ? d.code : 'OTH';
+      if (!deptGroups[code]) {
+        deptGroups[code] = { code, name: d.name, count: 0, q1Count: 0, items: [] };
       }
-      deptGroups[deptCode].count += 1;
-      deptGroups[deptCode].items.push(item);
+      deptGroups[code].count++;
+      if (detectedTier === 'Scopus Q1' || detectedTier === 'Scopus Q2') {
+        deptGroups[code].q1Count++;
+      }
+      deptGroups[code].items.push(item);
     });
 
-    const activeMonths = ALL_MONTHS.filter((m) => monthBuckets[m].items.length > 0);
-    const M = activeMonths.length > 0 ? activeMonths : ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.'];
-
-    const sortedDepts = Object.values(deptGroups).sort((a, b) => b.count - a.count);
+    const activeMonths = ALL_MONTHS.filter((m) => {
+      const b = monthBuckets[m];
+      return b.q1 + b.q2 + b.tci + b.other > 0 || b.budget > 0;
+    });
+    const finalMonths = activeMonths.length > 0 ? activeMonths : ALL_MONTHS.slice(0, 6);
 
     const createChart = (id: string, config: any) => {
       const canvas = document.getElementById(id) as HTMLCanvasElement;
@@ -122,302 +194,508 @@ export function PublicationsCharts({
       }
     };
 
-    // 1. Monthly stacked bar (100% live from validData)
-    createChart('c_pub_monthly', {
-      type: 'bar',
-      data: {
-        labels: M,
-        datasets: [
-          { label: 'Scopus Q1', data: M.map((m) => monthBuckets[m]?.q1 || 0), backgroundColor: TIER_COLORS[0], borderRadius: 4 },
-          { label: 'Scopus Q2-Q4', data: M.map((m) => monthBuckets[m]?.q2 || 0), backgroundColor: TIER_COLORS[1], borderRadius: 4 },
-          { label: 'TCI (ชาติ)', data: M.map((m) => monthBuckets[m]?.tci || 0), backgroundColor: TIER_COLORS[2], borderRadius: 4 },
-          { label: 'เตรียมอนุสิทธิบัตร/อื่นๆ', data: M.map((m) => monthBuckets[m]?.other || 0), backgroundColor: TIER_COLORS[3], borderRadius: 4 },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        onClick: (event: any, elements: any[], chart: any) => {
-          const hit = getClickedChartElement(event, elements, chart, 'x');
-          if (hit) {
-            const m = M[hit.index];
-            const bucket = monthBuckets[m];
-            if (bucket && bucket.items.length > 0) {
-              setDrillDown({
-                isOpen: true,
-                title: `ผลงานตีพิมพ์ทางวิชาการประจำเดือน ${m}`,
-                subtitle: `รวม ${bucket.items.length} เรื่อง • เงินสนับสนุนรวม ${bucket.budget.toLocaleString('th-TH')} บาท`,
-                accentColor: C_PUB,
-                items: bucket.items,
-              });
+    if (activePerspective === 'quartile_timeline') {
+      // 1. Stacked Bar Monthly
+      createChart('c_pub_monthly', {
+        type: 'bar',
+        data: {
+          labels: finalMonths,
+          datasets: [
+            {
+              label: 'Scopus Q1',
+              data: finalMonths.map((m) => monthBuckets[m].q1),
+              backgroundColor: TIER_COLORS[0],
+            },
+            {
+              label: 'Scopus Q2',
+              data: finalMonths.map((m) => monthBuckets[m].q2),
+              backgroundColor: TIER_COLORS[1],
+            },
+            {
+              label: 'TCI 1 / 2',
+              data: finalMonths.map((m) => monthBuckets[m].tci),
+              backgroundColor: TIER_COLORS[2],
+            },
+            {
+              label: 'อื่นๆ',
+              data: finalMonths.map((m) => monthBuckets[m].other),
+              backgroundColor: TIER_COLORS[3],
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          onHover: (event: any, chartElement: any[]) => {
+            if (event.native?.target) event.native.target.style.cursor = chartElement.length > 0 ? 'pointer' : 'default';
+          },
+          onClick: (event: any, elements: any[], chart: any) => {
+            const hit = getClickedChartElement(event, elements, chart, 'nearest');
+            if (hit) {
+              const m = finalMonths[hit.index];
+              const b = monthBuckets[m];
+              if (b && b.items.length > 0) {
+                setDrillDown({
+                  isOpen: true,
+                  title: `ผลงานตีพิมพ์ทางวิชาการ: เดือน ${m}`,
+                  subtitle: `รวม ${b.items.length} เรื่อง (Scopus Q1: ${b.q1}, Q2: ${b.q2}, TCI: ${b.tci})`,
+                  accentColor: '#16a34a',
+                  items: b.items,
+                });
+              }
             }
-          }
-        },
-        plugins: {
-          datalabels: {
-            color: '#fff',
-            font: { weight: 'bold', size: 11 },
-            formatter: (v: number) => (v > 0 ? v : ''),
           },
-          legend: { position: 'bottom', labels: { padding: 10, boxWidth: 12 } },
-          tooltip: {
-            callbacks: {
-              afterBody: (items: any) => {
-                const m = items[0]?.label;
-                return m && monthBuckets[m]
-                  ? formatTopItemsForTooltip(monthBuckets[m].items, { maxItems: 3, showBudget: false })
-                  : [];
-              },
+          scales: {
+            x: { stacked: true, grid: { display: false } },
+            y: { stacked: true, beginAtZero: true, ticks: { stepSize: 1 }, title: { display: true, text: 'เรื่อง' } },
+          },
+          plugins: {
+            legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11.5 } } },
+            datalabels: {
+              color: '#fff',
+              font: { weight: 'bold', size: 10 },
+              formatter: (v: number) => (v > 0 ? v : ''),
             },
           },
         },
-        scales: {
-          y: { beginAtZero: true, grace: '20%', stacked: true, title: { display: true, text: 'จำนวนเรื่อง' } },
-          x: { stacked: true, grid: { display: false } },
-        },
-      },
-    });
+      });
 
-    // 2. Monthly grant line (100% live from validData)
-    createChart('c_pub_bud', {
-      type: 'line',
-      data: {
-        labels: M,
-        datasets: [
-          {
-            label: 'เงินสนับสนุน (บาท)',
-            data: M.map((m) => monthBuckets[m]?.budget || 0),
-            borderColor: C_PUB,
-            backgroundColor: 'rgba(46, 125, 50, 0.1)',
-            fill: true,
-            tension: 0.4,
-            pointBackgroundColor: C_PUB,
-            pointRadius: 5,
-            pointHoverRadius: 7,
+      // 2. Monthly Budget
+      createChart('c_pub_bud', {
+        type: 'line',
+        data: {
+          labels: finalMonths,
+          datasets: [
+            {
+              label: 'เงินสนับสนุน (บาท)',
+              data: finalMonths.map((m) => monthBuckets[m].budget),
+              borderColor: C_PUB,
+              backgroundColor: 'rgba(46, 125, 50, 0.12)',
+              borderWidth: 2.5,
+              tension: 0.3,
+              fill: true,
+              pointRadius: 4,
+              pointBackgroundColor: C_PUB,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          onHover: (event: any, chartElement: any[]) => {
+            if (event.native?.target) event.native.target.style.cursor = chartElement.length > 0 ? 'pointer' : 'default';
           },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        onClick: (event: any, elements: any[], chart: any) => {
-          const hit = getClickedChartElement(event, elements, chart, 'x');
-          if (hit) {
-            const m = M[hit.index];
-            const bucket = monthBuckets[m];
-            if (bucket && bucket.items.length > 0) {
-              setDrillDown({
-                isOpen: true,
-                title: `เงินสนับสนุนการตีพิมพ์ประจำเดือน ${m}`,
-                subtitle: `รวม ${bucket.items.length} เรื่อง • เงินสนับสนุนรวม ${bucket.budget.toLocaleString('th-TH')} บาท`,
-                accentColor: C_PUB,
-                items: bucket.items,
-              });
+          onClick: (event: any, elements: any[], chart: any) => {
+            const hit = getClickedChartElement(event, elements, chart, 'nearest');
+            if (hit) {
+              const m = finalMonths[hit.index];
+              const b = monthBuckets[m];
+              if (b && b.items.length > 0) {
+                setDrillDown({
+                  isOpen: true,
+                  title: `ผลงานตีพิมพ์ที่ได้รับเงินสนับสนุน: เดือน ${m}`,
+                  subtitle: `รวม ${b.items.length} เรื่อง • เงินสนับสนุนรวม ${b.budget.toLocaleString('th-TH')} บาท`,
+                  accentColor: '#2e7d32',
+                  items: b.items,
+                });
+              }
             }
-          }
-        },
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: (c: any) => ` เงินสนับสนุนรวม: ${(c.raw || 0).toLocaleString('th-TH')} บาท`,
-              afterBody: (items: any) => {
-                const m = items[0]?.label;
-                return m && monthBuckets[m]
-                  ? formatTopItemsForTooltip(monthBuckets[m].items, { maxItems: 3, showBudget: true })
-                  : [];
-              },
-            },
           },
-          datalabels: {
-            align: 'top',
-            anchor: 'end',
-            color: C_PUB,
-            font: { weight: 'bold' },
-            formatter: (v: any) => (v > 0 ? v.toLocaleString('th-TH') : ''),
+          scales: {
+            y: { beginAtZero: true, title: { display: true, text: 'บาท' } },
+            x: { grid: { display: false } },
           },
-        },
-        scales: { y: { beginAtZero: true, grace: '20%', title: { display: true, text: 'บาท' } } },
-      },
-    });
-
-    // 3. Level doughnut (100% live from validData + Click to filter)
-    const tierKeys: ('Q1' | 'Q2' | 'TCI' | 'เตรียมอนุสิทธิบัตร')[] = ['Q1', 'Q2', 'TCI', 'เตรียมอนุสิทธิบัตร'];
-    const tierLabels = ['Scopus Q1', 'Scopus Q2-Q4', 'TCI (ระดับชาติ)', 'เตรียมอนุสิทธิบัตร/อื่นๆ'];
-    const tierCounts = tierKeys.map((k) => tierGroups[k].length);
-
-    createChart('c_pub_level', {
-      type: 'doughnut',
-      data: {
-        labels: tierLabels,
-        datasets: [
-          {
-            data: tierCounts,
-            backgroundColor: TIER_COLORS,
-            borderWidth: 2,
-            borderColor: '#ffffff',
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        onClick: (event: any, elements: any[], chart: any) => {
-          const hit = getClickedChartElement(event, elements, chart, 'nearest');
-          if (hit) {
-            const idx = hit.index;
-            const filterMap = ['Q1', 'Q2', 'TCI', 'อนุสิทธิบัตร'];
-            if (onSelectLevel) onSelectLevel(filterMap[idx] || 'all');
-            const key = tierKeys[idx];
-            const items = key ? tierGroups[key] : [];
-            setDrillDown({
-              isOpen: true,
-              title: `ผลงานตีพิมพ์ระดับ ${tierLabels[idx] || ''}`,
-              subtitle: `รวม ${items.length} เรื่อง`,
-              accentColor: TIER_COLORS[idx] || C_PUB,
-              items,
-            });
-          }
-        },
-        plugins: {
-          datalabels: {
-            color: '#fff',
-            font: { weight: 'bold', size: 11 },
-            formatter: (v: number, ctx: any) => {
-              if (!v) return '';
-              const sum = ctx.dataset.data.reduce((a: number, b: number) => a + b, 0);
-              const pct = ((v * 100) / (sum || 1)).toFixed(0);
-              return `${v} (${pct}%)`;
-            },
-          },
-          legend: { position: 'bottom', labels: { padding: 8, boxWidth: 12 } },
-          tooltip: {
-            callbacks: {
-              afterBody: (items: any) => {
-                const idx = items[0]?.dataIndex;
-                const key = tierKeys[idx];
-                return key ? formatTopItemsForTooltip(tierGroups[key], { maxItems: 3, showBudget: false }) : [];
-              },
+          plugins: {
+            legend: { display: false },
+            datalabels: {
+              anchor: 'end',
+              align: 'top',
+              color: '#0f172a',
+              font: { weight: 'bold', size: 11 },
+              formatter: (v: number) => (v > 0 ? `${v.toLocaleString('th-TH')} ฿` : ''),
             },
           },
         },
-      },
-    });
+      });
 
-    // 4. Dept bar (100% live from validData + Click to filter)
-    createChart('c_pub_dept', {
-      type: 'bar',
-      data: {
-        labels: sortedDepts.map((d) => d.code),
-        datasets: [
-          {
-            label: 'จำนวนผลงานตีพิมพ์',
-            data: sortedDepts.map((d) => d.count),
-            backgroundColor: sortedDepts.map((d) => getDepartmentColor(d.code)),
-            borderRadius: 8,
+      // 3. Level Doughnut
+      const activeLevels = Object.values(levelGroups).filter((g) => g.count > 0);
+      createChart('c_pub_level', {
+        type: 'doughnut',
+        data: {
+          labels: activeLevels.map((g) => g.label),
+          datasets: [
+            {
+              data: activeLevels.map((g) => g.count),
+              backgroundColor: activeLevels.map((g) => g.color),
+              borderWidth: 2,
+              borderColor: '#ffffff',
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          onHover: (event: any, chartElement: any[]) => {
+            if (event.native?.target) event.native.target.style.cursor = chartElement.length > 0 ? 'pointer' : 'default';
           },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        onClick: (event: any, elements: any[], chart: any) => {
-          const hit = getClickedChartElement(event, elements, chart, 'x');
-          if (hit) {
-            const d = sortedDepts[hit.index];
-            if (d) {
-              if (onSelectDept) onSelectDept(d.code);
-              setDrillDown({
-                isOpen: true,
-                title: `ผลงานตีพิมพ์ทางวิชาการ: ภาควิชา${d.name} (${d.code})`,
-                subtitle: `รวม ${d.count} เรื่อง`,
-                accentColor: getDepartmentColor(d.code),
-                items: d.items,
-              });
+          onClick: (event: any, elements: any[], chart: any) => {
+            const hit = getClickedChartElement(event, elements, chart, 'nearest');
+            if (hit) {
+              const grp = activeLevels[hit.index];
+              if (grp) {
+                setDrillDown({
+                  isOpen: true,
+                  title: `ผลงานตีพิมพ์: ระดับ ${grp.label}`,
+                  subtitle: `รวมทั้งสิ้น ${grp.count} เรื่อง`,
+                  accentColor: grp.color,
+                  items: grp.items,
+                });
+              }
             }
-          }
-        },
-        plugins: {
-          legend: { display: false },
-          datalabels: {
-            anchor: 'end',
-            align: 'top',
-            color: '#1e293b',
-            font: { weight: 'bold' },
           },
-          tooltip: {
-            callbacks: {
-              title: (items: any) => {
-                const idx = items[0]?.dataIndex;
-                const d = sortedDepts[idx];
-                return d ? `${d.name} (${d.code})` : items[0]?.label;
-              },
-              label: (c: any) => ` จำนวนผลงาน: ${c.raw} เรื่อง`,
-              afterBody: (items: any) => {
-                const idx = items[0]?.dataIndex;
-                const d = sortedDepts[idx];
-                return d ? formatTopItemsForTooltip(d.items, { maxItems: 3, showBudget: false }) : [];
-              },
+          plugins: {
+            legend: { position: 'right', labels: { boxWidth: 12, font: { size: 11.5 } } },
+            datalabels: {
+              color: '#fff',
+              font: { weight: 'bold', size: 11 },
+              formatter: (v: number) => (v > 0 ? `${v} เรื่อง` : ''),
             },
           },
         },
-        scales: {
-          y: { beginAtZero: true, grace: '20%', title: { display: true, text: 'จำนวนเรื่อง' } },
-          x: { grid: { display: false } },
+      });
+    }
+
+    if (activePerspective === 'department') {
+      const sortedDepts = Object.values(deptGroups).sort((a, b) => b.count - a.count);
+      createChart('c_pub_dept', {
+        type: 'bar',
+        data: {
+          labels: sortedDepts.map((d) => d.code),
+          datasets: [
+            {
+              label: 'ผลงานตีพิมพ์ทั้งหมด',
+              data: sortedDepts.map((d) => d.count),
+              backgroundColor: sortedDepts.map((d) => getDepartmentColor(d.code)),
+              borderRadius: 6,
+            },
+          ],
         },
-      },
-    });
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          onHover: (event: any, chartElement: any[]) => {
+            if (event.native?.target) event.native.target.style.cursor = chartElement.length > 0 ? 'pointer' : 'default';
+          },
+          onClick: (event: any, elements: any[], chart: any) => {
+            const hit = getClickedChartElement(event, elements, chart, 'nearest');
+            if (hit) {
+              const d = sortedDepts[hit.index];
+              if (d) {
+                if (onSelectDept) onSelectDept(d.code);
+                setDrillDown({
+                  isOpen: true,
+                  title: `ผลงานตีพิมพ์: ภาควิชา ${d.name} (${d.code})`,
+                  subtitle: `รวม ${d.count} เรื่อง • Scopus Q1/Q2: ${d.q1Count} เรื่อง`,
+                  accentColor: getDepartmentColor(d.code),
+                  items: d.items,
+                });
+              }
+            }
+          },
+          plugins: {
+            legend: { display: false },
+            datalabels: {
+              anchor: 'end',
+              align: 'top',
+              color: '#0f172a',
+              font: { weight: 'bold', size: 11 },
+              formatter: (v: number) => `${v} เรื่อง`,
+            },
+          },
+          scales: {
+            y: { beginAtZero: true, title: { display: true, text: 'เรื่อง' } },
+            x: { grid: { display: false } },
+          },
+        },
+      });
+    }
 
     return () => {
       chartInstances.current.forEach((c) => c.destroy());
     };
-  }, [validData, onSelectDept, onSelectLevel]);
+  }, [validData, activePerspective]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '16px' }}>
-      <div className="chart-grid">
-        <div className="chart-card">
-          <h3>
-            <FaChartBar style={{ color: '#2e7d32' }} /> จำนวนผลงานตีพิมพ์ทางวิชาการรายเดือน (แยกระดับคุณภาพ)
-          </h3>
-          <div className="chart-wrapper" style={{ cursor: 'pointer' }}>
-            <canvas id="c_pub_monthly" />
-          </div>
-        </div>
-        <div className="chart-card">
-          <h3>
-            <FaChartLine style={{ color: '#2e7d32' }} /> เงินสนับสนุนการตีพิมพ์รายเดือน (บาท)
-          </h3>
-          <div className="chart-wrapper" style={{ cursor: 'pointer' }}>
-            <canvas id="c_pub_bud" />
-          </div>
-        </div>
+      {/* Perspective Dimension Selector */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          backgroundColor: '#ffffff',
+          padding: '8px 12px',
+          borderRadius: '10px',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+          flexWrap: 'wrap',
+        }}
+      >
+        <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#334155', marginRight: '6px' }}>
+          มิติการวิเคราะห์:
+        </span>
+        {[
+          { id: 'quartile_timeline', label: 'คุณภาพวารสาร & แนวโน้มรายเดือน', icon: <FaAward /> },
+          { id: 'department', label: 'การผลิตผลงานรายภาควิชา', icon: <FaBuilding /> },
+          { id: 'faculty', label: 'อาจารย์และนักวิจัยตีพิมพ์สูงสุด', icon: <FaUserTie /> },
+          { id: 'journals', label: 'วารสารและแหล่งตีพิมพ์ยอดนิยม', icon: <FaBookOpen /> },
+          { id: 'sdg', label: 'เป้าหมายการพัฒนาที่ยั่งยืน (SDG)', icon: <FaLeaf /> },
+        ].map((tab) => {
+          const isSel = activePerspective === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActivePerspective(tab.id as PubPerspective)}
+              style={{
+                padding: '6px 14px',
+                borderRadius: '8px',
+                border: isSel ? '1.5px solid #16a34a' : '1px solid #cbd5e1',
+                backgroundColor: isSel ? '#16a34a' : '#ffffff',
+                color: isSel ? '#ffffff' : '#475569',
+                fontSize: '12.5px',
+                fontWeight: isSel ? 700 : 500,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <span style={{ fontSize: '11.5px' }}>{tab.icon}</span>
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
       </div>
 
-      <div className="chart-grid">
-        <div className="chart-card">
-          <h3>
-            <FaChartPie style={{ color: '#2e7d32' }} /> สัดส่วนผลงานตามระดับฐานข้อมูลวารสาร
-          </h3>
-          <div className="chart-wrapper" style={{ cursor: 'pointer' }}>
-            <canvas id="c_pub_level" />
+      {/* DIMENSION 1: Quartile & Timeline */}
+      {activePerspective === 'quartile_timeline' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div className="chart-grid">
+            <div className="chart-card">
+              <h3>
+                <FaChartBar style={{ color: '#2e7d32' }} /> จำนวนผลงานตีพิมพ์ทางวิชาการรายเดือน (แยกระดับคุณภาพ)
+              </h3>
+              <div className="chart-wrapper">
+                <canvas id="c_pub_monthly" />
+              </div>
+            </div>
+            <div className="chart-card">
+              <h3>
+                <FaChartLine style={{ color: '#2e7d32' }} /> เงินสนับสนุนการตีพิมพ์รายเดือน (บาท)
+              </h3>
+              <div className="chart-wrapper">
+                <canvas id="c_pub_bud" />
+              </div>
+            </div>
+          </div>
+
+          <div className="chart-card">
+            <h3>
+              <FaChartPie style={{ color: '#2e7d32' }} /> สัดส่วนผลงานตามระดับฐานข้อมูลวารสาร
+            </h3>
+            <div className="chart-wrapper">
+              <canvas id="c_pub_level" />
+            </div>
           </div>
         </div>
-        <div className="chart-card">
-          <h3>
-            <FaChartBar style={{ color: '#2e7d32' }} /> จำนวนผลงานตีพิมพ์ตามภาควิชา
-          </h3>
-          <div className="chart-wrapper" style={{ cursor: 'pointer' }}>
+      )}
+
+      {/* DIMENSION 2: Department */}
+      {activePerspective === 'department' && (
+        <div
+          style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '12px',
+            border: '1px solid #e2e8f0',
+            padding: '20px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+          }}
+        >
+          <div style={{ marginBottom: '14px' }}>
+            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
+              จำนวนผลงานตีพิมพ์จำแนกตามภาควิชา
+            </h3>
+          </div>
+          <div style={{ height: '320px' }}>
             <canvas id="c_pub_dept" />
           </div>
         </div>
-      </div>
+      )}
 
-      <HybridSdgCard
-        items={validData}
-        categoryKey="publications"
-        title="เป้าหมายการพัฒนาที่ยั่งยืน (UN SDGs)"
-      />
+      {/* DIMENSION 3: Top Publishing Authors */}
+      {activePerspective === 'faculty' && (
+        <div
+          style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '12px',
+            border: '1px solid #e2e8f0',
+            padding: '20px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+          }}
+        >
+          <div style={{ marginBottom: '14px' }}>
+            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
+              จัดอันดับอาจารย์และนักวิจัยที่มีผลงานตีพิมพ์สูงสุด (Top Publishing Authors)
+            </h3>
+            <p style={{ margin: '3px 0 0 0', fontSize: '12.5px', color: '#64748b' }}>
+              เรียงลำดับตามจำนวนผลงานและสัดส่วนวารสารชั้นนำ Scopus Q1/Q2
+            </p>
+          </div>
+
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+              <thead>
+                <tr style={{ backgroundColor: '#f8fafc', color: '#475569', borderBottom: '2px solid #e2e8f0' }}>
+                  <th style={{ padding: '10px 10px', textAlign: 'center', width: '50px' }}>อันดับ</th>
+                  <th style={{ padding: '10px 12px', textAlign: 'left' }}>อาจารย์ / นักวิจัย</th>
+                  <th style={{ padding: '10px 12px', textAlign: 'left' }}>ภาควิชา</th>
+                  <th style={{ padding: '10px 12px', textAlign: 'center' }}>ผลงานทั้งหมด</th>
+                  <th style={{ padding: '10px 12px', textAlign: 'center' }}>Scopus Q1/Q2</th>
+                  <th style={{ padding: '10px 12px', textAlign: 'center' }}>TCI กลุ่ม 1/2</th>
+                  <th style={{ padding: '10px 12px', textAlign: 'right' }}>เงินสนับสนุนรวม</th>
+                  <th style={{ padding: '10px 14px', textAlign: 'center', width: '120px' }}>แฟ้มผลงาน</th>
+                </tr>
+              </thead>
+              <tbody>
+                {topAuthorsRanking.map((a, idx) => (
+                  <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '10px 10px', textAlign: 'center', fontWeight: 700, color: idx < 3 ? '#b45309' : '#64748b' }}>
+                      {idx + 1}
+                    </td>
+                    <td style={{ padding: '10px 12px', fontWeight: 700, color: '#0f172a' }}>
+                      {a.name}
+                    </td>
+                    <td style={{ padding: '10px 12px' }}>
+                      <DepartmentBadge value={a.dept} />
+                    </td>
+                    <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 700 }}>
+                      <span style={{ padding: '2px 8px', borderRadius: '6px', backgroundColor: '#f0fdf4', color: '#16a34a' }}>
+                        {a.count} เรื่อง
+                      </span>
+                    </td>
+                    <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 700, color: '#00A651' }}>
+                      {a.q1q2 > 0 ? `${a.q1q2} เรื่อง` : '-'}
+                    </td>
+                    <td style={{ padding: '10px 12px', textAlign: 'center', color: '#0284c7', fontWeight: 600 }}>
+                      {a.tci > 0 ? `${a.tci} เรื่อง` : '-'}
+                    </td>
+                    <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 600, color: '#047857' }}>
+                      {a.budget > 0 ? `${a.budget.toLocaleString('th-TH')} ฿` : '-'}
+                    </td>
+                    <td style={{ padding: '10px 14px', textAlign: 'center' }}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (a.person_id) router.push(`/personnel/${a.person_id}`);
+                          else router.push(`/personnel?q=${encodeURIComponent(a.name)}`);
+                        }}
+                        style={{
+                          padding: '5px 10px',
+                          borderRadius: '6px',
+                          border: '1px solid #cbd5e1',
+                          backgroundColor: '#ffffff',
+                          color: '#16a34a',
+                          fontSize: '11.5px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                      >
+                        <span>ดูผลงาน</span>
+                        <FaChevronRight style={{ fontSize: '9px' }} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* DIMENSION 4: Top Journals */}
+      {activePerspective === 'journals' && (
+        <div
+          style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '12px',
+            border: '1px solid #e2e8f0',
+            padding: '20px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+          }}
+        >
+          <div style={{ marginBottom: '14px' }}>
+            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
+              10 อันดับวารสารและแหล่งตีพิมพ์ที่มีผลงานเผยแพร่สูงสุด
+            </h3>
+          </div>
+
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+              <thead>
+                <tr style={{ backgroundColor: '#f8fafc', color: '#475569', borderBottom: '2px solid #e2e8f0' }}>
+                  <th style={{ padding: '10px 10px', textAlign: 'center', width: '50px' }}>อันดับ</th>
+                  <th style={{ padding: '10px 12px', textAlign: 'left' }}>ชื่อวารสาร / แหล่งตีพิมพ์</th>
+                  <th style={{ padding: '10px 12px', textAlign: 'center', width: '140px' }}>ระดับคุณภาพ (Tier)</th>
+                  <th style={{ padding: '10px 12px', textAlign: 'center', width: '110px' }}>จำนวนผลงาน</th>
+                </tr>
+              </thead>
+              <tbody>
+                {topJournalsRanking.map((j, idx) => (
+                  <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '10px 10px', textAlign: 'center', fontWeight: 700, color: idx < 3 ? '#b45309' : '#64748b' }}>
+                      {idx + 1}
+                    </td>
+                    <td style={{ padding: '10px 12px', fontWeight: 600, color: '#0f172a' }}>
+                      {j.journal}
+                    </td>
+                    <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                      <span
+                        style={{
+                          backgroundColor: JOURNAL_TIER_STYLES[j.tier]?.bg || '#f1f5f9',
+                          color: JOURNAL_TIER_STYLES[j.tier]?.text || '#475569',
+                          padding: '2px 8px',
+                          borderRadius: '6px',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                        }}
+                      >
+                        {j.tier}
+                      </span>
+                    </td>
+                    <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 700, color: '#16a34a' }}>
+                      {j.count} เรื่อง
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* DIMENSION 5: UN SDGs */}
+      {activePerspective === 'sdg' && (
+        <HybridSdgCard
+          items={validData}
+          categoryKey="publications"
+          title="เป้าหมายการพัฒนาที่ยั่งยืน (UN SDGs)"
+        />
+      )}
 
       <DrillDownProjectDrawer
         isOpen={drillDown.isOpen}

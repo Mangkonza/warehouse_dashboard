@@ -179,7 +179,22 @@ export function IPTable({
                       {item.title || item.name}
                     </td>
                     <td style={{ fontWeight: 400, color: '#334155' }}>
-                      {item.creator && item.creator !== 'nan' ? item.creator : '-'}
+                      {item.creator && item.creator !== 'nan' ? (
+                        item.person_id ? (
+                          <a
+                            href={`/personnel/${item.person_id}`}
+                            onClick={(e) => e.stopPropagation()}
+                            style={{ color: '#7c3aed', fontWeight: 600, textDecoration: 'none' }}
+                            title="คลิกเพื่อดูแฟ้มผลงานอาจารย์"
+                          >
+                            {item.creator}
+                          </a>
+                        ) : (
+                          item.creator
+                        )
+                      ) : (
+                        '-'
+                      )}
                     </td>
                     <td style={{ padding: '8px 10px' }}>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>

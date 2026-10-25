@@ -20,6 +20,7 @@ import {
   FaClipboardCheck,
   FaUserCog,
   FaUser,
+  FaUserTie,
 } from 'react-icons/fa';
 
 function SessionTimer({ isExpanded }: { isExpanded: boolean }) {
@@ -133,6 +134,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   const menuItems: SidebarMenuItem[] = [
     { id: 'overview', label: 'แดชบอร์ด ภาพรวม', path: '/overview', icon: <FaThLarge />, group: 'มุมมองบริหารและยุทธศาสตร์' },
+    { id: 'personnel', label: 'วิเคราะห์บุคลากรและอาจารย์', path: '/personnel', icon: <FaUserTie />, group: 'มุมมองบริหารและยุทธศาสตร์' },
     { id: 'kpi', label: 'ตัวชี้วัดตามแผนยุทธศาสตร์', path: '/kpi', icon: <FaBullseye />, group: 'มุมมองบริหารและยุทธศาสตร์' },
     { id: 'monitoring', label: 'ติดตามสถานะโครงการ', path: '/monitoring', icon: <FaClock />, group: 'มุมมองบริหารและยุทธศาสตร์' },
     { id: 'evaluation', label: 'การประเมิน', path: '/evaluation', icon: <FaClipboardCheck />, group: 'มุมมองบริหารและยุทธศาสตร์' },

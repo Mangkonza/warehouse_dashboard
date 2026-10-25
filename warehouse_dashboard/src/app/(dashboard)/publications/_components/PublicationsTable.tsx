@@ -277,7 +277,22 @@ export function PublicationsTable({
                           บาท
                         </td>
                         <td style={{ fontWeight: 400, color: '#334155' }}>
-                          {item.owner && item.owner !== 'nan' ? item.owner : '-'}
+                          {item.owner && item.owner !== 'nan' ? (
+                            item.person_id || item.owner_id ? (
+                              <a
+                                href={`/personnel/${item.person_id || item.owner_id}`}
+                                onClick={(e) => e.stopPropagation()}
+                                style={{ color: '#16a34a', fontWeight: 600, textDecoration: 'none' }}
+                                title="คลิกเพื่อดูแฟ้มผลงานอาจารย์"
+                              >
+                                {item.owner}
+                              </a>
+                            ) : (
+                              item.owner
+                            )
+                          ) : (
+                            '-'
+                          )}
                         </td>
                         <td>
                           {hasCoAuthors ? (

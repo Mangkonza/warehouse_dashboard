@@ -335,7 +335,7 @@ export const HybridSdgCard: React.FC<HybridSdgCardProps> = ({
                         }}
                       >
                         <div style={{ fontWeight: 600, color: '#1e293b', marginBottom: '4px' }}>
-                          ตัวอย่างรายการใน {entry.sdg.code} (คลิกเพื่อดูครบทั้ง {entry.count} {unitLabel}):
+                          ตัวอย่างรายการใน {entry.sdg.code} (ทั้งหมด {entry.count} {unitLabel}):
                         </div>
                         {top3.map((it, idx) => {
                           const itemName = String(it.name || it.title || it.topic_title || '-').replace(/[\r\n]+/g, ' ').trim();

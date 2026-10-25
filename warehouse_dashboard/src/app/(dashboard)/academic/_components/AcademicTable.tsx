@@ -136,7 +136,22 @@ export function AcademicTable({
                   {item.name}
                 </td>
                 <td style={{ color: '#334155', fontWeight: 400 }}>
-                  {item.head && item.head !== 'nan' ? item.head.replace('\n', ' ') : '-'}
+                  {item.head && item.head !== 'nan' ? (
+                    item.head_id ? (
+                      <a
+                        href={`/personnel/${item.head_id}`}
+                        onClick={(e) => e.stopPropagation()}
+                        style={{ color: '#0284c7', fontWeight: 600, textDecoration: 'none' }}
+                        title="คลิกเพื่อดูแฟ้มผลงานอาจารย์"
+                      >
+                        {item.head.replace('\n', ' ')}
+                      </a>
+                    ) : (
+                      item.head.replace('\n', ' ')
+                    )
+                  ) : (
+                    '-'
+                  )}
                 </td>
                 <td className="budget-cell">
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>

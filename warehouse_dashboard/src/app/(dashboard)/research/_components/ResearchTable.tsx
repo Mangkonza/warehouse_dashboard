@@ -153,7 +153,22 @@ export function ResearchTable({
                     {item.name}
                   </td>
                   <td style={{ fontWeight: 400, color: '#334155' }}>
-                    {item.head && item.head !== 'nan' ? item.head : '-'}
+                    {item.head && item.head !== 'nan' ? (
+                      item.head_id ? (
+                        <a
+                          href={`/personnel/${item.head_id}`}
+                          onClick={(e) => e.stopPropagation()}
+                          style={{ color: '#00A651', fontWeight: 600, textDecoration: 'none' }}
+                          title="คลิกเพื่อดูแฟ้มผลงานอาจารย์"
+                        >
+                          {item.head}
+                        </a>
+                      ) : (
+                        item.head
+                      )
+                    ) : (
+                      '-'
+                    )}
                   </td>
                   <td style={{ width: '100px', textAlign: 'left', padding: '8px 10px' }}>
                     <DepartmentBadge value={item.department} />

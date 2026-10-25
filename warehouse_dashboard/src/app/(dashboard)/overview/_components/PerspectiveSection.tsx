@@ -276,7 +276,7 @@ export const PerspectiveSection: React.FC<PerspectiveSectionProps> = ({
                       const key = tierKeys[dsIdx] || 'Q1';
                       return formatTopItemsForTooltip(pubByTier[key] || [], { maxItems: 3, showBudget: false });
                     }
-                    return ['💡 คลิกที่แท่งกราฟเพื่อดูรายชื่อบทความในระดับควอร์ไทล์นี้'];
+                    return [];
                   },
                 },
               },
