@@ -167,6 +167,11 @@ export function ResearchCharts({
       }
     };
 
+    const grandTotalResearchBudget = validData.reduce(
+      (s, i) => s + (Number(i.budget_internal) || 0) + (Number(i.budget_external) || 0) || Number(i.budget) || 0,
+      0
+    );
+
     if (activePerspective === 'overview') {
       // 1. Dept budget & project count
       const deptLabels = deptComparativeMetrics.map((d) => d.code);
@@ -196,10 +201,11 @@ export function ResearchCharts({
               const d = deptComparativeMetrics[hit.index];
               if (d) {
                 if (onSelectDept) onSelectDept(d.code);
+                const pct = grandTotalResearchBudget > 0 ? ((d.totalBudget / grandTotalResearchBudget) * 100).toFixed(1) : '0';
                 setDrillDown({
                   isOpen: true,
                   title: `โครงการวิจัย: ภาควิชา${d.name} (${d.code})`,
-                  subtitle: `รวม ${d.count} โครงการ • งบประมาณรวม ${d.totalBudget.toLocaleString('th-TH')} บาท`,
+                  subtitle: `สัดส่วน ${pct}% ของงบวิจัยทั้งหมด • รวม ${d.count} โครงการ • งบประมาณรวม ${d.totalBudget.toLocaleString('th-TH')} บาท`,
                   accentColor: getDepartmentColor(d.code),
                   items: d.items,
                 });
@@ -265,10 +271,11 @@ export function ResearchCharts({
             if (hit) {
               const f = sortedFunds[hit.index];
               if (f) {
+                const pct = grandTotalResearchBudget > 0 ? ((f.budget / grandTotalResearchBudget) * 100).toFixed(1) : '0';
                 setDrillDown({
                   isOpen: true,
                   title: `โครงการวิจัยจากแหล่งทุน: ${f.name}`,
-                  subtitle: `รวม ${f.count} โครงการ • งบประมาณรวม ${f.budget.toLocaleString('th-TH')} บาท`,
+                  subtitle: `สัดส่วน ${pct}% ของงบวิจัยทั้งหมด • รวม ${f.count} โครงการ • งบประมาณรวม ${f.budget.toLocaleString('th-TH')} บาท`,
                   accentColor: UI_PALETTE[hit.index % UI_PALETTE.length],
                   items: f.items,
                 });
@@ -317,10 +324,11 @@ export function ResearchCharts({
             if (hit) {
               const tier = budgetScaleData[hit.index];
               if (tier) {
+                const pct = grandTotalResearchBudget > 0 ? ((tier.total / grandTotalResearchBudget) * 100).toFixed(1) : '0';
                 setDrillDown({
                   isOpen: true,
                   title: `โครงการวิจัย: ขนาดงบประมาณ ${tier.label}`,
-                  subtitle: `รวม ${tier.count} โครงการ • งบประมาณรวม ${tier.total.toLocaleString('th-TH')} บาท`,
+                  subtitle: `สัดส่วน ${pct}% ของงบวิจัยทั้งหมด • รวม ${tier.count} โครงการ • งบประมาณรวม ${tier.total.toLocaleString('th-TH')} บาท`,
                   accentColor: '#0284c7',
                   items: tier.items,
                 });
@@ -376,10 +384,13 @@ export function ResearchCharts({
               const items = validData.filter((i) =>
                 isExt ? (Number(i.budget_external) || 0) > 0 : (Number(i.budget_internal) || 0) > 0
               );
+              const totalExtInt = totalExt + totalInt || 1;
+              const selBudget = isExt ? totalExt : totalInt;
+              const pct = ((selBudget / totalExtInt) * 100).toFixed(1);
               setDrillDown({
                 isOpen: true,
                 title: isExt ? 'โครงการวิจัยที่ได้รับงบทุนภายนอก' : 'โครงการวิจัยที่ได้รับงบทุนภายใน',
-                subtitle: `รวม ${items.length} โครงการ • งบประมาณ ${(isExt ? totalExt : totalInt).toLocaleString('th-TH')} บาท`,
+                subtitle: `สัดส่วน ${pct}% ของงบประมาณรวม • รวม ${items.length} โครงการ • งบประมาณ ${selBudget.toLocaleString('th-TH')} บาท`,
                 accentColor: isExt ? '#0284c7' : '#00A651',
                 items,
               });
@@ -622,7 +633,24 @@ export function ResearchCharts({
               </thead>
               <tbody>
                 {facultyPiRanking.map((f, idx) => (
-                  <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <tr
+                    key={idx}
+                    onClick={() => {
+                      if (f.head_id) router.push(`/personnel/${f.head_id}`);
+                      else router.push(`/personnel?q=${encodeURIComponent(f.head)}`);
+                    }}
+                    style={{
+                      borderBottom: '1px solid #f1f5f9',
+                      cursor: 'pointer',
+                      transition: 'background-color 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#f0fdf4';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }}
+                  >
                     <td style={{ padding: '10px 10px', textAlign: 'center', fontWeight: 700, color: idx < 3 ? '#b45309' : '#64748b' }}>
                       {idx + 1}
                     </td>

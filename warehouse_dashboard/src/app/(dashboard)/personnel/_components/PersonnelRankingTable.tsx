@@ -465,7 +465,7 @@ export function PersonnelRankingTable({ metrics, departments }: PersonnelRanking
                                 <div
                                   style={{
                                     width: `${(item.counts.publications / item.counts.total) * 100}%`,
-                                    backgroundColor: '#16a34a',
+                                    backgroundColor: '#e11d48',
                                   }}
                                 />
                               )}
@@ -530,8 +530,8 @@ export function PersonnelRankingTable({ metrics, departments }: PersonnelRanking
                         <span
                           style={{
                             fontWeight: 700,
-                            color: '#16a34a',
-                            backgroundColor: '#f0fdf4',
+                            color: '#e11d48',
+                            backgroundColor: '#fff1f2',
                             padding: '3px 8px',
                             borderRadius: '6px',
                             fontSize: '12px',
@@ -540,7 +540,7 @@ export function PersonnelRankingTable({ metrics, departments }: PersonnelRanking
                         >
                           {item.counts.publications}
                           {item.pubQuartiles.q1 > 0 && (
-                            <span style={{ fontSize: '10px', color: '#15803d', marginLeft: '3px' }}>
+                            <span style={{ fontSize: '10px', color: '#be123c', marginLeft: '3px' }}>
                               (Q1)
                             </span>
                           )}

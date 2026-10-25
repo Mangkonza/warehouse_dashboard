@@ -83,7 +83,7 @@ export function PersonnelCharts({ metrics, departmentStats, onSelectPerson }: Pe
           {
             label: 'ตีพิมพ์',
             data: topPub,
-            backgroundColor: '#16a34a',
+            backgroundColor: '#e11d48',
           },
           {
             label: 'ทรัพย์สินฯ',
@@ -259,7 +259,7 @@ export function PersonnelCharts({ metrics, departmentStats, onSelectPerson }: Pe
     const missionBuckets = [
       { label: 'โครงการวิจัย', cat: 'research', count: researchItemsAll.length, color: '#00A651', items: researchItemsAll },
       { label: 'โครงการพัฒนาวิชาการ', cat: 'academic', count: academicItemsAll.length, color: '#0284c7', items: academicItemsAll },
-      { label: 'ผลงานตีพิมพ์ทางวิชาการ', cat: 'publications', count: pubItemsAll.length, color: '#16a34a', items: pubItemsAll },
+      { label: 'ผลงานตีพิมพ์ทางวิชาการ', cat: 'publications', count: pubItemsAll.length, color: '#e11d48', items: pubItemsAll },
       { label: 'งานทรัพย์สินทางปัญญา', cat: 'ip', count: ipItemsAll.length, color: '#7c3aed', items: ipItemsAll },
       { label: 'งานบริการวิชาการ', cat: 'service', count: serviceItemsAll.length, color: '#d97706', items: serviceItemsAll },
     ];

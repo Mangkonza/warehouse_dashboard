@@ -19,6 +19,8 @@ export function PublicationsView() {
     internationalCount,
     nationalCount,
     totalSupportBudget,
+    publishedCount,
+    inPrepCount,
     searchTerm,
     setSearchTerm,
     levelFilter,
@@ -44,7 +46,7 @@ export function PublicationsView() {
             {
               label: 'ผลงานตีพิมพ์ทางวิชาการ',
               value: `${validData.length} เรื่อง`,
-              subtext: `นานาชาติ ${internationalCount} • ชาติ ${nationalCount}`,
+              subtext: `ตีพิมพ์สำเร็จ ${publishedCount} • เตรียมความพร้อม ${inPrepCount} เรื่อง`,
               accentColor: '#2e7d32',
               active: levelFilter === 'all',
               onClick: () => setLevelFilter('all'),
@@ -68,7 +70,7 @@ export function PublicationsView() {
             {
               label: 'ระดับ TCI (ชาติ)',
               value: `${tciCount} เรื่อง`,
-              subtext: `เตรียมอนุสิทธิบัตร/อื่นๆ ${otherCount} รายการ`,
+              subtext: `TCI กลุ่ม 1 และ 2 (${otherCount > 0 ? `อื่นๆ ${otherCount}` : 'ระดับชาติ'})`,
               accentColor: '#7c3aed',
               active: levelFilter === 'TCI',
               onClick: () => setLevelFilter(levelFilter === 'TCI' ? 'all' : 'TCI'),

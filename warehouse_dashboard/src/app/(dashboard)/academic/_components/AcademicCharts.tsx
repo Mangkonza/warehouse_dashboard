@@ -609,7 +609,24 @@ export function AcademicCharts({
               </thead>
               <tbody>
                 {facultyLeadsRanking.map((f, idx) => (
-                  <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <tr
+                    key={idx}
+                    onClick={() => {
+                      if (f.head_id) router.push(`/personnel/${f.head_id}`);
+                      else router.push(`/personnel?q=${encodeURIComponent(f.head)}`);
+                    }}
+                    style={{
+                      borderBottom: '1px solid #f1f5f9',
+                      cursor: 'pointer',
+                      transition: 'background-color 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#f0fdf4';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }}
+                  >
                     <td style={{ padding: '10px 10px', textAlign: 'center', fontWeight: 700, color: idx < 3 ? '#b45309' : '#64748b' }}>
                       {idx + 1}
                     </td>

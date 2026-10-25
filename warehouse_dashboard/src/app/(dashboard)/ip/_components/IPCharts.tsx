@@ -86,12 +86,14 @@ export function IPCharts({
     return Object.values(map).sort((a, b) => b.count - a.count);
   }, [validIpData]);
 
-  // Protection stage breakdown
+  // Protection stage breakdown (3 Lifecycle stages)
   const protectionStage = useMemo(() => {
     let registered = 0;
     let pending = 0;
+    let inPrep = 0;
     const regItems: IPItem[] = [];
     const penItems: IPItem[] = [];
+    const prepItems: IPItem[] = [];
 
     validIpData.forEach((item) => {
       const isReg =
@@ -101,13 +103,16 @@ export function IPCharts({
       if (isReg) {
         registered++;
         regItems.push(item);
-      } else {
+      } else if (String(item.status || '').includes('ยื่นคำขอ')) {
         pending++;
         penItems.push(item);
+      } else {
+        inPrep++;
+        prepItems.push(item);
       }
     });
 
-    return { registered, pending, regItems, penItems };
+    return { registered, pending, inPrep, regItems, penItems, prepItems };
   }, [validIpData]);
 
   useEffect(() => {
@@ -281,11 +286,15 @@ export function IPCharts({
       createChart('c_ip_protection', {
         type: 'pie',
         data: {
-          labels: ['จดทะเบียนได้รับความคุ้มครองแล้ว', 'อยู่ระหว่างยื่นคำขอรับความคุ้มครอง'],
+          labels: [
+            'จดทะเบียนได้รับความคุ้มครองแล้ว',
+            'อยู่ระหว่างยื่นคำขอรับความคุ้มครอง',
+            'อยู่ระหว่างเตรียมความพร้อมยื่นจด',
+          ],
           datasets: [
             {
-              data: [protectionStage.registered, protectionStage.pending],
-              backgroundColor: ['#00A651', '#d97706'],
+              data: [protectionStage.registered, protectionStage.pending, protectionStage.inPrep],
+              backgroundColor: ['#00A651', '#0284c7', '#d97706'],
               borderWidth: 2,
               borderColor: '#ffffff',
             },
@@ -300,15 +309,21 @@ export function IPCharts({
           onClick: (event: any, elements: any[], chart: any) => {
             const hit = getClickedChartElement(event, elements, chart, 'nearest');
             if (hit) {
-              const isReg = hit.index === 0;
-              const items = isReg ? protectionStage.regItems : protectionStage.penItems;
-              setDrillDown({
-                isOpen: true,
-                title: isReg ? 'งานทรัพย์สินทางปัญญา: จดทะเบียนได้รับความคุ้มครองแล้ว' : 'งานทรัพย์สินทางปัญญา: อยู่ระหว่างยื่นคำขอ',
-                subtitle: `รวมทั้งสิ้น ${items.length} รายการ`,
-                accentColor: isReg ? '#00A651' : '#d97706',
-                items,
-              });
+              const stages = [
+                { title: 'งานทรัพย์สินทางปัญญา: จดทะเบียนได้รับความคุ้มครองแล้ว', color: '#00A651', items: protectionStage.regItems },
+                { title: 'งานทรัพย์สินทางปัญญา: อยู่ระหว่างยื่นคำขอรับความคุ้มครอง', color: '#0284c7', items: protectionStage.penItems },
+                { title: 'งานทรัพย์สินทางปัญญา: อยู่ระหว่างเตรียมความพร้อมยื่นจด', color: '#d97706', items: protectionStage.prepItems },
+              ];
+              const selected = stages[hit.index];
+              if (selected) {
+                setDrillDown({
+                  isOpen: true,
+                  title: selected.title,
+                  subtitle: `รวมทั้งสิ้น ${selected.items.length} รายการ`,
+                  accentColor: selected.color,
+                  items: selected.items,
+                });
+              }
             }
           },
           plugins: {
@@ -316,9 +331,9 @@ export function IPCharts({
             datalabels: {
               color: '#ffffff',
               font: { weight: 'bold', size: 12 },
-              formatter: (v: number, ctx: any) => {
-                const sum = protectionStage.registered + protectionStage.pending || 1;
-                return `${v} รายการ (${((v / sum) * 100).toFixed(0)}%)`;
+              formatter: (v: number) => {
+                const sum = protectionStage.registered + protectionStage.pending + protectionStage.inPrep || 1;
+                return v > 0 ? `${v} (${((v / sum) * 100).toFixed(0)}%)` : '';
               },
             },
           },
@@ -422,7 +437,7 @@ export function IPCharts({
               สัดส่วนขั้นตอนและสถานะการได้รับความคุ้มครอง
             </h3>
             <p style={{ margin: '3px 0 0 0', fontSize: '12.5px', color: '#64748b' }}>
-              จำแนกระหว่างงานที่ได้รับเลขทะเบียนคุ้มครองแล้ว กับงานที่อยู่ระหว่างขั้นตอนยื่นคำขอ
+              จำแนกตามวงจรชีวิต: ได้รับความคุ้มครองแล้ว, อยู่ระหว่างยื่นคำขอ, และอยู่ระหว่างเตรียมความพร้อมยื่นจด
             </p>
           </div>
           <div style={{ height: '300px', cursor: 'pointer' }}>
@@ -466,7 +481,24 @@ export function IPCharts({
               </thead>
               <tbody>
                 {topInventors.map((inv, idx) => (
-                  <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <tr
+                    key={idx}
+                    onClick={() => {
+                      if (inv.person_id) router.push(`/personnel/${inv.person_id}`);
+                      else router.push(`/personnel?q=${encodeURIComponent(inv.creator)}`);
+                    }}
+                    style={{
+                      borderBottom: '1px solid #f1f5f9',
+                      cursor: 'pointer',
+                      transition: 'background-color 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#f0fdf4';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }}
+                  >
                     <td style={{ padding: '10px 10px', textAlign: 'center', fontWeight: 700, color: idx < 3 ? '#b45309' : '#64748b' }}>
                       {idx + 1}
                     </td>

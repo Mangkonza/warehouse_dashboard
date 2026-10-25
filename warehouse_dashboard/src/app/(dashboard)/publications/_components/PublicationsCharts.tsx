@@ -570,7 +570,24 @@ export function PublicationsCharts({
               </thead>
               <tbody>
                 {topAuthorsRanking.map((a, idx) => (
-                  <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <tr
+                    key={idx}
+                    onClick={() => {
+                      if (a.person_id) router.push(`/personnel/${a.person_id}`);
+                      else router.push(`/personnel?q=${encodeURIComponent(a.name)}`);
+                    }}
+                    style={{
+                      borderBottom: '1px solid #f1f5f9',
+                      cursor: 'pointer',
+                      transition: 'background-color 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#f0fdf4';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }}
+                  >
                     <td style={{ padding: '10px 10px', textAlign: 'center', fontWeight: 700, color: idx < 3 ? '#b45309' : '#64748b' }}>
                       {idx + 1}
                     </td>
@@ -652,11 +669,34 @@ export function PublicationsCharts({
                   <th style={{ padding: '10px 12px', textAlign: 'left' }}>ชื่อวารสาร / แหล่งตีพิมพ์</th>
                   <th style={{ padding: '10px 12px', textAlign: 'center', width: '140px' }}>ระดับคุณภาพ (Tier)</th>
                   <th style={{ padding: '10px 12px', textAlign: 'center', width: '110px' }}>จำนวนผลงาน</th>
+                  <th style={{ padding: '10px 14px', textAlign: 'center', width: '120px' }}>รายการผลงาน</th>
                 </tr>
               </thead>
               <tbody>
                 {topJournalsRanking.map((j, idx) => (
-                  <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <tr
+                    key={idx}
+                    onClick={() => {
+                      setDrillDown({
+                        isOpen: true,
+                        title: `ผลงานตีพิมพ์: ${j.journal}`,
+                        subtitle: `ระดับ ${j.tier} • รวม ${j.count} เรื่อง`,
+                        accentColor: JOURNAL_TIER_STYLES[j.tier]?.text || '#16a34a',
+                        items: j.items,
+                      });
+                    }}
+                    style={{
+                      borderBottom: '1px solid #f1f5f9',
+                      cursor: 'pointer',
+                      transition: 'background-color 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#f0fdf4';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }}
+                  >
                     <td style={{ padding: '10px 10px', textAlign: 'center', fontWeight: 700, color: idx < 3 ? '#b45309' : '#64748b' }}>
                       {idx + 1}
                     </td>
@@ -679,6 +719,37 @@ export function PublicationsCharts({
                     </td>
                     <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 700, color: '#16a34a' }}>
                       {j.count} เรื่อง
+                    </td>
+                    <td style={{ padding: '10px 14px', textAlign: 'center' }}>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDrillDown({
+                            isOpen: true,
+                            title: `ผลงานตีพิมพ์: ${j.journal}`,
+                            subtitle: `ระดับ ${j.tier} • รวม ${j.count} เรื่อง`,
+                            accentColor: JOURNAL_TIER_STYLES[j.tier]?.text || '#16a34a',
+                            items: j.items,
+                          });
+                        }}
+                        style={{
+                          padding: '5px 10px',
+                          borderRadius: '6px',
+                          border: '1px solid #cbd5e1',
+                          backgroundColor: '#ffffff',
+                          color: '#16a34a',
+                          fontSize: '11.5px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                      >
+                        <span>ดูผลงาน</span>
+                        <FaChevronRight style={{ fontSize: '9px' }} />
+                      </button>
                     </td>
                   </tr>
                 ))}

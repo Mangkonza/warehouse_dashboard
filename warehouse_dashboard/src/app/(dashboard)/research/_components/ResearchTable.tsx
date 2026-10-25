@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { FaTable, FaTimes } from 'react-icons/fa';
 import { SearchInput, DepartmentBadge, DepartmentSelect, RecordDetailDrawer } from '@/components/ui';
+import { calculateProjectTimeline } from '@/lib/projectMonitoringEngine';
 import { ResearchItem } from '../_hooks/useResearchData';
 
 interface ResearchTableProps {
@@ -116,6 +117,7 @@ export function ResearchTable({
               <th>ชื่อโครงการวิจัย</th>
               <th>หัวหน้าโครงการ</th>
               <th style={{ width: '100px', textAlign: 'left' }}>ภาควิชา</th>
+              <th style={{ width: '120px', textAlign: 'center' }}>สถานะโครงการ</th>
               <th style={{ textAlign: 'right' }}>งบภายใน / ภายนอก</th>
               <th style={{ textAlign: 'right' }}>งบประมาณรวม</th>
               <th>แหล่งทุน</th>
@@ -126,6 +128,19 @@ export function ResearchTable({
               const internal = typeof item.budget_internal === 'number' ? item.budget_internal : Number(item.budget_internal) || 0;
               const external = typeof item.budget_external === 'number' ? item.budget_external : Number(item.budget_external) || 0;
               const totalBudget = internal + external;
+              const tl = calculateProjectTimeline(item);
+              const statusBadge = (() => {
+                if (tl.status === 'delayed') {
+                  return { label: 'เกินกำหนดสัญญา', bg: '#fef2f2', text: '#dc2626', border: '#fca5a5' };
+                }
+                if (tl.status === 'extended') {
+                  return { label: 'ขยายเวลาสัญญา', bg: '#fefce8', text: '#ca8a04', border: '#fde047' };
+                }
+                if (tl.status === 'evaluated' || tl.status === 'completed') {
+                  return { label: 'เสร็จสิ้น/ส่งมอบ', bg: '#ecfdf5', text: '#059669', border: '#a7f3d0' };
+                }
+                return { label: 'กำลังดำเนินการ', bg: '#f0f9ff', text: '#0284c7', border: '#bae6fd' };
+              })();
 
               return (
                 <tr
@@ -172,6 +187,23 @@ export function ResearchTable({
                   </td>
                   <td style={{ width: '100px', textAlign: 'left', padding: '8px 10px' }}>
                     <DepartmentBadge value={item.department} />
+                  </td>
+                  <td style={{ textAlign: 'center' }}>
+                    <span
+                      style={{
+                        display: 'inline-block',
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        backgroundColor: statusBadge.bg,
+                        color: statusBadge.text,
+                        border: `1px solid ${statusBadge.border}`,
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {statusBadge.label}
+                    </span>
                   </td>
                   <td style={{ textAlign: 'right', fontSize: '11.5px', color: '#475569', whiteSpace: 'nowrap' }}>
                     {internal > 0 ? `ภายใน: ${internal.toLocaleString('th-TH')}` : ''}
