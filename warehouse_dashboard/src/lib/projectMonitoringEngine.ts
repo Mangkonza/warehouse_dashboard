@@ -87,13 +87,27 @@ export function calculateProjectTimeline(item: Record<string, any>, referenceDat
     item.status === 'evaluated'
   );
 
-  if (isClosed) {
-    status = isEval ? 'evaluated' : 'waiting_eval';
+  if (item.status === 'cancelled') {
+    status = 'cancelled';
+  } else if (isClosed) {
+    if (isEval) {
+      status = 'evaluated';
+    } else if (item.status === 'completed' || item.is_completed) {
+      status = 'completed';
+    } else {
+      status = 'waiting_eval';
+    }
     progressPercent = 100;
-  } else if (!item.status || item.status === 'active' || item.status === 'delayed' || item.status === 'extended') {
-    if (extensions.some((e) => e.approval_status === 'pending')) {
+  } else if (
+    !item.status ||
+    item.status === 'active' ||
+    item.status === 'delayed' ||
+    item.status === 'extended' ||
+    item.status === 'extension_requested'
+  ) {
+    if (extensions.some((e) => e.approval_status === 'pending') || item.status === 'extension_requested') {
       status = 'extension_requested';
-    } else if (approvedExtensions.length > 0) {
+    } else if (approvedExtensions.length > 0 || item.status === 'extended') {
       status = isOverdue ? 'delayed' : 'extended';
     } else if (isOverdue) {
       status = 'delayed';
@@ -134,12 +148,20 @@ export function createExtensionRequest(
     reasonCategory: any;
     reasonDetail: string;
     documentRefNo?: string;
+    customEndDate?: string;
+    approvalStatus?: 'pending' | 'approved' | 'rejected';
   }
 ): ProjectExtensionRecord {
   const currentTimeline = calculateProjectTimeline(item);
   const currentEnd = new Date(currentTimeline.end_date);
-  const newEnd = new Date(currentEnd);
-  newEnd.setMonth(newEnd.getMonth() + params.durationMonths);
+  
+  let newEnd: Date;
+  if (params.customEndDate && !isNaN(new Date(params.customEndDate).getTime())) {
+    newEnd = new Date(params.customEndDate);
+  } else {
+    newEnd = new Date(currentEnd);
+    newEnd.setMonth(newEnd.getMonth() + params.durationMonths);
+  }
 
   const formatDate = (d: Date) => {
     const year = d.getFullYear();
@@ -161,7 +183,7 @@ export function createExtensionRequest(
     reason_category: params.reasonCategory,
     reason_detail: params.reasonDetail,
     document_ref_no: params.documentRefNo || `อว 6505/${round}`,
-    approval_status: 'pending',
+    approval_status: params.approvalStatus || 'pending',
     created_at: new Date().toISOString(),
   };
 }

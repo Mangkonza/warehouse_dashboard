@@ -312,7 +312,7 @@ export function PublicationsCharts({
               align: 'top',
               color: '#0f172a',
               font: { weight: 'bold', size: 11 },
-              formatter: (v: number) => (v > 0 ? `${v.toLocaleString('th-TH')} ฿` : ''),
+              formatter: (v: number) => (v > 0 ? `${v.toLocaleString('th-TH')} ` : ''),
             },
           },
         },
@@ -609,7 +609,7 @@ export function PublicationsCharts({
                       {a.tci > 0 ? `${a.tci} เรื่อง` : '-'}
                     </td>
                     <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 600, color: '#047857' }}>
-                      {a.budget > 0 ? `${a.budget.toLocaleString('th-TH')} ฿` : '-'}
+                      {a.budget > 0 ? `${a.budget.toLocaleString('th-TH')} ` : '-'}
                     </td>
                     <td style={{ padding: '10px 14px', textAlign: 'center' }}>
                       <button

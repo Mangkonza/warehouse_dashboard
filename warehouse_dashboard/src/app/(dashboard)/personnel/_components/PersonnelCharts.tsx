@@ -5,7 +5,7 @@ import Chart from 'chart.js/auto';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { useRouter } from 'next/navigation';
 import { PersonnelWorkMetric, DepartmentPersonnelStat } from '../_hooks/usePersonnelData';
-import { getDepartmentColor } from '@/lib/departments';
+import { getDepartment, getDepartmentColor } from '@/lib/departments';
 import { getClickedChartElement } from '@/lib/chartTooltipHelper';
 import { DrillDownProjectDrawer } from '@/components/ui';
 import { FaChartBar, FaChartPie } from 'react-icons/fa';
@@ -166,7 +166,7 @@ export function PersonnelCharts({ metrics, departmentStats, onSelectPerson }: Pe
       .filter((d) => d.totalWorks > 0)
       .slice(0, 8);
 
-    const deptLabels = sortedDepts.map((d) => d.name.replace('ภาควิชาวิศวกรรม', 'วศ.'));
+    const deptLabels = sortedDepts.map((d) => getDepartment(d.name).code);
     const deptWorks = sortedDepts.map((d) => d.totalWorks);
     const deptColors = sortedDepts.map((d) => getDepartmentColor(d.name));
 
@@ -213,7 +213,7 @@ export function PersonnelCharts({ metrics, departmentStats, onSelectPerson }: Pe
               });
               setDrillDown({
                 isOpen: true,
-                title: `ผลงานสะสม: ${targetDept.name}`,
+                title: `ผลงานสะสม: ${targetDept.name} (${getDepartment(targetDept.name).code})`,
                 subtitle: `อาจารย์ที่มีผลงาน ${targetDept.activeCount} ท่าน • รวม ${uniqueDeptWorks.length} รายการ • งบ ${(targetDept.totalBudget / 1000000).toFixed(2)} ล้านบาท`,
                 accentColor: getDepartmentColor(targetDept.name),
                 items: uniqueDeptWorks,
@@ -223,10 +223,33 @@ export function PersonnelCharts({ metrics, departmentStats, onSelectPerson }: Pe
         },
         scales: {
           y: { beginAtZero: true, title: { display: true, text: 'รายการผลงาน' } },
-          x: { grid: { display: false } },
+          x: {
+            grid: { display: false },
+            ticks: {
+              autoSkip: false,
+              maxRotation: 0,
+              minRotation: 0,
+              font: { weight: 'bold', size: 12 },
+            },
+          },
         },
         plugins: {
           legend: { display: false },
+          tooltip: {
+            callbacks: {
+              title: (items: any) => {
+                const idx = items[0]?.dataIndex;
+                const d = sortedDepts[idx];
+                return d ? `${d.name} (${getDepartment(d.name).code})` : '';
+              },
+              label: (context: any) => {
+                const val = context.raw || 0;
+                const idx = context.dataIndex;
+                const d = sortedDepts[idx];
+                return ` ผลงานสะสม: ${val} รายการ (อาจารย์ ${d?.activeCount || 0} ท่าน)`;
+              },
+            },
+          },
           datalabels: {
             anchor: 'end',
             align: 'top',

@@ -74,7 +74,7 @@ export function OverviewView() {
         totalCount={validResearch.length + validAcademic.length + validPub.length + validService.length + validIP.length}
       />
 
-      {/* 2. Executive Multi-Year Overview (การ์ดสรุป 4 เสาหลัก + กราฟเปรียบเทียบรายปี 2566–2570) */}
+      {/* 2. Executive Multi-Year Overview (การ์ดสรุป 5 พันธกิจหลัก + กราฟเปรียบเทียบรายปี 2566–2570) */}
       <ExecutiveMultiYearOverview
         researchList={validResearch}
         academicList={validAcademic}

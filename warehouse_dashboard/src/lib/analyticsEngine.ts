@@ -42,7 +42,7 @@ const LIQUID_GLASS_ALPHA = [
 function extractNumber(val: any): number {
   if (val === null || val === undefined) return 0;
   if (typeof val === 'number') return isNaN(val) ? 0 : val;
-  const clean = String(val).replace(/[฿,\sบาท\-]/gi, '').trim();
+  const clean = String(val).replace(/[,\sบาท\-]/gi, '').trim();
   const num = parseFloat(clean);
   return isNaN(num) ? 0 : num;
 }

@@ -473,7 +473,7 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
                         {src.budget > 0 && (
                           <span style={{ fontWeight: 600, color: '#334155' }}>
-                            {formatMoney(src.budget)} ฿
+                            {formatMoney(src.budget)} 
                           </span>
                         )}
                         <span

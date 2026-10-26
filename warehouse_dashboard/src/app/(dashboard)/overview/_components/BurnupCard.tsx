@@ -89,7 +89,7 @@ export const BurnupCard: React.FC<BurnupCardProps> = ({ selectedKpi, onDrillDown
             ticks: {
               callback: (v: any) => {
                 if (selectedKpi.unit === 'บาท' && v >= 1000000) {
-                  return `${(v / 1000000).toFixed(0)}M ฿`;
+                  return `${(v / 1000000).toFixed(0)}M `;
                 }
                 return v.toLocaleString();
               },

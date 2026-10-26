@@ -9,13 +9,22 @@ export interface SidebarMenuItem {
   label: string;
   path: string;
   icon: React.ReactNode;
-  section: 'top' | 'middle' | 'bottom';
+  badge?: string;
+  section?: 'top' | 'middle' | 'bottom';
+}
+
+export interface SidebarCategory {
+  id: string;
+  label: string;
+  badge?: string;
+  items: SidebarMenuItem[];
 }
 
 export interface SidebarProps {
-  topItems: SidebarMenuItem[];
-  middleItems: SidebarMenuItem[];
-  bottomItems: SidebarMenuItem[];
+  categories?: SidebarCategory[];
+  topItems?: SidebarMenuItem[];
+  middleItems?: SidebarMenuItem[];
+  bottomItems?: SidebarMenuItem[];
   activePath: string;
   isExpanded: boolean;
   isSidebarPinned: boolean;
@@ -28,9 +37,10 @@ export interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
-  topItems,
-  middleItems,
-  bottomItems,
+  categories,
+  topItems = [],
+  middleItems = [],
+  bottomItems = [],
   activePath,
   isExpanded,
   isSidebarPinned,
@@ -43,29 +53,56 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const sidebarWidth = isExpanded ? 255 : 70;
 
+  // Resolve categories (backward-compatibility fallback if categories prop is omitted)
+  const resolvedCategories: SidebarCategory[] = React.useMemo(() => {
+    if (categories && categories.length > 0) {
+      return categories.filter((c) => c.items && c.items.length > 0);
+    }
+    const legacy: SidebarCategory[] = [];
+    if (topItems.length > 0) {
+      legacy.push({ id: 'top', label: 'เมนูหลัก', items: topItems });
+    }
+    if (middleItems.length > 0) {
+      legacy.push({ id: 'middle', label: 'การวิเคราะห์', items: middleItems });
+    }
+    if (bottomItems.length > 0) {
+      legacy.push({ id: 'bottom', label: 'การจัดการ', items: bottomItems });
+    }
+    return legacy;
+  }, [categories, topItems, middleItems, bottomItems]);
+
+  const isItemActive = (item: SidebarMenuItem): boolean => {
+    if (activePath === item.path || activePath === `/${item.id}`) return true;
+    if (item.path !== '/' && activePath.startsWith(`${item.path}/`)) return true;
+    if (item.id === 'service' && (activePath === '/services' || activePath.startsWith('/services/'))) return true;
+    return false;
+  };
+
   const renderMenuItem = (item: SidebarMenuItem) => {
-    const isActive = activePath === item.path || activePath === `/${item.id}`;
+    const isActive = isItemActive(item);
 
     return (
       <button
         key={item.id}
         onClick={() => onNavigate(item.path)}
+        title={!isExpanded ? item.label : undefined}
         style={{
           position: 'relative',
           width: '100%',
-          height: '44px',
+          height: '42px',
           display: 'flex',
           alignItems: 'center',
           border: 'none',
           backgroundColor: isActive ? THEME_COLORS.primary : 'transparent',
           color: isActive ? '#ffffff' : '#94a3b8',
-          fontWeight: isActive ? 700 : 500,
+          fontWeight: isActive ? 600 : 500,
           fontSize: '13.5px',
           cursor: 'pointer',
           textAlign: 'left',
           transition: 'background 0.15s, color 0.15s',
           padding: 0,
           whiteSpace: 'nowrap',
+          overflow: 'hidden',
         }}
         onMouseOver={(e) => {
           if (!isActive) {
@@ -80,15 +117,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
           }
         }}
       >
+        {/* Active glowing accent strip on left border */}
+        {isActive && (
+          <div
+            style={{
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              bottom: 0,
+              width: '3.5px',
+              backgroundColor: '#00e676',
+              boxShadow: '0 0 8px rgba(0,230,118,0.6)',
+            }}
+          />
+        )}
+
         <div
           style={{
             width: '70px',
-            height: '44px',
+            height: '42px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             flexShrink: 0,
             fontSize: '16px',
+            color: isActive ? '#ffffff' : '#94a3b8',
           }}
         >
           {item.icon}
@@ -99,12 +152,33 @@ export const Sidebar: React.FC<SidebarProps> = ({
             opacity: isExpanded ? 1 : 0,
             visibility: isExpanded ? 'visible' : 'hidden',
             transition: 'opacity 0.2s ease',
-            paddingRight: '16px',
+            paddingRight: '14px',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flex: 1,
+            minWidth: 0,
           }}
         >
-          {item.label}
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.label}</span>
+          {item.badge && (
+            <span
+              style={{
+                fontSize: '10px',
+                padding: '1px 6px',
+                borderRadius: '999px',
+                backgroundColor: isActive ? 'rgba(255,255,255,0.25)' : '#334155',
+                color: '#ffffff',
+                fontWeight: 600,
+                marginLeft: '6px',
+                flexShrink: 0,
+              }}
+            >
+              {item.badge}
+            </span>
+          )}
         </div>
       </button>
     );
@@ -184,45 +258,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
         )}
       </div>
 
-      {/* 2. Navigation Items (3 ช่วง คั่นด้วยเส้นบาง #2d343c) */}
+      {/* 2. Categorized Navigation */}
       <nav
         style={{
-          padding: '8px 0',
+          padding: '8px 0 24px 0',
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
         }}
       >
-        {/* ช่วงบน: overview, research, academic, publications, service, ip */}
-        {topItems.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-            {topItems.map(renderMenuItem)}
-          </div>
-        )}
-
-        {/* เส้นคั่นช่วงบนกับช่วงกลาง (แสดงเฉพาะเมื่อทั้ง 2 ช่วงมีเมนู) */}
-        {topItems.length > 0 && middleItems.length > 0 && (
-          <div
-            style={{
-              height: '1px',
-              backgroundColor: '#2d343c',
-              margin: '8px 14px',
-              flexShrink: 0,
-            }}
-          />
-        )}
-
-        {/* ช่วงกลาง: kpi, personnel, studio */}
-        {middleItems.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-            {middleItems.map(renderMenuItem)}
-          </div>
-        )}
-
-        {/* ช่วงล่าง (ชิดล่าง): evaluation, monitoring, manage */}
-        {bottomItems.length > 0 && (
-          <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column' }}>
-            {(topItems.length > 0 || middleItems.length > 0) && (
+        {resolvedCategories.map((category, catIdx) => (
+          <div key={category.id || catIdx} style={{ display: 'flex', flexDirection: 'column' }}>
+            {/* Divider line between groups */}
+            {catIdx > 0 && (
               <div
                 style={{
                   height: '1px',
@@ -232,11 +280,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 }}
               />
             )}
+
+            {/* Category Menu Items */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-              {bottomItems.map(renderMenuItem)}
+              {category.items.map(renderMenuItem)}
             </div>
           </div>
-        )}
+        ))}
       </nav>
 
       {/* 3. Timer slot at bottom */}

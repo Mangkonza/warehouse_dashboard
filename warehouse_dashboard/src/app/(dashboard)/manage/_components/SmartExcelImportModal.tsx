@@ -895,7 +895,7 @@ export const SmartExcelImportModal: React.FC<SmartExcelImportModalProps> = ({
                                       {/* Budget */}
                                       {typeof budgetVal === 'number' && budgetVal > 0 && (
                                         <span style={{ fontSize: '11px', color: '#16a34a', fontWeight: 600 }}>
-                                          งบ: {budgetVal.toLocaleString('th-TH')} ฿
+                                          งบ: {budgetVal.toLocaleString('th-TH')} 
                                         </span>
                                       )}
 
@@ -1139,7 +1139,7 @@ export const SmartExcelImportModal: React.FC<SmartExcelImportModalProps> = ({
                                                   }}
                                                 >
                                                   {typeof v === 'number' && (k.toLowerCase().includes('budget') || k.toLowerCase().includes('amount'))
-                                                    ? `${v.toLocaleString('th-TH')} ฿`
+                                                    ? `${v.toLocaleString('th-TH')} `
                                                     : typeof v === 'object'
                                                     ? JSON.stringify(v)
                                                     : String(v)}

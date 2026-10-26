@@ -544,7 +544,7 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
                                 : 'ผู้ร่วมวิจัย'}
                             </td>
                             <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 600, color: '#047857' }}>
-                              {totalB > 0 ? `${totalB.toLocaleString('th-TH')} ฿` : '-'}
+                              {totalB > 0 ? `${totalB.toLocaleString('th-TH')} ` : '-'}
                             </td>
                             <td style={{ padding: '10px 12px', color: '#64748b' }}>{r.fund_source || '-'}</td>
                             <td style={{ padding: '10px 12px', textAlign: 'center' }}>
@@ -663,7 +663,7 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
                               {p.fiscal_year_be || p.month_year || p.month || '-'}
                             </td>
                             <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 600, color: '#e11d48' }}>
-                              {p.budget ? `${Number(p.budget).toLocaleString('th-TH')} ฿` : '-'}
+                              {p.budget ? `${Number(p.budget).toLocaleString('th-TH')} ` : '-'}
                             </td>
                           </tr>
                         );
@@ -814,7 +814,7 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
                             <td style={{ padding: '10px 12px', fontWeight: 600, color: '#0f172a' }}>{a.name}</td>
                             <td style={{ padding: '10px 12px', color: '#475569' }}>{a.client || '-'}</td>
                             <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 600, color: '#0284c7' }}>
-                              {bVal > 0 ? `${bVal.toLocaleString('th-TH')} ฿` : '-'}
+                              {bVal > 0 ? `${bVal.toLocaleString('th-TH')} ` : '-'}
                             </td>
                             <td style={{ padding: '10px 12px', textAlign: 'center', color: '#64748b' }}>
                               {a.month || a.start_date || '-'}

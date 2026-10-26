@@ -451,7 +451,7 @@ export default function SelfServiceStudio() {
             color: '#334155',
             callback: (v: any) => {
               if (aggregatedData.format === 'currency' && v >= 1000000) {
-                return (v / 1000000).toFixed(1) + 'M ฿';
+                return (v / 1000000).toFixed(1) + 'M ';
               }
               return v.toLocaleString();
             },
@@ -471,7 +471,7 @@ export default function SelfServiceStudio() {
           color: '#334155',
           callback: (v: any) => {
             if (aggregatedData.format === 'currency' && v >= 1000000) {
-              return (v / 1000000).toFixed(1) + 'M ฿';
+              return (v / 1000000).toFixed(1) + 'M ';
             }
             return Number(v).toLocaleString();
           },

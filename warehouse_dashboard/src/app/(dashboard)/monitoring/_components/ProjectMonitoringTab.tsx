@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation';
 import { calculateProjectTimeline, STATUS_LABELS } from '@/lib/projectMonitoringEngine';
 import { ProjectExtensionRecord, ProjectStatus, ProjectTimelineInfo } from '@/types/projectMonitoring';
 import { TopSegmentedTabs, TabItem } from '@/components/ui/TopSegmentedTabs';
-import { DepartmentBadge, DepartmentSelect, RecordDetailDrawer } from '@/components/ui';
+import { DepartmentBadge, DepartmentSelect, RecordDetailDrawer, ConfirmActionModal } from '@/components/ui';
 import { ProjectExtensionModal } from '@/features/monitoring/components/ProjectExtensionModal';
+import { ChangeStatusModal, ProjectStatusActionType } from '@/features/monitoring/components/ChangeStatusModal';
 import {
   getCachedCategoryData,
   fetchCategoryData,
@@ -36,6 +37,7 @@ import {
   FaExternalLinkAlt,
   FaEye,
   FaPlus,
+  FaExchangeAlt,
 } from 'react-icons/fa';
 
 export type MonitoringTabKey = 'research' | 'academic';
@@ -80,6 +82,17 @@ export default function ProjectMonitoringTab({}: ProjectMonitoringTabProps) {
     category: MonitoringTabKey;
   } | null>(null);
   const [extensionTarget, setExtensionTarget] = useState<Record<string, any> | null>(null);
+  const [statusModalTarget, setStatusModalTarget] = useState<Record<string, any> | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    detail?: string;
+    confirmText?: string;
+    cancelText?: string;
+    type?: 'danger' | 'warning' | 'success' | 'info';
+    onConfirm: () => void;
+  } | null>(null);
 
   // 7. Toast Notification
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -199,13 +212,23 @@ export default function ProjectMonitoringTab({}: ProjectMonitoringTabProps) {
     let delayed = 0;
     let waitingEval = 0;
     let evaluated = 0;
+    let completed = 0;
+    let cancelled = 0;
 
     currentDataset.forEach((p) => {
       const st = p._timeline.status;
       const days = p._timeline.days_remaining;
       const isOverdue = p._timeline.is_overdue;
 
-      if (st !== 'completed' && st !== 'waiting_eval' && st !== 'evaluated' && !isOverdue && days >= 0 && days <= 90) {
+      if (
+        st !== 'completed' &&
+        st !== 'cancelled' &&
+        st !== 'waiting_eval' &&
+        st !== 'evaluated' &&
+        !isOverdue &&
+        days >= 0 &&
+        days <= 90
+      ) {
         expiringSoon++;
       }
 
@@ -215,9 +238,22 @@ export default function ProjectMonitoringTab({}: ProjectMonitoringTabProps) {
       else if (st === 'delayed') delayed++;
       else if (st === 'waiting_eval') waitingEval++;
       else if (st === 'evaluated') evaluated++;
+      else if (st === 'completed') completed++;
+      else if (st === 'cancelled') cancelled++;
     });
 
-    return { total, onTrack, expiringSoon, extensionReq, extended, delayed, waitingEval, evaluated };
+    return {
+      total,
+      onTrack,
+      expiringSoon,
+      extensionReq,
+      extended,
+      delayed,
+      waitingEval,
+      evaluated,
+      completed,
+      cancelled,
+    };
   }, [currentDataset]);
 
   // 11. Filtered Projects List
@@ -321,70 +357,14 @@ export default function ProjectMonitoringTab({}: ProjectMonitoringTabProps) {
     const isResearch = activeTab === 'research';
     const cat = isResearch ? 'research' : 'academic';
 
-    // Reopening if was closed
-    const itemToSave: Record<string, any> = {
-      ...updatedItem,
-      closed_date: undefined,
-      status: 'extension_requested',
-    };
-
-    const res = await saveCategoryRecord(cat, itemToSave, false);
-    if (res.success) {
-      if (isResearch) {
-        setResearchList((prev) =>
-          prev.map((p) =>
-            p.id === itemToSave.id || p._id === itemToSave._id ? { ...p, ...itemToSave } : p
-          )
-        );
-      } else {
-        setAcademicList((prev) =>
-          prev.map((p) =>
-            p._id === itemToSave._id || p.name === itemToSave.name ? { ...p, ...itemToSave } : p
-          )
-        );
-      }
-      setExtensionTarget(null);
-      showToast('บันทึกเรียบร้อย');
-    } else {
-      alert(res.error || 'เกิดข้อผิดพลาดในการบันทึกคำขอขยายเวลา');
-    }
-  };
-
-  // Manual Close / Reopen Project
-  const handleToggleCloseProject = async (item: any) => {
-    const isResearch = activeTab === 'research';
-    const cat = isResearch ? 'research' : 'academic';
-    const isClosed = Boolean(
-      item.closed_date ||
-      item.is_completed ||
-      item.status === 'completed' ||
-      item.status === 'waiting_eval' ||
-      item.status === 'evaluated'
-    );
-
-    let updatedItem: Record<string, any>;
-    if (isClosed) {
-      // Reopen project
-      updatedItem = {
-        ...item,
-        closed_date: undefined,
-        status: 'active',
-      };
-    } else {
-      // Close project
-      updatedItem = {
-        ...item,
-        closed_date: new Date().toISOString(),
-        status: 'completed',
-      };
-    }
-
     const res = await saveCategoryRecord(cat, updatedItem, false);
     if (res.success) {
       if (isResearch) {
         setResearchList((prev) =>
           prev.map((p) =>
-            p.id === updatedItem.id || p._id === updatedItem._id ? { ...p, ...updatedItem } : p
+            p.id === updatedItem.id || p._id === updatedItem._id || (p.name && updatedItem.name && p.name === updatedItem.name)
+              ? { ...p, ...updatedItem }
+              : p
           )
         );
       } else {
@@ -394,9 +374,177 @@ export default function ProjectMonitoringTab({}: ProjectMonitoringTabProps) {
           )
         );
       }
-      showToast('บันทึกเรียบร้อย');
+      setExtensionTarget(null);
+      showToast(
+        updatedItem.status === 'extended'
+          ? 'บันทึกอนุมัติขยายระยะเวลาโครงการเรียบร้อยแล้ว'
+          : 'บันทึกคำขอขยายระยะเวลาเรียบร้อยแล้ว'
+      );
     } else {
-      alert(res.error || 'เกิดข้อผิดพลาดในการปรับปรุงสถานะโครงการ');
+      alert(res.error || 'เกิดข้อผิดพลาดในการบันทึกคำขอขยายเวลา');
+    }
+  };
+
+  // 1. ปิดโครงการ (ข้อมูลสำคัญ - มี Alert ขึ้นให้กดยืนยัน)
+  const requestCloseProject = (item: Record<string, any>) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'ยืนยันการปิดโครงการ (ข้อมูลสำคัญ)',
+      message: `คุณต้องการบันทึกปิดโครงการ "${item.name}" ใช่หรือไม่?`,
+      detail:
+        '⚠️ ข้อมูลนี้เป็นข้อมูลสำคัญ: การปิดโครงการจะบันทึกวันปิดโครงการจริง และเปลี่ยนสถานะโครงการเป็นปิดโครงการแล้ว กรุณาตรวจสอบให้แน่ใจว่าได้ดำเนินงานและส่งมอบรายงานเสร็จสิ้นแล้ว',
+      confirmText: 'ยืนยันปิดโครงการ',
+      cancelText: 'ยกเลิก',
+      type: 'warning',
+      onConfirm: () => handleCloseProject(item),
+    });
+  };
+
+  const handleCloseProject = async (item: Record<string, any>) => {
+    const isResearch = activeTab === 'research';
+    const cat = isResearch ? 'research' : 'academic';
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    const updatedItem: Record<string, any> = {
+      ...item,
+      status: 'completed',
+      closed_date: todayStr,
+      is_completed: true,
+    };
+
+    const res = await saveCategoryRecord(cat, updatedItem, false);
+    if (res.success) {
+      if (isResearch) {
+        setResearchList((prev) =>
+          prev.map((p) =>
+            p.id === updatedItem.id || p._id === updatedItem._id || (p.name && updatedItem.name && p.name === updatedItem.name)
+              ? { ...p, ...updatedItem }
+              : p
+          )
+        );
+      } else {
+        setAcademicList((prev) =>
+          prev.map((p) => (p._id === updatedItem._id || p.name === updatedItem.name ? { ...p, ...updatedItem } : p))
+        );
+      }
+      setConfirmModal(null);
+      setStatusModalTarget(null);
+      showToast('บันทึกปิดโครงการเรียบร้อยแล้ว');
+    } else {
+      alert(res.error || 'เกิดข้อผิดพลาดในการบันทึกปิดโครงการ');
+    }
+  };
+
+  // 2. ขอยกเลิกโครงการ (ไม่ลบข้อมูลแต่เปลี่ยนสถานะ)
+  const requestCancelProject = (item: Record<string, any>) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'ยืนยันการยกเลิกโครงการ',
+      message: `คุณต้องการเปลี่ยนสถานะโครงการ "${item.name}" เป็น "ยกเลิกโครงการ" ใช่หรือไม่?`,
+      detail:
+        '🛡️ ข้อมูลจะไม่ถูกลบ: การดำเนินการนี้จะไม่เป็นการลบข้อมูลออกจากฐานข้อมูล โดยข้อมูลโครงการจะยังคงถูกจัดเก็บไว้อย่างครบถ้วนในระบบ แต่จะแสดงสถานะเป็นยกเลิกโครงการตามระเบียบ',
+      confirmText: 'ยืนยันยกเลิกโครงการ',
+      cancelText: 'ย้อนกลับ',
+      type: 'danger',
+      onConfirm: () => handleCancelProject(item),
+    });
+  };
+
+  const handleCancelProject = async (item: Record<string, any>) => {
+    const isResearch = activeTab === 'research';
+    const cat = isResearch ? 'research' : 'academic';
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    const updatedItem: Record<string, any> = {
+      ...item,
+      status: 'cancelled',
+      cancelled_date: todayStr,
+      is_completed: false,
+    };
+
+    const res = await saveCategoryRecord(cat, updatedItem, false);
+    if (res.success) {
+      if (isResearch) {
+        setResearchList((prev) =>
+          prev.map((p) =>
+            p.id === updatedItem.id || p._id === updatedItem._id || (p.name && updatedItem.name && p.name === updatedItem.name)
+              ? { ...p, ...updatedItem }
+              : p
+          )
+        );
+      } else {
+        setAcademicList((prev) =>
+          prev.map((p) => (p._id === updatedItem._id || p.name === updatedItem.name ? { ...p, ...updatedItem } : p))
+        );
+      }
+      setConfirmModal(null);
+      setStatusModalTarget(null);
+      showToast('บันทึกยกเลิกโครงการเรียบร้อยแล้ว (ข้อมูลยังคงอยู่ในระบบ)');
+    } else {
+      alert(res.error || 'เกิดข้อผิดพลาดในการยกเลิกโครงการ');
+    }
+  };
+
+  // 3. เปิดโครงการอีกครั้ง (คืนสถานะกำลังดำเนินการ)
+  const requestReopenProject = (item: Record<string, any>) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'ยืนยันการเปิดโครงการอีกครั้ง',
+      message: `คุณต้องการเปลี่ยนสถานะโครงการ "${item.name}" กลับเป็น "กำลังดำเนินการตามแผน" ใช่หรือไม่?`,
+      detail: 'ระบบจะยกเลิกสถานะปิด/ยกเลิก และคืนสถานะโครงการเข้าสู่การติดตามผลตามปกติ',
+      confirmText: 'ยืนยันเปิดโครงการ',
+      cancelText: 'ยกเลิก',
+      type: 'info',
+      onConfirm: () => handleReopenProject(item),
+    });
+  };
+
+  const handleReopenProject = async (item: Record<string, any>) => {
+    const isResearch = activeTab === 'research';
+    const cat = isResearch ? 'research' : 'academic';
+
+    const updatedItem: Record<string, any> = {
+      ...item,
+      status: 'active',
+      closed_date: undefined,
+      cancelled_date: undefined,
+      is_completed: false,
+    };
+
+    const res = await saveCategoryRecord(cat, updatedItem, false);
+    if (res.success) {
+      if (isResearch) {
+        setResearchList((prev) =>
+          prev.map((p) =>
+            p.id === updatedItem.id || p._id === updatedItem._id || (p.name && updatedItem.name && p.name === updatedItem.name)
+              ? { ...p, ...updatedItem }
+              : p
+          )
+        );
+      } else {
+        setAcademicList((prev) =>
+          prev.map((p) => (p._id === updatedItem._id || p.name === updatedItem.name ? { ...p, ...updatedItem } : p))
+        );
+      }
+      setConfirmModal(null);
+      setStatusModalTarget(null);
+      showToast('เปิดโครงการกลับเป็นสถานะกำลังดำเนินการเรียบร้อยแล้ว');
+    } else {
+      alert(res.error || 'เกิดข้อผิดพลาดในการเปิดโครงการ');
+    }
+  };
+
+  // Status Action dispatcher from ChangeStatusModal
+  const handleSelectStatusAction = (action: ProjectStatusActionType, item: Record<string, any>) => {
+    setStatusModalTarget(null);
+    if (action === 'extend') {
+      setExtensionTarget(item);
+    } else if (action === 'close') {
+      requestCloseProject(item);
+    } else if (action === 'cancel') {
+      requestCancelProject(item);
+    } else if (action === 'reopen') {
+      requestReopenProject(item);
     }
   };
 
@@ -650,6 +798,50 @@ export default function ProjectMonitoringTab({}: ProjectMonitoringTabProps) {
           </div>
           <div style={{ fontSize: '20px', fontWeight: 800, color: '#059669', marginTop: '2px' }}>
             {stats.evaluated}
+          </div>
+        </div>
+
+        {/* ปิดโครงการแล้ว */}
+        <div
+          onClick={() => setStatusFilter('completed')}
+          style={{
+            padding: '12px 14px',
+            borderRadius: '10px',
+            backgroundColor: '#ffffff',
+            border: statusFilter === 'completed' ? '2px solid #475569' : '1px solid #e2e8f0',
+            cursor: 'pointer',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          <div style={{ fontSize: '12px', color: '#475569', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#475569' }} />
+            <span>ปิดโครงการแล้ว</span>
+          </div>
+          <div style={{ fontSize: '20px', fontWeight: 800, color: '#475569', marginTop: '2px' }}>
+            {stats.completed}
+          </div>
+        </div>
+
+        {/* ยกเลิกโครงการ */}
+        <div
+          onClick={() => setStatusFilter('cancelled')}
+          style={{
+            padding: '12px 14px',
+            borderRadius: '10px',
+            backgroundColor: '#ffffff',
+            border: statusFilter === 'cancelled' ? '2px solid #dc2626' : '1px solid #e2e8f0',
+            cursor: 'pointer',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          <div style={{ fontSize: '12px', color: '#dc2626', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#dc2626' }} />
+            <span>ยกเลิกโครงการ</span>
+          </div>
+          <div style={{ fontSize: '20px', fontWeight: 800, color: '#dc2626', marginTop: '2px' }}>
+            {stats.cancelled}
           </div>
         </div>
       </div>
@@ -923,6 +1115,8 @@ export default function ProjectMonitoringTab({}: ProjectMonitoringTabProps) {
                       {/* สถานะ */}
                       <td style={{ padding: '10px 10px', textAlign: 'center' }}>
                         <span
+                          onClick={() => setStatusModalTarget(item)}
+                          title="คลิกเพื่อจัดการและเปลี่ยนสถานะโครงการ"
                           style={{
                             display: 'inline-block',
                             padding: '3px 9px',
@@ -933,6 +1127,16 @@ export default function ProjectMonitoringTab({}: ProjectMonitoringTabProps) {
                             backgroundColor: statusInfo.bg,
                             border: `1px solid ${statusInfo.border}`,
                             whiteSpace: 'nowrap',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = 'scale(1.05)';
+                            e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'scale(1)';
+                            e.currentTarget.style.boxShadow = 'none';
                           }}
                         >
                           {statusInfo.labelTh}
@@ -1020,6 +1224,17 @@ export default function ProjectMonitoringTab({}: ProjectMonitoringTabProps) {
                           >
                             <FaEye className="text-[11px]" />
                             <span>ดูข้อมูล</span>
+                          </button>
+
+                          {/* Change Status Button */}
+                          <button
+                            type="button"
+                            onClick={() => setStatusModalTarget(item)}
+                            title="จัดการสถานะโครงการ (ขยายเวลา, ปิดโครงการ, ยกเลิกโครงการ)"
+                            className="inline-flex items-center justify-center px-2.5 py-1 text-xs font-semibold rounded-lg bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors cursor-pointer gap-1"
+                          >
+                            <FaExchangeAlt className="text-[10px]" />
+                            <span>เปลี่ยนสถานะ</span>
                           </button>
                         </div>
                       </td>
@@ -1150,6 +1365,16 @@ export default function ProjectMonitoringTab({}: ProjectMonitoringTabProps) {
         />
       )}
 
+      {/* Change Status Modal */}
+      {statusModalTarget && (
+        <ChangeStatusModal
+          isOpen={true}
+          onClose={() => setStatusModalTarget(null)}
+          projectItem={statusModalTarget}
+          onSelectAction={handleSelectStatusAction}
+        />
+      )}
+
       {/* Project Extension Modal */}
       {extensionTarget && (
         <ProjectExtensionModal
@@ -1157,6 +1382,21 @@ export default function ProjectMonitoringTab({}: ProjectMonitoringTabProps) {
           onClose={() => setExtensionTarget(null)}
           projectItem={extensionTarget}
           onSaveExtension={handleSaveExtension}
+        />
+      )}
+
+      {/* Action Confirmation Modal (Alert สำหรับปิดโครงการ / ยกเลิกโครงการ) */}
+      {confirmModal && (
+        <ConfirmActionModal
+          isOpen={confirmModal.isOpen}
+          title={confirmModal.title}
+          message={confirmModal.message}
+          detail={confirmModal.detail}
+          confirmText={confirmModal.confirmText}
+          cancelText={confirmModal.cancelText}
+          type={confirmModal.type}
+          onConfirm={confirmModal.onConfirm}
+          onCancel={() => setConfirmModal(null)}
         />
       )}
     </div>

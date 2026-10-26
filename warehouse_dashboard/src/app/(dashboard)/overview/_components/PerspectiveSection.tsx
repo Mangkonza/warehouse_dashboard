@@ -217,7 +217,7 @@ export const PerspectiveSection: React.FC<PerspectiveSectionProps> = ({
             plugins: { legend: { position: 'top' }, datalabels: { display: false } },
             scales: {
               y: {
-                ticks: { callback: (v: any) => `${v}M ฿` },
+                ticks: { callback: (v: any) => `${v}M ` },
                 grid: { color: 'rgba(226, 232, 240, 0.6)' },
               },
             },

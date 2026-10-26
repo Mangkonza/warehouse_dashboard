@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { Sidebar, SidebarMenuItem } from '@/components/layout/Sidebar';
+import { Sidebar, SidebarMenuItem, SidebarCategory } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 import { HeaderAuth, useAuth } from '@/features/auth';
 import { TimeFilterModal, useTimeFilter } from '@/features/time-filter';
@@ -117,104 +117,141 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     return 'บุคลากร';
   };
 
-  // เมนูทั้งหมดเรียงต่อเนื่องกัน ไม่มีการแบ่งกลุ่มบน กลาง และล่าง
-  const allMenuItems: (SidebarMenuItem & { id: AppResource })[] = [
+  interface MenuDefinition {
+    id: AppResource;
+    label: string;
+    path: string;
+    icon: React.ReactNode;
+    badge?: string;
+  }
+
+  interface CategoryDefinition {
+    id: string;
+    label: string;
+    badge?: string;
+    items: MenuDefinition[];
+  }
+
+  // โครงสร้างเมนูจัดแยกตามหมวดหมู่อย่างเป็นระบบ
+  const categoryDefinitions: CategoryDefinition[] = [
     {
-      id: 'overview',
-      label: 'แดชบอร์ด ภาพรวม',
-      path: '/overview',
-      icon: <FaThLarge />,
-      section: 'top',
+      id: 'overview_strategy',
+      label: 'ภาพรวมและยุทธศาสตร์',
+      items: [
+        {
+          id: 'overview',
+          label: 'แดชบอร์ด ภาพรวม',
+          path: '/overview',
+          icon: <FaThLarge />,
+        },
+        {
+          id: 'kpi',
+          label: 'ตัวชี้วัดตามแผนยุทธศาสตร์',
+          path: '/kpi',
+          icon: <FaBullseye />,
+        },
+      ],
     },
     {
-      id: 'research',
-      label: 'โครงการวิจัย',
-      path: '/research',
-      icon: <FaFlask />,
-      section: 'top',
+      id: 'core_missions',
+      label: 'พันธกิจหลัก 5 ด้าน',
+      badge: '5 ด้าน',
+      items: [
+        {
+          id: 'research',
+          label: 'โครงการวิจัย',
+          path: '/research',
+          icon: <FaFlask />,
+        },
+        {
+          id: 'academic',
+          label: 'โครงการพัฒนาวิชาการ',
+          path: '/academic',
+          icon: <FaGraduationCap />,
+        },
+        {
+          id: 'publications',
+          label: 'ผลงานตีพิมพ์ทางวิชาการ',
+          path: '/publications',
+          icon: <FaBook />,
+        },
+        {
+          id: 'service',
+          label: 'งานบริการวิชาการ',
+          path: '/service',
+          icon: <FaHandsHelping />,
+        },
+        {
+          id: 'ip',
+          label: 'งานทรัพย์สินทางปัญญา',
+          path: '/ip',
+          icon: <FaCertificate />,
+        },
+      ],
     },
     {
-      id: 'academic',
-      label: 'โครงการพัฒนาวิชาการ',
-      path: '/academic',
-      icon: <FaGraduationCap />,
-      section: 'top',
+      id: 'analytics_personnel',
+      label: 'การวิเคราะห์และบุคลากร',
+      items: [
+        {
+          id: 'personnel',
+          label: 'บุคลากรและอาจารย์',
+          path: '/personnel',
+          icon: <FaUserTie />,
+        },
+        {
+          id: 'studio',
+          label: 'วิเคราะห์ข้อมูลเชิงลึก',
+          path: '/studio',
+          icon: <FaChartLine />,
+        },
+      ],
     },
     {
-      id: 'publications',
-      label: 'ผลงานตีพิมพ์ทางวิชาการ',
-      path: '/publications',
-      icon: <FaBook />,
-      section: 'top',
-    },
-    {
-      id: 'service',
-      label: 'งานบริการวิชาการ',
-      path: '/service',
-      icon: <FaHandsHelping />,
-      section: 'top',
-    },
-    {
-      id: 'ip',
-      label: 'งานทรัพย์สินทางปัญญา',
-      path: '/ip',
-      icon: <FaCertificate />,
-      section: 'top',
-    },
-    {
-      id: 'kpi',
-      label: 'ตัวชี้วัดตามแผนยุทธศาสตร์',
-      path: '/kpi',
-      icon: <FaBullseye />,
-      section: 'top',
-    },
-    {
-      id: 'personnel',
-      label: 'วิเคราะห์บุคลากรและอาจารย์',
-      path: '/personnel',
-      icon: <FaUserTie />,
-      section: 'top',
-    },
-    {
-      id: 'studio',
-      label: 'วิเคราะห์ข้อมูลเชิงลึก',
-      path: '/studio',
-      icon: <FaChartLine />,
-      section: 'top',
-    },
-    {
-      id: 'manage',
-      label: 'ระบบจัดการข้อมูล',
-      path: '/manage',
-      icon: <FaUserCog />,
-      section: 'top',
-    },
-    {
-      id: 'evaluation',
-      label: 'การประเมิน',
-      path: '/evaluation',
-      icon: <FaClipboardCheck />,
-      section: 'top',
-    },
-    {
-      id: 'monitoring',
-      label: 'ติดตามสถานะโครงการ',
-      path: '/monitoring',
-      icon: <FaClock />,
-      section: 'top',
+      id: 'management_tracking',
+      label: 'การจัดการและติดตาม',
+      items: [
+        {
+          id: 'monitoring',
+          label: 'ติดตามสถานะโครงการ',
+          path: '/monitoring',
+          icon: <FaClock />,
+        },
+        {
+          id: 'evaluation',
+          label: 'การประเมินโครงการ',
+          path: '/evaluation',
+          icon: <FaClipboardCheck />,
+        },
+        {
+          id: 'manage',
+          label: 'ระบบจัดการข้อมูล',
+          path: '/manage',
+          icon: <FaUserCog />,
+        },
+      ],
     },
   ];
 
-  // กรองเมนูตามสิทธิ์ของผู้ใช้
+  // กรองเมนูตามสิทธิ์ของผู้ใช้งานในแต่ละหมวดหมู่
   const userRole = user?.role || 'user';
 
-  const topItems = allMenuItems.filter((item) =>
-    canAccess(userRole, item.id)
-  );
-
-  // คง props ไว้เพื่อให้เข้ากันได้กับ Sidebar เดิม
-  const middleItems: SidebarMenuItem[] = [];
-  const bottomItems: SidebarMenuItem[] = [];
+  const menuCategories: SidebarCategory[] = categoryDefinitions
+    .map((cat) => ({
+      id: cat.id,
+      label: cat.label,
+      badge: cat.badge,
+      items: cat.items
+        .filter((item) => canAccess(userRole, item.id))
+        .map((item) => ({
+          id: item.id,
+          label: item.label,
+          path: item.path,
+          icon: item.icon,
+          badge: item.badge,
+        })),
+    }))
+    .filter((cat) => cat.items.length > 0);
 
   const singleRole = getSingleRoleTitle();
   const isExpanded = !isForceCollapsed && (isSidebarPinned || isSidebarHovered);
@@ -322,9 +359,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f5f7f9' }}>
       <Sidebar
-        topItems={topItems}
-        middleItems={middleItems}
-        bottomItems={bottomItems}
+        categories={menuCategories}
         activePath={pathname}
         isExpanded={isExpanded}
         isSidebarPinned={isSidebarPinned}

@@ -187,8 +187,20 @@ export class ProjectService {
   }
 
   static async updateResearch(identifier: string | number, body: any) {
-    const existing = await ProjectRepository.findResearchById(identifier);
+    let existing = await ProjectRepository.findResearchById(identifier);
+    if (!existing && body.name) {
+      existing = await prisma.researchProject.findFirst({
+        where: { name: body.name },
+        include: {
+          members: true,
+          departments: { include: { department: true } },
+        },
+      });
+    }
     if (!existing) {
+      if (body.name) {
+        return this.createResearch(body);
+      }
       const err: any = new Error('ไม่พบข้อมูลโครงการวิจัย');
       err.status = 404;
       throw err;
@@ -263,8 +275,16 @@ export class ProjectService {
   }
 
   static async updateAcademic(identifier: string | number, body: any) {
-    const existing = await ProjectRepository.findAcademicById(identifier);
+    let existing = await ProjectRepository.findAcademicById(identifier);
+    if (!existing && body.name) {
+      existing = await prisma.academicDevProject.findFirst({
+        where: { name: body.name },
+      });
+    }
     if (!existing) {
+      if (body.name) {
+        return this.createAcademic(body);
+      }
       const err: any = new Error('ไม่พบข้อมูลโครงการพัฒนาวิชาการ');
       err.status = 404;
       throw err;

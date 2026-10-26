@@ -250,7 +250,7 @@ export function PublicationsTable({
                             </span>
                             {item.prep_budget ? (
                               <span style={{ fontSize: '10.5px', color: '#64748b' }}>
-                                (มีงบเตรียมฯ {Number(item.prep_budget).toLocaleString()} ฿)
+                                (มีงบเตรียมฯ {Number(item.prep_budget).toLocaleString()} )
                               </span>
                             ) : null}
                           </div>

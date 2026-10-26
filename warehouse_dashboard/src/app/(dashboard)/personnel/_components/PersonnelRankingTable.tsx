@@ -5,6 +5,7 @@ import Link from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import { PersonnelWorkMetric } from '../_hooks/usePersonnelData';
 import { DepartmentBadge, SearchInput } from '@/components/ui';
+import { getDepartment } from '@/lib/departments';
 import {
   FaSortAmountDown,
   FaFilter,
@@ -233,11 +234,15 @@ export function PersonnelRankingTable({ metrics, departments }: PersonnelRanking
               }}
             >
               <option value="all">ทุกภาควิชา / หน่วยงาน ({metrics.length})</option>
-              {departments.map((dept) => (
-                <option key={dept} value={dept}>
-                  {dept}
-                </option>
-              ))}
+              {departments.map((dept) => {
+                const info = getDepartment(dept);
+                const prefix = info.code && info.code !== '-' && info.code !== 'OTH' ? `${info.code} - ` : '';
+                return (
+                  <option key={dept} value={dept}>
+                    {prefix}{dept}
+                  </option>
+                );
+              })}
             </select>
           </div>
 
@@ -813,7 +818,7 @@ export function PersonnelRankingTable({ metrics, departments }: PersonnelRanking
                             {budgetM} ลบ.
                           </span>
                           <div style={{ fontSize: '11px', color: '#64748b' }}>
-                            {item.budgets.total.toLocaleString('th-TH')} ฿
+                            {item.budgets.total.toLocaleString('th-TH')} 
                           </div>
                         </div>
                       ) : (
