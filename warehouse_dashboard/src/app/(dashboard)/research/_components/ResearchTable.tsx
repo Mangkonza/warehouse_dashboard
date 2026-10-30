@@ -144,7 +144,7 @@ export function ResearchTable({
 
               return (
                 <tr
-                  key={item.id || index}
+                  key={`research-row-${index}-${item.dbId ?? item._id ?? item.id ?? "item"}`}
                   onClick={() => setSelectedRecord(item)}
                   style={{ cursor: 'pointer' }}
                 >

@@ -125,15 +125,21 @@ export class IpService {
 
     const appNo = String(body.application_number || '').trim() || null;
 
-    // Parse inventors
+    // Parse inventors (handle both string[] and PersonValue[] objects)
     let inventorsList: string[] = [];
     if (Array.isArray(body.inventors)) {
-      inventorsList = body.inventors.map(String).map((s: string) => s.trim()).filter(Boolean);
+      inventorsList = body.inventors
+        .map((inv: any) =>
+          typeof inv === 'object' && inv !== null
+            ? String(inv.name || inv.personName || inv.clean_name || '').trim()
+            : String(inv).trim()
+        )
+        .filter((s: string) => Boolean(s) && s !== '[object Object]');
     } else if (body.creator || body.inventors) {
       inventorsList = String(body.creator || body.inventors)
         .split(',')
         .map((s: string) => s.trim())
-        .filter(Boolean);
+        .filter((s: string) => Boolean(s) && s !== '[object Object]');
     }
 
     // Parse departments
@@ -145,6 +151,14 @@ export class IpService {
         .split(',')
         .map((s: string) => s.trim())
         .filter(Boolean);
+    }
+    if (Array.isArray(body.inventors)) {
+      for (const inv of body.inventors) {
+        if (typeof inv === 'object' && inv !== null && inv.department) {
+          const d = String(inv.department).trim();
+          if (d && !rawDepts.includes(d)) rawDepts.push(d);
+        }
+      }
     }
 
     const departmentsList: string[] = [];
@@ -210,7 +224,6 @@ export class IpService {
         if (!workCategory) {
           const err: any = new Error('กรุณาระบุประเภทงานสร้างสรรค์สำหรับลิขสิทธิ์');
           err.status = 422;
-          throw err;
         }
       } else if (!workCategory) {
         const err: any = new Error('กรุณาระบุประเภทงานสร้างสรรค์สำหรับลิขสิทธิ์');
@@ -237,12 +250,18 @@ export class IpService {
 
     let inventorsList: string[] | undefined = undefined;
     if (Array.isArray(body.inventors)) {
-      inventorsList = body.inventors.map(String).map((s: string) => s.trim()).filter(Boolean);
+      inventorsList = body.inventors
+        .map((inv: any) =>
+          typeof inv === 'object' && inv !== null
+            ? String(inv.name || inv.personName || inv.clean_name || '').trim()
+            : String(inv).trim()
+        )
+        .filter((s: string) => Boolean(s) && s !== '[object Object]');
     } else if (body.creator !== undefined || body.inventors !== undefined) {
       inventorsList = String(body.creator || body.inventors || '')
         .split(',')
         .map((s: string) => s.trim())
-        .filter(Boolean);
+        .filter((s: string) => Boolean(s) && s !== '[object Object]');
     }
 
     let departmentsList: string[] | undefined = undefined;

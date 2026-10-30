@@ -160,9 +160,7 @@ export function PersonnelRankingTable({ metrics, departments }: PersonnelRanking
             >
               ตารางจัดอันดับผลงานอาจารย์และบุคลากร
             </h3>
-            <p style={{ margin: '2px 0 0 0', fontSize: '12.5px', color: '#64748b' }}>
-              แสดงข้อมูลผลงานสะสม 5 พันธกิจหลักและแฟ้มผลงานรายบุคคล
-            </p>
+            
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -548,24 +546,26 @@ export function PersonnelRankingTable({ metrics, departments }: PersonnelRanking
                     {/* Personnel Info */}
                     <td style={{ padding: '12px 14px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        {item.imageUrl && (
-                          <img
-                            src={encodeURI(item.imageUrl)}
-                            alt={item.name}
-                            onError={(e) => {
-                              (e.currentTarget as HTMLElement).style.display = 'none';
-                            }}
-                            style={{
-                              width: '38px',
-                              height: '38px',
-                              borderRadius: '8px',
-                              objectFit: 'cover',
-                              objectPosition: 'top center',
-                              border: '1px solid #e2e8f0',
-                              flexShrink: 0,
-                            }}
-                          />
-                        )}
+                        <img
+                          src={item.imageUrl ? encodeURI(item.imageUrl) : '/default-avatar.png'}
+                          alt={item.name}
+                          onError={(e) => {
+                            const target = e.currentTarget;
+                            if (target.src !== '/default-avatar.png' && !target.src.endsWith('/default-avatar.png')) {
+                              target.src = '/default-avatar.png';
+                            }
+                          }}
+                          style={{
+                            width: '38px',
+                            height: '38px',
+                            borderRadius: '8px',
+                            objectFit: 'cover',
+                            objectPosition: 'top center',
+                            border: '1px solid #e2e8f0',
+                            flexShrink: 0,
+                            backgroundColor: '#99b8db',
+                          }}
+                        />
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '13.5px' }}>
                             {item.name}
@@ -692,7 +692,7 @@ export function PersonnelRankingTable({ metrics, departments }: PersonnelRanking
                             borderRadius: '6px',
                             fontSize: '12px',
                           }}
-                          title={`Scopus Q1/Q2: ${item.pubQuartiles.q1 + item.pubQuartiles.q2} เรื่อง`}
+                          title={`Q1/Q2: ${item.pubQuartiles.q1 + item.pubQuartiles.q2} เรื่อง`}
                         >
                           {item.counts.publications}
                           {item.pubQuartiles.q1 > 0 && (

@@ -1,0 +1,14 @@
+node_modules
+.next
+.git
+.env*
+!.env.example
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+**/__tests__/**
+tests
+docs
+README.md
+*.log

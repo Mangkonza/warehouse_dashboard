@@ -54,6 +54,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     checkSession();
   }, [checkSession]);
 
+  useEffect(() => {
+    const handleRolesUpdated = () => {
+      checkSession();
+    };
+    window.addEventListener('ku_roles_updated', handleRolesUpdated);
+    return () => window.removeEventListener('ku_roles_updated', handleRolesUpdated);
+  }, [checkSession]);
+
   const logout = useCallback(async () => {
     try {
       await fetch('/api/v1/auth/logout', {

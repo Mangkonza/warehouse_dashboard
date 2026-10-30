@@ -358,7 +358,7 @@ export function PersonnelCharts({ metrics, departmentStats, onSelectPerson }: Pe
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <FaChartBar style={{ color: '#00A651', fontSize: '16px' }} />
             <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
-              10 อันดับอาจารย์ที่มีผลงานสะสมสูงสุด (จำแนกตาม 5 พันธกิจ)
+              10 อันดับอาจารย์ที่มีผลงานสะสมสูงสุด
             </h4>
           </div>
         </div>

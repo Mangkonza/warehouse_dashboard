@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Sidebar, SidebarMenuItem, SidebarCategory } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
-import { HeaderAuth, useAuth } from '@/features/auth';
+import { HeaderAuth, useAuth, useSsoUserSafe } from '@/features/auth';
 import { TimeFilterModal, useTimeFilter } from '@/features/time-filter';
 import { PageLoader } from '@/components/ui/PageLoader';
 import { SITE_CONFIG } from '@/config/site';
@@ -20,6 +20,7 @@ import {
   FaChartLine,
   FaClock,
   FaClipboardCheck,
+  FaDatabase,
   FaUserCog,
   FaUser,
   FaUserTie,
@@ -30,6 +31,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   const { user, isLoading } = useAuth();
+  const sso = useSsoUserSafe();
+  const ssoUser = sso?.user;
   const { timeFilter, setTimeFilter, isTimeModalOpen, setIsTimeModalOpen } = useTimeFilter();
 
   const [isSidebarHovered, setIsSidebarHovered] = useState(false);
@@ -212,10 +215,10 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       label: 'การจัดการและติดตาม',
       items: [
         {
-          id: 'monitoring',
-          label: 'ติดตามสถานะโครงการ',
-          path: '/monitoring',
-          icon: <FaClock />,
+          id: 'manage',
+          label: 'ระบบจัดการข้อมูล',
+          path: '/manage',
+          icon: <FaDatabase />,
         },
         {
           id: 'evaluation',
@@ -224,9 +227,15 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           icon: <FaClipboardCheck />,
         },
         {
-          id: 'manage',
-          label: 'ระบบจัดการข้อมูล',
-          path: '/manage',
+          id: 'monitoring',
+          label: 'ติดตามสถานะโครงการ',
+          path: '/monitoring',
+          icon: <FaClock />,
+        },
+        {
+          id: 'user_roles',
+          label: 'จัดการสิทธิ์ผู้เข้าใช้งาน',
+          path: '/user-roles',
           icon: <FaUserCog />,
         },
       ],
@@ -257,6 +266,21 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const isExpanded = !isForceCollapsed && (isSidebarPinned || isSidebarHovered);
   const layoutLeftOffset = isSidebarPinned && isExpanded ? 255 : 70;
 
+  const profileName =
+    (ssoUser?.firstName && ssoUser?.lastName
+      ? `${ssoUser.firstName} ${ssoUser.lastName}`
+      : null) ||
+    ssoUser?.name ||
+    user?.nameTh ||
+    user?.nontriAccount ||
+    ssoUser?.nontriId ||
+    "ผู้ใช้งาน";
+
+  const profileSubtitle =
+    user?.typePerson ||
+    (ssoUser?.faculty ? `คณะ${ssoUser.faculty.replace(/^คณะ/, "")}` : null) ||
+    singleRole;
+
   const userSlot = (
     <>
       <div
@@ -274,7 +298,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             width: '40px',
             height: '40px',
             borderRadius: '50%',
-            backgroundColor: user ? '#00e676' : '#374151',
+            backgroundColor: (user || ssoUser) ? '#00e676' : '#374151',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -283,11 +307,11 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             overflow: 'hidden',
           }}
         >
-          {user ? (
+          {(user || ssoUser) ? (
             <>
               <img
                 src="/assets/profile.jfif"
-                alt={user.nameTh || user.nontriAccount || 'Profile'}
+                alt={profileName}
                 style={{
                   width: '100%',
                   height: '100%',
@@ -310,7 +334,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                   fontSize: '15px',
                 }}
               >
-                {(user.nontriAccount || 'U').charAt(0).toUpperCase()}
+                {(profileName || 'U').charAt(0).toUpperCase()}
               </span>
             </>
           ) : (
@@ -336,10 +360,10 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             color: '#f8fafc',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
-            maxWidth: '140px',
+            maxWidth: '170px',
           }}
         >
-          {user?.nameTh || user?.nontriAccount || 'ผู้ใช้งาน'}
+          {profileName}
         </div>
 
         <div
@@ -348,9 +372,13 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             color: '#00e676',
             fontWeight: 600,
             marginTop: '2px',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            maxWidth: '170px',
           }}
+          title={profileSubtitle}
         >
-          {singleRole}
+          {profileSubtitle}
         </div>
       </div>
     </>

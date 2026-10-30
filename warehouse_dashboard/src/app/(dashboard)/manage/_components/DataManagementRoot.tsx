@@ -8,7 +8,7 @@ import { TopSegmentedTabs } from './TopSegmentedTabs';
 import { DataTable } from './DataTable';
 import { PersonnelGrid } from './PersonnelGrid';
 import { SmartAddEditModal } from './SmartAddEditModal';
-import { SmartExcelImportModal } from './SmartExcelImportModal';
+import { ImportExcelModal } from '@/features/data-import';
 import { ConfirmActionModal, SearchInput } from '@/components/ui';
 import {
   Select,
@@ -18,6 +18,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { FilterModal } from './FilterModal';
+import { FilterPopover, ActiveFilterChips } from '@/components/ui';
+import { itemMatchesDepartmentMulti, itemMatchesDateRange, itemMatchesNumericRanges } from '@/lib/filterMatching';
 import { downloadExcelTemplate, exportTableToExcel } from '@/lib/etlEngine';
 import {
   FaCheckCircle,
@@ -105,7 +107,6 @@ const VALID_CATEGORIES: readonly CategoryKey[] = [
   'personnel',
   'kpi',
   'monitoring',
-  'user_roles',
 ];
 
 const LS_MANAGE_TAB_KEY = 'ku_dw_manage_active_tab';
@@ -116,6 +117,10 @@ function resolveInitialCategory(): CategoryKey {
     try {
       const params = new URLSearchParams(window.location.search);
       const urlTab = params.get('tab') || params.get('category');
+      if (urlTab === 'user_roles') {
+        window.location.replace('/user-roles');
+        return 'research';
+      }
       if (urlTab && VALID_CATEGORIES.includes(urlTab as CategoryKey)) {
         return urlTab as CategoryKey;
       }
@@ -389,6 +394,11 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
   const [activeCategory, setActiveCategory] = useState<CategoryKey>(resolveInitialCategory);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDept, setSelectedDept] = useState('');
+  const [selectedDeptCustom, setSelectedDeptCustom] = useState('');
+  const [selectedDateFrom, setSelectedDateFrom] = useState<string | undefined>(undefined);
+  const [selectedDateTo, setSelectedDateTo] = useState<string | undefined>(undefined);
+  const [selectedNumericRanges, setSelectedNumericRanges] = useState<Record<string, [number | null, number | null]>>({});
+  const [selectedJournals, setSelectedJournals] = useState<string[]>([]);
   const [selectedRole, setSelectedRole] = useState('');
   const [selectedImageStatus, setSelectedImageStatus] = useState<'all' | 'has_image' | 'no_image'>('all');
   const [selectedCompleteness, setSelectedCompleteness] = useState<'all' | 'complete' | 'incomplete'>('all');
@@ -520,10 +530,38 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
   const filteredData = useMemo(() => {
     return currentList.filter((item: any) => {
       // 1. Department filter
-      if (selectedDept) {
-        if (!itemMatchesDepartment(item, selectedDept)) {
+      if (selectedDept || selectedDeptCustom) {
+        if (!itemMatchesDepartmentMulti(item, selectedDept, selectedDeptCustom)) {
           return false;
         }
+      }
+
+      // Date Range Filter
+      if (selectedDateFrom || selectedDateTo) {
+        if (!itemMatchesDateRange(item, selectedDateFrom, selectedDateTo)) {
+          return false;
+        }
+      }
+
+      // Numeric Ranges Filter
+      if (selectedNumericRanges && Object.keys(selectedNumericRanges).length > 0) {
+        if (!itemMatchesNumericRanges(item, selectedNumericRanges)) {
+          return false;
+        }
+      }
+
+      // Journals Filter (publications)
+      if (activeCategory === 'publications' && selectedJournals && selectedJournals.length > 0) {
+        const jVal = String(
+          item.journal_index?.value ||
+          item.evaluation?.journal_index?.value ||
+          item.level ||
+          item.journal ||
+          item.remarks ||
+          ''
+        ).toLowerCase();
+        const hasMatch = selectedJournals.some((target) => jVal.includes(target.toLowerCase()));
+        if (!hasMatch) return false;
       }
 
       // 2. Personnel: Role / Position Filter
@@ -669,6 +707,11 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
   }, [
     currentList,
     selectedDept,
+    selectedDeptCustom,
+    selectedDateFrom,
+    selectedDateTo,
+    selectedNumericRanges,
+    selectedJournals,
     selectedRole,
     selectedImageStatus,
     selectedCompleteness,
@@ -704,7 +747,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
 
   const managementTabs = useMemo(() => {
     const tabsList: { key: CategoryKey; label: string; count?: number }[] = [
-      { key: 'research', label: 'โครงงานวิจัย', count: counts.research },
+      { key: 'research', label: 'โครงการวิจัย', count: counts.research },
       { key: 'academic', label: 'โครงการพัฒนาวิชาการ', count: counts.academic },
       { key: 'publications', label: 'ผลงานตีพิมพ์ทางวิชาการ', count: counts.publications },
       { key: 'service', label: 'งานบริการวิชาการ', count: counts.service },
@@ -713,16 +756,8 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
       { key: 'kpi', label: 'ตัวชี้วัดตามแผนยุทธศาสตร์', count: counts.kpi },
     ];
 
-    if (canManageRoles) {
-      tabsList.push({
-        key: 'user_roles',
-        label: 'จัดการสิทธิ์ผู้ใช้',
-        count: adminCount,
-      });
-    }
-
     return tabsList;
-  }, [counts, canManageRoles, adminCount]);
+  }, [counts]);
 
   // Handle Tab Change
   const handleTabChange = (key: CategoryKey) => {
@@ -730,6 +765,11 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
     setCurrentPage(1);
     setSearchTerm('');
     setSelectedDept('');
+    setSelectedDeptCustom('');
+    setSelectedDateFrom(undefined);
+    setSelectedDateTo(undefined);
+    setSelectedNumericRanges({});
+    setSelectedJournals([]);
     setSelectedRole('');
     setSelectedImageStatus('all');
     setSelectedCompleteness('all');
@@ -760,6 +800,11 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
   const handleResetFilters = () => {
     setSearchTerm('');
     setSelectedDept('');
+    setSelectedDeptCustom('');
+    setSelectedDateFrom('');
+    setSelectedDateTo('');
+    setSelectedNumericRanges({});
+    setSelectedJournals([]);
     setSelectedRole('');
     setSelectedImageStatus('all');
     setSelectedCompleteness('all');
@@ -772,6 +817,11 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
   const hasActiveFilters = Boolean(
     searchTerm.trim() ||
     selectedDept ||
+    selectedDeptCustom ||
+    selectedDateFrom ||
+    selectedDateTo ||
+    (selectedNumericRanges && Object.keys(selectedNumericRanges).length > 0) ||
+    (selectedJournals && selectedJournals.length > 0) ||
     (activeCategory === 'personnel' && selectedRole) ||
     (activeCategory === 'personnel' && selectedImageStatus !== 'all') ||
     (activeCategory === 'personnel' && selectedCompleteness !== 'all') ||
@@ -782,6 +832,10 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
 
   const activeFilterCount =
     (selectedDept ? 1 : 0) +
+    (selectedDeptCustom ? 1 : 0) +
+    (selectedDateFrom || selectedDateTo ? 1 : 0) +
+    (selectedNumericRanges ? Object.keys(selectedNumericRanges).length : 0) +
+    (selectedJournals && selectedJournals.length > 0 ? 1 : 0) +
     (activeCategory === 'personnel' && selectedRole ? 1 : 0) +
     (activeCategory === 'personnel' && selectedImageStatus !== 'all' ? 1 : 0) +
     (activeCategory === 'personnel' && selectedCompleteness !== 'all' ? 1 : 0) +
@@ -834,7 +888,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
   const handleDeleteConfirm = async () => {
     if (!deleteTarget) return;
     const targetCategory = activeCategory === 'monitoring' ? 'research' : activeCategory;
-    const targetId = deleteTarget.item._id || deleteTarget.item.id;
+    const targetId = deleteTarget.item.dbId || deleteTarget.item.id || deleteTarget.item._id;
     const targetName = deleteTarget.item[currentConfig.nameKey] || deleteTarget.item.name || '';
 
     try {
@@ -1057,7 +1111,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
             ระบบจัดการข้อมูล
           </h2>
           <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
-            จัดการและนำเข้าข้อมูลโครงการวิจัย โครงการพัฒนาวิชาการ ผลงานตีพิมพ์ทางวิชาการ งานบริการวิชาการ งานทรัพย์สินทางปัญญา ข้อมูลบุคลากรและอาจารย์ ตัวชี้วัดตามแผนยุทธศาสตร์ และจัดการสิทธิ์ผู้ใช้
+            จัดการและนำเข้าข้อมูลโครงการวิจัย โครงการพัฒนาวิชาการ ผลงานตีพิมพ์ทางวิชาการ งานบริการวิชาการ งานทรัพย์สินทางปัญญา ข้อมูลบุคลากรและอาจารย์ และตัวชี้วัดตามแผนยุทธศาสตร์
           </div>
         </div>
       </div>
@@ -1189,7 +1243,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
           <UserRoleManagementTab />
         </div>
       ) : activeCategory === 'kpi' ? (
-        <KPIManagementTab datasets={datasets} />
+        <KPIManagementTab datasets={datasets} onOpenImportExcel={() => setIsImportModalOpen(true)} showToast={showToast} />
       ) : (
         /* 3. กล่องเนื้อหาหลัก */
         <div
@@ -1198,7 +1252,9 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
             borderRadius: '12px',
             border: '1px solid #e2e8f0',
             boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
-            overflow: 'hidden',
+            overflow: 'visible',
+            position: 'relative',
+            zIndex: 20,
           }}
         >
           {/* Action & Filter Bar */}
@@ -1281,63 +1337,43 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
               </div>
 
               {/* ปุ่ม Filter */}
-              <button
-                type="button"
-                onClick={() => setIsFilterModalOpen(true)}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '7px',
-                  padding: '7px 14px',
-                  borderRadius: '8px',
-                  border: activeFilterCount > 0 ? '1.5px solid #00A651' : '1px solid #cbd5e1',
-                  backgroundColor: activeFilterCount > 0 ? '#f0fbf5' : '#ffffff',
-                  color: activeFilterCount > 0 ? '#00A651' : '#334155',
-                  fontSize: '13px',
-                  fontWeight: activeFilterCount > 0 ? 600 : 500,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                  boxShadow: activeFilterCount > 0 ? '0 1px 3px rgba(0, 166, 81, 0.15)' : 'none',
-                  whiteSpace: 'nowrap',
+              {/* Filter Popover */}
+              <FilterPopover
+                category={activeCategory}
+                categoryTitle={currentConfig.title}
+                totalCount={currentList.length}
+                matchCount={filteredData.length}
+                filters={{
+                  departments: selectedDept ? selectedDept.split(',').filter(Boolean) : [],
+                  deptCustomText: selectedDeptCustom,
+                  dateFrom: selectedDateFrom,
+                  dateTo: selectedDateTo,
+                  numericRanges: selectedNumericRanges,
+                  journals: selectedJournals,
+                  role: selectedRole,
+                  imageStatus: selectedImageStatus,
+                  completeness: selectedCompleteness,
+                  subFilter: selectedSubFilter,
+                  sdgs: selectedSdgs,
+                  framework: selectedFramework,
                 }}
-                onMouseEnter={(e) => {
-                  if (activeFilterCount === 0) {
-                    e.currentTarget.style.borderColor = '#00A651';
-                    e.currentTarget.style.backgroundColor = '#f0fbf5';
-                    e.currentTarget.style.color = '#00A651';
-                  }
+                onApply={(newFilters) => {
+                  setSelectedDept(newFilters.departments.join(','));
+                  setSelectedDeptCustom(newFilters.deptCustomText || '');
+                  setSelectedDateFrom(newFilters.dateFrom);
+                  setSelectedDateTo(newFilters.dateTo);
+                  setSelectedNumericRanges(newFilters.numericRanges || {});
+                  setSelectedJournals(newFilters.journals || []);
+                  setSelectedRole(newFilters.role || '');
+                  setSelectedImageStatus(newFilters.imageStatus || 'all');
+                  setSelectedCompleteness(newFilters.completeness || 'all');
+                  setSelectedSubFilter(newFilters.subFilter || '');
+                  setSelectedSdgs(newFilters.sdgs || []);
+                  setSelectedFramework(newFilters.framework || 'all');
+                  setCurrentPage(1);
                 }}
-                onMouseLeave={(e) => {
-                  if (activeFilterCount === 0) {
-                    e.currentTarget.style.borderColor = '#cbd5e1';
-                    e.currentTarget.style.backgroundColor = '#ffffff';
-                    e.currentTarget.style.color = '#334155';
-                  }
-                }}
-                title="เปิดหน้าต่างตัวกรองข้อมูล"
-              >
-                <FaFilter style={{ fontSize: '11px' }} />
-                <span>ตัวกรอง</span>
-                {activeFilterCount > 0 && (
-                  <span
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      minWidth: '18px',
-                      height: '18px',
-                      padding: '0 5px',
-                      borderRadius: '9px',
-                      backgroundColor: '#00A651',
-                      color: '#ffffff',
-                      fontSize: '11px',
-                      fontWeight: 700,
-                    }}
-                  >
-                    {activeFilterCount}
-                  </span>
-                )}
-              </button>
+                onReset={handleResetFilters}
+              />
 
               {/* ปุ่มล้างตัวกรองทั้งหมด */}
               {hasActiveFilters && (
@@ -1353,7 +1389,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
                     border: '1px solid #fca5a5',
                     color: '#b91c1c',
                     fontSize: '12.5px',
-                    fontWeight: 600,
+                    fontWeight: 400,
                     cursor: 'pointer',
                     transition: 'background-color 0.15s ease',
                     whiteSpace: 'nowrap',
@@ -1496,27 +1532,11 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
 
               {/* นำเข้าไฟล์ Excel */}
               <button
+                type="button"
                 onClick={() => setIsImportModalOpen(true)}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '7px 18px',
-                  backgroundColor: '#00A651',
-                  border: 'none',
-                  borderRadius: '8px',
-                  color: '#ffffff',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 6px rgba(0, 166, 81, 0.25)',
-                  whiteSpace: 'nowrap',
-                  transition: 'background-color 0.15s ease',
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#00A651')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#00A651')}
+                className="h-9 px-4 rounded-lg bg-[#00A651] hover:bg-[#008f45] active:bg-[#007a3a] text-white font-medium text-sm inline-flex items-center gap-2 shadow-xs transition-colors cursor-pointer"
               >
-                <FaFileExcel style={{ fontSize: '14px' }} />
+                <FaFileExcel className="w-4 h-4 text-white" />
                 <span>นำเข้าไฟล์ Excel</span>
               </button>
             </div>
@@ -1741,12 +1761,16 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
         initialData={editingItem}
       />
 
-      <SmartExcelImportModal
+      <ImportExcelModal
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
         activeCategory={activeCategory}
-        onCommitImport={handleCommitImport}
         existingDatasets={datasets}
+        onCommitSuccess={async () => {
+          await syncServerData(true);
+          showToast('นำเข้าข้อมูลเรียบร้อยแล้ว', 'success');
+        }}
+        showToast={showToast}
       />
 
       <ConfirmActionModal
@@ -1789,30 +1813,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
         }}
       />
 
-      <FilterModal
-        isOpen={isFilterModalOpen}
-        onClose={() => setIsFilterModalOpen(false)}
-        activeCategory={activeCategory}
-        config={currentConfig}
-        selectedDept={selectedDept}
-        selectedRole={selectedRole}
-        selectedImageStatus={selectedImageStatus}
-        selectedSubFilter={selectedSubFilter}
-        selectedCompleteness={selectedCompleteness}
-        selectedSdgs={selectedSdgs}
-        selectedFramework={selectedFramework}
-        onApply={(filters) => {
-          setSelectedDept(filters.selectedDept);
-          setSelectedRole(filters.selectedRole);
-          setSelectedImageStatus(filters.selectedImageStatus);
-          setSelectedSubFilter(filters.selectedSubFilter);
-          setSelectedCompleteness(filters.selectedCompleteness || 'all');
-          setSelectedSdgs(filters.selectedSdgs || []);
-          setSelectedFramework(filters.selectedFramework || 'all');
-          setCurrentPage(1);
-        }}
-        onReset={handleResetFilters}
-      />
+      {/* FilterModal replaced by FilterPopover */}
     </div>
   );
 };

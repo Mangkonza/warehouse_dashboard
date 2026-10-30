@@ -1,0 +1,18 @@
+$kind: collection
+description: Postman Collection v2.1 adapted for Warehouse Dashboard SSO (/sso/login, /sso/logout, /api/auth/*). Empty tokens/secrets by default. Fill private local/environment variables before running.
+variables:
+  webBaseUrl: https://<PUBLIC_ORIGIN>
+  exchangeUrl: https://office.eng.kps.ku.ac.th/eng-main/api/external/exchange-token
+  meUrl: https://eng.kps.ku.ac.th/std-eng-auth-service/api/me.php
+  verifyUrl: https://eng.kps.ku.ac.th/std-eng-auth-service/api/verify.php
+  roleUrl: https://office.eng.kps.ku.ac.th/eng-main/api/external/get-role
+  systemId: ""
+  nontriId: ""
+  exchangeToken: ""
+  intranetToken: ""
+  accessToken: ""
+  expectedRole: ""
+auth:
+  - id: ""
+    type: noauth
+    name: No Auth

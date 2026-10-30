@@ -1,0 +1,15 @@
+$kind: http-request
+description: ทางเลือกแทน A1 ใช้ code ใหม่ ปิด follow redirects ไว้เพื่อดู Location
+url: "{{webBaseUrl}}/api/auth/portal-session?exchangeToken={{exchangeToken}}&intranetToken={{intranetToken}}&next=%2Fadmin"
+method: GET
+headers:
+  Accept: application/json
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Redirect after bootstrap", () => pm.expect(pm.response.code).to.eql(307));
+      pm.test("Clean Location", () => { const l=pm.response.headers.get("Location"); pm.expect(l).to.be.a("string"); pm.expect(l).not.to.include("exchangeToken="); pm.expect(l).not.to.include("intranetToken="); });
+    language: text/javascript
+settings:
+  followRedirects: false
+order: 1000

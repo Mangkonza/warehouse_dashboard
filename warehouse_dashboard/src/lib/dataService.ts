@@ -162,7 +162,19 @@ export function getCachedCategoryData(category: string): any[] | null {
       }
     }
 
-    return mergedList;
+    // Deduplicate mergedList to guarantee unique keys
+    const seenItemKeys = new Set<string>();
+    const deduplicatedList: any[] = [];
+    for (const it of mergedList) {
+      const keyId = normalizeKey(it.id) || normalizeKey(it._id) || (it.dbId ? `db_${it.dbId}` : '');
+      const keyName = normalizeKey(it.name || it.title);
+      const combinedKey = keyId || keyName || `item_${deduplicatedList.length}`;
+      if (!seenItemKeys.has(combinedKey)) {
+        seenItemKeys.add(combinedKey);
+        deduplicatedList.push(it);
+      }
+    }
+    return deduplicatedList;
   }
 
   return cachedList.filter((item) => !isItemDeleted(item));
@@ -198,15 +210,28 @@ export async function fetchCategoryData(category: string): Promise<any[]> {
     });
     if (res.ok) {
       const result = await res.json();
-      if (result && Array.isArray(result.data) && result.data.length > 0) {
-        // Merge server items with any active local edits
-        const cached = getCachedCategoryData(category) || [];
-        const merged = result.data.map((serverItem: any) => {
-          const match = cached.find((c) => isSameItem(c, serverItem));
-          return match ? { ...serverItem, ...match } : serverItem;
-        });
-        setCachedCategoryData(category, merged, false);
-        return merged;
+      if (result && Array.isArray(result.data)) {
+        if (result.data.length > 0) {
+          // Merge server items with any active local edits & deduplicate
+          const cached = getCachedCategoryData(category) || [];
+          const seenKeys = new Set<string>();
+          const merged: any[] = [];
+          for (const serverItem of result.data) {
+            const match = cached.find((c) => isSameItem(c, serverItem));
+            const item = match ? { ...serverItem, ...match } : serverItem;
+            const k = normalizeKey(item.id) || normalizeKey(item._id) || (item.dbId ? `db_${item.dbId}` : normalizeKey(item.name || item.title));
+            if (!k || !seenKeys.has(k)) {
+              if (k) seenKeys.add(k);
+              merged.push(item);
+            }
+          }
+          setCachedCategoryData(category, merged, false);
+          return merged;
+        } else {
+          // Empty DB state: do not resurrect static json dummy data
+          setCachedCategoryData(category, [], false);
+          return [];
+        }
       }
     }
   } catch (err) {
@@ -228,7 +253,7 @@ export async function saveCategoryRecord(
   const method = isNew ? 'POST' : 'PUT';
 
   const recordId = record._id || record.id || `${category}_${Date.now()}`;
-  const recordToSave = {
+  const recordToSave: Record<string, any> = {
     ...record,
     _id: recordId,
     updatedAt: new Date().toISOString(),
@@ -285,9 +310,28 @@ export async function saveCategoryRecord(
     const result = await res.json().catch(() => ({}));
 
     if (res.ok) {
-      const finalData = result.data || recordToSave;
-      updateLocalCache(finalData);
-      return { success: true, data: finalData };
+      const merged: Record<string, any> = { ...recordToSave };
+      if (result.data && typeof result.data === 'object') {
+        for (const [k, v] of Object.entries(result.data)) {
+          if (v !== '' && v !== null && v !== undefined && !(Array.isArray(v) && v.length === 0)) {
+            merged[k] = v;
+          } else if (merged[k] === undefined) {
+            merged[k] = v;
+          }
+        }
+        // Preserve rich object arrays from form if server flattened them
+        if (Array.isArray(recordToSave.co_researchers) && recordToSave.co_researchers.length > 0) {
+          merged.co_researchers = recordToSave.co_researchers;
+        }
+        if (Array.isArray(recordToSave.inventors) && recordToSave.inventors.length > 0) {
+          merged.inventors = recordToSave.inventors;
+        }
+        if (Array.isArray(recordToSave.trl_outputs) && recordToSave.trl_outputs.length > 0) {
+          merged.trl_outputs = recordToSave.trl_outputs;
+        }
+      }
+      updateLocalCache(merged);
+      return { success: true, data: merged };
     } else {
       console.warn(`[dataService] API returned non-OK (${res.status}), saving to local cache fallback:`, result);
       updateLocalCache(recordToSave);
@@ -322,7 +366,7 @@ export async function deleteCategoryRecord(
     );
     setCachedCategoryData(category, filtered, true);
 
-    if (res.ok) {
+    if (res.ok || res.status === 404) {
       return { success: true };
     } else {
       return {
@@ -412,6 +456,30 @@ export function setCachedEvaluations(data: Record<string, EvaluationRecord>, bro
   }
 }
 
+function normalizeJournalIndex(raw: any): { type: 'Q' | 'TCI'; value: string } | null {
+  if (!raw) return null;
+  if (typeof raw === 'object' && raw.value) {
+    const val = String(raw.value).trim();
+    if (!val || val === '[object Object]') return null;
+    const type = raw.type || (val.startsWith('TCI') ? 'TCI' : 'Q');
+    return { type: type as any, value: val };
+  }
+  if (typeof raw === 'string') {
+    const trimmed = raw.trim();
+    if (!trimmed || trimmed === '[object Object]') return null;
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (parsed && parsed.value) {
+        const type = parsed.type || (String(parsed.value).startsWith('TCI') ? 'TCI' : 'Q');
+        return { type: type as any, value: String(parsed.value).trim() };
+      }
+    } catch {}
+    const type = trimmed.startsWith('TCI') ? 'TCI' : 'Q';
+    return { type: type as any, value: trimmed };
+  }
+  return null;
+}
+
 export async function fetchEvaluations(category?: string): Promise<Record<string, EvaluationRecord>> {
   try {
     const url = category ? `/api/v1/evaluation?category=${encodeURIComponent(category)}` : '/api/v1/evaluation';
@@ -430,7 +498,10 @@ export async function fetchEvaluations(category?: string): Promise<Record<string
           if (it && it.category && (it.record_id || (it as any).recordId)) {
             const rId = it.record_id || (it as any).recordId;
             const key = `${it.category.toLowerCase()}_${String(rId).trim()}`;
-            map[key] = it;
+            map[key] = {
+              ...it,
+              journal_index: normalizeJournalIndex(it.journal_index),
+            };
           }
         });
         setCachedEvaluations(map, false);
@@ -460,9 +531,13 @@ export async function saveEvaluationRecord(
       const cached = getCachedEvaluations();
       const rId = result.data.record_id || result.data.recordId;
       const key = `${result.data.category.toLowerCase()}_${String(rId).trim()}`;
-      const updated = { ...cached, [key]: result.data };
+      const normalizedRecord: EvaluationRecord = {
+        ...result.data,
+        journal_index: normalizeJournalIndex(result.data.journal_index),
+      };
+      const updated = { ...cached, [key]: normalizedRecord };
       setCachedEvaluations(updated, true);
-      return { success: true, data: result.data };
+      return { success: true, data: normalizedRecord };
     }
     return { success: false, error: result.message || 'บันทึกการประเมินไม่สำเร็จ' };
   } catch (err: any) {
@@ -486,13 +561,19 @@ export async function bulkSaveEvaluationRecords(
     if (res.ok && Array.isArray(result.data)) {
       const cached = getCachedEvaluations();
       const updated = { ...cached };
+      const normalizedData: EvaluationRecord[] = [];
       result.data.forEach((it: EvaluationRecord) => {
         const rId = it.record_id || (it as any).recordId;
         const key = `${it.category.toLowerCase()}_${String(rId).trim()}`;
-        updated[key] = it;
+        const normalized = {
+          ...it,
+          journal_index: normalizeJournalIndex(it.journal_index),
+        };
+        updated[key] = normalized;
+        normalizedData.push(normalized);
       });
       setCachedEvaluations(updated, true);
-      return { success: true, data: result.data };
+      return { success: true, data: normalizedData };
     }
     return { success: false, error: result.message || 'ประเมินรายการที่เลือกไม่สำเร็จ' };
   } catch (err: any) {

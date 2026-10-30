@@ -8,6 +8,7 @@ import { DepartmentBadge } from '@/components/ui/department-badge';
 import { LevelBadge } from '@/components/ui/evaluation-tag';
 import { ServiceTypeBadge } from '@/components/ui/service-type-badge';
 import { IPTypeBadge } from '@/components/ui/ip-type-badge';
+import { PublicationTypeBadge } from '@/components/ui/publication-type-badge';
 import { formatDateBE } from '@/components/ui/RecordDetailDrawer';
 import { Drawer } from '@/components/ui/Drawer';
 import { Button } from '@/components/ui/button';
@@ -56,10 +57,29 @@ export const EvaluationDrawer: React.FC<EvaluationDrawerProps> = ({
   // Sync draft value whenever record or evaluation changes
   useEffect(() => {
     if (record) {
+      let journalIndexVal: { type: 'Q' | 'TCI'; value: string } | null = null;
+      const rawJ: any = evaluation?.journal_index;
+      if (rawJ) {
+        if (typeof rawJ === 'object' && rawJ.value) {
+          journalIndexVal = {
+            type: rawJ.type || (String(rawJ.value).startsWith('TCI') ? 'TCI' : 'Q'),
+            value: String(rawJ.value).trim(),
+          };
+        } else if (typeof rawJ === 'string') {
+          const trimmed = rawJ.trim();
+          if (trimmed && trimmed !== '[object Object]') {
+            journalIndexVal = {
+              type: trimmed.startsWith('TCI') ? 'TCI' : 'Q',
+              value: trimmed,
+            };
+          }
+        }
+      }
+
       setDraftValue({
         sdg_ids: Array.isArray(evaluation?.sdg_ids) ? [...evaluation.sdg_ids] : [],
         i_type: evaluation?.i_type ?? null,
-        journal_index: evaluation?.journal_index ? { ...evaluation.journal_index } : null,
+        journal_index: journalIndexVal,
       });
       setConfirmCloseOpen(false);
       setErrorMessage(null);
@@ -274,9 +294,9 @@ export const EvaluationDrawer: React.FC<EvaluationDrawerProps> = ({
             {category === 'publications' && (
               <div className="grid grid-cols-2 gap-2 text-slate-700">
                 {record.type && (
-                  <div>
-                    <span className="text-slate-400 font-medium mr-1.5">ชนิดของผลงาน:</span>
-                    <span className="font-semibold text-slate-800">{record.type}</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-slate-400 font-medium">ชนิดของผลงาน:</span>
+                    <PublicationTypeBadge value={record.type} />
                   </div>
                 )}
                 {record.level && (

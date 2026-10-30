@@ -66,6 +66,79 @@ export const getDepartmentAbbr = (dept: string): string => {
   return getDepartment(dept).code;
 };
 
+const COLLABORATION_LABEL_MAP: Record<string, string> = {
+  internal_ku: 'ร่วมมือกับหน่วยงานภายในมหาวิทยาลัยเกษตรศาสตร์',
+  domestic_academic: 'ร่วมมือกับสถาบันการศึกษา / หน่วยงานวิจัยในประเทศ',
+  domestic_industry: 'ร่วมมือกับภาคเอกชน / ภาคอุตสาหกรรมในประเทศ',
+  international: 'ร่วมมือกับสถาบันหรือองค์กรต่างประเทศ',
+};
+
+const PROJECT_NATURE_LABEL_MAP: Record<string, string> = {
+  basic: 'การวิจัยพื้นฐาน',
+  applied: 'การวิจัยประยุกต์',
+  experimental: 'การพัฒนาเชิงทดลอง',
+  commercialization: 'การถ่ายทอดเทคโนโลยีหรือเชิงพาณิชย์',
+};
+
+function parseListValue(raw: any): any[] {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw;
+  if (typeof raw === 'string') {
+    const trimmed = raw.trim();
+    if (!trimmed || trimmed === '-' || trimmed === 'nan') return [];
+    if (trimmed.startsWith('[')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed)) return parsed;
+      } catch {
+        // fallback to comma split
+      }
+    }
+    return trimmed.split(',').map((s) => s.trim()).filter(Boolean);
+  }
+  return [];
+}
+
+function formatCourseList(rawCourses: any, fallbackStr?: any): string[] | string {
+  const list = parseListValue(rawCourses);
+  if (list.length > 0) {
+    const mapped = list
+      .map((c: any) => {
+        if (typeof c === 'object' && c !== null) {
+          const code = c.code ? `[${c.code}] ` : '';
+          const name = c.name || c.title || '';
+          return `${code}${name}`.trim();
+        }
+        return String(c).trim();
+      })
+      .filter(Boolean);
+    if (mapped.length > 0) return mapped;
+  }
+  if (fallbackStr && String(fallbackStr).trim() && fallbackStr !== '-' && fallbackStr !== 'nan') {
+    return String(fallbackStr).trim();
+  }
+  return '-';
+}
+
+function formatTrlOutputs(rawOutputs: any): string[] | string {
+  const list = parseListValue(rawOutputs);
+  if (list.length > 0) {
+    const mapped = list
+      .map((t: any, idx: number) => {
+        if (typeof t === 'object' && t !== null) {
+          const name = t.name || t.title || `ผลผลิตที่ ${idx + 1}`;
+          const lvl = t.trl ?? t.trl_level;
+          const note = t.note ? ` (${t.note})` : '';
+          return `${name}${lvl ? ` — TRL ${lvl}` : ''}${note}`;
+        }
+        return String(t).trim();
+      })
+      .filter(Boolean);
+    if (mapped.length > 0) return mapped;
+  }
+  return '-';
+}
+
 export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
   monitoring: {
     key: 'monitoring',
@@ -115,123 +188,190 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
     ],
     detailGroups: [
       {
+        groupLabel: 'ข้อมูลโครงการวิจัย',
         fields: [
-          { key: 'id', label: 'รหัสโครงการ' },
-          { key: 'name', label: 'ชื่อโครงการ', span: 2 },
-          { key: 'head', label: 'หัวหน้าโครงการ', type: 'person' },
           {
-            key: 'co_researchers',
-            label: 'ผู้ร่วมวิจัย',
-            type: 'person_list',
-            span: 2,
-            getValue: (item) => item.co_researchers || item.members,
+            key: 'id',
+            label: 'รหัสโครงการวิจัย',
+            getValue: (item) => {
+              const v = item.code || item.id;
+              if (!v || /^research_idx_\d+$/i.test(String(v).trim())) return '-';
+              return String(v);
+            },
           },
+          {
+            key: 'fiscal_year_be',
+            label: 'ปีงบประมาณ (พ.ศ.)',
+            getValue: (item) => item.fiscal_year_be || item.fiscal_year || '-',
+          },
+          { key: 'name', label: 'ชื่อโครงการวิจัย (ภาษาไทย)', span: 2 },
+          {
+            key: 'name_en',
+            label: 'ชื่อโครงการวิจัย (ภาษาอังกฤษ)',
+            span: 2,
+            getValue: (item) => item.name_en || '-',
+          },
+          { key: 'fund_source', label: 'แหล่งทุนวิจัย', getValue: (item) => item.fund_source || '-' },
+          {
+            key: 'fund_type',
+            label: 'ประเภททุนวิจัย',
+            getValue: (item) => {
+              if (!item.fund_type || item.fund_type === '-') return '-';
+              if (item.fund_type === 'ภายใน') return 'ทุนภายใน';
+              if (item.fund_type === 'ภายนอก') return 'ทุนภายนอก';
+              return String(item.fund_type);
+            },
+          },
+          { key: 'start_date', label: 'ระยะเวลาดำเนินโครงการ (เริ่มต้น)', type: 'date' },
+          { key: 'end_date', label: 'ระยะเวลาดำเนินโครงการ (สิ้นสุด)', type: 'date' },
+        ],
+      },
+      {
+        groupLabel: 'คณะผู้วิจัยและสังกัด',
+        fields: [
+          { key: 'head', label: 'หัวหน้าโครงการวิจัย', type: 'person' },
           {
             key: 'department',
             label: 'สังกัดที่รับผิดชอบ',
             type: 'department',
-            getValue: (item) => item.departments || item.department,
+            getValue: (item) => item.department || '-',
+          },
+          {
+            key: 'departments',
+            label: 'สังกัดที่ร่วมรับผิดชอบ (ถ้ามีหลายสังกัด)',
+            type: 'department',
+            span: 2,
+            getValue: (item) => item.departments || item.department || '-',
+          },
+          {
+            key: 'co_researchers',
+            label: 'ผู้ร่วมวิจัย (Co-Researchers)',
+            type: 'person_list',
+            span: 2,
+            getValue: (item) => item.co_researchers || item.members,
           },
         ],
       },
       {
-        groupLabel: 'ความร่วมมือ',
+        groupLabel: 'ความร่วมมือ ลักษณะโครงการ และงบประมาณ',
         fields: [
           {
-            key: 'collaboration_domestic',
-            label: 'ในประเทศ',
+            key: 'collaboration_type',
+            label: 'ลักษณะความร่วมมือของโครงการวิจัย',
+            type: 'list',
+            span: 2,
             getValue: (item) => {
-              const arr = Array.isArray(item.collaboration_type)
-                ? item.collaboration_type
-                : String(item.collaboration_type || '').split(',');
-              return arr.some((s: string) => s.includes('ในประเทศ')) ? 'ในประเทศ' : (item.collaboration_domestic || '-');
+              const raw = parseListValue(item.collaboration_type);
+              const extra = [item.collaboration_domestic, item.collaboration_foreign]
+                .filter((x) => x && x !== '-' && x !== 'nan');
+              const combined = [...raw, ...extra];
+              if (combined.length === 0) return null;
+              return combined.map((c: string) => {
+                const s = String(c).trim();
+                if (s.startsWith('other:')) return `ความร่วมมืออื่นๆ: ${s.replace('other:', '').trim()}`;
+                return COLLABORATION_LABEL_MAP[s] || s;
+              });
             },
           },
           {
-            key: 'collaboration_foreign',
-            label: 'ต่างประเทศ',
+            key: 'project_nature',
+            label: 'ลักษณะโครงการวิจัย',
+            type: 'list',
+            span: 2,
             getValue: (item) => {
-              const arr = Array.isArray(item.collaboration_type)
-                ? item.collaboration_type
-                : String(item.collaboration_type || '').split(',');
-              return arr.some((s: string) => s.includes('ต่างประเทศ')) ? 'ต่างประเทศ' : (item.collaboration_foreign || '-');
+              const raw = parseListValue(item.project_nature);
+              if (raw.length === 0) return null;
+              return raw.map((n: string) => {
+                const s = String(n).trim();
+                if (s.startsWith('other:')) return `ลักษณะอื่นๆ: ${s.replace('other:', '').trim()}`;
+                return PROJECT_NATURE_LABEL_MAP[s] || s;
+              });
             },
           },
-        ],
-      },
-      {
-        groupLabel: 'ลักษณะโครงการ',
-        fields: [
+          { key: 'budget_internal', label: 'งบประมาณภายใน', type: 'currency' },
+          { key: 'budget_external', label: 'งบประมาณภายนอก', type: 'currency' },
           {
-            key: 'project_nature_strengthen',
-            label: 'สร้างความเข้มแข็ง',
+            key: 'budget_total',
+            label: 'งบประมาณรวม',
+            type: 'currency',
+            span: 2,
             getValue: (item) => {
-              const arr = Array.isArray(item.project_nature)
-                ? item.project_nature
-                : String(item.project_nature || '').split(',');
-              return arr.some((s: string) => s.includes('สร้างความเข้มแข็ง')) ? 'สร้างความเข้มแข็ง' : '-';
-            },
-          },
-          {
-            key: 'project_nature_policy',
-            label: 'สอดคล้องกับนโยบาย',
-            getValue: (item) => {
-              const arr = Array.isArray(item.project_nature)
-                ? item.project_nature
-                : String(item.project_nature || '').split(',');
-              return arr.some((s: string) => s.includes('สอดคล้องกับนโยบาย')) ? 'สอดคล้องกับนโยบาย' : '-';
-            },
-          },
-        ],
-      },
-      {
-        groupLabel: 'งบประมาณ',
-        fields: [
-          { key: 'budget_internal', label: 'ภายใน', type: 'currency' },
-          { key: 'budget_external', label: 'ภายนอก', type: 'currency' },
-        ],
-      },
-      {
-        fields: [
-          { key: 'fund_source', label: 'แหล่งทุนวิจัย' },
-          { key: 'start_date', label: 'ระยะเวลาเริ่มดำเนินการ', type: 'date' },
-          { key: 'end_date', label: 'ระยะเวลาสิ้นสุดการดำเนินการ', type: 'date' },
-        ],
-      },
-      {
-        groupLabel: 'การบูรณาการ',
-        fields: [
-          {
-            key: 'integration_teaching',
-            label: 'การนำความรู้จากการสอนรายวิชา',
-            getValue: (item) => item.integration_teaching || '-',
-          },
-          {
-            key: 'integration_research_teaching',
-            label: 'นำวิจัยมาใช้การเรียนการสอน',
-            getValue: (item) => item.integration_research_teaching || '-',
-          },
-          {
-            key: 'integration_service_project',
-            label: 'การบริการวิชาการ/ชื่อโครงการ',
-            getValue: (item) => item.integration_service_project || '-',
-          },
-        ],
-      },
-      {
-        fields: [
-          {
-            key: 'trl',
-            label: 'ระดับ TRL',
-            getValue: (item) => {
-              if (item.trl) return String(item.trl);
-              if (Array.isArray(item.trl_outputs) && item.trl_outputs.length > 0) {
-                return item.trl_outputs.map((t: any) => t.trl_level || t.title || t).join(', ');
+              const bi = Number(item.budget_internal) || 0;
+              const be = Number(item.budget_external) || 0;
+              const total = bi + be;
+              if (total > 0) return total;
+              if (item.budget !== undefined && item.budget !== null && item.budget !== '') {
+                return Number(item.budget) || 0;
               }
+              return 0;
+            },
+          },
+        ],
+      },
+      {
+        groupLabel: 'การบูรณาการกับการเรียนการสอนและบริการวิชาการ',
+        fields: [
+          {
+            key: 'teaching_courses',
+            label: 'รายวิชาที่นำองค์ความรู้จากงานวิจัยไปใช้ในการเรียนการสอน',
+            type: 'list',
+            span: 2,
+            getValue: (item) => {
+              const res = formatCourseList(item.teaching_courses, item.integration_teaching);
+              return res === '-' ? null : Array.isArray(res) ? res : [res];
+            },
+          },
+          {
+            key: 'applied_courses',
+            label: 'รายวิชาที่นำผลงานวิจัย / ชิ้นงาน / ต้นแบบ ไปใช้ประโยชน์',
+            type: 'list',
+            span: 2,
+            getValue: (item) => {
+              const res = formatCourseList(item.applied_courses, item.integration_research_teaching);
+              return res === '-' ? null : Array.isArray(res) ? res : [res];
+            },
+          },
+          {
+            key: 'academic_service',
+            label: 'การนำผลงานไปบูรณาการกับงานบริการวิชาการ',
+            span: 2,
+            getValue: (item) => item.academic_service || item.integration_service_project || '-',
+          },
+          {
+            key: 'cross_disciplinary',
+            label: 'การบูรณาการข้ามศาสตร์ / สหวิทยาการ',
+            span: 2,
+            getValue: (item) => item.cross_disciplinary || '-',
+          },
+        ],
+      },
+      {
+        groupLabel: 'ระดับความพร้อมทางเทคโนโลยี',
+        fields: [
+          {
+            key: 'trl_start',
+            label: 'ระดับ TRL เริ่มต้นโครงการ ',
+            getValue: (item) => (item.trl_start ? `TRL ${item.trl_start}` : '-'),
+          },
+          {
+            key: 'trl_end',
+            label: 'ระดับ TRL เมื่อสิ้นสุดโครงการ ',
+            getValue: (item) => {
+              if (item.trl_end) return `TRL ${item.trl_end}`;
+              if (item.trl) return String(item.trl).startsWith('TRL') ? String(item.trl) : `TRL ${item.trl}`;
               return '-';
             },
           },
-          { key: 'remarks', label: 'หมายเหตุ', getValue: (item) => item.remarks || '-' },
+          {
+            key: 'trl_outputs',
+            label: 'ผลงาน / ผลผลิตโครงการราย Output พร้อมระดับ TRL',
+            type: 'list',
+            span: 2,
+            getValue: (item) => {
+              const res = formatTrlOutputs(item.trl_outputs);
+              return res === '-' ? null : Array.isArray(res) ? res : [res];
+            },
+          },
         ],
       },
     ],
@@ -262,9 +402,9 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
     ],
     detailGroups: [
       {
+        groupLabel: 'ข้อมูลทั่วไปของโครงการพัฒนาวิชาการ',
         fields: [
-          { key: 'name', label: 'ชื่อโครงการ', span: 2 },
-          { key: 'head', label: 'หัวหน้าโครงการ', type: 'person' },
+          { key: 'name', label: 'ชื่อโครงการพัฒนาวิชาการ', span: 2 },
           {
             key: 'department',
             label: 'สังกัดที่ดำเนินการ',
@@ -272,136 +412,116 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
             getValue: (item) => item.department || (item.head ? normalizeDepartmentName(item.head) : '-'),
           },
           {
-            key: 'project_type_category',
-            label: 'ประเภทโครงการพัฒนาวิชาการ',
+            key: 'client',
+            label: 'ผู้ขอรับบริการ / ว่าจ้าง',
+            getValue: (item) => item.client || '-',
+          },
+          {
+            key: 'characteristics',
+            label: 'ลักษณะโครงการ',
             span: 2,
             getValue: (item) => {
-              const cats = Array.isArray(item.project_type_categories)
-                ? item.project_type_categories.join(', ')
-                : item.project_type_category || '';
-              const subs = Array.isArray(item.project_sub_types)
-                ? item.project_sub_types.join(', ')
-                : '';
-              if (!cats && !subs) return '-';
-              return cats && subs ? `${cats} (${subs})` : (cats || subs);
+              const list = parseListValue(item.characteristics);
+              return list.length > 0 ? list.join(', ') : '-';
             },
           },
         ],
       },
       {
-        groupLabel: 'ผู้ร่วมโครงการ',
+        groupLabel: 'บุคลากรและผู้ร่วมโครงการ',
         fields: [
+          { key: 'head', label: 'หัวหน้าโครงการ', type: 'person', span: 2 },
           {
             key: 'co_members_internal',
-            label: 'ภายใน',
-            getValue: (item) => item.co_members_internal !== undefined && item.co_members_internal !== null ? `${item.co_members_internal} คน` : '-',
+            label: 'ผู้ร่วมโครงการ (ภายใน)',
+            getValue: (item) =>
+              item.co_members_internal !== undefined && item.co_members_internal !== null && item.co_members_internal !== ''
+                ? `${item.co_members_internal} คน`
+                : '0 คน',
           },
           {
             key: 'co_members_external',
-            label: 'ภายนอก',
-            getValue: (item) => item.co_members_external !== undefined && item.co_members_external !== null ? `${item.co_members_external} คน` : '-',
+            label: 'ผู้ร่วมโครงการ (ภายนอก)',
+            getValue: (item) =>
+              item.co_members_external !== undefined && item.co_members_external !== null && item.co_members_external !== ''
+                ? `${item.co_members_external} คน`
+                : '0 คน',
           },
         ],
       },
       {
-        groupLabel: 'ผู้ขอรับบริการ',
+        groupLabel: 'งบประมาณรวมและการจัดสรรอัตโนมัติ',
         fields: [
-          {
-            key: 'client_first_time',
-            label: 'ครั้งแรก',
-            getValue: (item) => item.client_frequency === 'ครั้งแรก' ? 'ใช่' : (item.client_first_time || '-'),
-          },
-          {
-            key: 'client_recurring',
-            label: 'มากกว่า 1 ครั้ง',
-            getValue: (item) => item.client_frequency === 'มากกว่า 1 ครั้ง' ? 'ใช่' : (item.client_recurring || '-'),
-          },
-        ],
-      },
-      {
-        fields: [
-          { key: 'budget', label: 'งบประมาณ', type: 'currency' },
-        ],
-      },
-      {
-        groupLabel: 'การจัดสรร',
-        fields: [
+          { key: 'budget', label: 'งบประมาณรวมทั้งหมด', type: 'currency', span: 2 },
           {
             key: 'alloc_faculty',
-            label: 'คณะ',
+            label: 'หักเข้าคณะ',
             type: 'allocation',
             getValue: (item) => {
               const b = Number(item.budget) || 0;
-              const p = item.percent_faculty !== undefined ? Number(item.percent_faculty) : 5;
-              const a = item.alloc_faculty !== undefined ? Number(item.alloc_faculty) : (b * p) / 100;
-              return b > 0 || a > 0 ? { percent: p, amount: a } : null;
+              const p = item.percent_faculty !== undefined && item.percent_faculty !== '' ? Number(item.percent_faculty) : 5;
+              const a = item.alloc_faculty !== undefined && item.alloc_faculty !== '' ? Number(item.alloc_faculty) : (b * p) / 100;
+              return { percent: p, amount: a };
             },
           },
           {
             key: 'alloc_dept',
-            label: 'ภาควิชา',
+            label: 'หักเข้าภาควิชา',
             type: 'allocation',
             getValue: (item) => {
               const b = Number(item.budget) || 0;
-              const p = item.percent_dept !== undefined ? Number(item.percent_dept) : 5;
-              const a = item.alloc_dept !== undefined ? Number(item.alloc_dept) : (b * p) / 100;
-              return b > 0 || a > 0 ? { percent: p, amount: a } : null;
+              const p = item.percent_dept !== undefined && item.percent_dept !== '' ? Number(item.percent_dept) : 5;
+              const a = item.alloc_dept !== undefined && item.alloc_dept !== '' ? Number(item.alloc_dept) : (b * p) / 100;
+              return { percent: p, amount: a };
             },
           },
           {
             key: 'alloc_ku',
-            label: 'มก.',
+            label: 'หักเข้ามหาวิทยาลัย (มก.)',
             type: 'allocation',
             getValue: (item) => {
               const b = Number(item.budget) || 0;
-              const p = item.percent_ku !== undefined ? Number(item.percent_ku) : 5;
-              const a = item.alloc_ku !== undefined ? Number(item.alloc_ku) : (b * p) / 100;
-              return b > 0 || a > 0 ? { percent: p, amount: a } : null;
+              const p = item.percent_ku !== undefined && item.percent_ku !== '' ? Number(item.percent_ku) : 5;
+              const a = item.alloc_ku !== undefined && item.alloc_ku !== '' ? Number(item.alloc_ku) : (b * p) / 100;
+              return { percent: p, amount: a };
             },
           },
           {
             key: 'alloc_total',
-            label: 'รวม',
+            label: 'หักรวม',
             type: 'allocation',
             getValue: (item) => {
               const b = Number(item.budget) || 0;
-              const pf = item.percent_faculty !== undefined ? Number(item.percent_faculty) : 5;
-              const pd = item.percent_dept !== undefined ? Number(item.percent_dept) : 5;
-              const pk = item.percent_ku !== undefined ? Number(item.percent_ku) : 5;
+              const pf = item.percent_faculty !== undefined && item.percent_faculty !== '' ? Number(item.percent_faculty) : 5;
+              const pd = item.percent_dept !== undefined && item.percent_dept !== '' ? Number(item.percent_dept) : 5;
+              const pk = item.percent_ku !== undefined && item.percent_ku !== '' ? Number(item.percent_ku) : 5;
               const pTotal = pf + pd + pk;
-              const af = item.alloc_faculty !== undefined ? Number(item.alloc_faculty) : (b * pf) / 100;
-              const ad = item.alloc_dept !== undefined ? Number(item.alloc_dept) : (b * pd) / 100;
-              const ak = item.alloc_ku !== undefined ? Number(item.alloc_ku) : (b * pk) / 100;
+              const af = item.alloc_faculty !== undefined && item.alloc_faculty !== '' ? Number(item.alloc_faculty) : (b * pf) / 100;
+              const ad = item.alloc_dept !== undefined && item.alloc_dept !== '' ? Number(item.alloc_dept) : (b * pd) / 100;
+              const ak = item.alloc_ku !== undefined && item.alloc_ku !== '' ? Number(item.alloc_ku) : (b * pk) / 100;
               const aTotal = af + ad + ak;
-              return b > 0 || aTotal > 0 ? { percent: pTotal, amount: aTotal } : null;
-            },
-          },
-        ],
-      },
-      {
-        groupLabel: 'บูรณาการการใช้ประโยชน์',
-        fields: [
-          { key: 'research_projects', label: 'โครงการวิจัย', type: 'list', span: 2 },
-          { key: 'patent_integration', label: 'สิทธิบัตร/อนุสิทธิบัตร', span: 2 },
-        ],
-      },
-      {
-        groupLabel: 'ลักษณะโครงการ',
-        fields: [
-          {
-            key: 'nature_policy',
-            label: 'สอดคล้องกับนโยบายชาติ',
-            getValue: (item) => {
-              const c = Array.isArray(item.characteristics) ? item.characteristics : String(item.characteristics || '').split(',');
-              return c.some((s: string) => s.includes('สอดคล้องกับนโยบายชาติ')) ? 'สอดคล้องกับนโยบายชาติ' : '-';
+              return { percent: pTotal, amount: aTotal };
             },
           },
           {
-            key: 'nature_value_add',
-            label: 'เพิ่มมูลค่า',
+            key: 'alloc_remaining',
+            label: 'งบดำเนินงานคงเหลือ',
+            type: 'allocation',
+            span: 2,
             getValue: (item) => {
-              const c = Array.isArray(item.characteristics) ? item.characteristics : String(item.characteristics || '').split(',');
-              return c.some((s: string) => s.includes('เพิ่มมูลค่า')) ? 'เพิ่มมูลค่า' : '-';
+              const b = Number(item.budget) || 0;
+              const pf = item.percent_faculty !== undefined && item.percent_faculty !== '' ? Number(item.percent_faculty) : 5;
+              const pd = item.percent_dept !== undefined && item.percent_dept !== '' ? Number(item.percent_dept) : 5;
+              const pk = item.percent_ku !== undefined && item.percent_ku !== '' ? Number(item.percent_ku) : 5;
+              const pRem = Math.max(0, 100 - (pf + pd + pk));
+              const af = item.alloc_faculty !== undefined && item.alloc_faculty !== '' ? Number(item.alloc_faculty) : (b * pf) / 100;
+              const ad = item.alloc_dept !== undefined && item.alloc_dept !== '' ? Number(item.alloc_dept) : (b * pd) / 100;
+              const ak = item.alloc_ku !== undefined && item.alloc_ku !== '' ? Number(item.alloc_ku) : (b * pk) / 100;
+              const aRem =
+                item.alloc_remaining !== undefined && item.alloc_remaining !== ''
+                  ? Number(item.alloc_remaining)
+                  : Math.max(0, b - (af + ad + ak));
+              return { percent: pRem, amount: aRem };
             },
           },
         ],
@@ -409,21 +529,71 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
       {
         groupLabel: 'ระยะเวลาดำเนินการ',
         fields: [
-          { key: 'start_date', label: 'เริ่มต้น', type: 'date', getValue: (item) => item.start_date || (item.month ? item.month : null) },
-          { key: 'end_date', label: 'สิ้นสุด', type: 'date', getValue: (item) => item.end_date || null },
+          {
+            key: 'start_date',
+            label: 'วันที่เริ่มต้นดำเนินการ',
+            type: 'date',
+            getValue: (item) => item.start_date || (item.month ? item.month : null),
+          },
+          {
+            key: 'end_date',
+            label: 'วันที่สิ้นสุดดำเนินการ',
+            type: 'date',
+            getValue: (item) => item.end_date || null,
+          },
         ],
       },
       {
-        groupLabel: 'วันที่นำไปบูรณาการ',
+        groupLabel: 'ประเภทโครงการพัฒนาวิชาการ',
         fields: [
-          { key: 'integration_start_date', label: 'เริ่มต้น', type: 'date' },
-          { key: 'integration_end_date', label: 'สิ้นสุด', type: 'date' },
+          {
+            key: 'project_type_categories',
+            label: 'ประเภทโครงการหลัก',
+            span: 2,
+            getValue: (item) => {
+              const cats = parseListValue(item.project_type_categories || item.project_type_category);
+              return cats.length > 0 ? cats.join(', ') : '-';
+            },
+          },
+          {
+            key: 'project_sub_types',
+            label: 'ประเภทย่อย',
+            span: 2,
+            getValue: (item) => {
+              const subs = parseListValue(item.project_sub_types);
+              return subs.length > 0 ? subs.join(', ') : '-';
+            },
+          },
+          {
+            key: 'record_number',
+            label: 'เลขระเบียนโครงการ',
+            span: 2,
+            getValue: (item) => item.record_number || '-',
+          },
         ],
       },
       {
+        groupLabel: 'การบูรณาการการใช้ประโยชน์และหมายเหตุ',
         fields: [
-          { key: 'record_number', label: 'เลขระเบียนโครงการ', getValue: (item) => item.record_number || '-' },
-          { key: 'remarks', label: 'หมายเหตุ', getValue: (item) => item.remarks || '-' },
+          {
+            key: 'research_projects',
+            label: 'บูรณาการกับโครงการวิจัย',
+            type: 'list',
+            span: 2,
+            getValue: (item) => {
+              const list = parseListValue(item.research_projects);
+              return list.length > 0 ? list : null;
+            },
+          },
+          {
+            key: 'patent_integration',
+            label: 'บูรณาการทรัพย์สินทางปัญญา',
+            span: 2,
+            getValue: (item) => item.patent_integration || '-',
+          },
+          { key: 'integration_start_date', label: 'วันที่เริ่มต้นนำไปบูรณาการ', type: 'date' },
+          { key: 'integration_end_date', label: 'วันที่สิ้นสุดนำไปบูรณาการ', type: 'date' },
+          { key: 'remarks', label: 'หมายเหตุ', span: 2, getValue: (item) => item.remarks || '-' },
         ],
       },
     ],
@@ -481,16 +651,51 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
     ],
     detailGroups: [
       {
+        groupLabel: 'ข้อมูลงานบริการวิชาการ',
         fields: [
-          { key: 'name', label: 'เรื่อง', span: 2, getValue: (item) => item.name || item.topic_title || '-' },
-          { key: 'target_group', label: 'กลุ่มเป้าหมาย' },
-          { key: 'service_type', label: 'ประเภท', type: 'badge', getValue: (item) => item.service_type || item.service_category || '-' },
-          { key: 'person', label: 'ชื่อ - นามสกุล', type: 'person' },
+          { key: 'name', label: 'ชื่องานบริการวิชาการ', span: 2, getValue: (item) => item.name || item.topic_title || '-' },
+          { key: 'target_group', label: 'กลุ่มเป้าหมาย / ผู้เข้าร่วม', getValue: (item) => item.target_group || '-' },
+          { key: 'service_type', label: 'ประเภทงานบริการวิชาการ', type: 'badge', getValue: (item) => item.service_type || item.service_category || '-' },
+        ],
+      },
+      {
+        groupLabel: 'ผู้ให้บริการและสังกัด',
+        fields: [
+          { key: 'person', label: 'ผู้ให้บริการ / ผู้รับผิดชอบ', type: 'person' },
           { key: 'department', label: 'สังกัด', type: 'department' },
-          { key: 'date', label: 'วัน/เดือน/ปี', type: 'date' },
-          { key: 'hours_spent', label: 'จำนวนชั่วโมง', format: (val) => val !== undefined && val !== null && val !== '' ? `${val} ชม.` : '-' },
-          { key: 'attendees_count', label: 'จำนวนคนเข้าร่วม', format: (val) => val !== undefined && val !== null && val !== '' ? `${val} คน` : '-' },
-          { key: 'remarks', label: 'หมายเหตุ', getValue: (item) => item.remarks || '-' },
+        ],
+      },
+      {
+        groupLabel: 'ระยะเวลาและผู้เข้าร่วมกิจกรรม',
+        fields: [
+          {
+            key: 'start_date',
+            label: 'วันเดือนปีที่จัดกิจกรรม (เริ่มต้น)',
+            type: 'date',
+            getValue: (item) => item.start_date || item.date || null,
+          },
+          {
+            key: 'end_date',
+            label: 'วันเดือนปีที่จัดกิจกรรม (สิ้นสุด)',
+            type: 'date',
+            getValue: (item) => item.end_date || item.start_date || item.date || null,
+          },
+          {
+            key: 'hours_spent',
+            label: 'จำนวนชั่วโมง',
+            format: (val) =>
+              val !== undefined && val !== null && val !== '' && val !== '-' && val !== 'nan'
+                ? `${val} ชั่วโมง`
+                : '-',
+          },
+          {
+            key: 'attendees_count',
+            label: 'จำนวนคนเข้าร่วม',
+            format: (val) =>
+              val !== undefined && val !== null && val !== '' && val !== '-' && val !== 'nan'
+                ? `${Number(val).toLocaleString()} คน`
+                : '-',
+          },
         ],
       },
     ],
@@ -522,30 +727,55 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
     ],
     detailGroups: [
       {
+        groupLabel: 'ข้อมูลผลงาน',
         fields: [
-          { key: 'name', label: 'ชื่อผลงานทางวิชาการ', span: 2 },
+          { key: 'name', label: 'ชื่อผลงานทางวิชาการ', span: 2, getValue: (item) => item.name || item.title || '-' },
           { key: 'type', label: 'ชนิดของผลงาน', type: 'badge' },
           { key: 'level', label: 'ระดับ', type: 'badge' },
           { key: 'budget', label: 'จำนวนเงินสนับสนุน', type: 'currency' },
-          { key: 'owner', label: 'เจ้าของผลงาน', type: 'person' },
+          {
+            key: 'month_year',
+            label: 'เดือน/ปี (พ.ศ.)',
+            getValue: (item) => {
+              if (item.month_year && item.month_year !== '-' && item.month_year !== 'nan') {
+                return formatDateBE(item.month_year);
+              }
+              const parts = [item.month, item.fiscal_year_be || item.fiscal_year]
+                .filter((p) => p && p !== '-' && p !== 'nan');
+              return parts.length > 0 ? parts.join(' ') : '-';
+            },
+          },
         ],
       },
       {
-        groupLabel: 'ผู้ร่วม',
+        groupLabel: 'ผู้เกี่ยวข้องและสังกัด',
         fields: [
-          { key: 'co_authors_foreign', label: 'ต่างชาติ', type: 'person_list', span: 2 },
-          { key: 'co_authors_domestic', label: 'ภายในประเทศ', type: 'person_list', span: 2 },
-        ],
-      },
-      {
-        fields: [
+          {
+            key: 'owner',
+            label: 'เจ้าของผลงาน',
+            type: 'person',
+            getValue: (item) => item.owner || item.first_author || '-',
+          },
           { key: 'department', label: 'สังกัด', type: 'department' },
-          { key: 'journal', label: 'รายละเอียดวารสาร/การประชุม', span: 2 },
-          { key: 'volume', label: 'Volume' },
-          { key: 'issue', label: 'Issue' },
-          { key: 'page_start', label: 'Page start' },
-          { key: 'page_end', label: 'Page end' },
-          { key: 'remarks', label: 'หมายเหตุ', getValue: (item) => item.remarks || '-' },
+          { key: 'co_authors_foreign', label: 'มีผู้ร่วมต่างชาติ', type: 'person_list' },
+          { key: 'co_authors_domestic', label: 'มีผู้ร่วมภายในประเทศ', type: 'person_list' },
+        ],
+      },
+      {
+        groupLabel: 'รายละเอียดการตีพิมพ์และหมายเหตุ',
+        fields: [
+          {
+            key: 'journal',
+            label: 'รายละเอียดวารสาร/การประชุม',
+            span: 2,
+            getValue: (item) =>
+              item.journal || (item.type === 'เตรียมความพร้อมจดอนุสิทธิบัตร' ? 'อนุสิทธิบัตร' : '-'),
+          },
+          { key: 'volume', label: 'Volume', getValue: (item) => item.volume || '-' },
+          { key: 'issue', label: 'Issue', getValue: (item) => item.issue || '-' },
+          { key: 'page_start', label: 'Page start', getValue: (item) => item.page_start || '-' },
+          { key: 'page_end', label: 'Page end', getValue: (item) => item.page_end || '-' },
+          { key: 'remarks', label: 'หมายเหตุ', span: 2, getValue: (item) => item.remarks || '-' },
         ],
       },
     ],
@@ -577,21 +807,33 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
     ],
     detailGroups: [
       {
+        groupLabel: 'ข้อมูลพื้นฐานและผู้ประดิษฐ์ / ผู้สร้างสรรค์',
         fields: [
-          { key: 'title', label: 'เรื่อง', span: 2, getValue: (item) => item.title || item.name || '-' },
           {
             key: 'type',
             label: 'ประเภททรัพย์สินทางปัญญา',
             type: 'badge',
+            span: 2,
           },
           {
-            key: 'owner',
-            label: 'เจ้าของสิทธิ',
-            getValue: (item) => item.owner || item.right_holder || 'มหาวิทยาลัยเกษตรศาสตร์',
+            key: 'title',
+            label: 'ชื่อผลงาน / ชื่อที่แสดงถึงการประดิษฐ์',
+            span: 2,
+            getValue: (item) => item.name || item.title || '-',
+          },
+          {
+            key: 'work_category',
+            label: 'ประเภทงาน (ลิขสิทธิ์)',
+            getValue: (item) => item.work_category || '-',
+          },
+          {
+            key: 'work_character',
+            label: 'ลักษณะงาน (ลิขสิทธิ์)',
+            getValue: (item) => item.work_character || '-',
           },
           {
             key: 'inventors',
-            label: 'ผู้ประดิษฐ์',
+            label: 'ผู้ประดิษฐ์ / ผู้สร้างสรรค์',
             type: 'person_list',
             span: 2,
             getValue: (item) => item.inventors || item.creator,
@@ -603,56 +845,66 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
             getValue: (item) => item.departments || item.department,
           },
           {
-            key: 'work_category',
-            label: 'ประเภทงาน (ลิขสิทธิ์)',
-            getValue: (item) => item.work_category || (item.type === 'ลิขสิทธิ์' ? '-' : ''),
-          },
-          {
-            key: 'work_character',
-            label: 'ลักษณะงาน (ลิขสิทธิ์)',
-            getValue: (item) => item.work_character || (item.type === 'ลิขสิทธิ์' ? '-' : ''),
+            key: 'owner',
+            label: 'เจ้าของสิทธิ / เจ้าของลิขสิทธิ์',
+            getValue: (item) => item.owner || item.right_holder || 'มหาวิทยาลัยเกษตรศาสตร์',
           },
         ],
       },
       {
-        groupLabel: 'ขั้นตอนดำเนินการ',
+        groupLabel: 'ขั้นตอนดำเนินการยื่นคำขอ',
         fields: [
-          { key: 'filing_date', label: 'วันที่ยื่นคำขอ', type: 'date' },
+          {
+            key: 'filing_date',
+            label: 'วันที่ยื่นคำขอ / วันที่แจ้งข้อมูลลิขสิทธิ์',
+            type: 'date',
+            getValue: (item) => item.filing_date || item.filingDate || item.request_date || item.app_date || null,
+          },
           {
             key: 'application_number',
-            label: 'เลขที่คำขอ',
-            getValue: (item) => item.application_number || item.req_no || '-',
+            label: 'เลขที่คำขอ / คำขอแจ้งข้อมูลเลขที่',
+            getValue: (item) =>
+              item.application_number ||
+              item.req_info ||
+              item.app_no ||
+              (item.req_no ? String(item.req_no).split('/')[0]?.trim() : '') ||
+              '-',
           },
         ],
       },
       {
-        groupLabel: 'ได้รับความคุ้มครอง / ออกให้',
+        groupLabel: 'การได้รับความคุ้มครอง / การออกหนังสือรับรอง',
         fields: [
           {
             key: 'registration_number',
-            label: 'เลขทะเบียน',
-            getValue: (item) => item.registration_number || item.reg_no || '-',
+            label: 'เลขทะเบียน / เลขที่สิทธิบัตร',
+            getValue: (item) =>
+              item.registration_number ||
+              item.reg_info ||
+              item.reg_no ||
+              item.patent_number ||
+              (item.req_no && String(item.req_no).includes('/') ? String(item.req_no).split('/')[1]?.trim() : '') ||
+              '-',
           },
           {
-            key: 'protection_period',
-            label: 'ระยะเวลาความคุ้มครอง',
-            getValue: (item) => {
-              if (item.type === 'ลิขสิทธิ์') {
-                return item.protection_start ? ('ออกหนังสือรับรอง: ' + formatDateBE(item.protection_start)) : '-';
-              }
-              if (item.protection_start || item.protection_end) {
-                const s = item.protection_start ? formatDateBE(item.protection_start) : '-';
-                const e = item.protection_end ? formatDateBE(item.protection_end) : '-';
-                return s + ' – ' + e;
-              }
-              return item.protection_period || '-';
-            },
+            key: 'protection_start',
+            label: 'วันที่ออกให้ / วันที่ออกหนังสือรับรอง',
+            type: 'date',
+            getValue: (item) => item.protection_start || item.protectionStart || item.issue_date || item.registration_date || null,
+          },
+          {
+            key: 'protection_end',
+            label: 'วันหมดอายุ (ระยะเวลาคุ้มครองสิ้นสุด)',
+            type: 'date',
+            span: 2,
+            getValue: (item) => item.protection_end || item.protectionEnd || item.expiration_date || null,
           },
         ],
       },
       {
+        groupLabel: 'การสนับสนุนและหมายเหตุ',
         fields: [
-          { key: 'support_amount', label: 'เงินสนับสนุนจากคณะ (บาท)', type: 'currency' },
+          { key: 'support_amount', label: 'เงินสนับสนุนจากคณะ', type: 'currency' },
           { key: 'remarks', label: 'หมายเหตุ', getValue: (item) => item.remarks || '-' },
         ],
       },
@@ -681,6 +933,18 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
       { key: 'position', label: 'ตำแหน่งทางวิชาการ', type: 'text', width: '19%' },
       { key: 'department', label: 'สังกัด', type: 'badge', width: '18%', selectOptions: DEPARTMENTS },
       { key: 'email', label: 'อีเมล KU', type: 'email', width: '20%' },
+    ],
+    detailGroups: [
+      {
+        groupLabel: 'ข้อมูลบุคลากรและอาจารย์',
+        fields: [
+          { key: 'title_th', label: 'คำนำหน้า', getValue: (item) => item.title_th || item.prefix || '-' },
+          { key: 'name', label: 'ชื่อ-นามสกุล', getValue: (item) => item.name || '-' },
+          { key: 'position', label: 'ตำแหน่งทางวิชาการ / ตำแหน่งงาน', getValue: (item) => item.position || '-' },
+          { key: 'department', label: 'สังกัด', type: 'department', getValue: (item) => item.department || '-' },
+          { key: 'email', label: 'อีเมล KU', span: 2, getValue: (item) => item.email || '-' },
+        ],
+      },
     ],
     templateSampleRows: [
       { title_th: '', name: '', position: '', department: '', email: '' },

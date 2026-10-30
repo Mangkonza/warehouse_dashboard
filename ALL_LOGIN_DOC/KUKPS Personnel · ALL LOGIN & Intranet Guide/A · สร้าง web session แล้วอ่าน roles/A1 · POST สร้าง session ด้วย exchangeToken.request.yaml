@@ -1,0 +1,23 @@
+$kind: http-request
+name: A1 · POST สร้าง session ด้วย exchangeToken ใหม่
+description: "Flow A: server แลก code และเรียก me ให้เอง ห้ามเรียก B1 ด้วย code เดียวกันก่อน request นี้ เปิด cookie jar รับ cookie ทั้งสาม"
+url: "{{webBaseUrl}}/api/auth/portal-session"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "exchangeToken": "{{exchangeToken}}",
+      "intranetToken": "{{intranetToken}}"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("HTTP 2xx", () => pm.expect(pm.response.code).to.be.within(200,299));
+      pm.test("Session and user exist", () => { const d=pm.response.json(); pm.expect(d.session).to.be.a("string").and.not.empty; pm.expect(d.user).to.be.an("object"); });
+      pm.test("All auth cookies set", () => { const h=pm.response.headers.all().filter(x=>x.key.toLowerCase()==="set-cookie").map(x=>x.value).join("; "); ["USER_SESSION=","ACCESS_TOKEN=","INTRANET_TOKEN="].forEach(n=>pm.expect(h).to.include(n)); });
+    language: text/javascript
+order: 1000

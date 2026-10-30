@@ -1,14 +1,59 @@
 import { EvaluationRepository } from '../repositories/evaluation.repository.js';
 
+function parseJournalIndex(raw: any): { type: 'Q' | 'TCI'; value: string } | null {
+  if (!raw) return null;
+  if (typeof raw === 'object' && raw.value) {
+    const val = String(raw.value).trim();
+    if (!val || val === '[object Object]') return null;
+    const type = raw.type || (val.startsWith('TCI') ? 'TCI' : 'Q');
+    return { type, value: val };
+  }
+  if (typeof raw === 'string') {
+    const trimmed = raw.trim();
+    if (!trimmed || trimmed === '[object Object]') return null;
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (parsed && parsed.value) {
+        const type = parsed.type || (parsed.value.startsWith('TCI') ? 'TCI' : 'Q');
+        return { type, value: String(parsed.value).trim() };
+      }
+    } catch {}
+    const type = trimmed.startsWith('TCI') ? 'TCI' : 'Q';
+    return { type, value: trimmed };
+  }
+  return null;
+}
+
+function extractJournalIndexString(raw: any): string | null {
+  if (!raw) return null;
+  if (typeof raw === 'object') {
+    if (raw.value && String(raw.value).trim() !== '[object Object]') {
+      return String(raw.value).trim();
+    }
+    return null;
+  }
+  if (typeof raw === 'string') {
+    const trimmed = raw.trim();
+    if (!trimmed || trimmed === '[object Object]') return null;
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (parsed && parsed.value) return String(parsed.value).trim();
+    } catch {}
+    return trimmed;
+  }
+  return null;
+}
+
 function formatEvaluation(item: any) {
   if (!item) return null;
   return {
+    id: `${item.category.toLowerCase()}_${item.recordId}`,
     category: item.category,
     recordId: item.recordId,
     record_id: item.recordId,
     sdg_ids: item.sdgIds || [],
-    i_type: item.iType || '',
-    journal_index: item.journalIndex || '',
+    i_type: item.iType || null,
+    journal_index: parseJournalIndex(item.journalIndex),
     evaluated_by: item.evaluatedBy || 'user',
     evaluated_at: item.evaluatedAt,
   };
@@ -44,12 +89,14 @@ export class EvaluationService {
       ? body.sdg_ids.map(Number).filter((n: number) => !isNaN(n))
       : [];
 
+    const journalIndex = extractJournalIndexString(body.journal_index);
+
     const saved = await EvaluationRepository.upsert({
       category,
       recordId,
       sdgIds,
       iType: body.i_type ? String(body.i_type).trim() : null,
-      journalIndex: body.journal_index ? String(body.journal_index).trim() : null,
+      journalIndex,
       evaluatedBy: body.evaluated_by ? String(body.evaluated_by).trim() : 'user',
     });
 
@@ -67,7 +114,7 @@ export class EvaluationService {
       recordId: String(i.recordId || i.record_id || i.id).trim(),
       sdgIds: Array.isArray(i.sdg_ids) ? i.sdg_ids.map(Number).filter((n: number) => !isNaN(n)) : [],
       iType: i.i_type ? String(i.i_type).trim() : null,
-      journalIndex: i.journal_index ? String(i.journal_index).trim() : null,
+      journalIndex: extractJournalIndexString(i.journal_index),
       evaluatedBy: i.evaluated_by ? String(i.evaluated_by).trim() : 'bulk',
     }));
 

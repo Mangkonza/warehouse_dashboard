@@ -155,7 +155,7 @@ export function KpiGridCards({ filteredKPIs, expandedId, onToggleExpand }: KpiGr
               <div style={{ marginBottom: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '4px' }}>
                   <div>
-                    <span style={{ fontSize: '11.5px', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>
+                    <span style={{ fontSize: '11.5px', color: '#64748b', textTransform: 'uppercase', fontWeight: 400 }}>
                       ผลงานปัจจุบัน
                     </span>
                     <div style={{ fontSize: '22px', fontWeight: 800, color: statusColor }}>
@@ -164,7 +164,7 @@ export function KpiGridCards({ filteredKPIs, expandedId, onToggleExpand }: KpiGr
                   </div>
 
                   <div style={{ textAlign: 'right' }}>
-                    <span style={{ fontSize: '11.5px', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>
+                    <span style={{ fontSize: '11.5px', color: '#64748b', textTransform: 'uppercase', fontWeight: 400 }}>
                       เป้าหมายยุทธศาสตร์
                     </span>
                     <div style={{ fontSize: '16px', fontWeight: 700, color: '#475569' }}>

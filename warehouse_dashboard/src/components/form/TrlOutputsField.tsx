@@ -4,7 +4,6 @@ import * as React from 'react';
 import { RepeatableList } from './RepeatableList';
 import { TrlSelect } from './TrlSelect';
 import { cn } from '@/lib/utils';
-import { PackageCheck } from 'lucide-react';
 
 export interface TrlOutputItem {
   name: string;
@@ -26,7 +25,7 @@ export function TrlOutputsField({
   items = [],
   onChange,
   addLabel = '+ เพิ่มผลงาน Output / ผลผลิตโครงการ',
-  emptyMessage = 'ยังไม่มีผลงาน Output (คลิกเพิ่มเพื่อระบุผลงานและระดับ TRL)',
+  emptyMessage = 'ยังไม่มีผลงาน Output',
   maxItems,
   disabled = false,
   className,
@@ -47,27 +46,24 @@ export function TrlOutputsField({
         emptyMessage={emptyMessage}
         maxItems={maxItems}
         renderItem={(item, index, onChangeItem) => (
-          <div className="flex flex-col gap-2 p-2.5 rounded-lg border border-slate-200 bg-white shadow-2xs hover:border-slate-300 transition-colors">
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 select-none">
-              <PackageCheck className="size-3.5 text-emerald-600" />
-              <span>ผลผลิตที่ {index + 1}</span>
-            </div>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+            <span className="text-xs font-medium text-slate-500 shrink-0 select-none sm:w-16">
+              ผลผลิต {index + 1}
+            </span>
 
-            <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
-              {/* Output name */}
-              <div className="sm:col-span-7">
+            <div className="flex-1 grid grid-cols-1 sm:grid-cols-12 gap-2">
+              <div className="sm:col-span-5">
                 <input
                   type="text"
                   value={item.name}
                   onChange={(e) => onChangeItem({ ...item, name: e.target.value })}
                   placeholder="ชื่อผลงาน / ชิ้นงาน / ต้นแบบ..."
                   disabled={disabled}
-                  className="w-full h-10 px-3 text-xs rounded-lg border border-input bg-background focus:outline-none focus:border-emerald-500 shadow-2xs"
+                  className="w-full h-10 px-3 text-sm rounded-lg border border-slate-300 bg-white focus:outline-none focus:border-[#00A651]"
                 />
               </div>
 
-              {/* TRL level select */}
-              <div className="sm:col-span-5">
+              <div className="sm:col-span-4">
                 <TrlSelect
                   value={item.trl}
                   onChange={(lvl) => onChangeItem({ ...item, trl: lvl })}
@@ -75,18 +71,17 @@ export function TrlOutputsField({
                   disabled={disabled}
                 />
               </div>
-            </div>
 
-            {/* Note / description */}
-            <div>
-              <input
-                type="text"
-                value={item.note || ''}
-                onChange={(e) => onChangeItem({ ...item, note: e.target.value })}
-                placeholder="หมายเหตุ หรือคำอธิบายเพิ่มเติม (ถ้ามี)"
-                disabled={disabled}
-                className="w-full h-8 px-2.5 text-[11.5px] rounded-md border border-slate-200 bg-slate-50/50 focus:bg-white focus:outline-none focus:border-emerald-500 text-slate-700 placeholder:text-slate-400"
-              />
+              <div className="sm:col-span-3">
+                <input
+                  type="text"
+                  value={item.note || ''}
+                  onChange={(e) => onChangeItem({ ...item, note: e.target.value })}
+                  placeholder="หมายเหตุ (ถ้ามี)"
+                  disabled={disabled}
+                  className="w-full h-10 px-3 text-sm rounded-lg border border-slate-300 bg-white focus:outline-none focus:border-[#00A651]"
+                />
+              </div>
             </div>
           </div>
         )}

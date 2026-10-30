@@ -1175,11 +1175,8 @@ export const ExecutiveMultiYearOverview: React.FC<ExecutiveMultiYearOverviewProp
               }}
             >
               <FaChartLine style={{ color: '#00A651' }} />
-              <span>การเติบโตและแนวโน้มเปรียบเทียบรายปีงบประมาณ ครบ 5 พันธกิจ (2566 – 2570)</span>
+              <span>การเติบโตและแนวโน้มเปรียบเทียบรายปีงบ</span>
             </h3>
-            <p style={{ margin: '3px 0 0 0', fontSize: '12px', color: '#64748b' }}>
-              วิเคราะห์ภาพรวมและเปรียบเทียบผลลัพธ์ของคณะจากฐานข้อมูลจริง (คลิกแท่งกราฟเพื่อดูรายการเจาะลึก)
-            </p>
           </div>
 
           {/* สวิตช์สลับโหมดหลัก (3 โหมด) */}
@@ -1325,9 +1322,7 @@ export const ExecutiveMultiYearOverview: React.FC<ExecutiveMultiYearOverviewProp
                   </button>
                 </div>
               </div>
-              <div style={{ fontSize: '11.5px', color: '#64748b' }}>
-                * ครอบคลุม 5 พันธกิจ: วิจัย (เขียว), พัฒนาวิชาการ (ฟ้า), ตีพิมพ์ (แดง), บริการวิชาการ (ส้ม), ทรัพย์สินฯ (ม่วง)
-              </div>
+              
             </>
           )}
 

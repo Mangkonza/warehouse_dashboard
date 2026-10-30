@@ -1,11 +1,14 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { COOKIE_USER_SESSION } from '@/lib/auth/cookies';
+import { getPublicOrigin, stripBasePath } from '@/lib/auth/paths';
+import { evaluateSsoRules } from '@/lib/auth/proxyRules';
 
 const SESSION_COOKIE_NAME = 'ku_session';
 const AUTH_SESSION_SECRET =
   process.env.AUTH_SESSION_SECRET || 'ku_warehouse_auth_session_secret_2026_dev_key';
 
-// Helper to decode base64url to Uint8Array in Edge runtime
+// Helper to decode base64url to Uint8Array
 function base64UrlToBytes(base64Url: string): Uint8Array {
   const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
   const pad = base64.length % 4;
@@ -18,8 +21,8 @@ function base64UrlToBytes(base64Url: string): Uint8Array {
   return bytes;
 }
 
-// Verify HMAC-SHA256 signature and expiration
-async function verifySessionCookie(cookieValue?: string): Promise<{ username: string; expiresAt: number } | null> {
+// Verify legacy HMAC-SHA256 signature and expiration for ku_session
+async function verifyKuSessionCookie(cookieValue?: string): Promise<{ username: string; expiresAt: number } | null> {
   if (!cookieValue || typeof cookieValue !== 'string') return null;
 
   const parts = cookieValue.split('.');
@@ -59,7 +62,7 @@ async function verifySessionCookie(cookieValue?: string): Promise<{ username: st
   }
 }
 
-// Protected dashboard routes requiring authentication
+// Protected dashboard routes requiring legacy authentication
 const PROTECTED_PREFIXES = [
   '/overview',
   '/research',
@@ -74,38 +77,60 @@ const PROTECTED_PREFIXES = [
   '/evaluation',
   '/monitoring',
   '/manage',
+  '/user-roles',
 ];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const appPath = stripBasePath(pathname);
 
-  // 1. ยกเว้น public paths, Next.js internal, static assets, และ auth API
+  // 1. Bypass public paths, Next.js internal, static assets, and auth API
   if (
-    pathname.startsWith('/_next') ||
-    pathname.startsWith('/api/v1/auth') ||
-    pathname.startsWith('/api/health') ||
-    pathname === '/unauthorized' ||
-    pathname === '/favicon.ico' ||
-    pathname.match(/\.(png|jpg|jpeg|svg|gif|webp)$/)
+    appPath.startsWith('/_next') ||
+    appPath.startsWith('/api/v1/auth') ||
+    appPath.startsWith('/api/health') ||
+    appPath.startsWith('/api/auth') ||
+    appPath === '/sso/login' ||
+    appPath === '/sso/logout' ||
+    appPath === '/forbidden' ||
+    appPath === '/unauthorized' ||
+    appPath === '/favicon.ico' ||
+    appPath.match(/\.(png|jpg|jpeg|svg|gif|webp)$/)
   ) {
     return NextResponse.next();
   }
 
-  const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME)?.value;
-  const session = await verifySessionCookie(sessionCookie);
+  // 2. SSO rules evaluation for /admin/* and /user/*
+  const ssoDecision = evaluateSsoRules({
+    pathname,
+    searchParams: request.nextUrl.searchParams,
+    hasUserSession: Boolean(request.cookies.get(COOKIE_USER_SESSION)?.value),
+  });
 
-  // 2. ถ้าล็อกอินแล้ว แล้วเข้ามาที่ /login หรือ /auth ให้ redirect ไปที่ /overview
-  if (session && (pathname === '/login' || pathname === '/auth')) {
+  if (ssoDecision.action === 'redirect_portal_session' || ssoDecision.action === 'redirect_sso_login') {
+    const origin = getPublicOrigin(request.headers);
+    return NextResponse.redirect(new URL(ssoDecision.destination, origin), 307);
+  }
+  if (ssoDecision.action === 'allow') {
+    return NextResponse.next();
+  }
+
+  // 3. Existing ku_session legacy behavior
+  const kuCookie = request.cookies.get(SESSION_COOKIE_NAME)?.value;
+  const session = await verifyKuSessionCookie(kuCookie);
+
+  // If already logged in with ku_session, visiting /login or /auth redirects to /overview
+  if (session && (appPath === '/login' || appPath === '/auth')) {
     return NextResponse.redirect(new URL('/overview', request.url));
   }
 
-  // 3. ตรวจสอบว่าเส้นทางนี้ต้องล็อกอินหรือไม่
+  // Check if route requires ku_session
   const isProtected =
-    pathname === '/' || PROTECTED_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+    appPath === '/' || PROTECTED_PREFIXES.some((prefix) => appPath.startsWith(prefix));
 
   if (isProtected && !session) {
-    // ป้องกัน open redirect: ต้องขึ้นต้นด้วย / และไม่ใช่ //
-    const returnUrl = pathname.startsWith('/') && !pathname.startsWith('//') ? pathname : '/overview';
+    // Open redirect prevention: must start with / and not //
+    const returnUrl = appPath.startsWith('/') && !appPath.startsWith('//') ? appPath : '/overview';
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('returnUrl', returnUrl);
     return NextResponse.redirect(loginUrl);

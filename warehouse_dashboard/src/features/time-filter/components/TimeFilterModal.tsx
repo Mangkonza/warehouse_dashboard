@@ -455,7 +455,7 @@ export const TimeFilterModal: React.FC<TimeFilterModalProps> = ({ isOpen, onClos
                             setDraft({ ...draft, mode: 'manual', manualType: 'range', manualStartDate: dateStr })
                           }
                           maxDate={parseDate(end)}
-                          placeholder="วว/ดด/ปปปป (พ.ศ.)"
+                          placeholder="วัน/เดือน/ปี (พ.ศ.)"
                           className="w-full"
                         />
                       </div>
@@ -469,7 +469,7 @@ export const TimeFilterModal: React.FC<TimeFilterModalProps> = ({ isOpen, onClos
                             setDraft({ ...draft, mode: 'manual', manualType: 'range', manualEndDate: dateStr })
                           }
                           minDate={parseDate(start)}
-                          placeholder="วว/ดด/ปปปป (พ.ศ.)"
+                          placeholder="วัน/เดือน/ปี (พ.ศ.)"
                           className="w-full"
                         />
                       </div>

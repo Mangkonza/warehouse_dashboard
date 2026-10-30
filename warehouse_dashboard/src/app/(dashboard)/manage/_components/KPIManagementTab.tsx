@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import { FilterPopover, ActiveFilterChips } from '@/components/ui';
+
+import React, { useState, useMemo, useEffect } from 'react';
 import { ConfirmActionModal } from '@/components/ui';
 import { KPIItem, KPICalcType, KPICategory, FilterOperator } from '@/types/kpi';
 import {
@@ -29,10 +31,13 @@ import {
   FaCheckCircle,
   FaLink,
   FaUnlink,
+  FaFileExcel,
 } from 'react-icons/fa';
 
 interface KPIManagementTabProps {
   datasets: Record<string, any[]>;
+  onOpenImportExcel?: () => void;
+  showToast?: (msg: string, type?: 'success' | 'error' | 'warning') => void;
 }
 
 const CATEGORY_LABELS: Record<KPICategory, string> = {
@@ -100,7 +105,7 @@ const STATUS_OPTIONS = [
 // ฟังก์ชันล้างอักขระพิเศษ จุด ขีด ช่องว่าง เพื่อการค้นหาที่ยืดหยุ่น
 const cleanSearchText = (str: string) => str.toLowerCase().replace(/[\s.\-_/\\()]/g, '');
 
-export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets }) => {
+export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets, onOpenImportExcel, showToast }) => {
   const [kpis, setKpis] = useState<KPIItem[]>(() => getStoredKPIs());
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -148,6 +153,17 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets }) 
   };
 
   // Open modal for Add
+  useEffect(() => {
+    refreshList();
+    const handleUpdate = () => refreshList();
+    window.addEventListener('kpi_updated', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+    return () => {
+      window.removeEventListener('kpi_updated', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
+  }, []);
+
   const handleOpenAdd = () => {
     setEditingKpi(null);
     setFormCode(`KPI 2.1-${kpis.length + 1}`);
@@ -287,8 +303,14 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets }) 
 
     if (editingKpi) {
       updateKPI({ ...editingKpi, ...payload });
+      if (showToast) {
+        showToast(`บันทึกการแก้ไขตัวชี้วัด "${payload.code}" เรียบร้อยแล้ว`, 'success');
+      }
     } else {
       addKPI(payload);
+      if (showToast) {
+        showToast(`เพิ่มตัวชี้วัด "${payload.code}" เรียบร้อยแล้ว`, 'success');
+      }
     }
 
     setIsModalOpen(false);
@@ -297,8 +319,12 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets }) 
 
   // Delete
   const handleDelete = (id: string) => {
+    const item = kpis.find((k) => k.id === id);
     deleteKPI(id);
     setDeleteConfirmId(null);
+    if (showToast) {
+      showToast('ลบตัวชี้วัด ' + (item?.code || id) + ' เรียบร้อยแล้ว', 'success');
+    }
     refreshList();
   };
 
@@ -306,6 +332,9 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets }) 
   const handleReset = () => {
     if (confirm('คุณต้องการคืนค่าตัวชี้วัดเริ่มต้นตามยุทธศาสตร์ของคณะฯ ใช่หรือไม่?')) {
       resetKPIsToDefault();
+      if (showToast) {
+        showToast('คืนค่าตัวชี้วัดเริ่มต้นตามแผนยุทธศาสตร์สำเร็จ', 'success');
+      }
       refreshList();
     }
   };
@@ -598,6 +627,32 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets }) 
               <FaPlus style={{ fontSize: '12px' }} />
               <span>เพิ่มตัวชี้วัดตามแผนยุทธศาสตร์</span>
             </button>
+
+            {onOpenImportExcel && (
+              <button
+                onClick={onOpenImportExcel}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '7px 16px',
+                  backgroundColor: '#00A651',
+                  border: 'none',
+                  borderRadius: '8px',
+                  color: '#ffffff',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  boxShadow: '0 1px 2px rgba(0, 166, 81, 0.2)',
+                  transition: 'all 0.15s ease',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#008c44')}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#00A651')}
+              >
+                <FaFileExcel style={{ fontSize: '14px' }} />
+                <span>นำเข้าไฟล์ Excel</span>
+              </button>
+            )}
           </div>
         </div>
 

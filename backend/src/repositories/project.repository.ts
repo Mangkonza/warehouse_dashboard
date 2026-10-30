@@ -66,7 +66,7 @@ export class ProjectRepository {
       });
       if (item) return item;
     }
-    const str = String(identifier);
+    const str = String(identifier).trim();
     const byLegacy = await prisma.researchProject.findUnique({
       where: { legacyId: str },
       include: {
@@ -81,6 +81,7 @@ export class ProjectRepository {
         OR: [
           { code: str },
           { legacyId: str },
+          { name: str },
         ],
       },
       include: {
@@ -279,8 +280,20 @@ export class ProjectRepository {
       });
       if (item) return item;
     }
-    return prisma.academicDevProject.findUnique({
-      where: { legacyId: String(identifier) },
+    const str = String(identifier).trim();
+    const byLegacy = await prisma.academicDevProject.findUnique({
+      where: { legacyId: str },
+      include: { department: true },
+    });
+    if (byLegacy) return byLegacy;
+
+    return prisma.academicDevProject.findFirst({
+      where: {
+        OR: [
+          { legacyId: str },
+          { name: str },
+        ],
+      },
       include: { department: true },
     });
   }
@@ -393,8 +406,23 @@ export class ProjectRepository {
       });
       if (item) return item;
     }
-    return prisma.publication.findUnique({
-      where: { legacyId: String(identifier) },
+    const str = String(identifier).trim();
+    const byLegacy = await prisma.publication.findUnique({
+      where: { legacyId: str },
+      include: {
+        authors: true,
+        department: true,
+      },
+    });
+    if (byLegacy) return byLegacy;
+
+    return prisma.publication.findFirst({
+      where: {
+        OR: [
+          { legacyId: str },
+          { title: str },
+        ],
+      },
       include: {
         authors: true,
         department: true,

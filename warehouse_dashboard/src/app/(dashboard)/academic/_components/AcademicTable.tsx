@@ -108,7 +108,7 @@ export function AcademicTable({
           <tbody>
             {displayData.map((item, index) => (
               <tr
-                key={item.id || index}
+                key={`academic-row-${index}-${item.dbId ?? item._id ?? item.id ?? "item"}`}
                 onClick={() => setSelectedRecord(item)}
                 style={{ cursor: 'pointer' }}
               >

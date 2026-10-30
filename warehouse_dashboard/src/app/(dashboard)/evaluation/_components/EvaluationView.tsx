@@ -10,9 +10,15 @@ import { TopSegmentedTabs, TabItem } from '@/components/ui/TopSegmentedTabs';
 import { DepartmentBadge } from '@/components/ui/department-badge';
 import { ServiceTypeBadge } from '@/components/ui/service-type-badge';
 import { IPTypeBadge } from '@/components/ui/ip-type-badge';
+import { PublicationTypeBadge } from '@/components/ui/publication-type-badge';
 import { EvaluationTag, EvaluationTags, LevelBadge, SdgTagList } from '@/components/ui/evaluation-tag';
 import { formatDateBE } from '@/components/ui/RecordDetailDrawer';
-import { FilterModal } from '@/app/(dashboard)/manage/_components/FilterModal';
+import { FilterPopover, EvalFramework } from '@/components/ui';
+import {
+  itemMatchesDepartmentMulti,
+  itemMatchesDateRange,
+  itemMatchesEvaluation,
+} from '@/lib/filterMatching';
 import { EvaluationDrawer } from './EvaluationDrawer';
 import { BulkEvaluationModal } from './BulkEvaluationModal';
 import {
@@ -94,8 +100,31 @@ export const EvaluationView: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'unevaluated' | 'evaluated' | 'all'>('all');
   const [selectedDept, setSelectedDept] = useState('');
+  const [selectedDeptCustom, setSelectedDeptCustom] = useState('');
+  const [selectedDateFrom, setSelectedDateFrom] = useState('');
+  const [selectedDateTo, setSelectedDateTo] = useState('');
+  const [selectedJournals, setSelectedJournals] = useState<string[]>([]);
   const [selectedRole, setSelectedRole] = useState('');
-  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [selectedImageStatus, setSelectedImageStatus] = useState<'all' | 'has_image' | 'no_image'>('all');
+  const [selectedCompleteness, setSelectedCompleteness] = useState<'all' | 'complete' | 'incomplete'>('all');
+  const [selectedSubFilter, setSelectedSubFilter] = useState('');
+  const [selectedSdgs, setSelectedSdgs] = useState<string[]>([]);
+  const [selectedFramework, setSelectedFramework] = useState<EvalFramework>('all');
+
+  const handleResetFilters = () => {
+    setSelectedDept('');
+    setSelectedDeptCustom('');
+    setSelectedDateFrom('');
+    setSelectedDateTo('');
+    setSelectedJournals([]);
+    setSelectedRole('');
+    setSelectedImageStatus('all');
+    setSelectedCompleteness('all');
+    setSelectedSubFilter('');
+    setSelectedSdgs([]);
+    setSelectedFramework('all');
+    setCurrentPage(1);
+  };
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -179,27 +208,50 @@ export const EvaluationView: React.FC = () => {
     }
   }, [searchParams, datasets]);
 
-  // Reactive Unevaluated Counts per Category (for top tab badges)
-  const unevaluatedCounts = useMemo(() => {
+  // Reactive Category Counts based on statusFilter ('unevaluated' | 'evaluated' | 'all')
+  const categoryTabCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     EVAL_CATEGORIES.forEach((cat) => {
       const list = datasets[cat] || [];
-      let unCount = 0;
-      list.forEach((item) => {
-        const key = getRecordEvalKey(cat, item);
-        const ev = evalMap[key];
-        if (!isEvaluated(cat, ev)) {
-          unCount += 1;
-        }
-      });
-      counts[cat] = unCount;
+      if (statusFilter === 'all') {
+        counts[cat] = list.length;
+      } else if (statusFilter === 'evaluated') {
+        let count = 0;
+        list.forEach((item) => {
+          const key = getRecordEvalKey(cat, item);
+          if (isEvaluated(cat, evalMap[key])) {
+            count += 1;
+          }
+        });
+        counts[cat] = count;
+      } else {
+        // 'unevaluated'
+        let count = 0;
+        list.forEach((item) => {
+          const key = getRecordEvalKey(cat, item);
+          if (!isEvaluated(cat, evalMap[key])) {
+            count += 1;
+          }
+        });
+        counts[cat] = count;
+      }
     });
     return counts;
-  }, [datasets, evalMap]);
+  }, [datasets, evalMap, statusFilter]);
 
-  // Current list for active category
+  // Current list for active category with strict deduplication
   const currentCategoryList = useMemo(() => {
-    return datasets[activeCategory] || [];
+    const rawList = datasets[activeCategory] || [];
+    const seen = new Set<string>();
+    const list: any[] = [];
+    for (const item of rawList) {
+      const id = getRecordId(item);
+      if (!id || !seen.has(id)) {
+        if (id) seen.add(id);
+        list.push(item);
+      }
+    }
+    return list;
   }, [datasets, activeCategory]);
 
   // Progress metrics for active category
@@ -228,20 +280,40 @@ export const EvaluationView: React.FC = () => {
       if (statusFilter === 'evaluated' && !evaluated) return false;
 
       // 2. Department Filter
-      if (selectedDept) {
-        const itemDept = item.department || '';
-        const selectedAbbr = getDepartmentAbbr(selectedDept);
-        const cleanSelected = selectedDept.replace('ภาควิชา', '');
+      if (selectedDept || selectedDeptCustom) {
+        if (!itemMatchesDepartmentMulti(item, selectedDept, selectedDeptCustom)) {
+          return false;
+        }
+      }
+
+      // 3. Date Range Filter
+      if (selectedDateFrom || selectedDateTo) {
+        if (!itemMatchesDateRange(item, selectedDateFrom, selectedDateTo)) {
+          return false;
+        }
+      }
+
+      // 4. Evaluation Criteria Filter (SDGs, Framework, Journals)
+      if (
+        (selectedSdgs && selectedSdgs.length > 0) ||
+        (selectedFramework && selectedFramework !== 'all') ||
+        (selectedJournals && selectedJournals.length > 0)
+      ) {
         if (
-          !itemDept.includes(cleanSelected) &&
-          getDepartmentAbbr(itemDept) !== selectedAbbr &&
-          !itemDept.includes(selectedDept)
+          !itemMatchesEvaluation(
+            item,
+            activeCategory,
+            evalMap,
+            selectedSdgs,
+            selectedFramework,
+            selectedJournals
+          )
         ) {
           return false;
         }
       }
 
-      // 3. Search Term
+      // 5. Search Term
       if (searchTerm.trim()) {
         const q = searchTerm.toLowerCase().trim();
         const nameMatch = String(item.name || item.topic_title || '').toLowerCase().includes(q);
@@ -257,7 +329,20 @@ export const EvaluationView: React.FC = () => {
 
       return true;
     });
-  }, [currentCategoryList, activeCategory, evalMap, statusFilter, selectedDept, searchTerm]);
+  }, [
+    currentCategoryList,
+    activeCategory,
+    evalMap,
+    statusFilter,
+    selectedDept,
+    selectedDeptCustom,
+    selectedDateFrom,
+    selectedDateTo,
+    selectedSdgs,
+    selectedFramework,
+    selectedJournals,
+    searchTerm,
+  ]);
 
   // Reset page and selection when category or filters change
   const handleTabChange = (cat: CategoryKey) => {
@@ -434,7 +519,7 @@ export const EvaluationView: React.FC = () => {
         row['วัน/เดือน/ปี'] = formatDateBE(item.date);
         row['เรื่อง'] = item.name || '-';
         row['ประเภท'] = item.service_type || '-';
-        row['ชื่อ - นามสกุล'] = item.person || '-';
+        row['ผู้ใช้บริการ'] = item.person || '-';
         row['ภาควิชา/ศูนย์ฯ'] = item.department || '-';
       } else if (activeCategory === 'ip') {
         row['เรื่อง'] = item.name || '-';
@@ -456,7 +541,7 @@ export const EvaluationView: React.FC = () => {
         ev?.i_type === 'I_AM' ? 'I am' : ev?.i_type === 'I_SEE' ? 'I see' : '-';
 
       if (activeCategory === 'publications') {
-        row['Q / TCI'] = ev?.journal_index?.value || '-';
+        row['Q / TCI'] = ev?.journal_index?.value || (typeof ev?.journal_index === 'string' && ev.journal_index !== '[object Object]' ? ev.journal_index : '-');
       }
 
       row['สถานะ'] = evaluated ? 'ประเมินแล้ว' : 'ยังไม่ประเมิน';
@@ -474,11 +559,11 @@ export const EvaluationView: React.FC = () => {
   };
 
   const tabsConfig: TabItem<CategoryKey>[] = [
-    { key: 'research', label: 'โครงการวิจัย', count: unevaluatedCounts['research'] },
-    { key: 'academic', label: 'โครงการพัฒนาวิชาการ', count: unevaluatedCounts['academic'] },
-    { key: 'publications', label: 'ผลงานตีพิมพ์ทางวิชาการ', count: unevaluatedCounts['publications'] },
-    { key: 'service', label: 'งานบริการวิชาการ', count: unevaluatedCounts['service'] },
-    { key: 'ip', label: 'งานทรัพย์สินทางปัญญา', count: unevaluatedCounts['ip'] },
+    { key: 'research', label: 'โครงการวิจัย', count: categoryTabCounts['research'] },
+    { key: 'academic', label: 'โครงการพัฒนาวิชาการ', count: categoryTabCounts['academic'] },
+    { key: 'publications', label: 'ผลงานตีพิมพ์ทางวิชาการ', count: categoryTabCounts['publications'] },
+    { key: 'service', label: 'งานบริการวิชาการ', count: categoryTabCounts['service'] },
+    { key: 'ip', label: 'งานทรัพย์สินทางปัญญา', count: categoryTabCounts['ip'] },
   ];
 
   return (
@@ -538,11 +623,27 @@ export const EvaluationView: React.FC = () => {
       </div>
 
       {/* 2. Top Segmented Horizontal Tabs */}
-      <TopSegmentedTabs
-        activeCategory={activeCategory}
-        onSelectCategory={handleTabChange}
-        tabs={tabsConfig}
-      />
+      <div style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center' }}>
+        <div
+          style={{
+            width: '100%',
+            overflowX: 'auto',
+            overflowY: 'hidden',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+            WebkitOverflowScrolling: 'touch',
+            padding: '2px 0px 6px 0px',
+          }}
+        >
+          <div style={{ display: 'inline-flex', minWidth: 'max-content' }}>
+            <TopSegmentedTabs
+              activeCategory={activeCategory}
+              onSelectCategory={handleTabChange}
+              tabs={tabsConfig}
+            />
+          </div>
+        </div>
+      </div>
 
       {/* 3. Main Card Container */}
       <div
@@ -551,7 +652,9 @@ export const EvaluationView: React.FC = () => {
           borderRadius: '12px',
           border: '1px solid #e2e8f0',
           boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
-          overflow: 'hidden',
+          overflow: 'visible',
+          position: 'relative',
+          zIndex: 20,
         }}
       >
         {/* Action & Filter Toolbar */}
@@ -561,20 +664,24 @@ export const EvaluationView: React.FC = () => {
             backgroundColor: '#ffffff',
             borderBottom: '1px solid #e2e8f0',
             display: 'flex',
-            flexWrap: 'wrap',
+            flexWrap: 'nowrap',
             justifyContent: 'space-between',
             alignItems: 'center',
             gap: '12px',
+            overflow: 'visible',
+            position: 'relative',
+            zIndex: 30,
+            borderRadius: '12px 12px 0 0',
           }}
         >
-          {/* Left: Search, Filter, Status Toggle, Progress */}
+          {/* ซ้าย: ค้นหา + ปุ่มตัวกรอง + 3 ปุ่มสถานะ (อยู่บรรทัดเดียวกับช่องค้นหาทั้งหมด) */}
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
-              flexWrap: 'wrap',
               gap: '10px',
-              flex: '1 1 auto',
+              flexShrink: 1,
+              minWidth: 0,
             }}
           >
             {/* Search Box */}
@@ -586,15 +693,18 @@ export const EvaluationView: React.FC = () => {
                 border: '1px solid #cbd5e1',
                 borderRadius: '8px',
                 padding: '7px 12px',
+                height: '36px',
+                boxSizing: 'border-box',
                 width: '100%',
-                maxWidth: '220px',
-                minWidth: '160px',
+                maxWidth: '240px',
+                minWidth: '150px',
+                transition: 'border-color 0.15s',
               }}
             >
               <FaSearch style={{ color: '#94a3b8', marginRight: '8px', fontSize: '13px', flexShrink: 0 }} />
               <input
                 type="text"
-                placeholder="ค้นหา..."
+                placeholder={`ค้นหา${(CATEGORIES_CONFIG[activeCategory]?.title) || ''}...`}
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
@@ -615,144 +725,172 @@ export const EvaluationView: React.FC = () => {
                   type="button"
                   onClick={() => setSearchTerm('')}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', padding: 0 }}
+                  title="ล้างคำค้นหา"
                 >
                   <FaTimes style={{ fontSize: '12px' }} />
                 </button>
               )}
             </div>
 
-            {/* Filter Button */}
-            <button
-              type="button"
-              onClick={() => setIsFilterModalOpen(true)}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '7px 12px',
-                borderRadius: '8px',
-                border: selectedDept ? '1px solid #00A651' : '1px solid #cbd5e1',
-                backgroundColor: selectedDept ? '#f0fdf4' : '#ffffff',
-                color: selectedDept ? '#00A651' : '#475569',
-                fontSize: '13px',
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
-            >
-              <FaFilter style={{ fontSize: '12px' }} />
-              <span>ตัวกรอง</span>
-              {selectedDept && (
-                <span
-                  style={{
-                    backgroundColor: '#00A651',
-                    color: '#ffffff',
-                    borderRadius: '10px',
-                    fontSize: '10px',
-                    padding: '1px 6px',
-                    marginLeft: '2px',
-                  }}
-                >
-                  1
-                </span>
-              )}
-            </button>
-
-            {/* Status Toggle Control: ทั้งหมด, ยังไม่ประเมิน, ประเมินแล้ว (default: ยังไม่ประเมิน) */}
+            {/* กลุ่มปุ่มตัวกรอง + 3 ปุ่มสถานะ (อยู่ข้าง ๆ ในบรรทัดเดียวกันเสมอ) */}
             <div
               style={{
                 display: 'inline-flex',
-                alignItems: 'center',
-                backgroundColor: '#f1f5f9',
-                borderRadius: '8px',
-                padding: '3px',
-                border: '1px solid #e2e8f0',
-              }}
-            >
-              <button
-                type="button"
-                onClick={() => {
-                  setStatusFilter('unevaluated');
-                  setCurrentPage(1);
-                }}
-                style={{
-                  padding: '5px 11px',
-                  borderRadius: '6px',
-                  border: 'none',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  backgroundColor: statusFilter === 'unevaluated' ? '#ffffff' : 'transparent',
-                  color: statusFilter === 'unevaluated' ? '#0f172a' : '#64748b',
-                  boxShadow: statusFilter === 'unevaluated' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-                  transition: 'all 0.15s',
-                }}
-              >
-                ยังไม่ประเมิน
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setStatusFilter('evaluated');
-                  setCurrentPage(1);
-                }}
-                style={{
-                  padding: '5px 11px',
-                  borderRadius: '6px',
-                  border: 'none',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  backgroundColor: statusFilter === 'evaluated' ? '#ffffff' : 'transparent',
-                  color: statusFilter === 'evaluated' ? '#0f172a' : '#64748b',
-                  boxShadow: statusFilter === 'evaluated' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-                  transition: 'all 0.15s',
-                }}
-              >
-                ประเมินแล้ว
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setStatusFilter('all');
-                  setCurrentPage(1);
-                }}
-                style={{
-                  padding: '5px 11px',
-                  borderRadius: '6px',
-                  border: 'none',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  backgroundColor: statusFilter === 'all' ? '#ffffff' : 'transparent',
-                  color: statusFilter === 'all' ? '#0f172a' : '#64748b',
-                  boxShadow: statusFilter === 'all' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-                  transition: 'all 0.15s',
-                }}
-              >
-                ทั้งหมด
-              </button>
-            </div>
-
-            {/* Progress Display: ประเมินแล้ว X จาก Y + Thin Progress Bar */}
-            <div
-              style={{
-                display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                padding: '4px 12px',
-                backgroundColor: '#f8fafc',
-                borderRadius: '8px',
-                border: '1px solid #e2e8f0',
+                flexShrink: 0,
               }}
             >
-              <span style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>
+              {/* Filter Popover */}
+              <FilterPopover
+                category={activeCategory}
+                categoryTitle={CATEGORIES_CONFIG[activeCategory]?.title || ''}
+                totalCount={currentCategoryList.length}
+                matchCount={filteredData.length}
+                hideNumericRanges={true}
+                filters={{
+                  departments: selectedDept ? selectedDept.split(',').filter(Boolean) : [],
+                  deptCustomText: selectedDeptCustom,
+                  dateFrom: selectedDateFrom,
+                  dateTo: selectedDateTo,
+                  journals: selectedJournals,
+                  role: selectedRole,
+                  imageStatus: selectedImageStatus,
+                  completeness: selectedCompleteness,
+                  subFilter: selectedSubFilter,
+                  sdgs: selectedSdgs,
+                  framework: selectedFramework,
+                }}
+                onApply={(newFilters) => {
+                  setSelectedDept(newFilters.departments.join(','));
+                  setSelectedDeptCustom(newFilters.deptCustomText || '');
+                  setSelectedDateFrom(newFilters.dateFrom || '');
+                  setSelectedDateTo(newFilters.dateTo || '');
+                  setSelectedJournals(newFilters.journals || []);
+                  setSelectedRole(newFilters.role || '');
+                  setSelectedImageStatus(newFilters.imageStatus || 'all');
+                  setSelectedCompleteness(newFilters.completeness || 'all');
+                  setSelectedSubFilter(newFilters.subFilter || '');
+                  setSelectedSdgs(newFilters.sdgs || []);
+                  setSelectedFramework(newFilters.framework || 'all');
+                  setCurrentPage(1);
+                }}
+                onReset={handleResetFilters}
+              />
+
+              {/* Status Toggle Control (ยังไม่ประเมิน / ประเมินแล้ว / ทั้งหมด) */}
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  backgroundColor: '#f1f5f9',
+                  borderRadius: '8px',
+                  padding: '3px',
+                  border: '1px solid #e2e8f0',
+                  height: '36px',
+                  boxSizing: 'border-box',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStatusFilter('unevaluated');
+                    setCurrentPage(1);
+                  }}
+                  style={{
+                    padding: '5px 11px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    fontSize: '12px',
+                    fontWeight: 400,
+                    cursor: 'pointer',
+                    backgroundColor: statusFilter === 'unevaluated' ? '#ffffff' : 'transparent',
+                    color: statusFilter === 'unevaluated' ? '#0f172a' : '#64748b',
+                    boxShadow: statusFilter === 'unevaluated' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  ยังไม่ประเมิน
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStatusFilter('evaluated');
+                    setCurrentPage(1);
+                  }}
+                  style={{
+                    padding: '5px 11px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    fontSize: '12px',
+                    fontWeight: 400,
+                    cursor: 'pointer',
+                    backgroundColor: statusFilter === 'evaluated' ? '#ffffff' : 'transparent',
+                    color: statusFilter === 'evaluated' ? '#0f172a' : '#64748b',
+                    boxShadow: statusFilter === 'evaluated' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  ประเมินแล้ว
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStatusFilter('all');
+                    setCurrentPage(1);
+                  }}
+                  style={{
+                    padding: '5px 11px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    fontSize: '12px',
+                    fontWeight: 400,
+                    cursor: 'pointer',
+                    backgroundColor: statusFilter === 'all' ? '#ffffff' : 'transparent',
+                    color: statusFilter === 'all' ? '#0f172a' : '#64748b',
+                    boxShadow: statusFilter === 'all' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  ทั้งหมด
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* ขวา: Progress Display (มี % และสูงเท่ากับปุ่มส่งออก Excel) + Bulk Selection + Export Excel */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              flexShrink: 0,
+            }}
+          >
+            {/* Progress Display: ความสูง 36px เท่ากับปุ่ม ส่งออก Excel พร้อมตัวเลข % ด้านขวาของหลอด */}
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '7px 14px',
+                height: '36px',
+                boxSizing: 'border-box',
+                backgroundColor: '#f8fafc',
+                borderRadius: '8px',
+                border: '1px solid #cbd5e1',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <span style={{ fontSize: '12.5px', fontWeight: 400, color: '#334155' }}>
                 ประเมินแล้ว {categoryProgress.evaluated} จาก {categoryProgress.total}
               </span>
               <div
                 style={{
-                  width: '90px',
+                  width: '80px',
                   height: '6px',
                   backgroundColor: '#e2e8f0',
                   borderRadius: '999px',
@@ -769,11 +907,11 @@ export const EvaluationView: React.FC = () => {
                   }}
                 />
               </div>
+              <span style={{ fontSize: '12px', fontWeight: 400, color: '#334155' }}>
+                {categoryProgress.percent}%
+              </span>
             </div>
-          </div>
 
-          {/* Right: Bulk Action & Export */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             {selectedRowIds.size > 0 && (
               <>
                 <span
@@ -783,8 +921,13 @@ export const EvaluationView: React.FC = () => {
                     color: '#059669',
                     backgroundColor: '#ecfdf5',
                     border: '1px solid #a7f3d0',
-                    padding: '5px 12px',
+                    padding: '7px 12px',
+                    height: '36px',
+                    boxSizing: 'border-box',
                     borderRadius: '8px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    whiteSpace: 'nowrap',
                   }}
                 >
                   เลือกแล้ว {selectedRowIds.size} รายการ
@@ -798,6 +941,8 @@ export const EvaluationView: React.FC = () => {
                     alignItems: 'center',
                     gap: '6px',
                     padding: '7px 14px',
+                    height: '36px',
+                    boxSizing: 'border-box',
                     borderRadius: '8px',
                     border: 'none',
                     backgroundColor: '#00A651',
@@ -806,6 +951,7 @@ export const EvaluationView: React.FC = () => {
                     fontWeight: 600,
                     cursor: 'pointer',
                     boxShadow: '0 2px 6px rgba(0, 166, 81, 0.25)',
+                    whiteSpace: 'nowrap',
                   }}
                 >
                   <FaCheckSquare style={{ fontSize: '13px' }} />
@@ -814,6 +960,7 @@ export const EvaluationView: React.FC = () => {
               </>
             )}
 
+            {/* Export Excel Button (ความสูง 36px) */}
             <button
               type="button"
               onClick={handleExportExcel}
@@ -821,17 +968,30 @@ export const EvaluationView: React.FC = () => {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
-                padding: '7px 12px',
-                borderRadius: '8px',
-                border: '1px solid #cbd5e1',
+                padding: '7px 14px',
+                height: '36px',
+                boxSizing: 'border-box',
                 backgroundColor: '#ffffff',
+                border: '1px solid #cbd5e1',
+                borderRadius: '8px',
                 color: '#334155',
                 fontSize: '13px',
-                fontWeight: 600,
+                fontWeight: 500,
                 cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease',
               }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = '#00A651';
+                e.currentTarget.style.color = '#00A651';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = '#cbd5e1';
+                e.currentTarget.style.color = '#334155';
+              }}
+              title="ส่งออกข้อมูลตารางเป็นไฟล์ Excel"
             >
-              <FaFileExport style={{ color: '#00A651', fontSize: '13px' }} />
+              <FaFileExport style={{ color: '#64748b', fontSize: '13px' }} />
               <span>ส่งออก Excel</span>
             </button>
           </div>
@@ -922,7 +1082,7 @@ export const EvaluationView: React.FC = () => {
                       ประเภท
                     </th>
                     <th style={{ width: '150px', padding: '12px 10px' }}>
-                      ชื่อ - นามสกุล
+                      ผู้ให้บริการ
                     </th>
                     <th style={{ width: '120px', padding: '12px 10px' }}>
                       สังกัด
@@ -990,7 +1150,7 @@ export const EvaluationView: React.FC = () => {
 
                   return (
                     <tr
-                      key={recordId || rowIdx}
+                      key={`${activeCategory}_${recordId || 'row'}_${rowIdx}`}
                       onClick={() => handleOpenDrawer(item)}
                       style={{
                         borderBottom: '1px solid #f1f5f9',
@@ -1050,9 +1210,7 @@ export const EvaluationView: React.FC = () => {
                             </div>
                           </td>
                           <td style={{ padding: '10px 10px', textAlign: 'center' }}>
-                            <span className="inline-block px-2 py-0.5 rounded text-xs bg-slate-100 text-slate-700">
-                              {item.type || '-'}
-                            </span>
+                            <PublicationTypeBadge value={item.type} />
                           </td>
                           <td style={{ padding: '10px 8px', textAlign: 'center' }}>
                             <LevelBadge value={item.level} />
@@ -1134,18 +1292,26 @@ export const EvaluationView: React.FC = () => {
                       </td>
 
                       {/* Evaluation: Q / TCI (Publications only: Tag component with .tag-journal) */}
-                      {activeCategory === 'publications' && (
-                        <td style={{ padding: '10px 10px', textAlign: 'center' }}>
-                          {ev?.journal_index?.value ? (
-                            <EvaluationTag
-                              kind="journal"
-                              label={ev.journal_index.value}
-                            />
-                          ) : (
-                            <span className="text-slate-300">-</span>
-                          )}
-                        </td>
-                      )}
+                      {activeCategory === 'publications' && (() => {
+                        const rawJ: any = ev?.journal_index;
+                        const journalLabel = rawJ?.value || (
+                          typeof rawJ === 'string' && rawJ !== '[object Object]' && rawJ.trim() !== ''
+                            ? rawJ.trim()
+                            : null
+                        );
+                        return (
+                          <td style={{ padding: '10px 10px', textAlign: 'center' }}>
+                            {journalLabel ? (
+                              <EvaluationTag
+                                kind="journal"
+                                label={journalLabel}
+                              />
+                            ) : (
+                              <span className="text-slate-300">-</span>
+                            )}
+                          </td>
+                        );
+                      })()}
 
                       {/* Evaluation Status Chip */}
                       <td style={{ padding: '10px 10px', textAlign: 'center' }}>
@@ -1302,30 +1468,6 @@ export const EvaluationView: React.FC = () => {
         category={activeCategory}
         selectedRecords={selectedRecordsList}
         onApply={handleBulkApply}
-      />
-
-      {/* Filter Modal */}
-      <FilterModal
-        isOpen={isFilterModalOpen}
-        onClose={() => setIsFilterModalOpen(false)}
-        activeCategory={activeCategory}
-        config={CATEGORIES_CONFIG[activeCategory]}
-        selectedDept={selectedDept}
-        selectedRole={selectedRole}
-        selectedImageStatus="all"
-        selectedSubFilter=""
-        onApply={({ selectedDept: d, selectedRole: r }) => {
-          setSelectedDept(d);
-          setSelectedRole(r);
-          setCurrentPage(1);
-          setIsFilterModalOpen(false);
-        }}
-        onReset={() => {
-          setSelectedDept('');
-          setSelectedRole('');
-          setCurrentPage(1);
-          setIsFilterModalOpen(false);
-        }}
       />
     </div>
   );

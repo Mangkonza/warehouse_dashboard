@@ -16,7 +16,10 @@ export async function enforceServerRole(resource: AppResource) {
   }
 
   try {
-    const backendUrl = process.env.INTERNAL_BACKEND_URL || 'http://127.0.0.1:8000';
+    const backendUrl =
+      process.env.INTERNAL_BACKEND_URL ||
+      process.env.BACKEND_URL ||
+      'http://127.0.0.1:8000';
     const res = await fetch(`${backendUrl}/api/v1/auth/me`, {
       headers: {
         Cookie: `ku_session=${sessionCookie}`,

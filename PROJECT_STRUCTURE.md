@@ -272,7 +272,7 @@ warehouse_dashboard/src/components/form/PublicationForm.tsx  Comprehensive add/e
 warehouse_dashboard/src/components/form/RepeatableList.tsx  Generic container for dynamically adding and removing rows.
 warehouse_dashboard/src/components/form/ResearchProjectForm.tsx  Comprehensive add/edit form for research project records.
 warehouse_dashboard/src/components/form/TrlOutputsField.tsx  Form field specifying Technology Readiness Level expected outputs.
-warehouse_dashboard/src/components/form/TrlSelect.tsx  Select component for Technology Readiness Levels (TRL 1-9).
+warehouse_dashboard/src/components/form/TrlSelect.tsx  Select component for Technology Readiness Levels.
 warehouse_dashboard/src/components/index.ts  Barrel export file for UI, form, layout components.
 warehouse_dashboard/src/components/layout  Shared application layout headers, sidebars, and navigation.
 warehouse_dashboard/src/components/layout/Header.tsx  Application top bar with title, search, and user profile.

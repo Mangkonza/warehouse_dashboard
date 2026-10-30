@@ -21,9 +21,9 @@ export const getStoredKPIs = (): KPIItem[] => {
   if (typeof window === 'undefined') return DEFAULT_KPIS;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
+    if (raw !== null) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
+      if (Array.isArray(parsed)) {
         return parsed;
       }
     }
@@ -75,7 +75,8 @@ export const updateKPI = (kpi: KPIItem): KPIItem => {
 
 export const deleteKPI = (id: string): void => {
   const current = getStoredKPIs();
-  const updated = current.filter((item) => item.id !== id);
+  const targetId = String(id).trim();
+  const updated = current.filter((item) => String(item.id).trim() !== targetId);
   saveStoredKPIs(updated);
 };
 

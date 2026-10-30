@@ -595,7 +595,7 @@ export const HybridSdgCard: React.FC<HybridSdgCardProps> = ({
               const hasData = entry.count > 0;
               return (
                 <div
-                  key={entry.sdg.number}
+                  key={`sdg-card-17-${entry.sdg.number}`}
                   onClick={() => hasData && handleOpenSdgDrawer(entry)}
                   style={{
                     padding: '10px 12px',

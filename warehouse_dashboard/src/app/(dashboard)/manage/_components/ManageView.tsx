@@ -23,7 +23,7 @@ export function ManageView() {
     return (
       <div style={{ padding: '40px', textAlign: 'center' }}>
         <h3 style={{ color: '#ef4444', marginBottom: '12px' }}>
-          เข้าสู่ระบบด้วยสิทธิ์ผู้ดูแลระบบ (Admin)
+          เข้าสู่ระบบด้วยสิทธิ์ผู้ดูแลระบบ
         </h3>
         <p style={{ color: '#64748b', marginBottom: '20px' }}>
           กรุณาเข้าสู่ระบบเพื่อเข้าใช้งานส่วนระบบจัดการข้อมูล

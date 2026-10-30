@@ -6,7 +6,7 @@ import { autoDetectJournalRanking, fetchDOIMetadata } from '@/lib/journalRanking
 import { FaBook, FaSearch, FaMagic, FaCheckCircle, FaSpinner } from 'react-icons/fa';
 
 interface JournalQuartileSelectorProps {
-  value: string; // e.g. 'Scopus Q1', 'TCI 1'
+  value: string; // e.g. 'Q1', 'TCI 1'
   onChange: (val: string) => void;
   journalName?: string;
   onJournalMetadataFetched?: (meta: {
@@ -19,10 +19,10 @@ interface JournalQuartileSelectorProps {
 }
 
 const TIER_OPTIONS: JournalTier[] = [
-  'Scopus Q1',
-  'Scopus Q2',
-  'Scopus Q3',
-  'Scopus Q4',
+  'Q1',
+  'Q2',
+  'Q3',
+  'Q4',
   'TCI 1',
   'TCI 2',
   'International Conference',
@@ -84,7 +84,7 @@ export const JournalQuartileSelector: React.FC<JournalQuartileSelectorProps> = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
       <label style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '6px' }}>
         <FaBook style={{ color: '#8e24aa' }} />
-        ระดับคุณภาพวารสาร (Scopus Quartile Q1-Q4 / TCI)
+        ระดับคุณภาพวารสาร (Quartile Q1-Q4 / TCI)
       </label>
 
       {/* Tier Selection Pills */}

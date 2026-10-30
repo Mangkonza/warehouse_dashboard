@@ -433,12 +433,12 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                 gap: '16px',
               }}
             >
-              <Field label="ภาควิชา / ศูนย์สังกัด">
+              <Field label="สังกัด">
                 <DepartmentSelect
                   value={draftDept}
                   onChange={(val) => setDraftDept(val === '__all__' ? '' : val)}
                   allowAll
-                  allLabel="ทุกภาควิชา / ศูนย์สังกัด"
+                  allLabel="ทุกสังกัด"
                   allValue=""
                   className="w-full"
                 />
@@ -648,7 +648,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
               }}
             >
               <FaCheck style={{ fontSize: '11px' }} />
-              <span>ใช้งานตัวกรอง {activeDraftCount > 0 ? `(${activeDraftCount})` : ''}</span>
+              <span>ใช้งานตัวกรอง</span>
             </button>
           </div>
         </div>

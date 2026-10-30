@@ -127,7 +127,7 @@ export function ServiceTable({
               const typeVal = item._resolvedType || item.service_type || item.service_category || 'วิชาการ';
               return (
                 <tr
-                  key={item.id || item._id || index}
+                  key={`service-row-${index}-${item.dbId ?? item._id ?? item.id ?? "item"}`}
                   onClick={() => setSelectedRecord(item)}
                   style={{ cursor: 'pointer' }}
                 >

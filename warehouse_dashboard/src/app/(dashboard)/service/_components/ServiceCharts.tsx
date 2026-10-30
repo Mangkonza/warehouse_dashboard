@@ -443,7 +443,7 @@ export function ServiceCharts({
               <tbody>
                 {topServiceFaculty.slice(0, 15).map((s, idx) => (
                   <tr
-                    key={idx}
+                    key={`service-top-fac-${s.person_id || s.name || idx}-${idx}`}
                     onClick={() => {
                       if (s.person_id) router.push(`/personnel/${s.person_id}`);
                       else router.push(`/personnel?q=${encodeURIComponent(s.name)}`);

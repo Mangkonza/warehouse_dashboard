@@ -104,7 +104,7 @@ export function KpiGrid({ items, className = '', style }: KpiGridProps) {
   return (
     <div className={`kpi-grid ${className}`.trim()} style={style}>
       {items.map((item, index) => (
-        <KpiCard key={index} {...item} />
+        <KpiCard key={`kpi-card-${index}`} {...item} />
       ))}
     </div>
   );

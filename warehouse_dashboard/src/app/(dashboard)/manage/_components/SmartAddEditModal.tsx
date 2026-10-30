@@ -20,12 +20,14 @@ import { MultiMemberSelector } from './MultiMemberSelector';
 import { SDGTagSelector } from './SDGTagSelector';
 import { JournalQuartileSelector } from './JournalQuartileSelector';
 import { STATUS_LABELS } from '@/lib/projectMonitoringEngine';
-import { AcademicProjectForm } from './AcademicProjectForm';
-import { ResearchProjectForm } from '@/components/form/ResearchProjectForm';
-import { AcademicServiceForm } from '@/components/form/AcademicServiceForm';
-import { PublicationForm } from '@/components/form/PublicationForm';
+import {
+  AcademicFormFields,
+  ResearchFormFields,
+  ServiceFormFields,
+  PublicationFormFields,
+  IpFormFields,
+} from '@/components/form/domain-forms';
 import { PersonnelForm } from '@/components/form/PersonnelForm';
-import { IntellectualPropertyForm } from '@/components/form/IntellectualPropertyForm';
 import { PersonPicker, PersonPickerValue } from '@/components/form/PersonPicker';
 import { MoneyInput } from '@/components/form/MoneyInput';
 import {
@@ -404,27 +406,27 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
             )}
 
             {config.key === 'academic' ? (
-              <AcademicProjectForm
+              <AcademicFormFields
                 formData={formData}
                 onChange={handleFieldChange}
                 setFormData={setFormData}
               />
             ) : config.key === 'research' ? (
-              <ResearchProjectForm
+              <ResearchFormFields
                 formData={formData}
                 onChange={handleFieldChange}
                 setFormData={setFormData}
                 isEdit={isEdit}
               />
             ) : config.key === 'service' ? (
-              <AcademicServiceForm
+              <ServiceFormFields
                 formData={formData}
                 onChange={handleFieldChange}
                 setFormData={setFormData}
                 isEdit={isEdit}
               />
             ) : config.key === 'publications' ? (
-              <PublicationForm
+              <PublicationFormFields
                 formData={formData}
                 onChange={handleFieldChange}
                 setFormData={setFormData}
@@ -438,7 +440,7 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
                 isEdit={isEdit}
               />
             ) : config.key === 'ip' ? (
-              <IntellectualPropertyForm
+              <IpFormFields
                 formData={formData}
                 onChange={handleFieldChange}
                 setFormData={setFormData}
@@ -650,7 +652,7 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
                     <DatePicker
                       value={val || ''}
                       onChange={(_, dateStr) => handleFieldChange(col.key, dateStr)}
-                      placeholder="วว/ดด/ปปปป (พ.ศ.)"
+                      placeholder="วัน/เดือน/ปี (พ.ศ.)"
                       className="w-full"
                     />
 
@@ -779,7 +781,6 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
                 e.currentTarget.style.borderColor = '#00A651';
                 e.currentTarget.style.color = '#ffffff';
                 e.currentTarget.style.boxShadow = '0 2px 6px rgba(0, 166, 81, 0.25)';
-                e.currentTarget.style.transform = 'translateY(0)';
               }}
             >
               {isSubmitting ? (

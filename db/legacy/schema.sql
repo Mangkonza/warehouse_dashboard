@@ -806,10 +806,10 @@ SELECT analytics.sync_dim_organization();
 
 -- 4.4 ข้อมูลตั้งต้นมิติคุณภาพวารสารและสิ่งตีพิมพ์
 INSERT INTO analytics.dim_publication_tier (tier_code, tier_name, database_source, publication_level, is_top_tier) VALUES
-('SCOPUS_Q1', 'Scopus Quartile 1', 'Scopus', 'นานาชาติ', TRUE),
-('SCOPUS_Q2', 'Scopus Quartile 2', 'Scopus', 'นานาชาติ', TRUE),
-('SCOPUS_Q3', 'Scopus Quartile 3', 'Scopus', 'นานาชาติ', FALSE),
-('SCOPUS_Q4', 'Scopus Quartile 4', 'Scopus', 'นานาชาติ', FALSE),
+('SCOPUS_Q1', 'Quartile 1', 'Scopus', 'นานาชาติ', TRUE),
+('SCOPUS_Q2', 'Quartile 2', 'Scopus', 'นานาชาติ', TRUE),
+('SCOPUS_Q3', 'Quartile 3', 'Scopus', 'นานาชาติ', FALSE),
+('SCOPUS_Q4', 'Quartile 4', 'Scopus', 'นานาชาติ', FALSE),
 ('TCI_1', 'TCI กลุ่ม 1', 'TCI', 'ชาติ', FALSE),
 ('TCI_2', 'TCI กลุ่ม 2', 'TCI', 'ชาติ', FALSE),
 ('CONFERENCE', 'การประชุมวิชาการระดับชาติ/นานาชาติ', 'Conference Proceedings', 'นานาชาติ', FALSE),
@@ -860,7 +860,7 @@ JOIN analytics.dim_date dt ON f.start_date_key = dt.date_key
 LEFT JOIN analytics.dim_funding_source fund ON f.funding_source_key = fund.funding_source_key
 GROUP BY dt.fiscal_year_be, org.faculty_name_th, org.department_name_th, fund.funding_type, fund.funding_source_name;
 
--- วิวที่ 2: สรุปผลงานตีพิมพ์ Scopus Q1-Q4, TCI และความร่วมมือระดับนานาชาติ (KPI 2.1 & KPI 4.1)
+-- วิวที่ 2: สรุปผลงานตีพิมพ์ Q1-Q4, TCI และความร่วมมือระดับนานาชาติ (KPI 2.1 & KPI 4.1)
 CREATE OR REPLACE VIEW analytics.v_publications_top_tier AS
 SELECT 
     dt.fiscal_year_be AS "ปีงบประมาณ",

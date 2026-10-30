@@ -137,27 +137,17 @@ export const SmartAutocomplete: React.FC<SmartAutocompleteProps> = ({
                   justifyContent: 'center',
                 }}
               >
-                {p.image_url ? (
-                  <>
-                    <img
-                      src={encodeURI(p.image_url)}
-                      alt={p.name}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }}
-                      onError={(e) => {
-                        const target = e.currentTarget;
-                        target.style.display = 'none';
-                        if (target.nextElementSibling) {
-                          (target.nextElementSibling as HTMLElement).style.display = 'flex';
-                        }
-                      }}
-                    />
-                    <span style={{ display: 'none', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
-                      <FaUser style={{ color: '#94a3b8', fontSize: '16px' }} />
-                    </span>
-                  </>
-                ) : (
-                  <FaUser style={{ color: '#94a3b8', fontSize: '16px' }} />
-                )}
+                <img
+                  src={p.image_url ? encodeURI(p.image_url) : '/default-avatar.png'}
+                  alt={p.name}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center', backgroundColor: '#99b8db' }}
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    if (target.src !== '/default-avatar.png' && !target.src.endsWith('/default-avatar.png')) {
+                      target.src = '/default-avatar.png';
+                    }
+                  }}
+                />
               </div>
 
               {/* Text Info */}

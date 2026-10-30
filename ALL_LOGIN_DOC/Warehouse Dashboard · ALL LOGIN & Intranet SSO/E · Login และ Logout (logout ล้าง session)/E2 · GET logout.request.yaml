@@ -1,0 +1,38 @@
+$kind: http-request
+description: ล้าง auth cookies ทั้งสามแบบ HttpOnly max-age=0 และ redirect ไป ENG_LOGOUT_URL
+url: "{{webBaseUrl}}/sso/logout"
+method: GET
+headers:
+  Accept: application/json
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("External redirect to Portal logout (HTTP 307)", () => {
+        pm.expect(pm.response.code).to.eql(307);
+        pm.expect(pm.response.headers.get("Location")).to.be.a("string").and.not.empty;
+      });
+      pm.test("Cache-Control is no-store", () => {
+        const cc = pm.response.headers.get("Cache-Control");
+        pm.expect(cc, "Cache-Control header missing").to.be.a("string");
+        pm.expect(cc.toLowerCase()).to.include("no-store");
+      });
+      pm.test("Response body does not leak raw tokens", () => {
+        const text = pm.response.text();
+        ["exchangeToken", "ssoToken", "intranetToken", "accessToken"].forEach(k => {
+          const v = pm.variables.get(k);
+          if (v && v.length > 5) pm.expect(text).not.to.include(v);
+        });
+      });
+      pm.test("Auth cookies cleared with HttpOnly", () => {
+        const cookies = pm.response.headers.all().filter(x => x.key.toLowerCase() === "set-cookie").map(x => x.value);
+        ["USER_SESSION", "ACCESS_TOKEN", "INTRANET_TOKEN"].forEach(name => {
+          const c = cookies.find(x => x.startsWith(name + "="));
+          pm.expect(c, name + " missing in Set-Cookie").to.be.a("string");
+          pm.expect(c.toLowerCase(), name + " must be HttpOnly").to.include("httponly");
+          pm.expect(c.toLowerCase(), name + " must be cleared (max-age=0)").to.include("max-age=0");
+        });
+      });
+    language: text/javascript
+settings:
+  followRedirects: false
+order: 2000

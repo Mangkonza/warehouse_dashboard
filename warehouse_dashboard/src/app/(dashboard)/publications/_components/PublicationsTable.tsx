@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { FaTable, FaCalendarAlt } from 'react-icons/fa';
-import { SearchInput, DepartmentBadge, DepartmentSelect, RecordDetailDrawer, LevelBadge } from '@/components/ui';
+import { SearchInput, DepartmentBadge, DepartmentSelect, RecordDetailDrawer, LevelBadge, PublicationTypeBadge } from '@/components/ui';
 import { JOURNAL_TIER_STYLES } from '@/config/journalRankingConfig';
 import {
   Select,
@@ -125,8 +125,8 @@ export function PublicationsTable({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">ทุกระดับ / ทุกฐานข้อมูล</SelectItem>
-              <SelectItem value="Q1">Scopus Q1</SelectItem>
-              <SelectItem value="Q2">Scopus Q2-Q4</SelectItem>
+              <SelectItem value="Q1">Q1</SelectItem>
+              <SelectItem value="Q2">Q2-Q4</SelectItem>
               <SelectItem value="TCI">TCI (ระดับชาติ)</SelectItem>
               <SelectItem value="นานาชาติ">ระดับนานาชาติ</SelectItem>
               <SelectItem value="ชาติ">ระดับชาติ</SelectItem>
@@ -226,7 +226,7 @@ export function PublicationsTable({
 
                     return (
                       <tr
-                        key={item._id || item.id || globalIndex}
+                        key={`pub-row-${globalIndex}-${item.dbId ?? item._id ?? item.id ?? "item"}`}
                         onClick={() => setSelectedDetailItem(item)}
                         style={{ cursor: 'pointer' }}
                         className="hover:bg-[#f0fbf5] transition-colors"
@@ -238,16 +238,8 @@ export function PublicationsTable({
                           {item.name}
                         </td>
                         <td>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                            <span
-                              className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${
-                                item.type === 'ตีพิมพ์'
-                                  ? 'bg-emerald-50 text-[#006838] border border-emerald-200'
-                                  : 'bg-blue-50 text-blue-800 border border-blue-200'
-                              }`}
-                            >
-                              {item.status || item.type || '-'}
-                            </span>
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '2px' }}>
+                            <PublicationTypeBadge value={item.type || item.status} />
                             {item.prep_budget ? (
                               <span style={{ fontSize: '10.5px', color: '#64748b' }}>
                                 (มีงบเตรียมฯ {Number(item.prep_budget).toLocaleString()} )

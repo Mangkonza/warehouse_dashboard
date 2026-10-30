@@ -610,7 +610,7 @@ export function AcademicCharts({
               <tbody>
                 {facultyLeadsRanking.map((f, idx) => (
                   <tr
-                    key={idx}
+                    key={`faculty-lead-${f.head_id || f.head || idx}-${idx}`}
                     onClick={() => {
                       if (f.head_id) router.push(`/personnel/${f.head_id}`);
                       else router.push(`/personnel?q=${encodeURIComponent(f.head)}`);

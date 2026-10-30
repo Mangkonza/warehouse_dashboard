@@ -39,7 +39,16 @@ export function isEvaluated(
   if (!hasSdg || !hasIType) return false;
 
   if (category && category.toLowerCase() === 'publications') {
-    return Boolean(evaluation.journal_index && evaluation.journal_index.value);
+    const j: any = evaluation.journal_index;
+    if (!j) return false;
+    if (typeof j === 'object' && j.value) {
+      return String(j.value).trim() !== '' && String(j.value) !== '[object Object]';
+    }
+    if (typeof j === 'string') {
+      const trimmed = j.trim();
+      return trimmed !== '' && trimmed !== '[object Object]';
+    }
+    return false;
   }
 
   return true;

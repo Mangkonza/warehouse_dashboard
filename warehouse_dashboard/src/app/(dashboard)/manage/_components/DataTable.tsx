@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { ColumnDef, CategoryKey } from '@/types/dataManagement';
 import { getDepartmentAbbr, CATEGORIES_CONFIG } from '@/config/dataManagementConfig';
-import { DepartmentBadge, RecordDetailDrawer, LevelBadge, ServiceTypeBadge, IPTypeBadge, formatDateBE, formatMoney } from '@/components/ui';
+import { DepartmentBadge, RecordDetailDrawer, LevelBadge, ServiceTypeBadge, IPTypeBadge, PublicationTypeBadge, TrlBadge, formatDateBE, formatMoney } from '@/components/ui';
 import { getCachedEvaluations } from '@/lib/dataService';
 import {
   FaUser,
@@ -170,6 +170,14 @@ export const DataTable: React.FC<DataTableProps> = ({
 
         if (col.key === 'type' && (categoryKey === 'ip' || ['สิทธิบัตร', 'อนุสิทธิบัตร', 'ลิขสิทธิ์'].some((t) => String(rawVal).includes(t)))) {
           return <IPTypeBadge value={rawVal ? String(rawVal) : null} />;
+        }
+
+        if (col.key === 'type' && (categoryKey === 'publications' || ['เตรียมความพร้อมตีพิมพ์', 'เตรียมความพร้อมจดอนุสิทธิบัตร', 'ตีพิมพ์'].some((t) => String(rawVal).includes(t)))) {
+          return <PublicationTypeBadge value={rawVal ? String(rawVal) : null} />;
+        }
+
+        if (col.key === 'trl' || col.key === 'trl_start' || col.key === 'trl_end') {
+          return <TrlBadge value={rawVal} />;
         }
 
         if (col.badgeColorMap) {

@@ -1,7 +1,7 @@
 import { prisma } from '../db/prisma.js';
 import { AppRole } from '../config/permissions.js';
 
-export const PROTECTED_ADMINS = ['b6520503525', 'b0123456789'];
+export const PROTECTED_ADMINS = ['b6520503525', 'b0123456789', 'b6500000001'];
 
 export class RoleError extends Error {
   statusCode: number;
@@ -18,13 +18,17 @@ export class RoleError extends Error {
 export function validateUsernameFormat(username: string): string {
   const normalized = String(username || '').toLowerCase().trim();
 
+  if (!normalized) {
+    throw new RoleError('กรุณาระบุชื่อบัญชีผู้ใช้', 400, 'INVALID_USERNAME_FORMAT');
+  }
+
   // บัญชีระบบที่ได้รับการยกเว้น
-  if (PROTECTED_ADMINS.includes(normalized)) {
+  if (PROTECTED_ADMINS.includes(normalized) || normalized === 'admin') {
     return normalized;
   }
 
-  // รูปแบบ b ตามด้วยตัวเลข 10 หลัก
-  const validRegex = /^b\d{10}$/;
+  // รูปแบบ b ตามด้วยตัวเลข 9-10 หลัก
+  const validRegex = /^b\d{9,10}$/;
   if (!validRegex.test(normalized)) {
     throw new RoleError(
       'ชื่อผู้ใช้ต้องขึ้นต้นด้วย b ตามด้วยตัวเลข 10 หลัก (เช่น b6520503525)',
@@ -38,7 +42,7 @@ export function validateUsernameFormat(username: string): string {
 
 export class RoleService {
   /**
-   * ดึงรายการบทบาทผู้ใช้ (สำหรับหน้าจัดการสิทธิ์ผู้ใช้ แสดงเฉพาะ admin)
+   * ดึงรายการบทบาทผู้ใช้ (รองรับทั้ง admin และ user)
    */
   static async listRoles(params: {
     search?: string;
@@ -52,11 +56,8 @@ export class RoleService {
 
     const where: any = {};
 
-    // ถ้าไม่ได้ระบุ role เป็นพิเศษ ให้ดึง admin เป็นค่าเริ่มต้นตามระบบ 2 บทบาท
     if (params.role && params.role !== 'all') {
       where.role = params.role;
-    } else {
-      where.role = 'admin';
     }
 
     if (params.search && params.search.trim()) {
@@ -72,7 +73,7 @@ export class RoleService {
       prisma.userRole.count({ where }),
       prisma.userRole.findMany({
         where,
-        orderBy: [{ isProtected: 'desc' }, { grantedAt: 'desc' }],
+        orderBy: [{ role: 'asc' }, { grantedAt: 'desc' }],
         skip,
         take: limit,
       }),
@@ -88,7 +89,7 @@ export class RoleService {
   }
 
   /**
-   * เพิ่มบทบาทผู้ดูแลระบบ (Admin) ใหม่
+   * เพิ่มบทบาทผู้ดูแลระบบ (Admin) หรือผู้ใช้งาน (User)
    */
   static async grantRole(
     actor: { username: string; role: AppRole },
@@ -116,26 +117,23 @@ export class RoleService {
       where: { username: targetUsername },
     });
 
-    if (existing) {
-      if (existing.role === 'admin') {
-        throw new RoleError(
-          `บัญชี "${targetUsername}" ได้รับสิทธิ์ผู้ดูแลระบบอยู่แล้ว`,
-          409,
-          'USER_ROLE_EXISTS'
-        );
-      }
+    if (existing && existing.role === targetRole) {
+      throw new RoleError(
+        `บัญชี "${targetUsername}" มีสิทธิ์ ${targetRole === 'admin' ? 'ผู้ดูแลระบบ (Admin)' : 'ผู้ใช้งานทั่วไป (User)'} อยู่แล้ว`,
+        409,
+        'USER_ROLE_EXISTS'
+      );
     }
 
-    // กฎ: ห้ามตั้งค่า is_protected = true ผ่าน API/UI (บังคับเป็น false เสมอ)
     return prisma.$transaction(async (tx) => {
       const saved = await tx.userRole.upsert({
         where: { username: targetUsername },
         update: {
           role: targetRole,
-          displayName: data.displayName?.trim() || null,
-          note: data.note?.trim() || null,
+          displayName: data.displayName?.trim() || existing?.displayName || null,
+          note: data.note?.trim() || existing?.note || null,
           grantedBy: actor.username,
-          isProtected: false, // ห้ามให้สิทธิ์ protected ผ่าน API
+          isProtected: false,
         },
         create: {
           username: targetUsername,
@@ -143,7 +141,7 @@ export class RoleService {
           displayName: data.displayName?.trim() || null,
           note: data.note?.trim() || null,
           grantedBy: actor.username,
-          isProtected: false, // ห้ามให้สิทธิ์ protected ผ่าน API
+          isProtected: false,
         },
       });
 
@@ -162,7 +160,7 @@ export class RoleService {
   }
 
   /**
-   * แก้ไขข้อมูลหรือบทบาทผู้ใช้
+   * แก้ไขข้อมูลหรือบทบาทผู้ใช้ (รวมถึงการลดสิทธิ์จาก Admin เป็น User หรือเพิ่มจาก User เป็น Admin)
    */
   static async changeRole(
     actor: { username: string; role: AppRole },
@@ -177,12 +175,7 @@ export class RoleService {
       throw new RoleError('เฉพาะผู้ดูแลระบบ (Admin) เท่านั้นที่สามารถแก้ไขสิทธิ์ได้', 403, 'INSUFFICIENT_PRIVILEGE');
     }
 
-    const targetUsername = validateUsernameFormat(targetUsernameRaw);
-
-    // กฎ: ห้ามแก้ไขสิทธิ์ตัวเอง
-    if (actor.username.toLowerCase() === targetUsername) {
-      throw new RoleError('ไม่อนุญาตให้แก้ไขสิทธิ์ของตนเอง', 403, 'SELF_MODIFICATION_FORBIDDEN');
-    }
+    const targetUsername = String(targetUsernameRaw || '').toLowerCase().trim();
 
     const existing = await prisma.userRole.findUnique({
       where: { username: targetUsername },
@@ -192,16 +185,13 @@ export class RoleService {
       throw new RoleError('ไม่พบข้อมูลบทบาทของผู้ใช้นี้ในระบบ', 404, 'USER_ROLE_NOT_FOUND');
     }
 
-    // กฎ: ห้ามแก้ไข/ลดระดับบัญชีที่เป็น Protected Account
-    if (existing.isProtected || PROTECTED_ADMINS.includes(targetUsername)) {
-      throw new RoleError(
-        'ไม่สามารถแก้ไขหรือลดสิทธิ์ของบัญชีที่ได้รับการปกป้อง (Protected Account) ได้',
-        403,
-        'PROTECTED_ACCOUNT'
-      );
-    }
+    const newRole: AppRole = data.role === 'user' ? 'user' : data.role === 'admin' ? 'admin' : (existing.role as AppRole);
+    const isRoleChanging = newRole !== existing.role;
 
-    const newRole: AppRole = data.role === 'user' ? 'user' : 'admin';
+    // กฎ: ห้ามลดระดับสิทธิ์ตัวเอง (แต่สามารถแก้ไขชื่อ-นามสกุลและหมายเหตุของตนเองได้)
+    if (actor.username.toLowerCase() === targetUsername && isRoleChanging) {
+      throw new RoleError('ไม่อนุญาตให้ลดระดับสิทธิ์ของบัญชีตนเองที่กำลังใช้งานอยู่', 403, 'SELF_MODIFICATION_FORBIDDEN');
+    }
 
     // กฎ: ห้ามถอน/ลดสิทธิ์ admin คนสุดท้าย
     if (existing.role === 'admin' && newRole === 'user') {
@@ -222,9 +212,10 @@ export class RoleService {
         where: { username: targetUsername },
         data: {
           role: newRole,
-          displayName: data.displayName !== undefined ? data.displayName.trim() : undefined,
-          note: data.note !== undefined ? data.note.trim() : undefined,
-          grantedBy: actor.username,
+          isProtected: newRole === 'user' ? false : existing.isProtected,
+          displayName: data.displayName !== undefined ? (data.displayName.trim() || null) : undefined,
+          note: data.note !== undefined ? (data.note.trim() || null) : undefined,
+          ...(isRoleChanging ? { grantedBy: actor.username } : {}),
         },
       });
 
@@ -243,7 +234,7 @@ export class RoleService {
   }
 
   /**
-   * ถอนสิทธิ์ผู้ดูแลระบบ (เพิกถอนสิทธิ์กลับเป็น user)
+   * ลบรายการ/ถอนสิทธิ์ผู้ดูแลระบบ (เพิกถอนสิทธิ์กลับเป็น user และลบออกจากตาราง)
    */
   static async revokeRole(
     actor: { username: string; role: AppRole },
@@ -253,11 +244,11 @@ export class RoleService {
       throw new RoleError('เฉพาะผู้ดูแลระบบ (Admin) เท่านั้นที่สามารถเพิกถอนสิทธิ์ได้', 403, 'INSUFFICIENT_PRIVILEGE');
     }
 
-    const targetUsername = validateUsernameFormat(targetUsernameRaw);
+    const targetUsername = String(targetUsernameRaw || '').toLowerCase().trim();
 
     // กฎ: ห้ามถอนสิทธิ์ตัวเอง
     if (actor.username.toLowerCase() === targetUsername) {
-      throw new RoleError('ไม่อนุญาตให้เพิกถอนสิทธิ์ของตนเอง', 403, 'SELF_MODIFICATION_FORBIDDEN');
+      throw new RoleError('ไม่อนุญาตให้ลบบัญชีของตนเองที่กำลังใช้งานอยู่', 403, 'SELF_MODIFICATION_FORBIDDEN');
     }
 
     const existing = await prisma.userRole.findUnique({
@@ -268,15 +259,6 @@ export class RoleService {
       throw new RoleError('ไม่พบข้อมูลบทบาทของผู้ใช้นี้ในระบบ', 404, 'USER_ROLE_NOT_FOUND');
     }
 
-    // กฎ: ห้ามถอนสิทธิ์บัญชีที่เป็น Protected Account
-    if (existing.isProtected || PROTECTED_ADMINS.includes(targetUsername)) {
-      throw new RoleError(
-        'ไม่สามารถเพิกถอนสิทธิ์ของบัญชีที่ได้รับการปกป้อง (Protected Account) ได้',
-        403,
-        'PROTECTED_ACCOUNT'
-      );
-    }
-
     // กฎ: ห้ามถอน admin คนสุดท้าย
     if (existing.role === 'admin') {
       const adminCount = await prisma.userRole.count({
@@ -284,7 +266,7 @@ export class RoleService {
       });
       if (adminCount <= 1) {
         throw new RoleError(
-          'ไม่สามารถเพิกถอนสิทธิ์ผู้ดูแลระบบคนสุดท้ายได้ (ต้องมี Admin อย่างน้อย 1 คน)',
+          'ไม่สามารถลบผู้ดูแลระบบคนสุดท้ายได้ (ต้องมี Admin อย่างน้อย 1 คน)',
           403,
           'LAST_ADMIN_PROTECTED'
         );
@@ -306,7 +288,7 @@ export class RoleService {
         },
       });
 
-      return { success: true, message: `เพิกถอนสิทธิ์ ${targetUsername} เรียบร้อยแล้ว` };
+      return { success: true, message: `ลบรายการและเพิกถอนสิทธิ์ของ ${targetUsername} เรียบร้อยแล้ว` };
     });
   }
 

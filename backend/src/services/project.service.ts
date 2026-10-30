@@ -1,3 +1,4 @@
+import { prisma } from '../db/prisma.js';
 import { ProjectRepository } from '../repositories/project.repository.js';
 
 const DEPT_MAP: Record<string, string> = {
@@ -170,10 +171,11 @@ export class ProjectService {
       departmentsList.push(headDept);
     }
 
-    const membersList = Array.isArray(body.members)
-      ? body.members
-      : body.members || body.co_researchers
-      ? String(body.members || body.co_researchers).split(',').map((s) => s.trim()).filter(Boolean)
+    const rawMembers = body.co_researchers ?? body.members;
+    const membersList = Array.isArray(rawMembers)
+      ? rawMembers.map((m: any) => (typeof m === 'object' && m !== null ? String(m.name || m.personName || '').trim() : String(m).trim())).filter(Boolean)
+      : rawMembers
+      ? String(rawMembers).split(',').map((s) => s.trim()).filter(Boolean)
       : [];
 
     const created = await ProjectRepository.createResearch({
@@ -209,10 +211,11 @@ export class ProjectService {
       ? resolveDeptCode(body.department || body.headDepartmentCode || body.departmentCode)
       : undefined;
 
+    const rawUpdateMembers = body.co_researchers ?? body.members;
     const membersList = body.members !== undefined || body.co_researchers !== undefined
-      ? (Array.isArray(body.members || body.co_researchers)
-          ? (body.members || body.co_researchers)
-          : String(body.members || body.co_researchers).split(',').map((s) => s.trim()).filter(Boolean))
+      ? (Array.isArray(rawUpdateMembers)
+          ? rawUpdateMembers.map((m: any) => (typeof m === 'object' && m !== null ? String(m.name || m.personName || '').trim() : String(m).trim())).filter(Boolean)
+          : String(rawUpdateMembers || '').split(',').map((s) => s.trim()).filter(Boolean))
       : undefined;
 
     let departmentsList: string[] | undefined = undefined;
@@ -236,7 +239,12 @@ export class ProjectService {
   }
 
   static async deleteResearch(identifier: string | number) {
-    const existing = await ProjectRepository.findResearchById(identifier);
+    let existing = await ProjectRepository.findResearchById(identifier);
+    if (!existing) {
+      existing = await prisma.researchProject.findFirst({
+        where: { name: String(identifier).trim() },
+      });
+    }
     if (!existing) {
       const err: any = new Error('ไม่พบข้อมูลโครงการวิจัย');
       err.status = 404;
@@ -301,7 +309,12 @@ export class ProjectService {
   }
 
   static async deleteAcademic(identifier: string | number) {
-    const existing = await ProjectRepository.findAcademicById(identifier);
+    let existing = await ProjectRepository.findAcademicById(identifier);
+    if (!existing) {
+      existing = await prisma.academicDevProject.findFirst({
+        where: { name: String(identifier).trim() },
+      });
+    }
     if (!existing) {
       const err: any = new Error('ไม่พบข้อมูลโครงการพัฒนาวิชาการ');
       err.status = 404;
@@ -394,7 +407,12 @@ export class ProjectService {
   }
 
   static async deletePublication(identifier: string | number) {
-    const existing = await ProjectRepository.findPublicationById(identifier);
+    let existing = await ProjectRepository.findPublicationById(identifier);
+    if (!existing) {
+      existing = await prisma.publication.findFirst({
+        where: { title: String(identifier).trim() },
+      });
+    }
     if (!existing) {
       const err: any = new Error('ไม่พบข้อมูลผลงานตีพิมพ์');
       err.status = 404;

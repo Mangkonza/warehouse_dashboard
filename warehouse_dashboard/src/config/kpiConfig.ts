@@ -215,7 +215,7 @@ export const DEFAULT_KPIS: KPIItem[] = [
     unit: 'เรื่อง',
     calcType: 'auto_count',
     datasetKey: 'publications',
-    description: 'จำนวนบทความที่ได้รับการตีพิมพ์ในวารสารวิชาการระดับนานาชาติที่อยู่ในฐานข้อมูล Scopus หรือ Web of Science',
+    description: 'จำนวนบทความที่ได้รับการตีพิมพ์ในวารสารวิชาการระดับนานาชาติที่อยู่ในฐานข้อมูล หรือ Web of Science',
     responsibleUnit: 'รองคณบดีฝ่ายวิจัย / คณาจารย์ทุกภาควิชา',
   },
   {

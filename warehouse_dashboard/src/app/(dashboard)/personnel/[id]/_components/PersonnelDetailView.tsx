@@ -4,7 +4,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePersonnelData } from '../../_hooks/usePersonnelData';
 import { useTimeFilter, TimeFilterBar } from '@/features/time-filter';
-import { DepartmentBadge } from '@/components/ui';
+import { DepartmentBadge, PublicationTypeBadge, IPTypeBadge, ServiceTypeBadge } from '@/components/ui';
 import { autoDetectJournalRanking, JOURNAL_TIER_STYLES } from '@/config/journalRankingConfig';
 import {
   FaArrowLeft,
@@ -198,24 +198,23 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            {/* Profile Image (จากฐานข้อมูล ถ้าไม่มีไม่ต้องใส่) */}
-            {profileImageUrl && !imageError && (
-              <img
-                src={encodeURI(profileImageUrl)}
-                alt={portfolio.name}
-                onError={() => setImageError(true)}
-                style={{
-                  width: '68px',
-                  height: '68px',
-                  borderRadius: '14px',
-                  objectFit: 'cover',
-                  objectPosition: 'top center',
-                  border: '1.5px solid #e2e8f0',
-                  boxShadow: '0 4px 14px rgba(0, 0, 0, 0.08)',
-                  flexShrink: 0,
-                }}
-              />
-            )}
+            {/* Profile Image (ถ้าไม่พบรูปให้ใช้ default avatar) */}
+            <img
+              src={profileImageUrl && !imageError ? encodeURI(profileImageUrl) : '/default-avatar.png'}
+              alt={portfolio.name}
+              onError={() => setImageError(true)}
+              style={{
+                width: '68px',
+                height: '68px',
+                borderRadius: '14px',
+                objectFit: 'cover',
+                objectPosition: 'top center',
+                border: '1.5px solid #e2e8f0',
+                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.08)',
+                flexShrink: 0,
+                backgroundColor: '#99b8db',
+              }}
+            />
 
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
@@ -356,7 +355,7 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
               {portfolio.counts.publications} เรื่อง
             </div>
             <div style={{ fontSize: '11.5px', color: '#64748b', marginTop: '1px' }}>
-              Scopus Q1/Q2: {portfolio.pubQuartiles.q1 + portfolio.pubQuartiles.q2} เรื่อง
+              Q1/Q2: {portfolio.pubQuartiles.q1 + portfolio.pubQuartiles.q2} เรื่อง
             </div>
           </div>
 
@@ -621,19 +620,7 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
                             <td style={{ padding: '10px 12px', fontWeight: 600, color: '#0f172a' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                                 <span>{p.name}</span>
-                                <span
-                                  style={{
-                                    fontSize: '10.5px',
-                                    padding: '1px 6px',
-                                    borderRadius: '4px',
-                                    backgroundColor: p.status === 'ตีพิมพ์แล้ว' || p.type === 'ตีพิมพ์' ? '#ecfdf5' : '#f0f9ff',
-                                    color: p.status === 'ตีพิมพ์แล้ว' || p.type === 'ตีพิมพ์' ? '#059669' : '#0284c7',
-                                    border: `1px solid ${p.status === 'ตีพิมพ์แล้ว' || p.type === 'ตีพิมพ์' ? '#a7f3d0' : '#bae6fd'}`,
-                                    whiteSpace: 'nowrap',
-                                  }}
-                                >
-                                  {p.status || p.type || 'ตีพิมพ์แล้ว'}
-                                </span>
+                                <PublicationTypeBadge value={p.type || p.status || 'ตีพิมพ์'} />
                               </div>
                               {p.remarks && (
                                 <div style={{ fontSize: '11.5px', color: '#64748b', marginTop: '2px' }}>
@@ -718,19 +705,7 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
                             {i.name || i.title}
                           </td>
                           <td style={{ padding: '10px 12px' }}>
-                            <span
-                              style={{
-                                backgroundColor: '#f5f3ff',
-                                color: '#7c3aed',
-                                border: '1px solid #ddd6fe',
-                                padding: '2px 8px',
-                                borderRadius: '6px',
-                                fontSize: '11px',
-                                fontWeight: 600,
-                              }}
-                            >
-                              {i.type || 'ทรัพย์สินทางปัญญา'}
-                            </span>
+                            <IPTypeBadge value={i.type} />
                           </td>
                           <td style={{ padding: '10px 12px', color: '#475569', fontFamily: 'monospace' }}>
                             {i.registration_number || i.application_number || i.req_no || '-'}
@@ -872,19 +847,7 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
                             {s.name || s.topic_title}
                           </td>
                           <td style={{ padding: '10px 12px' }}>
-                            <span
-                              style={{
-                                backgroundColor: '#fffbeb',
-                                color: '#b45309',
-                                border: '1px solid #fef3c7',
-                                padding: '2px 7px',
-                                borderRadius: '4px',
-                                fontSize: '11px',
-                                fontWeight: 600,
-                              }}
-                            >
-                              {s.service_type || s.service_category || 'บริการวิชาการ'}
-                            </span>
+                            <ServiceTypeBadge value={s.service_type || s.service_category} />
                           </td>
                           <td style={{ padding: '10px 12px', color: '#475569' }}>
                             {s.target_group || '-'}

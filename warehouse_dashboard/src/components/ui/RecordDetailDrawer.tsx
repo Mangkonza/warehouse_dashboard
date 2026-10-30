@@ -6,9 +6,10 @@ import { CATEGORIES_CONFIG } from '@/config/dataManagementConfig';
 import { DepartmentBadge } from '@/components/ui/department-badge';
 import { ServiceTypeBadge } from '@/components/ui/service-type-badge';
 import { IPTypeBadge } from '@/components/ui/ip-type-badge';
-import { EvaluationTags, LevelBadge, RecordEvaluationTags, getItemEvaluation } from '@/components/ui/evaluation-tag';
+import { PublicationTypeBadge } from '@/components/ui/publication-type-badge';
+import { TrlBadge } from '@/components/ui/trl-badge';
+import { LevelBadge, RecordEvaluationTags, getItemEvaluation } from '@/components/ui/evaluation-tag';
 import { Drawer } from '@/components/ui/Drawer';
-import { getCachedEvaluations } from '@/lib/dataService';
 import { EvaluationValue, isEvaluated } from '@/types/evaluation';
 import { useAuth } from '@/features/auth';
 import {
@@ -228,16 +229,16 @@ export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
     displayItem.name || displayItem.title || displayItem.topic_title || displayItem.id || 'รายละเอียด'
   ).replace(/[\r\n]+/g, ' ').trim();
 
-  // Helper to render field value
+  // Helper to render field value (normal font weight for all field values; bold only on section headers)
   const renderFieldValue = (field: any) => {
     const rawVal = field.getValue ? field.getValue(displayItem) : displayItem[field.key];
 
     if (field.format) {
-      return <span>{field.format(rawVal, displayItem)}</span>;
+      return <span className="text-slate-800 font-normal text-[13.5px]">{field.format(rawVal, displayItem)}</span>;
     }
 
     if (rawVal === undefined || rawVal === null || rawVal === '' || rawVal === 'nan' || rawVal === 'NaT') {
-      return <span className="text-slate-400 font-normal">-</span>;
+      return <span className="text-slate-800 font-normal text-[13.5px]">-</span>;
     }
 
     if (field.key === 'level') {
@@ -264,12 +265,60 @@ export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
       );
     }
 
+    if (field.key === 'type' && (categoryKey === 'publications' || ['เตรียมความพร้อมตีพิมพ์', 'เตรียมความพร้อมจดอนุสิทธิบัตร', 'ตีพิมพ์'].some((t) => String(rawVal).includes(t)))) {
+      return (
+        <div className="pt-0.5">
+          <PublicationTypeBadge value={String(rawVal)} />
+        </div>
+      );
+    }
+
+    if (field.key === 'trl' || field.key === 'trl_start' || field.key === 'trl_end') {
+      if (String(rawVal).trim() === '-') {
+        return <span className="text-slate-800 font-normal text-[13.5px]">-</span>;
+      }
+      return (
+        <div className="pt-0.5">
+          <TrlBadge value={rawVal} />
+        </div>
+      );
+    }
+
+    if (field.key === 'trl_outputs') {
+      const rawOutputs = displayItem.trl_outputs;
+      if (Array.isArray(rawOutputs) && rawOutputs.length > 0) {
+        const validOutputs = rawOutputs.filter(
+          (o: any) => o && typeof o === 'object' && (o.name || o.output_name || o.title || o.trl || o.trl_level)
+        );
+        if (validOutputs.length > 0) {
+          return (
+            <div className="flex flex-col gap-1.5 pt-0.5">
+              {validOutputs.map((o: any, idx: number) => {
+                const oName = o.name || o.output_name || o.title || '-';
+                const oTrl = o.trl ?? o.trl_level ?? null;
+                const oNote = o.note || o.description || '';
+                return (
+                  <div key={idx} className="flex items-center gap-2 flex-wrap text-[13.5px]">
+                    <span className="text-slate-800 font-normal">
+                      {oName}
+                      {oNote ? ` (${oNote})` : ''}
+                    </span>
+                    {oTrl && <TrlBadge value={oTrl} />}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        }
+      }
+    }
+
     switch (field.type) {
       case 'currency': {
         const num = Number(rawVal);
-        if (isNaN(num)) return <span className="text-slate-400 font-normal">-</span>;
+        if (isNaN(num)) return <span className="text-slate-800 font-normal text-[13.5px]">-</span>;
         return (
-          <span className="font-semibold text-emerald-700 font-mono text-[13.5px]">
+          <span className="font-normal text-emerald-700 font-mono text-[13.5px]">
             {formatMoney(num)} บาท
           </span>
         );
@@ -277,26 +326,36 @@ export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
 
       case 'date': {
         const formatted = formatDateBE(rawVal);
-        return <span className="text-slate-800 font-medium text-[13.5px]">{formatted}</span>;
+        return <span className="text-slate-800 font-normal text-[13.5px]">{formatted}</span>;
       }
 
       case 'department': {
+        const depts = Array.isArray(rawVal)
+          ? rawVal.map((s) => String(s).trim()).filter((s) => Boolean(s) && s !== '-' && s !== 'nan')
+          : String(rawVal)
+              .split(',')
+              .map((s) => s.trim())
+              .filter((s) => Boolean(s) && s !== '-' && s !== 'nan');
+        if (depts.length === 0) {
+          return <span className="text-slate-800 font-normal text-[13.5px]">-</span>;
+        }
         return (
-          <div className="pt-0.5">
-            <DepartmentBadge value={String(rawVal)} />
+          <div className="flex flex-wrap gap-1.5 pt-0.5">
+            {Array.from(new Set(depts)).map((d, idx) => (
+              <DepartmentBadge key={idx} value={d} />
+            ))}
           </div>
         );
       }
 
       case 'person': {
         const personName = String(rawVal).replace(/[\r\n]+/g, ' ').trim();
-        const dept = displayItem.department || displayItem.head_dept || displayItem.person_dept;
+        if (!personName || personName === '-' || personName === 'nan') {
+          return <span className="text-slate-800 font-normal text-[13.5px]">-</span>;
+        }
         return (
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-slate-800 font-normal text-[13.5px]">{personName}</span>
-            {dept && (
-              <DepartmentBadge value={dept} />
-            )}
           </div>
         );
       }
@@ -323,8 +382,8 @@ export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
               <span
                 className={
                   hasCoAuthor
-                    ? "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"
-                    : "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-500 border border-slate-200"
+                    ? 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-normal bg-emerald-50 text-emerald-700 border border-emerald-200'
+                    : 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-normal bg-slate-100 text-slate-600 border border-slate-200'
                 }
               >
                 {hasCoAuthor ? 'มี' : 'ไม่มี'}
@@ -334,23 +393,37 @@ export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
         }
         // Co-researchers, inventors, co-authors
         if (Array.isArray(rawVal) && rawVal.length > 0) {
+          const validItems = rawVal.filter((p) => {
+            if (typeof p === 'object' && p !== null) {
+              return Boolean(p.name || p.clean_name || p.title || p.personName);
+            }
+            const s = String(p).trim();
+            return Boolean(s) && s !== '-' && s !== 'nan' && s !== '[object Object]';
+          });
+          if (validItems.length === 0) {
+            return <span className="text-slate-800 font-normal text-[13.5px]">-</span>;
+          }
           return (
             <div className="flex flex-col gap-1.5 pt-0.5">
-              {rawVal.map((p: any, idx: number) => {
+              {validItems.map((p: any, idx: number) => {
                 if (typeof p === 'object' && p !== null) {
-                  const pName = p.name || p.clean_name || p.title || '';
+                  const pName = p.name || p.clean_name || p.title || p.personName || '';
                   const pDept = p.department || p.dept || '';
-                  const pRole = p.role ? ` (${p.role})` : '';
-                  if (!pName) return null;
+                  const pContrib =
+                    p.contributionPercent !== undefined && p.contributionPercent !== null && p.contributionPercent !== ''
+                      ? ` (${p.contributionPercent}%)`
+                      : '';
                   return (
                     <div key={idx} className="flex items-center gap-2 flex-wrap text-[13.5px]">
-                      <span className="text-slate-800 font-normal">{pName}{pRole}</span>
+                      <span className="text-slate-800 font-normal">
+                        {pName}
+                        {pContrib}
+                      </span>
                       {pDept && <DepartmentBadge value={pDept} />}
                     </div>
                   );
                 }
                 const str = String(p).trim();
-                if (!str) return null;
                 return (
                   <div key={idx} className="text-slate-800 font-normal text-[13.5px]">
                     {str}
@@ -362,8 +435,14 @@ export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
         }
 
         // Comma-separated string of names
-        if (typeof rawVal === 'string' && rawVal.trim()) {
-          const names = rawVal.split(',').map((s) => s.trim()).filter(Boolean);
+        if (typeof rawVal === 'string' && rawVal.trim() && rawVal.trim() !== '-' && rawVal.trim() !== 'nan') {
+          const names = rawVal
+            .split(',')
+            .map((s) => s.trim())
+            .filter((s) => Boolean(s) && s !== '[object Object]');
+          if (names.length === 0) {
+            return <span className="text-slate-800 font-normal text-[13.5px]">-</span>;
+          }
           if (names.length > 1) {
             return (
               <div className="flex flex-col gap-1 pt-0.5">
@@ -375,10 +454,10 @@ export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
               </div>
             );
           }
-          return <span className="text-slate-800 font-normal text-[13.5px]">{rawVal}</span>;
+          return <span className="text-slate-800 font-normal text-[13.5px]">{names[0]}</span>;
         }
 
-        return <span className="text-slate-400 font-normal">-</span>;
+        return <span className="text-slate-800 font-normal text-[13.5px]">-</span>;
       }
 
       case 'allocation': {
@@ -386,10 +465,10 @@ export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
           const percent = rawVal.percent !== undefined ? Number(rawVal.percent) : null;
           const amount = rawVal.amount !== undefined ? Number(rawVal.amount) : null;
           if (percent === null && amount === null) {
-            return <span className="text-slate-400 font-normal">-</span>;
+            return <span className="text-slate-800 font-normal text-[13.5px]">-</span>;
           }
           return (
-            <span className="text-slate-800 font-semibold text-[13.5px] font-mono">
+            <span className="text-slate-800 font-normal text-[13.5px] font-mono">
               {percent !== null ? `${percent}%` : '-'}
               <span className="text-slate-600 font-normal ml-1.5">
                 ({amount !== null ? `${formatMoney(amount)} บาท` : '-'})
@@ -405,9 +484,10 @@ export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
           return (
             <div className="flex flex-col gap-1 pt-0.5">
               {rawVal.map((itemRow: any, idx: number) => {
-                const text = typeof itemRow === 'object' && itemRow !== null
-                  ? `${itemRow.code ? `[${itemRow.code}] ` : ''}${itemRow.name || JSON.stringify(itemRow)}`
-                  : String(itemRow);
+                const text =
+                  typeof itemRow === 'object' && itemRow !== null
+                    ? `${itemRow.code ? `[${itemRow.code}] ` : ''}${itemRow.name || itemRow.title || JSON.stringify(itemRow)}`
+                    : String(itemRow);
                 return (
                   <div key={idx} className="text-slate-800 font-normal text-[13.5px]">
                     {text}
@@ -417,12 +497,12 @@ export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
             </div>
           );
         }
-        return <span className="text-slate-400 font-normal">-</span>;
+        return <span className="text-slate-800 font-normal text-[13.5px]">-</span>;
       }
 
       case 'badge': {
         return (
-          <span className="inline-block px-2.5 py-0.5 rounded-md text-[12px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
+          <span className="inline-block px-2.5 py-0.5 rounded-md text-[12px] font-normal bg-slate-100 text-slate-700 border border-slate-200">
             {String(rawVal)}
           </span>
         );
@@ -436,7 +516,7 @@ export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
   // Group definitions from category config
   const detailGroups = config?.detailGroups || [];
 
-    const headerSlot = (
+  const headerSlot = (
     <div className="border-b border-slate-200 bg-white px-5 py-4 shrink-0">
       <div className="flex items-center justify-between gap-3 mb-2">
         {/* Previous and Next Navigation */}
@@ -451,7 +531,7 @@ export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
             <FaChevronLeft />
           </button>
           {totalInPage > 0 && (
-            <span className="text-xs font-medium text-slate-500 px-2 select-none">
+            <span className="text-xs font-normal text-slate-500 px-2 select-none">
               {currentIndex + 1} / {totalInPage}
             </span>
           )}
@@ -476,7 +556,7 @@ export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
                 onClose();
               }}
               title="แก้ไขข้อมูล"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-normal rounded-lg bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 transition-colors cursor-pointer"
             >
               <FaEdit className="text-amber-600" />
               <span>แก้ไข</span>
@@ -491,7 +571,7 @@ export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
                 onClose();
               }}
               title="ลบรายการ"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-rose-50 text-rose-800 border border-rose-200 hover:bg-rose-100 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-normal rounded-lg bg-rose-50 text-rose-800 border border-rose-200 hover:bg-rose-100 transition-colors cursor-pointer"
             >
               <FaTrashAlt className="text-rose-600" />
               <span>ลบ</span>
@@ -524,7 +604,7 @@ export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
     <Drawer
       isOpen={isOpen && !!item}
       onClose={onClose}
-      width="w-full sm:w-[560px]"
+      width="w-full sm:w-[580px]"
       headerSlot={headerSlot}
       bodyRef={bodyRef}
       aria-label="รายละเอียดรายการ"
@@ -532,36 +612,41 @@ export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
       <div className="px-6 py-5 space-y-6">
         {/* Evaluation Block at top of scrollable body before first group/field */}
         {categoryKey && ['research', 'academic', 'publications', 'service', 'ip'].includes(String(categoryKey).toLowerCase()) && isEvaluated(String(categoryKey), evalRecord) && (
-          <div className="pb-4 border-b border-slate-100">
-            <span className="block text-[12px] font-medium text-slate-500 mb-1.5">
-              ผลการประเมิน
-            </span>
-            <RecordEvaluationTags
-              category={String(categoryKey)}
-              item={displayItem}
-              evaluation={evalRecord}
-              className="mt-0"
-              wrap={true}
-            />
+          <div className="pt-1">
+            <div className="flex items-center gap-2 mb-3 pb-1.5 border-b border-slate-200">
+              <span className="w-1.5 h-4 bg-[#00A651] rounded-full shrink-0" />
+              <h4 className="text-[13px] font-bold text-slate-700 tracking-wide">
+                ผลการประเมิน
+              </h4>
+            </div>
+            <div>
+              <RecordEvaluationTags
+                category={String(categoryKey)}
+                item={displayItem}
+                evaluation={evalRecord}
+                className="mt-0"
+                wrap={true}
+              />
+            </div>
           </div>
         )}
         {detailGroups.length > 0 ? (
           detailGroups.map((group, gIdx) => {
             const isUngrouped = !group.groupLabel;
             return (
-              <div key={gIdx} className={isUngrouped ? '' : 'pt-2'}>
-                {/* Parent Group Header (only if groupLabel exists) */}
+              <div key={gIdx} className={isUngrouped ? '' : 'pt-1'}>
+                {/* Parent Group Header (Bold ONLY on section headers as in reference image) */}
                 {!isUngrouped && (
-                  <div className="flex items-center gap-2 mb-3 pb-1 border-b border-slate-200">
-                    <span className="w-1.5 h-3.5 bg-[#00A651] rounded-full" />
-                    <h4 className="text-xs font-bold text-slate-700 tracking-wide">
+                  <div className="flex items-center gap-2 mb-3 pb-1.5 border-b border-slate-200">
+                    <span className="w-1.5 h-4 bg-[#00A651] rounded-full shrink-0" />
+                    <h4 className="text-[13px] font-bold text-slate-700 tracking-wide">
                       {group.groupLabel}
                     </h4>
                   </div>
                 )}
 
-                {/* 2-column grid of fields */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-3.5">
+                {/* 2-column grid of fields (normal weight for labels and values) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
                   {group.fields.map((f, fIdx) => {
                     const isSpanFull = f.span === 2 || f.type === 'person_list' || f.type === 'list';
                     return (
@@ -569,10 +654,10 @@ export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
                         key={fIdx}
                         className={isSpanFull ? 'sm:col-span-2' : 'sm:col-span-1'}
                       >
-                        <span className="block text-[12px] font-medium text-slate-500 mb-0.5">
+                        <span className="block text-[12.5px] font-normal text-slate-500 mb-1">
                           {f.label}
                         </span>
-                        <div className="text-slate-800">
+                        <div className="text-slate-800 font-normal">
                           {renderFieldValue(f)}
                         </div>
                       </div>
@@ -583,7 +668,7 @@ export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
             );
           })
         ) : (
-          <div className="text-center py-10 text-slate-400 text-sm">
+          <div className="text-center py-10 text-slate-400 text-sm font-normal">
             ไม่มีข้อมูลรายละเอียด
           </div>
         )}

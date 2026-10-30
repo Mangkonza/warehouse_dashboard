@@ -55,7 +55,7 @@ export const FACT_DOMAINS_CONFIG: Record<FactDomainId, FactDomainDef> = {
       { id: 'support_budget', label: 'เงินสนับสนุนการตีพิมพ์ (บาท)', field: 'budget', aggregation: 'SUM', format: 'currency', description: 'งบอุดหนุนรางวัลและค่าตีพิมพ์' },
     ],
     dimensions: [
-      { id: 'level', label: 'ระดับ / ควอร์ไทล์ (Q1-Q4 / TCI)', field: 'level', type: 'categorical', description: 'Scopus Q1, Q2, Q3, Q4, TCI 1, TCI 2' },
+      { id: 'level', label: 'ระดับ / ควอร์ไทล์ (Q1-Q4 / TCI)', field: 'level', type: 'categorical', description: 'Q1, Q2, Q3, Q4, TCI 1, TCI 2' },
       { id: 'department', label: 'ภาควิชา / สังกัด', field: 'department', type: 'categorical', description: 'ภาควิชาของเจ้าของผลงาน' },
       { id: 'type', label: 'ประเภทผลงาน', field: 'type', type: 'categorical', description: 'วารสารวิชาการ, การประชุมวิชาการ, เตรียมความพร้อม' },
       { id: 'journal', label: 'วารสาร / แหล่งตีพิมพ์', field: 'journal', type: 'categorical', description: 'ชื่อวารสารที่ตีพิมพ์' },

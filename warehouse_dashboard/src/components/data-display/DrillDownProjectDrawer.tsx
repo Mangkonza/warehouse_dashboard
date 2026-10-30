@@ -3,6 +3,11 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { FaTimes, FaSearch, FaFolderOpen, FaCoins } from 'react-icons/fa';
 import { DepartmentBadge } from '@/components/ui/department-badge';
+import { PublicationTypeBadge } from '@/components/ui/publication-type-badge';
+import { LevelBadge } from '@/components/ui/evaluation-tag';
+import { ServiceTypeBadge } from '@/components/ui/service-type-badge';
+import { IPTypeBadge } from '@/components/ui/ip-type-badge';
+import { TrlBadge } from '@/components/ui/trl-badge';
 import { formatMoney, formatDateBE } from '@/components/ui/RecordDetailDrawer';
 import { CATEGORIES_CONFIG } from '@/config/dataManagementConfig';
 import { CategoryKey } from '@/types/dataManagement';
@@ -731,9 +736,21 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
                         }}
                       >
                         {detailChips.map((chip, cIdx) => (
-                          <div key={cIdx} style={{ display: 'inline-flex', alignItems: 'baseline', gap: '4px' }}>
+                          <div key={cIdx} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                             <span style={{ color: '#64748b', fontWeight: 500 }}>{chip.label}:</span>
-                            <span style={{ color: '#1e293b' }}>{chip.value}</span>
+                            {chip.label === 'ชนิดผลงาน' ? (
+                              <PublicationTypeBadge value={chip.value} />
+                            ) : chip.label === 'ระดับ' ? (
+                              <LevelBadge value={chip.value} />
+                            ) : chip.label === 'ประเภทบริการ' ? (
+                              <ServiceTypeBadge value={chip.value} />
+                            ) : chip.label === 'ประเภท' ? (
+                              <IPTypeBadge value={chip.value} />
+                            ) : chip.label.includes('TRL') ? (
+                              <TrlBadge value={chip.value} />
+                            ) : (
+                              <span style={{ color: '#1e293b' }}>{chip.value}</span>
+                            )}
                           </div>
                         ))}
                       </div>

@@ -116,9 +116,9 @@ export function usePublicationsData(timeFilter?: TimeFilterState) {
       if (lvl.includes('นานาชาติ')) intl++;
       else if (lvl.includes('ชาติ')) nat++;
 
-      if (tier === 'Scopus Q1') {
+      if (tier === 'Q1') {
         q1++;
-      } else if (tier === 'Scopus Q2' || tier === 'Scopus Q3' || tier === 'Scopus Q4') {
+      } else if (tier === 'Q2' || tier === 'Q3' || tier === 'Q4') {
         q2++;
       } else if (tier.startsWith('TCI')) {
         tci++;

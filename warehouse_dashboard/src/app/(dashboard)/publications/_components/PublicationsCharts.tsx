@@ -75,7 +75,7 @@ export function PublicationsCharts({
       }
       const tier = autoDetectJournalRanking(item.journal || '', item.level || '');
       map[key].count++;
-      if (tier === 'Scopus Q1' || tier === 'Scopus Q2') map[key].q1q2++;
+      if (tier === 'Q1' || tier === 'Q2') map[key].q1q2++;
       if (tier === 'TCI 1' || tier === 'TCI 2') map[key].tci++;
       map[key].budget += Number(item.budget) || 0;
       map[key].items.push(item);
@@ -111,8 +111,8 @@ export function PublicationsCharts({
 
     const C_PUB = '#2e7d32';
     const TIER_COLORS = [
-      JOURNAL_TIER_STYLES['Scopus Q1'].text,
-      JOURNAL_TIER_STYLES['Scopus Q2'].text,
+      JOURNAL_TIER_STYLES['Q1'].text,
+      JOURNAL_TIER_STYLES['Q2'].text,
       JOURNAL_TIER_STYLES['TCI 1'].text,
       '#d97706',
     ];
@@ -127,8 +127,8 @@ export function PublicationsCharts({
     });
 
     const levelGroups: Record<string, { label: string; count: number; items: PublicationItem[]; color: string }> = {
-      'Scopus Q1': { label: 'Scopus Q1 (นานาชาติ)', count: 0, items: [], color: JOURNAL_TIER_STYLES['Scopus Q1'].text },
-      'Scopus Q2': { label: 'Scopus Q2 (นานาชาติ)', count: 0, items: [], color: JOURNAL_TIER_STYLES['Scopus Q2'].text },
+      'Q1': { label: 'Q1 (นานาชาติ)', count: 0, items: [], color: JOURNAL_TIER_STYLES['Q1'].text },
+      'Q2': { label: 'Q2 (นานาชาติ)', count: 0, items: [], color: JOURNAL_TIER_STYLES['Q2'].text },
       'TCI': { label: 'TCI กลุ่ม 1 / กลุ่ม 2 (ระดับชาติ)', count: 0, items: [], color: JOURNAL_TIER_STYLES['TCI 1'].text },
       'อนุสิทธิบัตร': { label: 'เตรียมความพร้อมจดอนุสิทธิบัตร', count: 0, items: [], color: '#d97706' },
       'อื่นๆ': { label: 'วารสารอื่นๆ', count: 0, items: [], color: '#64748b' },
@@ -145,18 +145,18 @@ export function PublicationsCharts({
       if (mKey && monthBuckets[mKey]) {
         monthBuckets[mKey].budget += budget;
         monthBuckets[mKey].items.push(item);
-        if (detectedTier === 'Scopus Q1') monthBuckets[mKey].q1++;
-        else if (detectedTier === 'Scopus Q2') monthBuckets[mKey].q2++;
+        if (detectedTier === 'Q1') monthBuckets[mKey].q1++;
+        else if (detectedTier === 'Q2') monthBuckets[mKey].q2++;
         else if (detectedTier === 'TCI 1' || detectedTier === 'TCI 2') monthBuckets[mKey].tci++;
         else monthBuckets[mKey].other++;
       }
 
-      if (detectedTier === 'Scopus Q1') {
-        levelGroups['Scopus Q1'].count++;
-        levelGroups['Scopus Q1'].items.push(item);
-      } else if (detectedTier === 'Scopus Q2') {
-        levelGroups['Scopus Q2'].count++;
-        levelGroups['Scopus Q2'].items.push(item);
+      if (detectedTier === 'Q1') {
+        levelGroups['Q1'].count++;
+        levelGroups['Q1'].items.push(item);
+      } else if (detectedTier === 'Q2') {
+        levelGroups['Q2'].count++;
+        levelGroups['Q2'].items.push(item);
       } else if (detectedTier === 'TCI 1' || detectedTier === 'TCI 2') {
         levelGroups['TCI'].count++;
         levelGroups['TCI'].items.push(item);
@@ -174,7 +174,7 @@ export function PublicationsCharts({
         deptGroups[code] = { code, name: d.name, count: 0, q1Count: 0, items: [] };
       }
       deptGroups[code].count++;
-      if (detectedTier === 'Scopus Q1' || detectedTier === 'Scopus Q2') {
+      if (detectedTier === 'Q1' || detectedTier === 'Q2') {
         deptGroups[code].q1Count++;
       }
       deptGroups[code].items.push(item);
@@ -202,12 +202,12 @@ export function PublicationsCharts({
           labels: finalMonths,
           datasets: [
             {
-              label: 'Scopus Q1',
+              label: 'Q1',
               data: finalMonths.map((m) => monthBuckets[m].q1),
               backgroundColor: TIER_COLORS[0],
             },
             {
-              label: 'Scopus Q2',
+              label: 'Q2',
               data: finalMonths.map((m) => monthBuckets[m].q2),
               backgroundColor: TIER_COLORS[1],
             },
@@ -238,7 +238,7 @@ export function PublicationsCharts({
                 setDrillDown({
                   isOpen: true,
                   title: `ผลงานตีพิมพ์ทางวิชาการ: เดือน ${m}`,
-                  subtitle: `รวม ${b.items.length} เรื่อง (Scopus Q1: ${b.q1}, Q2: ${b.q2}, TCI: ${b.tci})`,
+                  subtitle: `รวม ${b.items.length} เรื่อง (Q1: ${b.q1}, Q2: ${b.q2}, TCI: ${b.tci})`,
                   accentColor: '#16a34a',
                   items: b.items,
                 });
@@ -396,7 +396,7 @@ export function PublicationsCharts({
                 setDrillDown({
                   isOpen: true,
                   title: `ผลงานตีพิมพ์: ภาควิชา ${d.name} (${d.code})`,
-                  subtitle: `รวม ${d.count} เรื่อง • Scopus Q1/Q2: ${d.q1Count} เรื่อง`,
+                  subtitle: `รวม ${d.count} เรื่อง • Q1/Q2: ${d.q1Count} เรื่อง`,
                   accentColor: getDepartmentColor(d.code),
                   items: d.items,
                 });
@@ -550,7 +550,7 @@ export function PublicationsCharts({
               จัดอันดับอาจารย์และนักวิจัยที่มีผลงานตีพิมพ์สูงสุด (Top Publishing Authors)
             </h3>
             <p style={{ margin: '3px 0 0 0', fontSize: '12.5px', color: '#64748b' }}>
-              เรียงลำดับตามจำนวนผลงานและสัดส่วนวารสารชั้นนำ Scopus Q1/Q2
+              เรียงลำดับตามจำนวนผลงานและสัดส่วนวารสารชั้นนำ Q1/Q2
             </p>
           </div>
 
@@ -562,7 +562,7 @@ export function PublicationsCharts({
                   <th style={{ padding: '10px 12px', textAlign: 'left' }}>อาจารย์ / นักวิจัย</th>
                   <th style={{ padding: '10px 12px', textAlign: 'left' }}>ภาควิชา</th>
                   <th style={{ padding: '10px 12px', textAlign: 'center' }}>ผลงานทั้งหมด</th>
-                  <th style={{ padding: '10px 12px', textAlign: 'center' }}>Scopus Q1/Q2</th>
+                  <th style={{ padding: '10px 12px', textAlign: 'center' }}>Q1/Q2</th>
                   <th style={{ padding: '10px 12px', textAlign: 'center' }}>TCI กลุ่ม 1/2</th>
                   <th style={{ padding: '10px 12px', textAlign: 'right' }}>เงินสนับสนุนรวม</th>
                   <th style={{ padding: '10px 14px', textAlign: 'center', width: '120px' }}>แฟ้มผลงาน</th>

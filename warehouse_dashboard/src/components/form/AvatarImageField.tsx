@@ -129,7 +129,7 @@ export function AvatarImageField({
             )}
           </div>
           <span className="text-[11px] text-slate-500">
-            เลือกไฟล์ภาพจากเครื่องเพื่อตัดภาพเป็นสี่เหลี่ยมจัตุรัส (แสดงผลเป็นวงกลม) หรือระบุ URL / Path ด้านล่าง
+            เลือกไฟล์ภาพจากเครื่อง
           </span>
         </div>
       </div>

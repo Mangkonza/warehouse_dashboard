@@ -265,7 +265,7 @@ export default function SelfServiceStudio() {
         matrix[c].pubTotal += 1;
         matrix[c].rawPubItems.push(p);
         const tier = autoDetectJournalRanking(p.journal || '', p.level || '');
-        if (tier === 'Scopus Q1' || tier === 'Scopus Q2') {
+        if (tier === 'Q1' || tier === 'Q2') {
           matrix[c].pubHighTier += 1;
         }
       }
@@ -676,7 +676,7 @@ export default function SelfServiceStudio() {
                 crossAxisY === 'pub_total'
                   ? 'ผลงานตีพิมพ์ทางวิชาการรวม (เรื่อง)'
                   : crossAxisY === 'pub_scopus_q1_q2'
-                  ? 'ผลงานตีพิมพ์คุณภาพสูง Scopus Q1-Q2 (เรื่อง)'
+                  ? 'ผลงานตีพิมพ์คุณภาพสูง Q1-Q2 (เรื่อง)'
                   : crossAxisY === 'ip_count'
                   ? 'ทรัพย์สินทางปัญญา / สิทธิบัตร (เรื่อง)'
                   : 'จำนวนโครงการพัฒนาวิชาการ (เรื่อง)',
@@ -745,7 +745,7 @@ export default function SelfServiceStudio() {
   const getCrossAxisYLabel = (val: string) => {
     switch (val) {
       case 'pub_total': return 'ผลงานตีพิมพ์ทางวิชาการรวม (เรื่อง)';
-      case 'pub_scopus_q1_q2': return 'ตีพิมพ์คุณภาพสูง Scopus Q1-Q2 (เรื่อง)';
+      case 'pub_scopus_q1_q2': return 'ตีพิมพ์คุณภาพสูง Q1-Q2 (เรื่อง)';
       case 'ip_count': return 'ยื่นจดทรัพย์สินทางปัญญา / สิทธิบัตร (เรื่อง)';
       case 'academic_count': return 'จำนวนโครงการพัฒนาวิชาการ (เรื่อง)';
       default: return 'เลือกแกน Y';
@@ -776,7 +776,7 @@ export default function SelfServiceStudio() {
               transition: 'all 0.15s ease',
             }}
           >
-            <FaSlidersH /> วิเคราะห์มิติรายพันธกิจ (Standard Studio)
+            <FaSlidersH /> วิเคราะห์มิติรายพันธกิจ
           </button>
           <button
             type="button"
@@ -797,13 +797,11 @@ export default function SelfServiceStudio() {
               transition: 'all 0.15s ease',
             }}
           >
-            <FaProjectDiagram /> วิเคราะห์ความสัมพันธ์ข้ามด้าน (Cross-Domain X/Y/Z)
+            <FaProjectDiagram /> วิเคราะห์ความสัมพันธ์หลายมิติ
           </button>
         </div>
 
-        <span style={{ fontSize: '12.5px', color: '#64748b' }}>
-          {studioMode === 'standard' ? 'สลับมิติ แกน X-Y-Z รายพันธกิจ' : 'Cross-Correlation วิเคราะห์ความคุ้มค่าและผลผลิตระหว่างพันธกิจ'}
-        </span>
+        
       </div>
 
       {/* Global Time Filter Bar */}
@@ -1274,7 +1272,7 @@ export default function SelfServiceStudio() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="pub_total">ผลงานตีพิมพ์ทางวิชาการรวม (เรื่อง)</SelectItem>
-                    <SelectItem value="pub_scopus_q1_q2">ตีพิมพ์คุณภาพสูง Scopus Q1-Q2 (เรื่อง)</SelectItem>
+                    <SelectItem value="pub_scopus_q1_q2">ตีพิมพ์คุณภาพสูง Q1-Q2 (เรื่อง)</SelectItem>
                     <SelectItem value="ip_count">ยื่นจดทรัพย์สินทางปัญญา / สิทธิบัตร (เรื่อง)</SelectItem>
                     <SelectItem value="academic_count">จำนวนโครงการพัฒนาวิชาการ (เรื่อง)</SelectItem>
                   </SelectContent>
@@ -1329,7 +1327,7 @@ export default function SelfServiceStudio() {
             {/* Cross Matrix Table */}
             <div className="glass-card" style={{ padding: '20px', borderRadius: '16px', display: 'flex', flexDirection: 'column' }}>
               <h4 style={{ margin: '0 0 14px 0', fontSize: '14.5px', fontWeight: 700, color: '#0f172a' }}>
-                ตารางวิเคราะห์ความคุ้มค่าและผลตอบแทน (Cross-Domain Metrics)
+                ตารางวิเคราะห์ความคุ้มค่าและผลตอบแทน
               </h4>
               <div style={{ overflowX: 'auto', flex: 1 }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px' }}>

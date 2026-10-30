@@ -66,10 +66,10 @@ export const PerspectiveSection: React.FC<PerspectiveSectionProps> = ({
     };
     validPub.forEach((p) => {
       const tier = autoDetectJournalRanking(p.journal || '', p.level || '');
-      if (tier === 'Scopus Q1') groups.Q1.push(p);
-      else if (tier === 'Scopus Q2') groups.Q2.push(p);
-      else if (tier === 'Scopus Q3') groups.Q3.push(p);
-      else if (tier === 'Scopus Q4') groups.Q4.push(p);
+      if (tier === 'Q1') groups.Q1.push(p);
+      else if (tier === 'Q2') groups.Q2.push(p);
+      else if (tier === 'Q3') groups.Q3.push(p);
+      else if (tier === 'Q4') groups.Q4.push(p);
       else groups.TCI.push(p);
     });
     return groups;
@@ -238,10 +238,10 @@ export const PerspectiveSection: React.FC<PerspectiveSectionProps> = ({
           data: {
             labels,
             datasets: [
-              { label: 'Scopus Q1', data: q1Data, backgroundColor: JOURNAL_TIER_STYLES['Scopus Q1'].text, borderRadius: 4 },
-              { label: 'Scopus Q2', data: q2Data, backgroundColor: JOURNAL_TIER_STYLES['Scopus Q2'].text, borderRadius: 4 },
-              { label: 'Scopus Q3', data: q3Data, backgroundColor: JOURNAL_TIER_STYLES['Scopus Q3'].text, borderRadius: 4 },
-              { label: 'Scopus Q4', data: q4Data, backgroundColor: JOURNAL_TIER_STYLES['Scopus Q4'].text, borderRadius: 4 },
+              { label: 'Q1', data: q1Data, backgroundColor: JOURNAL_TIER_STYLES['Q1'].text, borderRadius: 4 },
+              { label: 'Q2', data: q2Data, backgroundColor: JOURNAL_TIER_STYLES['Q2'].text, borderRadius: 4 },
+              { label: 'Q3', data: q3Data, backgroundColor: JOURNAL_TIER_STYLES['Q3'].text, borderRadius: 4 },
+              { label: 'Q4', data: q4Data, backgroundColor: JOURNAL_TIER_STYLES['Q4'].text, borderRadius: 4 },
               { label: 'TCI / ระดับชาติ', data: tciData, backgroundColor: JOURNAL_TIER_STYLES['TCI 1'].text, borderRadius: 4 },
             ],
           },
@@ -253,7 +253,7 @@ export const PerspectiveSection: React.FC<PerspectiveSectionProps> = ({
               if (hit) {
                 const dsIdx = hit.datasetIndex;
                 const tierKeys = ['Q1', 'Q2', 'Q3', 'Q4', 'TCI'];
-                const tierLabels = ['Scopus Q1', 'Scopus Q2', 'Scopus Q3', 'Scopus Q4', 'TCI / ระดับชาติ'];
+                const tierLabels = ['Q1', 'Q2', 'Q3', 'Q4', 'TCI / ระดับชาติ'];
                 const key = tierKeys[dsIdx] || 'Q1';
                 const tierItems = pubByTier[key] || [];
                 setDrillDownState({
@@ -362,11 +362,11 @@ export const PerspectiveSection: React.FC<PerspectiveSectionProps> = ({
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
             <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#1e293b' }}>
-              สัดส่วนผลงานตีพิมพ์ทางวิชาการตามระดับควอร์ไทล์ (Scopus Q1-Q4 & TCI)
+              สัดส่วนผลงานตีพิมพ์ทางวิชาการตามระดับควอร์ไทล์ (Q1-Q4 & TCI)
             </h4>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               {(['Q1', 'Q2', 'Q3', 'Q4', 'TCI'] as const).map((tierKey) => {
-                const styleKey = tierKey === 'TCI' ? 'TCI 1' : `Scopus ${tierKey}`;
+                const styleKey = tierKey === 'TCI' ? 'TCI 1' : `${tierKey}`;
                 const st = JOURNAL_TIER_STYLES[styleKey];
                 return (
                   <button
@@ -375,7 +375,7 @@ export const PerspectiveSection: React.FC<PerspectiveSectionProps> = ({
                     onClick={() =>
                       setDrillDownState({
                         isOpen: true,
-                        title: `ผลงานตีพิมพ์ระดับ ${tierKey === 'TCI' ? 'TCI / ระดับชาติ' : `Scopus ${tierKey}`}`,
+                        title: `ผลงานตีพิมพ์ระดับ ${tierKey === 'TCI' ? 'TCI / ระดับชาติ' : `${tierKey}`}`,
                         subtitle: `รวม ${pubByTier[tierKey].length} เรื่อง`,
                         accentColor: st.text,
                         categoryKey: 'publications',
@@ -393,7 +393,7 @@ export const PerspectiveSection: React.FC<PerspectiveSectionProps> = ({
                       cursor: 'pointer',
                     }}
                   >
-                    {tierKey === 'TCI' ? 'TCI' : `Scopus ${tierKey}`}: {pubByTier[tierKey].length} เรื่อง
+                    {tierKey === 'TCI' ? 'TCI' : `${tierKey}`}: {pubByTier[tierKey].length} เรื่อง
                   </button>
                 );
               })}

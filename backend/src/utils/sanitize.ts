@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Helper functions to safely sanitize input values from frontend forms
  */
 
@@ -36,12 +36,23 @@ export function parseSafeInt(val: any, fallback: number | null = null): number |
 }
 
 export function extractNumericId(val: any): number | null {
-  if (typeof val === 'number') return isNaN(val) ? null : val;
+  if (typeof val === 'number') {
+    if (isNaN(val) || val > 2147483647 || val < -2147483648) return null;
+    return val;
+  }
   if (!val) return null;
   const s = String(val).trim();
-  if (/^\d+$/.test(s)) return parseInt(s, 10);
-  const match = s.match(/^(?:res|acad|pub|srv|ip)_(\d+)$/i);
-  if (match) return parseInt(match[1], 10);
+  if (/^\d+$/.test(s)) {
+    const n = parseInt(s, 10);
+    if (n > 2147483647 || n < -2147483648) return null;
+    return n;
+  }
+  const match = s.match(/^(?:res|acad|pub|srv|ip|research|academic|service|services|publication|publications|personnel)_(\d+)(?:_\d+)?$/i);
+  if (match) {
+    const n = parseInt(match[1], 10);
+    if (n > 2147483647 || n < -2147483648) return null;
+    return n;
+  }
   return null;
 }
 

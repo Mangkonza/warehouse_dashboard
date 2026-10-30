@@ -63,9 +63,27 @@ export const JournalQualitySelect: React.FC<JournalQualitySelectProps> = ({
     );
   }
 
+  // Fallback: If level is unspecified, allow user to pick either Q or TCI
   return (
-    <div className="text-xs text-slate-400 py-1">
-      ยังไม่ระบุระดับ
+    <div className="flex flex-col gap-2">
+      <div className="text-[11px] text-slate-500 font-medium">ระดับนานาชาติ (Q1 - Q4):</div>
+      <BlockSingleSelect
+        options={Q_OPTIONS}
+        value={value}
+        onChange={onChange}
+        colorVariant="journal"
+        className={className}
+        aria-label="เลือกระดับ Q"
+      />
+      <div className="text-[11px] text-slate-500 font-medium mt-1">ระดับชาติ (TCI 1 - 3):</div>
+      <BlockSingleSelect
+        options={TCI_OPTIONS}
+        value={value}
+        onChange={onChange}
+        colorVariant="journal"
+        className={className}
+        aria-label="เลือกระดับ TCI"
+      />
     </div>
   );
 };

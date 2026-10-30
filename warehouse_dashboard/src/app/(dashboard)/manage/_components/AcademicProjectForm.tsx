@@ -2,10 +2,8 @@
 
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { DEPARTMENTS } from '@/config/dataManagementConfig';
-import { SmartAutocomplete } from './SmartAutocomplete';
+import { FormField } from '@/components/form/FormField';
 import { PersonPicker } from '@/components/form/PersonPicker';
-import { PersonnelRecord } from '@/types/dataManagement';
 import { DepartmentSelect } from '@/components/ui';
 import researchData from '@/data/research.json';
 import ipData from '@/data/ip.json';
@@ -18,19 +16,8 @@ import {
 } from '@/components/ui/select';
 import { DatePicker } from '@/components/ui/date-picker';
 import { MoneyInput } from '@/components/form/MoneyInput';
-import {
-  FaGraduationCap,
-  FaCalculator,
-  FaCalendarAlt,
-  FaPlus,
-  FaTrashAlt,
-  FaFlask,
-  FaCertificate,
-  FaUsers,
-  FaTag,
-  FaCheck,
-  FaInfoCircle,
-} from 'react-icons/fa';
+import { Checkbox } from '@/components/ui/checkbox';
+import { FaPlus, FaTrashAlt } from 'react-icons/fa';
 
 interface ResearchProjectItem {
   code: string;
@@ -86,21 +73,10 @@ interface AcademicProjectFormProps {
 export const AcademicProjectForm: React.FC<AcademicProjectFormProps> = ({
   formData,
   onChange,
-  setFormData,
 }) => {
-  // Temporary state for adding research project items (8-character code + name)
   const [inputResearchCode, setInputResearchCode] = useState('');
   const [inputResearchName, setInputResearchName] = useState('');
   const [researchCodeError, setResearchCodeError] = useState('');
-
-  // Handle personnel selection for head of project
-  const handleHeadSelect = (person: PersonnelRecord) => {
-    setFormData((prev) => ({
-      ...prev,
-      head: person.name,
-      department: person.department || prev.department || '',
-    }));
-  };
 
   // Budget calculations
   const totalBudget = Number(formData.budget) || 0;
@@ -112,23 +88,23 @@ export const AcademicProjectForm: React.FC<AcademicProjectFormProps> = ({
   const percentFaculty =
     formData.percent_faculty !== undefined && formData.percent_faculty !== null && formData.percent_faculty !== ''
       ? Number(formData.percent_faculty)
-      : (formData.alloc_faculty !== undefined && totalBudget > 0
-          ? round2((Number(formData.alloc_faculty) / totalBudget) * 100)
-          : 5);
+      : formData.alloc_faculty !== undefined && totalBudget > 0
+      ? round2((Number(formData.alloc_faculty) / totalBudget) * 100)
+      : 5;
 
   const percentDept =
     formData.percent_dept !== undefined && formData.percent_dept !== null && formData.percent_dept !== ''
       ? Number(formData.percent_dept)
-      : (formData.alloc_dept !== undefined && totalBudget > 0
-          ? round2((Number(formData.alloc_dept) / totalBudget) * 100)
-          : 5);
+      : formData.alloc_dept !== undefined && totalBudget > 0
+      ? round2((Number(formData.alloc_dept) / totalBudget) * 100)
+      : 5;
 
   const percentKu =
     formData.percent_ku !== undefined && formData.percent_ku !== null && formData.percent_ku !== ''
       ? Number(formData.percent_ku)
-      : (formData.alloc_ku !== undefined && totalBudget > 0
-          ? round2((Number(formData.alloc_ku) / totalBudget) * 100)
-          : 5);
+      : formData.alloc_ku !== undefined && totalBudget > 0
+      ? round2((Number(formData.alloc_ku) / totalBudget) * 100)
+      : 5;
 
   const allocFaculty =
     formData.alloc_faculty !== undefined && formData.alloc_faculty !== null && formData.alloc_faculty !== ''
@@ -362,7 +338,6 @@ export const AcademicProjectForm: React.FC<AcademicProjectFormProps> = ({
       return;
     }
 
-    // Check duplicate
     if (researchProjects.some((p) => p.code.toLowerCase() === cleanCode.toLowerCase())) {
       setResearchCodeError(`รหัส ${cleanCode} มีอยู่ในรายการแล้ว`);
       return;
@@ -380,12 +355,10 @@ export const AcademicProjectForm: React.FC<AcademicProjectFormProps> = ({
     onChange('research_projects', updated);
   };
 
-  // Quick select research project from database
   const handleQuickSelectResearch = (selectedId: string | null) => {
     if (!selectedId) return;
     const found = researchData.find((r: any) => String(r.id || r._id).trim() === selectedId.trim());
     if (found) {
-      // Clean code to 8 chars if needed or extract short code
       const rawCode = String(found.id || '').replace(/[\n\r\s]/g, '');
       const code8 = rawCode.length > 8 ? rawCode.substring(0, 8) : rawCode;
       setInputResearchCode(code8);
@@ -394,14 +367,13 @@ export const AcademicProjectForm: React.FC<AcademicProjectFormProps> = ({
     }
   };
 
-  // Quick select IP from database
   const handleQuickSelectIp = (selectedVal: string | null) => {
     if (selectedVal) {
       onChange('patent_integration', selectedVal);
     }
   };
 
-  // Project characteristics (สอดคล้องกับนโยบายชาติ, เพิ่มมูลค่า)
+  // Project characteristics
   const characteristics: string[] = Array.isArray(formData.characteristics)
     ? formData.characteristics
     : typeof formData.characteristics === 'string' && formData.characteristics
@@ -417,920 +389,461 @@ export const AcademicProjectForm: React.FC<AcademicProjectFormProps> = ({
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div className="space-y-7 text-slate-800">
       {/* ========================================================================= */}
-      {/* หมวดที่ 1: ข้อมูลทั่วไปของโครงการพัฒนาวิชาการ */}
+      {/* ส่วนที่ 1: ข้อมูลทั่วไปของโครงการพัฒนาวิชาการ */}
       {/* ========================================================================= */}
-      <div
-        className="scroll-mt-24"
-        style={{
-          border: '1px solid #e2e8f0',
-          borderRadius: '12px',
-          padding: '18px 20px',
-          backgroundColor: '#ffffff',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
-          scrollMarginTop: '96px',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            marginBottom: '16px',
-            paddingBottom: '10px',
-            borderBottom: '1.5px solid #f1f5f9',
-          }}
-        >
-          <div
-            style={{
-              width: '26px',
-              height: '26px',
-              borderRadius: '6px',
-              backgroundColor: '#e8f5e9',
-              color: '#00A651',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '13px',
-              fontWeight: 700,
-            }}
-          >
-            1
-          </div>
-          <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#1e293b' }}>
+      <section className="space-y-4">
+        <div className="flex items-center gap-2 pb-2 border-b border-slate-200">
+          <span className="w-1.5 h-4 bg-[#00A651] rounded-full shrink-0" />
+          <h4 className="text-[14px] font-bold text-slate-800 tracking-wide">
             ข้อมูลทั่วไปของโครงการพัฒนาวิชาการ
           </h4>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          {/* ชื่อโครงการ */}
-          <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-              ชื่อโครงการพัฒนาวิชาการ <span style={{ color: '#ef4444' }}>*</span>
-            </label>
-            <textarea
-              rows={2}
-              value={formData.name || ''}
-              onChange={(e) => onChange('name', e.target.value)}
-              placeholder="ระบุชื่อโครงการพัฒนาวิชาการ..."
-              required
-              style={{
-                width: '100%',
-                padding: '9px 12px',
-                borderRadius: '8px',
-                border: '1px solid #cbd5e1',
-                fontSize: '13.5px',
-                outline: 'none',
-                fontFamily: 'inherit',
-                resize: 'vertical',
-                lineHeight: '1.45',
-              }}
+        <FormField label="ชื่อโครงการพัฒนาวิชาการ" required>
+          <textarea
+            rows={2}
+            value={formData.name || ''}
+            onChange={(e) => onChange('name', e.target.value)}
+            placeholder="ระบุชื่อโครงการพัฒนาวิชาการ..."
+            required
+            className="w-full p-2.5 text-sm rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-[#00A651]/20 focus:border-[#00A651] transition-colors"
+          />
+        </FormField>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <FormField label="สังกัดที่ดำเนินการ">
+            <DepartmentSelect
+              value={formData.department || ''}
+              onChange={(val) => onChange('department', val)}
+              placeholder="-- เลือกสังกัด --"
+              className="w-full"
             />
-          </div>
+          </FormField>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
-            {/* ภาควิชา / สังกัดที่ดำเนินการ */}
-            <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                สังกัดที่ดำเนินการ
-              </label>
-              <DepartmentSelect
-                value={formData.department || ''}
-                onChange={(val) => onChange('department', val)}
-                placeholder="-- เลือกสังกัด --"
-                className="w-full"
-              />
-            </div>
-
-            {/* ผู้ขอรับบริการ / ว่าจ้าง */}
-            <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                ผู้ขอรับบริการ / ว่าจ้าง
-              </label>
-              <input
-                type="text"
-                value={formData.client || ''}
-                onChange={(e) => onChange('client', e.target.value)}
-                placeholder="เช่น บริษัท เกษตรพัฒนา จำกัด, กรมโรงงานอุตสาหกรรม"
-                style={{
-                  width: '100%',
-                  padding: '9px 12px',
-                  borderRadius: '8px',
-                  border: '1px solid #cbd5e1',
-                  fontSize: '13.5px',
-                  outline: 'none',
-                  fontFamily: 'inherit',
-                }}
-              />
-            </div>
-          </div>
-
-          {/* ลักษณะโครงการ (สอดคล้องกับนโยบายชาติ, เพิ่มมูลค่า - เว้นว่างได้) */}
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
-              <label style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>
-                ลักษณะโครงการ
-              </label>
-            </div>
-
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-              {[
-                { id: 'สอดคล้องกับนโยบายชาติ', label: 'สอดคล้องกับนโยบายชาติ' },
-                { id: 'เพิ่มมูลค่า', label: 'เพิ่มมูลค่า' },
-              ].map((opt) => {
-                const isSelected = characteristics.includes(opt.id);
-                return (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    onClick={() => toggleCharacteristic(opt.id)}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '7px',
-                      padding: '7px 14px',
-                      borderRadius: '8px',
-                      fontSize: '13px',
-                      fontWeight: 500,
-                      cursor: 'pointer',
-                      border: isSelected ? '1.5px solid #00A651' : '1px solid #cbd5e1',
-                      backgroundColor: isSelected ? '#f0fbf5' : '#ffffff',
-                      color: isSelected ? '#00A651' : '#475569',
-                      transition: 'all 0.15s ease',
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: '16px',
-                        height: '16px',
-                        borderRadius: '4px',
-                        border: isSelected ? '1.5px solid #00A651' : '1.5px solid #94a3b8',
-                        backgroundColor: isSelected ? '#00A651' : '#ffffff',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      {isSelected && <FaCheck style={{ color: '#ffffff', fontSize: '9px' }} />}
-                    </div>
-                    <span>{opt.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          <FormField label="ผู้ขอรับบริการ / ว่าจ้าง">
+            <input
+              type="text"
+              value={formData.client || ''}
+              onChange={(e) => onChange('client', e.target.value)}
+              placeholder="เช่น บริษัท เกษตรพัฒนา จำกัด, กรมโรงงานอุตสาหกรรม"
+              className="w-full h-10 px-3 text-sm rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-[#00A651]/20 focus:border-[#00A651] transition-colors"
+            />
+          </FormField>
         </div>
-      </div>
+
+        <FormField label="ลักษณะโครงการ">
+          <div className="flex flex-wrap gap-x-8 gap-y-2 pt-0.5">
+            {[
+              { id: 'สอดคล้องกับนโยบายชาติ', label: 'สอดคล้องกับนโยบายชาติ' },
+              { id: 'เพิ่มมูลค่า', label: 'เพิ่มมูลค่า' },
+            ].map((opt) => {
+              const isSelected = characteristics.includes(opt.id);
+              return (
+                <label
+                  key={opt.id}
+                  className="inline-flex items-center gap-2.5 py-1 cursor-pointer select-none"
+                >
+                  <Checkbox
+                    checked={isSelected}
+                    onCheckedChange={() => toggleCharacteristic(opt.id)}
+                  />
+                  <span className={cn('text-sm', isSelected ? 'text-slate-900 font-medium' : 'text-slate-700')}>
+                    {opt.label}
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+        </FormField>
+      </section>
 
       {/* ========================================================================= */}
-      {/* หมวดที่ 2: บุคลากรและผู้ร่วมโครงการ */}
+      {/* ส่วนที่ 2: บุคลากรและผู้ร่วมโครงการ */}
       {/* ========================================================================= */}
-      <div
-        className="scroll-mt-24"
-        style={{
-          border: '1px solid #e2e8f0',
-          borderRadius: '12px',
-          padding: '18px 20px',
-          backgroundColor: '#ffffff',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
-          scrollMarginTop: '96px',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            marginBottom: '16px',
-            paddingBottom: '10px',
-            borderBottom: '1.5px solid #f1f5f9',
-          }}
-        >
-          <div
-            style={{
-              width: '26px',
-              height: '26px',
-              borderRadius: '6px',
-              backgroundColor: '#e8f5e9',
-              color: '#00A651',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '13px',
-              fontWeight: 700,
-            }}
-          >
-            2
-          </div>
-          <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#1e293b' }}>
+      <section className="space-y-4">
+        <div className="flex items-center gap-2 pb-2 border-b border-slate-200">
+          <span className="w-1.5 h-4 bg-[#00A651] rounded-full shrink-0" />
+          <h4 className="text-[14px] font-bold text-slate-800 tracking-wide">
             บุคลากรและผู้ร่วมโครงการ
           </h4>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          {/* หัวหน้าโครงการ (PersonPicker) */}
-          <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-              หัวหน้าโครงการ <span style={{ color: '#ef4444' }}>*</span>
-            </label>
-            <PersonPicker
-              value={formData.head ? {
-                person_id: formData.head_id || null,
-                name: formData.head,
-                department: formData.department,
-              } : null}
-              onChange={(person) => {
-                if (person) {
-                  onChange('head', person.name);
-                  onChange('head_id', person.person_id ?? null);
-                  if (person.department) {
-                    onChange('department', person.department);
+        <FormField label="หัวหน้าโครงการ" required>
+          <PersonPicker
+            value={
+              formData.head
+                ? {
+                    person_id: formData.head_id || null,
+                    name: formData.head,
+                    department: formData.department,
                   }
-                } else {
-                  onChange('head', '');
-                  onChange('head_id', null);
+                : null
+            }
+            onChange={(person) => {
+              if (person) {
+                onChange('head', person.name);
+                onChange('head_id', person.person_id ?? null);
+                if (person.department) {
+                  onChange('department', person.department);
                 }
-              }}
-              placeholder="ค้นหาชื่ออาจารย์หรือหัวหน้าโครงการ..."
-            />
-          </div>
-
-          {/* ผู้ร่วมโครงการแบ่งเป็นภายในและภายนอก โดยระบุจำนวน */}
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-              <label style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>
-                จำนวนผู้ร่วมโครงการ (คน)
-              </label>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-              {/* ผู้ร่วมโครงการภายใน */}
-              <div
-                style={{
-                  padding: '12px',
-                  borderRadius: '8px',
-                  backgroundColor: '#f8fafc',
-                  border: '1px solid #e2e8f0',
-                }}
-              >
-                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 600, color: '#0369a1', marginBottom: '6px' }}>
-                  ผู้ร่วมโครงการ (ภายใน)
-                </label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <input
-                    type="number"
-                    min="0"
-                    step="1"
-                    value={formData.co_members_internal !== undefined ? formData.co_members_internal : ''}
-                    onChange={(e) => onChange('co_members_internal', parseInt(e.target.value, 10) || 0)}
-                    placeholder="0"
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      borderRadius: '6px',
-                      border: '1px solid #cbd5e1',
-                      fontSize: '14px',
-                      fontFamily: 'monospace',
-                      fontWeight: 600,
-                      outline: 'none',
-                      backgroundColor: '#ffffff',
-                    }}
-                  />
-                  <span style={{ fontSize: '13px', color: '#64748b', whiteSpace: 'nowrap' }}>คน</span>
-                </div>
-              </div>
-
-              {/* ผู้ร่วมโครงการภายนอก */}
-              <div
-                style={{
-                  padding: '12px',
-                  borderRadius: '8px',
-                  backgroundColor: '#f8fafc',
-                  border: '1px solid #e2e8f0',
-                }}
-              >
-                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 600, color: '#b45309', marginBottom: '6px' }}>
-                  ผู้ร่วมโครงการ (ภายนอก)
-                </label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <input
-                    type="number"
-                    min="0"
-                    step="1"
-                    value={formData.co_members_external !== undefined ? formData.co_members_external : ''}
-                    onChange={(e) => onChange('co_members_external', parseInt(e.target.value, 10) || 0)}
-                    placeholder="0"
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      borderRadius: '6px',
-                      border: '1px solid #cbd5e1',
-                      fontSize: '14px',
-                      fontFamily: 'monospace',
-                      fontWeight: 600,
-                      outline: 'none',
-                      backgroundColor: '#ffffff',
-                    }}
-                  />
-                  <span style={{ fontSize: '13px', color: '#64748b', whiteSpace: 'nowrap' }}>คน</span>
-                </div>
-              </div>
-            </div>
-
-            <div style={{ marginTop: '6px', fontSize: '12px', color: '#64748b' }}>
-              รวมผู้ร่วมโครงการทั้งหมด:{' '}
-              <strong style={{ color: '#1e293b' }}>
-                {(Number(formData.co_members_internal) || 0) + (Number(formData.co_members_external) || 0)} คน
-              </strong>{' '}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ========================================================================= */}
-      {/* หมวดที่ 3: งบประมาณรวมและการจัดสรรอัตโนมัติ */}
-      {/* ========================================================================= */}
-      <div
-        id="section-academic-budget"
-        className="scroll-mt-24"
-        style={{
-          border: '1px solid #e2e8f0',
-          borderRadius: '12px',
-          padding: '18px 20px',
-          backgroundColor: '#ffffff',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
-          scrollMarginTop: '96px',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            marginBottom: '16px',
-            paddingBottom: '10px',
-            borderBottom: '1.5px solid #f1f5f9',
-          }}
-        >
-          <div
-            style={{
-              width: '26px',
-              height: '26px',
-              borderRadius: '6px',
-              backgroundColor: '#e8f5e9',
-              color: '#00A651',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '13px',
-              fontWeight: 700,
+              } else {
+                onChange('head', '');
+                onChange('head_id', null);
+              }
             }}
-          >
-            3
-          </div>
-          <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#1e293b' }}>
+            placeholder="ค้นหาชื่ออาจารย์หรือหัวหน้าโครงการ..."
+          />
+        </FormField>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <FormField label="ผู้ร่วมโครงการ (ภายใน)">
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                min="0"
+                step="1"
+                value={formData.co_members_internal !== undefined ? formData.co_members_internal : ''}
+                onChange={(e) => onChange('co_members_internal', parseInt(e.target.value, 10) || 0)}
+                placeholder="0"
+                className="w-full h-10 px-3 text-sm font-mono rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-[#00A651]/20 focus:border-[#00A651]"
+              />
+              <span className="text-xs text-slate-500 shrink-0">คน</span>
+            </div>
+          </FormField>
+
+          <FormField label="ผู้ร่วมโครงการ (ภายนอก)">
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                min="0"
+                step="1"
+                value={formData.co_members_external !== undefined ? formData.co_members_external : ''}
+                onChange={(e) => onChange('co_members_external', parseInt(e.target.value, 10) || 0)}
+                placeholder="0"
+                className="w-full h-10 px-3 text-sm font-mono rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-[#00A651]/20 focus:border-[#00A651]"
+              />
+              <span className="text-xs text-slate-500 shrink-0">คน</span>
+            </div>
+          </FormField>
+        </div>
+      </section>
+
+      {/* ========================================================================= */}
+      {/* ส่วนที่ 3: งบประมาณรวมและการจัดสรรอัตโนมัติ */}
+      {/* ========================================================================= */}
+      <section id="section-academic-budget" className="space-y-4">
+        <div className="flex items-center gap-2 pb-2 border-b border-slate-200">
+          <span className="w-1.5 h-4 bg-[#00A651] rounded-full shrink-0" />
+          <h4 className="text-[14px] font-bold text-slate-800 tracking-wide">
             งบประมาณรวมและการจัดสรรอัตโนมัติ
           </h4>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-              งบประมาณรวมทั้งหมด <span style={{ color: '#ef4444' }}>*</span>
-            </label>
-            <MoneyInput
-              value={formData.budget !== undefined && formData.budget !== '' ? Number(formData.budget) : null}
-              onChange={handleBudgetChange}
-              placeholder="0.00"
-            />
-          </div>
+        <FormField label="งบประมาณรวมทั้งหมด" required>
+          <MoneyInput
+            value={formData.budget !== undefined && formData.budget !== '' ? Number(formData.budget) : null}
+            onChange={handleBudgetChange}
+            placeholder="0.00"
+          />
+        </FormField>
 
-          <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '8px' }}>
-              การจัดสรรงบประมาณอัตโนมัติ
-            </label>
+        <FormField label="การจัดสรรงบประมาณอัตโนมัติ">
+          <div
+            className={cn(
+              'rounded-lg border bg-white overflow-hidden transition-colors',
+              isOverBudget ? 'border-rose-300' : 'border-slate-200'
+            )}
+          >
+            <div className="hidden md:flex items-center gap-4 px-4 py-2 bg-slate-50 border-b border-slate-100 text-xs font-semibold text-slate-500">
+              <div className="flex-1 min-w-0" />
+              <div className="w-[140px] text-right pr-7">สัดส่วน</div>
+              <div className="w-[220px] text-right pr-9">จำนวนเงิน</div>
+            </div>
 
-            {/* ONE bordered block with a single level of border and no nested cards */}
-            <div
-              className={cn(
-                'rounded-lg border bg-white overflow-hidden transition-colors',
-                isOverBudget ? 'border-rose-300' : 'border-slate-200'
-              )}
-            >
-              {/* Header row: desktop only */}
-              <div className="hidden md:flex items-center gap-4 px-4 py-2 bg-slate-50 border-b border-slate-100 text-xs font-semibold text-slate-500">
-                <div className="flex-1 min-w-0" />
-                <div className="w-[140px] text-right pr-7">สัดส่วน</div>
-                <div className="w-[220px] text-right pr-9">จำนวนเงิน</div>
-              </div>
-
-              {/* Rows: หักเข้าคณะ, หักเข้าภาควิชา, หักเข้ามหาวิทยาลัย (มก.) */}
-              <div className="divide-y divide-slate-100 px-4">
-                {/* 1. หักเข้าคณะ */}
-                <div className="flex flex-col md:flex-row md:items-center gap-1.5 md:gap-4 py-2.5">
-                  <div className="text-sm font-medium text-slate-700 md:flex-1 min-w-0">
-                    หักเข้าคณะ
-                  </div>
-                  <div className="flex items-center gap-3 w-full md:w-auto">
-                    <div className="flex items-center gap-2 flex-1 md:w-[140px]">
-                      <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        step="0.01"
-                        value={formData.percent_faculty !== undefined ? formData.percent_faculty : percentFaculty}
-                        onChange={(e) => handlePercentChange('percent_faculty', e.target.value)}
-                        onBlur={() => handlePercentBlur('percent_faculty')}
-                        placeholder="0.00"
-                        className={cn(
-                          'flex-1 h-10 px-3 text-sm text-right tabular-nums font-medium rounded-lg border bg-white shadow-2xs transition-colors',
-                          'focus:outline-none focus:ring-2',
-                          isOverBudget
-                            ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-200 text-rose-900'
-                            : 'border-slate-300 focus:border-[#00A651] focus:ring-[#00A651]/20 text-slate-900'
-                        )}
-                      />
-                      <span className="shrink-0 text-sm font-semibold text-slate-600 select-none w-5 text-left">
-                        %
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2.5 flex-[1.5] md:w-[220px]">
-                      <MoneyInput
-                        value={allocFaculty}
-                        onChange={(val) => handleAmountChange('alloc_faculty', val)}
-                        placeholder="0.00"
-                        className="w-full"
-                        inputClassName={isOverBudget ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-200' : undefined}
-                      />
-                    </div>
-                  </div>
+            <div className="divide-y divide-slate-100 px-4">
+              {/* 1. หักเข้าคณะ */}
+              <div className="flex flex-col md:flex-row md:items-center gap-1.5 md:gap-4 py-2.5">
+                <div className="text-sm text-slate-700 md:flex-1 min-w-0">
+                  หักเข้าคณะ
                 </div>
-
-                {/* 2. หักเข้าภาควิชา */}
-                <div className="flex flex-col md:flex-row md:items-center gap-1.5 md:gap-4 py-2.5">
-                  <div className="text-sm font-medium text-slate-700 md:flex-1 min-w-0">
-                    หักเข้าภาควิชา
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                  <div className="flex items-center gap-2 flex-1 md:w-[140px]">
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.01"
+                      value={formData.percent_faculty !== undefined ? formData.percent_faculty : percentFaculty}
+                      onChange={(e) => handlePercentChange('percent_faculty', e.target.value)}
+                      onBlur={() => handlePercentBlur('percent_faculty')}
+                      placeholder="0.00"
+                      className={cn(
+                        'flex-1 h-10 px-3 text-sm text-right tabular-nums rounded-lg border bg-white transition-colors',
+                        'focus:outline-none focus:ring-2',
+                        isOverBudget
+                          ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-200 text-rose-900'
+                          : 'border-slate-300 focus:border-[#00A651] focus:ring-[#00A651]/20 text-slate-900'
+                      )}
+                    />
+                    <span className="shrink-0 text-sm text-slate-600 select-none w-5 text-left">%</span>
                   </div>
-                  <div className="flex items-center gap-3 w-full md:w-auto">
-                    <div className="flex items-center gap-2 flex-1 md:w-[140px]">
-                      <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        step="0.01"
-                        value={formData.percent_dept !== undefined ? formData.percent_dept : percentDept}
-                        onChange={(e) => handlePercentChange('percent_dept', e.target.value)}
-                        onBlur={() => handlePercentBlur('percent_dept')}
-                        placeholder="0.00"
-                        className={cn(
-                          'flex-1 h-10 px-3 text-sm text-right tabular-nums font-medium rounded-lg border bg-white shadow-2xs transition-colors',
-                          'focus:outline-none focus:ring-2',
-                          isOverBudget
-                            ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-200 text-rose-900'
-                            : 'border-slate-300 focus:border-[#00A651] focus:ring-[#00A651]/20 text-slate-900'
-                        )}
-                      />
-                      <span className="shrink-0 text-sm font-semibold text-slate-600 select-none w-5 text-left">
-                        %
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2.5 flex-[1.5] md:w-[220px]">
-                      <MoneyInput
-                        value={allocDept}
-                        onChange={(val) => handleAmountChange('alloc_dept', val)}
-                        placeholder="0.00"
-                        className="w-full"
-                        inputClassName={isOverBudget ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-200' : undefined}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* 3. หักเข้ามหาวิทยาลัย (มก.) */}
-                <div className="flex flex-col md:flex-row md:items-center gap-1.5 md:gap-4 py-2.5">
-                  <div className="text-sm font-medium text-slate-700 md:flex-1 min-w-0">
-                    หักเข้ามหาวิทยาลัย (มก.)
-                  </div>
-                  <div className="flex items-center gap-3 w-full md:w-auto">
-                    <div className="flex items-center gap-2 flex-1 md:w-[140px]">
-                      <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        step="0.01"
-                        value={formData.percent_ku !== undefined ? formData.percent_ku : percentKu}
-                        onChange={(e) => handlePercentChange('percent_ku', e.target.value)}
-                        onBlur={() => handlePercentBlur('percent_ku')}
-                        placeholder="0.00"
-                        className={cn(
-                          'flex-1 h-10 px-3 text-sm text-right tabular-nums font-medium rounded-lg border bg-white shadow-2xs transition-colors',
-                          'focus:outline-none focus:ring-2',
-                          isOverBudget
-                            ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-200 text-rose-900'
-                            : 'border-slate-300 focus:border-[#00A651] focus:ring-[#00A651]/20 text-slate-900'
-                        )}
-                      />
-                      <span className="shrink-0 text-sm font-semibold text-slate-600 select-none w-5 text-left">
-                        %
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2.5 flex-[1.5] md:w-[220px]">
-                      <MoneyInput
-                        value={allocKu}
-                        onChange={(val) => handleAmountChange('alloc_ku', val)}
-                        placeholder="0.00"
-                        className="w-full"
-                        inputClassName={isOverBudget ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-200' : undefined}
-                      />
-                    </div>
+                  <div className="flex items-center gap-2.5 flex-[1.5] md:w-[220px]">
+                    <MoneyInput
+                      value={allocFaculty}
+                      onChange={(val) => handleAmountChange('alloc_faculty', val)}
+                      placeholder="0.00"
+                      className="w-full"
+                      inputClassName={isOverBudget ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-200' : undefined}
+                    />
                   </div>
                 </div>
               </div>
 
-              {/* Divider, then row หักรวม: plain text (not inputs) */}
-              <div className="border-t border-slate-200 bg-slate-50/50 px-4">
-                <div className="flex flex-col md:flex-row md:items-center gap-1.5 md:gap-4 py-2.5">
-                  <div className="text-sm font-semibold text-slate-700 md:flex-1 min-w-0">
-                    หักรวม
+              {/* 2. หักเข้าภาควิชา */}
+              <div className="flex flex-col md:flex-row md:items-center gap-1.5 md:gap-4 py-2.5">
+                <div className="text-sm text-slate-700 md:flex-1 min-w-0">
+                  หักเข้าภาควิชา
+                </div>
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                  <div className="flex items-center gap-2 flex-1 md:w-[140px]">
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.01"
+                      value={formData.percent_dept !== undefined ? formData.percent_dept : percentDept}
+                      onChange={(e) => handlePercentChange('percent_dept', e.target.value)}
+                      onBlur={() => handlePercentBlur('percent_dept')}
+                      placeholder="0.00"
+                      className={cn(
+                        'flex-1 h-10 px-3 text-sm text-right tabular-nums rounded-lg border bg-white transition-colors',
+                        'focus:outline-none focus:ring-2',
+                        isOverBudget
+                          ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-200 text-rose-900'
+                          : 'border-slate-300 focus:border-[#00A651] focus:ring-[#00A651]/20 text-slate-900'
+                      )}
+                    />
+                    <span className="shrink-0 text-sm text-slate-600 select-none w-5 text-left">%</span>
                   </div>
-                  <div className="flex items-center gap-3 w-full md:w-auto">
-                    <div className="flex items-center justify-end gap-2 flex-1 md:w-[140px]">
-                      <span className="flex-1 text-sm text-right tabular-nums font-semibold text-slate-700">
-                        {totalDeductPercent.toFixed(2)}
-                      </span>
-                      <span className="shrink-0 text-sm font-semibold text-slate-600 select-none w-5 text-left">
-                        %
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-end gap-2.5 flex-[1.5] md:w-[220px]">
-                      <span className="flex-1 text-sm text-right tabular-nums font-semibold text-slate-700">
-                        {formatCurrency(totalAllocDeductions)}
-                      </span>
-                      <span className="shrink-0 text-sm font-semibold text-slate-600 select-none w-7 text-left">
-                        บาท
-                      </span>
-                    </div>
+                  <div className="flex items-center gap-2.5 flex-[1.5] md:w-[220px]">
+                    <MoneyInput
+                      value={allocDept}
+                      onChange={(val) => handleAmountChange('alloc_dept', val)}
+                      placeholder="0.00"
+                      className="w-full"
+                      inputClassName={isOverBudget ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-200' : undefined}
+                    />
                   </div>
                 </div>
               </div>
 
-              {/* Final row งบดำเนินงานคงเหลือ: read-only, same columns, light theme-green background band, semibold text */}
-              <div className="border-t border-emerald-200 bg-[#f0fdf4] px-4">
-                <div className="flex flex-col md:flex-row md:items-center gap-1.5 md:gap-4 py-2.5">
-                  <div className="text-sm font-semibold text-emerald-900 md:flex-1 min-w-0">
-                    งบดำเนินงานคงเหลือ
+              {/* 3. หักเข้ามหาวิทยาลัย (มก.) */}
+              <div className="flex flex-col md:flex-row md:items-center gap-1.5 md:gap-4 py-2.5">
+                <div className="text-sm text-slate-700 md:flex-1 min-w-0">
+                  หักเข้ามหาวิทยาลัย (มก.)
+                </div>
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                  <div className="flex items-center gap-2 flex-1 md:w-[140px]">
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.01"
+                      value={formData.percent_ku !== undefined ? formData.percent_ku : percentKu}
+                      onChange={(e) => handlePercentChange('percent_ku', e.target.value)}
+                      onBlur={() => handlePercentBlur('percent_ku')}
+                      placeholder="0.00"
+                      className={cn(
+                        'flex-1 h-10 px-3 text-sm text-right tabular-nums rounded-lg border bg-white transition-colors',
+                        'focus:outline-none focus:ring-2',
+                        isOverBudget
+                          ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-200 text-rose-900'
+                          : 'border-slate-300 focus:border-[#00A651] focus:ring-[#00A651]/20 text-slate-900'
+                      )}
+                    />
+                    <span className="shrink-0 text-sm text-slate-600 select-none w-5 text-left">%</span>
                   </div>
-                  <div className="flex items-center gap-3 w-full md:w-auto">
-                    <div className="flex items-center justify-end gap-2 flex-1 md:w-[140px]">
-                      <span
-                        className={cn(
-                          'flex-1 text-sm text-right tabular-nums font-semibold',
-                          allocRemaining < 0 || remainingPercent < 0 ? 'text-rose-600' : 'text-emerald-800'
-                        )}
-                      >
-                        {remainingPercent.toFixed(2)}
-                      </span>
-                      <span className="shrink-0 text-sm font-semibold text-emerald-700 select-none w-5 text-left">
-                        %
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-end gap-2.5 flex-[1.5] md:w-[220px]">
-                      <span
-                        className={cn(
-                          'flex-1 text-sm text-right tabular-nums font-semibold',
-                          allocRemaining < 0 || remainingPercent < 0 ? 'text-rose-600' : 'text-emerald-800'
-                        )}
-                      >
-                        {formatCurrency(allocRemaining)}
-                      </span>
-                      <span className="shrink-0 text-sm font-semibold text-emerald-700 select-none w-7 text-left">
-                        บาท
-                      </span>
-                    </div>
+                  <div className="flex items-center gap-2.5 flex-[1.5] md:w-[220px]">
+                    <MoneyInput
+                      value={allocKu}
+                      onChange={(val) => handleAmountChange('alloc_ku', val)}
+                      placeholder="0.00"
+                      className="w-full"
+                      inputClassName={isOverBudget ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-200' : undefined}
+                    />
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Inline validation error under the block if deductions exceed 100% or total */}
-            {isOverBudget && (
-              <div className="text-xs text-rose-500 font-medium mt-1.5">
-                {totalBudget > 0 && totalAllocDeductions > totalBudget
-                  ? 'ยอดหักรวมเกินกว่างบประมาณรวมทั้งหมด'
-                  : 'ยอดหักรวมเกินกว่า 100%'}
+            {/* หักรวม */}
+            <div className="border-t border-slate-200 bg-slate-50/50 px-4">
+              <div className="flex flex-col md:flex-row md:items-center gap-1.5 md:gap-4 py-2">
+                <div className="text-sm font-medium text-slate-700 md:flex-1 min-w-0">
+                  หักรวม
+                </div>
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                  <div className="flex items-center justify-end gap-2 flex-1 md:w-[140px]">
+                    <span className="flex-1 text-sm text-right tabular-nums font-medium text-slate-700">
+                      {totalDeductPercent.toFixed(2)}
+                    </span>
+                    <span className="shrink-0 text-sm text-slate-600 select-none w-5 text-left">%</span>
+                  </div>
+                  <div className="flex items-center justify-end gap-2.5 flex-[1.5] md:w-[220px]">
+                    <span className="flex-1 text-sm text-right tabular-nums font-medium text-slate-700">
+                      {formatCurrency(totalAllocDeductions)}
+                    </span>
+                    <span className="shrink-0 text-sm text-slate-600 select-none w-7 text-left">บาท</span>
+                  </div>
+                </div>
               </div>
-            )}
+            </div>
+
+            {/* งบดำเนินงานคงเหลือ */}
+            <div className="border-t border-emerald-200 bg-[#f0fdf4] px-4">
+              <div className="flex flex-col md:flex-row md:items-center gap-1.5 md:gap-4 py-2">
+                <div className="text-sm font-medium text-emerald-900 md:flex-1 min-w-0">
+                  งบดำเนินงานคงเหลือ
+                </div>
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                  <div className="flex items-center justify-end gap-2 flex-1 md:w-[140px]">
+                    <span
+                      className={cn(
+                        'flex-1 text-sm text-right tabular-nums font-medium',
+                        allocRemaining < 0 || remainingPercent < 0 ? 'text-rose-600' : 'text-emerald-800'
+                      )}
+                    >
+                      {remainingPercent.toFixed(2)}
+                    </span>
+                    <span className="shrink-0 text-sm text-emerald-700 select-none w-5 text-left">%</span>
+                  </div>
+                  <div className="flex items-center justify-end gap-2.5 flex-[1.5] md:w-[220px]">
+                    <span
+                      className={cn(
+                        'flex-1 text-sm text-right tabular-nums font-medium',
+                        allocRemaining < 0 || remainingPercent < 0 ? 'text-rose-600' : 'text-emerald-800'
+                      )}
+                    >
+                      {formatCurrency(allocRemaining)}
+                    </span>
+                    <span className="shrink-0 text-sm text-emerald-700 select-none w-7 text-left">บาท</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+
+          {isOverBudget && (
+            <div className="text-xs text-rose-500 font-medium mt-1.5">
+              {totalBudget > 0 && totalAllocDeductions > totalBudget
+                ? 'ยอดหักรวมเกินกว่างบประมาณรวมทั้งหมด'
+                : 'ยอดหักรวมเกินกว่า 100%'}
+            </div>
+          )}
+        </FormField>
+      </section>
 
       {/* ========================================================================= */}
-      {/* หมวดที่ 4: ระยะเวลาดำเนินการ (บังคับใส่ เริ่มต้น - สิ้นสุด) */}
+      {/* ส่วนที่ 4: ระยะเวลาดำเนินการ */}
       {/* ========================================================================= */}
-      <div
-        className="scroll-mt-24"
-        style={{
-          border: '1px solid #e2e8f0',
-          borderRadius: '12px',
-          padding: '18px 20px',
-          backgroundColor: '#ffffff',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
-          scrollMarginTop: '96px',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            marginBottom: '16px',
-            paddingBottom: '10px',
-            borderBottom: '1.5px solid #f1f5f9',
-          }}
-        >
-          <div
-            style={{
-              width: '26px',
-              height: '26px',
-              borderRadius: '6px',
-              backgroundColor: '#e8f5e9',
-              color: '#00A651',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '13px',
-              fontWeight: 700,
-            }}
-          >
-            4
-          </div>
-          <div>
-            <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#1e293b' }}>
-              ระยะเวลาดำเนินการ <span style={{ color: '#ef4444' }}>*</span>
-            </h4>
-          </div>
+      <section className="space-y-4">
+        <div className="flex items-center gap-2 pb-2 border-b border-slate-200">
+          <span className="w-1.5 h-4 bg-[#00A651] rounded-full shrink-0" />
+          <h4 className="text-[14px] font-bold text-slate-800 tracking-wide">
+            ระยะเวลาดำเนินการ
+          </h4>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-          <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-              วันที่เริ่มต้นดำเนินการ <span style={{ color: '#ef4444' }}>*</span>
-            </label>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <FormField label="วันที่เริ่มต้นดำเนินการ" required>
             <DatePicker
               value={formData.start_date || ''}
               onChange={(_, dateStr) => onChange('start_date', dateStr)}
-              placeholder="วว/ดด/ปปปป (พ.ศ.)"
+              placeholder="วัน/เดือน/ปี (พ.ศ.)"
               className="w-full"
             />
-          </div>
+          </FormField>
 
-          <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-              วันที่สิ้นสุดดำเนินการ <span style={{ color: '#ef4444' }}>*</span>
-            </label>
+          <FormField label="วันที่สิ้นสุดดำเนินการ" required>
             <DatePicker
               value={formData.end_date || ''}
               onChange={(_, dateStr) => onChange('end_date', dateStr)}
-              placeholder="วว/ดด/ปปปป (พ.ศ.)"
+              placeholder="วัน/เดือน/ปี (พ.ศ.)"
               className="w-full"
             />
-          </div>
+          </FormField>
         </div>
-      </div>
+      </section>
 
       {/* ========================================================================= */}
-      {/* หมวดที่ 5: ประเภทโครงการพัฒนาวิชาการ */}
+      {/* ส่วนที่ 5: ประเภทโครงการพัฒนาวิชาการ */}
       {/* ========================================================================= */}
-      <div
-        className="scroll-mt-24"
-        style={{
-          border: '1px solid #e2e8f0',
-          borderRadius: '12px',
-          padding: '18px 20px',
-          backgroundColor: '#ffffff',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
-          scrollMarginTop: '96px',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            marginBottom: '16px',
-            paddingBottom: '10px',
-            borderBottom: '1.5px solid #f1f5f9',
-          }}
-        >
-          <div
-            style={{
-              width: '26px',
-              height: '26px',
-              borderRadius: '6px',
-              backgroundColor: '#e8f5e9',
-              color: '#00A651',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '13px',
-              fontWeight: 700,
-            }}
-          >
-            5
-          </div>
-          <div>
-            <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#1e293b' }}>
-              ประเภทโครงการพัฒนาวิชาการ
-            </h4>
-            <span style={{ fontSize: '12px', color: '#64748b' }}>
-              (สามารถเลือกได้มากกว่า 1 ประเภท และเลือกประเภทย่อยได้หลายรายการ)
-            </span>
-          </div>
+      <section className="space-y-4">
+        <div className="flex items-center gap-2 pb-2 border-b border-slate-200">
+          <span className="w-1.5 h-4 bg-[#00A651] rounded-full shrink-0" />
+          <h4 className="text-[14px] font-bold text-slate-800 tracking-wide">
+            ประเภทโครงการพัฒนาวิชาการ
+          </h4>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div className="space-y-3">
           {ACADEMIC_PROJECT_CATEGORIES.map((catDef) => {
             const isSelected = selectedCategories.includes(catDef.category);
-            const selectedCount = catDef.subTypes.filter((s) => selectedSubTypes.includes(s)).length;
             return (
-              <div
-                key={catDef.category}
-                style={{
-                  border: isSelected ? '1.5px solid #00A651' : '1px solid #e2e8f0',
-                  borderRadius: '10px',
-                  backgroundColor: isSelected ? '#f0fdf4' : '#ffffff',
-                  boxShadow: isSelected ? '0 2px 4px rgba(0, 166, 81, 0.08)' : '0 1px 2px rgba(0,0,0,0.02)',
-                  transition: 'all 0.15s ease-in-out',
-                  overflow: 'hidden',
-                }}
-              >
-                {/* Header row as checkbox option */}
-                <div
-                  onClick={() => handleToggleCategory(catDef.category)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    padding: '12px 16px',
-                    cursor: 'pointer',
-                    userSelect: 'none',
-                    backgroundColor: isSelected ? '#f0fdf4' : 'transparent',
-                  }}
-                >
-                  <div
-                    style={{
-                      width: '18px',
-                      height: '18px',
-                      borderRadius: '4px',
-                      border: isSelected ? '1.5px solid #00A651' : '1.5px solid #cbd5e1',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundColor: isSelected ? '#00A651' : '#ffffff',
-                      flexShrink: 0,
-                      transition: 'all 0.15s ease',
-                    }}
-                  >
-                    {isSelected && <FaCheck style={{ color: '#ffffff', fontSize: '10px' }} />}
-                  </div>
-                  <span
-                    style={{
-                      fontSize: '14px',
-                      fontWeight: isSelected ? 700 : 600,
-                      color: isSelected ? '#006838' : '#334155',
-                    }}
-                  >
+              <div key={catDef.category} className="space-y-2">
+                <label className="inline-flex items-center gap-2.5 py-0.5 cursor-pointer select-none">
+                  <Checkbox
+                    checked={isSelected}
+                    onCheckedChange={() => handleToggleCategory(catDef.category)}
+                  />
+                  <span className={cn('text-sm', isSelected ? 'text-slate-900 font-semibold' : 'text-slate-700')}>
                     {catDef.category}
                   </span>
-                  {isSelected && selectedCount > 0 && (
-                    <span
-                      style={{
-                        marginLeft: 'auto',
-                        fontSize: '11.5px',
-                        fontWeight: 600,
-                        color: '#006838',
-                        backgroundColor: '#dcfce7',
-                        padding: '2px 8px',
-                        borderRadius: '9999px',
-                      }}
-                    >
-                      เลือก {selectedCount} รายการ
-                    </span>
-                  )}
-                </div>
+                </label>
 
-                {/* Sub-types checkboxes (only visible and active when this main category is selected) */}
                 {isSelected && (
-                  <div
-                    style={{
-                      padding: '12px 16px 16px 46px',
-                      borderTop: '1px solid #dcfce7',
-                      backgroundColor: '#ffffff',
-                    }}
-                  >
-                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#475569', marginBottom: '8px' }}>
-                      ประเภทย่อย (เลือกได้หลายรายการ):
-                    </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                      {catDef.subTypes.map((sub) => {
-                        const isChecked = selectedSubTypes.includes(sub);
-                        return (
-                          <label
-                            key={sub}
-                            onClick={(e) => e.stopPropagation()}
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '7px',
-                              padding: '6px 12px',
-                              borderRadius: '7px',
-                              border: isChecked ? '1.5px solid #00A651' : '1px solid #cbd5e1',
-                              backgroundColor: isChecked ? '#e8f5e9' : '#f8fafc',
-                              color: isChecked ? '#006838' : '#334155',
-                              fontSize: '13px',
-                              fontWeight: isChecked ? 600 : 500,
-                              cursor: 'pointer',
-                              userSelect: 'none',
-                              transition: 'all 0.15s ease',
-                            }}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={isChecked}
-                              onChange={() => handleToggleSubType(sub)}
-                              style={{
-                                accentColor: '#00A651',
-                                width: '15px',
-                                height: '15px',
-                                cursor: 'pointer',
-                              }}
-                            />
-                            <span>{sub}</span>
-                          </label>
-                        );
-                      })}
+                  <div className="pl-7 flex flex-wrap gap-x-6 gap-y-2 pb-1">
+                    {catDef.subTypes.map((sub) => {
+                      const isChecked = selectedSubTypes.includes(sub);
+                      return (
+                        <label
+                          key={sub}
+                          className="inline-flex items-center gap-2 py-0.5 cursor-pointer select-none"
+                        >
+                          <Checkbox
+                            checked={isChecked}
+                            onCheckedChange={() => handleToggleSubType(sub)}
+                          />
+                          <span className={cn('text-sm', isChecked ? 'text-slate-900 font-medium' : 'text-slate-600')}>
+                            {sub}
+                          </span>
+                        </label>
+                      );
+                    })}
 
-                      {/* "อื่นๆ" Checkbox at the end */}
-                      <label
-                        onClick={(e) => e.stopPropagation()}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '7px',
-                          padding: '6px 12px',
-                          borderRadius: '7px',
-                          border: isOtherChecked ? '1.5px solid #00A651' : '1px solid #cbd5e1',
-                          backgroundColor: isOtherChecked ? '#e8f5e9' : '#f8fafc',
-                          color: isOtherChecked ? '#006838' : '#334155',
-                          fontSize: '13px',
-                          fontWeight: isOtherChecked ? 600 : 500,
-                          cursor: 'pointer',
-                          userSelect: 'none',
-                          transition: 'all 0.15s ease',
-                        }}
-                      >
-                        <input
-                          type="checkbox"
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <label className="inline-flex items-center gap-2 py-0.5 cursor-pointer select-none">
+                        <Checkbox
                           checked={isOtherChecked}
-                          onChange={handleToggleOther}
-                          style={{
-                            accentColor: '#00A651',
-                            width: '15px',
-                            height: '15px',
-                            cursor: 'pointer',
-                          }}
+                          onCheckedChange={handleToggleOther}
                         />
-                        <span>อื่นๆ</span>
+                        <span className={cn('text-sm', isOtherChecked ? 'text-slate-900 font-medium' : 'text-slate-600')}>
+                          อื่นๆ
+                        </span>
                       </label>
-                    </div>
 
-                    {/* Inline custom typing for อื่นๆ */}
-                    {isOtherChecked && (
-                      <div
-                        onClick={(e) => e.stopPropagation()}
-                        style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '8px', maxWidth: '520px' }}
-                      >
+                      {isOtherChecked && (
                         <input
                           type="text"
                           value={otherCustomText}
                           onChange={handleOtherTextChange}
-                          placeholder="พิมพ์ระบุประเภทย่อยเพิ่มเติม..."
-                          autoFocus
-                          style={{
-                            width: '100%',
-                            padding: '8px 12px',
-                            borderRadius: '6px',
-                            border: '1.5px solid #00A651',
-                            fontSize: '13px',
-                            outline: 'none',
-                            backgroundColor: '#ffffff',
-                            color: '#0f172a',
-                            boxShadow: '0 0 0 3px rgba(0, 166, 81, 0.1)',
-                          }}
+                          placeholder="ระบุประเภทย่อยเพิ่มเติม..."
+                          className="h-9 px-3 text-sm rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-[#00A651]/20 focus:border-[#00A651]"
                         />
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -1338,406 +851,169 @@ export const AcademicProjectForm: React.FC<AcademicProjectFormProps> = ({
           })}
         </div>
 
-        {/* เลขระเบียนโครงการ (ไม่บังคับใส่) */}
-        <div style={{ marginTop: '18px', paddingTop: '16px', borderTop: '1px dashed #e2e8f0' }}>
-          <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-            เลขระเบียนโครงการ <span style={{ fontSize: '12px', fontWeight: 400, color: '#64748b' }}>(ไม่บังคับใส่)</span>
-          </label>
+        <FormField label="เลขระเบียนโครงการ">
           <input
             type="text"
             value={formData.record_number || ''}
             onChange={(e) => onChange('record_number', e.target.value)}
             placeholder="เช่น ทบ. 68-xxx หรือเลขระเบียนโครงการ (ถ้ามี)"
-            style={{
-              width: '100%',
-              padding: '9px 12px',
-              borderRadius: '6px',
-              border: '1px solid #cbd5e1',
-              fontSize: '13px',
-              outline: 'none',
-              fontFamily: 'inherit',
-              backgroundColor: '#ffffff',
-            }}
+            className="w-full h-10 px-3 text-sm rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-[#00A651]/20 focus:border-[#00A651]"
           />
-        </div>
-      </div>
+        </FormField>
+      </section>
 
       {/* ========================================================================= */}
-      {/* หมวดที่ 6: การบูรณาการการใช้ประโยชน์ (โครงการวิจัย และ สิทธิบัตร) */}
+      {/* ส่วนที่ 6: การบูรณาการการใช้ประโยชน์และหมายเหตุ */}
       {/* ========================================================================= */}
-      <div
-        className="scroll-mt-24"
-        style={{
-          border: '1px solid #e2e8f0',
-          borderRadius: '12px',
-          padding: '18px 20px',
-          backgroundColor: '#ffffff',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
-          scrollMarginTop: '96px',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            marginBottom: '16px',
-            paddingBottom: '10px',
-            borderBottom: '1.5px solid #f1f5f9',
-          }}
-        >
-          <div
-            style={{
-              width: '26px',
-              height: '26px',
-              borderRadius: '6px',
-              backgroundColor: '#e8f5e9',
-              color: '#00A651',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '13px',
-              fontWeight: 700,
-            }}
-          >
-            6
-          </div>
-          <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#1e293b' }}>
-            การบูรณาการการใช้ประโยชน์ (โครงการวิจัย และ สิทธิบัตร)
+      <section className="space-y-4">
+        <div className="flex items-center gap-2 pb-2 border-b border-slate-200">
+          <span className="w-1.5 h-4 bg-[#00A651] rounded-full shrink-0" />
+          <h4 className="text-[14px] font-bold text-slate-800 tracking-wide">
+            การบูรณาการการใช้ประโยชน์และหมายเหตุ
           </h4>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-          {/* ส่วนที่ 6.1: บูรณาการกับโครงการวิจัย (รหัส 8 ตัว + ชื่อโครงการ, มีได้หลายรหัส) */}
-          <div
-            style={{
-              padding: '14px 16px',
-              borderRadius: '10px',
-              backgroundColor: '#f8fafc',
-              border: '1px solid #e2e8f0',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13.5px', fontWeight: 700, color: '#1e293b' }}>
-                <FaFlask style={{ color: '#00A651', fontSize: '13px' }} />
-                <span>บูรณาการกับโครงการวิจัย</span>
-              </div>
-              <span style={{ fontSize: '11.5px', color: '#64748b' }}>
-                (กรอกรหัส 8 ตัว และระบุชื่อโครงการวิจัย สามารถมีได้หลายรหัสใน 1 โครงการ)
-              </span>
+        <FormField label="บูรณาการกับโครงการวิจัย" error={researchCodeError || null}>
+          <div className="space-y-2.5">
+            <Select onValueChange={(val) => handleQuickSelectResearch(val as string | null)}>
+              <SelectTrigger className="w-full bg-white text-slate-700 border-slate-300 text-sm h-10 rounded-lg">
+                <SelectValue placeholder="-- เลือกเติมข้อมูลจากโครงการวิจัยในระบบ (หรือพิมพ์เองด้านล่าง) --" />
+              </SelectTrigger>
+              <SelectContent>
+                {researchData.slice(0, 30).map((r: any, idx: number) => {
+                  const rId = String(r.id || '').replace(/[\n\r]/g, ' ').trim();
+                  const rName = String(r.name || '').replace(/[\n\r]/g, ' ').trim();
+                  return (
+                    <SelectItem key={idx} value={String(r.id || r._id)}>
+                      [{rId}] {rName.substring(0, 65)}...
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+
+            <div className="flex flex-col sm:flex-row gap-2">
+              <input
+                type="text"
+                maxLength={8}
+                value={inputResearchCode}
+                onChange={(e) => {
+                  setInputResearchCode(e.target.value.toUpperCase());
+                  setResearchCodeError('');
+                }}
+                placeholder="รหัส 8 ตัว"
+                className="w-full sm:w-36 h-10 px-3 text-sm font-mono text-center rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-[#00A651]/20 focus:border-[#00A651]"
+              />
+              <input
+                type="text"
+                value={inputResearchName}
+                onChange={(e) => {
+                  setInputResearchName(e.target.value);
+                  setResearchCodeError('');
+                }}
+                placeholder="ชื่อของโครงการวิจัยรหัสนั้น..."
+                className="flex-1 h-10 px-3 text-sm rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-[#00A651]/20 focus:border-[#00A651]"
+              />
+              <button
+                type="button"
+                onClick={handleAddResearchProject}
+                className="inline-flex items-center justify-center gap-1.5 h-10 px-4 rounded-lg bg-[#00A651] text-white text-sm font-medium hover:bg-[#008f45] transition-colors cursor-pointer shrink-0"
+              >
+                <FaPlus className="text-xs" />
+                <span>เพิ่มรหัส</span>
+              </button>
             </div>
 
-            {/* Quick Helper Dropdown จากฐานข้อมูลวิจัยที่มีอยู่ */}
-            <div style={{ marginBottom: '10px' }}>
-              <Select onValueChange={(val) => handleQuickSelectResearch(val as string | null)}>
-                <SelectTrigger className="w-full bg-white text-slate-700 border-dashed text-xs h-9">
-                  <SelectValue placeholder="-- เลือกเติมข้อมูลด่วนจากโครงการวิจัยในระบบ (หรือพิมพ์เองด้านล่าง) --" />
-                </SelectTrigger>
-                <SelectContent>
-                  {researchData.slice(0, 30).map((r: any, idx: number) => {
-                    const rId = String(r.id || '').replace(/[\n\r]/g, ' ').trim();
-                    const rName = String(r.name || '').replace(/[\n\r]/g, ' ').trim();
-                    return (
-                      <SelectItem key={idx} value={String(r.id || r._id)}>
-                        [{rId}] {rName.substring(0, 65)}...
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Form Input เพิ่มรหัสโครงการวิจัย */}
-            <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr auto', gap: '8px', alignItems: 'flex-start' }}>
-              <div>
-                <input
-                  type="text"
-                  maxLength={8}
-                  value={inputResearchCode}
-                  onChange={(e) => {
-                    setInputResearchCode(e.target.value.toUpperCase());
-                    setResearchCodeError('');
-                  }}
-                  placeholder="รหัส 8 ตัว"
-                  style={{
-                    width: '100%',
-                    padding: '8px 10px',
-                    borderRadius: '6px',
-                    border: researchCodeError ? '1.5px solid #ef4444' : '1px solid #cbd5e1',
-                    fontSize: '13px',
-                    fontFamily: 'monospace',
-                    fontWeight: 600,
-                    outline: 'none',
-                    backgroundColor: '#ffffff',
-                    textAlign: 'center',
-                  }}
-                />
-              </div>
-
-              <div>
-                <input
-                  type="text"
-                  value={inputResearchName}
-                  onChange={(e) => {
-                    setInputResearchName(e.target.value);
-                    setResearchCodeError('');
-                  }}
-                  placeholder="ชื่อของโครงการวิจัยรหัสนั้น..."
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    borderRadius: '6px',
-                    border: '1px solid #cbd5e1',
-                    fontSize: '13px',
-                    outline: 'none',
-                    backgroundColor: '#ffffff',
-                    fontFamily: 'inherit',
-                  }}
-                />
-              </div>
-
-              <div>
-                <button
-                  type="button"
-                  onClick={handleAddResearchProject}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '5px',
-                    padding: '8px 14px',
-                    backgroundColor: '#00A651',
-                    color: '#ffffff',
-                    border: 'none',
-                    borderRadius: '6px',
-                    fontSize: '13px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                    boxShadow: '0 1px 3px rgba(0, 166, 81, 0.25)',
-                  }}
-                >
-                  <FaPlus style={{ fontSize: '11px' }} />
-                  <span>เพิ่มรหัส</span>
-                </button>
-              </div>
-            </div>
-
-            {researchCodeError && (
-              <div style={{ marginTop: '6px', fontSize: '12px', color: '#dc2626' }}>
-                {researchCodeError}
+            {researchProjects.length > 0 && (
+              <div className="divide-y divide-slate-100 border-t border-slate-100 pt-1">
+                {researchProjects.map((item, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between py-2 text-sm gap-3"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-mono text-xs shrink-0">
+                        {item.code}
+                      </span>
+                      <span className="text-slate-800 truncate" title={item.name}>
+                        {item.name}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveResearchProject(index)}
+                      className="text-slate-400 hover:text-rose-600 p-1.5 rounded transition-colors cursor-pointer shrink-0"
+                      title="ลบรายการนี้"
+                    >
+                      <FaTrashAlt className="text-xs" />
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
-
-            {/* รายการโครงการวิจัยที่เพิ่มแล้ว (สามารถมีได้หลายรายการ) */}
-            <div style={{ marginTop: '12px' }}>
-              {researchProjects.length === 0 ? (
-                <div style={{ fontSize: '12px', color: '#94a3b8', fontStyle: 'italic', padding: '6px 0' }}>
-                  ยังไม่มีรายการโครงการวิจัยที่เชื่อมโยง (สามารถเพิ่มได้มากกว่า 1 รหัส)
-                </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  {researchProjects.map((item, index) => (
-                    <div
-                      key={index}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '6px 12px',
-                        borderRadius: '6px',
-                        backgroundColor: '#ffffff',
-                        border: '1px solid #e2e8f0',
-                        fontSize: '13px',
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
-                        <span
-                          style={{
-                            padding: '2px 8px',
-                            borderRadius: '4px',
-                            backgroundColor: '#eff6ff',
-                            color: '#1d4ed8',
-                            fontFamily: 'monospace',
-                            fontWeight: 700,
-                            fontSize: '12px',
-                            border: '1px solid #bfdbfe',
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          {item.code}
-                        </span>
-                        <span
-                          style={{
-                            color: '#1e293b',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                          }}
-                          title={item.name}
-                        >
-                          {item.name}
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveResearchProject(index)}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          color: '#dc2626',
-                          cursor: 'pointer',
-                          padding: '4px 6px',
-                          borderRadius: '4px',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                        }}
-                        title="ลบรายการนี้"
-                      >
-                        <FaTrashAlt style={{ fontSize: '12px' }} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
           </div>
+        </FormField>
 
-          {/* ส่วนที่ 6.2: บูรณาการกับสิทธิบัตร */}
-          <div
-            style={{
-              padding: '14px 16px',
-              borderRadius: '10px',
-              backgroundColor: '#f8fafc',
-              border: '1px solid #e2e8f0',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13.5px', fontWeight: 700, color: '#1e293b', marginBottom: '8px' }}>
-              <FaCertificate style={{ color: '#00A651', fontSize: '13px' }} />
-              <span>บูรณาการทรัพย์สินทางปัญญา</span>
-            </div>
-
-            {/* Quick helper dropdown จากฐานข้อมูลสิทธิบัตร */}
-            <div style={{ marginBottom: '8px' }}>
-              <Select onValueChange={(val) => handleQuickSelectIp(val as string | null)}>
-                <SelectTrigger className="w-full bg-white text-slate-700 border-dashed text-xs h-9">
-                  <SelectValue placeholder="-- เลือกสิทธิบัตรจากระบบ (หรือพิมพ์เองในช่องด้านล่าง) --" />
-                </SelectTrigger>
-                <SelectContent>
-                  {ipData.map((item: any, idx: number) => {
-                    const reqNo = String(item.req_no || '').trim();
-                    const ipName = String(item.name || '').trim();
-                    return (
-                      <SelectItem key={idx} value={`${reqNo ? `[${reqNo}] ` : ''}${ipName}`}>
-                        {reqNo ? `[${reqNo}] ` : ''}{ipName} ({item.type || 'สิทธิบัตร'})
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-            </div>
+        <FormField label="บูรณาการทรัพย์สินทางปัญญา">
+          <div className="space-y-2">
+            <Select onValueChange={(val) => handleQuickSelectIp(val as string | null)}>
+              <SelectTrigger className="w-full bg-white text-slate-700 border-slate-300 text-sm h-10 rounded-lg">
+                <SelectValue placeholder="-- เลือกสิทธิบัตรจากระบบ (หรือพิมพ์เองในช่องด้านล่าง) --" />
+              </SelectTrigger>
+              <SelectContent>
+                {ipData.map((item: any, idx: number) => {
+                  const reqNo = String(item.req_no || '').trim();
+                  const ipName = String(item.name || '').trim();
+                  return (
+                    <SelectItem key={idx} value={`${reqNo ? `[${reqNo}] ` : ''}${ipName}`}>
+                      {reqNo ? `[${reqNo}] ` : ''}
+                      {ipName} ({item.type || 'สิทธิบัตร'})
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
 
             <input
               type="text"
               value={formData.patent_integration || ''}
               onChange={(e) => onChange('patent_integration', e.target.value)}
               placeholder="ระบุเลขที่คำขอ/ทะเบียน หรือชื่อสิทธิบัตรที่นำมาบูรณาการ..."
-              style={{
-                width: '100%',
-                padding: '9px 12px',
-                borderRadius: '6px',
-                border: '1px solid #cbd5e1',
-                fontSize: '13px',
-                outline: 'none',
-                fontFamily: 'inherit',
-                backgroundColor: '#ffffff',
-              }}
+              className="w-full h-10 px-3 text-sm rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-[#00A651]/20 focus:border-[#00A651]"
             />
           </div>
+        </FormField>
 
-          {/* ส่วนที่ 6.3: วันที่นำไปบูรณาการ (เริ่มต้น - สิ้นสุด ไม่บังคับใส่) */}
-          <div
-            style={{
-              padding: '14px 16px',
-              borderRadius: '10px',
-              backgroundColor: '#f8fafc',
-              border: '1px solid #e2e8f0',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
-              <span style={{ fontSize: '13.5px', fontWeight: 700, color: '#1e293b' }}>
-                ช่วงเวลาที่นำไปบูรณาการ
-              </span>
-              <span style={{ fontSize: '12px', color: '#64748b' }}>
-                (ไม่บังคับใส่)
-              </span>
-            </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <FormField label="วันที่เริ่มต้นนำไปบูรณาการ">
+            <DatePicker
+              value={formData.integration_start_date || ''}
+              onChange={(_, dateStr) => onChange('integration_start_date', dateStr)}
+              placeholder="วัน/เดือน/ปี (พ.ศ.)"
+              className="w-full"
+            />
+          </FormField>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 500, color: '#475569', marginBottom: '4px' }}>
-                  วันที่เริ่มต้นนำไปบูรณาการ
-                </label>
-                <DatePicker
-                  value={formData.integration_start_date || ''}
-                  onChange={(_, dateStr) => onChange('integration_start_date', dateStr)}
-                  placeholder="วว/ดด/ปปปป (พ.ศ.)"
-                  className="w-full"
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 500, color: '#475569', marginBottom: '4px' }}>
-                  วันที่สิ้นสุดนำไปบูรณาการ
-                </label>
-                <DatePicker
-                  value={formData.integration_end_date || ''}
-                  onChange={(_, dateStr) => onChange('integration_end_date', dateStr)}
-                  placeholder="วว/ดด/ปปปป (พ.ศ.)"
-                  className="w-full"
-                />
-              </div>
-            </div>
-          </div>
+          <FormField label="วันที่สิ้นสุดนำไปบูรณาการ">
+            <DatePicker
+              value={formData.integration_end_date || ''}
+              onChange={(_, dateStr) => onChange('integration_end_date', dateStr)}
+              placeholder="วัน/เดือน/ปี (พ.ศ.)"
+              className="w-full"
+            />
+          </FormField>
         </div>
-      </div>
 
-      {/* ========================================================================= */}
-      {/* หมายเหตุ (ไม่บังคับใส่) - ช่องสุดท้ายของแบบฟอร์ม */}
-      {/* ========================================================================= */}
-      <div
-        style={{
-          border: '1px solid #e2e8f0',
-          borderRadius: '12px',
-          padding: '18px 20px',
-          backgroundColor: '#ffffff',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-          <FaInfoCircle style={{ color: '#64748b', fontSize: '14px' }} />
-          <label style={{ margin: 0, fontSize: '13.5px', fontWeight: 700, color: '#1e293b' }}>
-            หมายเหตุ <span style={{ fontSize: '12px', fontWeight: 400, color: '#64748b' }}>(ไม่บังคับใส่)</span>
-          </label>
-        </div>
-        <textarea
-          rows={3}
-          value={formData.remarks || ''}
-          onChange={(e) => onChange('remarks', e.target.value)}
-          placeholder="ระบุหมายเหตุเพิ่มเติม (ถ้ามี)..."
-          style={{
-            width: '100%',
-            padding: '10px 12px',
-            borderRadius: '8px',
-            border: '1px solid #cbd5e1',
-            fontSize: '13px',
-            lineHeight: 1.5,
-            outline: 'none',
-            fontFamily: 'inherit',
-            backgroundColor: '#ffffff',
-            resize: 'vertical',
-          }}
-        />
-      </div>
+        <FormField label="หมายเหตุ">
+          <textarea
+            rows={2}
+            value={formData.remarks || ''}
+            onChange={(e) => onChange('remarks', e.target.value)}
+            placeholder="ระบุหมายเหตุเพิ่มเติม (ถ้ามี)..."
+            className="w-full p-2.5 text-sm rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-[#00A651]/20 focus:border-[#00A651] resize-y"
+          />
+        </FormField>
+      </section>
     </div>
   );
 };

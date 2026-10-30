@@ -181,7 +181,7 @@ export function IPTable({
 
                 return (
                   <tr
-                    key={item.id || item._id || index}
+                    key={`ip-row-${index}-${item.dbId ?? item._id ?? item.id ?? "item"}`}
                     onClick={() => setSelectedRecord(item)}
                     style={{ cursor: 'pointer' }}
                   >

@@ -204,10 +204,10 @@ export function usePersonnelData(timeFilter?: TimeFilterState) {
       const quartiles = { q1: 0, q2: 0, q3: 0, q4: 0, tci: 0, other: 0 };
       matchedPub.forEach((p) => {
         const tier = autoDetectJournalRanking(p.journal || '', p.level || '');
-        if (tier === 'Scopus Q1') quartiles.q1++;
-        else if (tier === 'Scopus Q2') quartiles.q2++;
-        else if (tier === 'Scopus Q3') quartiles.q3++;
-        else if (tier === 'Scopus Q4') quartiles.q4++;
+        if (tier === 'Q1') quartiles.q1++;
+        else if (tier === 'Q2') quartiles.q2++;
+        else if (tier === 'Q3') quartiles.q3++;
+        else if (tier === 'Q4') quartiles.q4++;
         else if (tier === 'TCI 1' || tier === 'TCI 2') quartiles.tci++;
         else quartiles.other++;
       });

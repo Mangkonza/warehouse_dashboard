@@ -1,0 +1,29 @@
+$kind: http-request
+description: Bearer SSO token; test ช่วยตั้ง nontriId จาก uid → intranet sub → ท้าย profile sub
+url: "{{meUrl}}"
+method: GET
+headers:
+  Accept: application/json
+auth:
+  type: bearer
+  credentials:
+    token: "{{accessToken}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("HTTP 2xx", () => pm.expect(pm.response.code).to.be.within(200,299));
+      pm.test("profile or user exists", () => {
+        const d = pm.response.json();
+        const p = d.profile || d.user;
+        pm.expect(p).to.be.an("object");
+        let sub = "";
+        try {
+          let b = pm.variables.get("intranetToken").split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+          b += "=".repeat((4 - b.length % 4) % 4);
+          sub = JSON.parse(atob(b)).sub || "";
+        } catch (_) {}
+        const id = (typeof p.uid === "string" && p.uid) || (typeof sub === "string" && sub) || (typeof p.sub === "string" && p.sub.split(":").pop()) || "";
+        if (id) pm.collectionVariables.set("nontriId", id);
+      });
+    language: text/javascript
+order: 2000

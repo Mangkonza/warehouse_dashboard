@@ -52,7 +52,7 @@ export function PublicationsView() {
               onClick: () => setLevelFilter('all'),
             },
             {
-              label: 'ระดับ Scopus Q1',
+              label: 'ระดับ Q1',
               value: `${q1Count} เรื่อง`,
               subtext: `${validData.length > 0 ? Math.round((q1Count / validData.length) * 100) : 0}% ของทั้งหมด`,
               accentColor: '#059669',
@@ -60,7 +60,7 @@ export function PublicationsView() {
               onClick: () => setLevelFilter(levelFilter === 'Q1' ? 'all' : 'Q1'),
             },
             {
-              label: 'ระดับ Scopus Q2 - Q4',
+              label: 'ระดับ Q2 - Q4',
               value: `${q2Count} เรื่อง`,
               subtext: `${validData.length > 0 ? Math.round((q2Count / validData.length) * 100) : 0}% ของทั้งหมด`,
               accentColor: '#2563eb',

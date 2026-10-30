@@ -120,7 +120,12 @@ export function parseDateOrYear(val: any): string {
     const utcDays = Math.floor(val - 25569);
     const utcValue = utcDays * 86400;
     const dateInfo = new Date(utcValue * 1000);
-    const year = dateInfo.getFullYear();
+    let year = dateInfo.getFullYear();
+    if (year >= 1900 && year < 2000) {
+      year = year + 57;
+    } else if (year >= 2400) {
+      year = year - 543;
+    }
     const month = String(dateInfo.getMonth() + 1).padStart(2, '0');
     const day = String(dateInfo.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
@@ -128,6 +133,12 @@ export function parseDateOrYear(val: any): string {
 
   let str = cleanText(val);
   if (!str) return '';
+
+  // ตรวจจับปี 1968 หรือ 19xx (พ.ศ. 256x ที่ Excel แปลงเป็น 19xx)
+  str = str.replace(/\b19([3-9][0-9])\b/g, (match, yy) => {
+    const numY = parseInt(yy, 10);
+    return String(2500 + numY - 543);
+  });
 
   // ตรวจจับปี พ.ศ. 256x หรือ 25xx แล้วแปลงเป็น ค.ศ.
   const beYearMatch = str.match(/\b(25[4-8][0-9])\b/);
@@ -767,7 +778,7 @@ export function exportMonthlyExecutiveMasterExcel(
     { A: 'หมวดหมู่ภารกิจ', B: 'จำนวนรายการทั้งหมด', C: 'งบประมาณ/มูลค่ารวม (บาท)', D: 'หมายเหตุ', E: '' },
     { A: '1. โครงการวิจัย', B: (datasets.research || []).length, C: '104,480,000 บาท', D: 'ทุนภายนอก 99%', E: '' },
     { A: '2. โครงการพัฒนาวิชาการ', B: (datasets.academic || []).length, C: '2,450,000 บาท', D: 'อบรม/สัมมนา', E: '' },
-    { A: '3. ผลงานตีพิมพ์ทางวิชาการ', B: (datasets.publications || []).length, C: 'เงินสนับสนุน มก.', D: 'Scopus Q1/Q2', E: '' },
+    { A: '3. ผลงานตีพิมพ์ทางวิชาการ', B: (datasets.publications || []).length, C: 'เงินสนับสนุน มก.', D: 'Q1/Q2', E: '' },
     { A: '4. งานบริการวิชาการ', B: (datasets.service || []).length, C: 'รายได้รวม', D: 'ผู้ทรงคุณวุฒิ/ที่ปรึกษา', E: '' },
     { A: '5. งานทรัพย์สินทางปัญญา', B: (datasets.ip || []).length, C: 'เงินรางวัลสนับสนุน', D: 'สิทธิบัตรการประดิษฐ์', E: '' }
   );
