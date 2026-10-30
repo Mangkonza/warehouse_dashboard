@@ -100,6 +100,7 @@ export function CourseCodePicker({
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger
             disabled={disabled}
+            nativeButton={false}
             render={
               <div className="relative flex items-center">
                 <input

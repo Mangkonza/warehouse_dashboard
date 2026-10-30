@@ -4,7 +4,6 @@ import * as React from 'react';
 import { RepeatableList } from './RepeatableList';
 import { PersonPicker, PersonValue } from './PersonPicker';
 import { cn } from '@/lib/utils';
-import { Users } from 'lucide-react';
 
 export interface CoResearcherItem extends PersonValue {
   role?: string;
@@ -12,7 +11,7 @@ export interface CoResearcherItem extends PersonValue {
 }
 
 export interface PersonListFieldProps {
-  items?: CoResearcherItem[];
+  items?: CoResearcherItem[] | string | null;
   onChange: (items: CoResearcherItem[]) => void;
   addLabel?: string;
   emptyMessage?: string;
@@ -26,12 +25,29 @@ export function PersonListField({
   items = [],
   onChange,
   addLabel = '+ เพิ่มผู้ร่วมวิจัย',
-  emptyMessage = 'ยังไม่มีผู้ร่วมวิจัย (คลิกเพิ่มเพื่อระบุผู้ร่วมโครงการ)',
+  emptyMessage = 'ยังไม่มีผู้ร่วมวิจัย',
   maxItems,
   disabled = false,
   className,
   showContribution = false,
 }: PersonListFieldProps) {
+  const safeItems: CoResearcherItem[] = React.useMemo(() => {
+    if (Array.isArray(items)) return items;
+    if (typeof items === 'string') {
+      const trimmed = items.trim();
+      if (!trimmed) return [];
+      return trimmed.split(',').map((name) => ({
+        name: name.trim(),
+        department: '',
+        person_id: null,
+        is_custom: true,
+        role: 'ผู้ร่วมวิจัย',
+        contributionPercent: null,
+      })).filter((i) => Boolean(i.name));
+    }
+    return [];
+  }, [items]);
+
   const createItem = (): CoResearcherItem => ({
     name: '',
     department: '',
@@ -44,18 +60,17 @@ export function PersonListField({
   return (
     <div className={cn('w-full', className)}>
       <RepeatableList<CoResearcherItem>
-        items={items}
+        items={safeItems}
         onChange={onChange}
         createItem={createItem}
         addLabel={addLabel}
         emptyMessage={emptyMessage}
         maxItems={maxItems}
         renderItem={(item, index, onChangeItem) => (
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 p-2 rounded-lg border border-slate-200 bg-white shadow-2xs hover:border-slate-300 transition-colors">
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 shrink-0 select-none pl-1">
-              <Users className="size-3.5 text-emerald-600" />
-              <span>ลำดับ {index + 1}</span>
-            </div>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+            <span className="text-xs font-medium text-slate-500 shrink-0 select-none sm:w-14">
+              ลำดับ {index + 1}
+            </span>
 
             <div className="flex-1 min-w-0">
               <PersonPicker
@@ -81,13 +96,13 @@ export function PersonListField({
             </div>
 
             {showContribution && (
-              <div className="flex items-center gap-1 shrink-0">
-                <span className="text-xs text-slate-500 whitespace-nowrap">สัดส่วน:</span>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className="text-xs text-slate-500 whitespace-nowrap">สัดส่วน</span>
                 <input
                   type="number"
                   min="0"
                   max="100"
-                  placeholder="%"
+                  placeholder="0"
                   value={item.contributionPercent ?? ''}
                   onChange={(e) => {
                     const num = e.target.value === '' ? null : Number(e.target.value);
@@ -97,9 +112,9 @@ export function PersonListField({
                     });
                   }}
                   disabled={disabled}
-                  className="w-16 h-9 px-2 text-xs text-right border border-input rounded-md bg-white focus:outline-none focus:border-emerald-500"
+                  className="w-16 h-10 px-2.5 text-sm text-right border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-[#00A651]"
                 />
-                <span className="text-xs text-slate-400">%</span>
+                <span className="text-xs text-slate-500">%</span>
               </div>
             )}
           </div>

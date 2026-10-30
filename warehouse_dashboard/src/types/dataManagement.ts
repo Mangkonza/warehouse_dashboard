@@ -6,7 +6,8 @@ export type CategoryKey =
   | 'publications' 
   | 'ip' 
   | 'personnel'
-  | 'kpi';
+  | 'kpi'
+  | 'user_roles';
 
 export type ColumnType = 
   | 'text' 
@@ -78,7 +79,7 @@ export interface CategoryConfig {
   titleEn: string;
   icon: string;
   color: string;
-  description: string;
+  description?: string;
   primaryKey: string;
   nameKey: string;
   departmentKey?: string;
@@ -116,6 +117,7 @@ export interface ParsedRowResult {
   status: RowValidationStatus;
   issues: ValidationIssue[];
   matchedPerson?: PersonnelRecord;
+  isExistingDuplicate?: boolean;
 }
 
 export interface SheetParseResult {

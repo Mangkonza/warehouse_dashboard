@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { FaExclamationTriangle, FaCheckCircle, FaTrashAlt, FaTimes } from 'react-icons/fa';
+import { Spinner } from '@/components/ui/Spinner';
 
 export interface ConfirmActionModalProps {
   isOpen: boolean;
@@ -11,6 +12,7 @@ export interface ConfirmActionModalProps {
   confirmText?: string;
   cancelText?: string;
   type?: 'danger' | 'warning' | 'success' | 'info';
+  isLoading?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -23,6 +25,7 @@ export const ConfirmActionModal: React.FC<ConfirmActionModalProps> = ({
   confirmText = 'ยืนยันการดำเนินการ',
   cancelText = 'ยกเลิก',
   type = 'warning',
+  isLoading = false,
   onConfirm,
   onCancel,
 }) => {
@@ -50,7 +53,7 @@ export const ConfirmActionModal: React.FC<ConfirmActionModalProps> = ({
         };
       case 'success':
         return {
-          background: 'linear-gradient(135deg, #00A651 0%, #008f44 100%)',
+          background: 'linear-gradient(135deg, #00A651 0%, #00A651 100%)',
           color: '#ffffff',
           boxShadow: '0 4px 14px rgba(0, 166, 81, 0.35)',
         };
@@ -156,6 +159,7 @@ export const ConfirmActionModal: React.FC<ConfirmActionModalProps> = ({
           <button
             type="button"
             onClick={onCancel}
+            disabled={isLoading}
             style={{
               padding: '9px 18px',
               borderRadius: '8px',
@@ -164,7 +168,8 @@ export const ConfirmActionModal: React.FC<ConfirmActionModalProps> = ({
               color: '#475569',
               fontSize: '13px',
               fontWeight: 600,
-              cursor: 'pointer',
+              cursor: isLoading ? 'not-allowed' : 'pointer',
+              opacity: isLoading ? 0.6 : 1,
               transition: 'all 0.15s ease',
             }}
           >
@@ -173,18 +178,24 @@ export const ConfirmActionModal: React.FC<ConfirmActionModalProps> = ({
           <button
             type="button"
             onClick={onConfirm}
+            disabled={isLoading}
             style={{
               padding: '9px 20px',
               borderRadius: '8px',
               border: 'none',
               fontSize: '13px',
               fontWeight: 600,
-              cursor: 'pointer',
+              cursor: isLoading ? 'not-allowed' : 'pointer',
+              opacity: isLoading ? 0.75 : 1,
               transition: 'all 0.15s ease',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
               ...getConfirmBtnStyle(),
             }}
           >
-            {confirmText}
+            {isLoading && <Spinner size="sm" />}
+            <span>{confirmText}</span>
           </button>
         </div>
       </div>

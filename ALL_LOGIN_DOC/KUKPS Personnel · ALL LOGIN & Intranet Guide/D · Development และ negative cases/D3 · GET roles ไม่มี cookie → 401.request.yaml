@@ -1,0 +1,13 @@
+$kind: http-request
+description: ปิด cookie jar ของ request นี้เพื่อจำลองไม่มี session
+url: "{{webBaseUrl}}/api/auth/roles"
+method: GET
+headers:
+  Accept: application/json
+scripts:
+  - type: afterResponse
+    code: pm.test("Unauthenticated",()=>{pm.expect(pm.response.code).to.eql(401);pm.expect(pm.response.json().authenticated).to.eql(false);});
+    language: text/javascript
+settings:
+  disableCookies: true
+order: 3000

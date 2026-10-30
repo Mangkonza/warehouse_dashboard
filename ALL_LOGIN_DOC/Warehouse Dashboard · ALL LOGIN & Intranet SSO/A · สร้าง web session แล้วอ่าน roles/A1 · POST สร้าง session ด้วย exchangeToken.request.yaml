@@ -1,0 +1,51 @@
+$kind: http-request
+name: A1 · POST สร้าง session ด้วย exchangeToken ใหม่
+description: "Flow A: Server แลก exchangeToken กับ upstream และสร้าง HttpOnly auth cookies"
+url: "{{webBaseUrl}}/api/auth/portal-session"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "exchangeToken": "{{exchangeToken}}",
+      "intranetToken": "{{intranetToken}}"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("HTTP 200", () => pm.expect(pm.response.code).to.eql(200));
+      pm.test("Session and user exist", () => {
+        const d = pm.response.json();
+        pm.expect(d.session).to.be.a("string").and.not.empty;
+        pm.expect(d.user).to.be.an("object");
+      });
+      pm.test("Cache-Control is no-store", () => {
+        const cc = pm.response.headers.get("Cache-Control");
+        pm.expect(cc, "Cache-Control header missing").to.be.a("string");
+        pm.expect(cc.toLowerCase()).to.include("no-store");
+      });
+      pm.test("Response body does not leak raw tokens", () => {
+        const text = pm.response.text();
+        ["exchangeToken", "ssoToken", "intranetToken", "accessToken"].forEach(k => {
+          const v = pm.variables.get(k);
+          if (v && v.length > 5) pm.expect(text).not.to.include(v);
+        });
+        const d = pm.response.json();
+        pm.expect(d).not.to.have.property("ssoToken");
+        pm.expect(d).not.to.have.property("accessToken");
+        pm.expect(d).not.to.have.property("intranetToken");
+        pm.expect(d).not.to.have.property("exchangeToken");
+      });
+      pm.test("All three auth cookies set with HttpOnly", () => {
+        const cookies = pm.response.headers.all().filter(x => x.key.toLowerCase() === "set-cookie").map(x => x.value);
+        ["USER_SESSION", "ACCESS_TOKEN", "INTRANET_TOKEN"].forEach(name => {
+          const c = cookies.find(x => x.startsWith(name + "="));
+          pm.expect(c, name + " missing in Set-Cookie").to.be.a("string");
+          pm.expect(c.toLowerCase(), name + " must be HttpOnly").to.include("httponly");
+        });
+      });
+    language: text/javascript
+order: 1000

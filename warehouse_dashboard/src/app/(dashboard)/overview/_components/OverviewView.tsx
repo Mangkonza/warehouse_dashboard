@@ -1,33 +1,36 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useTimeFilter } from '@/features/time-filter';
+import React from 'react';
+import { TimeFilterBar, useTimeFilter } from '@/features/time-filter';
 import { useOverviewData } from '../_hooks/useOverviewData';
 import { OverviewHeaderToolbar } from './OverviewHeaderToolbar';
-import { KpiScorecardGrid } from './KpiScorecardGrid';
-import { BurnupCard } from './BurnupCard';
-import { ActionListCard } from './ActionListCard';
+import { ExecutiveMultiYearOverview } from './ExecutiveMultiYearOverview';
 import { PerspectiveSection } from './PerspectiveSection';
 import { FaCheckCircle } from 'react-icons/fa';
 
+// โหลดชุดข้อมูลดิบเพื่อใช้วิเคราะห์ข้ามหลายปี
+import rawResearch from '@/data/research.json';
+import rawAcademic from '@/data/academic.json';
+import rawPublications from '@/data/publications.json';
+import rawServices from '@/data/services.json';
+import rawIP from '@/data/ip.json';
+
 export function OverviewView() {
-  const { timeFilter } = useTimeFilter();
+  const { timeFilter, setTimeFilter, resetTimeFilter } = useTimeFilter();
   const {
     isLiveFromDb,
     isRefreshing,
     snapshotToast,
-    kpiScorecard,
     departmentStats,
-    actionList,
     validResearch,
+    validAcademic,
+    validPub,
+    validService,
+    validIP,
     fetchLiveData,
     handleExportMaster,
     handleSnapshot,
   } = useOverviewData(timeFilter);
-
-  const [selectedBurnupKpi, setSelectedBurnupKpi] = useState('external_budget');
-
-  const selectedKpi = kpiScorecard.find((k) => k.id === selectedBurnupKpi) || kpiScorecard[0];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%' }}>
@@ -55,7 +58,7 @@ export function OverviewView() {
         </div>
       )}
 
-      {/* 1. Header Toolbar */}
+      {/* 1. Header Toolbar + TimeFilterBar */}
       <OverviewHeaderToolbar
         isLiveFromDb={isLiveFromDb}
         isRefreshing={isRefreshing}
@@ -64,23 +67,35 @@ export function OverviewView() {
         onExportMaster={handleExportMaster}
       />
 
-      {/* 2. Core Strategic KPI Scorecard Cards */}
-      <KpiScorecardGrid
-        scorecards={kpiScorecard}
-        selectedBurnupId={selectedBurnupKpi}
-        onSelectKpi={setSelectedBurnupKpi}
+      <TimeFilterBar
+        value={timeFilter}
+        onChange={setTimeFilter}
+        onReset={resetTimeFilter}
+        totalCount={validResearch.length + validAcademic.length + validPub.length + validService.length + validIP.length}
       />
 
-      {/* 3. Middle Row: Burn-up Chart + Early Warning Action List */}
-      <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-        {selectedKpi && <BurnupCard selectedKpi={selectedKpi} />}
-        <ActionListCard actionList={actionList} />
-      </div>
+      {/* 2. Executive Multi-Year Overview (การ์ดสรุป 5 พันธกิจหลัก + กราฟเปรียบเทียบรายปี 2566–2570) */}
+      <ExecutiveMultiYearOverview
+        researchList={validResearch}
+        academicList={validAcademic}
+        pubList={validPub}
+        serviceList={validService}
+        ipList={validIP}
+        allResearchRaw={rawResearch}
+        allAcademicRaw={rawAcademic}
+        allPubRaw={rawPublications}
+        allServiceRaw={rawServices}
+        allIpRaw={rawIP}
+      />
 
-      {/* 4. Strategic Perspectives Section */}
+      {/* 3. Strategic Perspectives Section (เจาะลึก 7 ภาควิชา & พันธกิจ) */}
       <PerspectiveSection
         departmentStats={departmentStats}
         validResearch={validResearch}
+        validAcademic={validAcademic}
+        validPub={validPub}
+        validService={validService}
+        validIP={validIP}
       />
     </div>
   );

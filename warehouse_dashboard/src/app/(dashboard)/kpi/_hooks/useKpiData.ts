@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { KPIItem, KPIComputedResult, KPICategory } from '@/types/kpi';
 import { getStoredKPIs, evaluateAllKPIs } from '@/lib/kpiEngine';
-import { apiFetch } from '@/lib/api';
+import { getCachedCategoryData, fetchCategoryData } from '@/lib/dataService';
 import { TimeFilterState, itemMatchesTimeFilter } from '@/types/timeFilter';
 
 // Fallback JSON data
@@ -33,32 +33,35 @@ export function useKpiData(timeFilter?: TimeFilterState) {
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const [datasets, setDatasets] = useState<Record<string, any[]>>({
-    research: rawResearch,
-    academic: rawAcademic,
-    publications: rawPublications,
-    service: rawServices,
-    ip: rawIP,
-    personnel: rawPersonnel,
-  });
+  const [datasets, setDatasets] = useState<Record<string, any[]>>(() => ({
+    research: getCachedCategoryData('research') || rawResearch,
+    academic: getCachedCategoryData('academic') || rawAcademic,
+    publications: getCachedCategoryData('publications') || rawPublications,
+    service: getCachedCategoryData('service') || rawServices,
+    ip: getCachedCategoryData('ip') || rawIP,
+    personnel: getCachedCategoryData('personnel') || rawPersonnel,
+  }));
 
   const loadLiveData = async () => {
     setIsRefreshing(true);
     try {
-      const [resRes, acaRes, pubRes, srvRes, ipRes] = await Promise.allSettled([
-        apiFetch<any[]>('/dashboard/research'),
-        apiFetch<any[]>('/dashboard/academic'),
-        apiFetch<any[]>('/dashboard/publications'),
-        apiFetch<any[]>('/dashboard/services'),
-        apiFetch<any[]>('/dashboard/ip'),
+      const [resData, acaData, pubData, srvData, ipData, perData] = await Promise.all([
+        fetchCategoryData('research'),
+        fetchCategoryData('academic'),
+        fetchCategoryData('publications'),
+        fetchCategoryData('service'),
+        fetchCategoryData('ip'),
+        fetchCategoryData('personnel'),
       ]);
 
-      const newDatasets = { ...datasets };
-      if (resRes.status === 'fulfilled' && resRes.value.data) newDatasets.research = resRes.value.data;
-      if (acaRes.status === 'fulfilled' && acaRes.value.data) newDatasets.academic = acaRes.value.data;
-      if (pubRes.status === 'fulfilled' && pubRes.value.data) newDatasets.publications = pubRes.value.data;
-      if (srvRes.status === 'fulfilled' && srvRes.value.data) newDatasets.service = srvRes.value.data;
-      if (ipRes.status === 'fulfilled' && ipRes.value.data) newDatasets.ip = ipRes.value.data;
+      const newDatasets = {
+        research: (resData && resData.length > 0) ? resData : (getCachedCategoryData('research') || rawResearch),
+        academic: (acaData && acaData.length > 0) ? acaData : (getCachedCategoryData('academic') || rawAcademic),
+        publications: (pubData && pubData.length > 0) ? pubData : (getCachedCategoryData('publications') || rawPublications),
+        service: (srvData && srvData.length > 0) ? srvData : (getCachedCategoryData('service') || rawServices),
+        ip: (ipData && ipData.length > 0) ? ipData : (getCachedCategoryData('ip') || rawIP),
+        personnel: (perData && perData.length > 0) ? perData : (getCachedCategoryData('personnel') || rawPersonnel),
+      };
 
       setDatasets(newDatasets);
     } catch (err) {
@@ -75,12 +78,22 @@ export function useKpiData(timeFilter?: TimeFilterState) {
 
     const handleKpiUpdate = () => {
       setKpiList(getStoredKPIs());
+      setDatasets({
+        research: getCachedCategoryData('research') || rawResearch,
+        academic: getCachedCategoryData('academic') || rawAcademic,
+        publications: getCachedCategoryData('publications') || rawPublications,
+        service: getCachedCategoryData('service') || rawServices,
+        ip: getCachedCategoryData('ip') || rawIP,
+        personnel: getCachedCategoryData('personnel') || rawPersonnel,
+      });
     };
 
     window.addEventListener('kpi_updated', handleKpiUpdate);
+    window.addEventListener('ku_data_updated', handleKpiUpdate);
     window.addEventListener('storage', handleKpiUpdate);
     return () => {
       window.removeEventListener('kpi_updated', handleKpiUpdate);
+      window.removeEventListener('ku_data_updated', handleKpiUpdate);
       window.removeEventListener('storage', handleKpiUpdate);
     };
   }, []);
@@ -121,7 +134,13 @@ export function useKpiData(timeFilter?: TimeFilterState) {
   const filteredKPIs = useMemo(() => {
     return computedKPIs.filter((item) => {
       if (selectedCategory !== 'all' && item.kpi.category !== selectedCategory) return false;
-      if (selectedStatus !== 'all' && item.status !== selectedStatus) return false;
+      if (selectedStatus !== 'all') {
+        if (selectedStatus === 'risk_or_behind') {
+          if (item.status !== 'at_risk' && item.status !== 'behind') return false;
+        } else if (item.status !== selectedStatus) {
+          return false;
+        }
+      }
       return true;
     });
   }, [computedKPIs, selectedCategory, selectedStatus]);

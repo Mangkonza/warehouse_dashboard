@@ -1,76 +1,117 @@
-import fs from 'fs';
-import path from 'path';
-
-// ฟังก์ชันช่วยโหลดไฟล์ JSON เพื่อเป็น Fallback data
-const loadJsonData = (filename: string): any[] => {
-  try {
-    const filePath = path.resolve(process.cwd(), '..', 'warehouse_dashboard', 'src', 'data', filename);
-    if (fs.existsSync(filePath)) {
-      const raw = fs.readFileSync(filePath, 'utf-8');
-      return JSON.parse(raw);
-    }
-  } catch (err) {
-    console.error(`Error loading ${filename}:`, err);
-  }
-  return [];
-};
+import { prisma } from '../db/prisma.js';
+import { ProjectService } from './project.service.js';
+import { ServiceService } from './service.service.js';
+import { IpService } from './ip.service.js';
 
 export class DashboardService {
-  private static researchData = loadJsonData('research.json');
-  private static academicData = loadJsonData('academic.json');
-  private static pubData = loadJsonData('publications.json');
-  private static serviceData = loadJsonData('services.json');
-  private static ipData = loadJsonData('ip.json');
+  static async getOverview(quarterFilter?: string) {
+    const [
+      resCount,
+      resBudgetAgg,
+      acadCount,
+      acadBudgetAgg,
+      pubCount,
+      pubBudgetAgg,
+      serviceCount,
+      ipCount,
+      depts,
+      researchProjects,
+      publications,
+      services,
+    ] = await Promise.all([
+      prisma.researchProject.count(),
+      prisma.researchProject.aggregate({
+        _sum: {
+          budgetInternal: true,
+          budgetExternal: true,
+        },
+      }),
+      prisma.academicDevProject.count(),
+      prisma.academicDevProject.aggregate({
+        _sum: {
+          budget: true,
+        },
+      }),
+      prisma.publication.count(),
+      prisma.publication.aggregate({
+        _sum: {
+          budget: true,
+        },
+      }),
+      prisma.academicService.count(),
+      prisma.intellectualProperty.count(),
+      prisma.department.findMany(),
+      prisma.researchProject.findMany({
+        select: {
+          headDepartmentCode: true,
+          budgetInternal: true,
+          budgetExternal: true,
+          fundSource: true,
+        },
+      }),
+      prisma.publication.findMany({
+        select: {
+          departmentCode: true,
+        },
+      }),
+      prisma.academicService.findMany({
+        select: {
+          departmentCode: true,
+        },
+      }),
+    ]);
 
-  private static parseNumber(val: any): number {
-    if (typeof val === 'number') return isNaN(val) ? 0 : val;
-    if (!val) return 0;
-    const cleaned = String(val).replace(/[^0-9.-]/g, '');
-    const parsed = parseFloat(cleaned);
-    return isNaN(parsed) ? 0 : parsed;
-  }
-
-  static getOverview(quarterFilter?: string) {
-    const research = this.getValidData(this.researchData);
-    const academic = this.getValidData(this.academicData);
-    const pub = this.getValidData(this.pubData);
-    const service = this.getValidData(this.serviceData);
-    const ip = this.getValidData(this.ipData);
-
-    const totalResearchInternal = research.reduce((acc, cur) => acc + this.parseNumber(cur.budget_internal), 0);
-    const totalResearchExternal = research.reduce((acc, cur) => acc + this.parseNumber(cur.budget_external), 0);
+    const totalResearchInternal = Number(resBudgetAgg._sum.budgetInternal || 0);
+    const totalResearchExternal = Number(resBudgetAgg._sum.budgetExternal || 0);
     const totalResearchBudget = totalResearchInternal + totalResearchExternal;
-    const totalAcademicBudget = academic.reduce((acc, cur) => acc + this.parseNumber(cur.budget), 0);
-    const totalPubSupport = pub.reduce((acc, cur) => acc + this.parseNumber(cur.budget), 0);
+    const totalAcademicBudget = Number(acadBudgetAgg._sum.budget || 0);
+    const totalPubSupport = Number(pubBudgetAgg._sum.budget || 0);
 
-    // คำนวณสรุปรายภาควิชา (Department Benchmarking)
+    // Benchmarking per department
     const deptMap: Record<string, { researchBudget: number; researchCount: number; pubCount: number; serviceCount: number }> = {};
     const normDept = (d: string) => (d || 'อื่นๆ').replace(/ภาควิชา/g, '').replace(/[\n\r]/g, ' ').trim();
 
-    research.forEach(r => {
-      const d = normDept(r.department);
-      if (!deptMap[d]) deptMap[d] = { researchBudget: 0, researchCount: 0, pubCount: 0, serviceCount: 0 };
-      deptMap[d].researchCount += 1;
-      deptMap[d].researchBudget += this.parseNumber(r.budget_internal) + this.parseNumber(r.budget_external);
+    depts.forEach((d) => {
+      const name = normDept(d.nameTh);
+      deptMap[name] = { researchBudget: 0, researchCount: 0, pubCount: 0, serviceCount: 0 };
     });
 
-    pub.forEach(p => {
-      const d = normDept(p.department);
-      if (!deptMap[d]) deptMap[d] = { researchBudget: 0, researchCount: 0, pubCount: 0, serviceCount: 0 };
-      deptMap[d].pubCount += 1;
+    // Map department code to name
+    const codeToName = new Map<string, string>();
+    depts.forEach((d) => {
+      codeToName.set(d.code, normDept(d.nameTh));
     });
 
-    service.forEach(s => {
-      const d = normDept(s.department);
-      if (!deptMap[d]) deptMap[d] = { researchBudget: 0, researchCount: 0, pubCount: 0, serviceCount: 0 };
-      deptMap[d].serviceCount += 1;
+    researchProjects.forEach((r) => {
+      const deptName = (r.headDepartmentCode && codeToName.get(r.headDepartmentCode)) || 'อื่นๆ';
+      if (!deptMap[deptName]) {
+        deptMap[deptName] = { researchBudget: 0, researchCount: 0, pubCount: 0, serviceCount: 0 };
+      }
+      deptMap[deptName].researchCount += 1;
+      deptMap[deptName].researchBudget += Number(r.budgetInternal || 0) + Number(r.budgetExternal || 0);
     });
 
-    // แหล่งทุนภายนอกยอดนิยม (Top Funding Sources)
+    publications.forEach((p) => {
+      const deptName = (p.departmentCode && codeToName.get(p.departmentCode)) || 'อื่นๆ';
+      if (!deptMap[deptName]) {
+        deptMap[deptName] = { researchBudget: 0, researchCount: 0, pubCount: 0, serviceCount: 0 };
+      }
+      deptMap[deptName].pubCount += 1;
+    });
+
+    services.forEach((s) => {
+      const deptName = (s.departmentCode && codeToName.get(s.departmentCode)) || 'อื่นๆ';
+      if (!deptMap[deptName]) {
+        deptMap[deptName] = { researchBudget: 0, researchCount: 0, pubCount: 0, serviceCount: 0 };
+      }
+      deptMap[deptName].serviceCount += 1;
+    });
+
+    // Top funding sources
     const fundMap: Record<string, number> = {};
-    research.forEach(r => {
-      const src = (r.fund_source || 'อื่นๆ').replace(/[\n\r]/g, ' ').trim();
-      const b = this.parseNumber(r.budget_external);
+    researchProjects.forEach((r) => {
+      const src = (r.fundSource || 'อื่นๆ').replace(/[\n\r]/g, ' ').trim();
+      const b = Number(r.budgetExternal || 0);
       if (b > 0) {
         fundMap[src] = (fundMap[src] || 0) + b;
       }
@@ -83,50 +124,51 @@ export class DashboardService {
 
     return {
       stats: {
-        totalResearchProjects: research.length,
+        totalResearchProjects: resCount,
         totalResearchBudget,
         totalResearchInternal,
         totalResearchExternal,
-        totalAcademicProjects: academic.length,
+        totalAcademicProjects: acadCount,
         totalAcademicBudget,
-        totalPublications: pub.length,
+        totalPublications: pubCount,
         totalPubSupport,
-        totalServices: service.length,
-        totalIP: ip.length,
+        totalServices: serviceCount,
+        totalIP: ipCount,
       },
       benchmarking: deptMap,
       topFunding,
       datasets: {
-        researchCount: research.length,
-        academicCount: academic.length,
-        pubCount: pub.length,
-        serviceCount: service.length,
-        ipCount: ip.length,
-      }
+        researchCount: resCount,
+        academicCount: acadCount,
+        pubCount: pubCount,
+        serviceCount: serviceCount,
+        ipCount: ipCount,
+      },
     };
   }
 
-  static getResearchProjects() {
-    return this.getValidData(this.researchData);
+  static async getResearchProjects() {
+    const res = await ProjectService.getResearchList();
+    return res.data;
   }
 
-  static getAcademicProjects() {
-    return this.getValidData(this.academicData);
+  static async getAcademicProjects() {
+    const res = await ProjectService.getAcademicList();
+    return res.data;
   }
 
-  static getPublications() {
-    return this.getValidData(this.pubData);
+  static async getPublications() {
+    const res = await ProjectService.getPublicationList();
+    return res.data;
   }
 
-  static getServices() {
-    return this.getValidData(this.serviceData);
+  static async getServices() {
+    const res = await ServiceService.getAll();
+    return res.data;
   }
 
-  static getIntellectualProperties() {
-    return this.getValidData(this.ipData);
-  }
-
-  private static getValidData(data: any[]): any[] {
-    return data.filter((item) => item.name && item.name !== 'nan' && item.name !== 'NaT' && item.name !== 'เรื่อง');
+  static async getIntellectualProperties() {
+    const res = await IpService.getAll();
+    return res.data;
   }
 }

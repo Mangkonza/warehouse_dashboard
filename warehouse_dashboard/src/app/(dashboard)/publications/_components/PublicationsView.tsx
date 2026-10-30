@@ -1,15 +1,14 @@
 'use client';
 
 import React from 'react';
-import { FaBookOpen, FaTrophy, FaMedal, FaAward, FaEdit } from 'react-icons/fa';
 import { useTimeFilter, TimeFilterBar } from '@/features/time-filter';
-import { KpiGrid, DecisionBox } from '@/components/data-display';
+import { KpiGrid } from '@/components/data-display';
 import { usePublicationsData } from '../_hooks/usePublicationsData';
 import { PublicationsCharts } from './PublicationsCharts';
 import { PublicationsTable } from './PublicationsTable';
 
 export function PublicationsView() {
-  const { timeFilter } = useTimeFilter();
+  const { timeFilter, setTimeFilter, resetTimeFilter } = useTimeFilter();
   const {
     validData,
     filteredData,
@@ -17,52 +16,79 @@ export function PublicationsView() {
     q2Count,
     tciCount,
     otherCount,
+    internationalCount,
+    nationalCount,
+    totalSupportBudget,
+    publishedCount,
+    inPrepCount,
     searchTerm,
     setSearchTerm,
     levelFilter,
     setLevelFilter,
+    selectedDept,
+    setSelectedDept,
     fiscalYearFilter,
     setFiscalYearFilter,
     availableFiscalYears,
-    savePublication,
-    deletePublication,
   } = usePublicationsData(timeFilter);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      <TimeFilterBar />
+      <TimeFilterBar
+        value={timeFilter}
+        onChange={setTimeFilter}
+        onReset={resetTimeFilter}
+        totalCount={validData.length}
+      />
       <div className="tab-content active">
         <KpiGrid
           items={[
             {
-              icon: <FaBookOpen />,
-              value: validData.length,
-              label: 'ผลงานทั้งหมด',
+              label: 'ผลงานตีพิมพ์ทางวิชาการ',
+              value: `${validData.length} เรื่อง`,
+              subtext: `ตีพิมพ์สำเร็จ ${publishedCount} • เตรียมความพร้อม ${inPrepCount} เรื่อง`,
+              accentColor: '#2e7d32',
+              active: levelFilter === 'all',
+              onClick: () => setLevelFilter('all'),
             },
             {
-              icon: <FaTrophy />,
-              value: q1Count,
-              label: 'ระดับ Scopus Q1',
+              label: 'ระดับ Q1',
+              value: `${q1Count} เรื่อง`,
+              subtext: `${validData.length > 0 ? Math.round((q1Count / validData.length) * 100) : 0}% ของทั้งหมด`,
+              accentColor: '#059669',
+              active: levelFilter === 'Q1',
+              onClick: () => setLevelFilter(levelFilter === 'Q1' ? 'all' : 'Q1'),
             },
             {
-              icon: <FaMedal />,
-              value: q2Count,
-              label: 'ระดับ Scopus Q2',
+              label: 'ระดับ Q2 - Q4',
+              value: `${q2Count} เรื่อง`,
+              subtext: `${validData.length > 0 ? Math.round((q2Count / validData.length) * 100) : 0}% ของทั้งหมด`,
+              accentColor: '#2563eb',
+              active: levelFilter === 'Q2',
+              onClick: () => setLevelFilter(levelFilter === 'Q2' ? 'all' : 'Q2'),
             },
             {
-              icon: <FaAward />,
-              value: tciCount,
-              label: 'ระดับ TCI',
+              label: 'ระดับ TCI (ชาติ)',
+              value: `${tciCount} เรื่อง`,
+              subtext: `TCI กลุ่ม 1 และ 2 (${otherCount > 0 ? `อื่นๆ ${otherCount}` : 'ระดับชาติ'})`,
+              accentColor: '#7c3aed',
+              active: levelFilter === 'TCI',
+              onClick: () => setLevelFilter(levelFilter === 'TCI' ? 'all' : 'TCI'),
             },
             {
-              icon: <FaEdit />,
-              value: otherCount,
-              label: 'ระดับอื่น ๆ / เตรียมการ',
+              label: 'เงินสนับสนุนการตีพิมพ์รวม',
+              value: `${totalSupportBudget.toLocaleString('th-TH')} บาท`,
+              subtext: `เฉลี่ย ${validData.length > 0 ? Math.round(totalSupportBudget / validData.length).toLocaleString('th-TH') : 0} บาท/เรื่อง`,
+              accentColor: '#00A651',
             },
           ]}
         />
 
-        <PublicationsCharts validData={validData} />
+        <PublicationsCharts
+          validData={validData}
+          onSelectDept={(dept) => setSelectedDept(dept === selectedDept ? 'all' : dept)}
+          onSelectLevel={(lvl) => setLevelFilter(lvl === levelFilter ? 'all' : lvl)}
+        />
 
         <PublicationsTable
           filteredData={filteredData}
@@ -70,29 +96,11 @@ export function PublicationsView() {
           onSearchChange={setSearchTerm}
           levelFilter={levelFilter}
           onLevelChange={setLevelFilter}
+          selectedDept={selectedDept}
+          onDeptChange={setSelectedDept}
           fiscalYearFilter={fiscalYearFilter}
           onFiscalYearChange={setFiscalYearFilter}
           availableFiscalYears={availableFiscalYears}
-          onSave={savePublication}
-          onDelete={deletePublication}
-        />
-
-        <DecisionBox
-          title="ข้อมูลสนับสนุนการตัดสินใจ — ผลงานตีพิมพ์ทางวิชาการ"
-          items={[
-            <>
-              <strong>SDG 9 (นวัตกรรม)</strong> มีผลงานตีพิมพ์มากที่สุด โดยเฉพาะด้านวัสดุก่อสร้างและ Machine Learning
-            </>,
-            <>
-              <strong>SDG 2 (อาหาร/เกษตร)</strong> มีผลงาน Q1 สูง จากงานวิจัยด้าน Postharvest และ NIR spectroscopy
-            </>,
-            <>
-              <strong>SDG 6 (น้ำ)</strong> มีผลงานตีพิมพ์อย่างต่อเนื่อง เป็นจุดแข็งของคณะ
-            </>,
-            <>
-              ควรเพิ่มผลงานด้าน <strong>SDG 7 (พลังงาน)</strong> และ <strong>SDG 3 (สุขภาพ)</strong> เพื่อความหลากหลาย
-            </>,
-          ]}
         />
       </div>
     </div>

@@ -222,7 +222,7 @@ function CalendarDayButton({
     "text-slate-700 hover:bg-emerald-100/80 hover:text-emerald-800 dark:text-slate-200 dark:hover:bg-emerald-950/50 dark:hover:text-emerald-300"
 
   if (isSelected) {
-    dayStyle = "!bg-[#00A651] !text-white hover:!bg-[#008f44] font-semibold shadow-sm"
+    dayStyle = "!bg-[#00A651] !text-white hover:!bg-[#00A651] font-semibold shadow-sm"
   } else if (isToday) {
     dayStyle =
       "bg-emerald-100 text-emerald-800 font-bold border border-emerald-300 hover:bg-emerald-200/80 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-700/60"

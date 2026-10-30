@@ -44,8 +44,8 @@ export const Header: React.FC<HeaderProps> = ({
       >
         <span
           style={{
-            fontSize: '15px',
-            fontWeight: 700,
+            fontSize: '16px',
+            fontWeight: 500,
             letterSpacing: '0.3px',
             whiteSpace: 'nowrap',
           }}

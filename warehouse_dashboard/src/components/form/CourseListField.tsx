@@ -4,7 +4,6 @@ import * as React from 'react';
 import { RepeatableList } from './RepeatableList';
 import { CourseCodePicker, CourseItem } from './CourseCodePicker';
 import { cn } from '@/lib/utils';
-import { GraduationCap } from 'lucide-react';
 
 export interface CourseListFieldProps {
   items?: CourseItem[];
@@ -20,7 +19,7 @@ export function CourseListField({
   items = [],
   onChange,
   addLabel = '+ เพิ่มรายวิชา',
-  emptyMessage = 'ยังไม่มีรายวิชาที่ระบุ (คลิกเพิ่มเพื่อระบุรายวิชา)',
+  emptyMessage = 'ยังไม่มีรายวิชาที่ระบุ',
   maxItems,
   disabled = false,
   className,
@@ -40,11 +39,10 @@ export function CourseListField({
         emptyMessage={emptyMessage}
         maxItems={maxItems}
         renderItem={(item, index, onChangeItem) => (
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 p-2 rounded-lg border border-slate-200 bg-white shadow-2xs hover:border-slate-300 transition-colors">
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 shrink-0 select-none pl-1 sm:w-20">
-              <GraduationCap className="size-3.5 text-emerald-600" />
-              <span>วิชาที่ {index + 1}</span>
-            </div>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+            <span className="text-xs font-medium text-slate-500 shrink-0 select-none sm:w-14">
+              วิชาที่ {index + 1}
+            </span>
 
             <div className="flex-1 min-w-0">
               <CourseCodePicker

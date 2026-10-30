@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useTimeFilter } from '@/features/time-filter';
+import { TimeFilterBar, useTimeFilter } from '@/features/time-filter';
 import { useKpiData } from '../_hooks/useKpiData';
 import { KpiHeaderToolbar } from './KpiHeaderToolbar';
 import { KpiSummaryCards } from './KpiSummaryCards';
@@ -9,7 +9,7 @@ import { KpiFilterBar } from './KpiFilterBar';
 import { KpiGridCards } from './KpiGridCards';
 
 export function KPIView() {
-  const { timeFilter } = useTimeFilter();
+  const { timeFilter, setTimeFilter, resetTimeFilter } = useTimeFilter();
   const {
     filteredKPIs,
     overallStats,
@@ -24,14 +24,25 @@ export function KPIView() {
   } = useKpiData(timeFilter);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
       <KpiHeaderToolbar
         timeFilter={timeFilter}
         isRefreshing={isRefreshing}
         onRefresh={loadLiveData}
       />
 
-      <KpiSummaryCards stats={overallStats} />
+      <TimeFilterBar
+        value={timeFilter}
+        onChange={setTimeFilter}
+        onReset={resetTimeFilter}
+        totalCount={filteredKPIs.length}
+      />
+
+      <KpiSummaryCards
+        stats={overallStats}
+        selectedStatus={selectedStatus}
+        onSelectStatus={setSelectedStatus}
+      />
 
       <KpiFilterBar
         selectedCategory={selectedCategory}

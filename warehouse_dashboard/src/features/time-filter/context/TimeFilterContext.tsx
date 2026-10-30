@@ -1,7 +1,7 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { TimeFilterState, DEFAULT_TIME_FILTER } from '@/types/timeFilter';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { TimeFilterState, DEFAULT_TIME_FILTER, itemMatchesTimeFilter } from '@/types/timeFilter';
 
 interface TimeFilterContextType {
   timeFilter: TimeFilterState;
@@ -9,50 +9,64 @@ interface TimeFilterContextType {
   resetTimeFilter: () => void;
   isTimeModalOpen: boolean;
   setIsTimeModalOpen: (open: boolean) => void;
+  filterProjectsByTime: <T = any>(items: T[], dateField?: string) => T[];
 }
+
+const STORAGE_KEY = 'ku_time_filter';
 
 const TimeFilterContext = createContext<TimeFilterContextType | undefined>(undefined);
 
 export const TimeFilterProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [timeFilter, setTimeFilter] = useState<TimeFilterState>(DEFAULT_TIME_FILTER);
+  const [timeFilter, setTimeFilterState] = useState<TimeFilterState>(DEFAULT_TIME_FILTER);
   const [isTimeModalOpen, setIsTimeModalOpen] = useState(false);
 
-  // Load from localStorage if present
+  // โหลดจาก localStorage แล้ว merge กับ default
+  // (ค่าที่บันทึกไว้จากเวอร์ชันเก่าจะไม่มี field ใหม่ เช่น manualType)
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('ku_time_filter');
+      const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
-        setTimeFilter(JSON.parse(saved));
+        setTimeFilterState({ ...DEFAULT_TIME_FILTER, ...JSON.parse(saved) });
       }
     } catch {
-      // Ignore parse errors
+      // ignore parse errors
     }
   }, []);
 
-  const handleSetTimeFilter: React.Dispatch<React.SetStateAction<TimeFilterState>> = (value) => {
-    setTimeFilter((prev) => {
+  const setTimeFilter: React.Dispatch<React.SetStateAction<TimeFilterState>> = useCallback((value) => {
+    setTimeFilterState((prev) => {
       const next = typeof value === 'function' ? value(prev) : value;
       try {
-        localStorage.setItem('ku_time_filter', JSON.stringify(next));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
       } catch {
-        // Ignore storage errors
+        // ignore storage errors
       }
       return next;
     });
-  };
+  }, []);
 
-  const resetTimeFilter = () => {
-    handleSetTimeFilter(DEFAULT_TIME_FILTER);
-  };
+  const resetTimeFilter = useCallback(() => {
+    setTimeFilter(DEFAULT_TIME_FILTER);
+  }, [setTimeFilter]);
+
+  const filterProjectsByTime = useCallback(
+    <T = any,>(items: T[], _dateField?: string): T[] => {
+      if (!Array.isArray(items)) return [];
+      if (timeFilter.mode === 'all') return items;
+      return items.filter((item) => itemMatchesTimeFilter(item, timeFilter));
+    },
+    [timeFilter]
+  );
 
   return (
     <TimeFilterContext.Provider
       value={{
         timeFilter,
-        setTimeFilter: handleSetTimeFilter,
+        setTimeFilter,
         resetTimeFilter,
         isTimeModalOpen,
         setIsTimeModalOpen,
+        filterProjectsByTime,
       }}
     >
       {children}

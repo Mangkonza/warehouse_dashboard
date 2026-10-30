@@ -15,7 +15,27 @@
     "start_date": "2026-10-24",
     "end_date": "2026-10-25",
     "_id": "service_1792829081701",
-    "updatedAt": "2026-10-24T08:04:41.736Z"
+    "updatedAt": "2026-10-24T08:04:41.736Z",
+    "evaluation": {
+      "id": "service_service_1792829081701",
+      "category": "service",
+      "record_id": "service_1792829081701",
+      "sdg_ids": [
+        1,
+        2
+      ],
+      "i_type": "I_AM",
+      "journal_index": null,
+      "evaluated_by": "admin",
+      "evaluated_at": "2026-10-24T21:00:19.604Z",
+      "updated_at": "2026-10-24T21:00:19.604Z"
+    },
+    "sdg_ids": [
+      1,
+      2
+    ],
+    "i_type": "I_AM",
+    "journal_index": null
   },
   {
     "name": "คณะทำงานร่างแก้ไขข้อกำหนดการตรวจสภาท่า",
@@ -24,7 +44,12 @@
     "department": "ภาควิชา\nวิศวกรรมโยธา",
     "date": "1968-01-07 00:00:00",
     "person_id": 81,
-    "_id": "service_idx_0"
+    "_id": "service_idx_0",
+    "evaluation": null,
+    "service_type": "ผู้ทรงคุณวุฒิ",
+    "service_category": "ผู้ทรงคุณวุฒิ",
+    "updatedAt": "2026-10-25T06:42:54.877Z",
+    "topic_title": "คณะทำงานร่างแก้ไขข้อกำหนดการตรวจสภาท่า"
   },
   {
     "name": "ประเมินข้อเสนอโครงการวิจัย\nประจำปีงบประมาณ 2568 ภายใต้แผนงาน Global Partnership",
@@ -33,7 +58,12 @@
     "department": "ภาควิชา\nวิศวกรรมการอาหาร",
     "date": "1968-01-14 00:00:00",
     "person_id": null,
-    "_id": "service_idx_1"
+    "_id": "service_idx_1",
+    "evaluation": null,
+    "service_type": "ศึกษาดูงาน วศ.กพส.",
+    "service_category": "ศึกษาดูงาน วศ.กพส.",
+    "updatedAt": "2026-10-25T06:42:58.780Z",
+    "topic_title": "ประเมินข้อเสนอโครงการวิจัย\nประจำปีงบประมาณ 2568 ภายใต้แผนงาน Global Partnership"
   },
   {
     "name": "พิจารณาผลงานทางวิชาการ",
@@ -42,7 +72,12 @@
     "department": "ภาควิชา\nวิศวกรรมการอาหาร",
     "date": "1968-01-20 00:00:00",
     "person_id": null,
-    "_id": "service_idx_2"
+    "_id": "service_idx_2",
+    "evaluation": null,
+    "service_type": "วิชาชีพ",
+    "service_category": "วิชาชีพ",
+    "updatedAt": "2026-10-25T06:43:02.982Z",
+    "topic_title": "พิจารณาผลงานทางวิชาการ"
   },
   {
     "name": "เป็นผู้ทรงคุณวุฒิพิจารณาหลักสูตร\nระดับปริญญาตรี ระดับปริญญาโท สาขาวิชาวิศวกรรมอาหาร",
@@ -51,7 +86,12 @@
     "department": "ภาควิชา\nวิศวกรรมการอาหาร",
     "date": "1968-01-31 00:00:00",
     "person_id": null,
-    "_id": "service_idx_3"
+    "_id": "service_idx_3",
+    "evaluation": null,
+    "service_type": "วิทยากร/อาจารย์พิเศษ",
+    "service_category": "วิทยากร/อาจารย์พิเศษ",
+    "updatedAt": "2026-10-25T06:43:09.711Z",
+    "topic_title": "เป็นผู้ทรงคุณวุฒิพิจารณาหลักสูตร\nระดับปริญญาตรี ระดับปริญญาโท สาขาวิชาวิศวกรรมอาหาร"
   },
   {
     "name": "วิชา 01418385 Digital Image Processing หมู่ 800",
@@ -60,7 +100,12 @@
     "department": "ภาควิชา\nวิศวกรรมคอมพิวเตอร์",
     "date": "1968-02-01 00:00:00",
     "person_id": 147,
-    "_id": "service_idx_4"
+    "_id": "service_idx_4",
+    "evaluation": null,
+    "service_type": "วิทยานิพนธ์ภายนอก",
+    "service_category": "วิทยานิพนธ์ภายนอก",
+    "updatedAt": "2026-10-25T06:43:47.392Z",
+    "topic_title": "วิชา 01418385 Digital Image Processing หมู่ 800"
   },
   {
     "name": "ประชุมคณะกรรมการทรัพยากรน้ำแห่งชาติ ครั้งที่ 1/2568",
@@ -69,7 +114,8 @@
     "department": "ภาควิชาวิศวกรรมชลประทาน",
     "date": "1968-01-06 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_5"
+    "_id": "service_idx_5",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะอนุกรรมาธิการศึกษาและแก้ไขปัญหาลุ่มน้ำวัง ครั้งที่ 3",
@@ -78,7 +124,8 @@
     "department": "ภาควิชาวิศวกรรมชลประทาน",
     "date": "1968-01-09 00:00:00",
     "person_id": 31,
-    "_id": "service_idx_6"
+    "_id": "service_idx_6",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะอนุกรรมาธิการการบริหารจัดการทรัพยากรน้ำภาคการเกษตร ครั้งที่ 20",
@@ -87,7 +134,8 @@
     "department": "ภาควิชาวิศวกรรมชลประทาน",
     "date": "1968-01-15 00:00:00",
     "person_id": 31,
-    "_id": "service_idx_7"
+    "_id": "service_idx_7",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะกรรมาธิการการบริหารจัดการทรัพยากรน้ำ ครั้งที่ 43",
@@ -96,7 +144,8 @@
     "department": "ภาควิชาวิศวกรรมชลประทาน",
     "date": "1968-01-16 00:00:00",
     "person_id": 31,
-    "_id": "service_idx_8"
+    "_id": "service_idx_8",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะอนุกรรมาธิการศึกษาและแก้ไขปัญหาลุ่มน้ำวัง ครั้งที่ 4",
@@ -105,7 +154,8 @@
     "department": "ภาควิชาวิศวกรรมชลประทาน",
     "date": "1968-01-16 00:00:00",
     "person_id": 31,
-    "_id": "service_idx_9"
+    "_id": "service_idx_9",
+    "evaluation": null
   },
   {
     "name": "ผู้ทรงพิจารณาบทความทางวิชาการ",
@@ -114,7 +164,8 @@
     "department": "ภาควิชาวิศวกรรมชลประทาน",
     "date": "1968-01-01 00:00:00",
     "person_id": null,
-    "_id": "service_idx_10"
+    "_id": "service_idx_10",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะกรรมการวิชาการลุ่มน้ำเจ้าพระยา",
@@ -123,7 +174,8 @@
     "department": "ภาควิชาวิศวกรรมชลประทาน",
     "date": "1968-01-24 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_11"
+    "_id": "service_idx_11",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะกรรมการลุ่มน้ำเจ้าพระยา",
@@ -132,7 +184,8 @@
     "department": "ภาควิชาวิศวกรรมชลประทาน",
     "date": "1968-01-28 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_12"
+    "_id": "service_idx_12",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะอนุกรรมาธิการการบริหารจัดการทรัพยากรน้ำภาคการเกษตร ครั้งที่ 21",
@@ -141,7 +194,8 @@
     "department": "ภาควิชาวิศวกรรมชลประทาน",
     "date": "1968-01-22 00:00:00",
     "person_id": 31,
-    "_id": "service_idx_13"
+    "_id": "service_idx_13",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะกรรมการลุ่มน้ำเจ้าพระยา ครั้งที่ 1/2568",
@@ -150,7 +204,8 @@
     "department": "ภาควิชาวิศวกรรมชลประทาน",
     "date": "1968-01-29 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_14"
+    "_id": "service_idx_14",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะอนุกรรมาธิการการบริหารจัดการทรัพยากรน้ำภาคการเกษตร ครั้งที่ 22",
@@ -159,7 +214,8 @@
     "department": "ภาควิชาวิศวกรรมชลประทาน",
     "date": "1968-01-29 00:00:00",
     "person_id": 31,
-    "_id": "service_idx_15"
+    "_id": "service_idx_15",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะกรรมการพัฒนาหลักสูตรวิศวกรรมศาสตรบัณฑิต วิทยาลัยการชลประทาน ครั้งที่ 1/2568",
@@ -168,7 +224,8 @@
     "department": "ภาควิชาวิศวกรรมชลประทาน",
     "date": "1968-01-30 00:00:00",
     "person_id": 33,
-    "_id": "service_idx_16"
+    "_id": "service_idx_16",
+    "evaluation": null
   },
   {
     "name": "วิทยากรและจัดแสดงนิทรรศการในด้านการส่งเสริมการเกษตรที่เป็นมิตรกับสิ่งแวดล้อม การจัดการเศษวัสดุเหลือใช้จากการเกษตร ภายใต้โครงการส่งเสริมการเกษตรที่เป็นมิตรกับสิ่งแวดล้อม ซึ่งจัดโดยจังหวัดนครปฐม ณ อาคารเอนกประสงค์โรงเรียนวัดไผ่หูช้าง ต.ไผ่หูช้าง \nอ.บางเลน จ.นครปฐม",
@@ -177,7 +234,8 @@
     "department": "ศูนย์ปฏิบัติการวิศวกรรม\nพลังงานและสิ่งแวดล้อม",
     "date": "1968-01-16 00:00:00",
     "person_id": 2,
-    "_id": "service_idx_17"
+    "_id": "service_idx_17",
+    "evaluation": null
   },
   {
     "name": "วิทยากรภายใต้โครงการพัฒนาบุคลากรสู่เศรษฐกิจมูลค่าสูงที่เป็นมิตรต่อสิ่งแวดล้อมในเขตเศรษฐกิจพิเศษภาคตะวันออก (ระยะที่ 2) ณ บ้านคลองใหญ่ ต.บ่อทอง อ.บ่อทอง จ.ชลบุรี",
@@ -186,7 +244,8 @@
     "department": "ศูนย์ปฏิบัติการวิศวกรรม\nพลังงานและสิ่งแวดล้อม",
     "date": "1968-01-17 00:00:00",
     "person_id": 2,
-    "_id": "service_idx_18"
+    "_id": "service_idx_18",
+    "evaluation": null
   },
   {
     "name": "เครื่องผลิตปุ๋ยหมัก 7 วัน ณ กรมยุทธศึกษาทหารเรือ ต.ศาลายา \nอ.พุทธมณฑล จ.นครปฐม",
@@ -195,7 +254,8 @@
     "department": "ศูนย์ปฏิบัติการวิศวกรรม\nพลังงานและสิ่งแวดล้อม",
     "date": "1968-01-28 00:00:00",
     "person_id": 167,
-    "_id": "service_idx_19"
+    "_id": "service_idx_19",
+    "evaluation": null
   },
   {
     "name": "เป็นผู้แทนองค์กรวิชาชีพเข้าร่วมประชุมการประเมินมาตรฐานวิชาชีพ ปีการศึกษา 2567",
@@ -204,7 +264,8 @@
     "department": "ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ",
     "date": "1968-01-22 00:00:00",
     "person_id": null,
-    "_id": "service_idx_20"
+    "_id": "service_idx_20",
+    "evaluation": null
   },
   {
     "name": "กรรมการวิพากษ์หลักสูตร",
@@ -213,7 +274,8 @@
     "department": "ภาควิชา\nวิศวกรรมเกษตร",
     "date": "1968-02-13 00:00:00",
     "person_id": 4,
-    "_id": "service_idx_21"
+    "_id": "service_idx_21",
+    "evaluation": null
   },
   {
     "name": "วิชา 01418385 Digital Image Processing หมู่ 870",
@@ -222,7 +284,8 @@
     "department": "ภาควิชา\nวิศวกรรมคอมพิวเตอร์",
     "date": "1968-02-01 00:00:00",
     "person_id": 147,
-    "_id": "service_idx_22"
+    "_id": "service_idx_22",
+    "evaluation": null
   },
   {
     "name": "ให้คำปรึกษาและข้อเสนอแนะในการพัฒนาและปรับปรุงกระบวนการผลิตน้ำนมข้าวโพด",
@@ -231,7 +294,8 @@
     "department": "ภาควิชา\nวิศวกรรมการอาหาร",
     "date": "1968-02-05 00:00:00",
     "person_id": null,
-    "_id": "service_idx_23"
+    "_id": "service_idx_23",
+    "evaluation": null
   },
   {
     "name": "กรรมการสอบวิทยานิพนธ์ เรื่อง\nThe Study of the influence of variability on hoek-brown\nparameters using random field theory",
@@ -240,7 +304,8 @@
     "department": "ภาควิชา\nวิศวกรรมโยธา",
     "date": "1968-02-07 00:00:00",
     "person_id": 80,
-    "_id": "service_idx_24"
+    "_id": "service_idx_24",
+    "evaluation": null
   },
   {
     "name": "กรรมการสอบวิทยานิพนธ์ เรื่อง\nPrediction of failure envelopes of foundations using machine\nlearning algorithm and finite element limit analysis",
@@ -249,7 +314,8 @@
     "department": "ภาควิชา\nวิศวกรรมโยธา",
     "date": "1968-02-07 00:00:00",
     "person_id": 80,
-    "_id": "service_idx_25"
+    "_id": "service_idx_25",
+    "evaluation": null
   },
   {
     "name": "ซ่อมเครื่องทอดสุญญากาศ \nและฝึกอบรมการใช้งานและซ่อมบำรุงเครื่องทอดพร้อมอุปกรณ์\nต่อพ่วงเบื้องต้น",
@@ -258,7 +324,8 @@
     "department": "ภาควิชา\nวิศวกรรมการอาหาร",
     "date": "6-7ก.พ.68",
     "person_id": null,
-    "_id": "service_idx_26"
+    "_id": "service_idx_26",
+    "evaluation": null
   },
   {
     "name": "การเขียนโปรแกรม Arduino IDE สำหรับการใช้แขนหุ่นยนต์เพื่อการศึกษา",
@@ -267,7 +334,8 @@
     "department": "ภาควิชา\nวิศวกรรมคอมพิวเตอร์",
     "date": "1968-02-01 00:00:00",
     "person_id": 141,
-    "_id": "service_idx_27"
+    "_id": "service_idx_27",
+    "evaluation": null
   },
   {
     "name": "เป็นผู้เชี่ยวชาญประเมินคุณภาพชุดสื่ออินโฟกราฟิก (ด้านเนื้อหา)",
@@ -276,7 +344,8 @@
     "department": "ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ",
     "date": "1968-02-01 00:00:00",
     "person_id": 251,
-    "_id": "service_idx_28"
+    "_id": "service_idx_28",
+    "evaluation": null
   },
   {
     "name": "เข้าร่วมประชุมคณะอนุกรรมาธิการการบริหารจัดการทรัพยากรน้ำภาคการเกษตร ครั้งที่ 23",
@@ -285,7 +354,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-02-05 00:00:00",
     "person_id": 31,
-    "_id": "service_idx_29"
+    "_id": "service_idx_29",
+    "evaluation": null
   },
   {
     "name": "เข้าร่วมประชุมคณะกรรมการทรัพยากรน้ำแห่งชาติ ครั้งที่ 2/2568",
@@ -294,7 +364,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-02-21 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_30"
+    "_id": "service_idx_30",
+    "evaluation": null
   },
   {
     "name": "เข้าร่วมประชุมคณะอนุกรรมมาธิการการบริหารจัดการทรัพยากรน้ำภาคการเกษตร ครั้งที่ 25",
@@ -303,7 +374,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-02-19 00:00:00",
     "person_id": null,
-    "_id": "service_idx_31"
+    "_id": "service_idx_31",
+    "evaluation": null
   },
   {
     "name": "เข้าร่วมประชุมคณะอนุกรรมการวิชาการและบริหารจัดการลุ่มน้ำเจ้าพระยา ครั้งที่ 2/2568",
@@ -312,7 +384,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-02-25 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_32"
+    "_id": "service_idx_32",
+    "evaluation": null
   },
   {
     "name": "เป็นอาจารย์พิเศษ \nบรรยายในหัวข้อ \"Quality Management and Control\"",
@@ -321,7 +394,12 @@
     "department": "ภาควิชา\nวิศวกรรมอุตสาหการ",
     "date": "1968-02-28 00:00:00",
     "person_id": 125,
-    "_id": "service_idx_33"
+    "_id": "service_idx_33",
+    "evaluation": null,
+    "service_type": "ศึกษาดูงาน วศ.กพส.",
+    "service_category": "ศึกษาดูงาน วศ.กพส.",
+    "updatedAt": "2026-10-25T06:31:05.126Z",
+    "topic_title": "เป็นอาจารย์พิเศษ \nบรรยายในหัวข้อ \"Quality Management and Control\""
   },
   {
     "name": "ร่วมจัดแสดงนิทรรศการผลงานวิจัยนวัตกรรมในงานเกษตรแฟร์ 2568 ณ โดมแอร์หน้าอาคารจักรพันธ์เพ็ญศิริ มหาวิทยาลัยเกษตรศาสตร์",
@@ -330,7 +408,8 @@
     "department": "ศูนย์ปฏิบัติการ\nวิศวกรรมพลังงาน\nและสิ่งแวดล้อม",
     "date": "31 ม.ค. - \n8 ก.พ. 68",
     "person_id": 280,
-    "_id": "service_idx_34"
+    "_id": "service_idx_34",
+    "evaluation": null
   },
   {
     "name": "คณะผู้บริหารและนิสิตแลกเปลี่ยนจาก Tokyo University of Agriculture (TUA) ประเทศญี่ปุ่น",
@@ -339,7 +418,8 @@
     "department": "ศูนย์ปฏิบัติการ\nวิศวกรรมพลังงาน\nและสิ่งแวดล้อม",
     "date": "1968-02-18 00:00:00",
     "person_id": 161,
-    "_id": "service_idx_35"
+    "_id": "service_idx_35",
+    "evaluation": null
   },
   {
     "name": "สาธิตการใช้งานเครื่องผลิตปุ๋ยหมัก 7 วัน ณ กรมยุทธศึกษาทหารเรือ \nต.ศาลายา อ.พุทธมณฑล จ.นครปฐม",
@@ -348,7 +428,8 @@
     "department": "ศูนย์ปฏิบัติการ\nวิศวกรรมพลังงาน\nและสิ่งแวดล้อม",
     "date": "1968-02-24 00:00:00",
     "person_id": 2,
-    "_id": "service_idx_36"
+    "_id": "service_idx_36",
+    "evaluation": null
   },
   {
     "name": "โรงเรียนสาธิตแห่งมหาวิทยาลัยเกษตรศาสตร์ วิทยาเขตกำแพงแสน ศูนย์วิจัยและพัฒนาการศึกษา เข้าใช้บริการเครื่องอัดภาชนะใบไม้",
@@ -357,7 +438,8 @@
     "department": "ศูนย์ปฏิบัติการ\nวิศวกรรมพลังงาน\nและสิ่งแวดล้อม",
     "date": "1968-02-27 00:00:00",
     "person_id": 2,
-    "_id": "service_idx_37"
+    "_id": "service_idx_37",
+    "evaluation": null
   },
   {
     "name": "โครงการแลกเปลี่ยนนิสิตระหว่างมหาวิทยาลัยเกษตรศาสตร์ และ University of Tsukuba \nประเทศญี่ปุ่น",
@@ -366,7 +448,8 @@
     "department": "ศูนย์ปฏิบัติการ\nวิศวกรรมพลังงาน\nและสิ่งแวดล้อม",
     "date": "1968-02-27 00:00:00",
     "person_id": 164,
-    "_id": "service_idx_38"
+    "_id": "service_idx_38",
+    "evaluation": null
   },
   {
     "name": "ทำสอบสมรรถนะรถเก็บเกี่ยวฟางและอัดฟาง",
@@ -375,7 +458,8 @@
     "department": "ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ",
     "date": "1968-02-05 00:00:00",
     "person_id": 255,
-    "_id": "service_idx_39"
+    "_id": "service_idx_39",
+    "evaluation": null
   },
   {
     "name": "เป็นประธานภาค และเข้าร่วมประชุมวิชาการคอนกรีตประจำปี ครั้งที่ 19",
@@ -384,7 +468,8 @@
     "department": "ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ",
     "date": "19-21 ก.พ.68",
     "person_id": 253,
-    "_id": "service_idx_40"
+    "_id": "service_idx_40",
+    "evaluation": null
   },
   {
     "name": "เป็นกรรมการสอบวิทยานิพนธ์",
@@ -393,7 +478,8 @@
     "department": "ภาควิชา\nวิศวกรรมโยธา",
     "date": "1968-03-01 00:00:00",
     "person_id": 80,
-    "_id": "service_idx_41"
+    "_id": "service_idx_41",
+    "evaluation": null
   },
   {
     "name": "เป็นคณะกรรมการร่างปรับปรุงมาตรฐาน 2135-2545\n\"เถ้าลอยจากถ่านหินใช้เป็นวัสดุผสมคอนกรีต\"",
@@ -402,7 +488,8 @@
     "department": "ภาควิชา\nวิศวกรรมโยธา",
     "date": "1968-03-01 00:00:00",
     "person_id": 80,
-    "_id": "service_idx_42"
+    "_id": "service_idx_42",
+    "evaluation": null
   },
   {
     "name": "เข้าร่วมประชุมคณะกรรมการลุ่มน้ำเจ้าพระยา ครั้งที่ 2/2568",
@@ -411,7 +498,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-03-04 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_43"
+    "_id": "service_idx_43",
+    "evaluation": null
   },
   {
     "name": "เข้าร่วมประชุมคณะอนุกรรมาธิการการบริหารจัดการทรัพยากรน้ำภาคการเกษตร ครั้งที่ 26",
@@ -420,7 +508,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-03-05 00:00:00",
     "person_id": null,
-    "_id": "service_idx_44"
+    "_id": "service_idx_44",
+    "evaluation": null
   },
   {
     "name": "เป็นกรรมการสอบโครงร่างวิทยานิพนธ์นักศึกษาปริญญาเอก หัวข้อ \"Sustainability of Rice Cultivation Practices in Chao Phraya Basin under the Impact of Extreme Weather Condotion: an Application of Sustainable Rice platorm Indicators\"",
@@ -429,7 +518,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-03-07 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_45"
+    "_id": "service_idx_45",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะอนุกรรมการวิชาการและการบริหารจัดการน้ำลุ่มน้ำแม่กลอง ครั้งที่ 1/2568 ศาลากลางจังหวัดสมุทรสงคราม",
@@ -438,7 +528,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-03-10 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_46"
+    "_id": "service_idx_46",
+    "evaluation": null
   },
   {
     "name": "แต่งตั้ง \"คณะทำงานพัฒนาหลักเกณฑ์ มาตรฐานการบริหารจัดการทรัพยากรน้ำ\"",
@@ -447,7 +538,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-03-04 00:00:00",
     "person_id": 28,
-    "_id": "service_idx_47"
+    "_id": "service_idx_47",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะอนุกรรมาธิการการบริหารจัดการทรัพยากรน้ำภาคการเกษตร ครั้งที่ 27",
@@ -456,7 +548,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-03-12 00:00:00",
     "person_id": 31,
-    "_id": "service_idx_48"
+    "_id": "service_idx_48",
+    "evaluation": null
   },
   {
     "name": "ประชุมเชิงปฏิบัติการเพื่อพัฒนาเครื่องมือคาดการณ์สมดุลน้ำในพื้นที่เขตพัฒนาพิเศษภาคตะวันออก ครั้งที่ 2",
@@ -465,7 +558,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-03-21 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_49"
+    "_id": "service_idx_49",
+    "evaluation": null
   },
   {
     "name": "ประชุมปรึกษาหารือกลุ่มย่อย ร่างแผนและแผนผังโครงสร้างพื้นฐาน : การจัดการน้ำ",
@@ -474,7 +568,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-03-19 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_50"
+    "_id": "service_idx_50",
+    "evaluation": null
   },
   {
     "name": "แต่งตั้ง \"กรรมการลุ่มน้ำผู้ทรงคุณวุฒิ ในคณะกรรมการลุ่มน้ำเจ้าพระยา\"",
@@ -483,7 +578,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-03-18 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_51"
+    "_id": "service_idx_51",
+    "evaluation": null
   },
   {
     "name": "แต่งตั้ง \"กรรมการลุ่มน้ำผู้ทรงคุณวุฒิ ในคณะกรรมการลุ่มน้ำท่าจีน\"",
@@ -492,7 +588,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-03-18 00:00:00",
     "person_id": 36,
-    "_id": "service_idx_52"
+    "_id": "service_idx_52",
+    "evaluation": null
   },
   {
     "name": "แต่งตั้ง \"กรรมการลุ่มน้ำผู้ทรงคุณวุฒิ ในคณะกรรมการลุ่มน้ำเเม่กลอง\"",
@@ -501,7 +598,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-03-18 00:00:00",
     "person_id": 31,
-    "_id": "service_idx_53"
+    "_id": "service_idx_53",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะกรรมการลุ่มน้ำแม่กลอง ครั้งที่ 2/2568",
@@ -510,7 +608,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-03-26 00:00:00",
     "person_id": 31,
-    "_id": "service_idx_54"
+    "_id": "service_idx_54",
+    "evaluation": null
   },
   {
     "name": "อาจารย์ประจำสาขาวิชาวิศวกรรมเคมี คณะวิศวกรรมศาสตร์ มหาวิทยาลัยสงขลานครินทร์ เข้าศึกษาดูงานวิจัยด้านพลังงานทดแทน",
@@ -519,7 +618,8 @@
     "department": "ศูนย์ปฏิบัติการวิศวกรรม\nพลังงานและสิ่งแวดล้อม",
     "date": "1968-03-03 00:00:00",
     "person_id": 2,
-    "_id": "service_idx_55"
+    "_id": "service_idx_55",
+    "evaluation": null
   },
   {
     "name": "วิสาหกิจชุมชนบ้านท่าช้าง อ.ปากช่อง จ.นครราชสีมา เข้าศึกษาดูงานเครื่องอัดภาชนะใบไม้และนวัตกรรมต่างๆ",
@@ -528,7 +628,8 @@
     "department": "ศูนย์ปฏิบัติการวิศวกรรม\nพลังงานและสิ่งแวดล้อม",
     "date": "1968-03-10 00:00:00",
     "person_id": 2,
-    "_id": "service_idx_56"
+    "_id": "service_idx_56",
+    "evaluation": null
   },
   {
     "name": "ร่วมสัมมนาวิชาการในหัวข้อ Climate Change Challenges, Plant Science Solutions",
@@ -537,7 +638,8 @@
     "department": "ศูนย์เครื่องจักรกล\nการเกษตรแห่งชาติ",
     "date": "12-16 มี.ค.68",
     "person_id": 251,
-    "_id": "service_idx_57"
+    "_id": "service_idx_57",
+    "evaluation": null
   },
   {
     "name": "23rd AUN-QA Tier 1 Training Programme Assessment, Version 4.0",
@@ -546,7 +648,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "11-14 มี.ค.68",
     "person_id": 105,
-    "_id": "service_idx_58"
+    "_id": "service_idx_58",
+    "evaluation": null
   },
   {
     "name": "19th Assessor Training Workshop for AUN-QA Programme Assessment [Tier II]",
@@ -555,7 +658,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "21-23 มี.ค.68",
     "person_id": 105,
-    "_id": "service_idx_59"
+    "_id": "service_idx_59",
+    "evaluation": null
   },
   {
     "name": "การออกแบบและก่อสร้างโครงสร้างคอนกรีตเสริม GFRP รุ่นที่ 4",
@@ -564,7 +668,8 @@
     "department": "ภาควิชา\nวิศวกรรมโยธา",
     "date": "1968-04-26 00:00:00",
     "person_id": 80,
-    "_id": "service_idx_60"
+    "_id": "service_idx_60",
+    "evaluation": null
   },
   {
     "name": "เป็นผู้ทรงคุณวุฒิประเมินข้อเสนอโครงการวิจัย",
@@ -573,7 +678,8 @@
     "department": "ภาควิชา\nวิศวกรรมเกษตร",
     "date": "1968-04-01 00:00:00",
     "person_id": 4,
-    "_id": "service_idx_61"
+    "_id": "service_idx_61",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะกรรมการลุ่มน้ำท่าจีน \nครั้งที่ 2/2568",
@@ -582,7 +688,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-04-02 00:00:00",
     "person_id": 36,
-    "_id": "service_idx_62"
+    "_id": "service_idx_62",
+    "evaluation": null
   },
   {
     "name": "ผู้ทรงคุณวุฒิให้กับนิสิตต่างชาติ Ms. Mahroo Aghaabbasi, Student ID 6688081920 หัวข้อ\"Barriers to Smart Irrigation\nTechnologies Adoption in Thailand Agricultural Sector.\"",
@@ -591,7 +698,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-04-01 00:00:00",
     "person_id": 36,
-    "_id": "service_idx_63"
+    "_id": "service_idx_63",
+    "evaluation": null
   },
   {
     "name": "ประชุมเชิงปฏิบัติการ \"ถอดบทเรียนการขับเคลื่อนการดำเนินงาน ภายใต้พระราชบัญญัติทรัพยากรน้ำ พ.ศ. 2561 หมวด 4 การจัดสรรน้ำ\nและการใช้น้ำ ฯ\"",
@@ -600,7 +708,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-04-30 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_64"
+    "_id": "service_idx_64",
+    "evaluation": null
   },
   {
     "name": "เป็นประธานหลักสูตรวิศวกรรมศาสตรบัณฑิต สาขาวิศวกรรมไฟฟ้าเครื่องกลการผลิต มก.",
@@ -609,7 +718,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-04-01 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_65"
+    "_id": "service_idx_65",
+    "evaluation": null
   },
   {
     "name": "เป็นประธานหลักสูตรปรัชญาดุษฎีบัณฑิต สาขาวิชาวิทยาศาสตร์การกีฬาและการออกกำลังกาย มก.",
@@ -618,7 +728,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-04-01 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_66"
+    "_id": "service_idx_66",
+    "evaluation": null
   },
   {
     "name": "เป็นกรรมการหลักสูตรวิศวกรรมศาสตรมหาบัณฑิต สาขาวิชาวิศวกรรมทรัพยากรน้ำ มก.",
@@ -627,7 +738,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-04-01 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_67"
+    "_id": "service_idx_67",
+    "evaluation": null
   },
   {
     "name": "เป็นกรรมการหลักสูตรปรัชญาดุษฎีบัณฑิต สาขาวิชาวิศวกรรมทรัพยากรน้ำ มก.",
@@ -636,7 +748,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-04-01 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_68"
+    "_id": "service_idx_68",
+    "evaluation": null
   },
   {
     "name": "เป็นกรรมการหลักสูตรปรัชญาดุษฎีบัณฑิต สาขาวิชาวิศวกรรมเกษตร มก.",
@@ -645,7 +758,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-04-01 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_69"
+    "_id": "service_idx_69",
+    "evaluation": null
   },
   {
     "name": "Toward Net-Zero Production, Food Security and Sustainability\"",
@@ -654,7 +768,8 @@
     "department": "ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ",
     "date": "19-21 พ.ค.68",
     "person_id": 251,
-    "_id": "service_idx_70"
+    "_id": "service_idx_70",
+    "evaluation": null
   },
   {
     "name": "ประเมินรายงานความก้าวหน้าโครงการวิจัย แผนงานกลุ่มอาหารมูลค่าสูง ประจำปี 2567",
@@ -663,7 +778,8 @@
     "department": "ภาควิชา\nวิศวกรรมการอาหาร",
     "date": "1968-05-02 00:00:00",
     "person_id": null,
-    "_id": "service_idx_71"
+    "_id": "service_idx_71",
+    "evaluation": null
   },
   {
     "name": "คณะทำงานปรับปรุงมาตรฐานผลิตภัณฑ์อุตสาหกรรม เถ้าลอยจากถ่านหินใช้เป็นวัสดุผสมคอนกรีต",
@@ -672,7 +788,8 @@
     "department": "ภาควิชา\nวิศวกรรมโยธา",
     "date": "1968-05-02 00:00:00",
     "person_id": 80,
-    "_id": "service_idx_72"
+    "_id": "service_idx_72",
+    "evaluation": null
   },
   {
     "name": "เป็นผู้ทรงคุณวุฒิประเมินบทความทางวิชาการระดับนานาชาติ",
@@ -681,7 +798,8 @@
     "department": "ภาควิชา\nวิศวกรรมเกษตร",
     "date": "1968-05-01 00:00:00",
     "person_id": 4,
-    "_id": "service_idx_73"
+    "_id": "service_idx_73",
+    "evaluation": null
   },
   {
     "name": "เป็นประธานกรรมการและผู้ทรงคุณวุฒิสอบวิทยานิพนธ์ เรื่อง การพัฒนานาโนซิลิการ่วมกับเส้นใยปาล์มน้ำมัน และเส้นใยป่านศรนารายณ์",
@@ -690,7 +808,8 @@
     "department": "ภาควิชา\nวิศวกรรมโยธา",
     "date": "1968-05-26 00:00:00",
     "person_id": 80,
-    "_id": "service_idx_74"
+    "_id": "service_idx_74",
+    "evaluation": null
   },
   {
     "name": "ให้คำปรึกษาและคำแนะนำด้านวิชาการเกี่ยวกับการรักษาคุณภาพมาตราฐาน และความปลอดภัยของบรรจุภัณฑ์น้ำพริก",
@@ -699,7 +818,8 @@
     "department": "ภาควิชา\nวิศวกรรมอาหาร",
     "date": "1968-05-19 00:00:00",
     "person_id": null,
-    "_id": "service_idx_75"
+    "_id": "service_idx_75",
+    "evaluation": null
   },
   {
     "name": "ประชุมเชิงปฏิบัติการ \"การขับเคลื่อน SDG Lab การบริหารจัดการน้ำเขิงพื่นที่ 3 จังหวัด ลุ่มน้ำแม่กล่องฯ\"",
@@ -708,7 +828,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "2568-05-02 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_76"
+    "_id": "service_idx_76",
+    "evaluation": null
   },
   {
     "name": "เข้าร่วมประชุมคณะอนุกรรมการวิชาการและบริหารจัดการลุ่มน้ำเจ้าพระยา ครั้งที่ ../2568",
@@ -717,7 +838,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-05-01 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_77"
+    "_id": "service_idx_77",
+    "evaluation": null
   },
   {
     "name": "ผู้ดำเนินรายการ \"เสวนาวิชาการเรื่อง\" ความเสี่ยงภัยพิบัติจากน้ำ 2025 ในภาวะภูมิอากาศสุดขั้ว\"",
@@ -726,7 +848,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-05-16 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_78"
+    "_id": "service_idx_78",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะกรรมการลุ่มน้ำเจ้าพระยา ครั้งที่ 4/2568",
@@ -735,7 +858,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-05-13 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_79"
+    "_id": "service_idx_79",
+    "evaluation": null
   },
   {
     "name": "วิทยากรบรรยาย หลักสูตร \"เทคนิคการควบคุมการเดินระบบและบำรุงรักษาระบบบำบัดน้ำเสียให้มีประสิทธิภาพ\"",
@@ -744,7 +868,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-05-22 00:00:00",
     "person_id": 36,
-    "_id": "service_idx_80"
+    "_id": "service_idx_80",
+    "evaluation": null
   },
   {
     "name": "ประชุมเตรียมการเพื่อสนับสนุนการดำเนินงานของคณะกรรมการลุ่มน้ำท่าจีน ครั้งที่ 1/2568",
@@ -753,7 +878,8 @@
     "department": "ภาควิชาวิศวกรรมชลประทาน",
     "date": "1968-05-20 00:00:00",
     "person_id": 36,
-    "_id": "service_idx_81"
+    "_id": "service_idx_81",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะกรรมการลุ่มน้ำท่าจีน ครั้งที่ 3/2568 (ออนไลน์)",
@@ -762,7 +888,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-05-23 00:00:00",
     "person_id": 36,
-    "_id": "service_idx_82"
+    "_id": "service_idx_82",
+    "evaluation": null
   },
   {
     "name": "เป็นผู้ทรงคุณวุฒิประเมินบทความทางวิชาการระดับชาติ",
@@ -771,7 +898,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-05-01 00:00:00",
     "person_id": 31,
-    "_id": "service_idx_83"
+    "_id": "service_idx_83",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะกรรมการลุ่มน้ำเม่กลอง ครั้งที่ 3/2568 (ออนไลน์)",
@@ -780,7 +908,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-05-02 00:00:00",
     "person_id": 31,
-    "_id": "service_idx_84"
+    "_id": "service_idx_84",
+    "evaluation": null
   },
   {
     "name": "กรรมการสอบวิทยานิพนธ์ปริญญาเอก \"Assessment of Flood Risk and Impacts under Climate and Land use \nChanges in the Loei River Basin\"",
@@ -789,7 +918,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-05-01 00:00:00",
     "person_id": 43,
-    "_id": "service_idx_85"
+    "_id": "service_idx_85",
+    "evaluation": null
   },
   {
     "name": "เป็นผู้ทรงคุณวุฒิพิจารณาบทความ\nวารสารดอกพะยอมวิศวกรรมและเทคโนโลยี",
@@ -798,7 +928,8 @@
     "department": "ภาควิชา\nวิศวกรรมอุตสาหการ",
     "date": "1968-05-20 00:00:00",
     "person_id": 127,
-    "_id": "service_idx_86"
+    "_id": "service_idx_86",
+    "evaluation": null
   },
   {
     "name": "ต้อนรับคณะผู้แทนจากภูมิภาคแอฟริกา พร้อมทั้งร่วมบรรยายในหัวข้อ “การลดขยะและการจัดการขยะในประเทศไทย”",
@@ -807,7 +938,8 @@
     "department": "ศูนย์ปฏิบัติการ\nวิศวกรรมพลังงาน\nและสิ่งแวดล้อม",
     "date": "1968-05-13 00:00:00",
     "person_id": 164,
-    "_id": "service_idx_87"
+    "_id": "service_idx_87",
+    "evaluation": null
   },
   {
     "name": "วิทยากรในการฝึกอบรมเชิงปฏิบัติการเรื่อง “การผลิตภาชนะจากใบไม้” ณ สถานพินิจและคุ้มครองเด็กและเยาวชนจังหวัดนครปฐม",
@@ -816,7 +948,8 @@
     "department": "ศูนย์ปฏิบัติการ\nวิศวกรรมพลังงาน\nและสิ่งแวดล้อม",
     "date": "1968-05-13 00:00:00",
     "person_id": 2,
-    "_id": "service_idx_88"
+    "_id": "service_idx_88",
+    "evaluation": null
   },
   {
     "name": "คณะศึกษาดูงานจาก Greenovation Hub (GHub) สาธารณรัฐประชาชนจีน เข้าเยี่ยมชมและแลกเปลี่ยนความร่วมมือด้านระบบเกษตรอาหารที่เป็นมิตรต่อสภาพอากาศและธรรมชาติในประเทศจีนและอาเซียน",
@@ -825,7 +958,8 @@
     "department": "ศูนย์ปฏิบัติการ\nวิศวกรรมพลังงาน\nและสิ่งแวดล้อม",
     "date": "1968-05-14 00:00:00",
     "person_id": 2,
-    "_id": "service_idx_89"
+    "_id": "service_idx_89",
+    "evaluation": null
   },
   {
     "name": "เป็นกรรมการสอบวิทยานิพนธ์ ในหัวข้อ “อิทธิพลของการเติมกราฟีนออกไซต์ต่อคุณสมบัติเชิงกลของคอนกรีต”",
@@ -834,7 +968,8 @@
     "department": "ภาควิชา\nวิศวกรรมโยธา",
     "date": "1968-06-05 00:00:00",
     "person_id": 80,
-    "_id": "service_idx_90"
+    "_id": "service_idx_90",
+    "evaluation": null
   },
   {
     "name": "เป็นกรรมการสอบวิทยานิพนธ์ ในหัวข้อ “สมบัติทางกลและความทนไฟของคอนกรีตผสมด้วยของเสียพอลิเมอร์เสริมเส้นใยแก้ว”",
@@ -843,7 +978,8 @@
     "department": "ภาควิชา\nวิศวกรรมโยธา",
     "date": "1968-06-05 00:00:00",
     "person_id": 80,
-    "_id": "service_idx_91"
+    "_id": "service_idx_91",
+    "evaluation": null
   },
   {
     "name": "เป็นกรรมการสอบวิทยานิพนธ์ ในหัวข้อ “พฤติกรรมการรับแรงอัดของเสาคอนกรีตเสริมด้วยแท่งพอลิเมอร์เสริมเส้นใยแก้วเสริมกำลังด้วยแผ่นคาร์บอนไฟเบอร์”",
@@ -852,7 +988,8 @@
     "department": "ภาควิชา\nวิศวกรรมโยธา",
     "date": "1968-06-05 00:00:00",
     "person_id": 80,
-    "_id": "service_idx_92"
+    "_id": "service_idx_92",
+    "evaluation": null
   },
   {
     "name": "การบรรยายหัวข้อ การปรับปรุงกระบวนการผลิตในอุตสาหกรรมอาหาร",
@@ -861,7 +998,8 @@
     "department": "ภาควิชา\nวิศวกรรมการอาหาร",
     "date": "1968-06-13 00:00:00",
     "person_id": null,
-    "_id": "service_idx_93"
+    "_id": "service_idx_93",
+    "evaluation": null
   },
   {
     "name": "การบรรยายหัวข้อ การประยุกต์ใช้ Dash Board ในอุตสาหกรรมอาหาร",
@@ -870,7 +1008,8 @@
     "department": "ภาควิชา\nวิศวกรรมคอมพิวเตอร์",
     "date": "1968-06-13 00:00:00",
     "person_id": 139,
-    "_id": "service_idx_94"
+    "_id": "service_idx_94",
+    "evaluation": null
   },
   {
     "name": "การบรรยายหัวข้อ การประยุกต์ใช้ IoT ในอุตสาหกรรมอาหาร",
@@ -879,7 +1018,8 @@
     "department": "ภาควิชา\nวิศวกรรมคอมพิวเตอร์",
     "date": "1968-06-13 00:00:00",
     "person_id": 142,
-    "_id": "service_idx_95"
+    "_id": "service_idx_95",
+    "evaluation": null
   },
   {
     "name": "เป็นผู้ทรงคุณวุฒิบทความนานาชาติ",
@@ -888,7 +1028,8 @@
     "department": "ภาควิชา\nวิศวกรรมโยธา",
     "date": "17.มิ.ย.-68",
     "person_id": 80,
-    "_id": "service_idx_96"
+    "_id": "service_idx_96",
+    "evaluation": null
   },
   {
     "name": "วิทยากรบรรยาย หลักสูตร \"ความรู้พื้นฐานเรื่องน้ำเสีย ระบบบำบัดน้ำเสีย และการนำพลังงานสะอาดมาใช้ในการบริหารจัดการระบบบำบัดน้ำเสีย\"",
@@ -897,7 +1038,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-06-06 00:00:00",
     "person_id": 40,
-    "_id": "service_idx_97"
+    "_id": "service_idx_97",
+    "evaluation": null
   },
   {
     "name": "เข้าร่วมสัมมนาเพื่อส่งเสริมพัฒนาศักยภาพการดำเนินงานของคณะกรรมการลุ่มน้ำ",
@@ -906,7 +1048,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-06-12 00:00:00",
     "person_id": 31,
-    "_id": "service_idx_98"
+    "_id": "service_idx_98",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะอนุกรรมการวิชาการและสนับสนุนการบริหารทรัพยากรน้ำ ลุ่มน้ำท่าจีน ครั้งที่ 1/2568",
@@ -915,7 +1058,8 @@
     "department": "ภาควิชา\nศวกรรมชลประทาน",
     "date": "1968-06-13 00:00:00",
     "person_id": 36,
-    "_id": "service_idx_99"
+    "_id": "service_idx_99",
+    "evaluation": null
   },
   {
     "name": "วิทยากรบรรยาย หลักสูตร \"นโยบายการบริหารจัดการคณภาพน้ำ ในภาพรวมระดับประเทศ\"",
@@ -924,7 +1068,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-06-05 00:00:00",
     "person_id": 28,
-    "_id": "service_idx_100"
+    "_id": "service_idx_100",
+    "evaluation": null
   },
   {
     "name": "การเป็นวิทยากรบรรยายในงาน Food Innovation Asia Conference 2024",
@@ -933,7 +1078,8 @@
     "department": "ภาควิชา\nวิศวกรรมการอาหาร",
     "date": "1967-06-13 00:00:00",
     "person_id": null,
-    "_id": "service_idx_101"
+    "_id": "service_idx_101",
+    "evaluation": null
   },
   {
     "name": "คณะกรรมการและกำหนดการสอบปากเปล่าขั้นสุดท้ายบัณฑิตวิทยาลัย (ประธาน)",
@@ -942,7 +1088,8 @@
     "department": "ภาควิชา\nวิศวกรรมอุตสาหการ",
     "date": "1968-06-17 00:00:00",
     "person_id": 129,
-    "_id": "service_idx_102"
+    "_id": "service_idx_102",
+    "evaluation": null
   },
   {
     "name": "การทดสอบผลิตภัณฑ์ประตูบานเลื่อน",
@@ -951,7 +1098,8 @@
     "department": "ศูนย์ทดสอบ\nประตูหน้าต่างฯ",
     "date": "1968-06-20 00:00:00",
     "person_id": 108,
-    "_id": "service_idx_103"
+    "_id": "service_idx_103",
+    "evaluation": null
   },
   {
     "name": "การทดสอบผลิตภัณฑ์หน้าต่างบานเลื่อน/บานเปิด",
@@ -960,7 +1108,8 @@
     "department": "ศูนย์ทดสอบ\nประตูหน้าต่างฯ",
     "date": "1968-06-06 00:00:00",
     "person_id": 108,
-    "_id": "service_idx_104"
+    "_id": "service_idx_104",
+    "evaluation": null
   },
   {
     "name": "การทดสอบผลิตภัณฑ์ LAVAMIC",
@@ -969,7 +1118,8 @@
     "department": "ศูนย์ทดสอบ\nประตูหน้าต่างฯ",
     "date": "1968-06-27 00:00:00",
     "person_id": 108,
-    "_id": "service_idx_105"
+    "_id": "service_idx_105",
+    "evaluation": null
   },
   {
     "name": "เป็นอาจารย์พิเศษ รายวิชา 01208211 Workshop in Computer Aided Disigh and Drafting for Buildind Systems ประจำภาคต้น ปีการศึกษา 2568",
@@ -978,7 +1128,8 @@
     "department": "ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ",
     "date": "23 มิ.ย.68 -\n19 ต.ค.68",
     "person_id": 249,
-    "_id": "service_idx_106"
+    "_id": "service_idx_106",
+    "evaluation": null
   },
   {
     "name": "โครงการฝึกอบรมเชิงปฏิบัติการใช้เทคโนโลยีปัญญาประดิษฐ์ (AI) ในการเลี้ยงปศุสัตว์",
@@ -987,7 +1138,8 @@
     "department": "ภาควิชา\nวิศวกรรมคอมพิวเตอร์",
     "date": "1-ก.ค.-68-\n3-ก.ค.-68",
     "person_id": 141,
-    "_id": "service_idx_107"
+    "_id": "service_idx_107",
+    "evaluation": null
   },
   {
     "name": "เป็นผู้ทรงคุณวุฒิ\nประเมินบทความนานาชาติ",
@@ -996,7 +1148,8 @@
     "department": "ศูนย์เครื่องจักรกลฯ",
     "date": "1968-07-17 00:00:00",
     "person_id": 251,
-    "_id": "service_idx_108"
+    "_id": "service_idx_108",
+    "evaluation": null
   },
   {
     "name": "บรรยายหัวข้อ อัปเดตมาตรฐาน ACI 440-22 และ Spreadsheet ช่วยออกแบบ GFRP วัสดุใหม่แห่งความยั่งยืน โดย PJC",
@@ -1005,7 +1158,8 @@
     "department": "ภาควิชา\nวิศกวรรมโยธา",
     "date": "23-ก.ค.-68-\n25-ก.ค.-68",
     "person_id": 80,
-    "_id": "service_idx_109"
+    "_id": "service_idx_109",
+    "evaluation": null
   },
   {
     "name": "สัมนาวิชาการ หัวข้อ Advance Technologica Solutions for Refurbishing Reinforced Concrete Affected Infrastructure Deteriorations (online)",
@@ -1014,7 +1168,8 @@
     "department": "ภาควิชา\nวิศกวรรมโยธา",
     "date": "1968-07-01 00:00:00",
     "person_id": 81,
-    "_id": "service_idx_110"
+    "_id": "service_idx_110",
+    "evaluation": null
   },
   {
     "name": "คณะอนุกรรรมการประชาสัมพันธ์",
@@ -1023,7 +1178,8 @@
     "department": "ภาควิชา\nวิศกวรรมโยธา",
     "date": "1968-07-01 00:00:00",
     "person_id": 80,
-    "_id": "service_idx_111"
+    "_id": "service_idx_111",
+    "evaluation": null
   },
   {
     "name": "สัมมนา Thai Water Expo 2025 : Empowering Thailand's Water Furure through Knowledge, Leadership, and Collaboration สร้างศักยภาพระบบน้ำไทยด้วยความรู้ ผู้นำและความร่วมมือ",
@@ -1032,7 +1188,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-07-03 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_112"
+    "_id": "service_idx_112",
+    "evaluation": null
   },
   {
     "name": "ประธานที่ประชุมวิชาการ Session by : Thai Hydrologist Association",
@@ -1041,7 +1198,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-07-04 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_113"
+    "_id": "service_idx_113",
+    "evaluation": null
   },
   {
     "name": "ประชุมเชิงปฏิบัติการสร้างการรับรู้ในการขับเคลื่อนการดำเนินงานลุ่มน้ำแม่กลอง ตามพรบ. ทรัพยากรน้ำ พ.ศ.2561 ณ โรงแรมเวสเทิร์นแกรนด์ราชบุรี อ.เมือง จ.ราชบุรี",
@@ -1050,7 +1208,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-07-03 00:00:00",
     "person_id": 31,
-    "_id": "service_idx_114"
+    "_id": "service_idx_114",
+    "evaluation": null
   },
   {
     "name": "บรรยายหัวข้อ \"แนวทางการดำเนินงานแบบบูรณาการเพื่อขับเคลื่อนแผนแม่บทการบริหารจัดการทรัพยากรน้ำในเขตลุ่มน้ำเจ้าพระยา\"",
@@ -1059,7 +1218,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-07-22 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_115"
+    "_id": "service_idx_115",
+    "evaluation": null
   },
   {
     "name": "ผู้ทรงคุณวุฒิดำเนินรายการบนเวทีคู่ขนานของการประชุมวิชาการด้านการชลประทานและการระบายน้ำแห่งชาติ ครั้งที่ 18 หรือ THAICID National Symposium 2025",
@@ -1068,7 +1228,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-07-07 00:00:00",
     "person_id": 31,
-    "_id": "service_idx_116"
+    "_id": "service_idx_116",
+    "evaluation": null
   },
   {
     "name": "สอบวิทยานิพนธ์ ปริญญาเอกหลักสูตรนานาชาติ หัวข้อ “SUSTAINABILITY OF RICE PRODUCTION SYSTEM AGAINST IMPACTS\nOF EXTERNAL FORCING FACTORS IN THE CHAO PHRAYA RIVER BASIN, THAILAND: A SYSTEM\nDYNAMICS MODELING”",
@@ -1077,7 +1238,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-07-16 00:00:00",
     "person_id": 36,
-    "_id": "service_idx_117"
+    "_id": "service_idx_117",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะอนุกรรมการวิชาการและสนับสนุนการบริหารทรัพยากรน้ำ \nลุ่มน้ำเจ้าพระยา",
@@ -1086,7 +1248,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-07-18 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_118"
+    "_id": "service_idx_118",
+    "evaluation": null
   },
   {
     "name": "วิทยากรบรรยาย \n\"การประยุกต์ใช้เทคโนโลยี IrriSAT กับพื้นที่ชลประทานในระดับโครงการ\"\n\"แนวทางการต่อยอดการใช้งาน IrriSAT สำหรับโครงการกับสถานีตรวจวัดอากาศแบบอัตโนมัติ\"",
@@ -1095,7 +1258,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-07-24 00:00:00",
     "person_id": 33,
-    "_id": "service_idx_119"
+    "_id": "service_idx_119",
+    "evaluation": null
   },
   {
     "name": "วิทยากรบรรยาย \"ติดตามและนำเสนอการใช้งาน IrriSAT กับพื้นที่ชลประทานในระดับโครงการ\"",
@@ -1104,7 +1268,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-07-25 00:00:00",
     "person_id": 33,
-    "_id": "service_idx_120"
+    "_id": "service_idx_120",
+    "evaluation": null
   },
   {
     "name": "ประชุมรับฟังความคิดเห็น ครั้งที่ 1  โครงการค่าใช้จ่ายในการจัดทำหลักเกณฑ์การจัดสรรน้ำเพื่อการพิจารณาอนุญาตใช้ทรัพยากรน้ำสาธารณะ",
@@ -1113,7 +1278,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-07-30 00:00:00",
     "person_id": 36,
-    "_id": "service_idx_121"
+    "_id": "service_idx_121",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะอนุกรรมการวิชาการและบริหารจัดการลุ่มน้ำเจ้าพระยา",
@@ -1122,7 +1288,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-07-30 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_122"
+    "_id": "service_idx_122",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะอนุกรรมการบริหารจัดการสถานการณ์น้ำลุ่มน้ำเจ้าพระยา ครั้งที่ 1/2568 ณ ศาลากลางจังหวัดพระนครศรีอยุธยา",
@@ -1131,7 +1298,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-07-31 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_123"
+    "_id": "service_idx_123",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะอนุกรรมการวิชาการและสนับสนุนการบริหารทรัพยากรน้ำ \nลุ่มน้ำท่าจีน ครั้งที่ 2/2568",
@@ -1140,7 +1308,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-07-31 00:00:00",
     "person_id": 36,
-    "_id": "service_idx_124"
+    "_id": "service_idx_124",
+    "evaluation": null
   },
   {
     "name": "เป็นประธานหลักสูตรวิศวกรรมศาสตรมหาบัณฑิต สาขาวิชาวิศวกรรมเครื่องกล มทร.อีสาน(โคราช)",
@@ -1149,7 +1318,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-07-01 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_125"
+    "_id": "service_idx_125",
+    "evaluation": null
   },
   {
     "name": "เป็นประธานหลักสูตรวิศวกรรมศาสตรบัณฑิต สาขาวิชาวิศวกรรมเครื่องกล มทร.อีสาน(ขอนแก่น)",
@@ -1158,7 +1328,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-07-01 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_126"
+    "_id": "service_idx_126",
+    "evaluation": null
   },
   {
     "name": "เป็นประธานหลักสูตรวิทยาศาสตรบัณฑิต สาขาวิชาเทคโนโลยีเพื่อการพัฒนายั่งยืน มธ.",
@@ -1167,7 +1338,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-07-01 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_127"
+    "_id": "service_idx_127",
+    "evaluation": null
   },
   {
     "name": "เป็นประธานหลักสูตรวิศวกรรมศาสตรมหาบัณฑิต สาขาวิชาบริหารงานวิศวกรรมการก่อสร้าง ม.เอเซียอาคเนย์",
@@ -1176,7 +1348,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-07-01 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_128"
+    "_id": "service_idx_128",
+    "evaluation": null
   },
   {
     "name": "เป็นกรรมการหลักสูตรวิทยาศาสตรมหาบัณฑิต สาขาวิชาเทคโนโลยีเพื่อการพัฒนายั่งยืน มธ.",
@@ -1185,7 +1358,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-07-01 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_129"
+    "_id": "service_idx_129",
+    "evaluation": null
   },
   {
     "name": "เป็นกรรมกาหลักสูตรปรัชญาดุษฎีบัณฑิต สาขาวิชาเทคโนโลยีการจัดการพลังงานและสิ่งแวดล้อม มธ.",
@@ -1194,7 +1368,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-07-01 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_130"
+    "_id": "service_idx_130",
+    "evaluation": null
   },
   {
     "name": "โรงเรียนวัดไทรใหญ่ \n(นนททิวากรราษฎร์บำรุง)  \nจังหวัดนนทบุรี",
@@ -1203,7 +1378,8 @@
     "department": "ภาควิชา\nวิศวกรรมคอมพิวเตอร์",
     "date": "1968-08-05 00:00:00",
     "person_id": 141,
-    "_id": "service_idx_131"
+    "_id": "service_idx_131",
+    "evaluation": null
   },
   {
     "name": "ณ วิทยาลัยสารพัดช่างนครปฐม \nจ.นครปฐม",
@@ -1212,7 +1388,8 @@
     "department": "ภาควิชา\nวิศวกรรมคอมพิวเตอร์",
     "date": "1968-08-06 00:00:00",
     "person_id": 141,
-    "_id": "service_idx_132"
+    "_id": "service_idx_132",
+    "evaluation": null
   },
   {
     "name": "ปัญหา Corrosion ในโครงสร้างคอนกรีต และการป้องกันแก้ไข",
@@ -1221,7 +1398,8 @@
     "department": "ภาควิชา\nวิศวกรรมโยธา",
     "date": "1968-08-14 00:00:00",
     "person_id": 81,
-    "_id": "service_idx_133"
+    "_id": "service_idx_133",
+    "evaluation": null
   },
   {
     "name": "Overview Agriculture in Thailand",
@@ -1230,7 +1408,8 @@
     "department": "ศูนย์เครื่องจักรกลฯ",
     "date": "1968-08-20 00:00:00",
     "person_id": 251,
-    "_id": "service_idx_134"
+    "_id": "service_idx_134",
+    "evaluation": null
   },
   {
     "name": "ประชุมเชิงปฏิบัติการสร้างการรับรู้ในการขับเคลื่อนการดำเนินงานลุ่มน้ำแม่กลอง ตาม พ.ร.บ.ทรัพยากรน้ำ \nพ.ศ. 2561",
@@ -1239,7 +1418,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-08-07 00:00:00",
     "person_id": 31,
-    "_id": "service_idx_135"
+    "_id": "service_idx_135",
+    "evaluation": null
   },
   {
     "name": "วิทยากรบรรยาย \n\"หลักการชลประทานในแปลงอ้อย\"",
@@ -1248,7 +1428,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-08-22 00:00:00",
     "person_id": 31,
-    "_id": "service_idx_136"
+    "_id": "service_idx_136",
+    "evaluation": null
   },
   {
     "name": "ประชุมสภาคณะผู้บริหารบัณฑิตศึกษาแห่งประเทศไทย (สคบท) ครั้งที่ 3/2568",
@@ -1257,7 +1438,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "17/ส.ค./68-\n18/ส.ค./68",
     "person_id": 35,
-    "_id": "service_idx_137"
+    "_id": "service_idx_137",
+    "evaluation": null
   },
   {
     "name": "ประชุมเตรียมการบริหารจัดการน้ำลุ่มน้ำเจ้าพระยาและลุ่มน้ำที่เกี่ยวข้อง",
@@ -1266,7 +1448,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-08-13 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_138"
+    "_id": "service_idx_138",
+    "evaluation": null
   },
   {
     "name": "วิทยากรบรรยาย \"การควบคุมดูแลระบบน้ำบำบัดน้ำเสีย\"",
@@ -1275,7 +1458,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-08-26 00:00:00",
     "person_id": 40,
-    "_id": "service_idx_139"
+    "_id": "service_idx_139",
+    "evaluation": null
   },
   {
     "name": "วิทยากรบรรยาย \n\"กิจกรรมร้อยอาชีพสู่ฝัน \nครั้งที่ 16\"",
@@ -1284,7 +1468,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-08-28 00:00:00",
     "person_id": 44,
-    "_id": "service_idx_140"
+    "_id": "service_idx_140",
+    "evaluation": null
   },
   {
     "name": "วิทยากรบรรยาย \n\"การจัดการแปลงเกษตรด้วยระบบ Smart Farming",
@@ -1293,7 +1478,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-08-23 00:00:00",
     "person_id": 32,
-    "_id": "service_idx_141"
+    "_id": "service_idx_141",
+    "evaluation": null
   },
   {
     "name": "ประชุมเตรียมกระบวนการ workshop เวทีบทเรียนการขับเคลื่อนมติการบริหารจัดการกลไกน้ำ ในคณะกรรมการลุ่มน้ำเจ้าพระยา",
@@ -1302,7 +1488,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-08-26 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_142"
+    "_id": "service_idx_142",
+    "evaluation": null
   },
   {
     "name": "แต่งตั้งเป็น \"อุปนายก\" คณะกรรมการสมาคมนักอุทกวิทยาไทย วาระปี 2568-2569",
@@ -1311,7 +1498,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "ปี 2568-2569",
     "person_id": 34,
-    "_id": "service_idx_143"
+    "_id": "service_idx_143",
+    "evaluation": null
   },
   {
     "name": "แต่งตั้งเป็น \"กรรมการ\" คณะกรรมการสมาคมนักอุทกวิทยาไทย วาระปี 2568-2569",
@@ -1320,7 +1508,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "ปี 2568-2569",
     "person_id": 28,
-    "_id": "service_idx_144"
+    "_id": "service_idx_144",
+    "evaluation": null
   },
   {
     "name": "แต่งตั้งเป็น \"ที่ปรึกษาคณะทำงาน\" คณะทำงานปรับปรุงและพัฒนาแบบจำลองลุ่มน้ำเจ้าพระยา ด้วยโปรแกรม HEC-RAS, HEC-HMS เพื่อการบริหารจัดการน้ำท่วม",
@@ -1329,7 +1518,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "สิงหาคม 2568 \nเป็นต้นไป",
     "person_id": 28,
-    "_id": "service_idx_145"
+    "_id": "service_idx_145",
+    "evaluation": null
   },
   {
     "name": "อาจารย์พิเศษสอนในรายวิชา \nว30251 วิทยาศาสตร์และนวัตกรรม สำหรับนักเรียนชั้นมัธยมศึกษาปีที่ 4 ภายใต้โครงการห้องเรียนวิทยาศาสตร์ในโรงเรียน โดยการกำกับดูแลของมหาวิทยาลัยเกษตรศาสตร์ วิทยาเขตกำแพงแสน \n(โครงการ วมว.มก.)(ครั้งที่ 1)",
@@ -1338,7 +1528,8 @@
     "department": "ศูนย์ปฏิบัติการวิศวกรรม\nพลังงานและสิ่งแวดล้อม",
     "date": "1968-08-04 00:00:00",
     "person_id": 2,
-    "_id": "service_idx_146"
+    "_id": "service_idx_146",
+    "evaluation": null
   },
   {
     "name": "ให้การต้อนรับ บริษัท อัลลายด์เทคเอ็นจิเนียริ่ง จำกัด จังหวัดกาญจนบุรี ในการเข้าศึกษาดูงานเกี่ยวกับการพัฒนาเทคโนโลยีและการแลกเปลี่ยนองค์ความรู้ด้าน Gasifier และการผลิตไบโอชาร์ (Biochar)",
@@ -1347,7 +1538,8 @@
     "department": "ศูนย์ปฏิบัติการวิศวกรรม\nพลังงานและสิ่งแวดล้อม",
     "date": "1968-08-05 00:00:00",
     "person_id": 2,
-    "_id": "service_idx_147"
+    "_id": "service_idx_147",
+    "evaluation": null
   },
   {
     "name": "อาจารย์พิเศษสอนในรายวิชา\n ว30251 วิทยาศาสตร์และนวัตกรรม สำหรับนักเรียนชั้นมัธยมศึกษาปีที่ 4 ภายใต้โครงการห้องเรียนวิทยาศาสตร์ในโรงเรียน โดยการกำกับดูแลของมหาวิทยาลัยเกษตรศาสตร์ \nวิทยาเขตกำแพงแสน \n(โครงการ วมว.มก.) (ครั้งที่ 2)",
@@ -1356,7 +1548,8 @@
     "department": "ศูนย์ปฏิบัติการวิศวกรรม\nพลังงานและสิ่งแวดล้อม",
     "date": "1968-08-13 00:00:00",
     "person_id": 2,
-    "_id": "service_idx_148"
+    "_id": "service_idx_148",
+    "evaluation": null
   },
   {
     "name": "อาจารย์พิเศษสอนในรายวิชา\n ว30251 วิทยาศาสตร์และนวัตกรรม สำหรับนักเรียนชั้นมัธยมศึกษาปีที่ 4 ภายใต้โครงการห้องเรียนวิทยาศาสตร์ในโรงเรียน โดยการกำกับดูแลของมหาวิทยาลัยเกษตรศาสตร์ \nวิทยาเขตกำแพงแสน\n(โครงการ วมว.มก.) (ครั้งที่ 3)",
@@ -1365,7 +1558,8 @@
     "department": "ศูนย์ปฏิบัติการวิศวกรรม\nพลังงานและสิ่งแวดล้อม",
     "date": "1968-08-18 00:00:00",
     "person_id": 2,
-    "_id": "service_idx_149"
+    "_id": "service_idx_149",
+    "evaluation": null
   },
   {
     "name": "จัดโครงการอบรมหลักสูตร\n “การอบรมและสาธิตการใช้เตาประหยัดพลังงานและเตาเบ๊บซี เพื่อเพิ่มมูลค่าน้ำมันพืชใช้แล้วและวัสดุเหลือใช้ทางการเกษตรให้เป็นเชื้อเพลิงความร้อน พ.ศ. 2568”",
@@ -1374,7 +1568,8 @@
     "department": "ศูนย์ปฏิบัติการวิศวกรรม\nพลังงานและสิ่งแวดล้อม",
     "date": "1968-08-20 00:00:00",
     "person_id": 2,
-    "_id": "service_idx_150"
+    "_id": "service_idx_150",
+    "evaluation": null
   },
   {
     "name": "ให้การต้อนรับนิสิตแลกเปลี่ยนระหว่างมหาวิทยาลัยเกษตรศาสตร์ และ Okayama University ประเทศญี่ปุ่น",
@@ -1383,7 +1578,8 @@
     "department": "ศูนย์ปฏิบัติการวิศวกรรม\nพลังงานและสิ่งแวดล้อม",
     "date": "1968-08-26 00:00:00",
     "person_id": 164,
-    "_id": "service_idx_151"
+    "_id": "service_idx_151",
+    "evaluation": null
   },
   {
     "name": "เป็นกรรมการหลักสูตรวิทยาศาสตรมหาบัณฑิต สาขาวิชาความปลอดภัยของอาหารในผลิตผลทางการเกษตร มก.",
@@ -1392,7 +1588,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-08-01 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_152"
+    "_id": "service_idx_152",
+    "evaluation": null
   },
   {
     "name": "เป็นกรรมการหลักสูตรวิศวกรรมศาสตรบัณฑิต สาขาวิชาวิศวกรรมระบบการผลิตดิจิทัล มก.",
@@ -1401,7 +1598,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-08-01 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_153"
+    "_id": "service_idx_153",
+    "evaluation": null
   },
   {
     "name": "เป็นกรรมการหลักสูตร วิทยาศาสตรมหาบัณฑิต สาขาวิชาวิทยาศาสตร์และเทคโนโลยีสิ่งแวดล้อม มก.",
@@ -1410,7 +1608,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-08-01 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_154"
+    "_id": "service_idx_154",
+    "evaluation": null
   },
   {
     "name": "เป็นกรรมการหลักสูตรวิทยาศาสตรมหาบัณฑิต สาขาวิชาเทคโนโลยีและการจัดการสิ่งแวดล้อม มก.",
@@ -1419,7 +1618,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-08-01 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_155"
+    "_id": "service_idx_155",
+    "evaluation": null
   },
   {
     "name": "เป็นกรรมการหลักสูตรวิทยาศาสตรมหาบัณฑิต สาขาวิชาวิจัยและพัฒนากาชรเกษตร (นานาชาติ) มก.",
@@ -1428,7 +1628,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-08-01 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_156"
+    "_id": "service_idx_156",
+    "evaluation": null
   },
   {
     "name": "เป็นกรรมการหลักสูตรวิทยาศาสตรมบัณฑิต สาขาวิศวกรรมอุตสาหการ มก.",
@@ -1437,7 +1638,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-08-01 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_157"
+    "_id": "service_idx_157",
+    "evaluation": null
   },
   {
     "name": "เป็นกรรมการหลักสูตรวิทยาศาสตรมหาบัณฑิต สาขาวิชาการจัดการวิศวกรรมและเทคโนโลยี มก.",
@@ -1446,7 +1648,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-08-01 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_158"
+    "_id": "service_idx_158",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะกรรมการลุ่มน้ำท่าจีน ครั้งที่ 6/2568",
@@ -1455,7 +1658,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-09-24 00:00:00",
     "person_id": 36,
-    "_id": "service_idx_159"
+    "_id": "service_idx_159",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะอนุกรรมการวิชาการและบริหารจัดการลุ่มน้ำเจ้าพระยา ครั้งที่ 2/2568",
@@ -1464,7 +1668,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-09-04 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_160"
+    "_id": "service_idx_160",
+    "evaluation": null
   },
   {
     "name": "ประชุมสัมมนาถอดบทเรียนการติดตามประเมินผลการบริหารจัดการน้ำและมาตรการรองรับในช่วงฤดูแล้ว ปี 2567/68",
@@ -1473,7 +1678,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-09-23 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_161"
+    "_id": "service_idx_161",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะทำงานปรับปรุงและพัฒนาแบบจำลองลุ่มน้ำเจ้าพระยาด้วยโปรแรม HEC-RAS, HEC-HMS เพื่อการบริหารจัดการน้ำท่วม \nครั้งที่ 1/2568",
@@ -1482,7 +1688,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-09-26 00:00:00",
     "person_id": 28,
-    "_id": "service_idx_162"
+    "_id": "service_idx_162",
+    "evaluation": null
   },
   {
     "name": "ประชุมประจำปี 2568",
@@ -1491,7 +1698,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-09-26 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_163"
+    "_id": "service_idx_163",
+    "evaluation": null
   },
   {
     "name": "ประชุมระดมสมอง เรื่อง กำหนดแผนงานวิจัยด้านทรัพยากรน้ำและการผลักดันผลงานวิจัยไปสู่การใช้ประโยชน์ (2571-2575)",
@@ -1500,7 +1708,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-09-24 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_164"
+    "_id": "service_idx_164",
+    "evaluation": null
   },
   {
     "name": "ให้การต้อนรับคณะจาก \nUI Green",
@@ -1509,7 +1718,8 @@
     "department": "ศูนย์ปฏิบัติการวิศวกรรม\nพลังงานและสิ่งแวดล้อม",
     "date": "1968-09-03 00:00:00",
     "person_id": 2,
-    "_id": "service_idx_165"
+    "_id": "service_idx_165",
+    "evaluation": null
   },
   {
     "name": "ให้การต้อนรับคณะอนุรักษ์ไบโอปราณ เข้าศึกษาดูงานเครื่องอัดภาชนะจากใบไม้และเครื่องอัดกระถางจากวัสดุธรรมชาติ",
@@ -1518,7 +1728,8 @@
     "department": "ศูนย์ปฏิบัติการวิศวกรรม\nพลังงานและสิ่งแวดล้อม",
     "date": "1968-09-05 00:00:00",
     "person_id": 2,
-    "_id": "service_idx_166"
+    "_id": "service_idx_166",
+    "evaluation": null
   },
   {
     "name": "บริษัท สยามวู้ดแลนด์ จำกัด \nอำเภอลำลูกกา จังหวัดปทุมธานี เข้าใช้บริการเครื่องอัดภาชนะใบไม้",
@@ -1527,7 +1738,8 @@
     "department": "ศูนย์ปฏิบัติการวิศวกรรม\nพลังงานและสิ่งแวดล้อม",
     "date": "1968-09-12 00:00:00",
     "person_id": 2,
-    "_id": "service_idx_167"
+    "_id": "service_idx_167",
+    "evaluation": null
   },
   {
     "name": "เทคโนโลยีนวัตกรรมการผลิตข้าวคุณภาพ 5 ป. ปลอดการเผา การจัดการและการใช้ประโยชน์ฟางข้าว",
@@ -1536,7 +1748,8 @@
     "department": "ศูนย์ปฏิบัติการวิศวกรรม\nพลังงานและสิ่งแวดล้อม",
     "date": "1968-09-23 00:00:00",
     "person_id": 2,
-    "_id": "service_idx_168"
+    "_id": "service_idx_168",
+    "evaluation": null
   },
   {
     "name": "เป็นผู้ทรงคุณวุฒิ\nประเมินข้อเสนอโครงการวิจัยเพื่อขอรับทุนอุดหนุนงานวิจัยจากงบประมาณด้านวิทยาศาสตร์ วิจัยและนวัตกรรม",
@@ -1545,7 +1758,8 @@
     "department": "ภาควิชา\nวิศวกรรมเกษตร",
     "date": "1968-10-26 00:00:00",
     "person_id": 4,
-    "_id": "service_idx_169"
+    "_id": "service_idx_169",
+    "evaluation": null
   },
   {
     "name": "โครงการส่งน้ำและบำรุงรักษาเจ้าพระยา เรื่องการเสื่อมสภาพของโครงสร้างคอนกรีตตเสริมเหล็ก และบริษัทฯ",
@@ -1554,7 +1768,8 @@
     "department": "ภาควิชา\nวิศวกรรโยธา",
     "date": "8-9-ต.ค.68",
     "person_id": 81,
-    "_id": "service_idx_170"
+    "_id": "service_idx_170",
+    "evaluation": null
   },
   {
     "name": "กิจกรรมเผยแพร่องค์ความรู้การผลิตกระทงสาย EM รักษ์โลกโดยสมาคมอนุรักษ์สิ่งแวดล้อมล้อมชุมชนไทย ร่วมกับ การไฟฟ้าฝ่ายผลิตแห่งประเทศไทย ณ วัดโตนด (หลวงพ่อสำเร็จ) อ.บางกรวย จ.นนทบุรี",
@@ -1563,7 +1778,8 @@
     "department": "ศูนย์ปฏิบัติการวิศวกรรม\nพลังงานและสิ่งแวดล้อม",
     "date": "1968-10-18 00:00:00",
     "person_id": 2,
-    "_id": "service_idx_171"
+    "_id": "service_idx_171",
+    "evaluation": null
   },
   {
     "name": "โครงการวิจัย การส่งเสริมความสามารถการผลิตข้าวคุณภาพและการบริหารจัดการเชิงธุรกิจแบบมีส่วนร่วมของชาวนาภาคตะวันตก \nโดยสำนักส่งเสริมและฝึกอบรม \nม.เกษตร กำแพงแสน",
@@ -1572,7 +1788,8 @@
     "department": "ศูนย์ปฏิบัติการวิศวกรรม\nพลังงานและสิ่งแวดล้อม",
     "date": "15-ต..ค.68",
     "person_id": 2,
-    "_id": "service_idx_172"
+    "_id": "service_idx_172",
+    "evaluation": null
   },
   {
     "name": "การจัดการฟางข้าวและการใช้ประโยชน์ จากวัสดุเหลือใช้ทางการเกษตร ที่ศูนย์ข้าวชุมชน ตำบลทุ่งขวาง ตำบลหลักเมตร นครปฐม",
@@ -1581,7 +1798,8 @@
     "department": "ศูนย์ปฏิบัติการวิศวกรรม\nพลังงานและสิ่งแวดล้อม",
     "date": "1968-10-30 00:00:00",
     "person_id": 2,
-    "_id": "service_idx_173"
+    "_id": "service_idx_173",
+    "evaluation": null
   },
   {
     "name": "จัดโครงการอบรมหลักสูตร “การฝึกอบรมเชิงปฏิบัติการการผลิตกระถางเพาะชำจากวัสดุธรรมชาติด้วยเครื่องอัดกระถางแบบมือโยกและไฮดรอลิก เพื่อส่งเสริมเศรษฐกิจหมุนเวียนในระดับชุมชน พ.ศ. 2568”",
@@ -1590,7 +1808,8 @@
     "department": "ศูนย์ปฏิบัติการวิศวกรรม\nพลังงานและสิ่งแวดล้อม",
     "date": "1968-10-01 00:00:00",
     "person_id": 2,
-    "_id": "service_idx_174"
+    "_id": "service_idx_174",
+    "evaluation": null
   },
   {
     "name": "ให้การต้อนรับคุณครูและนักเรียนชั้นมัธยมศึกษาปีที่ 5 จากโรงเรียนสาธิตแห่งมหาวิทยาลัยเกษตรศาสตร์ ศูนย์วิจัยและพัฒนาการศึกษาที่ได้จัดทำโครงการการศึกษารอบรู้เฉพาะเรื่อง เรื่อง การออกแบบกระถางเพาะชำจากเปลือกข้าวโพด เข้าใช้บริการเครื่องอัดกระถางวัสดุจากธรรมชาติ",
@@ -1599,7 +1818,8 @@
     "department": "ศูนย์ปฏิบัติการวิศวกรรม\nพลังงานและสิ่งแวดล้อม",
     "date": "1968-10-06 00:00:00",
     "person_id": 2,
-    "_id": "service_idx_175"
+    "_id": "service_idx_175",
+    "evaluation": null
   },
   {
     "name": "จัดโครงการอบรมหลักสูตร “การออกแบบและปฏิบัติการให้น้ำแก่แปลงข้าวโพดขนาดใหญ่ด้วยระบบน้ำหยดแบบ Inline dripper (Low tape drip)”",
@@ -1608,7 +1828,8 @@
     "department": "ศูนย์ปฏิบัติการวิศวกรรม\nพลังงานและสิ่งแวดล้อม",
     "date": "1968-10-08 00:00:00",
     "person_id": 2,
-    "_id": "service_idx_176"
+    "_id": "service_idx_176",
+    "evaluation": null
   },
   {
     "name": "วิทยากรโครงการจัดทำแผนยกระดับชุมชนอุดมสุขสู่การเป็นแกนกลางการเกษตร ปีบัญชี 2568 ให้กับกลุ่มวิสาหกิจชุมชนศูนย์เรียนรู้การเพิ่มประสิทธิภาพการผลิตตำบลทุ่งขวาง ในหัวข้อ \"การแปรรูปผลิตภัณฑ์จากข้าวเพื่อเพิ่มมูลค่าผลผลิต\" ณ ศูนย์เรียนรู้การเพิ่มประสิทธิภาพการผลิตตำบลทุ่งขวาง อำเภอกำแพงแสน จังหวัดนครปฐม จัดโดยสำนักส่งเสริมและฝึกอบรม กำแพงแสน ร่วมกับ สำนักงาน ธ.ก.ส.จังหวัดนครปฐม",
@@ -1617,7 +1838,8 @@
     "department": "ศูนย์ปฏิบัติการวิศวกรรม\nพลังงานและสิ่งแวดล้อม",
     "date": "1968-10-30 00:00:00",
     "person_id": 2,
-    "_id": "service_idx_177"
+    "_id": "service_idx_177",
+    "evaluation": null
   },
   {
     "name": "อบรมเชิงปฏิบัติการ การสร้างระบบ NIR สำหรับการวิเคราะห์ประจำวัน",
@@ -1626,7 +1848,8 @@
     "department": "ภาควิชา\nวิศวกรรมการอาหาร",
     "date": "2568-10-30 00:00:00",
     "person_id": 62,
-    "_id": "service_idx_178"
+    "_id": "service_idx_178",
+    "evaluation": null
   },
   {
     "name": "ประชุมรับฟังความคิดเห็น ครั้งที่ 2 โครงการค่าใช้จ่ายในการจัดทำหลักเกณฑ์การจัดสรรน้ำเพื่อการพิจารณาอนุฐาตใช้ทรัพยากรน้ำสาธารณะ",
@@ -1635,7 +1858,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "2568-10-03 00:00:00",
     "person_id": 36,
-    "_id": "service_idx_179"
+    "_id": "service_idx_179",
+    "evaluation": null
   },
   {
     "name": "ประชุมระดับความคิดเห็นต่อการจัดทำสมุดปกขาว \"อว. For Water\"",
@@ -1644,7 +1868,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "2568-10-07 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_180"
+    "_id": "service_idx_180",
+    "evaluation": null
   },
   {
     "name": "ประชุมอนุกรรมการขับเคลื่อนแผนแม่บทและแผนงานโครงการในเขตลุ่มน้ำท่าจีน ครั้งที่ 1/2568 ณ ศาลากลางจังหวัดสุพรรณบุรี",
@@ -1653,7 +1878,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "2568-10-16 00:00:00",
     "person_id": 36,
-    "_id": "service_idx_181"
+    "_id": "service_idx_181",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะอนุกรรมการกลั่นกรองแผนปฏิบัติการด้านทรัพยากรน้ำลุ่มน้ำแม่กลอง ครั้งที่ 1/2568 ณ ศาลากลางจังหวัดราชบุรี",
@@ -1662,7 +1888,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "2568-10-21 00:00:00",
     "person_id": 31,
-    "_id": "service_idx_182"
+    "_id": "service_idx_182",
+    "evaluation": null
   },
   {
     "name": "สอนในหัวข้อ Transboundary water and water footprint",
@@ -1671,7 +1898,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-10-31 00:00:00",
     "person_id": 36,
-    "_id": "service_idx_183"
+    "_id": "service_idx_183",
+    "evaluation": null
   },
   {
     "name": "แต่งตั้งผู้ทรงคุณวุฒิสำหรับการจ้างที่ปรึกษาเพื่อศึกษาแนวทางการควบคุมอาคารและจัดทำคู่มือมาตรการสำหรับอาคารในการปรับตัว(Adaptation )และการเตรียมพร้อมในการรับมือ (Resilience) กับการเปลี่ยนแปลงสภาพภูมิอากาศ",
@@ -1680,7 +1908,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-10-01 00:00:00",
     "person_id": 28,
-    "_id": "service_idx_184"
+    "_id": "service_idx_184",
+    "evaluation": null
   },
   {
     "name": "เป็นกรรมการหลักสูตร วท.บ.โภชนศาสตร์และเทคโนโลยีอาหารสัตว์",
@@ -1689,7 +1918,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-10-01 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_185"
+    "_id": "service_idx_185",
+    "evaluation": null
   },
   {
     "name": "เป็นกรรมการหลักสูตร ป.รด. โภชนศาสตร์และเทคโนโลยีอาหารสัตว์",
@@ -1698,7 +1928,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-10-01 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_186"
+    "_id": "service_idx_186",
+    "evaluation": null
   },
   {
     "name": "เป็นกรรมการหลักสูตร วทบ.เทคโนโลยีชีวภาพทางการเกษตร",
@@ -1707,7 +1938,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-10-01 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_187"
+    "_id": "service_idx_187",
+    "evaluation": null
   },
   {
     "name": "เป็นกรรมการหลักสูตร วศม.วิศวกรรมอาหาร",
@@ -1716,7 +1948,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-10-01 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_188"
+    "_id": "service_idx_188",
+    "evaluation": null
   },
   {
     "name": "เป็นกรรมการหลักสูตร วศ.ด.บ.วิศวกรรมอาหาร",
@@ -1725,7 +1958,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-10-01 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_189"
+    "_id": "service_idx_189",
+    "evaluation": null
   },
   {
     "name": "เป็นกรรมการหลักสูตร วศ.บ.วิศวกรรมอุตสาหการ",
@@ -1734,7 +1968,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-10-01 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_190"
+    "_id": "service_idx_190",
+    "evaluation": null
   },
   {
     "name": "เป็นกรรมการหลักสูตร วศ.บ.วิศวกรรมชลประทาน",
@@ -1743,7 +1978,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-10-01 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_191"
+    "_id": "service_idx_191",
+    "evaluation": null
   },
   {
     "name": "เป็นประธานบัณฑิตวิทยาลัยวิศวกรรมศาสตร์นานาชาติสิรินธร ไทย-เยอรมัน มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ",
@@ -1752,7 +1988,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-10-01 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_192"
+    "_id": "service_idx_192",
+    "evaluation": null
   },
   {
     "name": "เป็นประธานสถาบันวิจัยและพัฒนา มหาวิทยาลัยเทคโนโลยีราชมงคลตะวันออก",
@@ -1761,7 +1998,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-10-01 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_193"
+    "_id": "service_idx_193",
+    "evaluation": null
   },
   {
     "name": "เป็นประธานสำนักส่งเสริมวิชาการและงานทะเบียน มหาวิทยาลัยเทคโนโลยีราชมงคลตะวันออก",
@@ -1770,7 +2008,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-10-01 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_194"
+    "_id": "service_idx_194",
+    "evaluation": null
   },
   {
     "name": "เป็นกรรมการคณะแพทยศาสตร์ มหาวิทยาลัยศรีนครินทรวิโรฒ",
@@ -1779,7 +2018,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-10-01 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_195"
+    "_id": "service_idx_195",
+    "evaluation": null
   },
   {
     "name": "เป็นกรรมการคณะวิศวกรรมศาสตร์ มหาวิทยาลัยศรีนครินทรวิโรฒ",
@@ -1788,7 +2028,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-10-01 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_196"
+    "_id": "service_idx_196",
+    "evaluation": null
   },
   {
     "name": "เป็นกรรมการคณะศิลปศาสตร์ มทร. ธัญญะบุรี",
@@ -1797,7 +2038,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-10-01 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_197"
+    "_id": "service_idx_197",
+    "evaluation": null
   },
   {
     "name": "คณะการแพทย์บูรณาการ \nมทร. ธัญญะบุรี",
@@ -1806,7 +2048,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-10-01 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_198"
+    "_id": "service_idx_198",
+    "evaluation": null
   },
   {
     "name": "เป็นกรรมการคณะสถาปัตยกรรมศาสตร์และการออกแบบ มหาวิทยาลัยเทคโนโลยีราชมงคลรัตนโกสินทร์",
@@ -1815,7 +2058,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-10-01 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_199"
+    "_id": "service_idx_199",
+    "evaluation": null
   },
   {
     "name": "เป็นกรรมการคณะวิศวกรรมศาสตร์ ม.อบ.",
@@ -1824,7 +2068,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-10-01 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_200"
+    "_id": "service_idx_200",
+    "evaluation": null
   },
   {
     "name": "เป็นกรรมการวิทยาศาสตร์ \nม.อบ.",
@@ -1833,7 +2078,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-10-01 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_201"
+    "_id": "service_idx_201",
+    "evaluation": null
   },
   {
     "name": "เป็นกรรมการคณะมนุษยศาสตร์ มก.",
@@ -1842,7 +2088,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-10-01 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_202"
+    "_id": "service_idx_202",
+    "evaluation": null
   },
   {
     "name": "เป็นกรรมการคณะศิลปะศาสตร์และวิทยาศาสตร์ มก.",
@@ -1851,7 +2098,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-10-01 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_203"
+    "_id": "service_idx_203",
+    "evaluation": null
   },
   {
     "name": "เป็นกรรมการคณะพาณิชยนาวี",
@@ -1860,7 +2108,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-10-01 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_204"
+    "_id": "service_idx_204",
+    "evaluation": null
   },
   {
     "name": "เป็นกรรมการคณะวิทยาศาสตร์และวิศวกรรมศาสตร์",
@@ -1869,7 +2118,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-10-01 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_205"
+    "_id": "service_idx_205",
+    "evaluation": null
   },
   {
     "name": "เข้าร่วมเป็นคณะทำงานกลั่นกรองโครงการบ้านมั่นคงเมืองชนบท และสินเชื่อเพื่อการพัฒนาภาคกรุงเทพฯปริมณฑลและตะวันออก",
@@ -1878,7 +2128,8 @@
     "department": "ภาควิชา\nวิศวกรรมโยธา",
     "date": "1968-10-28 00:00:00",
     "person_id": null,
-    "_id": "service_idx_206"
+    "_id": "service_idx_206",
+    "evaluation": null
   },
   {
     "name": "โครงการพัฒนาศักยภาพการบริหารจัดการคุณภาพน้ำ องค์กรปกครองส่วนท้องถิ่น รุ่นที่ 8 (ครั้งที่ 1/2569)",
@@ -1887,7 +2138,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-11-13 00:00:00",
     "person_id": 28,
-    "_id": "service_idx_207"
+    "_id": "service_idx_207",
+    "evaluation": null
   },
   {
     "name": "วิวัฒนาการของการตรวจสอบคุณภาพผลผลิตเกษตรแบบไม่ทำลาย: จาก NIR สู่ Hyperspectral Imaging",
@@ -1896,7 +2148,8 @@
     "department": "ภาควิชา\nวิศวกรรมเกษตร",
     "date": "1968-11-03 00:00:00",
     "person_id": 7,
-    "_id": "service_idx_208"
+    "_id": "service_idx_208",
+    "evaluation": null
   },
   {
     "name": "เป็นประธานการสอบวิทยานิพนธ์ \nเรื่อง Co-precipitated proteins based on Bambara groundnut protein isolate and acid solublecollagen:\nPreparation,characterization and film formation",
@@ -1905,7 +2158,8 @@
     "department": "ภาควิชา\nวิศกวรรมการอาหาร",
     "date": "6-พ.ย-69",
     "person_id": null,
-    "_id": "service_idx_209"
+    "_id": "service_idx_209",
+    "evaluation": null
   },
   {
     "name": "เป็นคณะกรรมการตรวจประกันคุณภาพเครือข่ายมหาวิทยาลัยอาเซียน (Asean University Network Quality Assurance,\nAUN-QA)",
@@ -1914,7 +2168,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1968-11-17 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_210"
+    "_id": "service_idx_210",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะกรรมการลุ่มน้ำท่าจีน ครั้งที่ 7/2568 online",
@@ -1923,7 +2178,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-11-06 00:00:00",
     "person_id": 36,
-    "_id": "service_idx_211"
+    "_id": "service_idx_211",
+    "evaluation": null
   },
   {
     "name": "วิทยากรบรรยาย \"ความรู้พื้นฐานเรื่องน้ำเสีย ระบบบำบัดน้ำเสีย และการนำพลังงานสะอาดมาใช้ในการบริหารจัดการระบบบำบัดน้ำเสีย\"",
@@ -1932,7 +2188,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-11-12 00:00:00",
     "person_id": 40,
-    "_id": "service_idx_212"
+    "_id": "service_idx_212",
+    "evaluation": null
   },
   {
     "name": "วิทยากรบรรยาย \"นโยบายการบริหารจัดการคุณภาพน้ำ ในภาพรวมระดับประเทศ\"",
@@ -1941,7 +2198,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-11-13 00:00:00",
     "person_id": 28,
-    "_id": "service_idx_213"
+    "_id": "service_idx_213",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะกรรมการลุ่มน้ำแม่กลอง ครั้งที่ 5/2568 ณ \nศาลากลางจังหวัดราชบุรี",
@@ -1950,7 +2208,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-11-04 00:00:00",
     "person_id": 31,
-    "_id": "service_idx_214"
+    "_id": "service_idx_214",
+    "evaluation": null
   },
   {
     "name": "วิทยากรเสวนา \"สถานการณ์น้ำท่วม บรรเทาได้ด้วยวิจัย และนวัตกรรม\" หัวข้อ สถานการณ์และ\nแนวโน้มน้ำท่วม",
@@ -1959,7 +2218,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-11-14 00:00:00",
     "person_id": 28,
-    "_id": "service_idx_215"
+    "_id": "service_idx_215",
+    "evaluation": null
   },
   {
     "name": "วิทยากรเสวนา \"สถานการณ์น้ำท่วม บรรเทาได้ด้วยวิจัย และนวัตกรรม\" หัวข้อ บทเรียน และข้อเสนอแนะการน้ำในพื้นที่ภาคกลาง",
@@ -1968,7 +2228,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-11-14 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_216"
+    "_id": "service_idx_216",
+    "evaluation": null
   },
   {
     "name": "นำเสนอหัวข้อความท้าทายต่อการขับเคลื่อนมิต \"ข้อท้าทายต่อการขับเคลื่อนการส่งเสริมความเข้มแข็งกลไกการบริหารจัดการน้ำเชิงพื้นที่\" ในงานสัชชาสุขภาพแห่งชาติ \nครั้งที่ 18",
@@ -1977,7 +2238,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-11-28 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_217"
+    "_id": "service_idx_217",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะทำงานด้านวิชาการ THAICID ครั้งที่ 1/2569",
@@ -1986,7 +2248,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-11-17 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_218"
+    "_id": "service_idx_218",
+    "evaluation": null
   },
   {
     "name": "แต่งตั้งคณะกรรมการดำเนินการศึกษาและวางแนวทางการแก้ปัญหา อุทกภัยหาดใหญ่อย่างยั่งยืน",
@@ -1995,7 +2258,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "ตั้งแต่ \n30พ.ย.68",
     "person_id": 34,
-    "_id": "service_idx_219"
+    "_id": "service_idx_219",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะทำงานปรับปรุงและพัฒนาแบบจำลองลุ่มน้ำเจ้าพระยาด้วยโปรแกรม HEC-RAS, HEC- HMS เพื่อการบริหารจัดการน้ำท่วม ครั้งที่ 2/2568",
@@ -2004,7 +2268,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-11-25 00:00:00",
     "person_id": 28,
-    "_id": "service_idx_220"
+    "_id": "service_idx_220",
+    "evaluation": null
   },
   {
     "name": "ศูนย์สัตว์ทดลองแห่งชาติ มหาวิทยาลัยมหิดล เข้าศึกษาดูงานเครื่องอัดกระถาง และผลิตภัณฑ์",
@@ -2013,7 +2278,8 @@
     "department": "ศูนย์ปฏิบัติการวิศวกรรมพลังงาน\nและสิ่งแวดล้อม",
     "date": "1968-11-12 00:00:00",
     "person_id": 2,
-    "_id": "service_idx_221"
+    "_id": "service_idx_221",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะกรรมการดำเนินการศึกษาและวางแนวทางการแก้ปัญหา อุทกภัยหาดใหญ่อย่างยั่งยืน \nครั้งที่ 1/2568",
@@ -2022,7 +2288,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-12-01 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_222"
+    "_id": "service_idx_222",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะกรรมการและที่ปรึกษา สมาคมนักอุทกวิทยาไทย",
@@ -2031,7 +2298,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-12-11 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_223"
+    "_id": "service_idx_223",
+    "evaluation": null
   },
   {
     "name": "วิทยากรบรรยาย",
@@ -2040,7 +2308,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-12-24 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_224"
+    "_id": "service_idx_224",
+    "evaluation": null
   },
   {
     "name": "ได้รับแต่งตั้งเป็นประธานคณะอนุกรรมการ ฝ่ายวิชาการและกิจการต่างประเทศ",
@@ -2049,7 +2318,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-12-01 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_225"
+    "_id": "service_idx_225",
+    "evaluation": null
   },
   {
     "name": "ได้รับแต่งตั้งเป็นรองประธานคณะอนุกรรมการ ฝ่ายวิชาการและกิจการต่างประเทศ",
@@ -2058,7 +2328,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-12-01 00:00:00",
     "person_id": 28,
-    "_id": "service_idx_226"
+    "_id": "service_idx_226",
+    "evaluation": null
   },
   {
     "name": "ได้รับแต่งตั้งเป็นอนุกรรมการ ในคณะอนุกรรมการ ฝ่ายวิชาการและกิจการต่างประเทศ",
@@ -2067,7 +2338,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1968-12-01 00:00:00",
     "person_id": 36,
-    "_id": "service_idx_227"
+    "_id": "service_idx_227",
+    "evaluation": null
   },
   {
     "name": "ภาควิชาวิศวกรรมชลประทาน \nคณะวิศวกรรมศาสตร์ กำแพงแสน ร่วมการประชุม ณ ห้องประชุมศูนย์ปฏิบัติการน้ำอัจฉริยะ สำนักงานชลประทานที่ 1 \n(SWOC1) จังหวัดเชียงใหม่",
@@ -2076,7 +2348,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "2568-12-25 00:00:00",
     "person_id": 42,
-    "_id": "service_idx_228"
+    "_id": "service_idx_228",
+    "evaluation": null
   },
   {
     "name": "การประชุมระดมสมองเพื่อจัดทำยุทธศาสตร์เครื่องจักรกลการเกษตรของประเทศ",
@@ -2085,7 +2358,8 @@
     "department": "ภาควิชา\nวิศวกรรมเกษตร",
     "date": "2569-01-19 00:00:00",
     "person_id": 4,
-    "_id": "service_idx_229"
+    "_id": "service_idx_229",
+    "evaluation": null
   },
   {
     "name": "การประชุมระดมสมองเพื่อจัดทำยุทธศาสตร์เครื่องจักรกลการเกษตร\nของประเทศ",
@@ -2094,7 +2368,8 @@
     "department": "ภาควิชา\nวิศวกรรมเกษตร",
     "date": "2569-01-20 00:00:00",
     "person_id": 16,
-    "_id": "service_idx_230"
+    "_id": "service_idx_230",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะอนุกรรมการวิชาการ กรรมการลุ่มน้ำท่าจีน \nครั้งที่ 1/2569 online",
@@ -2103,7 +2378,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1969-01-05 00:00:00",
     "person_id": 36,
-    "_id": "service_idx_231"
+    "_id": "service_idx_231",
+    "evaluation": null
   },
   {
     "name": "กรรมการประเมินคุณภาพการศึกษาภายใน ระดับหลักสูตร ปีการศึกษา 2567",
@@ -2112,7 +2388,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1969-01-16 00:00:00",
     "person_id": 31,
-    "_id": "service_idx_232"
+    "_id": "service_idx_232",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะอนุกรรมการขับเคลื่อนแผนแม่บทการบริหารจัดการทรัพยากรน้ำในเขตลุ่มน้ำเจ้าพระยา \nครั้งที่ 1/2569",
@@ -2121,7 +2398,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1969-01-12 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_233"
+    "_id": "service_idx_233",
+    "evaluation": null
   },
   {
     "name": "ประชุมรับฟังความคิดเห็นต่อรายงานผลดำเนินการศึกษาและวางแนวทางการแก้ปัญหาอุทกภัยหาดใหญ่อย่างยั่งยืน",
@@ -2130,7 +2408,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1969-01-12 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_234"
+    "_id": "service_idx_234",
+    "evaluation": null
   },
   {
     "name": "วิทยากรบรรยาย \"แนวทางการจัดสรรน้ำและการใช้น้ำ และการจัดลำดับความสำคัญของการใช้น้ำ ประกอบการพิจารณาอนุญาตการใช้น้ำในภาวะน้ำแล้ง/น้ำท่วม ในมุมมองของผู้แทนคณะ\nกรรมการลุ่มน้ำ\"",
@@ -2139,7 +2418,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1969-01-13 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_235"
+    "_id": "service_idx_235",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะกรรมการลุ่มน้ำเจ้าพระยา ครั้งที่ 1/2569",
@@ -2148,7 +2428,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1969-01-12 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_236"
+    "_id": "service_idx_236",
+    "evaluation": null
   },
   {
     "name": "ประชุมหารือแลกเปลี่ยนและรับฟังข้อเสนอแนะโครงการก่อสร้างระบบป้องกันน้ำท่วมพื้นที่ชุมชนเมืองสมุทรสงคราม",
@@ -2157,7 +2438,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1969-01-26 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_237"
+    "_id": "service_idx_237",
+    "evaluation": null
   },
   {
     "name": "เป็นผู้เชี่ยวชาญ \"จัดทำร่างประกาศเชิญชวน ร่างเอกสารสำหรับคัดเลือกเอกชน \nร่างเอกสารสัญญาร่วมลงทุน\"",
@@ -2166,7 +2448,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1969-01-01 00:00:00",
     "person_id": 28,
-    "_id": "service_idx_238"
+    "_id": "service_idx_238",
+    "evaluation": null
   },
   {
     "name": "เป็นอนุกรรมการในสมาคมวิศวกรรมสถานแห่ง\nประเทศไทย ในพระราชูปถัมภ์",
@@ -2175,7 +2458,8 @@
     "department": "ภาควิชา\nวิศวกรรมโยธา",
     "date": "1969-01-01 00:00:00",
     "person_id": 80,
-    "_id": "service_idx_239"
+    "_id": "service_idx_239",
+    "evaluation": null
   },
   {
     "name": "เป็นผู้ประเมินด้านวิชาการในการตรวจประเมินใหม่ห้องปฏิบัติการทดสอบ",
@@ -2184,7 +2468,8 @@
     "department": "ภาควิชา\nวิศวกรรมการอาหาร",
     "date": "15-16 ม.ค.69",
     "person_id": 62,
-    "_id": "service_idx_240"
+    "_id": "service_idx_240",
+    "evaluation": null
   },
   {
     "name": "เป็นผู้ประเมินด้านวิชาการในการตรวจประเมินความสามารถและประสบการณ์เหมาะสม",
@@ -2193,7 +2478,8 @@
     "department": "ภาควิชา\nวิศวกรรมการอาหาร",
     "date": "20-21 ม.ค.69",
     "person_id": 62,
-    "_id": "service_idx_241"
+    "_id": "service_idx_241",
+    "evaluation": null
   },
   {
     "name": "แต่งตั้งคณะอนุกรรมการวิศวกรรมวัสดุคอนกรีต \nการซ่อมแซม และการบำรุงรักษาเพื่อความยั่งยืนในคณะกรรมการสาขาวิศวกรรมโยธา ประจำปี 2569",
@@ -2202,7 +2488,8 @@
     "department": "ภาควิชา\nวิศวกรรมโยธา",
     "date": "1969-01-01 00:00:00",
     "person_id": 80,
-    "_id": "service_idx_242"
+    "_id": "service_idx_242",
+    "evaluation": null
   },
   {
     "name": "แต่งตั้งคณะอนุกรรมการวิศวกรรมวัสดุคอนกรีต การซ่อมแซม และการบำรุงรักษาเพื่อความยั่งยืนในคณะกรรมการสาขาวิศวกรรมโยธา ประจำปี 2569",
@@ -2211,7 +2498,8 @@
     "department": "ภาควิชา\nวิศวกรรมโยธา",
     "date": "1969-01-01 00:00:00",
     "person_id": 89,
-    "_id": "service_idx_243"
+    "_id": "service_idx_243",
+    "evaluation": null
   },
   {
     "name": "เป็นกรรมการสอบ\nวิทยานิพนธ์ของนักศึกษา",
@@ -2220,7 +2508,8 @@
     "department": "ภาควิชา\nวิศวกรรมโยธา",
     "date": "1969-01-29 00:00:00",
     "person_id": 80,
-    "_id": "service_idx_244"
+    "_id": "service_idx_244",
+    "evaluation": null
   },
   {
     "name": "แต่งตั้งอาจารย์ที่ปรึกษาวิทยานิพนธ์และคณะกรรมการสอบวิทยานิพนธ์ ที่ 21/2569",
@@ -2229,7 +2518,8 @@
     "department": "ภาควิชา\nวิศวกรรมโยธา",
     "date": "1969-01-26 00:00:00",
     "person_id": 80,
-    "_id": "service_idx_245"
+    "_id": "service_idx_245",
+    "evaluation": null
   },
   {
     "name": "แต่งตั้งคณะกรรมการประเมินคุณภาพการศึกษาภายใน ระดับหลักสูตร ตามเกณฑ์ AUN-QA ประจำปีการศึกษา 2567 (ชุดที่4)",
@@ -2238,7 +2528,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "1969-01-20 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_246"
+    "_id": "service_idx_246",
+    "evaluation": null
   },
   {
     "name": "วิทยากรค่ายพัฒนาทักษะทางวิชาการ ในหัวข้อ กิจกรรมศาสตร์ของวัสดุและการประคอง",
@@ -2247,7 +2538,8 @@
     "department": "ภาควิชา\nวิศวกรรมอุตสาหการ",
     "date": "31 ม.ค.69",
     "person_id": 127,
-    "_id": "service_idx_247"
+    "_id": "service_idx_247",
+    "evaluation": null
   },
   {
     "name": "การบริหารจัดการวัสดุเหลือใช้ทางการเกษตร \"การใช้ประโยชน์ฟางข้าวและแกลบ\"",
@@ -2256,7 +2548,8 @@
     "department": "ศูนย์ปฏิบัติการวิศวกรรม\nพลังงานและสิ่งแวดล้อม",
     "date": "2569-01-27 00:00:00",
     "person_id": 2,
-    "_id": "service_idx_248"
+    "_id": "service_idx_248",
+    "evaluation": null
   },
   {
     "name": "บริษัท มินริน จำกัด เข้าศึกษาดูงานเครื่องอัดภาชนะใบไม้",
@@ -2265,7 +2558,8 @@
     "department": "ศูนย์ปฏิบัติการวิศวกรรม\nพลังงานและสิ่งแวดล้อม",
     "date": "1969-01-07 00:00:00",
     "person_id": 2,
-    "_id": "service_idx_249"
+    "_id": "service_idx_249",
+    "evaluation": null
   },
   {
     "name": "มหาวิทยาลัยสงขลานครินทร์ เข้าศึกษาดูงานและหารือด้านก๊าซชีวภาพ",
@@ -2274,7 +2568,8 @@
     "department": "ศูนย์ปฏิบัติการวิศวกรรม\nพลังงานและสิ่งแวดล้อม",
     "date": "1969-01-19 00:00:00",
     "person_id": 2,
-    "_id": "service_idx_250"
+    "_id": "service_idx_250",
+    "evaluation": null
   },
   {
     "name": "วิทยากรการบรรยายในการสัมมนาเชิงปฏิบัติการด้านการพัฒนาผลิตภัณฑ์จากวัสดุเหลือใช้จากกระบวนการผลิตข้าว \nจ.อยุธยา",
@@ -2283,7 +2578,8 @@
     "department": "ศูนย์ปฏิบัติการวิศวกรรม\nพลังงานและสิ่งแวดล้อม",
     "date": "1969-01-27 00:00:00",
     "person_id": 2,
-    "_id": "service_idx_251"
+    "_id": "service_idx_251",
+    "evaluation": null
   },
   {
     "name": "Review ต้นฉบับบทความวิจัยวารสารระดับนานาชาติ Computers and Electronics In Agriculture 1 เรื่อง",
@@ -2292,7 +2588,8 @@
     "department": "ภาควิชา\nวิศวกรรมเกษตร",
     "date": "1969-01-20 00:00:00",
     "person_id": 4,
-    "_id": "service_idx_252"
+    "_id": "service_idx_252",
+    "evaluation": null
   },
   {
     "name": "แต่งตั้งผู้ทรงคุณวุฒิพิจารณาบทความวิจัยเพื่อตีพิมพ์ลงวารสารวิชาการ มหาวิทยาลัยเทคโนโลยีราชมงคลอีสาน (ฉบับที่ 349)",
@@ -2301,7 +2598,8 @@
     "department": "ภาควิชา\nวิศวกรรมโยธา",
     "date": "2569-01-23 00:00:00",
     "person_id": 80,
-    "_id": "service_idx_253"
+    "_id": "service_idx_253",
+    "evaluation": null
   },
   {
     "name": "แต่งตั้งที่ปรึกษาภายใน ด้านการพัฒนาคุณภาพการศึกษาสู่ความเป็นเลิศ มหาวิทยาลัยเกษตรศาสตร์",
@@ -2310,7 +2608,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "2569-01-28 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_254"
+    "_id": "service_idx_254",
+    "evaluation": null
   },
   {
     "name": "แต่งตั้งคณะกรรมการประเมินคุณภาพการศึกษาเพื่อดำเนินการที่เป็นเลิศระดับคณะ และวิทยาเขต มหาวิทยาลัยเกษตรศาสตร์ ประจำปีการศึกษา 2567",
@@ -2319,7 +2618,8 @@
     "department": "ภาควิชา\nวิศววกรรมเครื่องกล",
     "date": "2569-02-06 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_255"
+    "_id": "service_idx_255",
+    "evaluation": null
   },
   {
     "name": "วิทยากรบรรยายในหัวข้อ \"นโยบายการบริหารจัดการคุณภาพน้ำในภาพรวมระดับประเทศ\"",
@@ -2328,7 +2628,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "2569-02-26 00:00:00",
     "person_id": 28,
-    "_id": "service_idx_256"
+    "_id": "service_idx_256",
+    "evaluation": null
   },
   {
     "name": "ผู้ดำเนินรายการ เสวนาวิชาการ เรื่อง \"ประสบการณ์น้ำท่วมเชียงใหม่-หาดใหญ่ เราเรียนรู้อะไร ควรเตรียมการและปรับตัวอย่างไร",
@@ -2337,7 +2638,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "2569-02-20 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_257"
+    "_id": "service_idx_257",
+    "evaluation": null
   },
   {
     "name": "วิทยากรบรรยายในหัวข้อ \"ความรู้พื้นฐานเรื่องน้ำเสียระบบบำบัดน้ำเสีย และการนำพลังงานสะอาดมาใช้ในการบริหารจัดการระบบ\nบำบัดน้ำเสีย\"",
@@ -2346,7 +2648,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "2569-02-25 00:00:00",
     "person_id": 40,
-    "_id": "service_idx_258"
+    "_id": "service_idx_258",
+    "evaluation": null
   },
   {
     "name": "ประชุมกรรมการลุ่มน้ำท่าจีนครั้งที่ 1/69",
@@ -2355,7 +2658,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "2569-02-04 00:00:00",
     "person_id": 36,
-    "_id": "service_idx_259"
+    "_id": "service_idx_259",
+    "evaluation": null
   },
   {
     "name": "เป็นอาจารย์พิเศษบรรยาย \"การตรวจสอบคุณภาพผลผลิตทางการเกษตรแบบไม่ทำลาย\"",
@@ -2364,7 +2668,8 @@
     "department": "ภาควิชา\nวิศวกรรมอาหาร",
     "date": "1969-02-19 00:00:00",
     "person_id": 62,
-    "_id": "service_idx_260"
+    "_id": "service_idx_260",
+    "evaluation": null
   },
   {
     "name": "เป็นผู้ให้การอบรมเกษตรกรสาธิตระบบให้น้ำและปุ๋ยอย่างแม่นยำ",
@@ -2373,7 +2678,8 @@
     "department": "ภาควิชา\nวิศวกรรมอาหาร",
     "date": "1969-02-28 00:00:00",
     "person_id": 62,
-    "_id": "service_idx_261"
+    "_id": "service_idx_261",
+    "evaluation": null
   },
   {
     "name": "คณะกรรมการอำนวยการ ทสม. ระดับจังหวัด \nจังหวัดนครปฐม",
@@ -2382,7 +2688,8 @@
     "department": "ศูนย์ปฏิบัติการวิศวกรรม\nพลังงานและสิ่งแวดล้อม",
     "date": "2569-02-09 00:00:00",
     "person_id": 2,
-    "_id": "service_idx_262"
+    "_id": "service_idx_262",
+    "evaluation": null
   },
   {
     "name": "เป็นคณะกรรมการอำนวยการและคณะกรรมการวิชาการของสมาคมคอนกรีตประจำปี\n พ.ศ.2569-2570",
@@ -2391,7 +2698,8 @@
     "department": "ภาควิชา\nวิศวกรรมโยธา",
     "date": "2569-02-03 00:00:00",
     "person_id": 80,
-    "_id": "service_idx_263"
+    "_id": "service_idx_263",
+    "evaluation": null
   },
   {
     "name": "แต่งตั้งคณะกรรมการยุววิศวกร ประจำปี 2569-2571",
@@ -2400,7 +2708,8 @@
     "department": "ภาควิชา\nวิศวกรรมโยธา",
     "date": "2569-02-09 00:00:00",
     "person_id": 80,
-    "_id": "service_idx_264"
+    "_id": "service_idx_264",
+    "evaluation": null
   },
   {
     "name": "วิทยากรบรรยายในหัวข้อ\n\"โครงการก่อสร้างอาคารนวัตกรรมการเรียนรู้ทางวิศวกรรมศาสตร์\"",
@@ -2409,7 +2718,8 @@
     "department": "งานพัฒนากายภาพ",
     "date": "1969-02-19 00:00:00",
     "person_id": 26,
-    "_id": "service_idx_265"
+    "_id": "service_idx_265",
+    "evaluation": null
   },
   {
     "name": "จัดแสดงนิทรรศการผลงานวิจัยนวัตกรรมในงานเกษตรแฟร์ ประจำปี 2569",
@@ -2418,7 +2728,8 @@
     "department": "ศูนย์ปฏิบัติการวิศวกรรม\nพลังงานและสิ่งแวดล้อม",
     "date": "7 ก.พ. 69",
     "person_id": 167,
-    "_id": "service_idx_266"
+    "_id": "service_idx_266",
+    "evaluation": null
   },
   {
     "name": "นักศึกษาปีที่ 1 \nคณะศิลปศาสตร์และวิทยาศาสตร์ เข้าศึกษาดูงาน",
@@ -2427,7 +2738,8 @@
     "department": "ศูนย์ปฏิบัติการวิศวกรรม\nพลังงานและสิ่งแวดล้อม",
     "date": "2569-02-03 00:00:00",
     "person_id": 165,
-    "_id": "service_idx_267"
+    "_id": "service_idx_267",
+    "evaluation": null
   },
   {
     "name": "เข้าร่วมการประชุมคณะกรรมการอำนวยการ ทสม. ระดับจังหวัด\n จังหวัดนครปฐม",
@@ -2436,7 +2748,8 @@
     "department": "ศูนย์ปฏิบัติการวิศวกรรม\nพลังงานและสิ่งแวดล้อม",
     "date": "2569-02-09 00:00:00",
     "person_id": 2,
-    "_id": "service_idx_268"
+    "_id": "service_idx_268",
+    "evaluation": null
   },
   {
     "name": "สำนักส่งเสริมฯ นำทีมผู้ประกอบการ เข้าศึกษาดูงาน",
@@ -2445,7 +2758,8 @@
     "department": "ศูนย์ปฏิบัติการวิศวกรรม\nพลังงานและสิ่งแวดล้อม",
     "date": "2569-02-10 00:00:00",
     "person_id": 2,
-    "_id": "service_idx_269"
+    "_id": "service_idx_269",
+    "evaluation": null
   },
   {
     "name": "คณะศึกษาดูงานจากสำนักงานส่งเสริมการปกครองท้องถิ่นจังหวัดนครปฐม ในการจัดกิจกรรมศึกษาเรียนรู้ “การกำจัดเศษใบไม้และกิ่งไม้ในบ้านเรือนและชุมชน ด้วยเตาเผาไร้ควัน” เพื่อสนับสนุนการดำเนินงานตามแผนปฏิบัติการจัดการขยะมูลฝอยชุมชน “จังหวัดสะอาด”\n ประจำปี พ.ศ. 2569",
@@ -2454,7 +2768,8 @@
     "department": "ศูนย์ปฏิบัติการวิศวกรรม\nพลังงานและสิ่งแวดล้อม",
     "date": "2569-02-12 00:00:00",
     "person_id": 2,
-    "_id": "service_idx_270"
+    "_id": "service_idx_270",
+    "evaluation": null
   },
   {
     "name": "จัดนิทรรศการในงาน 3 อ. FOR FIT ณ สำนักส่งเสริมและฝึกอบรม กำแพงแสน",
@@ -2463,7 +2778,8 @@
     "department": "ศูนย์ปฏิบัติการวิศวกรรม\nพลังงานและสิ่งแวดล้อม",
     "date": "12-14\nก.พ. 69",
     "person_id": 166,
-    "_id": "service_idx_271"
+    "_id": "service_idx_271",
+    "evaluation": null
   },
   {
     "name": "จัดนิทรรศการ ในงาน green gain day ต.กระตีบ \nอ.กำแพงแสน จ.นครปฐม",
@@ -2472,7 +2788,8 @@
     "department": "ศูนย์ปฏิบัติการวิศวกรรม\nพลังงานและสิ่งแวดล้อม",
     "date": "2569-02-24 00:00:00",
     "person_id": null,
-    "_id": "service_idx_272"
+    "_id": "service_idx_272",
+    "evaluation": null
   },
   {
     "name": "ส่งมอบเครื่องอัดกระถางวัสดุจากธรรมชาติและเครื่องผสมวัสดุ พร้อมสาธิตการใช้งาน ให้กับโรงเรียนกาบเชิงวิทยา อำเภอกาบเชิง จังหวัดสุรินทร์",
@@ -2481,7 +2798,8 @@
     "department": "ศูนย์ปฏิบัติการวิศวกรรม\nพลังงานและสิ่งแวดล้อม",
     "date": "2569-02-24 00:00:00",
     "person_id": 2,
-    "_id": "service_idx_273"
+    "_id": "service_idx_273",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะทำงานพัฒนาหลักเกณฑ์ มาตรฐานการบริหารจัดการทรัพยากรน้ำ ครั้งที่ 1/2569",
@@ -2490,7 +2808,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "2569-03-05 00:00:00",
     "person_id": 28,
-    "_id": "service_idx_274"
+    "_id": "service_idx_274",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะอนุกรรมการวิชาการและบริหารจัดการน้ำเจ้าพระยา ครั้งที่ 1/2569",
@@ -2499,7 +2818,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "2569-03-04 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_275"
+    "_id": "service_idx_275",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะอนุกรรมการบริหารจัดการสถานการณ์น้ำลุ่มน้ำเจ้าพระยา \nครั้งที่ 2/2569",
@@ -2508,7 +2828,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "2569-03-06 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_276"
+    "_id": "service_idx_276",
+    "evaluation": null
   },
   {
     "name": "วิทยากรบรรยาย \"ประเด็นการมีส่วนร่วมในการบริหารจัดการพื้นที่รับน้ำเพื่อการพัฒนาอย่างยั่งยืน\"",
@@ -2517,7 +2838,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "2569-03-05 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_277"
+    "_id": "service_idx_277",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะกรรมการลุ่มน้ำเจ้าพระยา ครั้งที่ 2/2569",
@@ -2526,7 +2848,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "2569-03-10 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_278"
+    "_id": "service_idx_278",
+    "evaluation": null
   },
   {
     "name": "ประชุมสัมมนาระดมความคิดเห็นกรรมการลุ่มน้ำ\nผู้ทรงคุณวุฒิ 22 ลุ่มน้ำ เพื่อขับเคลื่อนการพัฒนาลุ่มน้ำอย่างยั่งยืน",
@@ -2535,7 +2858,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "2569-03-27 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_279"
+    "_id": "service_idx_279",
+    "evaluation": null
   },
   {
     "name": "วิทยากรให้ความรู้หัวข้อ \"โครงการเพิ่มประสิทธิภาพระบบการบริหารจัดการน้ำและควบคุมอาคารชลประทานจากระยะไกลในแม่น้ำปิงสายหลัก\"",
@@ -2544,7 +2868,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "2569-03-13 00:00:00",
     "person_id": 38,
-    "_id": "service_idx_280"
+    "_id": "service_idx_280",
+    "evaluation": null
   },
   {
     "name": "วิทยากรบรรยายการประชุมเสวนาวิชาการ เรื่อง รู้ทัน การ\nเปลี่ยนแปลงพร้อมรับมือแล้งนี้",
@@ -2553,7 +2878,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "2569-03-30 00:00:00",
     "person_id": null,
-    "_id": "service_idx_281"
+    "_id": "service_idx_281",
+    "evaluation": null
   },
   {
     "name": "ประชุมเสวนาวิชาการ \nเรื่อง รู้ทัน การเปลี่ยนแปลง \nพร้อมรับมือแล้งนี้",
@@ -2562,7 +2888,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "2569-03-30 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_282"
+    "_id": "service_idx_282",
+    "evaluation": null
   },
   {
     "name": "อาจารย์พิเศษ บรรยายวิชา EGEW564 Hydroinformatics\n in Advanced Water Resources Engineering หัวข้อ Vector and Raster Data Analysis & Terrain Analysis and Hydrological Modeling ภาควิชาวิศวกรรมโยธาและสิ่งแวดล้อม \nม.มหิดล วิทยาเขตศาลายา",
@@ -2571,7 +2898,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "2569-03-17 00:00:00",
     "person_id": 31,
-    "_id": "service_idx_283"
+    "_id": "service_idx_283",
+    "evaluation": null
   },
   {
     "name": "อาจารย์พิเศษ บรรยายวิชา EGEW564 Hydroinformatics in Advanced Water Resources Engineering หัวข้อ Geospatial Modelling for Water Resources Management ภาควิชาวิศวกรรมโยธาและสิ่งแวดล้อม ม.มหิดล วิทยาเขตศาลายา",
@@ -2580,7 +2908,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "2569-03-24 00:00:00",
     "person_id": 31,
-    "_id": "service_idx_284"
+    "_id": "service_idx_284",
+    "evaluation": null
   },
   {
     "name": "อาจารย์พิเศษ บรรยายวิชา EGEW564 Hydroinformatics in Advanced Water Resources Engineering หัวข้อ Remote Sensing in Hydrology ภาควิชาวิศวกรรมโยธาและสิ่งแวดล้อม ม.มหิดล วิทยาเขตศาลายา",
@@ -2589,7 +2918,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "2569-03-31 00:00:00",
     "person_id": 31,
-    "_id": "service_idx_285"
+    "_id": "service_idx_285",
+    "evaluation": null
   },
   {
     "name": "กรรมการสอบเค้าโครงวิทยานิพนธ์ คณะวิศวกรรมศาสตร์ มหาวิทยาลัยขอนแก่น",
@@ -2598,7 +2928,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "2569-03-24 00:00:00",
     "person_id": 43,
-    "_id": "service_idx_286"
+    "_id": "service_idx_286",
+    "evaluation": null
   },
   {
     "name": "เป็นประธานกรรมการสอบป้องกันวิทยานิพนธ์",
@@ -2607,7 +2938,8 @@
     "department": "ภาควิชา\nวิศวกรรมการอาหาร",
     "date": "1969-03-16 00:00:00",
     "person_id": null,
-    "_id": "service_idx_287"
+    "_id": "service_idx_287",
+    "evaluation": null
   },
   {
     "name": "ส่งเสริมและสนับสนุนการวิจัยและนวัตกรรมภายใต้แผนงานน้ำมั่นคง ไม่ท่วม ไม่แล้ง ใน 10 จังหวัดด้านการเกษตร",
@@ -2616,7 +2948,8 @@
     "department": "ภาควิชา\nวิศวกรรมการอาหาร",
     "date": "1969-03-12 00:00:00",
     "person_id": 62,
-    "_id": "service_idx_288"
+    "_id": "service_idx_288",
+    "evaluation": null
   },
   {
     "name": "เป็นผู้ทรงคุณวุฒิในการประชุมระดมสมองเพื่อจัดทำกรอบการวิจัยและนวัตกรรม ประจำปีงบประมาณ 2570 \nด้านเศรษฐกิจและการเกษตร",
@@ -2625,7 +2958,8 @@
     "department": "ภาควิชา\nวิศวกรรมการอาหาร",
     "date": "1969-03-26 00:00:00",
     "person_id": 62,
-    "_id": "service_idx_289"
+    "_id": "service_idx_289",
+    "evaluation": null
   },
   {
     "name": "7th Asia Pacific International Conference on Industrial Engineering and Operations Management\nBangkok, Thailand, March 25-27, 2026",
@@ -2634,7 +2968,8 @@
     "department": "ศูนย์ปฏิบัติการวิศวกรรม\nพลังงานและสิ่งแวดล้อม",
     "date": "1969-03-10 00:00:00",
     "person_id": null,
-    "_id": "service_idx_290"
+    "_id": "service_idx_290",
+    "evaluation": null
   },
   {
     "name": "วิทยากรการอบรมเชิงปฏิบัติการสร้างมูลค่าเพิ่มเศษวัสดุเหลือใช้ทางการเกษตร โครงการส่งเสริมการเกษตรที่เป็นมิตรกับสิ่งแวดล้อม กิจกรรม จัดตั้ง \"Green Gain Hub\" ระดับจังหวัด ณ ต.บางไทรป่า อ.บางเลน จ.นครปฐม",
@@ -2643,7 +2978,8 @@
     "department": "ศูนย์ปฏิบัติการวิศวกรรม\nพลังงานและสิ่งแวดล้อม",
     "date": "1969-03-13 00:00:00",
     "person_id": 2,
-    "_id": "service_idx_291"
+    "_id": "service_idx_291",
+    "evaluation": null
   },
   {
     "name": "จัดนิทรรศการ ภายใต้โครงการวิจัยการส่งเสริมความสามารถการผลิตข้าวคุณภาพและการบริหารจัดการเชิงธุรกิจแบบมีส่วนร่วมของชาวนาภาคตะวันตก ณ ศูนย์ส่งเสริมและฝึกอบรมการเกษตรแห่งชาติ",
@@ -2652,7 +2988,8 @@
     "department": "ศูนย์ปฏิบัติการวิศวกรรม\nพลังงานและสิ่งแวดล้อม",
     "date": "1969-03-27 00:00:00",
     "person_id": 166,
-    "_id": "service_idx_292"
+    "_id": "service_idx_292",
+    "evaluation": null
   },
   {
     "name": "เป็นวิทยากรบรรยายในงานสัมมนาความรู้ Design Precaign Strucyural Members with GFRP",
@@ -2661,7 +2998,8 @@
     "department": "ภาควิชา\nวิศวกรรมโยธา",
     "date": "1969-03-20 00:00:00",
     "person_id": 80,
-    "_id": "service_idx_293"
+    "_id": "service_idx_293",
+    "evaluation": null
   },
   {
     "name": "เข้าร่วมดำเนินงานโครงการวิจัย การศึกษาความเป็นไปได้ในการปรับปรุงรายการตรวจสอบสภาพอาคารเขื่อนทดแทนน้ำเก่า เพื่อลดความเสี่ยงต่อความเสียหายต่อพื้นที่เกษตรกรรม",
@@ -2670,7 +3008,8 @@
     "department": "ภาควิชา \nวิศวกรรมโยธา",
     "date": "1969-03-06 00:00:00",
     "person_id": 81,
-    "_id": "service_idx_294"
+    "_id": "service_idx_294",
+    "evaluation": null
   },
   {
     "name": "เป็นประธานกรรมการและผู้ทรงคุณวุฒิสอบหัวข้อและ\nเค้าโครงวิทยานิพนธ์",
@@ -2679,7 +3018,8 @@
     "department": "ภาควิชา \nวิศวกรรมโยธา",
     "date": "1969-03-25 00:00:00",
     "person_id": 80,
-    "_id": "service_idx_295"
+    "_id": "service_idx_295",
+    "evaluation": null
   },
   {
     "name": "เป็นกรรมการสอบวิทยานิพนธ์ \nโครงการบัณฑิตศึกษา ในหัวข้อ การประยุกต์ใช้วิธีการตกตะกอนแคลเซียมคาร์บอเนต โดยเชื้อจุลินทรีย์ในมอตาร์ (ออนไลน์)",
@@ -2688,7 +3028,8 @@
     "department": "ภาควิชา \nวิศวกรรมโยธา",
     "date": "1969-03-24 00:00:00",
     "person_id": 80,
-    "_id": "service_idx_296"
+    "_id": "service_idx_296",
+    "evaluation": null
   },
   {
     "name": "กรรมการสอบ ป้องกันสารนิพนธ์ของนักศึกษา\nระดับปริญญาโท",
@@ -2697,7 +3038,8 @@
     "department": "ภาควิชา \nวิศวกรรมโยธา",
     "date": "1969-03-25 00:00:00",
     "person_id": 81,
-    "_id": "service_idx_297"
+    "_id": "service_idx_297",
+    "evaluation": null
   },
   {
     "name": "Invited Speaker ในการประชุมวิชาการ Inaugural Meeting of the Tropical Crops Machinery Branch of the Chinese Society for Agricultural Machinery and the High-Quality Development Forum on Tropical Crop Machinery",
@@ -2706,7 +3048,8 @@
     "department": "ภาควิชา \nวิศวกรรมเกษตร",
     "date": "28 มี.ค.- \n2 เม.ย. 69",
     "person_id": 4,
-    "_id": "service_idx_298"
+    "_id": "service_idx_298",
+    "evaluation": null
   },
   {
     "name": "เป็นประธานกรรมการประเมินคุณภาพการศึกษาเพื่อดำเนินการที่เป็นเลิศ ระดับสายสนับสนุน",
@@ -2715,7 +3058,8 @@
     "department": "ภาควิชา\nวิศวกรรมเครื่องกล",
     "date": "2569-04-30 00:00:00",
     "person_id": 105,
-    "_id": "service_idx_299"
+    "_id": "service_idx_299",
+    "evaluation": null
   },
   {
     "name": "เป็นผู้ทรงคุณวุฒิในการประชุมปรึกษาหารือทางวิชาการเพื่อให้คำแนะนำและแลกเปลี่ยนแนวคิดในหัวข้อ\"เทคโนโลยีและการจัดการโรงเรือนปิดสำหรับการปลูกหญ้าหวานเชิงพาณิชย์\"",
@@ -2724,7 +3068,8 @@
     "department": "ภาควิชา\nวิศวกรรมการอาหาร",
     "date": "1969-04-10 00:00:00",
     "person_id": 62,
-    "_id": "service_idx_300"
+    "_id": "service_idx_300",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะอนุกรรมการวิชาการและบริหารจัดการลุ่มน้ำเจ้าพระยา ครั้งที่ 2/2569",
@@ -2733,7 +3078,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1969-04-16 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_301"
+    "_id": "service_idx_301",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะอนุกรรมการขับเคลื่อนแผนแม่บทการบริหารจัดการทรัพยากรน้ำในเขตลุ่มน้ำเจ้าพระยา ครั้งที่ 2/2569",
@@ -2742,7 +3088,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1969-04-17 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_302"
+    "_id": "service_idx_302",
+    "evaluation": null
   },
   {
     "name": "ประชุมคณะกรรมการลุ่มน้ำเจ้าพระยา ครั้งที่ 3/2569",
@@ -2751,7 +3098,8 @@
     "department": "ภาควิชา\nวิศวกรรมชลประทาน",
     "date": "1969-04-22 00:00:00",
     "person_id": 34,
-    "_id": "service_idx_303"
+    "_id": "service_idx_303",
+    "evaluation": null
   },
   {
     "name": "เป็นผู้ทรงคุณวุฒิในการประเมินผลกระทบของโครงการ ภายใต้โครงการเรื่อง ระบบการให้น้ำอย่างแม่นยำในสวนมะม่วงน้ำดอกไม้สีทองเพื่อการส่งออกจ.ขอนแก่นและจ.ชัยภูมิ",
@@ -2760,7 +3108,8 @@
     "department": "ภาควิชา\nวิศวกรรมการอาหาร",
     "date": "27-30 \nเม.ย.69",
     "person_id": 62,
-    "_id": "service_idx_304"
+    "_id": "service_idx_304",
+    "evaluation": null
   },
   {
     "name": "Keynote Speaker ในการสัมมนาออนไลน์ CAU-KU Online Workshop on Intelligent Agricultural Machinery and Smart Agriculture",
@@ -2769,6 +3118,7 @@
     "department": "ภาควิชา\nวิศวกรรมเกษตร",
     "date": "1969-04-24 00:00:00",
     "person_id": 4,
-    "_id": "service_idx_305"
+    "_id": "service_idx_305",
+    "evaluation": null
   }
 ]

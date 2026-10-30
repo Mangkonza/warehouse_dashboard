@@ -1,0 +1,18 @@
+$kind: http-request
+description: ใช้ intranetToken ไม่ใช่ accessToken; normalize ตาม authGuard แล้วคาดหวังมีอย่างน้อยหนึ่ง role ปรับ expectedRole เป็น admin เมื่อต้องทดสอบ admin โดยเฉพาะ
+url: "{{roleUrl}}?nontriId={{nontriId}}&systemId={{systemId}}"
+method: GET
+headers:
+  Accept: application/json
+auth:
+  type: bearer
+  credentials:
+    token: "{{intranetToken}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("HTTP 2xx", () => pm.expect(pm.response.code).to.be.within(200,299));
+      function normalize(d) { if(Array.isArray(d)) return d.map(x=>{if(typeof x==="string")return x; if(x && typeof x==="object"){const v=x.role ?? x.roleName ?? x.name ?? x.role_name ?? x.roleCode; return typeof v==="string"?v:"";} return "";}).filter(Boolean); if(d && typeof d==="object"){const v=d.roles ?? d.data ?? d.role; return typeof v==="string"?[v]:normalize(v);}return []; }
+      pm.test("Roles are usable", () => { const roles=normalize(pm.response.json()); pm.expect(roles.length).to.be.above(0); const expected=pm.variables.get("expectedRole"); if(expected)pm.expect(roles).to.include(expected); });
+    language: text/javascript
+order: 4000

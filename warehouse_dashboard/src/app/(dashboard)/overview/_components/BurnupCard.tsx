@@ -9,9 +9,10 @@ import { FaChartLine } from 'react-icons/fa';
 
 interface BurnupCardProps {
   selectedKpi: OverviewKpiScore;
+  onDrillDown?: (kpi: OverviewKpiScore) => void;
 }
 
-export const BurnupCard: React.FC<BurnupCardProps> = ({ selectedKpi }) => {
+export const BurnupCard: React.FC<BurnupCardProps> = ({ selectedKpi, onDrillDown }) => {
   const chartRef = useRef<Chart | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -66,6 +67,16 @@ export const BurnupCard: React.FC<BurnupCardProps> = ({ selectedKpi }) => {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        onHover: (event: any, chartElement: any[]) => {
+          if (event.native?.target) {
+            event.native.target.style.cursor = chartElement.length > 0 ? 'pointer' : 'default';
+          }
+        },
+        onClick: () => {
+          if (onDrillDown && selectedKpi) {
+            onDrillDown(selectedKpi);
+          }
+        },
         plugins: {
           legend: { position: 'top', labels: { boxWidth: 12, padding: 12 } },
           datalabels: { display: false },
@@ -78,7 +89,7 @@ export const BurnupCard: React.FC<BurnupCardProps> = ({ selectedKpi }) => {
             ticks: {
               callback: (v: any) => {
                 if (selectedKpi.unit === 'บาท' && v >= 1000000) {
-                  return `${(v / 1000000).toFixed(0)}M ฿`;
+                  return `${(v / 1000000).toFixed(0)}M `;
                 }
                 return v.toLocaleString();
               },
@@ -94,22 +105,38 @@ export const BurnupCard: React.FC<BurnupCardProps> = ({ selectedKpi }) => {
         chartRef.current = null;
       }
     };
-  }, [selectedKpi]);
+  }, [selectedKpi, onDrillDown]);
 
   return (
     <div className="glass-card" style={{ padding: '20px 24px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '14px', flex: 1 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-        <div>
-          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <FaChartLine style={{ color: '#00A651' }} /> กราฟไต่ระดับผลงานสะสม (Burn-Up Chart vs เป้าหมาย)
-          </h3>
-          <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#64748b' }}>
-            {selectedKpi.title} ({selectedKpi.code}) — ประเมินความเร็วในการทำงาน (Velocity) และคาดการณ์โอกาสบรรลุเป้าหมาย
-          </p>
-        </div>
+        <h3 style={{ margin: 0, fontSize: '15.5px', fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FaChartLine style={{ color: '#00A651' }} /> ผลงานสะสมเทียบเป้าหมาย (Burn-Up): {selectedKpi.title} ({selectedKpi.code})
+        </h3>
+        {onDrillDown && (
+          <button
+            type="button"
+            onClick={() => onDrillDown(selectedKpi)}
+            style={{
+              padding: '4px 10px',
+              borderRadius: '6px',
+              border: '1px solid #cbd5e1',
+              backgroundColor: '#ffffff',
+              color: '#00A651',
+              fontSize: '11.5px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            <span>ดูรายการจริง ({selectedKpi.items?.length || 0})</span>
+          </button>
+        )}
       </div>
 
-      <div style={{ height: '320px', width: '100%', position: 'relative' }}>
+      <div style={{ height: '320px', width: '100%', position: 'relative', cursor: 'pointer' }}>
         <canvas ref={canvasRef} />
       </div>
     </div>

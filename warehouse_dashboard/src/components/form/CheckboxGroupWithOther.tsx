@@ -12,7 +12,7 @@ export interface CheckboxOption {
 
 export interface CheckboxGroupWithOtherProps {
   options: CheckboxOption[];
-  value?: string[];
+  value?: string[] | string | null;
   onChange: (value: string[]) => void;
   allowOther?: boolean;
   otherOptionLabel?: string;
@@ -35,10 +35,21 @@ export function CheckboxGroupWithOther({
   disabled = false,
   className,
 }: CheckboxGroupWithOtherProps) {
+  // Normalize value to string array
+  const safeValue: string[] = React.useMemo(() => {
+    if (Array.isArray(value)) return value;
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      if (!trimmed) return [];
+      return trimmed.split(',').map((s) => s.trim()).filter(Boolean);
+    }
+    return [];
+  }, [value]);
+
   // Find if there is an "other" value currently in the array
   const otherItem = React.useMemo(() => {
-    return value.find((v) => v.startsWith(otherPrefix) || v === 'other' || v === 'อื่นๆ');
-  }, [value, otherPrefix]);
+    return safeValue.find((v) => v.startsWith(otherPrefix) || v === 'other' || v === 'อื่นๆ');
+  }, [safeValue, otherPrefix]);
 
   const isOtherChecked = Boolean(otherItem !== undefined);
 
@@ -62,23 +73,21 @@ export function CheckboxGroupWithOther({
 
   const handleToggleOption = (optVal: string) => {
     if (disabled) return;
-    if (value.includes(optVal)) {
-      onChange(value.filter((v) => v !== optVal));
+    if (safeValue.includes(optVal)) {
+      onChange(safeValue.filter((v) => v !== optVal));
     } else {
-      onChange([...value, optVal]);
+      onChange([...safeValue, optVal]);
     }
   };
 
   const handleToggleOther = () => {
     if (disabled) return;
     if (isOtherChecked) {
-      // Remove other item
-      onChange(value.filter((v) => !v.startsWith(otherPrefix) && v !== 'other' && v !== 'อื่นๆ'));
+      onChange(safeValue.filter((v) => !v.startsWith(otherPrefix) && v !== 'other' && v !== 'อื่นๆ'));
       setLocalOtherText('');
     } else {
-      // Add other item
       const newEntry = localOtherText.trim() ? `${otherPrefix}${localOtherText.trim()}` : `${otherPrefix}`;
-      onChange([...value, newEntry]);
+      onChange([...safeValue, newEntry]);
     }
   };
 
@@ -86,10 +95,9 @@ export function CheckboxGroupWithOther({
     const text = e.target.value;
     setLocalOtherText(text);
 
-    // Update parent
     const clean = text.trim();
     const newEntry = clean ? `${otherPrefix}${clean}` : `${otherPrefix}`;
-    const next = value.filter((v) => !v.startsWith(otherPrefix) && v !== 'other' && v !== 'อื่นๆ');
+    const next = safeValue.filter((v) => !v.startsWith(otherPrefix) && v !== 'other' && v !== 'อื่นๆ');
     next.push(newEntry);
     onChange(next);
   };
@@ -97,41 +105,31 @@ export function CheckboxGroupWithOther({
   return (
     <div
       className={cn(
-        'w-full',
-        orientation === 'vertical' && 'flex flex-col gap-2.5',
-        orientation === 'horizontal' && 'flex flex-wrap gap-4',
-        orientation === 'grid' && 'grid grid-cols-1 sm:grid-cols-2 gap-2.5',
+        'w-full pt-0.5',
+        orientation === 'vertical' && 'flex flex-col gap-2',
+        orientation === 'horizontal' && 'flex flex-wrap gap-x-6 gap-y-2',
+        orientation === 'grid' && 'grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5',
         className
       )}
     >
       {options.map((opt) => {
-        const checked = value.includes(opt.value);
+        const checked = safeValue.includes(opt.value);
         return (
           <label
             key={opt.value}
             className={cn(
-              'flex items-start gap-2.5 p-2 rounded-lg border transition-all cursor-pointer select-none',
-              checked
-                ? 'bg-emerald-50/60 border-emerald-300 text-slate-900 shadow-2xs'
-                : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50',
+              'inline-flex items-center gap-2.5 py-1 cursor-pointer select-none',
               disabled && 'opacity-50 cursor-not-allowed pointer-events-none'
             )}
           >
-            <div className="pt-0.5">
-              <Checkbox
-                checked={checked}
-                onCheckedChange={() => handleToggleOption(opt.value)}
-                disabled={disabled}
-              />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xs font-medium text-slate-800 leading-tight">
-                {opt.label}
-              </span>
-              {opt.hint && (
-                <span className="text-[11px] text-slate-400 mt-0.5">{opt.hint}</span>
-              )}
-            </div>
+            <Checkbox
+              checked={checked}
+              onCheckedChange={() => handleToggleOption(opt.value)}
+              disabled={disabled}
+            />
+            <span className={cn('text-sm leading-snug', checked ? 'text-slate-900 font-medium' : 'text-slate-700')}>
+              {opt.label}
+            </span>
           </label>
         );
       })}
@@ -139,37 +137,32 @@ export function CheckboxGroupWithOther({
       {allowOther && (
         <div
           className={cn(
-            'flex flex-col gap-2 p-2 rounded-lg border transition-all',
-            isOtherChecked
-              ? 'bg-emerald-50/60 border-emerald-300 shadow-2xs'
-              : 'bg-white border-slate-200 hover:bg-slate-50',
+            'flex flex-col sm:flex-row sm:items-center gap-2',
             orientation === 'grid' && 'col-span-full',
             disabled && 'opacity-50 cursor-not-allowed pointer-events-none'
           )}
         >
-          <label className="flex items-center gap-2.5 cursor-pointer select-none">
+          <label className="inline-flex items-center gap-2.5 py-1 cursor-pointer select-none shrink-0">
             <Checkbox
               checked={isOtherChecked}
               onCheckedChange={handleToggleOther}
               disabled={disabled}
             />
-            <span className="text-xs font-medium text-slate-800">
+            <span className={cn('text-sm leading-snug', isOtherChecked ? 'text-slate-900 font-medium' : 'text-slate-700')}>
               {otherOptionLabel}
             </span>
           </label>
 
           {isOtherChecked && (
-            <div className="pl-6 pt-1 animate-in fade-in-50 duration-150">
-              <input
-                type="text"
-                value={localOtherText}
-                onChange={handleOtherTextChange}
-                placeholder={otherPlaceholder}
-                disabled={disabled}
-                autoFocus
-                className="w-full h-8 px-2.5 text-xs bg-white border border-slate-300 rounded-md focus:outline-none focus:border-emerald-500 text-slate-800 placeholder:text-slate-400 shadow-2xs"
-              />
-            </div>
+            <input
+              type="text"
+              value={localOtherText}
+              onChange={handleOtherTextChange}
+              placeholder={otherPlaceholder}
+              disabled={disabled}
+              autoFocus
+              className="flex-1 h-9 px-3 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00A651]/20 focus:border-[#00A651] text-slate-800 placeholder:text-slate-400"
+            />
           )}
         </div>
       )}

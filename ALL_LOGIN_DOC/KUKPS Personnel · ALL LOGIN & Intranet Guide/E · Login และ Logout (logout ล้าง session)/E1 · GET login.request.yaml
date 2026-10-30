@@ -1,0 +1,13 @@
+$kind: http-request
+description: ตรวจ redirect ไป Portal ไม่ทำ interactive login
+url: "{{webBaseUrl}}/login"
+method: GET
+headers:
+  Accept: application/json
+scripts:
+  - type: afterResponse
+    code: pm.test("External redirect",()=>{pm.expect(pm.response.code).to.eql(307);pm.expect(pm.response.headers.get("Location")).to.be.a("string");});
+    language: text/javascript
+settings:
+  followRedirects: false
+order: 1000

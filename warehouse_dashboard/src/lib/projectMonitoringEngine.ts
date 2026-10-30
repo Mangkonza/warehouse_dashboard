@@ -4,7 +4,7 @@ import { ProjectExtensionRecord, ProjectStatus, ProjectTimelineInfo } from '../t
  * คำนวณข้อมูลเวลาและการติดตามผลของโครงการ (Project Timeline & Monitoring Calculation)
  * แก้ไขตาม GAP Analysis 1.1: ป้องกันไม่ให้โครงการที่ไม่มีวันที่หรืออยู่ในกรอบปีงบประมาณถูกตีเป็น "ล่าช้า"
  */
-export function calculateProjectTimeline(item: Record<string, any>, referenceDateStr?: string): ProjectTimelineInfo {
+export function calculateProjectTimeline(item: Record<string, any>, referenceDateStr?: string, isEval?: boolean): ProjectTimelineInfo {
   const today = referenceDateStr ? new Date(referenceDateStr) : new Date();
 
   // 1. ดึงปีงบประมาณ หรือสกัดจากรหัสโครงการ
@@ -79,19 +79,39 @@ export function calculateProjectTimeline(item: Record<string, any>, referenceDat
   // 9. กำหนดสถานะโครงการ (Project Status) ตาม GAP Analysis 1.1
   let status: ProjectStatus = (item.status as ProjectStatus) || 'active';
 
-  // หากไม่ได้ระบุสถานะชัดเจน ให้คำนวณตามความเป็นจริง
-  if (!item.status) {
-    if (item.closed_date || item.is_completed || item.status === 'completed') {
+  const isClosed = Boolean(
+    item.closed_date ||
+    item.is_completed ||
+    item.status === 'completed' ||
+    item.status === 'waiting_eval' ||
+    item.status === 'evaluated'
+  );
+
+  if (item.status === 'cancelled') {
+    status = 'cancelled';
+  } else if (isClosed) {
+    if (isEval) {
+      status = 'evaluated';
+    } else if (item.status === 'completed' || item.is_completed) {
       status = 'completed';
-      progressPercent = 100;
-    } else if (extensions.some((e) => e.approval_status === 'pending')) {
+    } else {
+      status = 'waiting_eval';
+    }
+    progressPercent = 100;
+  } else if (
+    !item.status ||
+    item.status === 'active' ||
+    item.status === 'delayed' ||
+    item.status === 'extended' ||
+    item.status === 'extension_requested'
+  ) {
+    if (extensions.some((e) => e.approval_status === 'pending') || item.status === 'extension_requested') {
       status = 'extension_requested';
-    } else if (approvedExtensions.length > 0) {
+    } else if (approvedExtensions.length > 0 || item.status === 'extended') {
       status = isOverdue ? 'delayed' : 'extended';
     } else if (isOverdue) {
       status = 'delayed';
     } else {
-      // โครงการที่กำลังดำเนินงานอยู่ตามกรอบปีงบประมาณ หรือยังไม่มีวันหมดอายุจริง
       status = 'active';
     }
   }
@@ -113,7 +133,7 @@ export function calculateProjectTimeline(item: Record<string, any>, referenceDat
     days_remaining: daysRemaining,
     progress_percent: progressPercent,
     status: status,
-    is_overdue: isOverdue && status !== 'completed' && status !== 'cancelled',
+    is_overdue: isOverdue && status !== 'completed' && status !== 'cancelled' && status !== 'waiting_eval' && status !== 'evaluated',
     extensions: extensions,
   };
 }
@@ -128,12 +148,20 @@ export function createExtensionRequest(
     reasonCategory: any;
     reasonDetail: string;
     documentRefNo?: string;
+    customEndDate?: string;
+    approvalStatus?: 'pending' | 'approved' | 'rejected';
   }
 ): ProjectExtensionRecord {
   const currentTimeline = calculateProjectTimeline(item);
   const currentEnd = new Date(currentTimeline.end_date);
-  const newEnd = new Date(currentEnd);
-  newEnd.setMonth(newEnd.getMonth() + params.durationMonths);
+  
+  let newEnd: Date;
+  if (params.customEndDate && !isNaN(new Date(params.customEndDate).getTime())) {
+    newEnd = new Date(params.customEndDate);
+  } else {
+    newEnd = new Date(currentEnd);
+    newEnd.setMonth(newEnd.getMonth() + params.durationMonths);
+  }
 
   const formatDate = (d: Date) => {
     const year = d.getFullYear();
@@ -155,7 +183,7 @@ export function createExtensionRequest(
     reason_category: params.reasonCategory,
     reason_detail: params.reasonDetail,
     document_ref_no: params.documentRefNo || `อว 6505/${round}`,
-    approval_status: 'pending',
+    approval_status: params.approvalStatus || 'pending',
     created_at: new Date().toISOString(),
   };
 }
@@ -167,6 +195,8 @@ export const STATUS_LABELS: Record<ProjectStatus, { labelTh: string; color: stri
   extended: { labelTh: 'อยู่ระหว่างขยายเวลา', color: '#b45309', bg: '#fef3c7', border: '#fcd34d' },
   delayed: { labelTh: 'เกินกำหนดสัญญา', color: '#dc2626', bg: '#fef2f2', border: '#fecaca' },
   submitted: { labelTh: 'ส่งรายงานสมบูรณ์ (รอตรวจรับ)', color: '#0284c7', bg: '#f0f9ff', border: '#bae6fd' },
-  completed: { labelTh: 'ปิดโครงการเสร็จสิ้น', color: '#475569', bg: '#f8fafc', border: '#e2e8f0' },
+  completed: { labelTh: 'ปิดโครงการแล้ว', color: '#475569', bg: '#f8fafc', border: '#e2e8f0' },
+  waiting_eval: { labelTh: 'รอประเมิน', color: '#d97706', bg: '#fffbeb', border: '#fde68a' },
+  evaluated: { labelTh: 'ประเมินแล้ว', color: '#059669', bg: '#ecfdf5', border: '#a7f3d0' },
   cancelled: { labelTh: 'ยกเลิกโครงการ', color: '#991b1b', bg: '#fee2e2', border: '#fca5a5' },
 };

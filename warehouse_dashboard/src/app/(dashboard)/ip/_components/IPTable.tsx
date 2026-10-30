@@ -1,50 +1,36 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
-import { FaTable, FaFilter, FaPlus, FaEdit, FaTrashAlt } from 'react-icons/fa';
-import { SearchInput, DepartmentBadge, DepartmentSelect, ConfirmActionModal } from '@/components/ui';
-import { deleteCategoryRecord } from '@/lib/dataService';
+import { FaTable, FaFilter, FaTimes } from 'react-icons/fa';
+import { SearchInput, DepartmentBadge, DepartmentSelect, RecordDetailDrawer, IPTypeBadge } from '@/components/ui';
 import { IPItem } from '../_hooks/useIPData';
 
 interface IPTableProps {
   filteredIpData: IPItem[];
+  totalCount?: number;
   availableDepts: string[];
   searchTerm: string;
   onSearchChange: (value: string) => void;
   deptFilter: string;
   onDeptChange: (value: string) => void;
+  typeFilter?: string;
+  onTypeChange?: (value: string) => void;
 }
 
 export function IPTable({
   filteredIpData,
+  totalCount,
   availableDepts,
   searchTerm,
   onSearchChange,
   deptFilter,
   onDeptChange,
+  typeFilter = 'all',
+  onTypeChange,
 }: IPTableProps) {
-  const [deleteTarget, setDeleteTarget] = useState<IPItem | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState<IPItem | null>(null);
 
-  const handleDelete = async () => {
-    if (!deleteTarget) return;
-    setIsDeleting(true);
-    try {
-      const targetId = deleteTarget._id || deleteTarget.id || deleteTarget.name;
-      if (targetId) {
-        await deleteCategoryRecord('ip', String(targetId));
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new Event('ku_data_updated'));
-        }
-      }
-    } catch (err) {
-      console.error('Failed to delete IP:', err);
-    } finally {
-      setIsDeleting(false);
-      setDeleteTarget(null);
-    }
-  };
+  const hasActiveFilter = deptFilter !== 'all' || typeFilter !== 'all' || searchTerm.trim() !== '';
 
   return (
     <div className="table-card">
@@ -58,37 +44,52 @@ export function IPTable({
           marginBottom: '16px',
         }}
       >
-        <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <FaTable style={{ color: '#006838' }} /> รายการงานทรัพย์สินทางปัญญา
-          <span
-            style={{
-              fontSize: '12px',
-              padding: '2px 8px',
-              borderRadius: '12px',
-              backgroundColor: 'rgba(0,104,56,0.1)',
-              color: '#006838',
-              fontWeight: 600,
-            }}
-          >
-            {filteredIpData.length} รายการ
-          </span>
-        </h3>
+        <div>
+          <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <FaTable style={{ color: '#6a1b9a' }} /> ตารางงานทรัพย์สินทางปัญญา
+            <span
+              style={{
+                fontSize: '12px',
+                padding: '2px 8px',
+                borderRadius: '12px',
+                backgroundColor: '#faf5ff',
+                color: '#6a1b9a',
+                border: '1px solid #e9d5ff',
+                fontWeight: 600,
+              }}
+            >
+              {filteredIpData.length}
+              {totalCount && totalCount !== filteredIpData.length ? ` / ${totalCount}` : ''} รายการ
+            </span>
+          </h3>
+        </div>
 
         {/* Search, Dept Filter, and Add Button */}
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+          {typeFilter !== 'all' && onTypeChange && (
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '5px 10px',
+                borderRadius: '8px',
+                backgroundColor: '#faf5ff',
+                border: '1px solid #6a1b9a',
+                color: '#6a1b9a',
+                fontSize: '12px',
+                fontWeight: 600,
+              }}
+            >
+              <span>ประเภท: {typeFilter}</span>
+              <FaTimes style={{ cursor: 'pointer' }} onClick={() => onTypeChange('all')} />
+            </span>
+          )}
           <SearchInput
-            placeholder="ค้นหาชื่อเรื่อง / ผู้ประดิษฐ์..."
+            placeholder="ค้นหาชื่อเรื่อง / ผู้ประดิษฐ์ / เลขทะเบียน / เลขที่คำขอ..."
             value={searchTerm}
             onChange={onSearchChange}
-            width="100%"
-            style={{
-              minWidth: '220px',
-              padding: '7px 12px',
-              borderRadius: '8px',
-              border: '1px solid rgba(0,0,0,0.12)',
-              background: 'rgba(255,255,255,0.8)',
-              backdropFilter: 'blur(6px)',
-            }}
+            width="230px"
           />
 
           {availableDepts.length > 0 && (
@@ -101,31 +102,33 @@ export function IPTable({
                 allLabel="ทุกภาควิชา"
                 allValue="all"
                 size="sm"
-                className="w-[180px]"
+                className="w-[175px]"
               />
             </div>
           )}
 
-          <Link
-            href="/ip/new"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '7px 14px',
-              borderRadius: '8px',
-              backgroundColor: '#00A651',
-              color: '#ffffff',
-              fontSize: '13px',
-              fontWeight: 600,
-              textDecoration: 'none',
-              boxShadow: '0 2px 6px rgba(0, 166, 81, 0.25)',
-              transition: 'background-color 0.2s ease',
-            }}
-          >
-            <FaPlus style={{ fontSize: '11px' }} />
-            <span>เพิ่มงานทรัพย์สินทางปัญญา</span>
-          </Link>
+          {hasActiveFilter && (
+            <button
+              type="button"
+              onClick={() => {
+                onSearchChange('');
+                onDeptChange('all');
+                if (onTypeChange) onTypeChange('all');
+              }}
+              style={{
+                padding: '6px 12px',
+                borderRadius: '8px',
+                border: '1px solid #fca5a5',
+                backgroundColor: '#fee2e2',
+                color: '#b91c1c',
+                fontSize: '12px',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              ล้างตัวกรอง
+            </button>
+          )}
         </div>
       </div>
 
@@ -136,11 +139,11 @@ export function IPTable({
               <th style={{ width: '45px', textAlign: 'center' }}>#</th>
               <th style={{ minWidth: '220px' }}>ชื่อเรื่อง</th>
               <th>ผู้ประดิษฐ์</th>
-              <th style={{ width: '100px', minWidth: '100px', maxWidth: '100px', textAlign: 'left', verticalAlign: 'middle' }}>สังกัด</th>
+              <th style={{ width: '120px', textAlign: 'left' }}>ภาควิชา</th>
               <th style={{ textAlign: 'center' }}>ประเภท</th>
-              <th>เลขที่คำขอ / เลขที่</th>
-              <th style={{ textAlign: 'right' }}>คณะฯ สนับสนุน</th>
-              <th style={{ width: '85px', textAlign: 'center' }}>จัดการ</th>
+              <th>เลขที่คำขอ / เลขทะเบียน</th>
+              <th style={{ textAlign: 'center' }}>สถานะ</th>
+              <th style={{ textAlign: 'right' }}>เงินสนับสนุนจากคณะ (บาท)</th>
             </tr>
           </thead>
           <tbody>
@@ -152,79 +155,97 @@ export function IPTable({
               </tr>
             ) : (
               filteredIpData.map((item, index) => {
-                const itemId = encodeURIComponent(String(item._id || item.id || item.name || index));
                 const supportVal = item.support_amount !== undefined && item.support_amount !== null ? Number(item.support_amount) : 0;
+                const depts = Array.from(
+                  new Set(
+                    String(item.department || '')
+                      .split(',')
+                      .map((s) => s.trim())
+                      .filter(Boolean)
+                  )
+                );
+                const st = String(item.status || '');
+                const isProtected =
+                  st.includes('คุ้มครอง') ||
+                  Boolean(item.registration_number && String(item.registration_number).trim() && item.registration_number !== '-');
+                const isPending = !isProtected && st.includes('ยื่นคำขอ');
+
+                const badgeBg = isProtected ? '#ecfdf5' : isPending ? '#f0f9ff' : '#fffbeb';
+                const badgeColor = isProtected ? '#059669' : isPending ? '#0284c7' : '#d97706';
+                const badgeBorder = isProtected ? '#a7f3d0' : isPending ? '#bae6fd' : '#fde68a';
+                const statusLabel = isProtected
+                  ? 'ได้รับความคุ้มครองแล้ว'
+                  : isPending
+                  ? 'ยื่นคำขอแล้ว'
+                  : 'เตรียมความพร้อมยื่นจด';
 
                 return (
-                  <tr key={item.id || item._id || index}>
-                    <td style={{ textAlign: 'center' }}>{index + 1}</td>
-                    <td style={{ whiteSpace: 'normal', minWidth: '220px', fontWeight: 500 }}>
+                  <tr
+                    key={`ip-row-${index}-${item.dbId ?? item._id ?? item.id ?? "item"}`}
+                    onClick={() => setSelectedRecord(item)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <td style={{ textAlign: 'center', color: '#64748b' }}>{index + 1}</td>
+                    <td style={{ whiteSpace: 'normal', minWidth: '220px', fontWeight: 400, color: '#0f172a' }}>
                       {item.title || item.name}
                     </td>
-                    <td>{item.creator && item.creator !== 'nan' ? item.creator : '-'}</td>
-                    <td style={{ width: '100px', minWidth: '100px', maxWidth: '100px', textAlign: 'left', verticalAlign: 'middle', padding: '8px 10px' }}>
-                      <DepartmentBadge value={item.department} />
-                    </td>
-                    <td style={{ textAlign: 'center' }}>
-                      {item.type && item.type !== 'nan' && item.type !== '-' ? (
-                        <span
-                          style={{
-                            display: 'inline-block',
-                            padding: '2px 8px',
-                            borderRadius: '10px',
-                            fontSize: '11px',
-                            fontWeight: 600,
-                            backgroundColor: 'rgba(216, 27, 96, 0.1)',
-                            color: '#d81b60',
-                          }}
-                        >
-                          {item.type === 'P' ? 'สิทธิบัตร' : item.type}
-                        </span>
+                    <td style={{ fontWeight: 400, color: '#334155' }}>
+                      {item.creator && item.creator !== 'nan' ? (
+                        item.person_id ? (
+                          <a
+                            href={`/personnel/${item.person_id}`}
+                            onClick={(e) => e.stopPropagation()}
+                            style={{ color: '#7c3aed', fontWeight: 600, textDecoration: 'none' }}
+                            title="คลิกเพื่อดูแฟ้มผลงานอาจารย์"
+                          >
+                            {item.creator}
+                          </a>
+                        ) : (
+                          item.creator
+                        )
                       ) : (
                         '-'
                       )}
                     </td>
-                    <td>
+                    <td style={{ padding: '8px 10px' }}>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                        {depts.length > 0 ? (
+                          depts.map((d, i) => <DepartmentBadge key={i} value={d} />)
+                        ) : (
+                          <DepartmentBadge value={item.department} />
+                        )}
+                      </div>
+                    </td>
+                    <td style={{ textAlign: 'center' }}>
+                      <IPTypeBadge value={item.type} />
+                    </td>
+                    <td style={{ fontFamily: 'monospace', fontSize: '12px', color: '#334155' }}>
                       {item.req_no && item.req_no !== 'nan'
                         ? item.req_no
                         : item.application_number
-                        ? (item.registration_number ? `${item.application_number} / ${item.registration_number}` : item.application_number)
-                        : (item.registration_number || '-')}
-                    </td>
-                    <td style={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 600, color: '#059669', fontSize: '13px' }}>
-                      {supportVal > 0 ? `${supportVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท` : '-'}
+                        ? item.registration_number
+                          ? `${item.application_number} / ${item.registration_number}`
+                          : item.application_number
+                        : item.registration_number || '-'}
                     </td>
                     <td style={{ textAlign: 'center' }}>
-                      <div style={{ display: 'inline-flex', gap: '6px', alignItems: 'center' }}>
-                        <Link
-                          href={`/ip/${itemId}/edit`}
-                          style={{
-                            color: '#00A651',
-                            padding: '4px',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                          }}
-                          title="แก้ไขข้อมูล"
-                        >
-                          <FaEdit />
-                        </Link>
-                        <button
-                          type="button"
-                          onClick={() => setDeleteTarget(item)}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            color: '#dc2626',
-                            cursor: 'pointer',
-                            padding: '4px',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                          }}
-                          title="ลบข้อมูล"
-                        >
-                          <FaTrashAlt />
-                        </button>
-                      </div>
+                      <span
+                        style={{
+                          display: 'inline-block',
+                          padding: '2px 8px',
+                          borderRadius: '12px',
+                          fontSize: '11px',
+                          fontWeight: 600,
+                          backgroundColor: badgeBg,
+                          color: badgeColor,
+                          border: `1px solid ${badgeBorder}`,
+                        }}
+                      >
+                        {statusLabel}
+                      </span>
+                    </td>
+                    <td className="budget-cell">
+                      {supportVal > 0 ? `${supportVal.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท` : '-'}
                     </td>
                   </tr>
                 );
@@ -234,16 +255,12 @@ export function IPTable({
         </table>
       </div>
 
-      <ConfirmActionModal
-        isOpen={Boolean(deleteTarget)}
-        type="danger"
-        title="ยืนยันการลบรายการ?"
-        message={`คุณต้องการลบข้อมูลทรัพย์สินทางปัญญา "${deleteTarget?.title || deleteTarget?.name || ''}" ใช่หรือไม่?`}
-        detail="การดำเนินการนี้จะไม่สามารถย้อนกลับได้"
-        confirmText="ยืนยันการลบ"
-        cancelText="ยกเลิก"
-        onConfirm={handleDelete}
-        onCancel={() => setDeleteTarget(null)}
+      <RecordDetailDrawer
+        isOpen={Boolean(selectedRecord)}
+        onClose={() => setSelectedRecord(null)}
+        categoryKey="ip"
+        record={selectedRecord}
+        readOnly={true}
       />
     </div>
   );

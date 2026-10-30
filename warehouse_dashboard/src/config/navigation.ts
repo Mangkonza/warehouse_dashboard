@@ -15,6 +15,7 @@ export const VALID_TABS = [
   "overview",
   "studio",
   "monitoring",
+  "evaluation",
   "research",
   "academic",
   "publications",
@@ -35,6 +36,7 @@ export const TAB_TITLES: Record<string, string> = {
   overview: "แดชบอร์ด ภาพรวม",
   studio: "วิเคราะห์ข้อมูล (BI Studio)",
   monitoring: "ติดตามสถานะโครงการ",
+  evaluation: "การประเมิน",
   research: "โครงการวิจัย",
   academic: "โครงการพัฒนาวิชาการ",
   publications: "ผลงานตีพิมพ์ทางวิชาการ",
@@ -47,8 +49,9 @@ export const TAB_TITLES: Record<string, string> = {
 
 export const MAIN_MENU_ITEMS: MenuItemConfig[] = [
   { id: "overview", label: "แดชบอร์ด ภาพรวม", path: "/overview", iconName: "FaThLarge" },
-  { id: "studio", label: "วิเคราะห์ข้อมูล (BI Studio)", path: "/studio", iconName: "FaChartLine" },
+  { id: "studio", label: "วิเคราะห์ข้อมูล", path: "/studio", iconName: "FaChartLine" },
   { id: "monitoring", label: "ติดตามสถานะโครงการ", path: "/monitoring", iconName: "FaClock" },
+  { id: "evaluation", label: "การประเมิน", path: "/evaluation", iconName: "FaClipboardCheck" },
   { id: "research", label: "โครงการวิจัย", path: "/research", iconName: "FaFlask" },
   { id: "academic", label: "โครงการพัฒนาวิชาการ", path: "/academic", iconName: "FaGraduationCap" },
   { id: "publications", label: "ผลงานตีพิมพ์ทางวิชาการ", path: "/publications", iconName: "FaBook" },

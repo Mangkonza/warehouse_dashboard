@@ -20,7 +20,7 @@ function normalizeJournalName(name: string): string {
 }
 
 /**
- * ตรวจจับอันดับวารสาร (Scopus Q1-Q4 หรือ TCI 1-2) อัตโนมัติจากชื่อวารสาร
+ * ตรวจจับอันดับวารสาร (Q1-Q4 หรือ TCI 1-2) อัตโนมัติจากชื่อวารสาร
  */
 export function autoDetectJournalRanking(journalName: string): JournalDetectionResult | null {
   if (!journalName || journalName.trim() === '' || journalName === '-') return null;
@@ -42,10 +42,10 @@ export function autoDetectJournalRanking(journalName: string): JournalDetectionR
 
   // 2. ตรวจสอบจากคำสำคัญในชื่อวารสาร (Heuristic Rules)
   if (clean.includes('q1') || clean.includes('quartile 1')) {
-    return { journalName, tier: 'Scopus Q1', confidence: 90, database: 'Scopus', source: 'inferred' };
+    return { journalName, tier: 'Q1', confidence: 90, database: 'Scopus', source: 'inferred' };
   }
   if (clean.includes('q2') || clean.includes('quartile 2')) {
-    return { journalName, tier: 'Scopus Q2', confidence: 90, database: 'Scopus', source: 'inferred' };
+    return { journalName, tier: 'Q2', confidence: 90, database: 'Scopus', source: 'inferred' };
   }
   if (clean.includes('tci 1') || clean.includes('tci1') || clean.includes('tci กลุ่ม 1') || clean.includes('tci กลุ่มที่ 1')) {
     return { journalName, tier: 'TCI 1', confidence: 92, database: 'TCI', source: 'inferred' };

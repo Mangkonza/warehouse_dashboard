@@ -1,12 +1,14 @@
 'use client';
 
-import React from 'react';
-import { FaBullseye, FaBuilding, FaInfoCircle } from 'react-icons/fa';
+import React, { useState } from 'react';
+import { FaBullseye, FaBuilding, FaInfoCircle, FaListUl } from 'react-icons/fa';
 import { KPIComputedResult } from '@/types/kpi';
 import { ENGINEERING_DEPARTMENTS } from '@/config/kpiConfig';
 import { CATEGORY_NAMES } from '../_hooks/useKpiData';
 import { DepartmentBadge } from '@/components/ui';
+import { DrillDownProjectDrawer } from '@/components/data-display';
 import { getDepartment } from '@/lib/departments';
+import { CategoryKey } from '@/config/dataManagementConfig';
 
 interface KpiGridCardsProps {
   filteredKPIs: KPIComputedResult[];
@@ -15,14 +17,16 @@ interface KpiGridCardsProps {
 }
 
 export function KpiGridCards({ filteredKPIs, expandedId, onToggleExpand }: KpiGridCardsProps) {
+  const [drillDownItem, setDrillDownItem] = useState<KPIComputedResult | null>(null);
+
   const formatValue = (val: number, unit: string) => {
     if (unit === 'บาท') {
       if (val >= 1000000) {
         return `${(val / 1000000).toLocaleString('th-TH', { maximumFractionDigits: 2 })} ล้านบาท`;
       }
-      return `${val.toLocaleString()} บาท`;
+      return `${val.toLocaleString('th-TH')} บาท`;
     }
-    return `${val.toLocaleString()} ${unit}`;
+    return `${val.toLocaleString('th-TH')} ${unit}`;
   };
 
   if (filteredKPIs.length === 0) {
@@ -151,7 +155,7 @@ export function KpiGridCards({ filteredKPIs, expandedId, onToggleExpand }: KpiGr
               <div style={{ marginBottom: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '4px' }}>
                   <div>
-                    <span style={{ fontSize: '11.5px', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>
+                    <span style={{ fontSize: '11.5px', color: '#64748b', textTransform: 'uppercase', fontWeight: 400 }}>
                       ผลงานปัจจุบัน
                     </span>
                     <div style={{ fontSize: '22px', fontWeight: 800, color: statusColor }}>
@@ -160,7 +164,7 @@ export function KpiGridCards({ filteredKPIs, expandedId, onToggleExpand }: KpiGr
                   </div>
 
                   <div style={{ textAlign: 'right' }}>
-                    <span style={{ fontSize: '11.5px', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>
+                    <span style={{ fontSize: '11.5px', color: '#64748b', textTransform: 'uppercase', fontWeight: 400 }}>
                       เป้าหมายยุทธศาสตร์
                     </span>
                     <div style={{ fontSize: '16px', fontWeight: 700, color: '#475569' }}>
@@ -260,15 +264,26 @@ export function KpiGridCards({ filteredKPIs, expandedId, onToggleExpand }: KpiGr
                 </div>
               )}
 
-              {/* Expand details button */}
-              {kpi.description && (
-                <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid #f1f5f9' }}>
+              {/* Expand details & Drill-Down buttons */}
+              <div
+                style={{
+                  marginTop: '10px',
+                  paddingTop: '10px',
+                  borderTop: '1px solid #f1f5f9',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '8px',
+                  flexWrap: 'wrap',
+                }}
+              >
+                {kpi.description ? (
                   <button
                     onClick={() => onToggleExpand(kpi.id)}
                     style={{
                       background: 'none',
                       border: 'none',
-                      color: '#00A651',
+                      color: '#475569',
                       fontSize: '11.5px',
                       fontWeight: 600,
                       cursor: 'pointer',
@@ -279,29 +294,69 @@ export function KpiGridCards({ filteredKPIs, expandedId, onToggleExpand }: KpiGr
                     }}
                   >
                     <FaInfoCircle />
-                    <span>{isExpanded ? 'ย่อคำอธิบาย' : 'ดูคำอธิบายและเกณฑ์ประเมิน'}</span>
+                    <span>{isExpanded ? 'ย่อคำอธิบาย' : 'ดูเกณฑ์ประเมิน'}</span>
                   </button>
-                  {isExpanded && (
-                    <div
-                      style={{
-                        fontSize: '12px',
-                        color: '#475569',
-                        marginTop: '6px',
-                        lineHeight: 1.4,
-                        backgroundColor: '#f8fafc',
-                        padding: '8px 10px',
-                        borderRadius: '6px',
-                      }}
-                    >
-                      {kpi.description}
-                    </div>
-                  )}
+                ) : (
+                  <span />
+                )}
+
+                {details?.sampleMatches && details.sampleMatches.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setDrillDownItem(item)}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      padding: '4px 10px',
+                      borderRadius: '6px',
+                      border: '1px solid #00A651',
+                      backgroundColor: '#f0fbf5',
+                      color: '#006838',
+                      fontSize: '11.5px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <FaListUl size={11} />
+                    <span>ดูรายการผลงานจริง ({details.sampleMatches.length})</span>
+                  </button>
+                )}
+              </div>
+
+              {isExpanded && kpi.description && (
+                <div
+                  style={{
+                    fontSize: '12px',
+                    color: '#475569',
+                    marginTop: '8px',
+                    lineHeight: 1.4,
+                    backgroundColor: '#f8fafc',
+                    padding: '8px 10px',
+                    borderRadius: '6px',
+                  }}
+                >
+                  {kpi.description}
                 </div>
               )}
             </div>
           </div>
         );
       })}
+
+      <DrillDownProjectDrawer
+        isOpen={Boolean(drillDownItem)}
+        onClose={() => setDrillDownItem(null)}
+        title={drillDownItem ? `${drillDownItem.kpi.code}: ${drillDownItem.kpi.title}` : ''}
+        subtitle={
+          drillDownItem
+            ? `ผลงานปัจจุบัน ${formatValue(drillDownItem.currentValue, drillDownItem.kpi.unit)} / เป้าหมาย ${formatValue(drillDownItem.targetValue, drillDownItem.kpi.unit)} (${drillDownItem.percentage}%)`
+            : ''
+        }
+        accentColor={drillDownItem?.statusColor || '#00A651'}
+        categoryKey={(drillDownItem?.kpi.datasetKey as CategoryKey) || 'research'}
+        items={drillDownItem?.details?.sampleMatches || []}
+      />
     </div>
   );
 }

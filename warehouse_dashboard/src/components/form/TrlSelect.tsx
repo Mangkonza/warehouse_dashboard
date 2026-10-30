@@ -14,12 +14,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { TrlBadge, TRL_COLOR } from '@/components/ui/trl-badge';
 
 export interface TrlDefinition {
   level: number;
   labelTh: string;
   labelEn: string;
-  descriptionTh: string;
   color: string;
 }
 
@@ -28,64 +28,55 @@ export const TRL_DEFINITIONS: TrlDefinition[] = [
     level: 1,
     labelTh: 'การสังเกตและรายงานหลักการพื้นฐาน',
     labelEn: 'Basic principles observed and reported',
-    descriptionTh: 'การวิจัยทางวิทยาศาสตร์ขั้นพื้นฐาน เริ่มแปลงการวิจัยเป็นการพัฒนา',
-    color: '#3b82f6',
+    color: TRL_COLOR,
   },
   {
     level: 2,
     labelTh: 'การกำหนดแนวคิดหรือการประยุกต์ใช้เทคโนโลยี',
     labelEn: 'Technology concept and/or application formulated',
-    descriptionTh: 'เริ่มกำหนดหลักการประยุกต์ใช้งาน การประดิษฐ์ในทางปฏิบัติยังเป็นการคาดการณ์',
-    color: '#06b6d4',
+    color: TRL_COLOR,
   },
   {
     level: 3,
     labelTh: 'การพิสูจน์แนวคิดเชิงวิเคราะห์และการทดลอง',
     labelEn: 'Analytical and experimental critical function / proof of concept',
-    descriptionTh: 'การวิจัยและพัฒนาเชิงรุก รวมถึงการศึกษาเชิงวิเคราะห์และในห้องปฏิบัติการเพื่อยืนยันแนวคิด',
-    color: '#0ea5e9',
+    color: TRL_COLOR,
   },
   {
     level: 4,
     labelTh: 'การตรวจสอบยืนยันองค์ประกอบในห้องปฏิบัติการ',
     labelEn: 'Component and/or breadboard validation in laboratory environment',
-    descriptionTh: 'บูรณาการองค์ประกอบพื้นฐานของเทคโนโลยีและทดสอบในห้องปฏิบัติการ',
-    color: '#10b981',
+    color: TRL_COLOR,
   },
   {
     level: 5,
     labelTh: 'การตรวจสอบยืนยันองค์ประกอบในสภาพแวดล้อมที่เกี่ยวข้อง',
     labelEn: 'Component validation in relevant environment',
-    descriptionTh: 'ความเที่ยงตรงของเทคโนโลยีเพิ่มขึ้นอย่างมาก ทดสอบในสภาพแวดล้อมจำลองเสมือนจริง',
-    color: '#14b8a6',
+    color: TRL_COLOR,
   },
   {
     level: 6,
     labelTh: 'การสาธิตแบบจำลองระบบในสภาพแวดล้อมที่เกี่ยวข้อง',
     labelEn: 'System/subsystem model demonstration in a relevant environment',
-    descriptionTh: 'ต้นแบบระบบที่ใช้งานได้จริงในสภาพแวดล้อมจำลอง ก้าวกระโดดสู่การใช้งานภาคสนาม',
-    color: '#eab308',
+    color: TRL_COLOR,
   },
   {
     level: 7,
     labelTh: 'การสาธิตต้นแบบระบบในสภาพแวดล้อมการทำงานจริง',
     labelEn: 'System prototype demonstration in an operational environment',
-    descriptionTh: 'ต้นแบบใกล้เคียงระบบจริง สาธิตในสภาพแวดล้อมการทำงานจริงภาคสนาม',
-    color: '#f97316',
+    color: TRL_COLOR,
   },
   {
     level: 8,
     labelTh: 'ระบบจริงสมบูรณ์และผ่านการรับรอง',
     labelEn: 'Actual system completed and qualified through test and demonstration',
-    descriptionTh: 'เทคโนโลยีพิสูจน์แล้วว่าทำงานได้สมบูรณ์ในรูปแบบสุดท้าย',
-    color: '#ef4444',
+    color: TRL_COLOR,
   },
   {
     level: 9,
     labelTh: 'ระบบจริงพิสูจน์แล้วผ่านการปฏิบัติการสำเร็จ',
     labelEn: 'Actual system proven through successful mission operations',
-    descriptionTh: 'การประยุกต์ใช้เทคโนโลยีจริงในการปฏิบัติการเต็มรูปแบบ',
-    color: '#8b5cf6',
+    color: TRL_COLOR,
   },
 ];
 
@@ -131,13 +122,8 @@ export function TrlSelect({
               <div className="flex items-center gap-2 truncate">
                 {selectedDef ? (
                   <>
-                    <span
-                      className="px-2 py-0.5 rounded text-xs font-bold text-white shrink-0 shadow-2xs"
-                      style={{ backgroundColor: selectedDef.color }}
-                    >
-                      TRL {selectedDef.level}
-                    </span>
-                    <span className="truncate text-slate-800 text-xs font-medium">
+                    <TrlBadge level={selectedDef.level} className="shrink-0" />
+                    <span className="truncate text-slate-800 text-xs font-normal">
                       {selectedDef.labelTh}
                     </span>
                   </>
@@ -158,7 +144,7 @@ export function TrlSelect({
           <div className="flex items-center justify-between px-2 py-1.5 border-b border-slate-100 mb-1">
             <span className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
               <Award className="size-4 text-emerald-600" />
-              ระดับความพร้อมทางเทคโนโลยี (TRL 1-9)
+              ระดับความพร้อมทางเทคโนโลยี
             </span>
             {value && (
               <button
@@ -185,29 +171,21 @@ export function TrlSelect({
                     setOpen(false);
                   }}
                   className={cn(
-                    'flex items-start gap-2.5 p-2 rounded-lg cursor-pointer transition-colors text-left group',
+                    'flex items-center gap-2.5 p-2 rounded-lg cursor-pointer transition-colors text-left group',
                     isSelected
                       ? 'bg-emerald-50/80 border border-emerald-300'
                       : 'hover:bg-slate-50 border border-transparent'
                   )}
                 >
-                  <span
-                    className="px-2 py-0.5 rounded text-xs font-bold text-white shrink-0 mt-0.5 shadow-2xs"
-                    style={{ backgroundColor: item.color }}
-                  >
-                    TRL {item.level}
-                  </span>
+                  <TrlBadge level={item.level} className="shrink-0" />
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-1">
-                      <span className={cn('text-xs font-semibold', isSelected ? 'text-emerald-950' : 'text-slate-800')}>
+                      <span className={cn('text-xs font-normal', isSelected ? 'text-emerald-950' : 'text-slate-800')}>
                         {item.labelTh}
                       </span>
                       {isSelected && <Check className="size-3.5 text-emerald-600 shrink-0" />}
                     </div>
-                    <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-2 leading-relaxed">
-                      {item.descriptionTh}
-                    </p>
                   </div>
                 </div>
               );

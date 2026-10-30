@@ -1,0 +1,20 @@
+$kind: http-request
+name: D1 · POST direct accessToken (development เท่านั้น)
+description: นอก production ใช้ SSO token โดยตรง ใน production คาดหวัง 403; ไม่ใส่ test ที่กำหนด environment ผิด
+url: "{{webBaseUrl}}/api/auth/portal-session"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "accessToken": "{{accessToken}}",
+      "intranetToken": "{{intranetToken}}"
+    }
+scripts:
+  - type: afterResponse
+    code: if(pm.response.code===403){pm.test("Production rejects direct token",()=>pm.expect(pm.response.json().message).to.eql("Direct accessToken bootstrap is disabled"));}else{pm.test("Development bootstrap success",()=>{pm.expect(pm.response.code).to.eql(200);pm.expect(pm.response.json().session).to.be.a("string");});}
+    language: text/javascript
+order: 1000

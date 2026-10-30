@@ -1,84 +1,88 @@
 'use client';
 
 import React from 'react';
-import { FaCertificate, FaScroll, FaMoneyBillWave, FaBuilding } from 'react-icons/fa';
 import { useTimeFilter, TimeFilterBar } from '@/features/time-filter';
-import { KpiGrid, DecisionBox } from '@/components/data-display';
+import { KpiGrid } from '@/components/data-display';
 import { useIPData } from '../_hooks/useIPData';
 import { IPCharts } from './IPCharts';
 import { IPTable } from './IPTable';
 
 export function IPView() {
-  const { timeFilter } = useTimeFilter();
+  const { timeFilter, setTimeFilter, resetTimeFilter } = useTimeFilter();
   const {
     validIpData,
     filteredIpData,
     availableDepts,
     patentCount,
+    pettyPatentCount,
+    copyrightCount,
+    protectedCount,
+    pendingCount,
+    inPrepCount,
     totalSupportAmount,
     uniqueDeptCount,
     searchTerm,
     setSearchTerm,
     deptFilter,
     setDeptFilter,
+    typeFilter,
+    setTypeFilter,
   } = useIPData(timeFilter);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      <TimeFilterBar />
+      <TimeFilterBar
+        value={timeFilter}
+        onChange={setTimeFilter}
+        onReset={resetTimeFilter}
+        totalCount={validIpData.length}
+      />
       <div className="tab-content active">
         <KpiGrid
           items={[
             {
-              icon: <FaCertificate />,
-              value: validIpData.length,
-              label: 'จำนวนทรัพย์สินทางปัญญา (รวม)',
+              label: 'งานทรัพย์สินทางปัญญาทั้งหมด',
+              value: `${validIpData.length} รายการ`,
+              subtext: `อนุสิทธิบัตร ${pettyPatentCount} • สิทธิบัตร ${patentCount} • ลิขสิทธิ์ ${copyrightCount}`,
+              accentColor: '#6a1b9a',
             },
             {
-              icon: <FaScroll />,
-              value: patentCount,
-              label: 'สิทธิบัตร/อนุสิทธิบัตร',
+              label: 'ได้รับความคุ้มครองแล้ว',
+              value: `${protectedCount} รายการ`,
+              subtext: `ยื่นคำขอ ${pendingCount} • เตรียมยื่นจด ${inPrepCount} รายการ`,
+              accentColor: '#00A651',
             },
             {
-              icon: <FaMoneyBillWave />,
-              value: `฿${totalSupportAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-              label: 'เงินสนับสนุน',
-            },
-            {
-              icon: <FaBuilding />,
-              value: uniqueDeptCount,
               label: 'ภาควิชาที่มีผลงาน IP',
+              value: `${uniqueDeptCount} ภาควิชา`,
+              subtext: 'ที่มีการยื่นจดทะเบียน',
+              accentColor: '#0284c7',
+            },
+            {
+              label: 'งบสนับสนุนและรางวัลรวม',
+              value: `${totalSupportAmount.toLocaleString('th-TH')} บาท`,
+              subtext: 'จากคณะวิศวกรรมศาสตร์',
+              accentColor: '#059669',
             },
           ]}
         />
 
-        <IPCharts totalIpCount={validIpData.length} />
+        <IPCharts
+          validIpData={validIpData}
+          onSelectDept={(dept) => setDeptFilter(dept === deptFilter ? 'all' : dept)}
+          onSelectType={(type) => setTypeFilter(type === typeFilter ? 'all' : type)}
+        />
 
         <IPTable
           filteredIpData={filteredIpData}
+          totalCount={validIpData.length}
           availableDepts={availableDepts}
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
           deptFilter={deptFilter}
           onDeptChange={setDeptFilter}
-        />
-
-        <DecisionBox
-          title="ข้อมูลสนับสนุนการตัดสินใจ — งานทรัพย์สินทางปัญญา"
-          items={[
-            <>
-              มีทรัพย์สินทางปัญญารวม <strong>{validIpData.length} รายการ</strong> และสิทธิบัตร <strong>{patentCount} รายการ</strong>
-            </>,
-            <>
-              ปัจจุบันมาจาก <strong>{uniqueDeptCount} ภาควิชา</strong> ควรส่งเสริมและขยายการจดทะเบียนไปยังภาควิชาอื่นเพิ่มเติม
-            </>,
-            <>
-              ควรสร้าง <strong>กลไกสนับสนุนการยื่นจดสิทธิบัตร</strong> ต่อเนื่องจากโครงการวิจัยและผลงานตีพิมพ์ทางวิชาการ
-            </>,
-            <>
-              โครงการด้านเทคโนโลยีขั้นสูง เช่น IoT, AI ทางการเกษตร และวัสดุก่อสร้างคาร์บอนต่ำ ควรมีเป้าหมาย <strong>จดสิทธิบัตรเชิงพาณิชย์</strong>
-            </>,
-          ]}
+          typeFilter={typeFilter}
+          onTypeChange={setTypeFilter}
         />
       </div>
     </div>

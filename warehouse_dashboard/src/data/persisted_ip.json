@@ -34,12 +34,30 @@
     "registration_number": "0000022823",
     "protection_start": "",
     "protection_end": "",
-    "support_amount": 0,
+    "support_amount": 0.0,
     "remarks": "",
     "req_no": "2303000652 / 0000022823",
     "status": "ได้รับความคุ้มครองแล้ว",
     "person_id": 81,
-    "updatedAt": "2026-10-24T06:17:23.531Z"
+    "updatedAt": "2026-10-24T06:17:23.531Z",
+    "evaluation": {
+      "id": "ip_ip_1",
+      "category": "ip",
+      "record_id": "ip_1",
+      "sdg_ids": [
+        9
+      ],
+      "i_type": "I_AM",
+      "journal_index": null,
+      "evaluated_by": "admin",
+      "evaluated_at": "2026-10-24T21:00:19.682Z",
+      "updated_at": "2026-10-24T21:00:19.682Z"
+    },
+    "sdg_ids": [
+      9
+    ],
+    "i_type": "I_AM",
+    "journal_index": null
   },
   {
     "_id": "ip_2",
@@ -75,12 +93,13 @@
     "registration_number": "0000024730",
     "protection_start": "",
     "protection_end": "",
-    "support_amount": 0,
+    "support_amount": 0.0,
     "remarks": "",
     "req_no": "2303003816 / 0000024730",
     "status": "ได้รับความคุ้มครองแล้ว",
     "person_id": null,
-    "updatedAt": "2026-10-24T06:17:23.534Z"
+    "updatedAt": "2026-10-24T06:17:23.534Z",
+    "evaluation": null
   },
   {
     "_id": "ip_3",
@@ -116,12 +135,13 @@
     "registration_number": "0000024939",
     "protection_start": "",
     "protection_end": "",
-    "support_amount": 0,
+    "support_amount": 0.0,
     "remarks": "",
     "req_no": "2203002402 / 0000024939",
     "status": "ได้รับความคุ้มครองแล้ว",
     "person_id": null,
-    "updatedAt": "2026-10-24T06:17:23.535Z"
+    "updatedAt": "2026-10-24T06:17:23.535Z",
+    "evaluation": null
   },
   {
     "_id": "ip_4",
@@ -149,12 +169,13 @@
     "registration_number": "0000024938",
     "protection_start": "",
     "protection_end": "",
-    "support_amount": 0,
+    "support_amount": 0.0,
     "remarks": "",
     "req_no": "2303003200 / 0000024938",
     "status": "ได้รับความคุ้มครองแล้ว",
     "person_id": 6,
-    "updatedAt": "2026-10-24T06:17:23.535Z"
+    "updatedAt": "2026-10-24T06:17:23.535Z",
+    "evaluation": null
   },
   {
     "_id": "ip_5",
@@ -182,12 +203,13 @@
     "registration_number": "0000024733",
     "protection_start": "",
     "protection_end": "",
-    "support_amount": 0,
+    "support_amount": 0.0,
     "remarks": "",
     "req_no": "2203002196 / 0000024733",
     "status": "ได้รับความคุ้มครองแล้ว",
     "person_id": 10,
-    "updatedAt": "2026-10-24T06:17:23.535Z"
+    "updatedAt": "2026-10-24T06:17:23.535Z",
+    "evaluation": null
   },
   {
     "_id": "ip_6",
@@ -215,12 +237,13 @@
     "registration_number": "0000755541",
     "protection_start": "",
     "protection_end": "",
-    "support_amount": 0,
+    "support_amount": 0.0,
     "remarks": "",
     "req_no": "0000002025 / 0000755541",
     "status": "ได้รับความคุ้มครองแล้ว",
     "person_id": 81,
-    "updatedAt": "2026-10-24T06:17:23.535Z"
+    "updatedAt": "2026-10-24T06:17:23.535Z",
+    "evaluation": null
   },
   {
     "_id": "ip_7",
@@ -281,12 +304,13 @@
     "registration_number": "0000025468",
     "protection_start": "",
     "protection_end": "",
-    "support_amount": 0,
+    "support_amount": 0.0,
     "remarks": "",
     "req_no": "2303002822 / 0000025468",
     "status": "ได้รับความคุ้มครองแล้ว",
     "person_id": 8,
-    "updatedAt": "2026-10-24T06:17:23.536Z"
+    "updatedAt": "2026-10-24T06:17:23.536Z",
+    "evaluation": null
   },
   {
     "_id": "ip_8",
@@ -347,12 +371,13 @@
     "registration_number": "0000025469",
     "protection_start": "",
     "protection_end": "",
-    "support_amount": 0,
+    "support_amount": 0.0,
     "remarks": "",
     "req_no": "2303002824 / 0000025469",
     "status": "ได้รับความคุ้มครองแล้ว",
     "person_id": 8,
-    "updatedAt": "2026-10-24T06:17:23.536Z"
+    "updatedAt": "2026-10-24T06:17:23.536Z",
+    "evaluation": null
   },
   {
     "_id": "ip_9",
@@ -380,12 +405,13 @@
     "registration_number": "",
     "protection_start": "",
     "protection_end": "",
-    "support_amount": 0,
+    "support_amount": 20000.0,
     "remarks": "",
     "req_no": "2503004483",
     "status": "ยื่นคำขอแล้ว",
     "person_id": 8,
-    "updatedAt": "2026-10-24T06:17:23.537Z"
+    "updatedAt": "2026-10-24T06:17:23.537Z",
+    "evaluation": null
   },
   {
     "_id": "ip_10",
@@ -413,12 +439,13 @@
     "registration_number": "",
     "protection_start": "",
     "protection_end": "",
-    "support_amount": 0,
+    "support_amount": 0.0,
     "remarks": "",
     "req_no": "2567-06-17",
     "status": "ยื่นคำขอแล้ว",
     "person_id": null,
-    "updatedAt": "2026-10-24T06:17:23.537Z"
+    "updatedAt": "2026-10-24T06:17:23.537Z",
+    "evaluation": null
   },
   {
     "_id": "ip_11",
@@ -446,11 +473,203 @@
     "registration_number": "",
     "protection_start": "",
     "protection_end": "",
-    "support_amount": 0,
+    "support_amount": 20000.0,
     "remarks": "",
     "req_no": "1968-04-29",
     "status": "ยื่นคำขอแล้ว",
+    "person_id": 8,
+    "updatedAt": "2026-10-24T06:17:23.537Z",
+    "evaluation": null
+  },
+  {
+    "_id": "ip_12",
+    "id": "ip_12",
+    "title": "กรรมวิธีการสกัดลิกนินจากปาล์ม",
+    "name": "กรรมวิธีการสกัดลิกนินจากปาล์ม",
+    "type": "อนุสิทธิบัตร",
+    "creator": "รศ.กันต์ธกรณ์ เขาทอง",
+    "person_id": 107,
+    "department": "ภาควิชา วิศวกรรมเครื่องกล",
+    "status": "เตรียมความพร้อมยื่นจด",
+    "support_amount": 20000.0,
+    "fiscal_year_be": 2568,
+    "remarks": "โครงการสนับสนุนเตรียมความพร้อมจดอนุสิทธิบัตร",
+    "evaluation": {
+      "id": "publications_pub_001",
+      "category": "publications",
+      "record_id": "pub_001",
+      "sdg_ids": [
+        3,
+        9,
+        12
+      ],
+      "i_type": "I_SEE",
+      "journal_index": {
+        "type": "TCI",
+        "value": "TCI 1"
+      },
+      "evaluated_by": "admin",
+      "evaluated_at": "2026-10-24T20:34:58.707Z",
+      "updated_at": "2026-10-24T21:00:19.539Z"
+    },
+    "sdg_ids": [
+      3,
+      9,
+      12
+    ],
+    "updatedAt": "2026-10-25T15:44:52.290934"
+  },
+  {
+    "_id": "ip_13",
+    "id": "ip_13",
+    "title": "กลไกกรีดฝักข้าวโพดอ่อนปรับความลึกอัตโนมัติ",
+    "name": "กลไกกรีดฝักข้าวโพดอ่อนปรับความลึกอัตโนมัติ",
+    "type": "อนุสิทธิบัตร",
+    "creator": "ศ.ดร.อนุพันธ์  เทอดวงศ์วรกุล",
     "person_id": null,
-    "updatedAt": "2026-10-24T06:17:23.537Z"
+    "department": "ภาควิชา วิศวกรรมเกษตร",
+    "status": "เตรียมความพร้อมยื่นจด",
+    "support_amount": 20000.0,
+    "fiscal_year_be": 2568,
+    "remarks": "โครงการสนับสนุนเตรียมความพร้อมจดอนุสิทธิบัตร",
+    "evaluation": null,
+    "sdg_ids": [],
+    "updatedAt": "2026-10-25T15:44:52.290952"
+  },
+  {
+    "_id": "ip_14",
+    "id": "ip_14",
+    "title": "กระบวนการก่อรูปแบบเมมเบรน อิเล็กโทรไลต์ชนิดเจลในเซลล์ อิเล็กโทรไลต์",
+    "name": "กระบวนการก่อรูปแบบเมมเบรน อิเล็กโทรไลต์ชนิดเจลในเซลล์ อิเล็กโทรไลต์",
+    "type": "อนุสิทธิบัตร",
+    "creator": "รศ.ดร.กอบศักดิ์ กาญจนาพงศ์กุล",
+    "person_id": 58,
+    "department": "ภาควิชา วิศวกรรมการอาหาร",
+    "status": "เตรียมความพร้อมยื่นจด",
+    "support_amount": 20000.0,
+    "fiscal_year_be": 2568,
+    "remarks": "โครงการสนับสนุนเตรียมความพร้อมจดอนุสิทธิบัตร",
+    "evaluation": null,
+    "sdg_ids": [],
+    "updatedAt": "2026-10-25T15:44:52.290956"
+  },
+  {
+    "_id": "ip_15",
+    "id": "ip_15",
+    "title": "แผ่นแปะบรรเทาอาการโรคริดสีดวงทวาร",
+    "name": "แผ่นแปะบรรเทาอาการโรคริดสีดวงทวาร",
+    "type": "อนุสิทธิบัตร",
+    "creator": "รศ.กันต์ธกรณ์ เขาทอง",
+    "person_id": 107,
+    "department": "ภาควิชา วิศวกรรมเครื่องกล",
+    "status": "เตรียมความพร้อมยื่นจด",
+    "support_amount": 20000.0,
+    "fiscal_year_be": 2568,
+    "remarks": "โครงการสนับสนุนเตรียมความพร้อมจดอนุสิทธิบัตร",
+    "evaluation": null,
+    "sdg_ids": [],
+    "updatedAt": "2026-10-25T15:44:52.290959"
+  },
+  {
+    "_id": "ip_16",
+    "id": "ip_16",
+    "title": "อุปกรณ์ไฟฟ้าช็อตที่มีค่ากระแสไฟฟ้าขาออกไม่เกินสองมิลลิแอมป์",
+    "name": "อุปกรณ์ไฟฟ้าช็อตที่มีค่ากระแสไฟฟ้าขาออกไม่เกินสองมิลลิแอมป์",
+    "type": "อนุสิทธิบัตร",
+    "creator": "รศ.ดร.เชาว์  อินทร์ประสิทธิ์",
+    "person_id": null,
+    "department": "ภาควิชา วิศวกรรมการอาหาร",
+    "status": "เตรียมความพร้อมยื่นจด",
+    "support_amount": 20000.0,
+    "fiscal_year_be": 2568,
+    "remarks": "โครงการสนับสนุนเตรียมความพร้อมจดอนุสิทธิบัตร",
+    "evaluation": null,
+    "sdg_ids": [],
+    "updatedAt": "2026-10-25T15:44:52.290961"
+  },
+  {
+    "_id": "ip_17",
+    "id": "ip_17",
+    "title": "เครื่องทดสอบมุมกองวัสดุ",
+    "name": "เครื่องทดสอบมุมกองวัสดุ",
+    "type": "อนุสิทธิบัตร",
+    "creator": "ผศ.ดร.ปรีดา  ปรากฏมาก",
+    "person_id": 110,
+    "department": "ภาควิชา วิศวกรรมเครื่องกล",
+    "status": "เตรียมความพร้อมยื่นจด",
+    "support_amount": 20000.0,
+    "fiscal_year_be": 2568,
+    "remarks": "โครงการสนับสนุนเตรียมความพร้อมจดอนุสิทธิบัตร",
+    "evaluation": null,
+    "sdg_ids": [],
+    "updatedAt": "2026-10-25T15:44:52.290963"
+  },
+  {
+    "_id": "ip_18",
+    "id": "ip_18",
+    "title": "เครื่องทดสอบค่าสัมประสิทธิ์ความเสียดทานสถิตระหว่างวัตถุกับพื้นผิว",
+    "name": "เครื่องทดสอบค่าสัมประสิทธิ์ความเสียดทานสถิตระหว่างวัตถุกับพื้นผิว",
+    "type": "อนุสิทธิบัตร",
+    "creator": "ผศ.ดร.ปรีดา  ปรากฏมาก",
+    "person_id": 110,
+    "department": "ภาควิชา วิศวกรรมเครื่องกล",
+    "status": "เตรียมความพร้อมยื่นจด",
+    "support_amount": 20000.0,
+    "fiscal_year_be": 2568,
+    "remarks": "โครงการสนับสนุนเตรียมความพร้อมจดอนุสิทธิบัตร",
+    "evaluation": null,
+    "sdg_ids": [],
+    "updatedAt": "2026-10-25T15:44:52.290965"
+  },
+  {
+    "_id": "ip_19",
+    "id": "ip_19",
+    "title": "เครื่องทดสอบสัมประสิทธิ์การกระดอนของวัสดุ",
+    "name": "เครื่องทดสอบสัมประสิทธิ์การกระดอนของวัสดุ",
+    "type": "อนุสิทธิบัตร",
+    "creator": "ผศ.ดร.ปรีดา  ปรากฏมาก",
+    "person_id": 110,
+    "department": "ภาควิชา วิศวกรรมเครื่องกล",
+    "status": "เตรียมความพร้อมยื่นจด",
+    "support_amount": 20000.0,
+    "fiscal_year_be": 2568,
+    "remarks": "โครงการสนับสนุนเตรียมความพร้อมจดอนุสิทธิบัตร",
+    "evaluation": null,
+    "sdg_ids": [],
+    "updatedAt": "2026-10-25T15:44:52.290968"
+  },
+  {
+    "_id": "ip_20",
+    "id": "ip_20",
+    "title": "เครื่องทดลองวัดมุมกองเชิงพลวัตของวัสดุเม็ดในถังหมุนแบบผนังคลื่น",
+    "name": "เครื่องทดลองวัดมุมกองเชิงพลวัตของวัสดุเม็ดในถังหมุนแบบผนังคลื่น",
+    "type": "อนุสิทธิบัตร",
+    "creator": "ผศ.ดร.ปรีดา ปรากฏมาก",
+    "person_id": 110,
+    "department": "ภาควิชา วิศวกรรมเครื่องกล",
+    "status": "เตรียมความพร้อมยื่นจด",
+    "support_amount": 20000.0,
+    "fiscal_year_be": 2568,
+    "remarks": "โครงการสนับสนุนเตรียมความพร้อมจดอนุสิทธิบัตร",
+    "evaluation": null,
+    "sdg_ids": [],
+    "updatedAt": "2026-10-25T15:44:52.290970"
+  },
+  {
+    "_id": "ip_21",
+    "id": "ip_21",
+    "title": "กรรมวิธีการผลิต เพกทินชนิดเมทอกซิลต่ำโดยใช้กระบวนการอิเล็กโทรลิซิส",
+    "name": "กรรมวิธีการผลิต เพกทินชนิดเมทอกซิลต่ำโดยใช้กระบวนการอิเล็กโทรลิซิส",
+    "type": "อนุสิทธิบัตร",
+    "creator": "รศ.ดร.กอบศักดิ์ กาญจนาพงศ์กุล",
+    "person_id": 58,
+    "department": "ภาควิชา วิศวกรรมการอาหาร",
+    "status": "เตรียมความพร้อมยื่นจด",
+    "support_amount": 20000.0,
+    "fiscal_year_be": 2568,
+    "remarks": "โครงการสนับสนุนเตรียมความพร้อมจดอนุสิทธิบัตร",
+    "evaluation": null,
+    "sdg_ids": [],
+    "updatedAt": "2026-10-25T15:44:52.290972"
   }
 ]

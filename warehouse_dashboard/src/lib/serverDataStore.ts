@@ -1,3 +1,4 @@
+import { EvaluationRecord, isEvaluated, parseSdgNumber } from '../types/evaluation';
 import fs from 'fs';
 import path from 'path';
 
@@ -10,6 +11,7 @@ const FILE_MAP: Record<string, string> = {
   services: 'services.json',
   ip: 'ip.json',
   personnel: 'personnel.json',
+  evaluations: 'evaluations.json',
 };
 
 function getDataFilePath(category: string, persistedOnly = false): string {
@@ -42,6 +44,9 @@ export function readCategoryData(category: string): any[] {
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
 
+    const evaluations = readEvaluations();
+    const catLower = category.toLowerCase();
+
     return parsed
       .filter((i: any) => i && i.name && i.name !== 'nan' && i.name !== 'NaT' && i.name !== 'เรื่อง')
       .map((item: any, idx: number) => {
@@ -54,6 +59,20 @@ export function readCategoryData(category: string): any[] {
         if (!cleaned._id) {
           cleaned._id = cleaned.id && cleaned.id !== '' ? `${category}_${cleaned.id}` : `${category}_idx_${idx}`;
         }
+
+        // Attach evaluation record for this item
+        const recId = String(cleaned.id || cleaned._id || cleaned.name || '').trim();
+        const evalKey = `${catLower}_${recId}`;
+        const evalRecord = evaluations[evalKey] || null;
+        if (evalRecord) {
+          cleaned.evaluation = evalRecord;
+          cleaned.sdg_ids = evalRecord.sdg_ids || [];
+          cleaned.i_type = evalRecord.i_type ?? null;
+          cleaned.journal_index = evalRecord.journal_index ?? null;
+        } else {
+          cleaned.evaluation = null;
+        }
+
         return cleaned;
       });
   } catch (error) {
@@ -403,4 +422,306 @@ export function batchSaveCategory(
   const combined = mode === 'append' ? [...stamped, ...existing] : stamped;
   writeCategoryData(category, combined);
   return combined;
+}
+
+/**
+ * ==========================================
+ * Evaluation Storage Functions (การประเมิน)
+ * ==========================================
+ */
+
+const getEvaluationFilePath = (persistedOnly = false): string => {
+  let dataDir = path.join(process.cwd(), 'src', 'data');
+  if (!fs.existsSync(dataDir)) {
+    const altDir = path.join(process.cwd(), 'warehouse_dashboard', 'src', 'data');
+    if (fs.existsSync(altDir)) {
+      dataDir = altDir;
+    }
+  }
+  if (persistedOnly) {
+    return path.join(dataDir, 'persisted_evaluations.json');
+  }
+  const persistedPath = path.join(dataDir, 'persisted_evaluations.json');
+  if (fs.existsSync(persistedPath)) {
+    return persistedPath;
+  }
+  return path.join(dataDir, 'evaluations.json');
+};
+
+export function readEvaluations(): Record<string, EvaluationRecord> {
+  try {
+    const filePath = getEvaluationFilePath();
+    if (!fs.existsSync(filePath)) {
+      return {};
+    }
+    const raw = fs.readFileSync(filePath, 'utf-8');
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      const map: Record<string, EvaluationRecord> = {};
+      parsed.forEach((item: EvaluationRecord) => {
+        if (item && item.category && item.record_id) {
+          const key = `${item.category.toLowerCase()}_${String(item.record_id).trim()}`;
+          map[key] = item;
+        }
+      });
+      return map;
+    }
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch (error) {
+    console.error('[serverDataStore] Error reading evaluations:', error);
+    return {};
+  }
+}
+
+export function writeEvaluations(evaluations: Record<string, EvaluationRecord>): boolean {
+  try {
+    let dataDir = path.join(process.cwd(), 'src', 'data');
+    if (!fs.existsSync(dataDir)) {
+      const altDir = path.join(process.cwd(), 'warehouse_dashboard', 'src', 'data');
+      if (fs.existsSync(altDir)) {
+        dataDir = altDir;
+      } else {
+        fs.mkdirSync(dataDir, { recursive: true });
+      }
+    }
+
+    const persistedPath = path.join(dataDir, 'persisted_evaluations.json');
+    const originalPath = path.join(dataDir, 'evaluations.json');
+    const content = JSON.stringify(evaluations, null, 2);
+
+    fs.writeFileSync(persistedPath, content, 'utf-8');
+    fs.writeFileSync(originalPath, content, 'utf-8');
+    return true;
+  } catch (error) {
+    console.error('[serverDataStore] Error writing evaluations:', error);
+    return false;
+  }
+}
+
+export function getEvaluation(category: string, recordId: string): EvaluationRecord | null {
+  const all = readEvaluations();
+  const key = `${category.toLowerCase()}_${String(recordId).trim()}`;
+  return all[key] || null;
+}
+
+export function saveEvaluation(evalData: Partial<EvaluationRecord>): EvaluationRecord {
+  const category = String(evalData.category || '').toLowerCase();
+  const recordId = String(evalData.record_id || '').trim();
+  if (!category || !recordId) {
+    throw new Error('Category and record_id are required for evaluation');
+  }
+
+  const all = readEvaluations();
+  const key = `${category}_${recordId}`;
+  const existing = all[key];
+
+  const nowIso = new Date().toISOString();
+  const merged: EvaluationRecord = {
+    id: key,
+    category,
+    record_id: recordId,
+    sdg_ids: Array.isArray(evalData.sdg_ids)
+      ? Array.from(new Set(evalData.sdg_ids.map(Number).filter((n) => n >= 1 && n <= 17))).sort((a, b) => a - b)
+      : existing?.sdg_ids || [],
+    i_type: evalData.i_type !== undefined ? evalData.i_type : existing?.i_type || null,
+    journal_index:
+      evalData.journal_index !== undefined ? evalData.journal_index : existing?.journal_index || null,
+    evaluated_by: evalData.evaluated_by || existing?.evaluated_by,
+    evaluated_at: existing?.evaluated_at,
+    updated_at: nowIso,
+  };
+
+  // Rule: Set evaluated_at and evaluated_by when the rule first becomes true
+  const currentlyEvaluated = isEvaluated(category, merged);
+  if (currentlyEvaluated) {
+    if (!merged.evaluated_at) {
+      merged.evaluated_at = nowIso;
+      merged.evaluated_by = merged.evaluated_by || 'admin';
+    }
+  } else {
+    // If not evaluated according to rule, reset evaluated_at
+    merged.evaluated_at = undefined;
+  }
+
+  all[key] = merged;
+  writeEvaluations(all);
+
+  // Sync to category data if applicable
+  try {
+    const catItems = readCategoryData(category);
+    let matched = false;
+    for (const it of catItems) {
+      const itRecId = String(it.id || it._id || it.name || '').trim();
+      if (itRecId === recordId) {
+        it.evaluation = merged;
+        it.sdg_ids = merged.sdg_ids;
+        it.i_type = merged.i_type;
+        it.journal_index = merged.journal_index;
+        matched = true;
+        break;
+      }
+    }
+    if (matched) {
+      writeCategoryData(category, catItems);
+    }
+  } catch (err) {
+    console.warn('[serverDataStore] Non-blocking error syncing evaluation to category file:', err);
+  }
+
+  return merged;
+}
+
+export function bulkSaveEvaluations(items: Partial<EvaluationRecord>[]): EvaluationRecord[] {
+  const results: EvaluationRecord[] = [];
+  const all = readEvaluations();
+  const nowIso = new Date().toISOString();
+
+  for (const evalData of items) {
+    const category = String(evalData.category || '').toLowerCase();
+    const recordId = String(evalData.record_id || '').trim();
+    if (!category || !recordId) continue;
+
+    const key = `${category}_${recordId}`;
+    const existing = all[key];
+
+    // For bulk evaluation: SDGs can be merged into existing SDGs if specified
+    const existingSdgs = existing?.sdg_ids || [];
+    const newSdgs = Array.isArray(evalData.sdg_ids) ? evalData.sdg_ids : [];
+    const combinedSdgs = Array.from(new Set([...existingSdgs, ...newSdgs].map(Number).filter((n) => n >= 1 && n <= 17))).sort((a, b) => a - b);
+
+    const merged: EvaluationRecord = {
+      id: key,
+      category,
+      record_id: recordId,
+      sdg_ids: combinedSdgs,
+      i_type: evalData.i_type !== undefined && evalData.i_type !== null ? evalData.i_type : (existing?.i_type || null),
+      journal_index:
+        evalData.journal_index !== undefined && evalData.journal_index !== null
+          ? evalData.journal_index
+          : (existing?.journal_index || null),
+      evaluated_by: evalData.evaluated_by || existing?.evaluated_by,
+      evaluated_at: existing?.evaluated_at,
+      updated_at: nowIso,
+    };
+
+    if (isEvaluated(category, merged)) {
+      if (!merged.evaluated_at) {
+        merged.evaluated_at = nowIso;
+        merged.evaluated_by = merged.evaluated_by || 'admin';
+      }
+    } else {
+      merged.evaluated_at = undefined;
+    }
+
+    all[key] = merged;
+    results.push(merged);
+  }
+
+  writeEvaluations(all);
+  return results;
+}
+
+/**
+ * Migration: Scan existing category files for SDGs, Q, TCI and migrate into evaluations.json
+ */
+export function migrateExistingEvaluations(): { migratedCount: number; details: Record<string, number> } {
+  const evaluations = readEvaluations();
+  let migratedCount = 0;
+  const details: Record<string, number> = {
+    research: 0,
+    academic: 0,
+    publications: 0,
+    service: 0,
+    ip: 0,
+  };
+
+  const categories = ['research', 'academic', 'publications', 'service', 'ip'];
+
+  for (const cat of categories) {
+    try {
+      const items = readCategoryData(cat);
+      let fileModified = false;
+
+      for (const item of items) {
+        const recordId = String(item._id || item.id || '').trim();
+        if (!recordId) continue;
+        const evalKey = `${cat}_${recordId}`;
+
+        // Check for existing evaluation in record
+        let hasSdgValue = false;
+        let sdgs: number[] = [];
+
+        // 1. Extract SDGs
+        const rawSdg = item.sdg_code || item.sdgs || item.sdg || item.sdg_outputs;
+        if (rawSdg) {
+          if (Array.isArray(rawSdg)) {
+            sdgs = rawSdg.map(parseSdgNumber).filter((n): n is number => n !== null);
+          } else if (typeof rawSdg === 'string') {
+            sdgs = rawSdg.split(',').map(parseSdgNumber).filter((n): n is number => n !== null);
+          }
+          if (sdgs.length > 0) hasSdgValue = true;
+        }
+
+        // 2. Extract Journal Q/TCI
+        let journalIndex: { type: 'Q' | 'TCI'; value: string } | null = null;
+        const rawTier = item.quartile || item.tier || item.journal_tier;
+        if (rawTier && typeof rawTier === 'string') {
+          const clean = rawTier.trim();
+          if (clean.includes('Q1')) journalIndex = { type: 'Q', value: 'Q1' };
+          else if (clean.includes('Q2')) journalIndex = { type: 'Q', value: 'Q2' };
+          else if (clean.includes('Q3')) journalIndex = { type: 'Q', value: 'Q3' };
+          else if (clean.includes('Q4')) journalIndex = { type: 'Q', value: 'Q4' };
+          else if (clean.includes('TCI 1') || clean.includes('TCI1')) journalIndex = { type: 'TCI', value: 'TCI 1' };
+          else if (clean.includes('TCI 2') || clean.includes('TCI2')) journalIndex = { type: 'TCI', value: 'TCI 2' };
+          else if (clean.includes('TCI 3') || clean.includes('TCI3')) journalIndex = { type: 'TCI', value: 'TCI 3' };
+        }
+
+        // 3. Extract I am / I see if stored
+        let iType: 'I_AM' | 'I_SEE' | null = null;
+        if (item.i_type === 'I_AM' || item.i_type === 'I_SEE') {
+          iType = item.i_type;
+        } else if (item.i_type === 'I am') iType = 'I_AM';
+        else if (item.i_type === 'I see') iType = 'I_SEE';
+
+        if (hasSdgValue || journalIndex || iType) {
+          const existingEval = evaluations[evalKey];
+          const mergedSdgs = Array.from(new Set([...(existingEval?.sdg_ids || []), ...sdgs])).sort((a, b) => a - b);
+          const mergedEval: EvaluationRecord = {
+            id: evalKey,
+            category: cat,
+            record_id: recordId,
+            sdg_ids: mergedSdgs,
+            i_type: existingEval?.i_type || iType,
+            journal_index: existingEval?.journal_index || journalIndex,
+            evaluated_by: existingEval?.evaluated_by || 'system_migration',
+            evaluated_at: existingEval?.evaluated_at,
+            updated_at: new Date().toISOString(),
+          };
+
+          if (isEvaluated(cat, mergedEval) && !mergedEval.evaluated_at) {
+            mergedEval.evaluated_at = new Date().toISOString();
+          }
+
+          evaluations[evalKey] = mergedEval;
+          migratedCount++;
+          details[cat] = (details[cat] || 0) + 1;
+        }
+
+        // Remove legacy fields from item
+        if (item.sdg_code !== undefined) { delete item.sdg_code; fileModified = true; }
+        if (item.sdgs !== undefined) { delete item.sdgs; fileModified = true; }
+        if (item.quartile !== undefined) { delete item.quartile; fileModified = true; }
+        if (item.journal_tier !== undefined) { delete item.journal_tier; fileModified = true; }
+      }
+
+      if (fileModified) {
+        writeCategoryData(cat, items);
+      }
+    } catch (err) {
+      console.error(`[serverDataStore] Migration error for ${cat}:`, err);
+    }
+  }
+
+  writeEvaluations(evaluations);
+  return { migratedCount, details };
 }

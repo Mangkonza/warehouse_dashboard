@@ -9,10 +9,22 @@ export interface SidebarMenuItem {
   label: string;
   path: string;
   icon: React.ReactNode;
+  badge?: string;
+  section?: 'top' | 'middle' | 'bottom';
+}
+
+export interface SidebarCategory {
+  id: string;
+  label: string;
+  badge?: string;
+  items: SidebarMenuItem[];
 }
 
 export interface SidebarProps {
-  menuItems: SidebarMenuItem[];
+  categories?: SidebarCategory[];
+  topItems?: SidebarMenuItem[];
+  middleItems?: SidebarMenuItem[];
+  bottomItems?: SidebarMenuItem[];
   activePath: string;
   isExpanded: boolean;
   isSidebarPinned: boolean;
@@ -21,12 +33,14 @@ export interface SidebarProps {
   onHoverLeave: () => void;
   onNavigate: (path: string) => void;
   userSlot?: React.ReactNode;
-  adminSlot?: React.ReactNode;
   timerSlot?: React.ReactNode;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
-  menuItems,
+  categories,
+  topItems = [],
+  middleItems = [],
+  bottomItems = [],
   activePath,
   isExpanded,
   isSidebarPinned,
@@ -35,10 +49,140 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onHoverLeave,
   onNavigate,
   userSlot,
-  adminSlot,
   timerSlot,
 }) => {
   const sidebarWidth = isExpanded ? 255 : 70;
+
+  // Resolve categories (backward-compatibility fallback if categories prop is omitted)
+  const resolvedCategories: SidebarCategory[] = React.useMemo(() => {
+    if (categories && categories.length > 0) {
+      return categories.filter((c) => c.items && c.items.length > 0);
+    }
+    const legacy: SidebarCategory[] = [];
+    if (topItems.length > 0) {
+      legacy.push({ id: 'top', label: 'เมนูหลัก', items: topItems });
+    }
+    if (middleItems.length > 0) {
+      legacy.push({ id: 'middle', label: 'การวิเคราะห์', items: middleItems });
+    }
+    if (bottomItems.length > 0) {
+      legacy.push({ id: 'bottom', label: 'การจัดการ', items: bottomItems });
+    }
+    return legacy;
+  }, [categories, topItems, middleItems, bottomItems]);
+
+  const isItemActive = (item: SidebarMenuItem): boolean => {
+    if (activePath === item.path || activePath === `/${item.id}`) return true;
+    if (item.path !== '/' && activePath.startsWith(`${item.path}/`)) return true;
+    if (item.id === 'service' && (activePath === '/services' || activePath.startsWith('/services/'))) return true;
+    return false;
+  };
+
+  const renderMenuItem = (item: SidebarMenuItem) => {
+    const isActive = isItemActive(item);
+
+    return (
+      <button
+        key={item.id}
+        onClick={() => onNavigate(item.path)}
+        title={!isExpanded ? item.label : undefined}
+        style={{
+          position: 'relative',
+          width: '100%',
+          height: '42px',
+          display: 'flex',
+          alignItems: 'center',
+          border: 'none',
+          backgroundColor: isActive ? THEME_COLORS.primary : 'transparent',
+          color: isActive ? '#ffffff' : '#94a3b8',
+          fontWeight: isActive ? 600 : 500,
+          fontSize: '13.5px',
+          cursor: 'pointer',
+          textAlign: 'left',
+          transition: 'background 0.15s, color 0.15s',
+          padding: 0,
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+        }}
+        onMouseOver={(e) => {
+          if (!isActive) {
+            e.currentTarget.style.backgroundColor = THEME_COLORS.sidebarHover;
+            e.currentTarget.style.color = '#ffffff';
+          }
+        }}
+        onMouseOut={(e) => {
+          if (!isActive) {
+            e.currentTarget.style.backgroundColor = 'transparent';
+            e.currentTarget.style.color = '#94a3b8';
+          }
+        }}
+      >
+        {/* Active glowing accent strip on left border */}
+        {isActive && (
+          <div
+            style={{
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              bottom: 0,
+              width: '3.5px',
+              backgroundColor: '#00e676',
+              boxShadow: '0 0 8px rgba(0,230,118,0.6)',
+            }}
+          />
+        )}
+
+        <div
+          style={{
+            width: '70px',
+            height: '42px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+            fontSize: '16px',
+            color: isActive ? '#ffffff' : '#94a3b8',
+          }}
+        >
+          {item.icon}
+        </div>
+
+        <div
+          style={{
+            opacity: isExpanded ? 1 : 0,
+            visibility: isExpanded ? 'visible' : 'hidden',
+            transition: 'opacity 0.2s ease',
+            paddingRight: '14px',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flex: 1,
+            minWidth: 0,
+          }}
+        >
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.label}</span>
+          {item.badge && (
+            <span
+              style={{
+                fontSize: '10px',
+                padding: '1px 6px',
+                borderRadius: '999px',
+                backgroundColor: isActive ? 'rgba(255,255,255,0.25)' : '#334155',
+                color: '#ffffff',
+                fontWeight: 600,
+                marginLeft: '6px',
+                flexShrink: 0,
+              }}
+            >
+              {item.badge}
+            </span>
+          )}
+        </div>
+      </button>
+    );
+  };
 
   return (
     <aside
@@ -114,76 +258,35 @@ export const Sidebar: React.FC<SidebarProps> = ({
         )}
       </div>
 
-      {/* 2. Navigation items list */}
-      <nav style={{ padding: '10px 0', flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
-        {menuItems.map((item) => {
-          const isActive = activePath === item.path || activePath === `/${item.id}`;
-          return (
-            <button
-              key={item.id}
-              onClick={() => onNavigate(item.path)}
-              style={{
-                position: 'relative',
-                width: '100%',
-                height: '46px',
-                display: 'flex',
-                alignItems: 'center',
-                border: 'none',
-                backgroundColor: isActive ? THEME_COLORS.primary : 'transparent',
-                color: isActive ? '#ffffff' : '#94a3b8',
-                fontWeight: isActive ? 700 : 500,
-                fontSize: '13.5px',
-                cursor: 'pointer',
-                textAlign: 'left',
-                transition: 'background 0.15s, color 0.15s',
-                padding: 0,
-                whiteSpace: 'nowrap',
-              }}
-              onMouseOver={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.backgroundColor = THEME_COLORS.sidebarHover;
-                  e.currentTarget.style.color = '#ffffff';
-                }
-              }}
-              onMouseOut={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                  e.currentTarget.style.color = '#94a3b8';
-                }
-              }}
-            >
+      {/* 2. Categorized Navigation */}
+      <nav
+        style={{
+          padding: '8px 0 24px 0',
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+        {resolvedCategories.map((category, catIdx) => (
+          <div key={category.id || catIdx} style={{ display: 'flex', flexDirection: 'column' }}>
+            {/* Divider line between groups */}
+            {catIdx > 0 && (
               <div
                 style={{
-                  width: '70px',
-                  height: '46px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  height: '1px',
+                  backgroundColor: '#2d343c',
+                  margin: '8px 14px',
                   flexShrink: 0,
-                  fontSize: '16px',
                 }}
-              >
-                {item.icon}
-              </div>
+              />
+            )}
 
-              <div
-                style={{
-                  opacity: isExpanded ? 1 : 0,
-                  visibility: isExpanded ? 'visible' : 'hidden',
-                  transition: 'opacity 0.2s ease',
-                  paddingRight: '16px',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}
-              >
-                {item.label}
-              </div>
-            </button>
-          );
-        })}
-
-        {/* Admin slot (manage tab) */}
-        {adminSlot}
+            {/* Category Menu Items */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+              {category.items.map(renderMenuItem)}
+            </div>
+          </div>
+        ))}
       </nav>
 
       {/* 3. Timer slot at bottom */}

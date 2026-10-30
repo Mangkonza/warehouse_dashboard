@@ -11,6 +11,13 @@ export interface ImageCropModalProps {
   onCancel: () => void;
 }
 
+const CONTAINER_SIZE = 320; // viewport สี่เหลี่ยมจัตุรัส 320x320
+const OUTPUT_SIZE = 400; // ไฟล์ผลลัพธ์ 400x400 (แสดงเป็นวงกลมในหน้าฟอร์ม)
+const MIN_SCALE = 0.6;
+const MAX_SCALE = 3;
+
+const clampScale = (v: number) => Math.min(Math.max(MIN_SCALE, v), MAX_SCALE);
+
 export function ImageCropModal({
   isOpen,
   imageSrc,
@@ -22,7 +29,6 @@ export function ImageCropModal({
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const imgRef = useRef<HTMLImageElement | null>(null);
-  const containerSize = 320; // 320x320 square viewport
 
   useEffect(() => {
     if (isOpen) {
@@ -89,7 +95,7 @@ export function ImageCropModal({
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
     const delta = e.deltaY < 0 ? 0.1 : -0.1;
-    setScale((prev) => Math.min(Math.max(0.6, prev + delta), 3.5));
+    setScale((prev) => clampScale(prev + delta));
   };
 
   const handleConfirmCrop = () => {
@@ -97,23 +103,22 @@ export function ImageCropModal({
     const img = imgRef.current;
 
     const canvas = document.createElement('canvas');
-    const outputSize = 400; // Output square image 400x400
-    canvas.width = outputSize;
-    canvas.height = outputSize;
+    canvas.width = OUTPUT_SIZE;
+    canvas.height = OUTPUT_SIZE;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     // Background white fill
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, outputSize, outputSize);
+    ctx.fillRect(0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
 
     // Compute drawing dimensions on canvas
-    const ratio = outputSize / containerSize;
+    const ratio = OUTPUT_SIZE / CONTAINER_SIZE;
     const renderedWidth = img.width * scale * ratio;
     const renderedHeight = img.height * scale * ratio;
 
-    const centerX = outputSize / 2;
-    const centerY = outputSize / 2;
+    const centerX = OUTPUT_SIZE / 2;
+    const centerY = OUTPUT_SIZE / 2;
 
     const drawX = centerX - renderedWidth / 2 + offset.x * ratio;
     const drawY = centerY - renderedHeight / 2 + offset.y * ratio;
@@ -147,16 +152,12 @@ export function ImageCropModal({
         {/* Viewport container */}
         <div className="p-5 flex flex-col items-center">
           <div
-            style={{ width: `${containerSize}px`, height: `${containerSize}px` }}
-            className="relative overflow-hidden rounded-xl border-2 border-dashed border-emerald-500 bg-slate-100 flex items-center justify-center cursor-move select-none shadow-inner"
+            style={{ width: `${CONTAINER_SIZE}px`, height: `${CONTAINER_SIZE}px` }}
+            className="relative overflow-hidden rounded-lg border border-dashed border-emerald-500 bg-slate-100 flex items-center justify-center cursor-move select-none shadow-inner"
             onMouseDown={handleMouseDown}
             onTouchStart={handleTouchStart}
             onWheel={handleWheel}
           >
-            {/* Visual Circular/Square Crop Guideline Overlay */}
-            <div className="absolute inset-0 pointer-events-none border border-emerald-400/40 rounded-xl" />
-            <div className="absolute inset-2 pointer-events-none rounded-full border border-white/60 shadow-[0_0_0_9999px_rgba(0,0,0,0.35)]" />
-
             {/* Target Image */}
             <img
               ref={imgRef}
@@ -172,17 +173,22 @@ export function ImageCropModal({
               }}
               className="pointer-events-none transition-transform duration-75 ease-out"
             />
+
+            {/* วงกลมเต็มกรอบ = ขอบเขตที่จะเห็นจริงในรูปโปรไฟล์ (พื้นที่นอกวงกลมถูกหรี่ลง) */}
+            <div className="absolute inset-0 pointer-events-none rounded-full border border-white/70 shadow-[0_0_0_9999px_rgba(0,0,0,0.45)]" />
           </div>
 
           <div className="text-[11.5px] text-slate-500 mt-2 text-center">
             ลากเพื่อเลื่อนตำแหน่งภาพ • เลื่อนแถบด้านล่างหรือหมุนลูกกลิ้งเมาส์เพื่อซูม
+            <br />
+            ส่วนที่อยู่ในวงกลมคือรูปที่จะแสดงเป็นรูปโปรไฟล์
           </div>
 
           {/* Zoom slider control */}
           <div className="w-full max-w-xs mt-3 flex items-center gap-3 bg-slate-50 p-2.5 rounded-lg border border-slate-200">
             <button
               type="button"
-              onClick={() => setScale((s) => Math.max(0.6, s - 0.15))}
+              onClick={() => setScale((s) => clampScale(s - 0.15))}
               className="text-slate-500 hover:text-emerald-600 p-1"
               title="ย่อ"
             >
@@ -190,16 +196,16 @@ export function ImageCropModal({
             </button>
             <input
               type="range"
-              min="0.6"
-              max="3"
+              min={MIN_SCALE}
+              max={MAX_SCALE}
               step="0.05"
               value={scale}
-              onChange={(e) => setScale(parseFloat(e.target.value))}
+              onChange={(e) => setScale(clampScale(parseFloat(e.target.value)))}
               className="flex-1 accent-[#00A651] cursor-pointer"
             />
             <button
               type="button"
-              onClick={() => setScale((s) => Math.min(3, s + 0.15))}
+              onClick={() => setScale((s) => clampScale(s + 0.15))}
               className="text-slate-500 hover:text-emerald-600 p-1"
               title="ขยาย"
             >

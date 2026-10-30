@@ -4,10 +4,13 @@ import { useState, useEffect, useMemo } from 'react';
 import { apiFetch } from '@/lib/api';
 import { parseNumber } from '@/lib/kpiEngine';
 import { calculateProjectTimeline } from '@/lib/projectMonitoringEngine';
-import { getCachedCategoryData } from '@/lib/dataService';
+import { getCachedCategoryData, fetchCategoryData } from '@/lib/dataService';
 import { matchDepartmentCode } from '@/config/departments';
 import { exportMonthlyExecutiveMasterExcel, saveReportSnapshot } from '@/lib/etlEngine';
 import { TimeFilterState, itemMatchesTimeFilter, getTimeFilterLabel } from '@/types/timeFilter';
+import { isTestRecord } from '@/lib/sdgEngine';
+import { autoDetectJournalRanking } from '@/config/journalRankingConfig';
+import { CategoryKey } from '@/config/dataManagementConfig';
 
 import rawResearch from '@/data/research.json';
 import rawAcademic from '@/data/academic.json';
@@ -26,11 +29,27 @@ export interface OverviewKpiScore {
   unit: string;
   percent: number;
   proRataTarget: number;
+  categoryKey: CategoryKey;
+  items: any[];
   status: {
     label: string;
     color: string;
     bg: string;
   };
+}
+
+export interface DepartmentOverviewStat {
+  code: string;
+  name: string;
+  budget: number;
+  researchCount: number;
+  academicCount: number;
+  academicBudget: number;
+  pubs: number;
+  services: number;
+  ips: number;
+  researchItems: any[];
+  allItems: any[];
 }
 
 export function useOverviewData(timeFilter: TimeFilterState) {
@@ -59,33 +78,33 @@ export function useOverviewData(timeFilter: TimeFilterState) {
   const fetchLiveData = async () => {
     setIsRefreshing(true);
     try {
-      const [resRes, acaRes, pubRes, srvRes, ipRes] = await Promise.allSettled([
-        apiFetch<any[]>('/dashboard/research'),
-        apiFetch<any[]>('/dashboard/academic'),
-        apiFetch<any[]>('/dashboard/publications'),
-        apiFetch<any[]>('/dashboard/services'),
-        apiFetch<any[]>('/dashboard/ip'),
+      const [resData, acaData, pubData, srvData, ipData] = await Promise.all([
+        fetchCategoryData('research'),
+        fetchCategoryData('academic'),
+        fetchCategoryData('publications'),
+        fetchCategoryData('service'),
+        fetchCategoryData('ip'),
       ]);
 
       let liveCount = 0;
-      if (resRes.status === 'fulfilled' && resRes.value.data) {
-        setResearchList(resRes.value.data);
+      if (resData && Array.isArray(resData) && resData.length > 0) {
+        setResearchList(resData);
         liveCount++;
       }
-      if (acaRes.status === 'fulfilled' && acaRes.value.data) {
-        setAcademicList(acaRes.value.data);
+      if (acaData && Array.isArray(acaData) && acaData.length > 0) {
+        setAcademicList(acaData);
         liveCount++;
       }
-      if (pubRes.status === 'fulfilled' && pubRes.value.data) {
-        setPubList(pubRes.value.data);
+      if (pubData && Array.isArray(pubData) && pubData.length > 0) {
+        setPubList(pubData);
         liveCount++;
       }
-      if (srvRes.status === 'fulfilled' && srvRes.value.data) {
-        setServiceList(srvRes.value.data);
+      if (srvData && Array.isArray(srvData) && srvData.length > 0) {
+        setServiceList(srvData);
         liveCount++;
       }
-      if (ipRes.status === 'fulfilled' && ipRes.value.data) {
-        setIpList(ipRes.value.data);
+      if (ipData && Array.isArray(ipData) && ipData.length > 0) {
+        setIpList(ipData);
         liveCount++;
       }
 
@@ -103,32 +122,37 @@ export function useOverviewData(timeFilter: TimeFilterState) {
 
   const validResearch = useMemo(() => {
     return researchList
-      .filter((item) => item.name && item.name !== 'nan' && item.name !== 'NaT' && item.name !== 'เรื่อง')
-      .filter((item) => itemMatchesTimeFilter(item, timeFilter));
+      .filter((item) => item.name && item.name !== 'nan' && item.name !== 'NaT' && item.name !== 'เรื่อง' && !isTestRecord(item))
+      .filter((item) => itemMatchesTimeFilter(item, timeFilter))
+      .map((item) => ({ ...item, _categoryKey: 'research' as CategoryKey }));
   }, [researchList, timeFilter]);
 
   const validAcademic = useMemo(() => {
     return academicList
-      .filter((item) => item.name && item.name !== 'nan' && item.name !== 'NaT' && item.name !== 'เรื่อง')
-      .filter((item) => itemMatchesTimeFilter(item, timeFilter));
+      .filter((item) => item.name && item.name !== 'nan' && item.name !== 'NaT' && item.name !== 'เรื่อง' && !isTestRecord(item))
+      .filter((item) => itemMatchesTimeFilter(item, timeFilter))
+      .map((item) => ({ ...item, _categoryKey: 'academic' as CategoryKey }));
   }, [academicList, timeFilter]);
 
   const validPub = useMemo(() => {
     return pubList
-      .filter((item) => item.name && item.name !== 'nan' && item.name !== 'NaT' && item.name !== 'เรื่อง')
-      .filter((item) => itemMatchesTimeFilter(item, timeFilter));
+      .filter((item) => item.name && item.name !== 'nan' && item.name !== 'NaT' && item.name !== 'เรื่อง' && !isTestRecord(item))
+      .filter((item) => itemMatchesTimeFilter(item, timeFilter))
+      .map((item) => ({ ...item, _categoryKey: 'publications' as CategoryKey }));
   }, [pubList, timeFilter]);
 
   const validService = useMemo(() => {
     return serviceList
-      .filter((item) => item.name && item.name !== 'nan' && item.name !== 'NaT' && item.name !== 'เรื่อง')
-      .filter((item) => itemMatchesTimeFilter(item, timeFilter));
+      .filter((item) => item.name && item.name !== 'nan' && item.name !== 'NaT' && item.name !== 'เรื่อง' && !isTestRecord(item))
+      .filter((item) => itemMatchesTimeFilter(item, timeFilter))
+      .map((item) => ({ ...item, _categoryKey: 'service' as CategoryKey }));
   }, [serviceList, timeFilter]);
 
   const validIP = useMemo(() => {
     return ipList
-      .filter((item) => item.name && item.name !== 'nan' && item.name !== 'NaT' && item.name !== 'เรื่อง')
-      .filter((item) => itemMatchesTimeFilter(item, timeFilter));
+      .filter((item) => item.name && item.name !== 'nan' && item.name !== 'NaT' && item.name !== 'เรื่อง' && !isTestRecord(item))
+      .filter((item) => itemMatchesTimeFilter(item, timeFilter))
+      .map((item) => ({ ...item, _categoryKey: 'ip' as CategoryKey }));
   }, [ipList, timeFilter]);
 
   const fiscalYearProgress = useMemo(() => {
@@ -139,33 +163,38 @@ export function useOverviewData(timeFilter: TimeFilterState) {
   }, []);
 
   const kpiScorecard: OverviewKpiScore[] = useMemo(() => {
+    const externalResearchItems = validResearch.filter((cur) => parseNumber(cur.budget_external) > 0);
     const externalBudget = validResearch.reduce((acc, cur) => acc + parseNumber(cur.budget_external), 0);
     const targetExternal = 100000000;
     const pctExternal = Math.min(200, Math.round((externalBudget / targetExternal) * 1000) / 10);
 
-    const scopusCount =
-      validPub.filter((p) => {
-        const s = `${p.journal || ''} ${p.level || ''}`.toLowerCase();
-        return (
-          s.includes('q1') ||
-          s.includes('q2') ||
-          s.includes('q3') ||
-          s.includes('q4') ||
-          s.includes('scopus') ||
-          s.includes('wos') ||
-          s.includes('นานาชาติ')
-        );
-      }).length || validPub.length;
+    const scopusItems = validPub.filter((p) => {
+      const tier = autoDetectJournalRanking(p.journal || '', p.level || '');
+      const s = `${p.journal || ''} ${p.level || ''}`.toLowerCase();
+      return (
+        tier.startsWith('Scopus') ||
+        s.includes('scopus') ||
+        s.includes('wos') ||
+        s.includes('นานาชาติ')
+      );
+    });
+    const scopusCount = scopusItems.length || validPub.length;
     const targetScopus = 330;
     const pctScopus = Math.min(200, Math.round((scopusCount / targetScopus) * 1000) / 10);
 
-    const megaCount = validResearch.filter((r) => parseNumber(r.budget_external) >= 10000000).length;
+    const megaItems = validResearch.filter(
+      (r) => parseNumber(r.budget_external) + parseNumber(r.budget_internal) >= 10000000
+    );
+    const megaCount = megaItems.length;
     const targetMega = 5;
     const pctMega = Math.min(200, Math.round((megaCount / targetMega) * 1000) / 10);
 
-    const actualServiceRevenue = validService.reduce((acc, cur) => {
-      return acc + (parseNumber(cur.actual_revenue) || parseNumber(cur.budget) || parseNumber(cur.revenue) || 80000);
-    }, 0);
+    const academicRevenue = validAcademic.reduce((acc, cur) => acc + parseNumber(cur.budget), 0);
+    const serviceExplicitRevenue = validService.reduce(
+      (acc, cur) => acc + (parseNumber(cur.actual_revenue) || parseNumber(cur.budget) || parseNumber(cur.revenue) || 0),
+      0
+    );
+    const actualServiceRevenue = academicRevenue + serviceExplicitRevenue;
     const targetServiceRevenue = 50000000;
     const pctService = Math.min(200, Math.round((actualServiceRevenue / targetServiceRevenue) * 1000) / 10);
 
@@ -192,6 +221,8 @@ export function useOverviewData(timeFilter: TimeFilterState) {
         unit: 'บาท',
         percent: pctExternal,
         proRataTarget: fiscalYearProgress,
+        categoryKey: 'research',
+        items: externalResearchItems.length > 0 ? externalResearchItems : validResearch,
         status: getStatusInfo(pctExternal, fiscalYearProgress),
       },
       {
@@ -205,12 +236,14 @@ export function useOverviewData(timeFilter: TimeFilterState) {
         unit: 'เรื่อง',
         percent: pctScopus,
         proRataTarget: fiscalYearProgress,
+        categoryKey: 'publications',
+        items: scopusItems.length > 0 ? scopusItems : validPub,
         status: getStatusInfo(pctScopus, fiscalYearProgress),
       },
       {
         id: 'mega_projects',
         code: 'KPI 2.1-2',
-        title: 'โครงการวิจัยขนาดใหญ่ (> 10 ล้าน)',
+        title: 'โครงการวิจัยขนาดใหญ่ (≥ 10 ล้าน)',
         actual: megaCount,
         actualFormatted: `${megaCount} โครงการ`,
         target: targetMega,
@@ -218,12 +251,14 @@ export function useOverviewData(timeFilter: TimeFilterState) {
         unit: 'โครงการ',
         percent: pctMega,
         proRataTarget: fiscalYearProgress,
+        categoryKey: 'research',
+        items: megaItems,
         status: getStatusInfo(pctMega, fiscalYearProgress),
       },
       {
         id: 'service_revenue',
         code: 'KPI 2.2-1',
-        title: 'รายได้บริการวิชาการและการฝึกอบรม',
+        title: 'งบโครงการพัฒนาวิชาการและบริการวิชาการ',
         actual: actualServiceRevenue,
         actualFormatted: `${(actualServiceRevenue / 1000000).toFixed(2)} ล้านบาท`,
         target: targetServiceRevenue,
@@ -231,6 +266,8 @@ export function useOverviewData(timeFilter: TimeFilterState) {
         unit: 'บาท',
         percent: pctService,
         proRataTarget: fiscalYearProgress,
+        categoryKey: 'academic',
+        items: validAcademic,
         status: getStatusInfo(pctService, fiscalYearProgress),
       },
       {
@@ -244,20 +281,22 @@ export function useOverviewData(timeFilter: TimeFilterState) {
         unit: 'รายการ',
         percent: pctIP,
         proRataTarget: fiscalYearProgress,
+        categoryKey: 'ip',
+        items: validIP,
         status: getStatusInfo(pctIP, fiscalYearProgress),
       },
     ];
-  }, [validResearch, validPub, validService, validIP, fiscalYearProgress]);
+  }, [validResearch, validAcademic, validPub, validService, validIP, fiscalYearProgress]);
 
-  const departmentStats = useMemo(() => {
-    const depts: Record<string, { code: string; name: string; budget: number; pubs: number; services: number; researchCount: number }> = {
-      AE: { code: 'AE', name: 'วิศวกรรมเกษตร', budget: 0, pubs: 0, services: 0, researchCount: 0 },
-      CPE: { code: 'CPE', name: 'วิศวกรรมคอมพิวเตอร์', budget: 0, pubs: 0, services: 0, researchCount: 0 },
-      IRE: { code: 'IRE', name: 'วิศวกรรมชลประทาน', budget: 0, pubs: 0, services: 0, researchCount: 0 },
-      FE: { code: 'FE', name: 'วิศวกรรมอาหาร', budget: 0, pubs: 0, services: 0, researchCount: 0 },
-      IE: { code: 'IE', name: 'วิศวกรรมอุตสาหการ', budget: 0, pubs: 0, services: 0, researchCount: 0 },
-      ME: { code: 'ME', name: 'วิศวกรรมเครื่องกล', budget: 0, pubs: 0, services: 0, researchCount: 0 },
-      CE: { code: 'CE', name: 'วิศวกรรมโยธา', budget: 0, pubs: 0, services: 0, researchCount: 0 },
+  const departmentStats: DepartmentOverviewStat[] = useMemo(() => {
+    const depts: Record<string, DepartmentOverviewStat> = {
+      AE: { code: 'AE', name: 'วิศวกรรมเกษตร', budget: 0, researchCount: 0, academicCount: 0, academicBudget: 0, pubs: 0, services: 0, ips: 0, researchItems: [], allItems: [] },
+      CPE: { code: 'CPE', name: 'วิศวกรรมคอมพิวเตอร์', budget: 0, researchCount: 0, academicCount: 0, academicBudget: 0, pubs: 0, services: 0, ips: 0, researchItems: [], allItems: [] },
+      IRE: { code: 'IRE', name: 'วิศวกรรมชลประทาน', budget: 0, researchCount: 0, academicCount: 0, academicBudget: 0, pubs: 0, services: 0, ips: 0, researchItems: [], allItems: [] },
+      FE: { code: 'FE', name: 'วิศวกรรมอาหาร', budget: 0, researchCount: 0, academicCount: 0, academicBudget: 0, pubs: 0, services: 0, ips: 0, researchItems: [], allItems: [] },
+      IE: { code: 'IE', name: 'วิศวกรรมอุตสาหการ', budget: 0, researchCount: 0, academicCount: 0, academicBudget: 0, pubs: 0, services: 0, ips: 0, researchItems: [], allItems: [] },
+      ME: { code: 'ME', name: 'วิศวกรรมเครื่องกล', budget: 0, researchCount: 0, academicCount: 0, academicBudget: 0, pubs: 0, services: 0, ips: 0, researchItems: [], allItems: [] },
+      CE: { code: 'CE', name: 'วิศวกรรมโยธา', budget: 0, researchCount: 0, academicCount: 0, academicBudget: 0, pubs: 0, services: 0, ips: 0, researchItems: [], allItems: [] },
     };
 
     validResearch.forEach((r) => {
@@ -265,21 +304,46 @@ export function useOverviewData(timeFilter: TimeFilterState) {
       if (code && depts[code]) {
         depts[code].researchCount += 1;
         depts[code].budget += parseNumber(r.budget_internal) + parseNumber(r.budget_external);
+        depts[code].researchItems.push(r);
+        depts[code].allItems.push(r);
+      }
+    });
+
+    validAcademic.forEach((a) => {
+      const code = matchDepartmentCode(a.department);
+      if (code && depts[code]) {
+        depts[code].academicCount += 1;
+        depts[code].academicBudget += parseNumber(a.budget);
+        depts[code].allItems.push(a);
       }
     });
 
     validPub.forEach((p) => {
       const code = matchDepartmentCode(p.department);
-      if (code && depts[code]) depts[code].pubs += 1;
+      if (code && depts[code]) {
+        depts[code].pubs += 1;
+        depts[code].allItems.push(p);
+      }
     });
 
     validService.forEach((s) => {
       const code = matchDepartmentCode(s.department);
-      if (code && depts[code]) depts[code].services += 1;
+      if (code && depts[code]) {
+        depts[code].services += 1;
+        depts[code].allItems.push(s);
+      }
+    });
+
+    validIP.forEach((ip) => {
+      const code = matchDepartmentCode(ip.department);
+      if (code && depts[code]) {
+        depts[code].ips += 1;
+        depts[code].allItems.push(ip);
+      }
     });
 
     return Object.values(depts).sort((a, b) => b.budget - a.budget);
-  }, [validResearch, validPub, validService]);
+  }, [validResearch, validAcademic, validPub, validService, validIP]);
 
   const actionList = useMemo(() => {
     const expiringSoon: any[] = [];

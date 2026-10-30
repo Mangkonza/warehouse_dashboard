@@ -4,12 +4,23 @@ import * as React from "react"
 import { Popover as PopoverPrimitive } from "@base-ui/react/popover"
 import { cn } from "cn"
 
-function Popover({ ...props }: PopoverPrimitive.Root.Props) {
-  return <PopoverPrimitive.Root data-slot="popover" {...props} />
-}
+const Popover = PopoverPrimitive.Root
 
-function PopoverTrigger({ ...props }: PopoverPrimitive.Trigger.Props) {
-  return <PopoverPrimitive.Trigger data-slot="popover-trigger" {...props} />
+function PopoverTrigger({ nativeButton, render, ...props }: PopoverPrimitive.Trigger.Props) {
+  const isExplicitNonButton =
+    React.isValidElement(render) &&
+    (render.type === "div" || render.type === "span" || render.type === "input");
+  const resolvedNativeButton =
+    nativeButton !== undefined ? nativeButton : isExplicitNonButton ? false : undefined;
+
+  return (
+    <PopoverPrimitive.Trigger
+      data-slot="popover-trigger"
+      nativeButton={resolvedNativeButton}
+      render={render}
+      {...props}
+    />
+  )
 }
 
 function PopoverContent({

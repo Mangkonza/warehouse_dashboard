@@ -1,201 +1,150 @@
-export type TimeFilterMode = 'academic' | 'fiscal' | 'manual' | 'all';
-export type AcademicSemester = 'all' | 'first' | 'second' | 'summer';
-export type FiscalQuarter = 'all' | 'q1' | 'q2' | 'q3' | 'q4';
+export type TimeFilterMode = 'all' | 'academic' | 'fiscal' | 'manual';
+export type AcademicSemester = 'first' | 'second' | 'summer' | 'all';
+export type FiscalQuarter = 'q1' | 'q2' | 'q3' | 'q4' | 'all';
+export type ManualType = 'months' | 'range';
 
 export interface TimeFilterState {
   mode: TimeFilterMode;
-  academicYear: string;         // '2569', '2568', '2567', '2566', '2565', 'all'
-  academicSemester: AcademicSemester; // 'all', 'first', 'second', 'summer'
-  fiscalYear: string;           // '2569', '2568', '2567', '2566', '2565', 'all'
-  fiscalQuarter: FiscalQuarter; // 'all', 'q1', 'q2', 'q3', 'q4'
-  manualYear: string;           // '2569', '2568', '2567', '2566', '2565', 'all'
-  manualMonths: number[];       // 1 - 12 (Jan - Dec)
+  academicYear: string; // พ.ศ. หรือ 'all'
+  academicSemester: AcademicSemester;
+  fiscalYear: string; // พ.ศ. หรือ 'all'
+  fiscalQuarter: FiscalQuarter;
+  manualType?: ManualType;
+  manualYear: string; // พ.ศ. หรือ 'all'
+  manualMonths: number[]; // 1-12 (ว่าง = ทุกเดือน)
+  manualStartDate?: string; // 'YYYY-MM-DD' (ค.ศ.)
+  manualEndDate?: string; // 'YYYY-MM-DD' (ค.ศ.)
 }
+
+// ---------- ปีปัจจุบัน (คำนวณจากวันที่ ไม่ hard code) ----------
+// ปีงบประมาณเริ่ม 1 ต.ค. / ปีการศึกษาเริ่ม มิ.ย.
+export const getCurrentFiscalYear = (d: Date = new Date()): string => {
+  const be = d.getFullYear() + 543;
+  return String(d.getMonth() + 1 >= 10 ? be + 1 : be);
+};
+
+export const getCurrentAcademicYear = (d: Date = new Date()): string => {
+  const be = d.getFullYear() + 543;
+  return String(d.getMonth() + 1 >= 6 ? be : be - 1);
+};
 
 export const DEFAULT_TIME_FILTER: TimeFilterState = {
   mode: 'all',
-  academicYear: '2568',
+  academicYear: getCurrentAcademicYear(),
   academicSemester: 'first',
-  fiscalYear: '2568',
+  fiscalYear: getCurrentFiscalYear(),
   fiscalQuarter: 'all',
-  manualYear: '2568',
+  manualType: 'months',
+  manualYear: getCurrentFiscalYear(),
   manualMonths: [],
+  manualStartDate: '',
+  manualEndDate: '',
 };
 
-export const getTimeFilterLabel = (filter: TimeFilterState): string => {
-  if (filter.mode === 'all') {
-    return 'แสดงข้อมูลทั้งหมด';
-  }
-  if (filter.mode === 'academic') {
-    const semMap: Record<AcademicSemester, string> = {
-      all: 'ทุกภาคการศึกษา',
-      first: 'ภาคต้น',
-      second: 'ภาคปลาย',
-      summer: 'ภาคฤดูร้อน',
-    };
-    const yrStr = filter.academicYear === 'all' ? 'ทุกปีการศึกษา' : `ปีการศึกษา ${filter.academicYear}`;
-    return `${yrStr} • ${semMap[filter.academicSemester]}`;
-  }
-  if (filter.mode === 'fiscal') {
-    const qMap: Record<FiscalQuarter, string> = {
-      all: 'ทั้งปีงบประมาณ',
-      q1: 'ไตรมาส 1 (ต.ค. - ธ.ค.)',
-      q2: 'ไตรมาส 2 (ม.ค. - มี.ค.)',
-      q3: 'ไตรมาส 3 (เม.ย. - มิ.ย.)',
-      q4: 'ไตรมาส 4 (ก.ค. - ก.ย.)',
-    };
-    const yrStr = filter.fiscalYear === 'all' ? 'ทุกปีงบประมาณ' : `ปีงบประมาณ ${filter.fiscalYear}`;
-    return `${yrStr} • ${qMap[filter.fiscalQuarter]}`;
-  }
-  if (filter.mode === 'manual') {
-    const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
-    const monthsStr =
-      filter.manualMonths.length === 12 || filter.manualMonths.length === 0
-        ? 'ทุกเดือน'
-        : filter.manualMonths.map((m) => months[m - 1]).join(', ');
-    const yrStr = filter.manualYear === 'all' ? 'ทุกปี' : `ปี ${filter.manualYear}`;
-    return `${yrStr} • เดือน: ${monthsStr}`;
-  }
-  return 'เลือกช่วงเวลา';
+// ---------- Label ----------
+const SEMESTER_LABEL: Record<AcademicSemester, string> = {
+  first: 'ภาคต้น',
+  second: 'ภาคปลาย',
+  summer: 'ภาคฤดูร้อน',
+  all: 'ทุกภาคการศึกษา',
 };
 
-// สกัดข้อมูลปี พ.ศ. และเดือน (1-12) จาก Object ข้อมูลใดๆ
-export const extractItemDateInfo = (item: any): { yearBE: number; month?: number } => {
-  const str = JSON.stringify(item);
-
-  let yearBE: number | undefined;
-  let month: number | undefined;
-
-  // 1. ตรวจหาปี พ.ศ. (2560 - 2575)
-  const beMatch = str.match(/256[0-9]|257[0-9]/);
-  if (beMatch) {
-    yearBE = parseInt(beMatch[0], 10);
-  } else {
-    // ตรวจหาปี 196x (ในไฟล์ Excel ภาษาไทยบางครั้งปี 2568 ถูกเก็บเป็น 1968)
-    const excelMatch = str.match(/196([0-9])|197([0-9])/);
-    if (excelMatch) {
-      const suffix = excelMatch[1] || excelMatch[2];
-      const prefix = excelMatch[0].startsWith('196') ? 2560 : 2570;
-      yearBE = prefix + parseInt(suffix, 10);
-    } else {
-      // ตรวจหาปี ค.ศ. (2020 - 2030)
-      const ceMatch = str.match(/202([0-9])|203([0-9])/);
-      if (ceMatch) {
-        yearBE = parseInt(ceMatch[0], 10) + 543;
-      }
-    }
-  }
-
-  // 2. ตรวจหาเดือน (1 - 12)
-  if (item.month) {
-    const mStr = String(item.month).trim();
-    const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
-    const idx = months.findIndex((m) => mStr.includes(m));
-    if (idx !== -1) month = idx + 1;
-  }
-
-  if (!month) {
-    if (/(ม\.ค\.|มกราคม|-01-|\/01\/|\.01\.)/.test(str)) month = 1;
-    else if (/(ก\.พ\.|กุมภาพันธ์|-02-|\/02\/|\.02\.)/.test(str)) month = 2;
-    else if (/(มี\.ค\.|มีนาคม|-03-|\/03\/|\.03\.)/.test(str)) month = 3;
-    else if (/(เม\.ย\.|เมษายน|-04-|\/04\/|\.04\.)/.test(str)) month = 4;
-    else if (/(พ\.ค\.|พฤษภาคม|-05-|\/05\/|\.05\.)/.test(str)) month = 5;
-    else if (/(มิ\.ย\.|มิถุนายน|-06-|\/06\/|\.06\.)/.test(str)) month = 6;
-    else if (/(ก\.ค\.|กรกฎาคม|-07-|\/07\/|\.07\.)/.test(str)) month = 7;
-    else if (/(ส\.ค\.|สิงหาคม|-08-|\/08\/|\.08\.)/.test(str)) month = 8;
-    else if (/(ก\.ย\.|กันยายน|-09-|\/09\/|\.09\.)/.test(str)) month = 9;
-    else if (/(ต\.ค\.|ตุลาคม|-10-|\/10\/|\.10\.)/.test(str)) month = 10;
-    else if (/(พ\.ย\.|พฤศจิกายน|-11-|\/11\/|\.11\.)/.test(str)) month = 11;
-    else if (/(ธ\.ค\.|ธันวาคม|-12-|\/12\/|\.12\.)/.test(str)) month = 12;
-  }
-
-  return { yearBE: yearBE || 2568, month };
+const QUARTER_LABEL: Record<FiscalQuarter, string> = {
+  q1: 'ไตรมาส 1',
+  q2: 'ไตรมาส 2',
+  q3: 'ไตรมาส 3',
+  q4: 'ไตรมาส 4',
+  all: 'ทั้งปี',
 };
 
-// ตรวจสอบว่ารายการข้อมูลตรงตามตัวกรองเวลาหรือไม่
-export const itemMatchesTimeFilter = (item: any, filter: TimeFilterState): boolean => {
-  if (filter.mode === 'all') return true;
+const MONTH_SHORT = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
 
-  const dateInfo = extractItemDateInfo(item);
-  const str = JSON.stringify(item);
+const fmtIsoThai = (iso?: string): string => {
+  if (!iso) return '-';
+  const [y, m, d] = iso.split('-').map(Number);
+  if (!y || !m || !d) return '-';
+  return `${d} ${MONTH_SHORT[m - 1]} ${y + 543}`;
+};
 
-  // 1. กรองตามปีการศึกษา & ภาคการศึกษา
-  if (filter.mode === 'academic') {
-    if (filter.academicYear !== 'all') {
-      const targetYear = parseInt(filter.academicYear, 10);
-      if (dateInfo.yearBE !== targetYear) {
-        // ตรวจว่าใน text มีปีที่ระบุหรือไม่
-        if (!str.includes(filter.academicYear)) return false;
-      }
+export const getTimeFilterLabel = (f: TimeFilterState): string => {
+  switch (f.mode) {
+    case 'all':
+      return 'ข้อมูลทั้งหมด';
+    case 'academic': {
+      const year = f.academicYear === 'all' ? 'ทุกปีการศึกษา' : `ปีการศึกษา ${f.academicYear}`;
+      return f.academicSemester === 'all' ? year : `${year} ${SEMESTER_LABEL[f.academicSemester]}`;
     }
-
-    if (filter.academicSemester !== 'all') {
-      if (filter.academicSemester === 'first') {
-        // ภาคต้น: มิ.ย. (6) - ต.ค. (10)
-        if (dateInfo.month && ![6, 7, 8, 9, 10].includes(dateInfo.month)) {
-          if (!str.includes('ภาคต้น') && !str.includes('เทอม 1')) return false;
-        }
-      } else if (filter.academicSemester === 'second') {
-        // ภาคปลาย: พ.ย. (11) - มี.ค. (3)
-        if (dateInfo.month && ![11, 12, 1, 2, 3].includes(dateInfo.month)) {
-          if (!str.includes('ภาคปลาย') && !str.includes('เทอม 2')) return false;
-        }
-      } else if (filter.academicSemester === 'summer') {
-        // ภาคฤดูร้อน: เม.ย. (4) - พ.ค. (5)
-        if (dateInfo.month && ![4, 5].includes(dateInfo.month)) {
-          if (!str.includes('ฤดูร้อน') && !str.includes('summer')) return false;
-        }
-      }
+    case 'fiscal': {
+      const year = f.fiscalYear === 'all' ? 'ทุกปีงบประมาณ' : `ปีงบประมาณ ${f.fiscalYear}`;
+      return f.fiscalQuarter === 'all' ? year : `${year} ${QUARTER_LABEL[f.fiscalQuarter]}`;
     }
+    case 'manual': {
+      if (f.manualType === 'range') {
+        return `${fmtIsoThai(f.manualStartDate)} – ${fmtIsoThai(f.manualEndDate)}`;
+      }
+      const year = f.manualYear === 'all' ? 'ทุกปี' : `พ.ศ. ${f.manualYear}`;
+      const months = f.manualMonths ?? [];
+      if (months.length === 0 || months.length === 12) return `${year} ทุกเดือน`;
+      return `${year} ${months.map((m) => MONTH_SHORT[m - 1]).join(' ')}`;
+    }
+    default:
+      return 'ข้อมูลทั้งหมด';
+  }
+};
 
-    return true;
+// ---------- Matching ----------
+/** ดึงวันที่ของ item จาก field ที่พบบ่อย ปรับให้ตรงกับข้อมูลจริงของโปรเจกต์ */
+const DATE_FIELDS = ['startDate', 'start_date', 'date', 'projectDate', 'createdAt', 'created_at'];
+
+const getItemDate = (item: any): Date | null => {
+  if (!item || typeof item !== 'object') return null;
+  for (const key of DATE_FIELDS) {
+    const raw = item[key];
+    if (!raw) continue;
+    const d = raw instanceof Date ? new Date(raw.getTime()) : new Date(raw);
+    if (isNaN(d.getTime())) continue;
+    // กันกรณีเก็บปีเป็น พ.ศ.
+    if (d.getFullYear() > 2400) d.setFullYear(d.getFullYear() - 543);
+    return d;
+  }
+  return null;
+};
+
+export const itemMatchesTimeFilter = (item: any, f: TimeFilterState): boolean => {
+  if (f.mode === 'all') return true;
+  const d = getItemDate(item);
+  if (!d) return false;
+
+  const month = d.getMonth() + 1;
+  const be = d.getFullYear() + 543;
+
+  if (f.mode === 'academic') {
+    const ay = month >= 6 ? be : be - 1;
+    if (f.academicYear !== 'all' && String(ay) !== f.academicYear) return false;
+    if (f.academicSemester === 'all') return true;
+    if (f.academicSemester === 'first') return month >= 6 && month <= 10;
+    if (f.academicSemester === 'second') return month >= 11 || month <= 3;
+    return month === 4 || month === 5; // summer
   }
 
-  // 2. กรองตามปีงบประมาณ & ไตรมาส
-  if (filter.mode === 'fiscal') {
-    if (filter.fiscalYear !== 'all') {
-      const targetYear = parseInt(filter.fiscalYear, 10);
-      if (dateInfo.yearBE !== targetYear && !str.includes(filter.fiscalYear)) {
-        return false;
-      }
-    }
-
-    if (filter.fiscalQuarter !== 'all') {
-      if (filter.fiscalQuarter === 'q1') {
-        // ไตรมาส 1: ต.ค. (10) - ธ.ค. (12)
-        if (dateInfo.month && ![10, 11, 12].includes(dateInfo.month)) return false;
-      } else if (filter.fiscalQuarter === 'q2') {
-        // ไตรมาส 2: ม.ค. (1) - มี.ค. (3)
-        if (dateInfo.month && ![1, 2, 3].includes(dateInfo.month)) return false;
-      } else if (filter.fiscalQuarter === 'q3') {
-        // ไตรมาส 3: เม.ย. (4) - มิ.ย. (6)
-        if (dateInfo.month && ![4, 5, 6].includes(dateInfo.month)) return false;
-      } else if (filter.fiscalQuarter === 'q4') {
-        // ไตรมาส 4: ก.ค. (7) - ก.ย. (9)
-        if (dateInfo.month && ![7, 8, 9].includes(dateInfo.month)) return false;
-      }
-    }
-
-    return true;
+  if (f.mode === 'fiscal') {
+    const fy = month >= 10 ? be + 1 : be;
+    if (f.fiscalYear !== 'all' && String(fy) !== f.fiscalYear) return false;
+    if (f.fiscalQuarter === 'all') return true;
+    if (f.fiscalQuarter === 'q1') return month >= 10;
+    if (f.fiscalQuarter === 'q2') return month >= 1 && month <= 3;
+    if (f.fiscalQuarter === 'q3') return month >= 4 && month <= 6;
+    return month >= 7 && month <= 9; // q4
   }
 
-  // 3. กรองแบบ Manual
-  if (filter.mode === 'manual') {
-    if (filter.manualYear !== 'all') {
-      const targetYear = parseInt(filter.manualYear, 10);
-      if (dateInfo.yearBE !== targetYear && !str.includes(filter.manualYear)) {
-        return false;
-      }
-    }
-
-    if (filter.manualMonths && filter.manualMonths.length > 0 && filter.manualMonths.length < 12) {
-      if (dateInfo.month && !filter.manualMonths.includes(dateInfo.month)) {
-        return false;
-      }
-    }
-
-    return true;
+  // manual
+  if (f.manualType === 'range') {
+    if (!f.manualStartDate || !f.manualEndDate) return true;
+    const start = new Date(`${f.manualStartDate}T00:00:00`);
+    const end = new Date(`${f.manualEndDate}T23:59:59.999`);
+    return d >= start && d <= end;
   }
-
-  return true;
+  if (f.manualYear !== 'all' && String(be) !== f.manualYear) return false;
+  const months = f.manualMonths ?? [];
+  return months.length === 0 || months.includes(month);
 };

@@ -1,59 +1,81 @@
 'use client';
 
 import React from 'react';
-import { FaFlask, FaCoins, FaBuilding, FaHandHoldingUsd } from 'react-icons/fa';
 import { useTimeFilter, TimeFilterBar } from '@/features/time-filter';
-import { KpiGrid, DecisionBox } from '@/components/data-display';
+import { KpiGrid } from '@/components/data-display';
 import { useResearchData } from '../_hooks/useResearchData';
 import { ResearchCharts } from './ResearchCharts';
 import { ResearchTable } from './ResearchTable';
 
 export function ResearchView() {
-  const { timeFilter } = useTimeFilter();
+  const { timeFilter, setTimeFilter, resetTimeFilter } = useTimeFilter();
   const {
     validData,
     filteredData,
+    totalInternalBudget,
+    totalExternalBudget,
     totalBudgetAll,
+    megaProjectsCount,
     uniqueDepts,
     uniqueFunds,
     searchTerm,
     setSearchTerm,
     selectedDept,
     setSelectedDept,
+    selectedFund,
+    setSelectedFund,
   } = useResearchData(timeFilter);
 
-  const budgetMillions = (totalBudgetAll / 1000000).toFixed(1);
+  const budgetMillions = (totalBudgetAll / 1000000).toFixed(2);
+  const extMillions = (totalExternalBudget / 1000000).toFixed(2);
+  const intMillions = (totalInternalBudget / 1000000).toFixed(2);
+  const extPct = totalBudgetAll > 0 ? Math.round((totalExternalBudget / totalBudgetAll) * 100) : 0;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      <TimeFilterBar />
+      <TimeFilterBar
+        value={timeFilter}
+        onChange={setTimeFilter}
+        onReset={resetTimeFilter}
+        totalCount={validData.length}
+      />
       <div className="tab-content active">
         <KpiGrid
           items={[
             {
-              icon: <FaFlask />,
-              value: validData.length,
               label: 'โครงการวิจัยทั้งหมด',
+              value: `${validData.length} โครงการ`,
+              subtext: `ครอบคลุม ${uniqueDepts.size} ภาควิชา`,
+              accentColor: '#00A651',
             },
             {
-              icon: <FaCoins />,
-              value: `฿${budgetMillions}M`,
-              label: 'งบประมาณรวม',
+              label: 'งบประมาณวิจัยรวม',
+              value: `${budgetMillions} ล้านบาท`,
+              subtext: `${totalBudgetAll.toLocaleString('th-TH')} บาท`,
+              accentColor: '#059669',
             },
             {
-              icon: <FaBuilding />,
-              value: uniqueDepts.size,
-              label: 'ภาควิชาที่เกี่ยวข้อง',
+              label: 'สัดส่วนงบภายนอก / ภายใน',
+              value: `${extMillions} / ${intMillions} ล้าน`,
+              subtext: `ทุนภายนอก ${extPct}% (${uniqueFunds.size} แหล่งทุน)`,
+              accentColor: '#0284c7',
             },
             {
-              icon: <FaHandHoldingUsd />,
-              value: uniqueFunds.size,
-              label: 'แหล่งทุนวิจัย',
+              label: 'โครงการขนาดใหญ่ (≥ 10 ล้านบาท)',
+              value: `${megaProjectsCount} โครงการ`,
+              subtext: 'เป้าหมาย 5 โครงการ/ปี',
+              accentColor: '#d97706',
             },
           ]}
         />
 
-        <ResearchCharts validData={validData} />
+        <ResearchCharts
+          validData={validData}
+          selectedDept={selectedDept}
+          onSelectDept={(dept) => setSelectedDept(dept === selectedDept ? 'all' : dept)}
+          selectedFund={selectedFund}
+          onSelectFund={(fund) => setSelectedFund(fund === selectedFund ? 'all' : fund)}
+        />
 
         <ResearchTable
           filteredData={filteredData}
@@ -62,18 +84,8 @@ export function ResearchView() {
           onSearchChange={setSearchTerm}
           selectedDept={selectedDept}
           onDeptChange={setSelectedDept}
-        />
-
-        <DecisionBox
-          title="ข้อมูลสนับสนุนการตัดสินใจ — โครงการวิจัย"
-          items={[
-            <>
-              <strong>งบประมาณส่วนใหญ่</strong> มาจากแหล่งทุนภายนอก โดยเฉพาะจาก วช. และ สวก.
-            </>,
-            <>
-              <strong>ภาควิชาที่มีงบวิจัยสูงสุด</strong> คือ วิศวกรรมชลประทานและวิศวกรรมการอาหาร
-            </>,
-          ]}
+          selectedFund={selectedFund}
+          onFundChange={setSelectedFund}
         />
       </div>
     </div>

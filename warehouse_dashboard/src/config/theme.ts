@@ -5,7 +5,7 @@
 
 export const THEME_COLORS = {
   primary: "#00A651",
-  primaryHover: "#008f44",
+  primaryHover: "#00A651",
   primaryLight: "#e8f5e9",
   primaryBorder: "#86efac",
 

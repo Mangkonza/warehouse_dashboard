@@ -1,0 +1,20 @@
+$kind: http-request
+description: Flow B ใช้ตรวจ upstream แยกจาก Flow A ต้องใช้ code ใหม่ ผลสำเร็จจะเก็บ accessToken ใน collection local variable ห้าม export หรือแชร์ค่าจริง
+url: "{{exchangeUrl}}"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "exchangeToken": "{{exchangeToken}}"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("HTTP 2xx", () => pm.expect(pm.response.code).to.be.within(200,299));
+      pm.test("Exchange success", () => { const d=pm.response.json(); pm.expect(d.status).to.eql("success"); pm.expect(d.ssoToken).to.be.a("string").and.not.empty; pm.collectionVariables.set("accessToken",d.ssoToken); });
+    language: text/javascript
+order: 1000

@@ -1,0 +1,18 @@
+$kind: collection
+description: คู่มือจาก source code 2026-10-26 ยังไม่ได้รัน upstream จริง เลือก Flow A หรือ B แยกกัน ห้าม Run all ด้วย exchangeToken เดิม เพราะ code อาจใช้ได้ครั้งเดียว ค่าลับว่างทั้งหมด กรอก local/private variables และล้างก่อน export ดู README.md สำหรับ configuration และข้อจำกัด
+variables:
+  webBaseUrl: http://localhost:4000/kukps-eng-personnel-web
+  exchangeUrl: https://office.eng.kps.ku.ac.th/eng-main/api/external/exchange-token
+  meUrl: https://eng.kps.ku.ac.th/std-eng-auth-service/api/me.php
+  verifyUrl: https://eng.kps.ku.ac.th/std-eng-auth-service/api/verify.php
+  roleUrl: https://office.eng.kps.ku.ac.th/eng-main/api/external/get-role
+  systemId: ""
+  nontriId: ""
+  exchangeToken: ""
+  intranetToken: ""
+  accessToken: ""
+  expectedRole: ""
+auth:
+  - id: ""
+    type: noauth
+    name: No Auth

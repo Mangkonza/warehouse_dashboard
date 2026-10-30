@@ -1,4 +1,6 @@
-export type UserRole = 'admin' | 'viewer';
+import { AppRole } from '../config/permissions.js';
+
+export type UserRole = AppRole | 'viewer';
 
 export interface AuthUser {
   id: string;
@@ -9,7 +11,8 @@ export interface AuthUser {
   departmentName?: string;
   campus?: string;
   typePerson?: string;
-  role: UserRole;
+  role: AppRole;
+  isMock?: boolean;
 }
 
 export interface KUUserProfile {
@@ -49,7 +52,7 @@ export interface JWTPayload {
   departmentName?: string;
   campus?: string;
   typePerson?: string;
-  role: UserRole;
+  role: AppRole;
   iat?: number;
   exp?: number;
 }

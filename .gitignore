@@ -47,6 +47,29 @@ Thumbs.db
 .idea/
 
 # ==========================================
+# Environment Variables & Secrets
+# ==========================================
+.env
+.env.*
+.env*
+**/.env
+**/.env.*
+**/.env*
+!.env*.example
+!*.example
+!**/.env*.example
+!**/*.example
+
+# ==========================================
+# Database Backups & Reports
+# ==========================================
+backups/
+backup/
+*.dump
+db/backups/
+reports/
+
+# ==========================================
 # AI Agent Workspaces
 # ==========================================
 .gemini/
@@ -55,3 +78,4 @@ AGENTS.md
 **/AGENTS.md
 CLAUDE.md
 **/CLAUDE.md
+scratch/

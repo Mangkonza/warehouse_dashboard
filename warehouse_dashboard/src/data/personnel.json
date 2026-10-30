@@ -1,5 +1,16 @@
 [
   {
+    "image_url": "",
+    "title_th": "นาย",
+    "name": "ฟหก",
+    "position": "ฟหก",
+    "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์",
+    "email": "asd@ku.th",
+    "_id": "308",
+    "updatedAt": "2026-10-24T10:41:56.989Z",
+    "id": 308
+  },
+  {
     "title_th": "นาย",
     "name": "นาย ฟหก",
     "clean_name": "ฟหก",

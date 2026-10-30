@@ -1,0 +1,41 @@
+$kind: http-request
+description: "ทางเลือก browser callback: รับ 307 redirect, Location ปราศจาก tokens และตั้ง HttpOnly cookies"
+url: "{{webBaseUrl}}/api/auth/portal-session?exchangeToken={{exchangeToken}}&intranetToken={{intranetToken}}&next=%2Fadmin"
+method: GET
+headers:
+  Accept: application/json
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Redirect after bootstrap (HTTP 307)", () => pm.expect(pm.response.code).to.eql(307));
+      pm.test("Clean Location without tokens", () => {
+        const l = pm.response.headers.get("Location");
+        pm.expect(l).to.be.a("string");
+        pm.expect(l).not.to.include("exchangeToken=");
+        pm.expect(l).not.to.include("intranetToken=");
+        pm.expect(l).not.to.include("accessToken=");
+      });
+      pm.test("Cache-Control is no-store", () => {
+        const cc = pm.response.headers.get("Cache-Control");
+        pm.expect(cc, "Cache-Control header missing").to.be.a("string");
+        pm.expect(cc.toLowerCase()).to.include("no-store");
+      });
+      pm.test("Response body does not leak raw tokens", () => {
+        const text = pm.response.text();
+        ["exchangeToken", "ssoToken", "intranetToken", "accessToken"].forEach(k => {
+          const v = pm.variables.get(k);
+          if (v && v.length > 5) pm.expect(text).not.to.include(v);
+        });
+      });
+      pm.test("All three auth cookies set with HttpOnly", () => {
+        const cookies = pm.response.headers.all().filter(x => x.key.toLowerCase() === "set-cookie").map(x => x.value);
+        ["USER_SESSION", "ACCESS_TOKEN", "INTRANET_TOKEN"].forEach(name => {
+          const c = cookies.find(x => x.startsWith(name + "="));
+          pm.expect(c, name + " missing in Set-Cookie").to.be.a("string");
+          pm.expect(c.toLowerCase(), name + " must be HttpOnly").to.include("httponly");
+        });
+      });
+    language: text/javascript
+settings:
+  followRedirects: false
+order: 1000
