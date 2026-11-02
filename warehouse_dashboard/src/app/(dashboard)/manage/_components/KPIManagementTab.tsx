@@ -32,6 +32,7 @@ import {
   FaLink,
   FaUnlink,
   FaFileExcel,
+  FaTimes,
 } from 'react-icons/fa';
 
 interface KPIManagementTabProps {
@@ -113,6 +114,18 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets, on
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  const hasActiveFilters =
+    (selectedCategory && selectedCategory !== 'all') ||
+    (selectedCalcType && selectedCalcType !== 'all') ||
+    (selectedStatus && selectedStatus !== 'all');
+
+  const handleResetFilters = () => {
+    setSelectedCategory('all');
+    setSelectedCalcType('all');
+    setSelectedStatus('all');
+    setCurrentPage(1);
+  };
 
   // Modals state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -485,96 +498,53 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets, on
               )}
             </div>
 
-            {/* ตัวกรองหมวดยุทธศาสตร์ (รวม ย.1, ย.2, ย.3 และประเภทงานครบถ้วน) */}
-            <select
-              value={selectedCategory}
-              onChange={(e) => {
-                setSelectedCategory(e.target.value);
+            {/* Filter Popover แบบเดียวกับแท็บอื่น ๆ ในระบบ */}
+            <FilterPopover
+              category="kpi"
+              categoryTitle="ตัวชี้วัดตามแผนยุทธศาสตร์"
+              totalCount={kpis.length}
+              matchCount={filteredKPIs.length}
+              filters={{
+                departments: [],
+                kpiStrategy: selectedCategory,
+                kpiCalcType: selectedCalcType,
+                kpiStatus: selectedStatus,
+              }}
+              onApply={(newFilters) => {
+                setSelectedCategory(newFilters.kpiStrategy || 'all');
+                setSelectedCalcType(newFilters.kpiCalcType || 'all');
+                setSelectedStatus(newFilters.kpiStatus || 'all');
                 setCurrentPage(1);
               }}
-              style={{
-                height: '38px',
-                padding: '0 10px',
-                borderRadius: '8px',
-                border: '1px solid #cbd5e1',
-                backgroundColor: '#ffffff',
-                color: '#334155',
-                fontSize: '13px',
-                fontWeight: 500,
-                outline: 'none',
-                cursor: 'pointer',
-              }}
-            >
-              <option value="all">ทุกหมวดยุทธศาสตร์</option>
-              <optgroup label="── แผนยุทธศาสตร์ปี 2570 ──">
-                <option value="strat_y1">ยุทธศาสตร์ที่ 1 (ย.1 - นวัตกร)</option>
-                <option value="strat_y2">ยุทธศาสตร์ที่ 2 (ย.2 - วิจัยและนวัตกรรม)</option>
-                <option value="strat_y3">ยุทธศาสตร์ที่ 3 (ย.3 - บริการชุมชน)</option>
-                <option value="strat_faculty">ตัวชี้วัดภาพรวมคณะฯ (KPI 2.1-x)</option>
-              </optgroup>
-              <optgroup label="── จำแนกตามประเภทงาน ──">
-                {Object.entries(CATEGORY_LABELS).map(([k, lbl]) => (
-                  <option key={k} value={k}>
-                    {lbl}
-                  </option>
-                ))}
-              </optgroup>
-            </select>
+              onReset={handleResetFilters}
+            />
 
-            {/* ตัวกรองวิธีการประเมิน */}
-            <select
-              value={selectedCalcType}
-              onChange={(e) => {
-                setSelectedCalcType(e.target.value);
-                setCurrentPage(1);
-              }}
-              style={{
-                height: '38px',
-                padding: '0 10px',
-                borderRadius: '8px',
-                border: '1px solid #cbd5e1',
-                backgroundColor: '#ffffff',
-                color: '#334155',
-                fontSize: '13px',
-                fontWeight: 500,
-                outline: 'none',
-                cursor: 'pointer',
-              }}
-            >
-              <option value="all">ทุกวิธีการประเมิน</option>
-              {Object.entries(CALC_LABELS).map(([k, item]) => (
-                <option key={k} value={k}>
-                  {item.label}
-                </option>
-              ))}
-            </select>
-
-            {/* ตัวกรองสถานะความสำเร็จ (เพิ่มใหม่ให้ครบถ้วน) */}
-            <select
-              value={selectedStatus}
-              onChange={(e) => {
-                setSelectedStatus(e.target.value);
-                setCurrentPage(1);
-              }}
-              style={{
-                height: '38px',
-                padding: '0 10px',
-                borderRadius: '8px',
-                border: '1px solid #cbd5e1',
-                backgroundColor: '#ffffff',
-                color: '#334155',
-                fontSize: '13px',
-                fontWeight: 500,
-                outline: 'none',
-                cursor: 'pointer',
-              }}
-            >
-              {STATUS_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+            {/* ปุ่มล้างตัวกรองทั้งหมด เมื่อมีการกรอง */}
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  padding: '7px 12px',
+                  borderRadius: '8px',
+                  backgroundColor: '#fee2e2',
+                  border: '1px solid #fca5a5',
+                  color: '#b91c1c',
+                  fontSize: '12.5px',
+                  fontWeight: 400,
+                  cursor: 'pointer',
+                  transition: 'background-color 0.15s ease',
+                  whiteSpace: 'nowrap',
+                }}
+                title="ล้างตัวกรองทั้งหมด"
+              >
+                <FaTimes style={{ fontSize: '11px' }} />
+                <span>ล้างตัวกรอง</span>
+              </button>
+            )}
           </div>
 
           {/* ฝั่งขวา: ปุ่มคืนค่ามาตรฐาน + ปุ่มเพิ่มตัวชี้วัด */}
@@ -656,6 +626,26 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets, on
           </div>
         </div>
 
+        {/* แถบชิปแสดงตัวกรองที่เลือก */}
+        {hasActiveFilters && (
+          <ActiveFilterChips
+            category="kpi"
+            filters={{
+              departments: [],
+              kpiStrategy: selectedCategory,
+              kpiCalcType: selectedCalcType,
+              kpiStatus: selectedStatus,
+            }}
+            onRemove={(key) => {
+              if (key === 'kpiStrategy') setSelectedCategory('all');
+              if (key === 'kpiCalcType') setSelectedCalcType('all');
+              if (key === 'kpiStatus') setSelectedStatus('all');
+              setCurrentPage(1);
+            }}
+            onClearAll={handleResetFilters}
+          />
+        )}
+
         {/* ตารางข้อมูล DataTable */}
         <div style={{ width: '100%', overflowX: 'auto' }}>
           <table
@@ -670,15 +660,159 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets, on
           >
             <thead>
               <tr style={{ backgroundColor: '#00A651' }}>
-                <th style={{ width: '4%', minWidth: '42px', textAlign: 'center', padding: '12px 6px', color: '#ffffff', fontWeight: 600 }}>#</th>
-                <th style={{ width: '11%', padding: '12px 10px', color: '#ffffff', fontWeight: 600 }}>รหัส</th>
-                <th style={{ width: '27%', padding: '12px 10px', color: '#ffffff', fontWeight: 600 }}>ชื่อตัวชี้วัดตามแผนยุทธศาสตร์</th>
-                <th style={{ width: '12%', padding: '12px 10px', color: '#ffffff', fontWeight: 600 }}>หมวดหมู่</th>
-                <th style={{ width: '13%', padding: '12px 10px', color: '#ffffff', fontWeight: 600 }}>วิธีการประเมิน</th>
-                <th style={{ width: '10%', textAlign: 'right', padding: '12px 10px', color: '#ffffff', fontWeight: 600 }}>เป้าหมาย</th>
-                <th style={{ width: '10%', textAlign: 'right', padding: '12px 10px', color: '#ffffff', fontWeight: 600 }}>ผลงานปัจจุบัน</th>
-                <th style={{ width: '12%', padding: '12px 10px', color: '#ffffff', fontWeight: 600 }}>ความก้าวหน้า</th>
-                <th style={{ width: '8%', minWidth: '85px', textAlign: 'center', padding: '12px 6px', color: '#ffffff', fontWeight: 600 }}>จัดการ</th>
+                <th
+                  style={{
+                    width: '5%',
+                    minWidth: '65px',
+                    textAlign: 'center',
+                    padding: '12px 6px',
+                    color: '#ffffff',
+                    fontWeight: 600,
+                    fontSize: '13px',
+                    backgroundColor: '#00A651',
+                    borderBottom: '2px solid #00A651',
+                    verticalAlign: 'middle',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  ลำดับที่
+                </th>
+                <th
+                  style={{
+                    width: '10%',
+                    minWidth: '95px',
+                    textAlign: 'left',
+                    padding: '12px 10px',
+                    color: '#ffffff',
+                    fontWeight: 600,
+                    fontSize: '13px',
+                    backgroundColor: '#00A651',
+                    borderBottom: '2px solid #00A651',
+                    verticalAlign: 'middle',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  รหัส
+                </th>
+                <th
+                  style={{
+                    width: '27%',
+                    minWidth: '220px',
+                    textAlign: 'left',
+                    padding: '12px 10px',
+                    color: '#ffffff',
+                    fontWeight: 600,
+                    fontSize: '13px',
+                    backgroundColor: '#00A651',
+                    borderBottom: '2px solid #00A651',
+                    verticalAlign: 'middle',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  ชื่อตัวชี้วัดตามแผนยุทธศาสตร์
+                </th>
+                <th
+                  style={{
+                    width: '12%',
+                    minWidth: '110px',
+                    textAlign: 'left',
+                    padding: '12px 10px',
+                    color: '#ffffff',
+                    fontWeight: 600,
+                    fontSize: '13px',
+                    backgroundColor: '#00A651',
+                    borderBottom: '2px solid #00A651',
+                    verticalAlign: 'middle',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  หมวดหมู่
+                </th>
+                <th
+                  style={{
+                    width: '13%',
+                    minWidth: '120px',
+                    textAlign: 'left',
+                    padding: '12px 10px',
+                    color: '#ffffff',
+                    fontWeight: 600,
+                    fontSize: '13px',
+                    backgroundColor: '#00A651',
+                    borderBottom: '2px solid #00A651',
+                    verticalAlign: 'middle',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  วิธีการประเมิน
+                </th>
+                <th
+                  style={{
+                    width: '9%',
+                    minWidth: '80px',
+                    textAlign: 'right',
+                    padding: '12px 10px',
+                    color: '#ffffff',
+                    fontWeight: 600,
+                    fontSize: '13px',
+                    backgroundColor: '#00A651',
+                    borderBottom: '2px solid #00A651',
+                    verticalAlign: 'middle',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  เป้าหมาย
+                </th>
+                <th
+                  style={{
+                    width: '10%',
+                    minWidth: '85px',
+                    textAlign: 'right',
+                    padding: '12px 10px',
+                    color: '#ffffff',
+                    fontWeight: 600,
+                    fontSize: '13px',
+                    backgroundColor: '#00A651',
+                    borderBottom: '2px solid #00A651',
+                    verticalAlign: 'middle',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  ผลงานปัจจุบัน
+                </th>
+                <th
+                  style={{
+                    width: '9%',
+                    minWidth: '95px',
+                    textAlign: 'left',
+                    padding: '12px 10px',
+                    color: '#ffffff',
+                    fontWeight: 600,
+                    fontSize: '13px',
+                    backgroundColor: '#00A651',
+                    borderBottom: '2px solid #00A651',
+                    verticalAlign: 'middle',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  ความก้าวหน้า
+                </th>
+                <th
+                  style={{
+                    width: '5%',
+                    minWidth: '70px',
+                    textAlign: 'center',
+                    padding: '12px 6px',
+                    color: '#ffffff',
+                    fontWeight: 600,
+                    fontSize: '13px',
+                    backgroundColor: '#00A651',
+                    borderBottom: '2px solid #00A651',
+                    verticalAlign: 'middle',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  จัดการ
+                </th>
               </tr>
             </thead>
             <tbody>

@@ -14,10 +14,10 @@ import {
   FaChevronRight,
   FaLayerGroup,
 } from 'react-icons/fa';
-import { ResearchItem } from '../_hooks/useResearchData';
+import { ResearchItem, normalizeFundSource } from '../_hooks/useResearchData';
 import { getDepartment, getDepartmentColor } from '@/lib/departments';
 import { formatTopItemsForTooltip, getClickedChartElement } from '@/lib/chartTooltipHelper';
-import { HybridSdgCard } from '@/components/data-display';
+import { StrategicAlignmentMatrix } from '@/components/data-display';
 import { DrillDownProjectDrawer, DepartmentBadge } from '@/components/ui';
 
 interface ResearchChartsProps {
@@ -127,7 +127,7 @@ export function ResearchCharts({
       { key: 't2', label: '5 แสน - 1 ล้าน', min: 500000, max: 1000000, count: 0, total: 0, items: [] as ResearchItem[] },
       { key: 't3', label: '1 - 5 ล้าน', min: 1000000, max: 5000000, count: 0, total: 0, items: [] as ResearchItem[] },
       { key: 't4', label: '5 - 10 ล้าน', min: 5000000, max: 10000000, count: 0, total: 0, items: [] as ResearchItem[] },
-      { key: 't5', label: '≥ 10 ล้าน (Mega)', min: 10000000, max: Infinity, count: 0, total: 0, items: [] as ResearchItem[] },
+      { key: 't5', label: '≥ 10 ล้านบาท', min: 10000000, max: Infinity, count: 0, total: 0, items: [] as ResearchItem[] },
     ];
 
     validData.forEach((item) => {
@@ -157,7 +157,7 @@ export function ResearchCharts({
     Chart.defaults.font.size = 12;
     Chart.defaults.color = '#0f172a';
 
-    const UI_PALETTE = ['#00A651', '#0284c7', '#6a1b9a', '#e65100', '#00838f', '#d97706', '#64748b'];
+    const UI_PALETTE = ['#10B981', '#0EA5E9', '#8B5CF6', '#F59E0B', '#F43F5E', '#14B8A6', '#64748B'];
 
     const createChart = (id: string, config: any) => {
       const canvas = document.getElementById(id) as HTMLCanvasElement;
@@ -235,8 +235,7 @@ export function ResearchCharts({
       // 2. Fund source breakdown
       const fundMap: Record<string, { name: string; budget: number; count: number; items: ResearchItem[] }> = {};
       validData.forEach((item) => {
-        let fName = String(item.fund_source || '').replace('\n', ' ').trim();
-        if (fName === 'nan' || !fName || fName === '-') fName = 'ไม่ระบุแหล่งทุน';
+        let fName = normalizeFundSource(item.fund_source);
         if (!fundMap[fName]) fundMap[fName] = { name: fName, budget: 0, count: 0, items: [] };
         const b = (Number(item.budget_internal) || 0) + (Number(item.budget_external) || 0) || Number(item.budget) || 0;
         fundMap[fName].budget += b;
@@ -439,7 +438,7 @@ export function ResearchCharts({
           { id: 'overview', label: 'ภาพรวมงบประมาณ & แหล่งทุน', icon: <FaCoins /> },
           { id: 'productivity', label: 'เปรียบเทียบผลผลิตรายภาควิชา', icon: <FaBuilding /> },
           { id: 'faculty', label: 'อาจารย์และหัวหน้าโครงการวิจัย', icon: <FaUserTie /> },
-          { id: 'sdg', label: 'เป้าหมายการพัฒนาที่ยั่งยืน (SDG)', icon: <FaLeaf /> },
+          { id: 'sdg', label: 'ความสอดคล้องเชิงยุทธศาสตร์ (SDGs / ISEE / IAM)', icon: <FaLeaf /> },
         ].map((tab) => {
           const isSel = activePerspective === tab.id;
           return (
@@ -534,9 +533,9 @@ export function ResearchCharts({
           </div>
 
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+            <table className="table-emerald" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
               <thead>
-                <tr style={{ backgroundColor: '#f8fafc', color: '#475569', borderBottom: '2px solid #e2e8f0' }}>
+                <tr style={{ backgroundColor: '#ecfdf5', color: '#065f46', borderBottom: '2px solid #a7f3d0' }}>
                   <th style={{ padding: '10px 12px', textAlign: 'left' }}>ภาควิชา / หน่วยงาน</th>
                   <th style={{ padding: '10px 12px', textAlign: 'center' }}>จำนวนโครงการ</th>
                   <th style={{ padding: '10px 12px', textAlign: 'right' }}>งบประมาณรวม</th>
@@ -619,9 +618,9 @@ export function ResearchCharts({
           </div>
 
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+            <table className="table-emerald" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
               <thead>
-                <tr style={{ backgroundColor: '#f8fafc', color: '#475569', borderBottom: '2px solid #e2e8f0' }}>
+                <tr style={{ backgroundColor: '#ecfdf5', color: '#065f46', borderBottom: '2px solid #a7f3d0' }}>
                   <th style={{ padding: '10px 10px', textAlign: 'center', width: '50px' }}>อันดับ</th>
                   <th style={{ padding: '10px 12px', textAlign: 'left' }}>หัวหน้าโครงการ</th>
                   <th style={{ padding: '10px 12px', textAlign: 'left' }}>ภาควิชา</th>
@@ -706,10 +705,12 @@ export function ResearchCharts({
 
       {/* DIMENSION 4: UN SDGs */}
       {activePerspective === 'sdg' && (
-        <HybridSdgCard
+        <StrategicAlignmentMatrix
           items={validData}
           categoryKey="research"
-          title="เป้าหมายการพัฒนาที่ยั่งยืน (UN SDGs)"
+          missionTitle="โครงการวิจัย"
+          unitLabel="โครงการ"
+          showBudget={true}
         />
       )}
 

@@ -52,6 +52,40 @@ export interface DepartmentOverviewStat {
   allItems: any[];
 }
 
+const ACADEMIC_HEAD_DEPT_MAP: Record<string, string> = {
+  'จักกริชพฤษการ': 'ภาควิชาวิศวกรรมคอมพิวเตอร์',
+  'พฤษพลตั้งสัจจะธรรม': 'ภาควิชาวิศวกรรมคอมพิวเตอร์',
+  'ทรงศักดิ์ภัทราวุฒิชัย': 'ภาควิชาวิศวกรรมชลประทาน',
+  'ไชยาพงษ์เทพประสิทธิ์': 'ภาควิชาวิศวกรรมชลประทาน',
+  'ชัยศรีสุขสาโรจน์': 'ภาควิชาวิศวกรรมชลประทาน',
+  'วิษุวัฒก์แต้สมบัติ': 'ภาควิชาวิศวกรรมชลประทาน',
+  'นิธิรัชต์สงวนเดือน': 'ภาควิชาวิศวกรรมชลประทาน',
+  'เกศวราสิทธิโชค': 'ภาควิชาวิศวกรรมชลประทาน',
+  'เพ็ญพิชชาสนิทอินทร์': 'ภาควิชาวิศวกรรมโยธา',
+  'นันทวัฒน์ขมหวาน': 'ภาควิชาวิศวกรรมโยธา',
+  'กฤษณะจันทรโชติ': 'ภาควิชาวิศวกรรมโยธา',
+  'ธนาชีพสมทรง': 'ภาควิชาวิศวกรรมเครื่องกล',
+  'เบญญากสานติกุล': 'ภาควิชาวิศวกรรมเครื่องกล',
+  'หทัยเทพวงศ์สุวรรณ': 'ภาควิชาวิศวกรรมเครื่องกล',
+  'จิรเกียรติทรายทอง': 'ภาควิชาวิศวกรรมอุตสาหการ',
+  'ธิติพงศ์โพธิสุทธิ์': 'ภาควิชาวิศวกรรมอาหาร',
+  'วัชมาโพธิ์ทอง': 'ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร',
+  'ศิริศักดิ์เชิดเกียรติพล': 'ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร',
+  'นิติรงค์พงษ์พานิช': 'ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ',
+  'ทิตินัยเทียนแย้ม': 'ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ',
+  'พิสิษฐ์อินทรวิรัตน์': 'ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ',
+  'นงลักษณ์เล็กรุ่งเรืองกิจ': 'ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม',
+  'อรรถวุทธิ์รื่นเริงใจ': 'ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม',
+  'ศศิธรชลรัตน์อมฤต': 'สำนักงานเลขานุการ',
+};
+
+function resolveAcademicDept(head?: string, currentDept?: string): string {
+  if (currentDept && currentDept !== '-' && currentDept !== 'nan' && currentDept !== 'undefined') return currentDept;
+  if (!head) return '';
+  const clean = head.replace(/[\s\n\r\t]/g, '').replace(/^(ศ\.|รศ\.|ผศ\.|อ\.|ดร\.|นาย|นาง|นางสาว|อาจารย์|ว่าที่ร\.ต\.)+/g, '');
+  return ACADEMIC_HEAD_DEPT_MAP[clean] || '';
+}
+
 export function useOverviewData(timeFilter: TimeFilterState) {
   const [isLiveFromDb, setIsLiveFromDb] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -131,7 +165,14 @@ export function useOverviewData(timeFilter: TimeFilterState) {
     return academicList
       .filter((item) => item.name && item.name !== 'nan' && item.name !== 'NaT' && item.name !== 'เรื่อง' && !isTestRecord(item))
       .filter((item) => itemMatchesTimeFilter(item, timeFilter))
-      .map((item) => ({ ...item, _categoryKey: 'academic' as CategoryKey }));
+      .map((item) => {
+        const resolvedDept = resolveAcademicDept(item.head, item.department);
+        return {
+          ...item,
+          department: resolvedDept || item.department,
+          _categoryKey: 'academic' as CategoryKey,
+        };
+      });
   }, [academicList, timeFilter]);
 
   const validPub = useMemo(() => {

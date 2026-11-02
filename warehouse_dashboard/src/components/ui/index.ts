@@ -40,3 +40,5 @@ export * from './ProgressBar';
 export * from './UndoToast';
 export * from './SplitPaneTransition';
 export * from './FilterPopover';
+export * from './StrategicFilterSelect';
+export * from './StrategyBadges';

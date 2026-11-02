@@ -37,6 +37,7 @@ export interface FilterState {
   sdgs?: string[];
   framework?: EvalFramework;
   kpiStrategy?: string;
+  kpiCalcType?: string;
   kpiStatus?: string;
 }
 
@@ -69,6 +70,9 @@ type FlyoutTab =
   | 'journals'
   | 'personnel_role'
   | 'personnel_status'
+  | 'kpi_strategy'
+  | 'kpi_calc_type'
+  | 'kpi_status'
   | null;
 
 // ---------------------------------------------------------------------------
@@ -130,6 +134,86 @@ const ROLES_LIST = [
   { val: 'นักวิจัย', label: 'นักวิจัย' },
   { val: 'เจ้าหน้าที่', label: 'เจ้าหน้าที่' },
   { val: 'ผู้บริหาร', label: 'ผู้บริหาร' },
+];
+
+export const KPI_STRATEGY_MAP: Record<string, string> = {
+  all: 'ทุกหมวดยุทธศาสตร์',
+  strat_y1: 'ยุทธศาสตร์ที่ 1 (ย.1)',
+  strat_y2: 'ยุทธศาสตร์ที่ 2 (ย.2)',
+  strat_y3: 'ยุทธศาสตร์ที่ 3 (ย.3)',
+  strat_faculty: 'ภาพรวมคณะฯ (KPI)',
+  research: 'โครงการวิจัย',
+  academic: 'พัฒนาวิชาการ',
+  publications: 'ผลงานตีพิมพ์',
+  service: 'บริการวิชาการ',
+  ip: 'ทรัพย์สินทางปัญญา',
+  personnel: 'บุคลากร/อาจารย์',
+  strategy: 'ยุทธศาสตร์คณะฯ',
+};
+
+export const KPI_STRATEGY_GROUPS = [
+  {
+    group: 'แผนยุทธศาสตร์ปี 2570',
+    options: [
+      { value: 'strat_y1', label: 'ยุทธศาสตร์ที่ 1 (ย.1 - นวัตกร)', desc: 'เน้นการผลิตบัณฑิตและนวัตกรวิศวกรรม' },
+      { value: 'strat_y2', label: 'ยุทธศาสตร์ที่ 2 (ย.2 - วิจัยและนวัตกรรม)', desc: 'งานวิจัยเชิงรุก สิทธิบัตร และการนำไปใช้ประโยชน์' },
+      { value: 'strat_y3', label: 'ยุทธศาสตร์ที่ 3 (ย.3 - บริการชุมชน)', desc: 'บริการวิชาการ ยกระดับสังคมและชุมชน' },
+      { value: 'strat_faculty', label: 'ตัวชี้วัดภาพรวมคณะฯ (KPI 2.1-x)', desc: 'ตัวชี้วัดเป้าหมายหลักระดับคณะวิศวกรรมศาสตร์' },
+    ],
+  },
+  {
+    group: 'จำแนกตามประเภทงาน',
+    options: [
+      { value: 'research', label: 'โครงการวิจัย', desc: 'ข้อมูลโครงการวิจัย ทุนภายใน/ภายนอก' },
+      { value: 'academic', label: 'โครงการพัฒนาวิชาการ', desc: 'โครงการพัฒนาการเรียนการสอนและหลักสูตร' },
+      { value: 'publications', label: 'ผลงานตีพิมพ์ทางวิชาการ', desc: 'วารสารวิชาการระดับนานาชาติและชาติ' },
+      { value: 'service', label: 'งานบริการวิชาการ', desc: 'โครงการบริการวิชาการแก่สังคมและอุตสาหกรรม' },
+      { value: 'ip', label: 'งานทรัพย์สินทางปัญญา', desc: 'สิทธิบัตร อนุสิทธิบัตร และลิขสิทธิ์' },
+      { value: 'personnel', label: 'บุคลากร/อาจารย์', desc: 'ข้อมูลอาจารย์ นักวิจัย และสายสนับสนุน' },
+      { value: 'strategy', label: 'ยุทธศาสตร์คณะฯ', desc: 'เป้าหมายและแผนยุทธศาสตร์ภาพรวม' },
+    ],
+  },
+];
+
+export const KPI_CALC_TYPE_OPTIONS = [
+  {
+    value: 'all',
+    label: 'ทุกวิธีการประเมิน',
+    desc: 'แสดงตัวชี้วัดทุกวิธีการประเมิน',
+  },
+  {
+    value: 'auto_sum',
+    label: 'รวมตัวเลขสะสม',
+    desc: 'รวมยอดเงินหรือตัวเลข จากฟิลด์ที่กำหนดแบบอัตโนมัติ',
+  },
+  {
+    value: 'auto_count',
+    label: 'นับจำนวนรายการทั้งหมด',
+    desc: 'นับจำนวนแถวข้อมูลทั้งหมดในตารางที่เลือก',
+  },
+  {
+    value: 'auto_filtered_count',
+    label: 'นับตามเงื่อนไข',
+    desc: 'นับเฉพาะรายการที่ตรงตามเงื่อนไขที่กำหนด เช่น งบ > 10 ล้าน',
+  },
+  {
+    value: 'auto_completeness',
+    label: 'ตรวจสอบความครบถ้วน 7 ภาควิชา',
+    desc: 'ตรวจสอบว่าทุกภาควิชามีการดำเนินงานครบถ้วนหรือไม่',
+  },
+  {
+    value: 'manual',
+    label: 'บันทึกผลงานแบบแมนนวล',
+    desc: 'สำหรับตัวชี้วัดภายนอกหรือที่ยังไม่มีฐานข้อมูลรองรับ',
+  },
+];
+
+export const KPI_STATUS_OPTIONS = [
+  { value: 'all', label: 'ทุกสถานะ', color: '#64748b', desc: 'แสดงทุกสถานะความสำเร็จ' },
+  { value: 'achieved', label: 'บรรลุเป้าหมาย (≥ 100%)', color: '#16a34a', desc: 'ผลงานเป็นไปตามเป้าหมาย 100% ขึ้นไป' },
+  { value: 'on_track', label: 'เป็นไปตามเป้า (70–99%)', color: '#2563eb', desc: 'ความคืบหน้าใกล้เคียงเป้าหมาย' },
+  { value: 'at_risk', label: 'เฝ้าระวัง (40–69%)', color: '#d97706', desc: 'ความคืบหน้าปานกลาง ต้องติดตามผล' },
+  { value: 'behind', label: 'ต้องเร่งรัด (< 40%)', color: '#dc2626', desc: 'ต่ำกว่าเกณฑ์ ต้องเร่งรัดการดำเนินงาน' },
 ];
 
 function posToVal(stops: number[], pos: number): number {
@@ -204,6 +288,9 @@ export function FilterPopover({
     subFilter: filters.subFilter || '',
     sdgs: filters.sdgs || [],
     framework: filters.framework || 'all',
+    kpiStrategy: filters.kpiStrategy || 'all',
+    kpiCalcType: filters.kpiCalcType || 'all',
+    kpiStatus: filters.kpiStatus || 'all',
   });
 
   const [deptSearch, setDeptSearch] = useState('');
@@ -224,6 +311,9 @@ export function FilterPopover({
         subFilter: filters.subFilter || '',
         sdgs: filters.sdgs || [],
         framework: filters.framework || 'all',
+        kpiStrategy: filters.kpiStrategy || 'all',
+        kpiCalcType: filters.kpiCalcType || 'all',
+        kpiStatus: filters.kpiStatus || 'all',
       });
       setActiveFlyout(null);
       setDeptSearch('');
@@ -259,6 +349,13 @@ export function FilterPopover({
 
   // Active filters count badge on the trigger button
   const activeCount = useMemo(() => {
+    if (category === 'kpi') {
+      let count = 0;
+      if (filters.kpiStrategy && filters.kpiStrategy !== 'all') count++;
+      if (filters.kpiCalcType && filters.kpiCalcType !== 'all') count++;
+      if (filters.kpiStatus && filters.kpiStatus !== 'all') count++;
+      return count;
+    }
     let count = 0;
     if (filters.departments && filters.departments.length > 0) count++;
     if (filters.deptCustomText) count++;
@@ -277,7 +374,7 @@ export function FilterPopover({
     if (filters.sdgs && filters.sdgs.length > 0) count++;
     if (filters.framework && filters.framework !== 'all') count++;
     return count;
-  }, [filters]);
+  }, [filters, category]);
 
   const numericConfig = CATEGORY_NUMERIC_FIELDS[category];
 
@@ -368,6 +465,9 @@ export function FilterPopover({
       subFilter: '',
       sdgs: [],
       framework: 'all',
+      kpiStrategy: 'all',
+      kpiCalcType: 'all',
+      kpiStatus: 'all',
     };
     setDraft(emptyState);
     setActiveFlyout(null);
@@ -546,6 +646,130 @@ export function FilterPopover({
 
           {/* Rows List (แต่ละแถวกดแล้วเปิดหน้าต่างด้านข้างขวา) */}
           <div style={{ flex: 1, padding: 0 }}>
+            {category === 'kpi' ? (
+              <>
+                {/* 1. หมวดยุทธศาสตร์และประเภทงาน */}
+                <button
+                  type="button"
+                  onClick={() => setActiveFlyout(activeFlyout === 'kpi_strategy' ? null : 'kpi_strategy')}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    width: '100%',
+                    padding: '12px 18px',
+                    border: 'none',
+                    borderBottom: '1px solid #f1f5f9',
+                    backgroundColor: activeFlyout === 'kpi_strategy' ? '#f0fbf5' : '#ffffff',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.15s',
+                  }}
+                >
+                  <span style={{ flex: 1, fontSize: '13.5px', color: '#1f2937', fontWeight: 400 }}>
+                    หมวดยุทธศาสตร์และประเภทงาน
+                  </span>
+                  <span
+                    style={{
+                      fontStyle: 'normal',
+                      fontSize: '12.5px',
+                      maxWidth: '50%',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      color: draft.kpiStrategy && draft.kpiStrategy !== 'all' ? '#00A651' : '#6b7280',
+                      fontWeight: 400,
+                    }}
+                  >
+                    {draft.kpiStrategy && draft.kpiStrategy !== 'all'
+                      ? KPI_STRATEGY_MAP[draft.kpiStrategy] || draft.kpiStrategy
+                      : 'ทั้งหมด'}
+                  </span>
+                  <FaChevronRight style={{ color: '#94a3b8', fontSize: '11px', flexShrink: 0 }} />
+                </button>
+
+                {/* 2. วิธีการประเมิน */}
+                <button
+                  type="button"
+                  onClick={() => setActiveFlyout(activeFlyout === 'kpi_calc_type' ? null : 'kpi_calc_type')}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    width: '100%',
+                    padding: '12px 18px',
+                    border: 'none',
+                    borderBottom: '1px solid #f1f5f9',
+                    backgroundColor: activeFlyout === 'kpi_calc_type' ? '#f0fbf5' : '#ffffff',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.15s',
+                  }}
+                >
+                  <span style={{ flex: 1, fontSize: '13.5px', color: '#1f2937', fontWeight: 400 }}>
+                    วิธีการประเมิน
+                  </span>
+                  <span
+                    style={{
+                      fontStyle: 'normal',
+                      fontSize: '12.5px',
+                      maxWidth: '50%',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      color: draft.kpiCalcType && draft.kpiCalcType !== 'all' ? '#00A651' : '#6b7280',
+                      fontWeight: 400,
+                    }}
+                  >
+                    {draft.kpiCalcType && draft.kpiCalcType !== 'all'
+                      ? KPI_CALC_TYPE_OPTIONS.find((o) => o.value === draft.kpiCalcType)?.label || draft.kpiCalcType
+                      : 'ทั้งหมด'}
+                  </span>
+                  <FaChevronRight style={{ color: '#94a3b8', fontSize: '11px', flexShrink: 0 }} />
+                </button>
+
+                {/* 3. สถานะความสำเร็จ */}
+                <button
+                  type="button"
+                  onClick={() => setActiveFlyout(activeFlyout === 'kpi_status' ? null : 'kpi_status')}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    width: '100%',
+                    padding: '12px 18px',
+                    border: 'none',
+                    borderBottom: '1px solid #f1f5f9',
+                    backgroundColor: activeFlyout === 'kpi_status' ? '#f0fbf5' : '#ffffff',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.15s',
+                  }}
+                >
+                  <span style={{ flex: 1, fontSize: '13.5px', color: '#1f2937', fontWeight: 400 }}>
+                    สถานะความสำเร็จ
+                  </span>
+                  <span
+                    style={{
+                      fontStyle: 'normal',
+                      fontSize: '12.5px',
+                      maxWidth: '50%',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      color: draft.kpiStatus && draft.kpiStatus !== 'all' ? '#00A651' : '#6b7280',
+                      fontWeight: 400,
+                    }}
+                  >
+                    {draft.kpiStatus && draft.kpiStatus !== 'all'
+                      ? KPI_STATUS_OPTIONS.find((o) => o.value === draft.kpiStatus)?.label.replace(/ \(.*\)/, '') || draft.kpiStatus
+                      : 'ทั้งหมด'}
+                  </span>
+                  <FaChevronRight style={{ color: '#94a3b8', fontSize: '11px', flexShrink: 0 }} />
+                </button>
+              </>
+            ) : (
+              <>
             {/* 1. สังกัดที่รับผิดชอบ */}
             <button
               type="button"
@@ -800,6 +1024,8 @@ export function FilterPopover({
                 <FaChevronRight style={{ color: '#94a3b8', fontSize: '11px', flexShrink: 0 }} />
               </button>
             )}
+              </>
+            )}
           </div>
 
           {/* Footer Actions */}
@@ -903,6 +1129,9 @@ export function FilterPopover({
                   {activeFlyout === 'evaluation' && 'การประเมิน (SDGs / Framework)'}
                   {activeFlyout === 'journals' && 'ระดับคุณภาพวารสาร (Q / TCI)'}
                   {activeFlyout === 'personnel_role' && 'บทบาท / ตำแหน่ง'}
+                  {activeFlyout === 'kpi_strategy' && 'หมวดยุทธศาสตร์และประเภทงาน'}
+                  {activeFlyout === 'kpi_calc_type' && 'วิธีการประเมิน'}
+                  {activeFlyout === 'kpi_status' && 'สถานะความสำเร็จ'}
                 </span>
                 <span style={{ flex: 1 }} />
                 <button
@@ -1537,6 +1766,179 @@ export function FilterPopover({
                     })}
                   </div>
                 )}
+
+                {/* ========================================================= */}
+                {/* 7. KPI Strategy (หมวดยุทธศาสตร์และประเภทงาน) */}
+                {/* ========================================================= */}
+                {activeFlyout === 'kpi_strategy' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    {/* All option */}
+                    <button
+                      type="button"
+                      onClick={() => setDraft((prev) => ({ ...prev, kpiStrategy: 'all' }))}
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: '8px',
+                        border: (!draft.kpiStrategy || draft.kpiStrategy === 'all') ? '1px solid #00A651' : '1px solid #e2e8f0',
+                        backgroundColor: (!draft.kpiStrategy || draft.kpiStrategy === 'all') ? '#f0fdf4' : '#ffffff',
+                        color: (!draft.kpiStrategy || draft.kpiStrategy === 'all') ? '#00A651' : '#334155',
+                        fontSize: '13px',
+                        fontWeight: 400,
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      <span>ทุกหมวดยุทธศาสตร์ (แสดงทั้งหมด)</span>
+                      {(!draft.kpiStrategy || draft.kpiStrategy === 'all') && <FaCheck style={{ fontSize: '11px' }} />}
+                    </button>
+
+                    {/* Groups */}
+                    {KPI_STRATEGY_GROUPS.map((grp) => (
+                      <div key={grp.group} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 500, borderBottom: '1px solid #f1f5f9', paddingBottom: '4px' }}>
+                          {grp.group}
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          {grp.options.map((opt) => {
+                            const isSelected = draft.kpiStrategy === opt.value;
+                            return (
+                              <button
+                                key={opt.value}
+                                type="button"
+                                onClick={() => setDraft((prev) => ({ ...prev, kpiStrategy: opt.value }))}
+                                style={{
+                                  padding: '9px 12px',
+                                  borderRadius: '8px',
+                                  border: isSelected ? '1px solid #00A651' : '1px solid #e2e8f0',
+                                  backgroundColor: isSelected ? '#f0fdf4' : '#ffffff',
+                                  color: isSelected ? '#00A651' : '#334155',
+                                  cursor: 'pointer',
+                                  textAlign: 'left',
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'center',
+                                  gap: '12px',
+                                  transition: 'all 0.15s ease',
+                                }}
+                              >
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                  <span style={{ fontSize: '13px', fontWeight: 400 }}>{opt.label}</span>
+                                  {opt.desc && (
+                                    <span style={{ fontSize: '11.5px', color: isSelected ? '#059669' : '#64748b' }}>
+                                      {opt.desc}
+                                    </span>
+                                  )}
+                                </div>
+                                {isSelected && <FaCheck style={{ fontSize: '11px', flexShrink: 0 }} />}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* ========================================================= */}
+                {/* 8. KPI Calc Type (วิธีการประเมิน) */}
+                {/* ========================================================= */}
+                {activeFlyout === 'kpi_calc_type' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>
+                      เลือกวิธีการประเมินความก้าวหน้าและผลงานตัวชี้วัด
+                    </div>
+                    {KPI_CALC_TYPE_OPTIONS.map((opt) => {
+                      const isSelected = (!draft.kpiCalcType && opt.value === 'all') || draft.kpiCalcType === opt.value;
+                      return (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => setDraft((prev) => ({ ...prev, kpiCalcType: opt.value }))}
+                          style={{
+                            padding: '10px 14px',
+                            borderRadius: '8px',
+                            border: isSelected ? '1px solid #00A651' : '1px solid #e2e8f0',
+                            backgroundColor: isSelected ? '#f0fdf4' : '#ffffff',
+                            color: isSelected ? '#00A651' : '#334155',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            gap: '12px',
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                            <span style={{ fontSize: '13px', fontWeight: 400 }}>{opt.label}</span>
+                            <span style={{ fontSize: '11.5px', color: isSelected ? '#059669' : '#64748b' }}>
+                              {opt.desc}
+                            </span>
+                          </div>
+                          {isSelected && <FaCheck style={{ fontSize: '11px', flexShrink: 0 }} />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* ========================================================= */}
+                {/* 9. KPI Status (สถานะความสำเร็จ) */}
+                {/* ========================================================= */}
+                {activeFlyout === 'kpi_status' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>
+                      เลือกสถานะความสำเร็จของตัวชี้วัดเทียบกับเป้าหมาย
+                    </div>
+                    {KPI_STATUS_OPTIONS.map((opt) => {
+                      const isSelected = (!draft.kpiStatus && opt.value === 'all') || draft.kpiStatus === opt.value;
+                      return (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => setDraft((prev) => ({ ...prev, kpiStatus: opt.value }))}
+                          style={{
+                            padding: '10px 14px',
+                            borderRadius: '8px',
+                            border: isSelected ? '1px solid #00A651' : '1px solid #e2e8f0',
+                            backgroundColor: isSelected ? '#f0fdf4' : '#ffffff',
+                            color: isSelected ? '#00A651' : '#334155',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            gap: '12px',
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <span
+                              style={{
+                                width: '10px',
+                                height: '10px',
+                                borderRadius: '50%',
+                                backgroundColor: opt.color,
+                                flexShrink: 0,
+                              }}
+                            />
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                              <span style={{ fontSize: '13px', fontWeight: 400 }}>{opt.label}</span>
+                              <span style={{ fontSize: '11.5px', color: isSelected ? '#059669' : '#64748b' }}>
+                                {opt.desc}
+                              </span>
+                            </div>
+                          </div>
+                          {isSelected && <FaCheck style={{ fontSize: '11px', flexShrink: 0 }} />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </aside>
           )}
@@ -1651,6 +2053,32 @@ export function ActiveFilterChips({
     chips.push({
       label: `กรอบ: ${filters.framework.toUpperCase()}`,
       onRemove: () => onRemove('framework'),
+    });
+  }
+
+  // 9. KPI Strategy
+  if (filters.kpiStrategy && filters.kpiStrategy !== 'all') {
+    chips.push({
+      label: `ยุทธศาสตร์: ${KPI_STRATEGY_MAP[filters.kpiStrategy] || filters.kpiStrategy}`,
+      onRemove: () => onRemove('kpiStrategy'),
+    });
+  }
+
+  // 10. KPI Calc Type
+  if (filters.kpiCalcType && filters.kpiCalcType !== 'all') {
+    const opt = KPI_CALC_TYPE_OPTIONS.find((o) => o.value === filters.kpiCalcType);
+    chips.push({
+      label: `วิธีการประเมิน: ${opt?.label || filters.kpiCalcType}`,
+      onRemove: () => onRemove('kpiCalcType'),
+    });
+  }
+
+  // 11. KPI Status
+  if (filters.kpiStatus && filters.kpiStatus !== 'all') {
+    const opt = KPI_STATUS_OPTIONS.find((o) => o.value === filters.kpiStatus);
+    chips.push({
+      label: `สถานะ: ${opt?.label.replace(/ \(.*\)/, '') || filters.kpiStatus}`,
+      onRemove: () => onRemove('kpiStatus'),
     });
   }
 

@@ -289,7 +289,7 @@ export const TimeFilterModal: React.FC<TimeFilterModalProps> = ({ isOpen, onClos
               ปีงบประมาณ
             </button>
             <button type="button" onClick={() => switchTab('manual')} style={segmentStyle(activeTabMode === 'manual')}>
-              กำหนดเอง
+              ปีปฏิทิน
             </button>
           </SegmentBar>
 

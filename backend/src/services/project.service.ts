@@ -189,7 +189,7 @@ export class ProjectService {
   }
 
   static async updateResearch(identifier: string | number, body: any) {
-    let existing = await ProjectRepository.findResearchById(identifier);
+    let existing: any = await ProjectRepository.findResearchById(identifier);
     if (!existing && body.name) {
       existing = await prisma.researchProject.findFirst({
         where: { name: body.name },
@@ -239,7 +239,7 @@ export class ProjectService {
   }
 
   static async deleteResearch(identifier: string | number) {
-    let existing = await ProjectRepository.findResearchById(identifier);
+    let existing: any = await ProjectRepository.findResearchById(identifier);
     if (!existing) {
       existing = await prisma.researchProject.findFirst({
         where: { name: String(identifier).trim() },
@@ -283,7 +283,7 @@ export class ProjectService {
   }
 
   static async updateAcademic(identifier: string | number, body: any) {
-    let existing = await ProjectRepository.findAcademicById(identifier);
+    let existing: any = await ProjectRepository.findAcademicById(identifier);
     if (!existing && body.name) {
       existing = await prisma.academicDevProject.findFirst({
         where: { name: body.name },
@@ -309,7 +309,7 @@ export class ProjectService {
   }
 
   static async deleteAcademic(identifier: string | number) {
-    let existing = await ProjectRepository.findAcademicById(identifier);
+    let existing: any = await ProjectRepository.findAcademicById(identifier);
     if (!existing) {
       existing = await prisma.academicDevProject.findFirst({
         where: { name: String(identifier).trim() },
@@ -407,7 +407,7 @@ export class ProjectService {
   }
 
   static async deletePublication(identifier: string | number) {
-    let existing = await ProjectRepository.findPublicationById(identifier);
+    let existing: any = await ProjectRepository.findPublicationById(identifier);
     if (!existing) {
       existing = await prisma.publication.findFirst({
         where: { title: String(identifier).trim() },

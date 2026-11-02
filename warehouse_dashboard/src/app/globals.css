@@ -141,17 +141,36 @@ body{margin:0;background:var(--w);color:#0f172a;overflow-x:hidden;min-height:100
 .table-scroll{overflow-x:auto;max-height:460px;overflow-y:auto}
 table{width:100%;border-collapse:collapse;font-size:13.5px}
 thead th, table th, .glass-table th {
-  background: #00A651 !important;
-  color: #ffffff !important;
-  padding: 11px 10px !important;
+  background: #f8fafc;
+  color: #334155;
+  padding: 11px 10px;
   text-align: left;
-  font-weight: 600 !important;
+  font-weight: 600;
   position: sticky;
   top: 0;
   z-index: 2;
-  font-size: 13px !important;
+  font-size: 13px;
   white-space: nowrap;
-  border-bottom: 2px solid #00A651 !important;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+/* Pastel Table Header Variants */
+.table-header-emerald th,
+.table-emerald thead th,
+table.table-emerald thead th,
+.table-emerald th {
+  background: #ECFDF5 !important;
+  color: #065F46 !important;
+  border-bottom: 2px solid #A7F3D0 !important;
+}
+
+.table-header-sky th,
+.table-sky thead th,
+table.table-sky thead th,
+.table-sky th {
+  background: #F0F9FF !important;
+  color: #0369A1 !important;
+  border-bottom: 2px solid #BAE6FD !important;
 }
 tbody tr{transition:background-color 0.15s ease}
 tbody tr:nth-child(even){background:#fafcfb}

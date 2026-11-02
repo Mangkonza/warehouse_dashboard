@@ -83,26 +83,52 @@ const server = app.listen(env.PORT, '127.0.0.1', () => {
   console.log(`🚀 KU Warehouse Backend running on http://127.0.0.1:${env.PORT}`);
   console.log(`📡 Environment: ${env.NODE_ENV}`);
 
-  // Seed mock admin if mock is enabled
+  // Seed mock admins if mock is enabled
   if (env.AUTH_MOCK_ENABLED) {
-    prisma.userRole
-      .upsert({
-        where: { username: 'b0123456789' },
-        update: { role: 'admin', isProtected: true },
-        create: {
-          username: 'b0123456789',
-          role: 'admin',
-          isProtected: true,
-          displayName: 'Admin',
-          grantedBy: 'system',
-          note: 'Mock Protected Admin for testing environment',
-        },
-      })
+    const defaultAdmins = [
+      {
+        username: 'b6520503525',
+        displayName: 'Super Admin (b6520503525)',
+        note: 'Initial system super admin account',
+      },
+      {
+        username: 'b0123456789',
+        displayName: 'Admin',
+        note: 'Mock Protected Admin for testing environment',
+      },
+      {
+        username: 'admin',
+        displayName: 'Super Admin (Admin)',
+        note: 'Default admin alias account',
+      },
+      {
+        username: 'superadmin',
+        displayName: 'Super Admin',
+        note: 'Default superadmin alias account',
+      },
+    ];
+
+    Promise.all(
+      defaultAdmins.map((adm) =>
+        prisma.userRole.upsert({
+          where: { username: adm.username },
+          update: { role: 'admin', isProtected: true, displayName: adm.displayName },
+          create: {
+            username: adm.username,
+            role: 'admin',
+            isProtected: true,
+            displayName: adm.displayName,
+            grantedBy: 'system',
+            note: adm.note,
+          },
+        })
+      )
+    )
       .then(() => {
-        console.log('🛡️ Mock Admin (b0123456789, protected) verified in user_roles table.');
+        console.log('🛡️ Mock Admin accounts (b6520503525, b0123456789, admin, superadmin) verified in user_roles table.');
       })
       .catch((err) => {
-        console.error('Failed to ensure mock admin in database:', err);
+        console.error('Failed to ensure mock admins in database:', err);
       });
   }
 });
@@ -113,14 +139,22 @@ const shutdown = async (signal: string) => {
   server.close(async () => {
     try {
       await prisma.$disconnect();
-      console.log('✅ Disconnected database pool.');
-    } catch (e) {
-      console.error('Error during database disconnect:', e);
+      console.log('🔌 Database disconnected.');
+      process.exit(0);
+    } catch (err) {
+      console.error('Error during shutdown:', err);
+      process.exit(1);
     }
-    process.exit(0);
   });
+
+  // Force exit after 5s if still hanging
+  setTimeout(() => {
+    console.error('⚠️ Force shutdown timed out. Exiting.');
+    process.exit(1);
+  }, 5000).unref();
 };
 
 process.on('SIGINT', () => shutdown('SIGINT'));
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 
+export default app;

@@ -4,9 +4,10 @@ import { useState, useEffect, useMemo } from 'react';
 import pubData from '@/data/publications.json';
 import { getCachedCategoryData, fetchCategoryData } from '@/lib/dataService';
 import { TimeFilterState, itemMatchesTimeFilter } from '@/types/timeFilter';
-import { isTestRecord } from '@/lib/sdgEngine';
+import { isTestRecord, detectSDGsFromText } from '@/lib/sdgEngine';
 import { autoDetectJournalRanking } from '@/config/journalRankingConfig';
 import { getDepartment } from '@/lib/departments';
+import { itemMatchesStrategicFilter } from '@/lib/pastelTheme';
 
 export interface PublicationItem {
   id?: string;
@@ -35,6 +36,7 @@ export interface PublicationItem {
   has_foreign_coauthor?: boolean;
   has_domestic_coauthor?: boolean;
   has_international_coauthor?: boolean;
+  sdg_code?: number | string;
   _detectedTier?: string;
   [key: string]: any;
 }
@@ -42,13 +44,15 @@ export interface PublicationItem {
 export function usePublicationsData(timeFilter?: TimeFilterState) {
   const [searchTerm, setSearchTerm] = useState('');
   const [levelFilter, setLevelFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [selectedDept, setSelectedDept] = useState('all');
   const [fiscalYearFilter, setFiscalYearFilter] = useState('all');
+  const [strategicFilter, setStrategicFilter] = useState('all');
+
   const [dataList, setDataList] = useState<PublicationItem[]>(() => {
     return (getCachedCategoryData('publications') as PublicationItem[]) || (pubData as PublicationItem[]);
   });
 
-  // Fetch real data from server API
   const refreshData = async () => {
     try {
       const fresh = await fetchCategoryData('publications');
@@ -113,8 +117,8 @@ export function usePublicationsData(timeFilter?: TimeFilterState) {
         prepCount++;
       }
 
-      if (lvl.includes('นานาชาติ')) intl++;
-      else if (lvl.includes('ชาติ')) nat++;
+      if (lvl.includes('นานาชาติ') || tier.startsWith('Q')) intl++;
+      else nat++;
 
       if (tier === 'Q1') {
         q1++;
@@ -142,19 +146,24 @@ export function usePublicationsData(timeFilter?: TimeFilterState) {
 
   const filteredData = useMemo(() => {
     return validData.filter((item) => {
-      // 1. Level / Tier / Type filter
+      // 1. Level / Tier filter
       if (levelFilter !== 'all') {
-        const lvl = String(item.level || '');
         const tier = String(item._detectedTier || '');
-        const typ = String(item.type || '');
-        const target = levelFilter.toUpperCase();
-        const matched =
-          lvl === levelFilter ||
-          tier.toUpperCase().includes(target) ||
-          typ.includes(levelFilter);
-        if (!matched) return false;
+        if (levelFilter === 'Q1' && tier !== 'Q1') return false;
+        if (levelFilter === 'Q2' && tier !== 'Q2' && tier !== 'Q3' && tier !== 'Q4') return false;
+        if (levelFilter === 'TCI' && !tier.startsWith('TCI')) return false;
       }
-      // 2. Department filter
+
+      // 2. Status filter
+      if (statusFilter !== 'all') {
+        const st = String(item.status || '');
+        const typ = String(item.type || '');
+        const isPub = st.includes('ตีพิมพ์แล้ว') || typ === 'ตีพิมพ์';
+        if (statusFilter === 'published' && !isPub) return false;
+        if (statusFilter === 'prep' && isPub) return false;
+      }
+
+      // 3. Department filter
       if (selectedDept !== 'all') {
         const itemDept = getDepartment(item.department);
         const filterDept = getDepartment(selectedDept);
@@ -162,12 +171,19 @@ export function usePublicationsData(timeFilter?: TimeFilterState) {
           return false;
         }
       }
-      // 3. Fiscal year filter
+
+      // 4. Fiscal year filter
       if (fiscalYearFilter !== 'all') {
         const fy = item.fiscal_year_be ? String(item.fiscal_year_be) : '';
         if (fy !== fiscalYearFilter) return false;
       }
-      // 4. Search term (title / owner / journal)
+
+      // 5. Strategic filter
+      if (strategicFilter !== 'all' && !itemMatchesStrategicFilter(item, strategicFilter)) {
+        return false;
+      }
+
+      // 6. Search term
       if (searchTerm.trim()) {
         const q = searchTerm.toLowerCase();
         const n = String(item.name || '').toLowerCase();
@@ -178,16 +194,7 @@ export function usePublicationsData(timeFilter?: TimeFilterState) {
       }
       return true;
     });
-  }, [validData, levelFilter, selectedDept, fiscalYearFilter, searchTerm]);
-
-  // Available fiscal years
-  const availableFiscalYears = useMemo(() => {
-    const set = new Set<string>();
-    dataList.forEach((d) => {
-      if (d.fiscal_year_be) set.add(String(d.fiscal_year_be));
-    });
-    return Array.from(set).sort().reverse();
-  }, [dataList]);
+  }, [validData, levelFilter, statusFilter, selectedDept, fiscalYearFilter, strategicFilter, searchTerm]);
 
   return {
     validData,
@@ -205,11 +212,14 @@ export function usePublicationsData(timeFilter?: TimeFilterState) {
     setSearchTerm,
     levelFilter,
     setLevelFilter,
+    statusFilter,
+    setStatusFilter,
     selectedDept,
     setSelectedDept,
     fiscalYearFilter,
     setFiscalYearFilter,
-    availableFiscalYears,
+    strategicFilter,
+    setStrategicFilter,
     refreshData,
   };
 }

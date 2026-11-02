@@ -42,7 +42,8 @@
     "budget": 5000000,
     "_id": "academic_idx_1",
     "head_id": 32,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชาวิศวกรรมชลประทาน"
   },
   {
     "month": "ม.ค.",
@@ -52,7 +53,8 @@
     "budget": 13500000,
     "_id": "academic_idx_2",
     "head_id": 145,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์"
   },
   {
     "month": "ม.ค.",
@@ -62,7 +64,8 @@
     "budget": 7860000,
     "_id": "academic_idx_3",
     "head_id": 28,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชา วิศวกรรมชลประทาน"
   },
   {
     "month": "ม.ค.",
@@ -72,7 +75,8 @@
     "budget": 3990000,
     "_id": "academic_idx_4",
     "head_id": 28,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชา วิศวกรรมชลประทาน"
   },
   {
     "month": "ม.ค.",
@@ -82,7 +86,8 @@
     "budget": 200000,
     "_id": "academic_idx_5",
     "head_id": 108,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร"
   },
   {
     "month": "ม.ค.",
@@ -92,7 +97,8 @@
     "budget": 9000000,
     "_id": "academic_idx_6",
     "head_id": 28,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชา วิศวกรรมชลประทาน"
   },
   {
     "month": "ก.พ.",
@@ -102,7 +108,8 @@
     "budget": 18594000,
     "_id": "academic_idx_7",
     "head_id": 32,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชาวิศวกรรมชลประทาน"
   },
   {
     "month": "ก.พ.",
@@ -112,7 +119,8 @@
     "budget": 18340000,
     "_id": "academic_idx_8",
     "head_id": 28,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชา วิศวกรรมชลประทาน"
   },
   {
     "month": "ก.พ.",
@@ -122,7 +130,8 @@
     "budget": 100000,
     "_id": "academic_idx_9",
     "head_id": 108,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร"
   },
   {
     "month": "ก.พ.",
@@ -132,7 +141,8 @@
     "budget": 20000000,
     "_id": "academic_idx_10",
     "head_id": 28,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชา วิศวกรรมชลประทาน"
   },
   {
     "month": "ก.พ.",
@@ -142,7 +152,8 @@
     "budget": 500000,
     "_id": "academic_idx_11",
     "head_id": 108,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร"
   },
   {
     "month": "มี.ค.",
@@ -152,7 +163,8 @@
     "budget": 21600,
     "_id": "academic_idx_12",
     "head_id": 80,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชา วิศวกรรมโยธา"
   },
   {
     "month": "มี.ค.",
@@ -162,7 +174,8 @@
     "budget": 32000,
     "_id": "academic_idx_13",
     "head_id": 103,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชาวิศวกรรมเครื่องกล"
   },
   {
     "month": "เม.ย.",
@@ -172,7 +185,8 @@
     "budget": 1358823.53,
     "_id": "academic_idx_14",
     "head_id": 125,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชา วิศวกรรมอุตสาหการ"
   },
   {
     "month": "พ.ค.",
@@ -182,7 +196,8 @@
     "budget": 6793588,
     "_id": "academic_idx_15",
     "head_id": 36,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชาวิศวกรรมชลประทาน"
   },
   {
     "month": "พ.ค.",
@@ -192,7 +207,8 @@
     "budget": 50600,
     "_id": "academic_idx_16",
     "head_id": 105,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชาวิศวกรรมเครื่องกล"
   },
   {
     "month": "พ.ค.",
@@ -202,7 +218,8 @@
     "budget": 63529.41,
     "_id": "academic_idx_17",
     "head_id": 80,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชา วิศวกรรมโยธา"
   },
   {
     "month": "มิ.ย.",
@@ -212,7 +229,8 @@
     "budget": 350000,
     "_id": "academic_idx_18",
     "head_id": 145,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์"
   },
   {
     "month": "มิ.ย.",
@@ -222,7 +240,8 @@
     "budget": 36000,
     "_id": "academic_idx_19",
     "head_id": 80,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชา วิศวกรรมโยธา"
   },
   {
     "month": "มิ.ย.",
@@ -232,7 +251,8 @@
     "budget": 500000,
     "_id": "academic_idx_20",
     "head_id": 108,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร"
   },
   {
     "month": "ก.ค.",
@@ -242,7 +262,8 @@
     "budget": 250000,
     "_id": "academic_idx_21",
     "head_id": 264,
-    "evaluation": null
+    "evaluation": null,
+    "department": "สำนักงานเลขานุการ"
   },
   {
     "month": "ก.ค.",
@@ -252,7 +273,8 @@
     "budget": 43700,
     "_id": "academic_idx_22",
     "head_id": 249,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ"
   },
   {
     "month": "ก.ย.",
@@ -262,7 +284,8 @@
     "budget": 25450,
     "_id": "academic_idx_23",
     "head_id": 2,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม"
   },
   {
     "month": "ก.ย.",
@@ -272,7 +295,8 @@
     "budget": 4990000,
     "_id": "academic_idx_24",
     "head_id": 28,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชา วิศวกรรมชลประทาน"
   },
   {
     "month": "ก.ย.",
@@ -282,7 +306,8 @@
     "budget": 2226210,
     "_id": "academic_idx_25",
     "head_id": 81,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชาวิศวกรรมโยธา"
   },
   {
     "month": "ก.ย.",
@@ -292,7 +317,8 @@
     "budget": 80000,
     "_id": "academic_idx_26",
     "head_id": null,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ"
   },
   {
     "month": "ต.ค.",
@@ -302,7 +328,8 @@
     "budget": 100000,
     "_id": "academic_idx_27",
     "head_id": 252,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ"
   },
   {
     "month": "ต.ค.",
@@ -312,7 +339,8 @@
     "budget": 300000,
     "_id": "academic_idx_28",
     "head_id": 2,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม"
   },
   {
     "month": "ต.ค.",
@@ -322,7 +350,8 @@
     "budget": 200000,
     "_id": "academic_idx_29",
     "head_id": 108,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร"
   },
   {
     "month": "ต.ค.",
@@ -332,7 +361,8 @@
     "budget": 1000000,
     "_id": "academic_idx_30",
     "head_id": 164,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม"
   },
   {
     "month": "ต.ค.",
@@ -342,7 +372,8 @@
     "budget": 24538000,
     "_id": "academic_idx_31",
     "head_id": 38,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชา วิศวกรรมชลประทาน"
   },
   {
     "month": "ต.ค.",
@@ -352,7 +383,8 @@
     "budget": 24854700,
     "_id": "academic_idx_32",
     "head_id": 38,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชา วิศวกรรมชลประทาน"
   },
   {
     "month": "ต.ค.",
@@ -362,7 +394,8 @@
     "budget": 499200,
     "_id": "academic_idx_33",
     "head_id": 151,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์"
   },
   {
     "month": "ต.ค.",
@@ -372,7 +405,8 @@
     "budget": 1000000,
     "_id": "academic_idx_34",
     "head_id": 88,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชา วิศวกรรมโยธา"
   },
   {
     "month": "พ.ย.",
@@ -382,7 +416,8 @@
     "budget": 500000,
     "_id": "academic_idx_35",
     "head_id": 67,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชาวิศวกรรมอาหาร"
   },
   {
     "month": "พ.ย.",
@@ -392,7 +427,8 @@
     "budget": 20000000,
     "_id": "academic_idx_36",
     "head_id": 38,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชา วิศวกรรมชลประทาน"
   },
   {
     "month": "พ.ย.",
@@ -402,7 +438,8 @@
     "budget": 6190200,
     "_id": "academic_idx_37",
     "head_id": 104,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชาวิศวกรรมเครื่องกล"
   },
   {
     "month": "พ.ย.",
@@ -412,7 +449,8 @@
     "budget": 18100000,
     "_id": "academic_idx_38",
     "head_id": 28,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชา วิศวกรรมชลประทาน"
   },
   {
     "month": "พ.ย.",
@@ -422,7 +460,8 @@
     "budget": 8000000,
     "_id": "academic_idx_39",
     "head_id": 28,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชา วิศวกรรมชลประทาน"
   },
   {
     "month": "พ.ย.",
@@ -432,7 +471,8 @@
     "budget": 2500000,
     "_id": "academic_idx_40",
     "head_id": 28,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชา วิศวกรรมชลประทาน"
   },
   {
     "month": "พ.ย.",
@@ -442,7 +482,8 @@
     "budget": 10000000,
     "_id": "academic_idx_41",
     "head_id": 32,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชาวิศวกรรมชลประทาน"
   },
   {
     "month": "พ.ย.",
@@ -452,7 +493,8 @@
     "budget": 20000000,
     "_id": "academic_idx_42",
     "head_id": 145,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชาวิศวกรรมคอมพิวเตอร์"
   },
   {
     "month": "พ.ย.",
@@ -462,7 +504,8 @@
     "budget": 15000000,
     "_id": "academic_idx_43",
     "head_id": 28,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชา วิศวกรรมชลประทาน"
   },
   {
     "month": "พ.ย.",
@@ -472,7 +515,8 @@
     "budget": 2000000,
     "_id": "academic_idx_44",
     "head_id": 28,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชา วิศวกรรมชลประทาน"
   },
   {
     "month": "พ.ย.",
@@ -482,7 +526,8 @@
     "budget": 2990000,
     "_id": "academic_idx_45",
     "head_id": 28,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชา วิศวกรรมชลประทาน"
   },
   {
     "month": "พ.ย.",
@@ -492,7 +537,8 @@
     "budget": 1360000,
     "_id": "academic_idx_46",
     "head_id": 28,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชา วิศวกรรมชลประทาน"
   },
   {
     "month": "1",
@@ -502,7 +548,8 @@
     "budget": 21864368,
     "_id": "academic_idx_47",
     "head_id": 38,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชา วิศวกรรมชลประทาน"
   },
   {
     "month": "1",
@@ -512,7 +559,8 @@
     "budget": 8499528,
     "_id": "academic_idx_48",
     "head_id": 40,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชาวิศวกรรมชลประทาน"
   },
   {
     "month": "1",
@@ -522,7 +570,8 @@
     "budget": 15043000,
     "_id": "academic_idx_49",
     "head_id": 38,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชา วิศวกรรมชลประทาน"
   },
   {
     "month": "1",
@@ -532,7 +581,8 @@
     "budget": 900000,
     "_id": "academic_idx_50",
     "head_id": 28,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชา วิศวกรรมชลประทาน"
   },
   {
     "month": "2",
@@ -542,7 +592,8 @@
     "budget": 1000000,
     "_id": "academic_idx_51",
     "head_id": 11,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร"
   },
   {
     "month": "2",
@@ -552,7 +603,8 @@
     "budget": 24870300,
     "_id": "academic_idx_52",
     "head_id": 38,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชา วิศวกรรมชลประทาน"
   },
   {
     "month": "2",
@@ -562,7 +614,8 @@
     "budget": 24900000,
     "_id": "academic_idx_53",
     "head_id": 38,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชา วิศวกรรมชลประทาน"
   },
   {
     "month": "2",
@@ -572,7 +625,8 @@
     "budget": 24461600,
     "_id": "academic_idx_54",
     "head_id": 38,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชา วิศวกรรมชลประทาน"
   },
   {
     "month": "2",
@@ -582,7 +636,8 @@
     "budget": 15637800,
     "_id": "academic_idx_55",
     "head_id": 38,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชา วิศวกรรมชลประทาน"
   },
   {
     "month": "2",
@@ -592,7 +647,8 @@
     "budget": 4847000,
     "_id": "academic_idx_56",
     "head_id": 28,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชา วิศวกรรมชลประทาน"
   },
   {
     "month": "2",
@@ -602,7 +658,8 @@
     "budget": 2595440,
     "_id": "academic_idx_57",
     "head_id": 43,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชาวิศวกรรมชลประทาน"
   },
   {
     "month": "2",
@@ -612,7 +669,8 @@
     "budget": 335000,
     "_id": "academic_idx_58",
     "head_id": 28,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชา วิศวกรรมชลประทาน"
   },
   {
     "month": "3",
@@ -622,7 +680,8 @@
     "budget": 481000,
     "_id": "academic_idx_59",
     "head_id": 40,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชาวิศวกรรมชลประทาน"
   },
   {
     "month": "3",
@@ -632,7 +691,8 @@
     "budget": 24000000,
     "_id": "academic_idx_60",
     "head_id": 28,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชา วิศวกรรมชลประทาน"
   },
   {
     "month": "3",
@@ -642,7 +702,8 @@
     "budget": 15000000,
     "_id": "academic_idx_61",
     "head_id": 38,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชา วิศวกรรมชลประทาน"
   },
   {
     "month": "3",
@@ -652,7 +713,8 @@
     "budget": 350000,
     "_id": "academic_idx_62",
     "head_id": 2,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม"
   },
   {
     "month": "3",
@@ -662,7 +724,8 @@
     "budget": 350000,
     "_id": "academic_idx_63",
     "head_id": 2,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม"
   },
   {
     "month": "3",
@@ -672,7 +735,8 @@
     "budget": 150000,
     "_id": "academic_idx_64",
     "head_id": 32,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชาวิศวกรรมชลประทาน"
   },
   {
     "month": "3",
@@ -682,7 +746,8 @@
     "budget": 127500,
     "_id": "academic_idx_65",
     "head_id": 32,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชาวิศวกรรมชลประทาน"
   },
   {
     "month": "3",
@@ -692,7 +757,8 @@
     "budget": 3900000,
     "_id": "academic_idx_66",
     "head_id": 28,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชา วิศวกรรมชลประทาน"
   },
   {
     "month": "4",
@@ -702,7 +768,8 @@
     "budget": 7543647,
     "_id": "academic_idx_67",
     "head_id": 36,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชาวิศวกรรมชลประทาน"
   },
   {
     "month": "4",
@@ -712,6 +779,7 @@
     "budget": 500000,
     "_id": "academic_idx_68",
     "head_id": 28,
-    "evaluation": null
+    "evaluation": null,
+    "department": "ภาควิชา วิศวกรรมชลประทาน"
   }
 ]

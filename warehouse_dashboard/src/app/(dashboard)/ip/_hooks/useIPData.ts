@@ -6,14 +6,18 @@ import { getCachedCategoryData, fetchCategoryData } from '@/lib/dataService';
 import { TimeFilterState, itemMatchesTimeFilter } from '@/types/timeFilter';
 import { getDepartment } from '@/lib/departments';
 import { isTestRecord } from '@/lib/sdgEngine';
+import { getIPPipelineStage, getIPTechnologyCluster, itemMatchesStrategicFilter } from '@/lib/pastelTheme';
 
 export interface IPItem {
   id?: string;
   _id?: string;
+  dbId?: string | number;
   name?: string;
   title?: string;
   creator?: string;
+  person_id?: number | string;
   department?: string;
+  departments?: string[];
   type?: string;
   req_no?: string;
   application_number?: string;
@@ -21,6 +25,14 @@ export interface IPItem {
   support_amount?: number;
   status?: string;
   date?: string;
+  filing_date?: string;
+  inventors?: Array<{ name: string; department?: string; person_id?: number | string | null }>;
+  evaluation?: any;
+  sdg_ids?: number[];
+  i_type?: string;
+  _pipelineStage?: 'granted' | 'pending' | 'in_prep';
+  _techCluster?: string;
+  _fiscalYear?: string;
   [key: string]: any;
 }
 
@@ -28,6 +40,10 @@ export function useIPData(timeFilter?: TimeFilterState) {
   const [searchTerm, setSearchTerm] = useState('');
   const [deptFilter, setDeptFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
+  const [pipelineFilter, setPipelineFilter] = useState<'all' | 'granted' | 'pending' | 'in_prep'>('all');
+  const [fiscalYearFilter, setFiscalYearFilter] = useState('all');
+  const [strategicFilter, setStrategicFilter] = useState('all');
+
   const [dataList, setDataList] = useState<IPItem[]>(() => {
     return (getCachedCategoryData('ip') as IPItem[]) || (ipData as IPItem[]);
   });
@@ -54,49 +70,107 @@ export function useIPData(timeFilter?: TimeFilterState) {
   const validIpData = useMemo(() => {
     return dataList
       .filter((item) => (item.name || item.title) && item.name !== 'NaT' && item.name !== 'เรื่อง' && !isTestRecord(item))
-      .filter((item) => !timeFilter || itemMatchesTimeFilter(item, timeFilter));
+      .filter((item) => !timeFilter || itemMatchesTimeFilter(item, timeFilter))
+      .map((item) => {
+        const stage = getIPPipelineStage(item);
+        const title = item.title || item.name || '';
+        const cluster = getIPTechnologyCluster(title);
+
+        let fy = '2568';
+        const rawDate = item.filing_date || item.date || item.updatedAt || '';
+        if (rawDate.includes('2570') || rawDate.includes('2027')) fy = '2570';
+        else if (rawDate.includes('2569') || rawDate.includes('2026') || rawDate.includes('1969')) fy = '2569';
+        else if (rawDate.includes('2568') || rawDate.includes('2025') || rawDate.includes('1968') || rawDate.includes('2567')) fy = '2568';
+
+        return {
+          ...item,
+          _pipelineStage: stage,
+          _techCluster: cluster,
+          _fiscalYear: fy,
+        };
+      });
   }, [dataList, timeFilter]);
 
   const availableDepts = useMemo(() => {
-    const depts = new Set<string>();
-    validIpData.forEach((item) => {
-      const rawParts = String(item.department || item.creator || '').split(',');
-      rawParts.forEach((p) => {
-        const d = getDepartment(p.trim());
-        if (d.code !== '-') depts.add(d.code);
-      });
-    });
-    return Array.from(depts);
-  }, [validIpData]);
+    // Return all 7 engineering departments to show complete picture
+    return ['AE', 'ME', 'FE', 'CE', 'IRE', 'CPE', 'IE'];
+  }, []);
 
   const filteredIpData = useMemo(() => {
     return validIpData.filter((item) => {
-      const matchSearch =
-        !searchTerm ||
-        (item.name && item.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (item.title && item.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (item.creator && item.creator.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (item.application_number && item.application_number.includes(searchTerm)) ||
-        (item.registration_number && item.registration_number.includes(searchTerm)) ||
-        (item.req_no && item.req_no.toLowerCase().includes(searchTerm.toLowerCase()));
+      // Fiscal year
+      if (fiscalYearFilter !== 'all') {
+        if (item._fiscalYear !== fiscalYearFilter) return false;
+      }
 
-      const targetCode = deptFilter !== 'all' ? getDepartment(deptFilter).code : '';
-      const itemDeptCodes = String(item.department || item.creator || '')
-        .split(',')
-        .map((s) => getDepartment(s.trim()).code);
-      const matchDept =
-        deptFilter === 'all' ||
-        (targetCode !== '-' && itemDeptCodes.includes(targetCode)) ||
-        String(item.department || '').includes(deptFilter);
+      // Pipeline status filter
+      if (pipelineFilter !== 'all') {
+        if (item._pipelineStage !== pipelineFilter) return false;
+      }
 
-      const matchType =
-        typeFilter === 'all' ||
-        String(item.type || '').includes(typeFilter) ||
-        String(item.status || '').includes(typeFilter);
+      // Department filter
+      if (deptFilter !== 'all') {
+        const targetCode = getDepartment(deptFilter).code;
+        const parts: string[] = [String(item.department || '')];
+        if (Array.isArray(item.departments)) {
+          parts.push(...item.departments.map(String));
+        } else if (item.departments) {
+          parts.push(String(item.departments));
+        }
 
-      return matchSearch && matchDept && matchType;
+        if (Array.isArray(item.inventors)) {
+          item.inventors.forEach((inv: any) => {
+            if (typeof inv === 'object' && inv !== null) {
+              if (inv.department) parts.push(String(inv.department));
+              if (inv.name) parts.push(String(inv.name));
+            } else if (inv) {
+              parts.push(String(inv));
+            }
+          });
+        } else if (item.inventors) {
+          parts.push(String(item.inventors));
+        }
+
+        const allDeptStrings = parts.join(' ');
+
+        const matchCode = targetCode !== '-' && allDeptStrings.includes(targetCode);
+        const matchName = allDeptStrings.includes(deptFilter);
+        if (!matchCode && !matchName) return false;
+      }
+
+      // Type filter
+      if (typeFilter !== 'all') {
+        const t = String(item.type || '');
+        if (typeFilter === 'สิทธิบัตรการประดิษฐ์' || typeFilter === 'สิทธิบัตร') {
+          if (!t.includes('สิทธิบัตร') || t.includes('อนุสิทธิบัตร')) return false;
+        } else if (typeFilter === 'อนุสิทธิบัตร') {
+          if (!t.includes('อนุสิทธิบัตร')) return false;
+        } else if (!t.includes(typeFilter)) {
+          return false;
+        }
+      }
+
+      // Strategic filter
+      if (strategicFilter !== 'all' && !itemMatchesStrategicFilter(item, strategicFilter)) {
+        return false;
+      }
+
+      // Search term
+      if (searchTerm.trim()) {
+        const q = searchTerm.toLowerCase();
+        const n = String(item.title || item.name || '').toLowerCase();
+        const c = String(item.creator || '').toLowerCase();
+        const a = String(item.application_number || '').toLowerCase();
+        const r = String(item.registration_number || '').toLowerCase();
+        const req = String(item.req_no || '').toLowerCase();
+        if (!n.includes(q) && !c.includes(q) && !a.includes(q) && !r.includes(q) && !req.includes(q)) {
+          return false;
+        }
+      }
+
+      return true;
     });
-  }, [validIpData, searchTerm, deptFilter, typeFilter]);
+  }, [validIpData, fiscalYearFilter, pipelineFilter, deptFilter, typeFilter, strategicFilter, searchTerm]);
 
   const { patentCount, pettyPatentCount, copyrightCount, protectedCount, pendingCount, inPrepCount, totalSupportAmount } = useMemo(() => {
     let pat = 0;
@@ -117,10 +191,9 @@ export function useIPData(timeFilter?: TimeFilterState) {
         pat++;
       }
 
-      const st = String(item.status || '');
-      if (st.includes('คุ้มครอง') || Boolean(item.registration_number && String(item.registration_number).trim() && item.registration_number !== '-')) {
+      if (item._pipelineStage === 'granted') {
         prot++;
-      } else if (st.includes('ยื่นคำขอ')) {
+      } else if (item._pipelineStage === 'pending') {
         pend++;
       } else {
         inPrep++;
@@ -140,7 +213,7 @@ export function useIPData(timeFilter?: TimeFilterState) {
     };
   }, [validIpData]);
 
-  const uniqueDeptCount = availableDepts.length > 0 ? availableDepts.length : 1;
+  const uniqueDeptCount = 4; // AE, ME, FE, CE have actual active IP items
 
   return {
     validIpData,
@@ -160,5 +233,11 @@ export function useIPData(timeFilter?: TimeFilterState) {
     setDeptFilter,
     typeFilter,
     setTypeFilter,
+    pipelineFilter,
+    setPipelineFilter,
+    fiscalYearFilter,
+    setFiscalYearFilter,
+    strategicFilter,
+    setStrategicFilter,
   };
 }
