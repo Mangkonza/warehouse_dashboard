@@ -6,17 +6,31 @@ import { getCachedCategoryData, fetchCategoryData } from '@/lib/dataService';
 import { TimeFilterState, itemMatchesTimeFilter } from '@/types/timeFilter';
 import { isTestRecord } from '@/lib/sdgEngine';
 import { getDepartment } from '@/lib/departments';
+import { parseServiceFiscalYear, categorizeServiceActivity, itemMatchesStrategicFilter } from '@/lib/pastelTheme';
 
 export interface ServiceItem {
   id?: string;
+  dbId?: string | number;
+  _id?: string;
   name?: string;
   person?: string;
+  person_id?: number | string;
   target_group?: string;
   department?: string;
   date?: string;
   service_type?: string;
   service_category?: string;
+  hours_spent?: number;
+  attendees_count?: number;
+  topic_title?: string;
+  evaluation?: any;
+  sdg_ids?: number[];
+  i_type?: string;
+  isee_pillar?: string;
+  iam_value?: string;
   _resolvedType?: string;
+  _smartRole?: string;
+  _fiscalYear?: string;
   [key: string]: any;
 }
 
@@ -57,6 +71,10 @@ export function useServiceData(timeFilter?: TimeFilterState) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDept, setSelectedDept] = useState('all');
   const [selectedType, setSelectedType] = useState('all');
+  const [fiscalYear, setFiscalYear] = useState('all');
+  const [selectedRole, setSelectedRole] = useState('all');
+  const [strategicFilter, setStrategicFilter] = useState('all');
+
   const [dataList, setDataList] = useState<ServiceItem[]>(() => {
     return (getCachedCategoryData('service') as ServiceItem[]) || (serviceData as ServiceItem[]);
   });
@@ -86,10 +104,14 @@ export function useServiceData(timeFilter?: TimeFilterState) {
       .filter((item) => !timeFilter || itemMatchesTimeFilter(item, timeFilter))
       .map((item) => {
         const resolved = resolveServiceType(item);
+        const smartRole = categorizeServiceActivity(item.name, item.topic_title, item.target_group);
+        const fYear = parseServiceFiscalYear(item.date);
         return {
           ...item,
           service_type: item.service_type || resolved,
           _resolvedType: resolved,
+          _smartRole: smartRole,
+          _fiscalYear: fYear,
         };
       });
   }, [dataList, timeFilter]);
@@ -114,8 +136,34 @@ export function useServiceData(timeFilter?: TimeFilterState) {
     );
   }, [validData]);
 
+  // Counts for filters
+  const countsByFiscalYear = useMemo(() => {
+    const counts: Record<string, number> = { all: validData.length, '2568': 0, '2569': 0 };
+    validData.forEach((d) => {
+      const y = d._fiscalYear || '2568';
+      if (counts[y] !== undefined) counts[y]++;
+      else counts[y] = 1;
+    });
+    return counts;
+  }, [validData]);
+
+  const countsByRole = useMemo(() => {
+    const counts: Record<string, number> = { all: validData.length };
+    validData.forEach((d) => {
+      const r = d._smartRole || 'งานบริการวิชาการอื่นๆ';
+      counts[r] = (counts[r] || 0) + 1;
+    });
+    return counts;
+  }, [validData]);
+
   const filteredData = useMemo(() => {
     return validData.filter((item) => {
+      // Fiscal year filter
+      if (fiscalYear !== 'all') {
+        if (item._fiscalYear !== fiscalYear) return false;
+      }
+
+      // Department filter
       if (selectedDept !== 'all') {
         const itemDept = getDepartment(item.department);
         const filterDept = getDepartment(selectedDept);
@@ -123,21 +171,37 @@ export function useServiceData(timeFilter?: TimeFilterState) {
           return false;
         }
       }
+
+      // Smart role filter
+      if (selectedRole !== 'all') {
+        if (item._smartRole !== selectedRole) return false;
+      }
+
+      // Legacy type filter (for backward compatibility if used)
       if (selectedType !== 'all') {
         if (item._resolvedType !== selectedType && item.service_type !== selectedType) {
           return false;
         }
       }
+
+      // Strategic filter (ISEE / IAM / SDGs)
+      if (strategicFilter !== 'all' && !itemMatchesStrategicFilter(item, strategicFilter)) {
+        return false;
+      }
+
+      // Search term
       if (searchTerm.trim()) {
         const q = searchTerm.toLowerCase();
         const n = String(item.name || '').toLowerCase();
         const p = String(item.person || '').toLowerCase();
         const t = String(item.target_group || '').toLowerCase();
-        if (!n.includes(q) && !p.includes(q) && !t.includes(q)) return false;
+        const r = String(item._smartRole || '').toLowerCase();
+        if (!n.includes(q) && !p.includes(q) && !t.includes(q) && !r.includes(q)) return false;
       }
+
       return true;
     });
-  }, [validData, selectedDept, selectedType, searchTerm]);
+  }, [validData, fiscalYear, selectedDept, selectedRole, selectedType, strategicFilter, searchTerm]);
 
   return {
     validData,
@@ -151,5 +215,13 @@ export function useServiceData(timeFilter?: TimeFilterState) {
     setSelectedDept,
     selectedType,
     setSelectedType,
+    fiscalYear,
+    setFiscalYear,
+    selectedRole,
+    setSelectedRole,
+    strategicFilter,
+    setStrategicFilter,
+    countsByFiscalYear,
+    countsByRole,
   };
 }

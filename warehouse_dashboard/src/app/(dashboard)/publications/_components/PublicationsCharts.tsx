@@ -19,7 +19,7 @@ import { PublicationItem } from '../_hooks/usePublicationsData';
 import { getDepartment, getDepartmentColor } from '@/lib/departments';
 import { autoDetectJournalRanking, JOURNAL_TIER_STYLES } from '@/config/journalRankingConfig';
 import { formatTopItemsForTooltip, getClickedChartElement } from '@/lib/chartTooltipHelper';
-import { HybridSdgCard } from '@/components/data-display';
+import { StrategicAlignmentMatrix } from '@/components/data-display';
 import { DrillDownProjectDrawer, DepartmentBadge } from '@/components/ui';
 
 interface PublicationsChartsProps {
@@ -450,7 +450,7 @@ export function PublicationsCharts({
           { id: 'department', label: 'การผลิตผลงานรายภาควิชา', icon: <FaBuilding /> },
           { id: 'faculty', label: 'อาจารย์และนักวิจัยตีพิมพ์สูงสุด', icon: <FaUserTie /> },
           { id: 'journals', label: 'วารสารและแหล่งตีพิมพ์ยอดนิยม', icon: <FaBookOpen /> },
-          { id: 'sdg', label: 'เป้าหมายการพัฒนาที่ยั่งยืน (SDG)', icon: <FaLeaf /> },
+          { id: 'sdg', label: 'ความสอดคล้องเชิงยุทธศาสตร์ (SDGs / ISEE / IAM)', icon: <FaLeaf /> },
         ].map((tab) => {
           const isSel = activePerspective === tab.id;
           return (
@@ -761,10 +761,12 @@ export function PublicationsCharts({
 
       {/* DIMENSION 5: UN SDGs */}
       {activePerspective === 'sdg' && (
-        <HybridSdgCard
+        <StrategicAlignmentMatrix
           items={validData}
           categoryKey="publications"
-          title="เป้าหมายการพัฒนาที่ยั่งยืน (UN SDGs)"
+          missionTitle="ผลงานตีพิมพ์ทางวิชาการ"
+          unitLabel="บทความ"
+          showBudget={false}
         />
       )}
 

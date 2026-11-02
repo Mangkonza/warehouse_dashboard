@@ -11,9 +11,10 @@ export interface TimeFilterBarProps {
   onChange?: React.Dispatch<React.SetStateAction<TimeFilterState>> | ((val: TimeFilterState) => void);
   onReset?: () => void;
   totalCount?: number;
+  customCountLabel?: string;
 }
 
-export const TimeFilterBar: React.FC<TimeFilterBarProps> = ({ totalCount }) => {
+export const TimeFilterBar: React.FC<TimeFilterBarProps> = ({ totalCount, customCountLabel }) => {
   const { timeFilter, setTimeFilter, resetTimeFilter, setIsTimeModalOpen } = useTimeFilter();
 
   const quickFiscalYears = QUICK_FISCAL_YEARS;
@@ -72,11 +73,15 @@ export const TimeFilterBar: React.FC<TimeFilterBarProps> = ({ totalCount }) => {
           }}
         >
           <span>{getTimeFilterLabel(timeFilter)}</span>
-          {totalCount !== undefined && (
+          {customCountLabel ? (
+            <span style={{ fontSize: '11.5px', color: '#64748b', fontWeight: 500 }}>
+              ({customCountLabel})
+            </span>
+          ) : totalCount !== undefined ? (
             <span style={{ fontSize: '11.5px', color: '#64748b', fontWeight: 500 }}>
               ({totalCount} รายการ)
             </span>
-          )}
+          ) : null}
         </div>
 
         {/* ปุ่มลัดเลือกปีงบประมาณในคลิกเดียว */}

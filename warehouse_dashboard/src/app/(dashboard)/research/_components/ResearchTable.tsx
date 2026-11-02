@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { FaTable, FaTimes } from 'react-icons/fa';
-import { SearchInput, DepartmentBadge, DepartmentSelect, RecordDetailDrawer } from '@/components/ui';
+import { FaTable, FaTimes, FaDownload } from 'react-icons/fa';
+import { SearchInput, DepartmentBadge, RecordDetailDrawer, StrategyBadges } from '@/components/ui';
 import { calculateProjectTimeline } from '@/lib/projectMonitoringEngine';
-import { ResearchItem } from '../_hooks/useResearchData';
+import { ResearchItem, normalizeFundSource } from '../_hooks/useResearchData';
 
 interface ResearchTableProps {
   filteredData: ResearchItem[];
@@ -31,21 +31,73 @@ export function ResearchTable({
 
   const hasActiveFilter = selectedDept !== 'all' || selectedFund !== 'all' || searchTerm.trim() !== '';
 
+  const handleExportCSV = () => {
+    const headers = ['รหัสโครงการ', 'ชื่อโครงการวิจัย', 'หัวหน้าโครงการ', 'ภาควิชา', 'สถานะ', 'งบภายใน', 'งบภายนอก', 'งบรวม', 'แหล่งทุน'];
+    const rows = filteredData.map((item) => {
+      const internal = Number(item.budget_internal) || 0;
+      const external = Number(item.budget_external) || 0;
+      const tl = calculateProjectTimeline(item);
+      return [
+        `"${item.id || ''}"`,
+        `"${String(item.name || '').replace(/"/g, '""')}"`,
+        `"${String(item.head || '').replace(/"/g, '""')}"`,
+        `"${item.department || ''}"`,
+        `"${tl.status}"`,
+        internal,
+        external,
+        internal + external,
+        `"${String(item.fund_source || '').replace(/"/g, '""')}"`,
+      ].join(',');
+    });
+
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `research_projects_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
-    <div className="table-card">
+    <div className="table-card" style={{ backgroundColor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.03)' }}>
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          marginBottom: '14px',
+          marginBottom: '16px',
           flexWrap: 'wrap',
-          gap: '10px',
+          gap: '12px',
         }}
       >
-        <h3 style={{ margin: 0 }}>
-          <FaTable style={{ color: '#00A651', marginRight: '8px' }} /> โครงการวิจัย ({filteredData.length})
-        </h3>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
+            <FaTable style={{ color: '#10b981', marginRight: '8px' }} /> โครงการวิจัย ({filteredData.length})
+          </h3>
+          <button
+            onClick={handleExportCSV}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '5px 12px',
+              borderRadius: '8px',
+              backgroundColor: '#ecfdf5',
+              border: '1px solid #a7f3d0',
+              color: '#047857',
+              fontSize: '12px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              marginLeft: '8px',
+            }}
+            title="ส่งออกไฟล์สรุปข้อมูล CSV"
+          >
+            <FaDownload style={{ fontSize: '11px' }} /> Export CSV
+          </button>
+        </div>
 
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
           {selectedFund !== 'all' && onFundChange && (
@@ -57,8 +109,8 @@ export function ResearchTable({
                 padding: '5px 10px',
                 borderRadius: '8px',
                 backgroundColor: '#f0fbf5',
-                border: '1px solid #00A651',
-                color: '#006838',
+                border: '1px solid #10b981',
+                color: '#047857',
                 fontSize: '12px',
                 fontWeight: 600,
               }}
@@ -68,27 +120,17 @@ export function ResearchTable({
             </span>
           )}
           <SearchInput
-            placeholder="ค้นหาชื่อโครงการ, หัวหน้าโครงการ..."
+            placeholder="ค้นหาชื่อโครงการ, หัวหน้า..."
             value={searchTerm}
             onChange={onSearchChange}
-            width="220px"
+            width="240px"
             style={{ padding: '6px 10px' }}
-          />
-          <DepartmentSelect
-            value={selectedDept}
-            onChange={onDeptChange}
-            allowAll
-            allLabel="ทุกภาควิชา"
-            allValue="all"
-            size="sm"
-            className="w-[180px]"
           />
           {hasActiveFilter && (
             <button
               type="button"
               onClick={() => {
                 onSearchChange('');
-                onDeptChange('all');
                 if (onFundChange) onFundChange('all');
               }}
               style={{
@@ -98,7 +140,6 @@ export function ResearchTable({
                 backgroundColor: '#fee2e2',
                 color: '#b91c1c',
                 fontSize: '12px',
-                fontWeight: 600,
                 cursor: 'pointer',
               }}
             >
@@ -108,19 +149,19 @@ export function ResearchTable({
         </div>
       </div>
 
-      <div className="table-scroll" style={{ maxHeight: '460px' }}>
-        <table>
+      <div className="table-responsive" style={{ overflowX: 'auto' }}>
+        <table className="data-table table-emerald" style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, fontSize: '13px' }}>
           <thead>
-            <tr>
-              <th style={{ width: '44px', textAlign: 'center' }}>#</th>
-              <th style={{ width: '90px' }}>รหัสโครงการ</th>
-              <th>ชื่อโครงการวิจัย</th>
-              <th>หัวหน้าโครงการ</th>
-              <th style={{ width: '100px', textAlign: 'left' }}>ภาควิชา</th>
-              <th style={{ width: '120px', textAlign: 'center' }}>สถานะโครงการ</th>
-              <th style={{ textAlign: 'right' }}>งบภายใน / ภายนอก</th>
-              <th style={{ textAlign: 'right' }}>งบประมาณรวม</th>
-              <th>แหล่งทุน</th>
+            <tr style={{ backgroundColor: '#ecfdf5', color: '#065f46', textAlign: 'left' }}>
+              <th style={{ width: '44px', textAlign: 'center', padding: '10px 8px', backgroundColor: '#ecfdf5', color: '#065f46', borderBottom: '2px solid #a7f3d0' }}>#</th>
+              <th style={{ padding: '10px 8px', backgroundColor: '#ecfdf5', color: '#065f46', borderBottom: '2px solid #a7f3d0' }}>ชื่อโครงการวิจัย</th>
+              <th style={{ padding: '10px 8px', backgroundColor: '#ecfdf5', color: '#065f46', borderBottom: '2px solid #a7f3d0' }}>หัวหน้าโครงการ</th>
+              <th style={{ width: '100px', textAlign: 'left', padding: '10px 8px', backgroundColor: '#ecfdf5', color: '#065f46', borderBottom: '2px solid #a7f3d0' }}>ภาควิชา</th>
+              <th style={{ width: '110px', textAlign: 'center', padding: '10px 8px', backgroundColor: '#ecfdf5', color: '#065f46', borderBottom: '2px solid #a7f3d0' }}>สถานะ</th>
+              <th style={{ textAlign: 'right', padding: '10px 8px', backgroundColor: '#ecfdf5', color: '#065f46', borderBottom: '2px solid #a7f3d0' }}>งบภายใน / ภายนอก</th>
+              <th style={{ textAlign: 'right', padding: '10px 8px', backgroundColor: '#ecfdf5', color: '#065f46', borderBottom: '2px solid #a7f3d0' }}>งบประมาณรวม</th>
+              <th style={{ padding: '10px 8px', backgroundColor: '#ecfdf5', color: '#065f46', borderBottom: '2px solid #a7f3d0' }}>แหล่งทุน</th>
+              <th style={{ width: '120px', padding: '10px 8px', backgroundColor: '#ecfdf5', color: '#065f46', borderBottom: '2px solid #a7f3d0' }}>ยุทธศาสตร์</th>
             </tr>
           </thead>
           <tbody>
@@ -146,34 +187,20 @@ export function ResearchTable({
                 <tr
                   key={`research-row-${index}-${item.dbId ?? item._id ?? item.id ?? "item"}`}
                   onClick={() => setSelectedRecord(item)}
-                  style={{ cursor: 'pointer' }}
+                  style={{ cursor: 'pointer', borderBottom: '1px solid #f1f5f9', transition: 'background-color 0.1s ease' }}
+                  className="hover:bg-slate-50/70"
                 >
-                  <td style={{ textAlign: 'center', color: '#64748b' }}>{index + 1}</td>
-                  <td>
-                    <span
-                      style={{
-                        display: 'inline-block',
-                        padding: '2px 8px',
-                        borderRadius: '6px',
-                        backgroundColor: '#f1f5f9',
-                        color: '#475569',
-                        fontSize: '11.5px',
-                        fontFamily: 'monospace',
-                      }}
-                    >
-                      {item.id && item.id !== 'nan' ? item.id : '-'}
-                    </span>
-                  </td>
-                  <td style={{ whiteSpace: 'normal', minWidth: '260px', fontWeight: 400, color: '#0f172a' }}>
+                  <td style={{ textAlign: 'center', color: '#64748b', padding: '10px 8px' }}>{index + 1}</td>
+                  <td style={{ whiteSpace: 'normal', minWidth: '260px', fontWeight: 500, color: '#0f172a', padding: '10px 8px' }}>
                     {item.name}
                   </td>
-                  <td style={{ fontWeight: 400, color: '#334155' }}>
+                  <td style={{ fontWeight: 400, color: '#334155', padding: '10px 8px' }}>
                     {item.head && item.head !== 'nan' ? (
                       item.head_id ? (
                         <a
                           href={`/personnel/${item.head_id}`}
                           onClick={(e) => e.stopPropagation()}
-                          style={{ color: '#00A651', fontWeight: 600, textDecoration: 'none' }}
+                          style={{ color: '#10b981', fontWeight: 600, textDecoration: 'none' }}
                           title="คลิกเพื่อดูแฟ้มผลงานอาจารย์"
                         >
                           {item.head}
@@ -185,10 +212,10 @@ export function ResearchTable({
                       '-'
                     )}
                   </td>
-                  <td style={{ width: '100px', textAlign: 'left', padding: '8px 10px' }}>
+                  <td style={{ width: '100px', textAlign: 'left', padding: '10px 8px' }}>
                     <DepartmentBadge value={item.department} />
                   </td>
-                  <td style={{ textAlign: 'center' }}>
+                  <td style={{ textAlign: 'center', padding: '10px 8px' }}>
                     <span
                       style={{
                         display: 'inline-block',
@@ -205,17 +232,26 @@ export function ResearchTable({
                       {statusBadge.label}
                     </span>
                   </td>
-                  <td style={{ textAlign: 'right', fontSize: '11.5px', color: '#475569', whiteSpace: 'nowrap' }}>
-                    {internal > 0 ? `ภายใน: ${internal.toLocaleString('th-TH')}` : ''}
+                  <td style={{ textAlign: 'right', fontSize: '11.5px', color: '#475569', whiteSpace: 'nowrap', padding: '10px 8px' }}>
+                    {internal > 0 ? `ใน: ${internal.toLocaleString('th-TH')}` : ''}
                     {internal > 0 && external > 0 ? ' / ' : ''}
-                    {external > 0 ? `ภายนอก: ${external.toLocaleString('th-TH')}` : ''}
+                    {external > 0 ? `นอก: ${external.toLocaleString('th-TH')}` : ''}
                     {internal === 0 && external === 0 ? '-' : ''}
                   </td>
-                  <td className="budget-cell">
-                    {totalBudget > 0 ? `${totalBudget.toLocaleString('th-TH')} บาท` : '-'}
+                  <td className="budget-cell" style={{ textAlign: 'right', fontWeight: 600, color: '#0f172a', padding: '10px 8px' }}>
+                    {totalBudget > 0 ? `${totalBudget.toLocaleString('th-TH')} ฿` : '-'}
                   </td>
-                  <td style={{ color: '#475569' }}>
-                    {item.fund_source && item.fund_source !== 'nan' ? item.fund_source : '-'}
+                  <td style={{ color: '#475569', fontSize: '12px', padding: '10px 8px' }}>
+                    {normalizeFundSource(item.fund_source)}
+                  </td>
+                  <td style={{ padding: '10px 8px' }}>
+                    <StrategyBadges
+                      item={item}
+                      category="research"
+                      sdgs={item.sdg_code ? [Number(item.sdg_code)] : []}
+                      isee={item.isee}
+                      iam={item.iam}
+                    />
                   </td>
                 </tr>
               );
