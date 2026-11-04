@@ -355,7 +355,7 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
               {portfolio.counts.publications} เรื่อง
             </div>
             <div style={{ fontSize: '11.5px', color: '#64748b', marginTop: '1px' }}>
-              ควอไทล์ 1-2: {portfolio.pubQuartiles.q1 + portfolio.pubQuartiles.q2} เรื่อง
+              Q1/Q2: {portfolio.pubQuartiles.q1 + portfolio.pubQuartiles.q2} เรื่อง
             </div>
           </div>
 
@@ -601,7 +601,7 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
                       <tr style={{ backgroundColor: '#f1f5f9', color: '#475569', textAlign: 'left', borderBottom: '1px solid #cbd5e1' }}>
                         <th style={{ padding: '9px 12px' }}>ชื่อบทความ / ผลงาน</th>
                         <th style={{ padding: '9px 12px', width: '220px' }}>วารสาร</th>
-                        <th style={{ padding: '9px 12px', width: '130px', textAlign: 'center' }}>ระดับคุณภาพวารสาร</th>
+                        <th style={{ padding: '9px 12px', width: '120px', textAlign: 'center' }}>ระดับ / Tier</th>
                         <th style={{ padding: '9px 12px', width: '90px', textAlign: 'center' }}>ปี / เดือน</th>
                         <th style={{ padding: '9px 12px', width: '110px', textAlign: 'right' }}>เงินสนับสนุน</th>
                       </tr>

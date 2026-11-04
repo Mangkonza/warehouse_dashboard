@@ -4,18 +4,18 @@
  */
 
 export const DEPARTMENT_COLORS = {
-  AE: "#6EE7B7",   // Pastel Mint
-  CPE: "#7DD3FC",  // Pastel Sky
-  IRE: "#5EEAD4",  // Pastel Teal
-  FE: "#FDBA74",   // Pastel Peach
-  IE: "#C4B5FD",   // Pastel Lavender
-  ME: "#93C5FD",   // Pastel Periwinkle
-  CE: "#FDA4AF",   // Pastel Rose
-  EEEC: "#A7F3D0", // Pastel Sage
-  DWT: "#FCD34D",  // Pastel Amber
-  NAMC: "#D8B4FE", // Pastel Orchid
-  OFS: "#FBCFE8",  // Pastel Pink
-  OTH: "#CBD5E1",  // Pastel Slate
+  AE: "#65B98A",
+  CPE: "#5B9BD5",
+  IRE: "#4FA9A0",
+  FE: "#E88762",
+  IE: "#9B78D0",
+  ME: "#777ED0",
+  CE: "#D96B8A",
+  EEEC: "#91B95B",
+  DWT: "#D5A04F",
+  NAMC: "#BB68BC",
+  OFS: "#E9A88F",
+  OTH: "#2E3136",
 } as const;
 
 export type DepartmentCode = keyof typeof DEPARTMENT_COLORS;
@@ -44,16 +44,16 @@ export const DEPARTMENTS: DepartmentInfo[] = [
   { code: "OTH", name: "อื่นๆ (ระบุเอง)", group: "อื่นๆ", color: DEPARTMENT_COLORS.OTH },
 ];
 
-export const DEFAULT_DEPARTMENT_COLOR = "#CBD5E1";
+export const DEFAULT_DEPARTMENT_COLOR = "#2E3136";
 
 /**
  * Text contrast mode for badges:
- * Using deep slate text on soft pastel backgrounds for clean readability.
+ * Font color is pure white #ffffff and bold as requested.
  */
-export const BADGE_TEXT_MODE: "dark" | "white" = "dark";
+export const BADGE_TEXT_MODE: "dark" | "white" = "white";
 
 /**
- * Get color for a department code. Unknown codes fall back to DEFAULT_DEPARTMENT_COLOR (#CBD5E1).
+ * Get color for a department code. Unknown codes fall back to DEFAULT_DEPARTMENT_COLOR (#2E3136).
  */
 export function getDepartmentColor(code: string): string {
   if (!code) return DEFAULT_DEPARTMENT_COLOR;
@@ -66,10 +66,10 @@ export function getDepartmentColor(code: string): string {
 }
 
 /**
- * Returns text color for badge on soft pastel backgrounds.
+ * Returns text color for badge. Always returns white #ffffff as requested.
  */
 export function getBadgeTextColor(_bgColor?: string): string {
-  return "#1E293B";
+  return "#ffffff";
 }
 
 /**
@@ -181,46 +181,4 @@ export function getDepartment(codeOrName: string | null | undefined): Department
     group: "อื่นๆ",
     color: DEPARTMENT_COLORS.OTH,
   };
-}
-
-/**
- * Formats department or center name into a compact single-line or 2-line array for Chart.js X-axis labels
- * so long center names never overlap horizontally with neighboring bars.
- */
-export function formatChartDeptLabel(codeOrName: string | null | undefined): string | string[] {
-  const dept = getDepartment(codeOrName);
-  switch (dept.code) {
-    case "AE":
-      return "เกษตร";
-    case "CPE":
-      return "คอมพิวเตอร์";
-    case "IRE":
-      return "ชลประทาน";
-    case "FE":
-      return "อาหาร";
-    case "IE":
-      return "อุตสาหการ";
-    case "ME":
-      return "เครื่องกล";
-    case "CE":
-      return "โยธา";
-    case "EEEC":
-      return ["ศูนย์พลังงาน", "และสิ่งแวดล้อม"];
-    case "DWT":
-      return ["ศูนย์ทดสอบ", "ประตู-หน้าต่างฯ"];
-    case "NAMC":
-      return ["ศูนย์เครื่องจักรกล", "การเกษตรฯ"];
-    case "OFS":
-      return ["สำนักงาน", "เลขานุการ"];
-    default: {
-      const short = dept.name
-        .replace(/^ภาควิชาวิศวกรรม/, "")
-        .replace(/^ภาควิชา/, "")
-        .trim();
-      if (short.length > 14) {
-        return [short.slice(0, 12) + "ฯ"];
-      }
-      return short || "-";
-    }
-  }
 }

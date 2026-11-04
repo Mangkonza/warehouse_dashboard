@@ -14,7 +14,7 @@ import {
   FaExternalLinkAlt,
 } from 'react-icons/fa';
 import { ServiceItem } from '../_hooks/useServiceData';
-import { getDepartment, getDepartmentColor, formatChartDeptLabel } from '@/lib/departments';
+import { getDepartment, getDepartmentColor } from '@/lib/departments';
 import { getClickedChartElement } from '@/lib/chartTooltipHelper';
 import { StrategicAlignmentMatrix } from '@/components/data-display';
 import { DrillDownProjectDrawer, DepartmentBadge } from '@/components/ui';
@@ -97,10 +97,10 @@ export function ServiceCharts({
       else t4++;
     });
     return [
-      { tier: '1–2 ครั้ง/ปี (ทั่วไป)', count: t1, pct: topServiceFaculty.length > 0 ? ((t1 / topServiceFaculty.length) * 100).toFixed(1) : '0' },
+      { tier: '1–2 ครั้ง/ปี (ส่วนใหญ่)', count: t1, pct: topServiceFaculty.length > 0 ? ((t1 / topServiceFaculty.length) * 100).toFixed(1) : '0' },
       { tier: '3–5 ครั้ง/ปี', count: t2, pct: topServiceFaculty.length > 0 ? ((t2 / topServiceFaculty.length) * 100).toFixed(1) : '0' },
       { tier: '6–10 ครั้ง/ปี', count: t3, pct: topServiceFaculty.length > 0 ? ((t3 / topServiceFaculty.length) * 100).toFixed(1) : '0' },
-      { tier: 'มากกว่า 10 ครั้ง/ปี (แกนนำหลัก)', count: t4, pct: topServiceFaculty.length > 0 ? ((t4 / topServiceFaculty.length) * 100).toFixed(1) : '0' },
+      { tier: '> 10 ครั้ง/ปี (Champions)', count: t4, pct: topServiceFaculty.length > 0 ? ((t4 / topServiceFaculty.length) * 100).toFixed(1) : '0' },
     ];
   }, [topServiceFaculty]);
 
@@ -113,7 +113,7 @@ export function ServiceCharts({
     Chart.defaults.font.size = 12;
     Chart.defaults.color = '#0f172a';
 
-    const C_AMBER = '#FBBF24';
+    const C_AMBER = '#f59e0b';
     const THAI_MONTHS = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
     const monthlyCount = Array(12).fill(0);
     const monthlyStaffSets: Set<string>[] = Array.from({ length: 12 }, () => new Set<string>());
@@ -174,46 +174,34 @@ export function ServiceCharts({
     };
 
     if (activePerspective === 'timeline_type') {
-      // 1. Monthly Dual-Axis Combo Chart: Activity Count (Bar) + Participating Staff (Line)
+      // 1. Monthly Area Chart
       const monthlyStaffCount = monthlyStaffSets.map((s) => s.size);
+      const isStaffMode = timelineMode === 'staff';
+      const chartData = isStaffMode ? monthlyStaffCount : monthlyCount;
+      const chartLabel = isStaffMode ? 'จำนวนบุคลากรที่มีส่วนร่วม' : 'จำนวนครั้งที่ให้บริการ';
+      const chartUnit = isStaffMode ? 'ท่าน' : 'ครั้ง';
 
       createChart('c_sv_timeline', {
-        type: 'bar',
+        type: 'line',
         data: {
           labels: THAI_MONTHS,
           datasets: [
             {
-              type: 'bar',
-              label: 'จำนวนครั้งที่ให้บริการ (ครั้ง)',
-              data: monthlyCount,
-              backgroundColor: 'rgba(253, 230, 138, 0.85)',
-              borderColor: '#FCD34D',
-              borderWidth: 1,
-              borderRadius: 6,
-              yAxisID: 'y',
-              order: 2,
-            },
-            {
-              type: 'line',
-              label: 'บุคลากรที่ร่วมให้บริการ (ท่าน)',
-              data: monthlyStaffCount,
-              borderColor: '#7DD3FC',
-              backgroundColor: 'rgba(125, 211, 252, 0.22)',
+              label: chartLabel,
+              data: chartData,
+              borderColor: C_AMBER,
+              backgroundColor: 'rgba(245, 158, 11, 0.12)',
               borderWidth: 2.5,
               tension: 0.35,
-              pointRadius: 4.5,
-              pointBackgroundColor: '#38BDF8',
-              pointBorderColor: '#ffffff',
-              pointBorderWidth: 1.5,
-              yAxisID: 'y1',
-              order: 1,
+              fill: true,
+              pointRadius: 4,
+              pointBackgroundColor: C_AMBER,
             },
           ],
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          interaction: { mode: 'index', intersect: false },
           onHover: (event: any, chartElement: any[]) => {
             if (event.native?.target) event.native.target.style.cursor = chartElement.length > 0 ? 'pointer' : 'default';
           },
@@ -234,30 +222,16 @@ export function ServiceCharts({
             }
           },
           scales: {
-            y: {
-              type: 'linear',
-              position: 'left',
-              beginAtZero: true,
-              grace: '20%',
-              title: { display: true, text: 'จำนวนกิจกรรม (ครั้ง)' },
-            },
-            y1: {
-              type: 'linear',
-              position: 'right',
-              beginAtZero: true,
-              grace: '25%',
-              title: { display: true, text: 'จำนวนบุคลากร (ท่าน)' },
-              grid: { drawOnChartArea: false },
-            },
+            y: { beginAtZero: true, title: { display: true, text: chartUnit } },
             x: { grid: { display: false } },
           },
           plugins: {
-            legend: { display: true, position: 'top', labels: { boxWidth: 12, font: { size: 11 } } },
+            legend: { display: false },
             datalabels: {
               anchor: 'end',
               align: 'top',
-              color: (ctx: any) => (ctx.dataset.type === 'line' ? '#0369a1' : '#78350f'),
-              font: { weight: 'bold', size: 10 },
+              color: '#78350f',
+              font: { weight: 'bold', size: 11 },
               formatter: (v: number) => (v > 0 ? `${v}` : ''),
             },
           },
@@ -266,7 +240,7 @@ export function ServiceCharts({
 
       // 2. Smart Activity Breakdown Horizontal Bar
       const sortedRoles = Object.values(roleGroups).sort((a, b) => b.count - a.count);
-      const ROLE_PALETTE = ['#FCD34D', '#7DD3FC', '#6EE7B7', '#C4B5FD', '#F9A8D4', '#A5B4FC', '#CBD5E1'];
+      const ROLE_PALETTE = ['#f59e0b', '#0ea5e9', '#10b981', '#8b5cf6', '#ec4899', '#6366f1', '#64748b'];
 
       createChart('c_sv_roles', {
         type: 'bar',
@@ -329,7 +303,7 @@ export function ServiceCharts({
       createChart('c_sv_dept_combo', {
         type: 'bar',
         data: {
-          labels: sortedDepts.map((d) => formatChartDeptLabel(d.code || d.name)),
+          labels: sortedDepts.map((d) => d.code),
           datasets: [
             {
               type: 'bar',
@@ -343,8 +317,8 @@ export function ServiceCharts({
               type: 'line',
               label: 'บุคลากรที่ออกงาน',
               data: sortedDepts.map((d) => d.staffSet.size),
-              borderColor: '#FB7185',
-              backgroundColor: '#FDA4AF',
+              borderColor: '#f43f5e',
+              backgroundColor: '#f43f5e',
               borderWidth: 2.5,
               pointRadius: 4,
               yAxisID: 'y1',
@@ -393,12 +367,12 @@ export function ServiceCharts({
       createChart('c_sv_dept_avg', {
         type: 'bar',
         data: {
-          labels: sortedDepts.map((d) => formatChartDeptLabel(d.code || d.name)),
+          labels: sortedDepts.map((d) => d.code),
           datasets: [
             {
               label: 'ภาระงานเฉลี่ย (งาน/ท่าน)',
               data: avgPerStaffData,
-              backgroundColor: sortedDepts.map((d) => (d.code === 'ME' ? '#FDA4AF' : '#7DD3FC')),
+              backgroundColor: sortedDepts.map((d) => (d.code === 'ME' ? '#ef4444' : '#0ea5e9')),
               borderRadius: 6,
             },
           ],
@@ -434,7 +408,7 @@ export function ServiceCharts({
           datasets: [
             {
               data: workloadTiers.map((t) => t.count),
-              backgroundColor: ['#CBD5E1', '#7DD3FC', '#6EE7B7', '#FCD34D'],
+              backgroundColor: ['#94a3b8', '#0ea5e9', '#10b981', '#f59e0b'],
               borderWidth: 2,
               borderColor: '#ffffff',
             },
@@ -447,7 +421,7 @@ export function ServiceCharts({
           plugins: {
             legend: { position: 'bottom' },
             datalabels: {
-              color: '#1e293b',
+              color: '#ffffff',
               font: { weight: 'bold', size: 11 },
               formatter: (v: number, ctx: any) => {
                 const pct = workloadTiers[ctx.dataIndex].pct;
@@ -460,7 +434,7 @@ export function ServiceCharts({
     }
 
     if (activePerspective === 'sdg') {
-      // Strategic chart dynamically calculated from validData
+      // ISEE / IAM Chart dynamically calculated from validData
       let sCount = 0;
       let e1Count = 0;
       let e2Count = 0;
@@ -476,12 +450,12 @@ export function ServiceCharts({
       createChart('c_sv_isee_iam', {
         type: 'bar',
         data: {
-          labels: ['ความรับผิดชอบต่อสังคมและความยั่งยืน', 'ความเป็นเลิศทางวิชาการและงานวิจัย', 'ผู้ประกอบการและนวัตกรรมดิจิทัล', 'ความเป็นนานาชาติและมาตรฐานสากล'],
+          labels: ['S (สังคมและความยั่งยืน)', 'E1 (ความเป็นเลิศวิชาการ)', 'E2 (ดิจิทัล/ผู้ประกอบการ)', 'I (นานาชาติ)'],
           datasets: [
             {
-              label: 'ยุทธศาสตร์มหาวิทยาลัย',
+              label: 'ยุทธศาสตร์ ISEE',
               data: [sCount, e1Count, e2Count, iCount],
-              backgroundColor: ['#FCD34D', '#6EE7B7', '#7DD3FC', '#FDA4AF'],
+              backgroundColor: ['#f59e0b', '#10b981', '#0ea5e9', '#f43f5e'],
               borderRadius: 6,
             },
           ],
@@ -533,25 +507,24 @@ export function ServiceCharts({
           มิติการวิเคราะห์:
         </span>
         {[
-          { id: 'timeline_type', label: 'แนวโน้มรายเดือนและบทบาทงานบริการ', icon: <FaChartLine /> },
-          { id: 'department', label: 'การกระจายตามภาควิชาและภาระงาน', icon: <FaBuilding /> },
-          { id: 'faculty', label: 'อาจารย์ผู้ให้บริการวิชาการสูงสุด', icon: <FaUserTie /> },
-          { id: 'sdg', label: 'ความสอดคล้องเชิงยุทธศาสตร์และเป้าหมายความยั่งยืน', icon: <FaLeaf /> },
+          { id: 'timeline_type', label: 'แนวโน้มรายเดือน & บทบาทงานบริการ', icon: <FaChartLine /> },
+          { id: 'department', label: 'การกระจายตามภาควิชา/ศูนย์ & ภาระงาน', icon: <FaBuilding /> },
+          { id: 'faculty', label: 'อาจารย์ผู้ให้บริการวิชาการสูงสุด (Top Contributors)', icon: <FaUserTie /> },
+          { id: 'sdg', label: 'ความสอดคล้องเชิงยุทธศาสตร์ (SDGs / ISEE / IAM)', icon: <FaLeaf /> },
         ].map((tab) => {
           const isSel = activePerspective === tab.id;
           return (
             <button
               key={tab.id}
-              type="button"
               onClick={() => setActivePerspective(tab.id as ServicePerspective)}
               style={{
                 padding: '6px 14px',
                 borderRadius: '8px',
-                border: isSel ? '1px solid #fcd34d' : '1px solid #e2e8f0',
-                backgroundColor: isSel ? '#fef3c7' : '#ffffff',
-                color: isSel ? '#92400e' : '#475569',
+                border: isSel ? '1.5px solid #f59e0b' : '1px solid #cbd5e1',
+                backgroundColor: isSel ? '#fffbeb' : '#ffffff',
+                color: isSel ? '#b45309' : '#475569',
                 fontSize: '12.5px',
-                fontWeight: 600,
+                fontWeight: isSel ? 700 : 500,
                 cursor: 'pointer',
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -570,9 +543,52 @@ export function ServiceCharts({
       {activePerspective === 'timeline_type' && (
         <div className="chart-grid">
           <div className="chart-card">
-            <h3 style={{ margin: '0 0 12px 0', fontSize: '14.5px', fontWeight: 700, color: '#1e293b' }}>
-              <FaChartLine style={{ color: '#fbbf24', marginRight: '6px' }} /> แนวโน้มรายเดือน: จำนวนครั้งที่ให้บริการ เทียบกับบุคลากรที่ร่วมงาน
-            </h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <h3 style={{ margin: 0, fontSize: '14.5px', fontWeight: 700, color: '#1e293b' }}>
+                <FaChartLine style={{ color: '#f59e0b', marginRight: '6px' }} /> แนวโน้มการให้บริการรายเดือน (ม.ค. - ธ.ค.)
+              </h3>
+              <div
+                style={{
+                  display: 'inline-flex',
+                  backgroundColor: '#f1f5f9',
+                  padding: '2px',
+                  borderRadius: '8px',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setTimelineMode('activities')}
+                  style={{
+                    padding: '3px 8px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    backgroundColor: timelineMode === 'activities' ? '#ffffff' : 'transparent',
+                    color: timelineMode === 'activities' ? '#b45309' : '#64748b',
+                    fontWeight: timelineMode === 'activities' ? 700 : 500,
+                    cursor: 'pointer',
+                  }}
+                >
+                  จำนวนครั้ง
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTimelineMode('staff')}
+                  style={{
+                    padding: '3px 8px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    backgroundColor: timelineMode === 'staff' ? '#ffffff' : 'transparent',
+                    color: timelineMode === 'staff' ? '#b45309' : '#64748b',
+                    fontWeight: timelineMode === 'staff' ? 700 : 500,
+                    cursor: 'pointer',
+                  }}
+                >
+                  บุคลากรที่ออกงาน
+                </button>
+              </div>
+            </div>
             <div className="chart-wrapper">
               <canvas id="c_sv_timeline" />
             </div>
@@ -580,7 +596,7 @@ export function ServiceCharts({
 
           <div className="chart-card">
             <h3 style={{ margin: '0 0 12px 0', fontSize: '14.5px', fontWeight: 700, color: '#1e293b' }}>
-              <FaChartBar style={{ color: '#fbbf24', marginRight: '6px' }} /> จำแนกตามลักษณะบทบาทงานบริการวิชาการ
+              <FaChartBar style={{ color: '#f59e0b', marginRight: '6px' }} /> จำแนกตามบทบาทงานบริการวิชาการ (Smart Breakdown)
             </h3>
             <div className="chart-wrapper">
               <canvas id="c_sv_roles" />
@@ -626,7 +642,7 @@ export function ServiceCharts({
           >
             <div style={{ marginBottom: '14px' }}>
               <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
-                10 อันดับบุคลากรผู้ให้บริการวิชาการสูงสุด
+                Top 10 Contributors Leaderboard
               </h3>
               <p style={{ margin: '3px 0 0 0', fontSize: '12px', color: '#64748b' }}>
                 บุคลากรที่ออกให้บริการวิชาการและเชื่อมโยงเครือข่ายภายนอกสูงสุด
@@ -714,7 +730,7 @@ export function ServiceCharts({
           >
             <div>
               <h3 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
-                การกระจายภาระงานบริการวิชาการของบุคลากร
+                การกระจายภาระงานบุคลากร (Workload Tiers)
               </h3>
               <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
                 สัดส่วนการมีส่วนร่วมของบุคลากร 85 ท่าน
@@ -727,7 +743,7 @@ export function ServiceCharts({
         </div>
       )}
 
-      {/* DIMENSION 4: เป้าหมายการพัฒนาที่ยั่งยืนและยุทธศาสตร์ */}
+      {/* DIMENSION 4: UN SDGs & ISEE */}
       {activePerspective === 'sdg' && (
         <div className="chart-grid">
           <div>
@@ -742,10 +758,10 @@ export function ServiceCharts({
 
           <div className="chart-card">
             <h3 style={{ margin: '0 0 12px 0', fontSize: '14.5px', fontWeight: 700, color: '#1e293b' }}>
-              <FaLeaf style={{ color: '#fbbf24', marginRight: '6px' }} /> การขับเคลื่อนตามยุทธศาสตร์มหาวิทยาลัย 4 เสาหลัก
+              <FaLeaf style={{ color: '#f59e0b', marginRight: '6px' }} /> การขับเคลื่อนยุทธศาสตร์ ISEE (มก.)
             </h3>
             <p style={{ margin: '0 0 16px 0', fontSize: '12px', color: '#64748b' }}>
-              บทบาทงานบริการวิชาการมุ่งเน้นความรับผิดชอบต่อสังคมและความยั่งยืน สร้างผลลัพธ์เชิงบวกสู่ 232 เครือข่ายภายนอก
+              บทบาทงานบริการวิชาการมุ่งเน้นยุทธศาสตร์ S (Social Responsibility) สร้าง Impact สู่ 232 เครือข่ายภายนอก
             </p>
             <div className="chart-wrapper">
               <canvas id="c_sv_isee_iam" />

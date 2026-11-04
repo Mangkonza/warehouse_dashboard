@@ -137,9 +137,9 @@ export function PublicationsTable({
               cursor: 'pointer',
               marginLeft: '8px',
             }}
-            title="ส่งออกไฟล์ตาราง"
+            title="ส่งออก CSV"
           >
-            <FaDownload style={{ fontSize: '11px' }} /> ส่งออกไฟล์ตาราง
+            <FaDownload style={{ fontSize: '11px' }} /> CSV
           </button>
           <button
             onClick={handleExportBibTeX}
@@ -156,9 +156,9 @@ export function PublicationsTable({
               fontWeight: 600,
               cursor: 'pointer',
             }}
-            title="ส่งออกรายการอ้างอิงทางวิชาการ"
+            title="ส่งออก BibTeX สำหรับใช้อ้างอิงทางวิชาการ"
           >
-            <FaQuoteRight style={{ fontSize: '11px' }} /> ส่งออกรายการอ้างอิง
+            <FaQuoteRight style={{ fontSize: '11px' }} /> BibTeX
           </button>
         </div>
 
@@ -221,20 +221,8 @@ export function PublicationsTable({
 
                   {group.items.map((item) => {
                     globalIndex += 1;
-                    const tier = item._detectedTier || 'TCI 1';
+                    const tier = item._detectedTier || 'TCI';
                     const tierStyle = JOURNAL_TIER_STYLES[tier] || { bg: '#fffbeb', text: '#b45309', border: '#fde68a' };
-                    const tierLabel =
-                      tier === 'Q1'
-                        ? 'นานาชาติ ระดับ 1'
-                        : tier === 'Q2'
-                        ? 'นานาชาติ ระดับ 2'
-                        : tier === 'TCI 1'
-                        ? 'ระดับชาติ กลุ่ม 1'
-                        : tier === 'TCI 2'
-                        ? 'ระดับชาติ กลุ่ม 2'
-                        : tier === 'TCI'
-                        ? 'ระดับชาติ'
-                        : tier;
 
                     return (
                       <tr
@@ -263,10 +251,9 @@ export function PublicationsTable({
                               backgroundColor: tierStyle.bg,
                               color: tierStyle.text,
                               border: `1px solid ${tierStyle.border}`,
-                              whiteSpace: 'nowrap',
                             }}
                           >
-                            {tierLabel}
+                            {tier}
                           </span>
                         </td>
                         <td style={{ textAlign: 'right', fontWeight: 600, color: '#0f172a', padding: '10px 8px' }}>

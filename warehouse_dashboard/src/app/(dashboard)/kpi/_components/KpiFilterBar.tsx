@@ -44,7 +44,7 @@ export function KpiFilterBar({
         border: '1px solid #e2e8f0',
       }}
     >
-      {/* Category Pills (Pastel Tones, Fixed Border Width) */}
+      {/* Category Pills */}
       <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
         <span style={{ fontSize: '12.5px', fontWeight: 600, color: '#475569', marginRight: '4px' }}>
           หมวดยุทธศาสตร์:
@@ -59,12 +59,12 @@ export function KpiFilterBar({
                 padding: '5px 12px',
                 borderRadius: '16px',
                 fontSize: '12px',
-                fontWeight: 600,
-                border: isSel ? '1.5px solid #6EE7B7' : '1.5px solid #e2e8f0',
-                backgroundColor: isSel ? '#D1FAE5' : '#ffffff',
-                color: isSel ? '#065F46' : '#475569',
+                fontWeight: isSel ? 600 : 400,
+                border: isSel ? '1px solid #00A651' : '1px solid #e2e8f0',
+                backgroundColor: isSel ? '#00A651' : '#ffffff',
+                color: isSel ? '#ffffff' : '#475569',
                 cursor: 'pointer',
-                transition: 'background-color 0.15s ease, border-color 0.15s ease',
+                transition: 'all 0.15s ease',
               }}
             >
               {lbl}

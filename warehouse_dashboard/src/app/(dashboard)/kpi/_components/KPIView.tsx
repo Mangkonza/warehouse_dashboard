@@ -5,14 +5,12 @@ import { TimeFilterBar, useTimeFilter } from '@/features/time-filter';
 import { useKpiData } from '../_hooks/useKpiData';
 import { KpiHeaderToolbar } from './KpiHeaderToolbar';
 import { KpiSummaryCards } from './KpiSummaryCards';
-import { KpiCharts } from './KpiCharts';
 import { KpiFilterBar } from './KpiFilterBar';
 import { KpiGridCards } from './KpiGridCards';
 
 export function KPIView() {
   const { timeFilter, setTimeFilter, resetTimeFilter } = useTimeFilter();
   const {
-    computedKPIs,
     filteredKPIs,
     overallStats,
     selectedCategory,
@@ -44,12 +42,6 @@ export function KPIView() {
         stats={overallStats}
         selectedStatus={selectedStatus}
         onSelectStatus={setSelectedStatus}
-      />
-
-      <KpiCharts
-        computedKPIs={computedKPIs}
-        selectedCategory={selectedCategory}
-        onSelectCategory={setSelectedCategory}
       />
 
       <KpiFilterBar

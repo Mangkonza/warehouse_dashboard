@@ -6,7 +6,7 @@ import { useResearchData } from '../_hooks/useResearchData';
 import { ResearchCharts } from './ResearchCharts';
 import { ResearchTable } from './ResearchTable';
 import { DepartmentSelect, StrategicFilterSelect } from '@/components/ui';
-import { PastelIllustratedKpiCard } from '@/components/ui/PastelIllustratedKpiCard';
+import { FaCoins, FaFlask, FaAward, FaChartLine } from 'react-icons/fa';
 
 export function ResearchView() {
   const { timeFilter, setTimeFilter, resetTimeFilter } = useTimeFilter();
@@ -54,164 +54,234 @@ export function ResearchView() {
           top: '50px',
           zIndex: 40,
           backdropFilter: 'blur(12px)',
-          backgroundColor: 'rgba(255, 255, 255, 0.96)',
+          backgroundColor: 'rgba(255, 255, 255, 0.95)',
           border: '1px solid #e2e8f0',
           padding: '10px 16px',
           borderRadius: '16px',
-          boxShadow: '0 4px 16px rgba(15, 23, 42, 0.05)',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
           display: 'flex',
           flexWrap: 'wrap',
           alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '10px',
+          gap: '8px',
         }}
       >
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
-          <TimeFilterBar
-            value={timeFilter}
-            onChange={setTimeFilter}
-            onReset={resetTimeFilter}
-            totalCount={validData.length}
-          />
+        <TimeFilterBar
+          value={timeFilter}
+          onChange={setTimeFilter}
+          onReset={resetTimeFilter}
+          totalCount={validData.length}
+        />
 
-          <DepartmentSelect
-            value={selectedDept}
-            onChange={setSelectedDept}
-            allowAll
-            allLabel="ทุกภาควิชา / ศูนย์"
-            allValue="all"
-            size="sm"
-            className="w-[180px]"
-          />
+        <DepartmentSelect
+          value={selectedDept}
+          onChange={setSelectedDept}
+          allowAll
+          allLabel="ทุกภาควิชา / ศูนย์"
+          allValue="all"
+          size="sm"
+          className="w-[170px]"
+        />
+
+        {/* Funding Type Toggle */}
+        <div
+          style={{
+            display: 'inline-flex',
+            backgroundColor: '#f1f5f9',
+            padding: '3px',
+            borderRadius: '9px',
+            fontSize: '12px',
+            fontWeight: 500,
+            height: '32px',
+            boxSizing: 'border-box',
+            alignItems: 'center',
+          }}
+        >
+          {[
+            { id: 'all', label: 'ทุนทั้งหมด' },
+            { id: 'external', label: 'ทุนภายนอก' },
+            { id: 'internal', label: 'ทุนภายใน' },
+          ].map((f) => (
+            <button
+              key={f.id}
+              onClick={() => setFundingType(f.id as any)}
+              style={{
+                padding: '4px 10px',
+                borderRadius: '7px',
+                border: 'none',
+                cursor: 'pointer',
+                backgroundColor: fundingType === f.id ? '#ffffff' : 'transparent',
+                color: fundingType === f.id ? '#0f172a' : '#64748b',
+                fontWeight: fundingType === f.id ? 600 : 500,
+                boxShadow: fundingType === f.id ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              {f.label}
+            </button>
+          ))}
         </div>
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
-          {/* Funding Type Toggle (Balanced Fixed Weight) */}
-          <div
-            style={{
-              display: 'inline-flex',
-              backgroundColor: '#f1f5f9',
-              padding: '3px',
-              borderRadius: '10px',
-              height: '36px',
-              boxSizing: 'border-box',
-              alignItems: 'center',
-              gap: '2px',
-            }}
-          >
-            {[
-              { id: 'all', label: 'ทุนทั้งหมด' },
-              { id: 'external', label: 'ทุนภายนอก' },
-              { id: 'internal', label: 'ทุนภายใน' },
-            ].map((f) => {
-              const isSelected = fundingType === f.id;
-              return (
-                <button
-                  key={f.id}
-                  type="button"
-                  onClick={() => setFundingType(f.id as any)}
-                  style={{
-                    minWidth: '82px',
-                    height: '30px',
-                    padding: '0 10px',
-                    borderRadius: '8px',
-                    border: 'none',
-                    cursor: 'pointer',
-                    backgroundColor: isSelected ? '#ffffff' : 'transparent',
-                    color: isSelected ? '#0f172a' : '#64748b',
-                    fontSize: '12.5px',
-                    fontWeight: 600,
-                    boxShadow: isSelected ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
-                    transition: 'background-color 0.15s ease, color 0.15s ease',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {f.label}
-                </button>
-              );
-            })}
-          </div>
+        {/* Grant Size Tier Dropdown */}
+        <select
+          value={grantTier}
+          onChange={(e) => setGrantTier(e.target.value)}
+          style={{
+            padding: '5px 10px',
+            borderRadius: '9px',
+            border: '1px solid #e2e8f0',
+            backgroundColor: '#ffffff',
+            fontSize: '12px',
+            color: '#334155',
+            cursor: 'pointer',
+            outline: 'none',
+            height: '32px',
+            boxSizing: 'border-box',
+          }}
+          aria-label="ขนาดงบประมาณ"
+        >
+          <option value="all">ทุกขนาดงบประมาณ</option>
+          <option value="tier1">&lt; 5 แสนบาท</option>
+          <option value="tier2">5 แสน - 2 ล้านบาท</option>
+          <option value="tier3">2 - 10 ล้านบาท</option>
+          <option value="tier4">&ge; 10 ล้านบาท (ขนาดใหญ่)</option>
+        </select>
 
-          {/* Grant Size Tier Dropdown */}
-          <select
-            value={grantTier}
-            onChange={(e) => setGrantTier(e.target.value)}
-            style={{
-              padding: '0 12px',
-              borderRadius: '10px',
-              border: '1px solid #e2e8f0',
-              backgroundColor: '#ffffff',
-              fontSize: '12.5px',
-              fontWeight: 600,
-              color: '#334155',
-              cursor: 'pointer',
-              outline: 'none',
-              height: '36px',
-              minWidth: '155px',
-              boxSizing: 'border-box',
-            }}
-            aria-label="ขนาดงบประมาณ"
-          >
-            <option value="all">ทุกขนาดงบประมาณ</option>
-            <option value="tier1">ต่ำกว่า 5 แสนบาท</option>
-            <option value="tier2">5 แสน - 2 ล้านบาท</option>
-            <option value="tier3">2 - 10 ล้านบาท</option>
-            <option value="tier4">ตั้งแต่ 10 ล้านบาทขึ้นไป</option>
-          </select>
-
-          <StrategicFilterSelect
-            value={strategicFilter}
-            onChange={setStrategicFilter}
-          />
-        </div>
+        {/* Standard Touchpoint: Strategic Filter (ต่อหลังตัวกรองก่อนหน้าทันที) */}
+        <StrategicFilterSelect
+          value={strategicFilter}
+          onChange={setStrategicFilter}
+        />
       </div>
 
-      {/* ZONE 2: Decorative Pastel Illustrated KPI Cards */}
+      {/* ZONE 2: Executive Bento KPI Grid (Modern Pastel Glow) */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
           gap: '16px',
         }}
       >
-        <PastelIllustratedKpiCard
-          variant="mint-coins"
-          label="งบประมาณวิจัยรวม"
-          value={budgetMillions}
-          unit="ล้านบาท"
-          badgeText={`ทุนภายนอก ${extMillions} ลบ.`}
-          progressPercent={Number(extPct)}
-          subtitle={`ทุนภายใน ${intMillions} ล้านบาท • รวมทุกแหล่งทุน`}
-        />
+        {/* Card 1: Total Research Funding */}
+        <div
+          style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '20px',
+            padding: '20px',
+            border: '1px solid #e2e8f0',
+            boxShadow: '0 2px 10px rgba(16, 185, 129, 0.06)',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}>งบประมาณวิจัยรวม</span>
+            <div style={{ width: '32px', height: '32px', borderRadius: '10px', backgroundColor: '#ecfdf5', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <FaCoins style={{ fontSize: '15px' }} />
+            </div>
+          </div>
+          <div style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.5px' }}>
+            {budgetMillions} <span style={{ fontSize: '16px', fontWeight: 600, color: '#64748b' }}>ล้านบาท</span>
+          </div>
+          <div style={{ marginTop: '8px', fontSize: '12px', color: '#059669', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ padding: '2px 6px', borderRadius: '6px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', fontWeight: 600 }}>
+              ทุนภายนอก {extMillions} ลบ.
+            </span>
+            <span style={{ color: '#94a3b8' }}>•</span>
+            <span style={{ color: '#64748b' }}>ทุนภายใน {intMillions} ลบ.</span>
+          </div>
+        </div>
 
-        <PastelIllustratedKpiCard
-          variant="sky-blueprint"
-          label="โครงการวิจัยทั้งหมด"
-          value={validData.length}
-          unit="โครงการ"
-          badgeText={`ครอบคลุม ${uniqueDepts.size} หน่วยงาน`}
-          progressPercent={Math.min(100, Math.round((uniqueDepts.size / 10) * 100))}
-          subtitle={`หัวหน้าโครงการวิจัยรวม ${activePisCount} ท่าน`}
-        />
+        {/* Card 2: Total Projects */}
+        <div
+          style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '20px',
+            padding: '20px',
+            border: '1px solid #e2e8f0',
+            boxShadow: '0 2px 10px rgba(14, 165, 233, 0.06)',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}>โครงการวิจัยทั้งหมด</span>
+            <div style={{ width: '32px', height: '32px', borderRadius: '10px', backgroundColor: '#f0f9ff', color: '#0ea5e9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <FaFlask style={{ fontSize: '15px' }} />
+            </div>
+          </div>
+          <div style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.5px' }}>
+            {validData.length} <span style={{ fontSize: '16px', fontWeight: 600, color: '#64748b' }}>โครงการ</span>
+          </div>
+          <div style={{ marginTop: '8px', fontSize: '12px', color: '#0369a1', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ padding: '2px 6px', borderRadius: '6px', backgroundColor: '#f0f9ff', border: '1px solid #bae6fd', fontWeight: 600 }}>
+              ครอบคลุม {uniqueDepts.size} หน่วยงาน
+            </span>
+            <span style={{ color: '#94a3b8' }}>•</span>
+            <span style={{ color: '#64748b' }}>หัวหน้าโครงการ {activePisCount} ท่าน</span>
+          </div>
+        </div>
 
-        <PastelIllustratedKpiCard
-          variant="amber-spark"
-          label="สัดส่วนพึ่งพาทุนภายนอก"
-          value={`${extPct}%`}
-          badgeText="แหล่งทุนภายนอก"
-          progressPercent={Number(extPct)}
-          subtitle={`คิดเป็น ${extMillions} จากทั้งหมด ${budgetMillions} ล้านบาท`}
-        />
+        {/* Card 3: External Ratio */}
+        <div
+          style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '20px',
+            padding: '20px',
+            border: '1px solid #e2e8f0',
+            boxShadow: '0 2px 10px rgba(245, 158, 11, 0.06)',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}>สัดส่วนพึ่งพาทุนภายนอก</span>
+            <div style={{ width: '32px', height: '32px', borderRadius: '10px', backgroundColor: '#fffbeb', color: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <FaAward style={{ fontSize: '15px' }} />
+            </div>
+          </div>
+          <div style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.5px' }}>
+            {extPct}%
+          </div>
+          <div style={{ marginTop: '8px', fontSize: '12px', color: '#b45309', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ padding: '2px 6px', borderRadius: '6px', backgroundColor: '#fffbeb', border: '1px solid #fde68a', fontWeight: 600 }}>
+              16 โครงการทุนนอก
+            </span>
+            <span style={{ color: '#94a3b8' }}>•</span>
+            <span style={{ color: '#64748b' }}>{extMillions} จาก {budgetMillions} ล้านบาท</span>
+          </div>
+        </div>
 
-        <PastelIllustratedKpiCard
-          variant="violet-crown"
-          label="งบเฉลี่ยต่อโครงการ"
-          value={avgGrantMillions}
-          unit="ล้านบาท"
-          badgeText={`สูงสุด ${maxProjectBudgetMillions} ลบ.`}
-          progressPercent={68}
-          subtitle={`โครงการงบสูงสุดโดย ${maxProj?.head || 'ศ.ดร.เชาว์'}`}
-        />
+        {/* Card 4: Average & Max Grant */}
+        <div
+          style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '20px',
+            padding: '20px',
+            border: '1px solid #e2e8f0',
+            boxShadow: '0 2px 10px rgba(99, 102, 241, 0.06)',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}>งบเฉลี่ยต่อโครงการ</span>
+            <div style={{ width: '32px', height: '32px', borderRadius: '10px', backgroundColor: '#eef2ff', color: '#6366f1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <FaChartLine style={{ fontSize: '15px' }} />
+            </div>
+          </div>
+          <div style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.5px' }}>
+            {avgGrantMillions} <span style={{ fontSize: '16px', fontWeight: 600, color: '#64748b' }}>ล้านบาท</span>
+          </div>
+          <div style={{ marginTop: '8px', fontSize: '12px', color: '#4338ca', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ padding: '2px 6px', borderRadius: '6px', backgroundColor: '#eef2ff', border: '1px solid #c7d2fe', fontWeight: 600 }}>
+              สูงสุด {maxProjectBudgetMillions} ลบ.
+            </span>
+            <span style={{ color: '#94a3b8' }}>•</span>
+            <span style={{ color: '#64748b' }} title={maxProj?.name || ''}>
+              {maxProj?.head || 'ศ.ดร.เชาว์'}
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* ZONE 3: Research Charts (Combo Stacked Bar, Pareto Tiers, SDGs/ISEE/IAM) */}

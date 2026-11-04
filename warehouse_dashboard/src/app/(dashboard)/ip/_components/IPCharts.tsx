@@ -108,13 +108,11 @@ export function IPCharts({
     };
 
     if (activePerspective === 'types_dept') {
-      // 1. 7-Department Stacked Bar Chart + Support Budget Line
+      // 1. 7-Department Stacked Bar Chart (AE, ME, FE, CE, IRE, CPE, IE)
       const ALL_DEPTS = ['AE', 'ME', 'FE', 'CE', 'IRE', 'CPE', 'IE'];
-      const ALL_DEPT_LABELS = ['เกษตร', 'เครื่องกล', 'การอาหาร', 'โยธา', 'ชลประทาน', 'คอมพิวเตอร์', 'อุตสาหการ'];
       const deptGranted = Array(7).fill(0);
       const deptPending = Array(7).fill(0);
       const deptInPrep = Array(7).fill(0);
-      const deptSupportK = Array(7).fill(0);
 
       validIpData.forEach((item) => {
         const parts: string[] = [String(item.department || '')];
@@ -138,7 +136,6 @@ export function IPCharts({
         }
 
         const allDeptStrings = parts.join(' ');
-        const supportVal = (Number(item.support_amount) || 0) / 1000;
 
         ALL_DEPTS.forEach((code, idx) => {
           if (allDeptStrings.includes(code) || (code === 'AE' && allDeptStrings.includes('เกษตร')) ||
@@ -151,7 +148,6 @@ export function IPCharts({
             if (item._pipelineStage === 'granted') deptGranted[idx]++;
             else if (item._pipelineStage === 'pending') deptPending[idx]++;
             else deptInPrep[idx]++;
-            deptSupportK[idx] += supportVal;
           }
         });
       });
@@ -159,88 +155,48 @@ export function IPCharts({
       createChart('c_ip_dept_stacked', {
         type: 'bar',
         data: {
-          labels: ALL_DEPT_LABELS,
+          labels: ALL_DEPTS,
           datasets: [
             {
-              type: 'bar',
               label: 'ได้รับความคุ้มครองแล้ว',
               data: deptGranted,
-              backgroundColor: '#86EFAC',
+              backgroundColor: '#10b981',
               borderRadius: 4,
               stack: 'stack1',
-              yAxisID: 'y',
-              order: 2,
             },
             {
-              type: 'bar',
               label: 'ยื่นคำขอแล้ว',
               data: deptPending,
-              backgroundColor: '#93C5FD',
+              backgroundColor: '#0ea5e9',
               borderRadius: 4,
               stack: 'stack1',
-              yAxisID: 'y',
-              order: 2,
             },
             {
-              type: 'bar',
               label: 'เตรียมความพร้อมยื่นจด',
               data: deptInPrep,
-              backgroundColor: '#FDE68A',
+              backgroundColor: '#f59e0b',
               borderRadius: 4,
               stack: 'stack1',
-              yAxisID: 'y',
-              order: 2,
-            },
-            {
-              type: 'line',
-              label: 'เงินสนับสนุนรวม (พันบาท)',
-              data: deptSupportK,
-              borderColor: '#FDA4AF',
-              backgroundColor: 'rgba(253, 164, 175, 0.22)',
-              borderWidth: 2.5,
-              tension: 0.35,
-              pointRadius: 4.5,
-              pointBackgroundColor: '#FB7185',
-              yAxisID: 'y1',
-              order: 1,
             },
           ],
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          interaction: { mode: 'index', intersect: false },
           scales: {
             x: { stacked: true, grid: { display: false } },
             y: {
-              type: 'linear',
-              position: 'left',
               stacked: true,
               beginAtZero: true,
-              grace: '20%',
-              title: { display: true, text: 'จำนวนรายการทรัพย์สินทางปัญญา' },
-            },
-            y1: {
-              type: 'linear',
-              position: 'right',
-              beginAtZero: true,
-              grace: '25%',
-              title: { display: true, text: 'เงินสนับสนุน (พันบาท)' },
-              grid: { drawOnChartArea: false },
+              title: { display: true, text: 'จำนวนรายการ IP' },
             },
           },
           plugins: {
-            legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } },
+            legend: { position: 'top' },
             datalabels: {
-              anchor: (ctx: any) => (ctx.dataset.type === 'line' ? 'end' : 'center'),
-              align: (ctx: any) => (ctx.dataset.type === 'line' ? 'top' : 'center'),
-              color: (ctx: any) => (ctx.dataset.type === 'line' ? '#be123c' : '#1e293b'),
+              color: '#ffffff',
               font: { weight: 'bold', size: 10 },
-              formatter: (v: number, ctx: any) => {
-                if (v <= 0) return '';
-                if (ctx.dataset.type === 'line') return `${v} พันบ.`;
-                return `${v}`;
-              },
+              formatter: (v: number) => (v > 0 ? `${v}` : ''),
             },
           },
         },
@@ -254,13 +210,13 @@ export function IPCharts({
       createChart('c_ip_funnel', {
         type: 'bar',
         data: {
-          labels: ['1. ขั้นเตรียมความพร้อม', '2. ขั้นยื่นคำขอคุ้มครอง', '3. ขั้นได้รับความคุ้มครอง'],
+          labels: ['1. งานเตรียมพร้อม (Pipeline)', '2. ยื่นคำขอแล้ว (Applied)', '3. ได้รับคุ้มครอง (Granted)'],
           datasets: [
             {
               label: 'จำนวนรายการ',
               data: [totalAll, appliedCount, grantedCount],
-              backgroundColor: ['#FDE68A', '#BAE6FD', '#A7F3D0'],
-              borderColor: ['#FCD34D', '#7DD3FC', '#6EE7B7'],
+              backgroundColor: ['#fed7aa', '#bae6fd', '#a7f3d0'],
+              borderColor: ['#f59e0b', '#0ea5e9', '#10b981'],
               borderWidth: 1.5,
               borderRadius: 8,
             },
@@ -282,7 +238,7 @@ export function IPCharts({
               color: '#0f172a',
               font: { weight: 'bold', size: 11 },
               formatter: (v: number) => {
-                const pct = totalAll > 0 ? ((v / totalAll) * 100).toFixed(1) : '0.0';
+                const pct = ((v / totalAll) * 100).toFixed(1);
                 return `${v} รายการ (${pct}%)`;
               },
             },
@@ -309,7 +265,7 @@ export function IPCharts({
           datasets: [
             {
               data: [hasReg, hasReqOnly, noReq],
-              backgroundColor: ['#86EFAC', '#93C5FD', '#FDE68A'],
+              backgroundColor: ['#10b981', '#0ea5e9', '#f59e0b'],
               borderWidth: 2,
               borderColor: '#ffffff',
             },
@@ -322,7 +278,7 @@ export function IPCharts({
           plugins: {
             legend: { position: 'bottom' },
             datalabels: {
-              color: '#1e293b',
+              color: '#ffffff',
               font: { weight: 'bold', size: 11 },
               formatter: (v: number) => (v > 0 ? `${v} (${((v / validIpData.length) * 100).toFixed(1)}%)` : ''),
             },
@@ -330,81 +286,40 @@ export function IPCharts({
         },
       });
 
-      // Fiscal Year trend Combo Chart (Count Bar + Support Amount Line)
+      // Fiscal Year trend
       const fyCounts: Record<string, number> = { '2568': 0, '2569': 0, '2570': 0 };
-      const fySupportK: Record<string, number> = { '2568': 0, '2569': 0, '2570': 0 };
       validIpData.forEach((d) => {
         const y = d._fiscalYear || '2568';
-        if (fyCounts[y] !== undefined) {
-          fyCounts[y]++;
-          fySupportK[y] += (Number(d.support_amount) || 0) / 1000;
-        }
+        if (fyCounts[y] !== undefined) fyCounts[y]++;
       });
       createChart('c_ip_fy_trend', {
         type: 'bar',
         data: {
-          labels: ['ปี พ.ศ. 2568', 'ปี พ.ศ. 2569', 'ปี พ.ศ. 2570'],
+          labels: ['ปีงบ 2568', 'ปีงบ 2569', 'ปีงบ 2570'],
           datasets: [
             {
-              type: 'bar',
-              label: 'จำนวนทรัพย์สินทางปัญญา (รายการ)',
+              label: 'จำนวนทรัพย์สินทางปัญญา',
               data: [fyCounts['2568'], fyCounts['2569'], fyCounts['2570']],
-              backgroundColor: ['#C4B5FD', '#DDD6FE', '#EDE9FE'],
-              borderColor: ['#A78BFA', '#C4B5FD', '#DDD6FE'],
-              borderWidth: 1.5,
+              backgroundColor: ['#8b5cf6', '#a78bfa', '#c4b5fd'],
               borderRadius: 6,
-              yAxisID: 'y',
-              order: 2,
-            },
-            {
-              type: 'line',
-              label: 'เงินสนับสนุนรวม (พันบาท)',
-              data: [fySupportK['2568'], fySupportK['2569'], fySupportK['2570']],
-              borderColor: '#6EE7B7',
-              backgroundColor: 'rgba(110, 231, 183, 0.22)',
-              borderWidth: 2.5,
-              tension: 0.35,
-              pointRadius: 4.5,
-              pointBackgroundColor: '#34D399',
-              yAxisID: 'y1',
-              order: 1,
             },
           ],
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          interaction: { mode: 'index', intersect: false },
           scales: {
-            y: {
-              type: 'linear',
-              position: 'left',
-              beginAtZero: true,
-              grace: '20%',
-              title: { display: true, text: 'จำนวนผลงาน (รายการ)' },
-            },
-            y1: {
-              type: 'linear',
-              position: 'right',
-              beginAtZero: true,
-              grace: '25%',
-              title: { display: true, text: 'เงินสนับสนุน (พันบาท)' },
-              grid: { drawOnChartArea: false },
-            },
+            y: { beginAtZero: true, title: { display: true, text: 'รายการ' } },
             x: { grid: { display: false } },
           },
           plugins: {
-            legend: { display: true, position: 'top', labels: { boxWidth: 12, font: { size: 11 } } },
+            legend: { display: false },
             datalabels: {
               anchor: 'end',
               align: 'top',
-              color: (ctx: any) => (ctx.dataset.type === 'line' ? '#047857' : '#5b21b6'),
-              font: { weight: 'bold', size: 10.5 },
-              formatter: (v: number, ctx: any) => {
-                if (v <= 0) return '';
-                if (ctx.dataset.type === 'line') return `${v} พันบ.`;
-                return `${v} รายการ`;
-              },
+              color: '#6d28d9',
+              font: { weight: 'bold', size: 11 },
+              formatter: (v: number) => `${v} รายการ`,
             },
           },
         },
@@ -421,7 +336,7 @@ export function IPCharts({
             {
               label: 'จำนวนผลงาน',
               data: techClusters.map((c) => c.count),
-              backgroundColor: ['#C4B5FD', '#93C5FD', '#86EFAC', '#FDE68A', '#F9A8D4'],
+              backgroundColor: ['#8b5cf6', '#0ea5e9', '#10b981', '#f59e0b', '#ec4899'],
               borderRadius: 6,
             },
           ],
@@ -449,85 +364,51 @@ export function IPCharts({
     }
 
     if (activePerspective === 'sdg') {
-      // Strategic & Core Values Combo Chart (Count Bar + Support Amount Line)
-      const totalSupportK = validIpData.reduce((sum, d) => sum + (Number(d.support_amount) || 0), 0) / 1000;
+      // ISEE & IAM breakdown
+      const totalSupport = validIpData.reduce((sum, d) => sum + (Number(d.support_amount) || 0), 0);
       const iseeInnovateCount = validIpData.length;
       const iseeExcellenceCount = validIpData.filter((d) => d._pipelineStage === 'granted').length;
       const iamAgilityCount = validIpData.filter((d) => String(d.type || '').includes('อนุสิทธิบัตร')).length;
       const iamMasteryCount = validIpData.filter((d) => (Number(d.support_amount) || 0) > 0).length;
 
       const countData = [iseeInnovateCount, iamAgilityCount, iseeExcellenceCount, iamMasteryCount];
-      const budgetDataK = [
-        totalSupportK,
-        validIpData.filter((d) => String(d.type || '').includes('อนุสิทธิบัตร')).reduce((s, d) => s + (Number(d.support_amount) || 0), 0) / 1000,
-        validIpData.filter((d) => d._pipelineStage === 'granted').reduce((s, d) => s + (Number(d.support_amount) || 0), 0) / 1000,
-        totalSupportK,
+      const budgetData = [
+        totalSupport,
+        validIpData.filter((d) => String(d.type || '').includes('อนุสิทธิบัตร')).reduce((s, d) => s + (Number(d.support_amount) || 0), 0),
+        validIpData.filter((d) => d._pipelineStage === 'granted').reduce((s, d) => s + (Number(d.support_amount) || 0), 0),
+        totalSupport,
       ];
 
       createChart('c_ip_isee_iam', {
         type: 'bar',
         data: {
-          labels: ['ด้านการสร้างสรรค์นวัตกรรม', 'หลักความคล่องตัวและยืดหยุ่น', 'ด้านความเป็นเลิศทางวิชาการ', 'หลักความเชี่ยวชาญในวิชาชีพ'],
+          labels: ['I - Innovate (การสร้างสรรค์นวัตกรรม)', 'A - Agility (ความคล่องตัว)', 'E1 - Excellence (ความเป็นเลิศ)', 'M - Mastery (ความเชี่ยวชาญ)'],
           datasets: [
             {
-              type: 'bar',
-              label: 'จำนวนผลงาน (รายการ)',
-              data: countData,
-              backgroundColor: ['#C4B5FD', '#93C5FD', '#86EFAC', '#FDE68A'],
+              label: strategyMetric === 'count' ? 'จำนวนผลงาน (รายการ)' : 'งบสนับสนุน (บาท)',
+              data: strategyMetric === 'count' ? countData : budgetData,
+              backgroundColor: ['#8b5cf6', '#0ea5e9', '#10b981', '#f59e0b'],
               borderRadius: 6,
-              yAxisID: 'y',
-              order: 2,
-            },
-            {
-              type: 'line',
-              label: 'งบสนับสนุนรวม (พันบาท)',
-              data: budgetDataK,
-              borderColor: '#FDA4AF',
-              backgroundColor: 'rgba(253, 164, 175, 0.22)',
-              borderWidth: 2.5,
-              tension: 0.35,
-              pointRadius: 4.5,
-              pointBackgroundColor: '#FB7185',
-              yAxisID: 'y1',
-              order: 1,
             },
           ],
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          interaction: { mode: 'index', intersect: false },
+          indexAxis: 'y',
           plugins: {
-            legend: { display: true, position: 'top', labels: { boxWidth: 12, font: { size: 11 } } },
+            legend: { display: false },
             datalabels: {
               anchor: 'end',
-              align: 'top',
-              color: (ctx: any) => (ctx.dataset.type === 'line' ? '#be123c' : '#0f172a'),
-              font: { weight: 'bold', size: 10.5 },
-              formatter: (v: number, ctx: any) => {
-                if (v <= 0) return '';
-                if (ctx.dataset.type === 'line') return `${v} พันบ.`;
-                return `${v} รายการ`;
-              },
+              align: 'right',
+              color: '#0f172a',
+              font: { weight: 'bold', size: 11 },
+              formatter: (v: number) => (strategyMetric === 'count' ? `${v} รายการ` : `${v.toLocaleString()} ฿`),
             },
           },
           scales: {
-            y: {
-              type: 'linear',
-              position: 'left',
-              beginAtZero: true,
-              grace: '20%',
-              title: { display: true, text: 'จำนวนผลงาน (รายการ)' },
-            },
-            y1: {
-              type: 'linear',
-              position: 'right',
-              beginAtZero: true,
-              grace: '25%',
-              title: { display: true, text: 'งบสนับสนุน (พันบาท)' },
-              grid: { drawOnChartArea: false },
-            },
-            x: { grid: { display: false } },
+            x: { beginAtZero: true },
+            y: { grid: { display: false } },
           },
         },
       });
@@ -558,10 +439,10 @@ export function IPCharts({
           มิติการวิเคราะห์:
         </span>
         {[
-          { id: 'types_dept', label: 'ภาพรวมสถานะและ 7 ภาควิชา', icon: <FaChartBar /> },
-          { id: 'protection_status', label: 'การติดตามขั้นตอนและหมายเลขคำขอ', icon: <FaCertificate /> },
-          { id: 'faculty', label: 'ผู้ประดิษฐ์ชั้นนำและกลุ่มเทคโนโลยี', icon: <FaUserTie /> },
-          { id: 'sdg', label: 'ความสอดคล้องเชิงยุทธศาสตร์และความยั่งยืน', icon: <FaLeaf /> },
+          { id: 'types_dept', label: 'ภาพรวมสถานะ & 7 ภาควิชา (Pipeline & Funnel)', icon: <FaChartBar /> },
+          { id: 'protection_status', label: 'การติดตามขั้นตอน & หมายเลขคำขอ', icon: <FaCertificate /> },
+          { id: 'faculty', label: 'ผู้ประดิษฐ์ชั้นนำ & กลุ่มเทคโนโลยี (Tech Clusters)', icon: <FaUserTie /> },
+          { id: 'sdg', label: 'ความสอดคล้องเชิงยุทธศาสตร์ (SDGs / ISEE / IAM)', icon: <FaLeaf /> },
         ].map((tab) => {
           const isSel = activePerspective === tab.id;
           return (
@@ -571,16 +452,16 @@ export function IPCharts({
               style={{
                 padding: '6px 14px',
                 borderRadius: '8px',
-                border: isSel ? '1.5px solid #a78bfa' : '1px solid #cbd5e1',
+                border: isSel ? '1.5px solid #8b5cf6' : '1px solid #cbd5e1',
                 backgroundColor: isSel ? '#f5f3ff' : '#ffffff',
                 color: isSel ? '#6d28d9' : '#475569',
                 fontSize: '12.5px',
-                fontWeight: 600,
+                fontWeight: isSel ? 700 : 500,
                 cursor: 'pointer',
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
-                transition: 'background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease',
+                transition: 'all 0.15s ease',
               }}
             >
               <span style={{ fontSize: '11.5px' }}>{tab.icon}</span>
@@ -595,10 +476,10 @@ export function IPCharts({
         <div className="chart-grid">
           <div className="chart-card">
             <h3 style={{ margin: '0 0 12px 0', fontSize: '14.5px', fontWeight: 700, color: '#1e293b' }}>
-              <FaBuilding style={{ color: '#a78bfa', marginRight: '6px' }} /> การกระจายตัวตาม 7 ภาควิชา และสถานะ 3 ระดับ
+              <FaBuilding style={{ color: '#8b5cf6', marginRight: '6px' }} /> การกระจายตัวตาม 7 ภาควิชา x สถานะ 3 ระดับ
             </h3>
             <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
-              เกษตร (9), เครื่องกล (6), การอาหาร (5), โยธา (1) • ชลประทาน, คอมพิวเตอร์, อุตสาหการ มีโอกาสขยายผลเพิ่มเติม
+              AE (9), ME (6), FE (5), CE (1) • 🚨 IRE, CPE, IE มีผลงานเป็น "0" แสดงโอกาสขยายผล
             </p>
             <div className="chart-wrapper">
               <canvas id="c_ip_dept_stacked" />
@@ -607,10 +488,10 @@ export function IPCharts({
 
           <div className="chart-card">
             <h3 style={{ margin: '0 0 4px 0', fontSize: '14.5px', fontWeight: 700, color: '#1e293b' }}>
-              <FaFilter style={{ color: '#a78bfa', marginRight: '6px' }} /> ลำดับขั้นการแปลงผลงานสู่การคุ้มครองสิทธิ์
+              <FaFilter style={{ color: '#8b5cf6', marginRight: '6px' }} /> IP Conversion Funnel (กระบวนการแปลงผลงาน)
             </h3>
             <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
-              อัตราความสำเร็จจากยื่นคำขอด่านแรกสู่การได้รับความคุ้มครองสูงถึง <strong>72.7%</strong>
+              อัตราความสำเร็จจากยื่นคำขอด่านแรกสู่การได้รับคุ้มครอง (Grant Rate) สูงถึง <strong>72.7%</strong>
             </p>
             <div className="chart-wrapper">
               <canvas id="c_ip_funnel" />
@@ -624,7 +505,7 @@ export function IPCharts({
         <div className="chart-grid">
           <div className="chart-card">
             <h3 style={{ margin: '0 0 12px 0', fontSize: '14.5px', fontWeight: 700, color: '#1e293b' }}>
-              <FaCertificate style={{ color: '#a78bfa', marginRight: '6px' }} /> ความพร้อมของหมายเลขคำขอและเลขทะเบียน
+              <FaCertificate style={{ color: '#8b5cf6', marginRight: '6px' }} /> ความพร้อมของหมายเลขคำขอ / เลขทะเบียน
             </h3>
             <div className="chart-wrapper">
               <canvas id="c_ip_readiness" />
@@ -633,7 +514,7 @@ export function IPCharts({
 
           <div className="chart-card">
             <h3 style={{ margin: '0 0 12px 0', fontSize: '14.5px', fontWeight: 700, color: '#1e293b' }}>
-              <FaCertificate style={{ color: '#a78bfa', marginRight: '6px' }} /> แนวโน้มการสร้างสรรค์ผลงานตามปี พ.ศ.
+              <FaCertificate style={{ color: '#8b5cf6', marginRight: '6px' }} /> แนวโน้มการสร้างสรรค์ผลงานตามปีงบประมาณ
             </h3>
             <div className="chart-wrapper">
               <canvas id="c_ip_fy_trend" />
@@ -656,7 +537,7 @@ export function IPCharts({
           >
             <div style={{ marginBottom: '14px' }}>
               <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
-                ทำเนียบนักประดิษฐ์ดีเด่น 10 อันดับแรก
+                Top 10 Active Inventors Leaderboard
               </h3>
               <p style={{ margin: '3px 0 0 0', fontSize: '12px', color: '#64748b' }}>
                 นักประดิษฐ์ผู้สร้างสรรค์ทรัพย์สินทางปัญญาสูงสุดของคณะฯ
@@ -667,7 +548,7 @@ export function IPCharts({
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px' }}>
                 <thead>
                   <tr style={{ backgroundColor: '#f8fafc', color: '#475569', borderBottom: '2px solid #e2e8f0' }}>
-                    <th style={{ padding: '8px 10px', textAlign: 'center', width: '40px' }}>ลำดับ</th>
+                    <th style={{ padding: '8px 10px', textAlign: 'center', width: '40px' }}>#</th>
                     <th style={{ padding: '8px 10px', textAlign: 'left' }}>นักประดิษฐ์</th>
                     <th style={{ padding: '8px 10px', textAlign: 'left' }}>ภาควิชา</th>
                     <th style={{ padding: '8px 10px', textAlign: 'center' }}>ผลงาน</th>
@@ -696,7 +577,7 @@ export function IPCharts({
                         </span>
                       </td>
                       <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 600, color: inv.support > 0 ? '#047857' : '#94a3b8' }}>
-                        {inv.support > 0 ? `${inv.support.toLocaleString('th-TH')} บาท` : '-'}
+                        {inv.support > 0 ? `${inv.support.toLocaleString('th-TH')} ฿` : '-'}
                       </td>
                       <td style={{ padding: '8px 10px', textAlign: 'center' }}>
                         <button
@@ -732,10 +613,10 @@ export function IPCharts({
 
           <div className="chart-card">
             <h3 style={{ margin: '0 0 4px 0', fontSize: '14.5px', fontWeight: 700, color: '#1e293b' }}>
-              <FaLightbulb style={{ color: '#a78bfa', marginRight: '6px' }} /> กลุ่มเทคโนโลยีและสาขานวัตกรรม
+              <FaLightbulb style={{ color: '#8b5cf6', marginRight: '6px' }} /> Technology & Innovation Domain Clusters
             </h3>
             <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
-              การจัดกลุ่มเทคโนโลยีจากชื่อผลงานการประดิษฐ์จริง
+              การจัดกลุ่มคลัสเตอร์เทคโนโลยีจากชื่อผลงานการประดิษฐ์จริง
             </p>
             <div className="chart-wrapper">
               <canvas id="c_ip_clusters" />
@@ -744,25 +625,68 @@ export function IPCharts({
         </div>
       )}
 
-      {/* DIMENSION 4: Strategic Alignment */}
+      {/* DIMENSION 4: UN SDGs & ISEE */}
       {activePerspective === 'sdg' && (
         <div className="chart-grid">
           <div>
             <StrategicAlignmentMatrix
-              items={validIpData}
-              categoryKey="ip"
-              missionTitle="งานทรัพย์สินทางปัญญา"
-              unitLabel="ผลงาน"
-              showBudget={true}
-            />
+          items={validIpData}
+          categoryKey="ip"
+          missionTitle="งานทรัพย์สินทางปัญญา"
+          unitLabel="ผลงาน"
+          showBudget={true}
+        />
           </div>
 
           <div className="chart-card">
-            <h3 style={{ margin: '0 0 12px 0', fontSize: '14.5px', fontWeight: 700, color: '#1e293b' }}>
-              <FaLeaf style={{ color: '#a78bfa', marginRight: '6px' }} /> ยุทธศาสตร์มหาวิทยาลัยและค่านิยมองค์กร เทียบกับงบสนับสนุน
-            </h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <h3 style={{ margin: 0, fontSize: '14.5px', fontWeight: 700, color: '#1e293b' }}>
+                <FaLeaf style={{ color: '#8b5cf6', marginRight: '6px' }} /> ยุทธศาสตร์ ISEE & ค่านิยม IAM
+              </h3>
+              <div
+                style={{
+                  display: 'inline-flex',
+                  backgroundColor: '#f1f5f9',
+                  padding: '2px',
+                  borderRadius: '8px',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setStrategyMetric('count')}
+                  style={{
+                    padding: '3px 8px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    backgroundColor: strategyMetric === 'count' ? '#ffffff' : 'transparent',
+                    color: strategyMetric === 'count' ? '#6d28d9' : '#64748b',
+                    fontWeight: strategyMetric === 'count' ? 700 : 500,
+                    cursor: 'pointer',
+                  }}
+                >
+                  จำนวนผลงาน
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStrategyMetric('budget')}
+                  style={{
+                    padding: '3px 8px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    backgroundColor: strategyMetric === 'budget' ? '#ffffff' : 'transparent',
+                    color: strategyMetric === 'budget' ? '#6d28d9' : '#64748b',
+                    fontWeight: strategyMetric === 'budget' ? 700 : 500,
+                    cursor: 'pointer',
+                  }}
+                >
+                  งบสนับสนุน
+                </button>
+              </div>
+            </div>
             <p style={{ margin: '0 0 16px 0', fontSize: '12px', color: '#64748b' }}>
-              เปรียบเทียบจำนวนผลงานและงบประมาณสนับสนุนในแต่ละด้านยุทธศาสตร์และค่านิยมองค์กร
+              ทรัพย์สินทางปัญญาขับเคลื่อนยุทธศาสตร์ I (Innovate) 100% ควบคู่กับค่านิยม A (Agility) ในการแปลงผลงาน
             </p>
             <div className="chart-wrapper">
               <canvas id="c_ip_isee_iam" />

@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useEffect, useRef, useMemo, useState } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import { resolveItemStrategicAlignment } from '@/lib/pastelTheme';
-import { SDGS_DATA } from '@/config/sdgConfig';
 import Chart from 'chart.js/auto';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
-import { FaGlobeAmericas, FaAward, FaCompass, FaSortAmountDown, FaSortNumericDown } from 'react-icons/fa';
+import { FaGlobeAmericas, FaAward, FaCompass } from 'react-icons/fa';
 
 interface StrategicCommandPanelProps {
   validResearch?: any[];
@@ -23,10 +22,10 @@ export function StrategicCommandPanel({
   validIP = [],
 }: StrategicCommandPanelProps) {
   const chartRef = useRef<Chart | null>(null);
-  const [sdgSortMode, setSdgSortMode] = useState<'desc' | 'number'>('desc');
 
-  // Dynamic Strategic Matrix counts
+  // Dynamic ISEE matrix counts
   const { resIsee, acaIsee, pubIsee, srvIsee, ipIsee } = useMemo(() => {
+    // Indexes: [0: I, 1: S, 2: E1, 3: E2]
     const rCount = [0, 0, 0, 0];
     const aCount = [0, 0, 0, 0];
     const pCount = [0, 0, 0, 0];
@@ -82,8 +81,28 @@ export function StrategicCommandPanel({
     };
   }, [validResearch, validAcademic, validPub, validService, validIP]);
 
-  // Dynamic SDGs with Sort Toggle (1-17 vs Most to Least)
-  const displayedSdgs = useMemo(() => {
+  // Dynamic Top 5 SDGs
+  const topSdgs = useMemo(() => {
+    const SDG_NAMES: Record<number, { name: string; color: string }> = {
+      1: { name: 'ขจัดความยากจน', color: '#e5243b' },
+      2: { name: 'ขจัดความหิวโหยและเกษตรกรรมยั่งยืน', color: '#dda73a' },
+      3: { name: 'สุขภาพและความเป็นอยู่ที่ดี', color: '#4c9f38' },
+      4: { name: 'การศึกษาที่มีคุณภาพ', color: '#c5192d' },
+      5: { name: 'ความเท่าเทียมทางเพศ', color: '#ff3a21' },
+      6: { name: 'การจัดการน้ำสะอาดและสุขาภิบาล', color: '#27bfe6' },
+      7: { name: 'พลังงานสะอาดที่เข้าถึงได้', color: '#fcc30b' },
+      8: { name: 'งานที่มีคุณค่าและการเติบโตทางเศรษฐกิจ', color: '#a21942' },
+      9: { name: 'อุตสาหกรรม นวัตกรรม และโครงสร้างพื้นฐาน', color: '#f36e25' },
+      10: { name: 'ลดความเหลื่อมล้ำ', color: '#dd1367' },
+      11: { name: 'เมืองและชุมชนที่ยั่งยืน', color: '#fd9d24' },
+      12: { name: 'แบบแผนการผลิตและการบริโภคที่ยั่งยืน', color: '#bf8b2e' },
+      13: { name: 'การรับมือการเปลี่ยนแปลงสภาพภูมิอากาศ', color: '#3f7e44' },
+      14: { name: 'ทรัพยากรทางทะเล', color: '#0a97d9' },
+      15: { name: 'ระบบนิเวศบนบก', color: '#56c02b' },
+      16: { name: 'สันติภาพและความยุติธรรม', color: '#00689d' },
+      17: { name: 'ความร่วมมือเพื่อการพัฒนาที่ยั่งยืน', color: '#19486a' },
+    };
+
     const counts: Record<number, number> = {};
     const allItems = [...validResearch, ...validAcademic, ...validPub, ...validService, ...validIP];
     allItems.forEach((item) => {
@@ -94,28 +113,19 @@ export function StrategicCommandPanel({
       }
     });
 
-    const maxCount = Math.max(...Object.values(counts), 1);
+    const sorted = Object.entries(counts)
+      .map(([k, v]) => ({ num: Number(k), count: v }))
+      .sort((a, b) => b.count - a.count);
 
-    const activeList = Object.values(SDGS_DATA)
-      .map((sdg) => ({
-        num: sdg.number,
-        name: sdg.nameTh,
-        count: counts[sdg.number] || 0,
-        color: sdg.color,
-        pct: Math.round(((counts[sdg.number] || 0) / maxCount) * 100),
-      }))
-      .filter((s) => s.count > 0);
+    return sorted.slice(0, 5).map((s) => ({
+      num: s.num,
+      name: SDG_NAMES[s.num]?.name || `SDG ${s.num}`,
+      count: s.count,
+      color: SDG_NAMES[s.num]?.color || '#0ea5e9',
+    }));
+  }, [validResearch, validAcademic, validPub, validService, validIP]);
 
-    if (sdgSortMode === 'desc') {
-      activeList.sort((a, b) => b.count - a.count || a.num - b.num);
-    } else {
-      activeList.sort((a, b) => a.num - b.num);
-    }
-
-    return activeList.slice(0, 6);
-  }, [validResearch, validAcademic, validPub, validService, validIP, sdgSortMode]);
-
-  // Dynamic Core Values Metrics
+  // Dynamic IAM Metrics
   const iamOverview = useMemo(() => {
     const counts = { I: 0, A: 0, M: 0 };
     const allItems = [...validResearch, ...validAcademic, ...validPub, ...validService, ...validIP];
@@ -149,44 +159,44 @@ export function StrategicCommandPanel({
         type: 'bar',
         data: {
           labels: [
-            'ด้านที่ 1 ความเป็นนานาชาติ',
-            'ด้านที่ 2 รับใช้สังคมและความยั่งยืน',
-            'ด้านที่ 3 ความเป็นเลิศทางวิชาการ',
-            'ด้านที่ 4 นวัตกรรมและดิจิทัล',
+            'I - ความเป็นนานาชาติ',
+            'S - รับใช้สังคมและความยั่งยืน',
+            'E - ความเป็นเลิศทางวิจัย',
+            'E - ผู้ประกอบการและดิจิทัล',
           ],
           datasets: [
             {
               label: 'วิจัย',
               data: resIsee,
-              backgroundColor: '#86EFAC',
+              backgroundColor: '#34D399',
               stack: 'isee',
               borderRadius: 6,
             },
             {
               label: 'พัฒนาวิชาการ',
               data: acaIsee,
-              backgroundColor: '#93C5FD',
+              backgroundColor: '#38BDF8',
               stack: 'isee',
               borderRadius: 6,
             },
             {
               label: 'ตีพิมพ์',
               data: pubIsee,
-              backgroundColor: '#FDA4AF',
+              backgroundColor: '#FB7185',
               stack: 'isee',
               borderRadius: 6,
             },
             {
               label: 'บริการวิชาการ',
               data: srvIsee,
-              backgroundColor: '#FDE68A',
+              backgroundColor: '#FBBF24',
               stack: 'isee',
               borderRadius: 6,
             },
             {
               label: 'ทรัพย์สินฯ',
               data: ipIsee,
-              backgroundColor: '#C4B5FD',
+              backgroundColor: '#A78BFA',
               stack: 'isee',
               borderRadius: 6,
             },
@@ -213,7 +223,7 @@ export function StrategicCommandPanel({
               grid: { display: false },
               ticks: {
                 autoSkip: false,
-                font: { size: 11.5, weight: 600 },
+                font: { size: 11.5, weight: 500 },
                 color: '#334155',
               },
             },
@@ -221,8 +231,8 @@ export function StrategicCommandPanel({
           plugins: {
             legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
             datalabels: {
-              color: '#1e293b',
-              font: { weight: 'bold', size: 9.5 },
+              color: '#ffffff',
+              font: { weight: 'bold', size: 9 },
               formatter: (v: number) => (v > 10 ? `${v}` : ''),
             },
           },
@@ -248,12 +258,12 @@ export function StrategicCommandPanel({
         boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
       }}
     >
-      {/* Box 1: Strategic Matrix */}
+      {/* Box 1: ISEE Strategic Matrix (35%) */}
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
           <FaCompass style={{ color: '#059669', fontSize: '16px' }} />
           <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
-            ความสอดคล้องตามยุทธศาสตร์มหาวิทยาลัย 4 เสาหลัก
+            ความสอดคล้องตามยุทธศาสตร์มหาวิทยาลัย (ISEE)
           </h3>
         </div>
         <p style={{ margin: '0 0 14px 0', fontSize: '12px', color: '#64748b' }}>
@@ -264,7 +274,7 @@ export function StrategicCommandPanel({
         </div>
       </div>
 
-      {/* Box 2: Core Organizational Values */}
+      {/* Box 2: IAM / IDKU Contribution (25%) */}
       <div
         style={{
           display: 'flex',
@@ -278,167 +288,118 @@ export function StrategicCommandPanel({
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
           <FaAward style={{ color: '#7c3aed', fontSize: '16px' }} />
           <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
-            การขับเคลื่อนตามค่านิยมหลักขององค์กร
+            การขับเคลื่อนตามค่านิยมองค์กร (IAM)
           </h3>
         </div>
         <p style={{ margin: '0 0 14px 0', fontSize: '12px', color: '#64748b' }}>
-          สัดส่วนผลงานจริงทั้งคณะตามค่านิยมหลัก 3 ประการ
+          การแสดงออกของค่านิยมผ่านผลงานจริงทั้งคณะ
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '6px' }}>
-          {/* 1. Integrity */}
+          {/* I - Integrity */}
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', fontWeight: 600, marginBottom: '4px' }}>
-              <span style={{ color: '#047857' }}>หลักที่ 1 ความซื่อสัตย์และจริยธรรม</span>
-              <span style={{ color: '#047857' }}>{iamOverview.iCount} ผลงาน ({iamOverview.iPct}%)</span>
+              <span style={{ color: '#059669' }}>I - ความถูกต้องและจริยธรรม</span>
+              <span style={{ color: '#059669' }}>{iamOverview.iCount} ผลงาน ({iamOverview.iPct}%)</span>
             </div>
-            <div style={{ height: '9px', borderRadius: '999px', backgroundColor: '#e2e8f0', overflow: 'hidden' }}>
-              <div style={{ width: `${iamOverview.iPct}%`, height: '100%', backgroundColor: '#6EE7B7', borderRadius: '999px' }} />
+            <div style={{ height: '8px', borderRadius: '999px', backgroundColor: '#e2e8f0', overflow: 'hidden' }}>
+              <div style={{ width: `${iamOverview.iPct}%`, height: '100%', backgroundColor: '#34d399', borderRadius: '999px' }} />
             </div>
             <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-              จริยธรรมการวิจัยและการคุ้มครองสิทธิ์ทรัพย์สินทางปัญญา
+              จริยธรรมการวิจัยและคุ้มครองสิทธิ์ IP
             </div>
           </div>
 
-          {/* 2. Agility */}
+          {/* A - Agility */}
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', fontWeight: 600, marginBottom: '4px' }}>
-              <span style={{ color: '#0369a1' }}>หลักที่ 2 ความคล่องตัวและการบริการ</span>
-              <span style={{ color: '#0369a1' }}>{iamOverview.aCount} ผลงาน ({iamOverview.aPct}%)</span>
+              <span style={{ color: '#0284c7' }}>A - ความคล่องตัวและการบริการ</span>
+              <span style={{ color: '#0284c7' }}>{iamOverview.aCount} ผลงาน ({iamOverview.aPct}%)</span>
             </div>
-            <div style={{ height: '9px', borderRadius: '999px', backgroundColor: '#e2e8f0', overflow: 'hidden' }}>
-              <div style={{ width: `${iamOverview.aPct}%`, height: '100%', backgroundColor: '#7DD3FC', borderRadius: '999px' }} />
+            <div style={{ height: '8px', borderRadius: '999px', backgroundColor: '#e2e8f0', overflow: 'hidden' }}>
+              <div style={{ width: `${iamOverview.aPct}%`, height: '100%', backgroundColor: '#38bdf8', borderRadius: '999px' }} />
             </div>
             <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-              บริการวิชาการ {validService.length || 305} ครั้ง และการพัฒนาสิ่งประดิษฐ์สู่ชุมชน
+              บริการวิชาการ {validService.length || 305} ครั้ง และอนุสิทธิบัตรคล่องตัว
             </div>
           </div>
 
-          {/* 3. Mastery */}
+          {/* M - Mastery */}
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', fontWeight: 600, marginBottom: '4px' }}>
-              <span style={{ color: '#6d28d9' }}>หลักที่ 3 ความเชี่ยวชาญในวิชาชีพ</span>
-              <span style={{ color: '#6d28d9' }}>{iamOverview.mCount} ผลงาน ({iamOverview.mPct}%)</span>
+              <span style={{ color: '#7c3aed' }}>M - ความเป็นมืออาชีพ</span>
+              <span style={{ color: '#7c3aed' }}>{iamOverview.mCount} ผลงาน ({iamOverview.mPct}%)</span>
             </div>
-            <div style={{ height: '9px', borderRadius: '999px', backgroundColor: '#e2e8f0', overflow: 'hidden' }}>
-              <div style={{ width: `${iamOverview.mPct}%`, height: '100%', backgroundColor: '#C4B5FD', borderRadius: '999px' }} />
+            <div style={{ height: '8px', borderRadius: '999px', backgroundColor: '#e2e8f0', overflow: 'hidden' }}>
+              <div style={{ width: `${iamOverview.mPct}%`, height: '100%', backgroundColor: '#a78bfa', borderRadius: '999px' }} />
             </div>
             <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-              โครงการวิจัยขนาดใหญ่และบทความตีพิมพ์ระดับนานาชาติ ({validPub.length || 68} เรื่อง)
+              ทุนวิจัยใหญ่ 10M+ และบทความวิจัย Q1/Q2 ({validPub.length || 68} เรื่อง)
             </div>
           </div>
         </div>
       </div>
 
-      {/* Box 3: Top SDGs Impact with Sort Toggle */}
+      {/* Box 3: Top UN SDGs Impact (40%) */}
       <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <FaGlobeAmericas style={{ color: '#0284c7', fontSize: '16px' }} />
-            <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
-              เป้าหมายการพัฒนาที่ยั่งยืน
-            </h3>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setSdgSortMode((prev) => (prev === 'desc' ? 'number' : 'desc'))}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '5px',
-              padding: '4px 10px',
-              borderRadius: '8px',
-              border: '1px solid #BAE6FD',
-              backgroundColor: '#F0F9FF',
-              color: '#0369A1',
-              fontSize: '11px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {sdgSortMode === 'desc' ? (
-              <>
-                <FaSortAmountDown style={{ fontSize: '10px' }} />
-                <span>เรียงมากสุดไปน้อยสุด (กดสลับ 1-17)</span>
-              </>
-            ) : (
-              <>
-                <FaSortNumericDown style={{ fontSize: '10px' }} />
-                <span>เรียงตามลำดับ 1 - 17 (กดสลับมากไปน้อย)</span>
-              </>
-            )}
-          </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+          <FaGlobeAmericas style={{ color: '#0284c7', fontSize: '16px' }} />
+          <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
+            5 อันดับเป้าหมายความยั่งยืนสูงสุด (SDGs)
+          </h3>
         </div>
-        <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
-          เป้าหมายการพัฒนาที่ยั่งยืนที่มีโครงการและผลงานขับเคลื่อนในคณะ
+        <p style={{ margin: '0 0 14px 0', fontSize: '12px', color: '#64748b' }}>
+          เป้าหมายการพัฒนาที่ยั่งยืนที่มีโครงการและผลงานขับเคลื่อนสูงสุด
         </p>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
-          {displayedSdgs.map((sdg) => (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {topSdgs.map((sdg) => (
             <div
               key={`top-sdg-${sdg.num}`}
               style={{
                 display: 'flex',
-                flexDirection: 'column',
-                gap: '5px',
-                padding: '7px 11px',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '8px 12px',
                 borderRadius: '10px',
                 backgroundColor: '#f8fafc',
                 border: '1px solid #f1f5f9',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-                  <span
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      width: '26px',
-                      height: '26px',
-                      borderRadius: '7px',
-                      backgroundColor: sdg.color,
-                      color: '#1e293b',
-                      fontSize: '11.5px',
-                      fontWeight: 800,
-                      flexShrink: 0,
-                    }}
-                  >
-                    {sdg.num}
-                  </span>
-                  <span
-                    style={{
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      color: '#1e293b',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                    }}
-                  >
-                    เป้าหมายที่ {sdg.num}: {sdg.name}
-                  </span>
-                </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <span
                   style={{
-                    fontSize: '11.5px',
-                    fontWeight: 700,
-                    color: '#334155',
-                    backgroundColor: '#ffffff',
-                    padding: '2px 8px',
-                    borderRadius: '6px',
-                    border: '1px solid #e2e8f0',
-                    flexShrink: 0,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '8px',
+                    backgroundColor: sdg.color,
+                    color: '#ffffff',
+                    fontSize: '12px',
+                    fontWeight: 800,
                   }}
                 >
-                  {sdg.count} ผลงาน
+                  {sdg.num}
+                </span>
+                <span style={{ fontSize: '12.5px', fontWeight: 600, color: '#1e293b' }}>
+                  {sdg.name}
                 </span>
               </div>
-              <div style={{ height: '5px', borderRadius: '999px', backgroundColor: '#e2e8f0', overflow: 'hidden' }}>
-                <div style={{ width: `${sdg.pct}%`, height: '100%', backgroundColor: sdg.color, borderRadius: '999px' }} />
-              </div>
+              <span
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  color: '#475569',
+                  backgroundColor: '#ffffff',
+                  padding: '3px 8px',
+                  borderRadius: '6px',
+                  border: '1px solid #e2e8f0',
+                }}
+              >
+                {sdg.count} โครงการ
+              </span>
             </div>
           ))}
         </div>

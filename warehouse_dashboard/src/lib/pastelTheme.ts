@@ -80,22 +80,22 @@ export const MISSION_THEMES = {
 export type MissionKey = keyof typeof MISSION_THEMES;
 
 /**
- * ยุทธศาสตร์มหาวิทยาลัย (4 เสาหลัก)
+ * ยุทธศาสตร์ มก. (ISEE 4 Pillars)
  */
 export const ISEE_PILLARS = [
-  { id: 'I', code: 'ISEE_I', name: 'ความเป็นนานาชาติและมาตรฐานสากล', color: '#FB7185', bg: '#FFF1F2' },
-  { id: 'S', code: 'ISEE_S', name: 'ความรับผิดชอบต่อสังคมและความยั่งยืน', color: '#FBBF24', bg: '#FFFBEB' },
-  { id: 'E1', code: 'ISEE_E1', name: 'ความเป็นเลิศทางวิชาการและงานวิจัย', color: '#34D399', bg: '#ECFDF5' },
-  { id: 'E2', code: 'ISEE_E2', name: 'การเป็นผู้ประกอบการและนวัตกรรมดิจิทัล', color: '#38BDF8', bg: '#F0F9FF' },
+  { id: 'I', code: 'ISEE_I', name: 'Internationalization (นานาชาติ)', color: '#F43F5E', bg: '#FFF1F2' },
+  { id: 'S', code: 'ISEE_S', name: 'Social Responsibility (สังคมและความยั่งยืน)', color: '#F59E0B', bg: '#FFFBEB' },
+  { id: 'E1', code: 'ISEE_E1', name: 'Excellence (ความเป็นเลิศทางวิชาการและวิจัย)', color: '#10B981', bg: '#ECFDF5' },
+  { id: 'E2', code: 'ISEE_E2', name: 'Entrepreneurship & Digital (ผู้ประกอบการและดิจิทัล)', color: '#0EA5E9', bg: '#F0F9FF' },
 ] as const;
 
 /**
- * ค่านิยมหลักขององค์กร
+ * ค่านิยมองค์กร (IAM Core Values)
  */
 export const IAM_VALUES = [
-  { id: 'I', code: 'IAM_I', name: 'ความถูกต้อง โปร่งใส และมีจริยธรรม', color: '#34D399', bg: '#ECFDF5' },
-  { id: 'A', code: 'IAM_A', name: 'ความคล่องตัวและพร้อมปรับตัว', color: '#38BDF8', bg: '#F0F9FF' },
-  { id: 'M', code: 'IAM_M', name: 'ความเชี่ยวชาญและความเป็นมืออาชีพ', color: '#A78BFA', bg: '#F5F3FF' },
+  { id: 'I', code: 'IAM_I', name: 'I - Integrity (ความถูกต้องและโปร่งใส)', color: '#059669', bg: '#ECFDF5' },
+  { id: 'A', code: 'IAM_A', name: 'A - Agility (ความคล่องตัวและรวดเร็ว)', color: '#0284C7', bg: '#F0F9FF' },
+  { id: 'M', code: 'IAM_M', name: 'M - Mastery (ความเป็นมืออาชีพและความเชี่ยวชาญ)', color: '#7C3AED', bg: '#F5F3FF' },
 ] as const;
 
 /**
@@ -306,13 +306,13 @@ export function resolveItemStrategicAlignment(item: any, category?: string): Str
   if (!item) {
     return {
       isee: 'E1',
-      iseeLabel: 'ความเป็นเลิศทางวิจัย',
-      iseeColor: '#34D399',
+      iseeLabel: 'E - ความเป็นเลิศทางวิจัย',
+      iseeColor: '#10B981',
       iam: 'M',
-      iamLabel: 'ความเป็นมืออาชีพ',
-      iamColor: '#A78BFA',
+      iamLabel: 'M - ความเป็นมืออาชีพ',
+      iamColor: '#7C3AED',
       sdgNumber: 9,
-      sdgCode: 'เป้าหมายที่ 9',
+      sdgCode: 'SDG 9',
       sdgNameTh: 'อุตสาหกรรม นวัตกรรม และโครงสร้างพื้นฐาน',
     };
   }
@@ -345,8 +345,8 @@ export function resolveItemStrategicAlignment(item: any, category?: string): Str
 
   // 2. Resolve ISEE (I, S, E1, E2)
   let isee: 'I' | 'S' | 'E1' | 'E2' = 'E1';
-  let iseeLabel = 'ความเป็นเลิศทางวิจัย';
-  let iseeColor = '#34D399';
+  let iseeLabel = 'E - ความเป็นเลิศทางวิจัย';
+  let iseeColor = '#10B981';
 
   const directIsee = String(item.isee || item.isee_pillar || item.evaluation?.isee_pillar || '').toUpperCase();
   if (directIsee.includes('E2') || directIsee === 'E2') {
@@ -375,23 +375,23 @@ export function resolveItemStrategicAlignment(item: any, category?: string): Str
   }
 
   if (isee === 'I') {
-    iseeLabel = 'ความเป็นนานาชาติ';
-    iseeColor = '#FB7185';
+    iseeLabel = 'I - ความเป็นนานาชาติ';
+    iseeColor = '#F43F5E';
   } else if (isee === 'S') {
-    iseeLabel = 'ความรับผิดชอบต่อสังคม';
-    iseeColor = '#FBBF24';
+    iseeLabel = 'S - รับใช้สังคมและความยั่งยืน';
+    iseeColor = '#F59E0B';
   } else if (isee === 'E2') {
-    iseeLabel = 'ผู้ประกอบการและดิจิทัล';
-    iseeColor = '#38BDF8';
+    iseeLabel = 'E - ผู้ประกอบการและดิจิทัล';
+    iseeColor = '#0EA5E9';
   } else {
-    iseeLabel = 'ความเป็นเลิศทางวิจัย';
-    iseeColor = '#34D399';
+    iseeLabel = 'E - ความเป็นเลิศทางวิจัย';
+    iseeColor = '#10B981';
   }
 
   // 3. Resolve IAM (I, A, M)
   let iam: 'I' | 'A' | 'M' = 'M';
-  let iamLabel = 'ความเป็นมืออาชีพ';
-  let iamColor = '#A78BFA';
+  let iamLabel = 'M - ความเป็นมืออาชีพ';
+  let iamColor = '#7C3AED';
 
   const directIam = String(item.iam || item.iam_value || item.evaluation?.i_type || '').toUpperCase();
   if (directIam.includes('I') && !directIam.includes('IAM')) {
@@ -414,14 +414,14 @@ export function resolveItemStrategicAlignment(item: any, category?: string): Str
   }
 
   if (iam === 'I') {
-    iamLabel = 'ความถูกต้องและจริยธรรม';
-    iamColor = '#34D399';
+    iamLabel = 'I - ความถูกต้องและจริยธรรม';
+    iamColor = '#059669';
   } else if (iam === 'A') {
-    iamLabel = 'ความคล่องตัวและการบริการ';
-    iamColor = '#38BDF8';
+    iamLabel = 'A - ความคล่องตัวและการบริการ';
+    iamColor = '#0284C7';
   } else {
-    iamLabel = 'ความเป็นมืออาชีพ';
-    iamColor = '#A78BFA';
+    iamLabel = 'M - ความเป็นมืออาชีพ';
+    iamColor = '#7C3AED';
   }
 
   return {
@@ -432,7 +432,7 @@ export function resolveItemStrategicAlignment(item: any, category?: string): Str
     iamLabel,
     iamColor,
     sdgNumber: sdgNum,
-    sdgCode: `เป้าหมายที่ ${sdgNum}`,
+    sdgCode: `SDG ${sdgNum}`,
     sdgNameTh: sdgName,
   };
 }

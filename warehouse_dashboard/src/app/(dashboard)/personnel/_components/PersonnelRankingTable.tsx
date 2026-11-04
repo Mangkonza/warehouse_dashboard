@@ -231,12 +231,16 @@ export function PersonnelRankingTable({ metrics, departments }: PersonnelRanking
                 outline: 'none',
               }}
             >
-              <option value="all">ทุกภาควิชาและหน่วยงาน ({metrics.length})</option>
-              {departments.map((dept) => (
-                <option key={dept} value={dept}>
-                  {dept}
-                </option>
-              ))}
+              <option value="all">ทุกภาควิชา / หน่วยงาน ({metrics.length})</option>
+              {departments.map((dept) => {
+                const info = getDepartment(dept);
+                const prefix = info.code && info.code !== '-' && info.code !== 'OTH' ? `${info.code} - ` : '';
+                return (
+                  <option key={dept} value={dept}>
+                    {prefix}{dept}
+                  </option>
+                );
+              })}
             </select>
           </div>
 
@@ -275,15 +279,15 @@ export function PersonnelRankingTable({ metrics, departments }: PersonnelRanking
           </div>
         </div>
 
-        {/* Mission Filter Tabs (Pastel Tones) */}
+        {/* Mission Filter Tabs */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
           {[
-            { id: 'all', label: 'ผลงานทั้งหมด', bg: '#D1FAE5', border: '#6EE7B7', text: '#065F46' },
-            { id: 'research', label: 'โครงการวิจัย', icon: <FaFlask />, bg: '#DCFCE7', border: '#86EFAC', text: '#166534' },
-            { id: 'publications', label: 'ผลงานตีพิมพ์', icon: <FaBook />, bg: '#FFE4E6', border: '#FDA4AF', text: '#9F1239' },
-            { id: 'ip', label: 'ทรัพย์สินทางปัญญา', icon: <FaCertificate />, bg: '#EDE9FE', border: '#C4B5FD', text: '#5B21B6' },
-            { id: 'academic', label: 'พัฒนาวิชาการ', icon: <FaGraduationCap />, bg: '#E0F2FE', border: '#93C5FD', text: '#075985' },
-            { id: 'service', label: 'บริการวิชาการ', icon: <FaHandsHelping />, bg: '#FEF3C7', border: '#FDE68A', text: '#92400E' },
+            { id: 'all', label: 'ผลงานทั้งหมด', color: '#00A651' },
+            { id: 'research', label: 'โครงการวิจัย', icon: <FaFlask />, color: '#00A651' },
+            { id: 'publications', label: 'ผลงานตีพิมพ์', icon: <FaBook />, color: '#e11d48' },
+            { id: 'ip', label: 'ทรัพย์สินทางปัญญา', icon: <FaCertificate />, color: '#7c3aed' },
+            { id: 'academic', label: 'พัฒนาวิชาการ', icon: <FaGraduationCap />, color: '#0284c7' },
+            { id: 'service', label: 'บริการวิชาการ', icon: <FaHandsHelping />, color: '#d97706' },
           ].map((tab) => {
             const isSel = activeMissionFilter === tab.id;
             return (
@@ -296,17 +300,18 @@ export function PersonnelRankingTable({ metrics, departments }: PersonnelRanking
                 }}
                 style={{
                   padding: '5px 12px',
-                  borderRadius: '8px',
-                  border: isSel ? `1.5px solid ${tab.border}` : '1.5px solid #e2e8f0',
-                  backgroundColor: isSel ? tab.bg : '#ffffff',
-                  color: isSel ? tab.text : '#475569',
+                  borderRadius: '6px',
+                  border: isSel ? `1px solid ${tab.color}` : '1px solid #e2e8f0',
+                  backgroundColor: isSel ? tab.color : '#ffffff',
+                  color: isSel ? '#ffffff' : '#475569',
                   fontSize: '12px',
-                  fontWeight: 600,
+                  fontWeight: isSel ? 700 : 500,
                   cursor: 'pointer',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  transition: 'background-color 0.15s ease, border-color 0.15s ease',
+                  boxShadow: isSel ? `0 2px 5px ${tab.color}35` : 'none',
+                  transition: 'all 0.15s ease',
                 }}
               >
                 {tab.icon && <span style={{ fontSize: '11px' }}>{tab.icon}</span>}
@@ -578,15 +583,15 @@ export function PersonnelRankingTable({ metrics, departments }: PersonnelRanking
                             )}
                           </div>
 
-                          {/* Visual 5-mission distribution bar (Pastel Tones) */}
+                          {/* Visual 5-mission distribution bar */}
                           {hasWorks && (
                             <div
                               style={{
                                 display: 'flex',
-                                height: '6px',
-                                borderRadius: '999px',
+                                height: '5px',
+                                borderRadius: '3px',
                                 overflow: 'hidden',
-                                backgroundColor: '#f1f5f9',
+                                backgroundColor: '#e2e8f0',
                                 marginTop: '6px',
                                 maxWidth: '180px',
                               }}
@@ -596,7 +601,7 @@ export function PersonnelRankingTable({ metrics, departments }: PersonnelRanking
                                 <div
                                   style={{
                                     width: `${(item.counts.research / item.counts.total) * 100}%`,
-                                    backgroundColor: '#86EFAC',
+                                    backgroundColor: '#00A651',
                                   }}
                                 />
                               )}
@@ -604,7 +609,7 @@ export function PersonnelRankingTable({ metrics, departments }: PersonnelRanking
                                 <div
                                   style={{
                                     width: `${(item.counts.publications / item.counts.total) * 100}%`,
-                                    backgroundColor: '#FDA4AF',
+                                    backgroundColor: '#e11d48',
                                   }}
                                 />
                               )}
@@ -612,7 +617,7 @@ export function PersonnelRankingTable({ metrics, departments }: PersonnelRanking
                                 <div
                                   style={{
                                     width: `${(item.counts.ip / item.counts.total) * 100}%`,
-                                    backgroundColor: '#C4B5FD',
+                                    backgroundColor: '#7c3aed',
                                   }}
                                 />
                               )}
@@ -620,7 +625,7 @@ export function PersonnelRankingTable({ metrics, departments }: PersonnelRanking
                                 <div
                                   style={{
                                     width: `${(item.counts.academic / item.counts.total) * 100}%`,
-                                    backgroundColor: '#93C5FD',
+                                    backgroundColor: '#0284c7',
                                   }}
                                 />
                               )}
@@ -628,7 +633,7 @@ export function PersonnelRankingTable({ metrics, departments }: PersonnelRanking
                                 <div
                                   style={{
                                     width: `${(item.counts.service / item.counts.total) * 100}%`,
-                                    backgroundColor: '#FDE68A',
+                                    backgroundColor: '#d97706',
                                   }}
                                 />
                               )}
@@ -687,9 +692,14 @@ export function PersonnelRankingTable({ metrics, departments }: PersonnelRanking
                             borderRadius: '6px',
                             fontSize: '12px',
                           }}
-                          title={`ควอไทล์ 1-2: ${item.pubQuartiles.q1 + item.pubQuartiles.q2} เรื่อง`}
+                          title={`Q1/Q2: ${item.pubQuartiles.q1 + item.pubQuartiles.q2} เรื่อง`}
                         >
                           {item.counts.publications}
+                          {item.pubQuartiles.q1 > 0 && (
+                            <span style={{ fontSize: '10px', color: '#be123c', marginLeft: '3px' }}>
+                              (Q1)
+                            </span>
+                          )}
                         </span>
                       ) : (
                         <span style={{ color: '#cbd5e1' }}>-</span>

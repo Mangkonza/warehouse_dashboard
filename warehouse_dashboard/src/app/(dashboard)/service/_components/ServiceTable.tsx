@@ -125,10 +125,10 @@ export function ServiceTable({
               cursor: 'pointer',
               transition: 'all 0.15s ease',
             }}
-            title="ส่งออกรายงานในรูปแบบตาราง"
+            title="ส่งออกรายงานในรูปแบบ CSV / Excel"
           >
             <FaFileExcel style={{ color: '#059669' }} />
-            <span>ส่งออกไฟล์ตาราง</span>
+            <span>ส่งออก Excel</span>
           </button>
 
           {selectedType !== 'all' && onTypeChange && (
@@ -169,6 +169,29 @@ export function ServiceTable({
               className="w-[175px]"
             />
           )}
+
+          {hasActiveFilter && (
+            <button
+              type="button"
+              onClick={() => {
+                onSearchChange('');
+                if (onDeptChange) onDeptChange('all');
+                if (onTypeChange) onTypeChange('all');
+              }}
+              style={{
+                padding: '6px 12px',
+                borderRadius: '8px',
+                border: '1px solid #fed7aa',
+                backgroundColor: '#fffbeb',
+                color: '#b45309',
+                fontSize: '12px',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              ล้างตัวกรอง
+            </button>
+          )}
         </div>
       </div>
 
@@ -183,7 +206,7 @@ export function ServiceTable({
               <th>ชื่อ - นามสกุล ผู้ให้บริการ</th>
               <th style={{ width: '110px', textAlign: 'left' }}>ภาควิชา/ศูนย์</th>
               <th>กลุ่มเป้าหมายผู้รับบริการ</th>
-              <th style={{ width: '160px', textAlign: 'center' }}>ยุทธศาสตร์และความยั่งยืน</th>
+              <th style={{ width: '160px', textAlign: 'center' }}>ยุทธศาสตร์ (ISEE / IAM / SDGs)</th>
             </tr>
           </thead>
           <tbody>

@@ -87,9 +87,9 @@ export function AcademicTable({
               cursor: 'pointer',
               marginLeft: '8px',
             }}
-            title="ส่งออกไฟล์สรุปข้อมูลตาราง"
+            title="ส่งออกไฟล์สรุปข้อมูล CSV"
           >
-            <FaDownload style={{ fontSize: '11px' }} /> ส่งออกไฟล์ตาราง
+            <FaDownload style={{ fontSize: '11px' }} /> Export CSV
           </button>
         </div>
 
@@ -103,23 +103,43 @@ export function AcademicTable({
                 padding: '5px 10px',
                 borderRadius: '8px',
                 backgroundColor: '#eff6ff',
-                border: '1px solid #7dd3fc',
-                color: '#0369a1',
+                border: '1px solid #0284c7',
+                color: '#0284c7',
                 fontSize: '12px',
                 fontWeight: 600,
               }}
             >
-              <span>ผู้ว่าจ้าง: {selectedClient}</span>
+              <span>ลูกค้า: {selectedClient}</span>
               <FaTimes style={{ cursor: 'pointer' }} onClick={() => onClientChange('all')} />
             </span>
           )}
           <SearchInput
-            placeholder="ค้นหาชื่อโครงการ, หัวหน้า, ผู้ว่าจ้าง..."
+            placeholder="ค้นหาชื่อโครงการ, หัวหน้า, ลูกค้า..."
             value={searchTerm}
             onChange={onSearchChange}
             width="240px"
             style={{ padding: '6px 10px' }}
           />
+          {hasActiveFilter && (
+            <button
+              type="button"
+              onClick={() => {
+                onSearchChange('');
+                if (onClientChange) onClientChange('all');
+              }}
+              style={{
+                padding: '6px 12px',
+                borderRadius: '8px',
+                border: '1px solid #fca5a5',
+                backgroundColor: '#fee2e2',
+                color: '#b91c1c',
+                fontSize: '12px',
+                cursor: 'pointer',
+              }}
+            >
+              ล้างตัวกรอง
+            </button>
+          )}
         </div>
       </div>
 

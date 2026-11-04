@@ -3,7 +3,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { useTimeFilter, TimeFilterBar } from '@/features/time-filter';
-import { PastelIllustratedKpiCard } from '@/components/ui';
+import { KpiGrid } from '@/components/data-display';
 import { usePersonnelData } from '../_hooks/usePersonnelData';
 import { PersonnelCharts } from './PersonnelCharts';
 import { PersonnelRankingTable } from './PersonnelRankingTable';
@@ -91,44 +91,35 @@ export function PersonnelView() {
         totalCount={totalCombinedWorks}
       />
 
-      {/* 3. Core Strategic KPI Cards (Pastel Illustrated) */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
-          gap: '14px',
-        }}
-      >
-        <PastelIllustratedKpiCard
-          label="บุคลากรทั้งหมดในระบบ"
-          value={`${totalFacultyCount} คน`}
-          subtitle={`ครอบคลุม ${departmentStats.length} ภาควิชาและหน่วยงาน`}
-          variant="peach-people"
-          badgeText="บุคลากรรวม"
-        />
-        <PastelIllustratedKpiCard
-          label="อาจารย์ที่มีผลงานในรอบเวลา"
-          value={`${activeFacultyCount} คน`}
-          subtitle={`คิดเป็น ${activePercentage}% ของบุคลากรทั้งหมด`}
-          variant="emerald-award"
-          badgeText={`${activePercentage}% ของคณะ`}
-          progressPercent={activePercentage}
-        />
-        <PastelIllustratedKpiCard
-          label="ผลงานสะสมรวม 5 ด้าน"
-          value={`${totalCombinedWorks} รายการ`}
-          subtitle="วิจัย • ตีพิมพ์ • สิทธิบัตร • พัฒนาวิชาการ • บริการ"
-          variant="sky-blueprint"
-          badgeText="5 พันธกิจหลัก"
-        />
-        <PastelIllustratedKpiCard
-          label="งบประมาณโครงการรวมที่สร้าง"
-          value={`${budgetMillions} ล้านบาท`}
-          subtitle={`${totalCombinedBudget.toLocaleString('th-TH')} บาท`}
-          variant="mint-coins"
-          badgeText="งบสะสมรวม"
-        />
-      </div>
+      {/* 3. Core Strategic KPI Cards */}
+      <KpiGrid
+        items={[
+          {
+            label: 'บุคลากรทั้งหมดในระบบ',
+            value: `${totalFacultyCount} คน`,
+            subtext: `ครอบคลุม ${departmentStats.length} ภาควิชา/หน่วยงาน`,
+            accentColor: '#0f766e',
+          },
+          {
+            label: 'อาจารย์ที่มีผลงานในรอบเวลา',
+            value: `${activeFacultyCount} คน`,
+            subtext: `คิดเป็น ${activePercentage}% ของบุคลากรทั้งหมด`,
+            accentColor: '#00A651',
+          },
+          {
+            label: 'ผลงานสะสมรวม 5 ด้าน',
+            value: `${totalCombinedWorks} รายการ`,
+            subtext: 'วิจัย • ตีพิมพ์ • สิทธิบัตร • พัฒนาวิชาการ • บริการ',
+            accentColor: '#0284c7',
+          },
+          {
+            label: 'งบประมาณโครงการรวมที่สร้าง',
+            value: `${budgetMillions} ล้านบาท`,
+            subtext: `${totalCombinedBudget.toLocaleString('th-TH')} บาท`,
+            accentColor: '#d97706',
+          },
+        ]}
+      />
 
       {/* 4. Strategic Performance Charts */}
       <PersonnelCharts

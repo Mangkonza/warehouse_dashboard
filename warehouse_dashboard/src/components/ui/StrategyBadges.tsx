@@ -57,9 +57,9 @@ export function StrategyBadges({ sdgs, isee, iam, item, category, compact = fals
             fontSize: '10.5px',
             fontWeight: 600,
           }}
-          title={`เป้าหมายความยั่งยืนที่ ${s}`}
+          title={`เป้าหมายความยั่งยืน: SDG ${s}`}
         >
-          เป้าหมายที่ {String(s).replace(/SDG\s*/i, '')}
+          SDG {s}
         </span>
       ))}
 
@@ -76,9 +76,9 @@ export function StrategyBadges({ sdgs, isee, iam, item, category, compact = fals
             fontSize: '10.5px',
             fontWeight: 600,
           }}
-          title={`ยุทธศาสตร์มหาวิทยาลัย: ${displayIsee}`}
+          title={`ยุทธศาสตร์ ISEE: ${displayIsee}`}
         >
-          ยุทธศาสตร์: {displayIsee}
+          ISEE: {displayIsee}
         </span>
       )}
 
@@ -95,9 +95,9 @@ export function StrategyBadges({ sdgs, isee, iam, item, category, compact = fals
             fontSize: '10.5px',
             fontWeight: 600,
           }}
-          title={`ค่านิยมองค์กร: ${displayIam}`}
+          title={`ค่านิยม IAM: ${displayIam}`}
         >
-          ค่านิยม: {displayIam}
+          IAM: {displayIam}
         </span>
       )}
     </div>

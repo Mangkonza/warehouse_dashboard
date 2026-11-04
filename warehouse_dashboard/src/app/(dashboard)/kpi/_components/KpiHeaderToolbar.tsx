@@ -30,14 +30,13 @@ export function KpiHeaderToolbar({ timeFilter, isRefreshing, onRefresh }: KpiHea
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-        <h1 style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a', margin: 0 }}>
-          ตัวชี้วัดตามแผนยุทธศาสตร์คณะวิศวกรรมศาสตร์
+        <h1 style={{ fontSize: '19px', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+          ตัวชี้วัดตามแผนยุทธศาสตร์ (KPI)
         </h1>
         <span
           style={{
-            backgroundColor: '#ecfdf5',
-            color: '#047857',
-            border: '1px solid #a7f3d0',
+            backgroundColor: '#e8f5e9',
+            color: '#007a3e',
             padding: '3px 10px',
             borderRadius: '16px',
             fontSize: '12px',
@@ -62,14 +61,14 @@ export function KpiHeaderToolbar({ timeFilter, isRefreshing, onRefresh }: KpiHea
             borderRadius: '8px',
             color: '#334155',
             fontSize: '13px',
-            fontWeight: 600,
+            fontWeight: 500,
             cursor: isRefreshing ? 'not-allowed' : 'pointer',
             transition: 'all 0.15s ease',
           }}
-          title="ดึงข้อมูลล่าสุดจากฐานข้อมูล"
+          title="ดึงข้อมูลล่าสุดจากเซิร์ฟเวอร์ฐานข้อมูล"
         >
           <FaSyncAlt style={{ animation: isRefreshing ? 'spin 1s linear infinite' : 'none', fontSize: '12px' }} />
-          <span>{isRefreshing ? 'กำลังปรับปรุง...' : 'รีเฟรชข้อมูล'}</span>
+          <span>{isRefreshing ? 'กำลังอัปเดต...' : 'รีเฟรชข้อมูล DB'}</span>
         </button>
       </div>
     </div>
