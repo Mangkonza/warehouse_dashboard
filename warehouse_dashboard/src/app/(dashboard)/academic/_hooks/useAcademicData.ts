@@ -35,7 +35,7 @@ export function useAcademicData(timeFilter?: TimeFilterState) {
   const [selectedClient, setSelectedClient] = useState('all');
   const [selectedDept, setSelectedDept] = useState('all');
   const [selectedMonth, setSelectedMonth] = useState('all');
-  const [hideMissingClient, setHideMissingClient] = useState(true);
+  const [hideMissingClient, setHideMissingClient] = useState(false);
   const [strategicFilter, setStrategicFilter] = useState('all');
 
   const [dataList, setDataList] = useState<AcademicItem[]>(() => {
