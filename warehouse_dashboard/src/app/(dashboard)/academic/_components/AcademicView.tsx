@@ -6,7 +6,7 @@ import { useAcademicData } from '../_hooks/useAcademicData';
 import { AcademicCharts } from './AcademicCharts';
 import { AcademicTable } from './AcademicTable';
 import { DepartmentSelect, StrategicFilterSelect } from '@/components/ui';
-import { FaGraduationCap, FaHandHoldingUsd, FaTrophy, FaUserTie } from 'react-icons/fa';
+import { PastelIllustratedKpiCard } from '@/components/ui/PastelIllustratedKpiCard';
 
 export function AcademicView() {
   const { timeFilter, setTimeFilter, resetTimeFilter } = useTimeFilter();
@@ -62,223 +62,151 @@ export function AcademicView() {
           top: '50px',
           zIndex: 40,
           backdropFilter: 'blur(12px)',
-          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+          backgroundColor: 'rgba(255, 255, 255, 0.96)',
           border: '1px solid #e2e8f0',
           padding: '10px 16px',
           borderRadius: '16px',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
+          boxShadow: '0 4px 16px rgba(15, 23, 42, 0.05)',
           display: 'flex',
           flexWrap: 'wrap',
           alignItems: 'center',
-          gap: '8px',
+          justifyContent: 'space-between',
+          gap: '10px',
         }}
       >
-        <TimeFilterBar
-          value={timeFilter}
-          onChange={setTimeFilter}
-          onReset={resetTimeFilter}
-          totalCount={validData.length}
-        />
-
-        <DepartmentSelect
-          value={selectedDept}
-          onChange={setSelectedDept}
-          allowAll
-          allLabel="ทุกภาควิชา / ศูนย์"
-          allValue="all"
-          size="sm"
-          className="w-[170px]"
-        />
-
-        {/* Month Filter */}
-        <select
-          value={selectedMonth}
-          onChange={(e) => setSelectedMonth(e.target.value)}
-          style={{
-            padding: '5px 10px',
-            borderRadius: '9px',
-            border: '1px solid #e2e8f0',
-            backgroundColor: '#ffffff',
-            fontSize: '12px',
-            color: '#334155',
-            cursor: 'pointer',
-            outline: 'none',
-            height: '32px',
-            boxSizing: 'border-box',
-          }}
-          aria-label="เลือกเดือนดำเนินงาน"
-        >
-          <option value="all">ทุกเดือน (ม.ค. - ธ.ค.)</option>
-          {MONTHS.map((m) => (
-            <option key={m} value={m}>
-              เดือน {m}
-            </option>
-          ))}
-          <option value="ไม่ระบุ">ไม่ระบุเดือน</option>
-        </select>
-
-        {/* Standard Touchpoint: Strategic Filter (ต่อหลังตัวกรองก่อนหน้าทันที) */}
-        <StrategicFilterSelect
-          value={strategicFilter}
-          onChange={setStrategicFilter}
-        />
-
-        {/* Checkbox: Hide missing client */}
-        <label
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            fontSize: '12px',
-            color: '#475569',
-            cursor: 'pointer',
-            userSelect: 'none',
-            padding: '4px 8px',
-            borderRadius: '8px',
-            backgroundColor: hideMissingClient ? '#f0f9ff' : 'transparent',
-            border: hideMissingClient ? '1px solid #bae6fd' : '1px solid transparent',
-            height: '32px',
-            boxSizing: 'border-box',
-            marginLeft: 'auto',
-          }}
-        >
-          <input
-            type="checkbox"
-            checked={hideMissingClient}
-            onChange={(e) => setHideMissingClient(e.target.checked)}
-            style={{ cursor: 'pointer', accentColor: '#0ea5e9' }}
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
+          <TimeFilterBar
+            value={timeFilter}
+            onChange={setTimeFilter}
+            onReset={resetTimeFilter}
+            totalCount={validData.length}
           />
-          <span>ซ่อนไม่ระบุลูกค้า</span>
-        </label>
+
+          <DepartmentSelect
+            value={selectedDept}
+            onChange={setSelectedDept}
+            allowAll
+            allLabel="ทุกภาควิชา / ศูนย์"
+            allValue="all"
+            size="sm"
+            className="w-[180px]"
+          />
+
+          {/* Month Filter */}
+          <select
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            style={{
+              padding: '0 12px',
+              borderRadius: '10px',
+              border: '1px solid #e2e8f0',
+              backgroundColor: '#ffffff',
+              fontSize: '12.5px',
+              fontWeight: 600,
+              color: '#334155',
+              cursor: 'pointer',
+              outline: 'none',
+              height: '36px',
+              minWidth: '150px',
+              boxSizing: 'border-box',
+            }}
+            aria-label="เลือกเดือนดำเนินงาน"
+          >
+            <option value="all">ทุกเดือน (ม.ค. - ธ.ค.)</option>
+            {MONTHS.map((m) => (
+              <option key={m} value={m}>
+                เดือน {m}
+              </option>
+            ))}
+            <option value="ไม่ระบุ">ไม่ระบุเดือน</option>
+          </select>
+        </div>
+
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
+          <StrategicFilterSelect
+            value={strategicFilter}
+            onChange={setStrategicFilter}
+          />
+
+          {/* Checkbox: Hide missing client */}
+          <label
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              fontSize: '12.5px',
+              fontWeight: 600,
+              color: hideMissingClient ? '#0369a1' : '#475569',
+              cursor: 'pointer',
+              userSelect: 'none',
+              padding: '0 12px',
+              borderRadius: '10px',
+              backgroundColor: hideMissingClient ? '#e0f2fe' : '#f8fafc',
+              border: `1px solid ${hideMissingClient ? '#7dd3fc' : '#e2e8f0'}`,
+              height: '36px',
+              boxSizing: 'border-box',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={hideMissingClient}
+              onChange={(e) => setHideMissingClient(e.target.checked)}
+              style={{ cursor: 'pointer', accentColor: '#38bdf8' }}
+            />
+            <span>ซ่อนรายการไม่ระบุผู้ว่าจ้าง</span>
+          </label>
+        </div>
       </div>
 
-      {/* ZONE 2: Executive Bento KPI Grid (Sky Pastel Glow) */}
+      {/* ZONE 2: Decorative Pastel Illustrated KPI Cards */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
           gap: '16px',
         }}
       >
-        {/* Card 1: Total Volume */}
-        <div
-          style={{
-            backgroundColor: '#ffffff',
-            borderRadius: '20px',
-            padding: '20px',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 2px 10px rgba(14, 165, 233, 0.06)',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}>มูลค่าสัญญาพัฒนารวม</span>
-            <div style={{ width: '32px', height: '32px', borderRadius: '10px', backgroundColor: '#f0f9ff', color: '#0ea5e9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <FaGraduationCap style={{ fontSize: '15px' }} />
-            </div>
-          </div>
-          <div style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.5px' }}>
-            {budgetMillions} <span style={{ fontSize: '16px', fontWeight: 600, color: '#64748b' }}>ล้านบาท</span>
-          </div>
-          <div style={{ marginTop: '8px', fontSize: '12px', color: '#0369a1', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ padding: '2px 6px', borderRadius: '6px', backgroundColor: '#f0f9ff', border: '1px solid #bae6fd', fontWeight: 600 }}>
-              {validData.length} โครงการ
-            </span>
-            <span style={{ color: '#94a3b8' }}>•</span>
-            <span style={{ color: '#64748b' }}>{uniqueClients.size} องค์กรผู้ว่าจ้าง</span>
-          </div>
-        </div>
+        <PastelIllustratedKpiCard
+          variant="sky-blueprint"
+          label="มูลค่าสัญญาพัฒนารวม"
+          value={budgetMillions}
+          unit="ล้านบาท"
+          badgeText={`${validData.length} โครงการ`}
+          progressPercent={85}
+          subtitle={`ครอบคลุม ${uniqueClients.size} องค์กรผู้ว่าจ้าง`}
+        />
 
-        {/* Card 2: 15% Allocated Revenue */}
-        <div
-          style={{
-            backgroundColor: '#ffffff',
-            borderRadius: '20px',
-            padding: '20px',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 2px 10px rgba(16, 185, 129, 0.06)',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}>รายได้จัดสรรสุทธิ (15%)</span>
-            <div style={{ width: '32px', height: '32px', borderRadius: '10px', backgroundColor: '#ecfdf5', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <FaHandHoldingUsd style={{ fontSize: '15px' }} />
-            </div>
-          </div>
-          <div style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.5px' }}>
-            {allocMillions} <span style={{ fontSize: '16px', fontWeight: 600, color: '#64748b' }}>ล้านบาท</span>
-          </div>
-          <div style={{ marginTop: '8px', fontSize: '12px', color: '#059669', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ padding: '2px 6px', borderRadius: '6px', backgroundColor: '#ecfdf5', border: '1px solid #a7f3d0', fontWeight: 600 }}>
-              คณะ {facMillions} ลบ.
-            </span>
-            <span style={{ color: '#94a3b8' }}>•</span>
-            <span style={{ color: '#64748b' }}>ภาควิชา {depMillions} ลบ. • มหาวิทยาลัย {kuMillions} ลบ.</span>
-          </div>
-        </div>
+        <PastelIllustratedKpiCard
+          variant="mint-coins"
+          label="รายได้จัดสรรสุทธิ (ร้อยละ 15)"
+          value={allocMillions}
+          unit="ล้านบาท"
+          badgeText={`คณะ ${facMillions} ลบ.`}
+          progressPercent={72}
+          subtitle={`ภาควิชา ${depMillions} ลบ. • มหาวิทยาลัย ${kuMillions} ลบ.`}
+        />
 
-        {/* Card 3: Average Project Value */}
-        <div
-          style={{
-            backgroundColor: '#ffffff',
-            borderRadius: '20px',
-            padding: '20px',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 2px 10px rgba(245, 158, 11, 0.06)',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}>มูลค่าเฉลี่ยต่อโครงการ</span>
-            <div style={{ width: '32px', height: '32px', borderRadius: '10px', backgroundColor: '#fffbeb', color: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <FaTrophy style={{ fontSize: '15px' }} />
-            </div>
-          </div>
-          <div style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.5px' }}>
-            {avgMillions} <span style={{ fontSize: '16px', fontWeight: 600, color: '#64748b' }}>ล้านบาท</span>
-          </div>
-          <div style={{ marginTop: '8px', fontSize: '12px', color: '#b45309', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ padding: '2px 6px', borderRadius: '6px', backgroundColor: '#fffbeb', border: '1px solid #fde68a', fontWeight: 600 }}>
-              สูงสุด: {maxMillions} ลบ.
-            </span>
-            <span style={{ color: '#94a3b8' }}>•</span>
-            <span style={{ color: '#64748b' }}>ระบุผู้ว่าจ้างแล้ว {specifiedClientsCount} หน่วยงาน</span>
-          </div>
-        </div>
+        <PastelIllustratedKpiCard
+          variant="amber-spark"
+          label="มูลค่าเฉลี่ยต่อโครงการ"
+          value={avgMillions}
+          unit="ล้านบาท"
+          badgeText={`สูงสุด ${maxMillions} ลบ.`}
+          progressPercent={65}
+          subtitle={`ระบุผู้ว่าจ้างชัดเจนแล้ว ${specifiedClientsCount} หน่วยงาน`}
+        />
 
-        {/* Card 4: Active PIs */}
-        <div
-          style={{
-            backgroundColor: '#ffffff',
-            borderRadius: '20px',
-            padding: '20px',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 2px 10px rgba(139, 92, 246, 0.06)',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}>หัวหน้าโครงการ</span>
-            <div style={{ width: '32px', height: '32px', borderRadius: '10px', backgroundColor: '#f5f3ff', color: '#8b5cf6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <FaUserTie style={{ fontSize: '15px' }} />
-            </div>
-          </div>
-          <div style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.5px' }}>
-            {uniqueHeads.size} <span style={{ fontSize: '16px', fontWeight: 600, color: '#64748b' }}>ท่าน</span>
-          </div>
-          <div style={{ marginTop: '8px', fontSize: '12px', color: '#6d28d9', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ padding: '2px 6px', borderRadius: '6px', backgroundColor: '#f5f3ff', border: '1px solid #ddd6fe', fontWeight: 600 }}>
-              งบดำเนินงาน 85%
-            </span>
-            <span style={{ color: '#94a3b8' }}>•</span>
-            <span style={{ color: '#64748b' }}>{remMillions} ล้านบาท</span>
-          </div>
-        </div>
+        <PastelIllustratedKpiCard
+          variant="peach-people"
+          label="หัวหน้าโครงการพัฒนาวิชาการ"
+          value={uniqueHeads.size}
+          unit="ท่าน"
+          badgeText="งบดำเนินงานร้อยละ 85"
+          progressPercent={85}
+          subtitle={`วงเงินดำเนินงานโครงการรวม ${remMillions} ล้านบาท`}
+        />
       </div>
 
       {/* ZONE 3: Academic Charts (Monthly Trend, Dept Breakdown, Top Clients, SDGs/ISEE/IAM) */}

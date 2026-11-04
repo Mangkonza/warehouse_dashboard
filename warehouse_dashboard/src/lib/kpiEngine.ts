@@ -4,7 +4,7 @@ import { isTestRecord } from './sdgEngine';
 
 export { DEFAULT_KPIS, ENGINEERING_DEPARTMENTS };
 
-const STORAGE_KEY = 'ku_warehouse_dynamic_kpis_v3';
+const STORAGE_KEY = 'ku_warehouse_dynamic_kpis_v4';
 
 export const parseNumber = (val: any): number => {
   if (typeof val === 'number') return isNaN(val) ? 0 : val;
@@ -219,7 +219,7 @@ export const evaluateKPI = (kpi: KPIItem, datasets: Record<string, any[]>): KPIC
   let currentValue = 0;
   const details: KPIComputedResult['details'] = {
     matchCount: finalMatchedProjects.length,
-    sampleMatches: finalMatchedProjects.slice(0, 5),
+    sampleMatches: finalMatchedProjects,
   };
 
   if (kpi.calcType === 'auto_sum') {
@@ -227,7 +227,7 @@ export const evaluateKPI = (kpi: KPIItem, datasets: Record<string, any[]>): KPIC
     currentValue = finalMatchedProjects.reduce((acc, cur) => acc + parseNumber(cur[field]), 0);
     const contributing = finalMatchedProjects.filter((cur) => parseNumber(cur[field]) > 0);
     details.matchCount = contributing.length > 0 ? contributing.length : finalMatchedProjects.length;
-    details.sampleMatches = contributing.length > 0 ? contributing.slice(0, 5) : finalMatchedProjects.slice(0, 5);
+    details.sampleMatches = contributing.length > 0 ? contributing : finalMatchedProjects;
   } else if (kpi.calcType === 'auto_completeness') {
     const expected = kpi.completenessExpected || ENGINEERING_DEPARTMENTS;
     const field = kpi.completenessField || 'department';
@@ -247,7 +247,7 @@ export const evaluateKPI = (kpi: KPIItem, datasets: Record<string, any[]>): KPIC
     details.completedDepartments = Array.from(presentDepts);
     details.missingDepartments = expected.filter((d) => !presentDepts.has(d));
     details.matchCount = finalMatchedProjects.length;
-    details.sampleMatches = finalMatchedProjects.slice(0, 5);
+    details.sampleMatches = finalMatchedProjects;
   } else if (kpi.calcType === 'manual') {
     currentValue = kpi.manualProgress ?? 0;
     details.sampleMatches = [];

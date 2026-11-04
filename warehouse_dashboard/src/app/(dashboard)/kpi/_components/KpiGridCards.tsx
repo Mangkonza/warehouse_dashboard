@@ -59,6 +59,15 @@ export function KpiGridCards({ filteredKPIs, expandedId, onToggleExpand }: KpiGr
       {filteredKPIs.map((item) => {
         const { kpi, currentValue, targetValue, percentage, status, statusLabel, statusColor, details } = item;
         const isExpanded = expandedId === kpi.id;
+        const matchedList = item.matchedProjects || details?.sampleMatches || [];
+        const pastelBarColor =
+          status === 'achieved'
+            ? '#86EFAC'
+            : status === 'on_track'
+            ? '#93C5FD'
+            : status === 'at_risk'
+            ? '#FDE68A'
+            : '#FDA4AF';
 
         return (
           <div
@@ -173,13 +182,13 @@ export function KpiGridCards({ filteredKPIs, expandedId, onToggleExpand }: KpiGr
                   </div>
                 </div>
 
-                {/* Progress Bar */}
+                {/* Progress Bar (Pastel Tone) */}
                 <div
                   style={{
                     width: '100%',
-                    height: '9px',
+                    height: '10px',
                     backgroundColor: '#f1f5f9',
-                    borderRadius: '6px',
+                    borderRadius: '999px',
                     overflow: 'hidden',
                     position: 'relative',
                     marginTop: '8px',
@@ -189,8 +198,8 @@ export function KpiGridCards({ filteredKPIs, expandedId, onToggleExpand }: KpiGr
                     style={{
                       width: `${Math.min(percentage, 100)}%`,
                       height: '100%',
-                      backgroundColor: statusColor,
-                      borderRadius: '6px',
+                      backgroundColor: pastelBarColor,
+                      borderRadius: '999px',
                       transition: 'width 0.5s ease',
                     }}
                   />
@@ -241,14 +250,14 @@ export function KpiGridCards({ filteredKPIs, expandedId, onToggleExpand }: KpiGr
                             minWidth: '56px',
                             padding: '3px 12px',
                             borderRadius: '9999px',
-                            fontSize: '12.5px',
-                            fontWeight: 500,
+                            fontSize: '12px',
+                            fontWeight: 600,
                             backgroundColor: '#f1f5f9',
-                            color: '#94a3b8',
+                            color: '#64748b',
                             border: '1px solid #e2e8f0',
                           }}
                         >
-                          {getDepartment(dept).code}
+                          {dept}
                         </span>
                       );
                     })}
@@ -300,7 +309,7 @@ export function KpiGridCards({ filteredKPIs, expandedId, onToggleExpand }: KpiGr
                   <span />
                 )}
 
-                {details?.sampleMatches && details.sampleMatches.length > 0 && (
+                {matchedList.length > 0 && (
                   <button
                     type="button"
                     onClick={() => setDrillDownItem(item)}
@@ -309,17 +318,17 @@ export function KpiGridCards({ filteredKPIs, expandedId, onToggleExpand }: KpiGr
                       alignItems: 'center',
                       gap: '5px',
                       padding: '4px 10px',
-                      borderRadius: '6px',
-                      border: '1px solid #00A651',
-                      backgroundColor: '#f0fbf5',
-                      color: '#006838',
+                      borderRadius: '8px',
+                      border: '1px solid #6EE7B7',
+                      backgroundColor: '#ECFDF5',
+                      color: '#065F46',
                       fontSize: '11.5px',
                       fontWeight: 700,
                       cursor: 'pointer',
                     }}
                   >
                     <FaListUl size={11} />
-                    <span>ดูรายการผลงานจริง ({details.sampleMatches.length})</span>
+                    <span>ดูรายการผลงานจริง ({matchedList.length} รายการ)</span>
                   </button>
                 )}
               </div>
@@ -353,9 +362,9 @@ export function KpiGridCards({ filteredKPIs, expandedId, onToggleExpand }: KpiGr
             ? `ผลงานปัจจุบัน ${formatValue(drillDownItem.currentValue, drillDownItem.kpi.unit)} / เป้าหมาย ${formatValue(drillDownItem.targetValue, drillDownItem.kpi.unit)} (${drillDownItem.percentage}%)`
             : ''
         }
-        accentColor={drillDownItem?.statusColor || '#00A651'}
+        accentColor={drillDownItem?.statusColor || '#34D399'}
         categoryKey={(drillDownItem?.kpi.datasetKey as CategoryKey) || 'research'}
-        items={drillDownItem?.details?.sampleMatches || []}
+        items={drillDownItem?.matchedProjects || drillDownItem?.details?.sampleMatches || []}
       />
     </div>
   );

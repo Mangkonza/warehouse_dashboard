@@ -93,9 +93,9 @@ export function ResearchTable({
               cursor: 'pointer',
               marginLeft: '8px',
             }}
-            title="ส่งออกไฟล์สรุปข้อมูล CSV"
+            title="ส่งออกไฟล์สรุปข้อมูลตาราง"
           >
-            <FaDownload style={{ fontSize: '11px' }} /> Export CSV
+            <FaDownload style={{ fontSize: '11px' }} /> ส่งออกไฟล์ตาราง
           </button>
         </div>
 
@@ -109,7 +109,7 @@ export function ResearchTable({
                 padding: '5px 10px',
                 borderRadius: '8px',
                 backgroundColor: '#f0fbf5',
-                border: '1px solid #10b981',
+                border: '1px solid #6ee7b7',
                 color: '#047857',
                 fontSize: '12px',
                 fontWeight: 600,
@@ -126,26 +126,6 @@ export function ResearchTable({
             width="240px"
             style={{ padding: '6px 10px' }}
           />
-          {hasActiveFilter && (
-            <button
-              type="button"
-              onClick={() => {
-                onSearchChange('');
-                if (onFundChange) onFundChange('all');
-              }}
-              style={{
-                padding: '6px 12px',
-                borderRadius: '8px',
-                border: '1px solid #fca5a5',
-                backgroundColor: '#fee2e2',
-                color: '#b91c1c',
-                fontSize: '12px',
-                cursor: 'pointer',
-              }}
-            >
-              ล้างตัวกรอง
-            </button>
-          )}
         </div>
       </div>
 

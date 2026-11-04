@@ -42,25 +42,25 @@ export const StrategicAlignmentMatrix: React.FC<StrategicAlignmentMatrixProps> =
     items: [],
   });
 
-  // Calculate ISEE & IAM metrics dynamically
+  // Calculate strategic alignment & core value metrics dynamically
   const { iseeStats, iamStats, totalValidCount, totalBudget } = useMemo(() => {
     const iseeMap: Record<
       'I' | 'S' | 'E1' | 'E2',
-      { id: 'I' | 'S' | 'E1' | 'E2'; label: string; code: string; color: string; bg: string; count: number; budget: number; items: any[] }
+      { id: 'I' | 'S' | 'E1' | 'E2'; badge: string; label: string; code: string; color: string; barColor: string; bg: string; count: number; budget: number; items: any[] }
     > = {
-      I: { id: 'I', label: 'I - ความเป็นนานาชาติ', code: 'Internationalization', color: '#F43F5E', bg: '#FFF1F2', count: 0, budget: 0, items: [] },
-      S: { id: 'S', label: 'S - รับใช้สังคมและความยั่งยืน', code: 'Social Responsibility', color: '#F59E0B', bg: '#FFFBEB', count: 0, budget: 0, items: [] },
-      E1: { id: 'E1', label: 'E - ความเป็นเลิศทางวิจัย', code: 'Excellence in Research', color: '#10B981', bg: '#ECFDF5', count: 0, budget: 0, items: [] },
-      E2: { id: 'E2', label: 'E - ผู้ประกอบการและดิจิทัล', code: 'Entrepreneurship & Digital', color: '#0EA5E9', bg: '#F0F9FF', count: 0, budget: 0, items: [] },
+      I: { id: 'I', badge: 'ด้านที่ 1', label: 'ความเป็นนานาชาติและมาตรฐานสากล', code: 'นานาชาติ', color: '#e11d48', barColor: '#FDA4AF', bg: '#FFF1F2', count: 0, budget: 0, items: [] },
+      S: { id: 'S', badge: 'ด้านที่ 2', label: 'ความรับผิดชอบต่อสังคมและความยั่งยืน', code: 'เพื่อสังคม', color: '#d97706', barColor: '#FCD34D', bg: '#FFFBEB', count: 0, budget: 0, items: [] },
+      E1: { id: 'E1', badge: 'ด้านที่ 3', label: 'ความเป็นเลิศทางวิชาการและงานวิจัย', code: 'วิจัยเป็นเลิศ', color: '#059669', barColor: '#6EE7B7', bg: '#ECFDF5', count: 0, budget: 0, items: [] },
+      E2: { id: 'E2', badge: 'ด้านที่ 4', label: 'การเป็นผู้ประกอบการและนวัตกรรมดิจิทัล', code: 'นวัตกรรมดิจิทัล', color: '#0284c7', barColor: '#7DD3FC', bg: '#F0F9FF', count: 0, budget: 0, items: [] },
     };
 
     const iamMap: Record<
       'I' | 'A' | 'M',
-      { id: 'I' | 'A' | 'M'; label: string; code: string; color: string; bg: string; count: number; budget: number; items: any[] }
+      { id: 'I' | 'A' | 'M'; badge: string; label: string; code: string; color: string; barColor: string; bg: string; count: number; budget: number; items: any[] }
     > = {
-      I: { id: 'I', label: 'I - ความถูกต้องและจริยธรรม', code: 'Integrity', color: '#059669', bg: '#ECFDF5', count: 0, budget: 0, items: [] },
-      A: { id: 'A', label: 'A - ความคล่องตัวและการบริการ', code: 'Agility', color: '#0284C7', bg: '#F0F9FF', count: 0, budget: 0, items: [] },
-      M: { id: 'M', label: 'M - ความเป็นมืออาชีพ', code: 'Mastery', color: '#7C3AED', bg: '#F5F3FF', count: 0, budget: 0, items: [] },
+      I: { id: 'I', badge: 'หลักที่ 1', label: 'ความถูกต้อง โปร่งใส และมีจริยธรรม', code: 'จริยธรรม', color: '#059669', barColor: '#86EFAC', bg: '#ECFDF5', count: 0, budget: 0, items: [] },
+      A: { id: 'A', badge: 'หลักที่ 2', label: 'ความคล่องตัวและการบริการที่รวดเร็ว', code: 'ความคล่องตัว', color: '#0284c7', barColor: '#93C5FD', bg: '#F0F9FF', count: 0, budget: 0, items: [] },
+      M: { id: 'M', badge: 'หลักที่ 3', label: 'ความเชี่ยวชาญและความเป็นมืออาชีพ', code: 'มืออาชีพ', color: '#7c3aed', barColor: '#C4B5FD', bg: '#F5F3FF', count: 0, budget: 0, items: [] },
     };
 
     let totalB = 0;
@@ -132,7 +132,7 @@ export const StrategicAlignmentMatrix: React.FC<StrategicAlignmentMatrixProps> =
                 <FaChartBar style={{ fontSize: '15px' }} />
               </div>
               <h3 style={{ margin: 0, fontSize: '15.5px', fontWeight: 700, color: '#0f172a' }}>
-                ความสอดคล้องตามยุทธศาสตร์มหาวิทยาลัย (ISEE)
+                ความสอดคล้องตามยุทธศาสตร์มหาวิทยาลัย 4 เสาหลัก
               </h3>
             </div>
             <span
@@ -164,7 +164,7 @@ export const StrategicAlignmentMatrix: React.FC<StrategicAlignmentMatrixProps> =
                     if (pillar.items.length > 0) {
                       setDrawerState({
                         isOpen: true,
-                        title: `ยุทธศาสตร์ มก. ${pillar.label}`,
+                        title: `ยุทธศาสตร์มหาวิทยาลัย: ${pillar.label}`,
                         subtitle: `รวม ${pillar.count} ${unitLabel} (${pct}%) • งบประมาณ ${pillar.budget.toLocaleString('th-TH')} บาท`,
                         accentColor: pillar.color,
                         items: pillar.items,
@@ -185,20 +185,19 @@ export const StrategicAlignmentMatrix: React.FC<StrategicAlignmentMatrixProps> =
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span
                         style={{
-                          width: '24px',
-                          height: '24px',
+                          padding: '2px 7px',
                           borderRadius: '6px',
                           backgroundColor: pillar.bg,
                           color: pillar.color,
                           fontWeight: 700,
-                          fontSize: '11.5px',
+                          fontSize: '11px',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          border: `1px solid ${pillar.color}40`,
+                          border: `1px solid ${pillar.barColor}`,
                         }}
                       >
-                        {pillar.id}
+                        {pillar.badge}
                       </span>
                       <span style={{ fontSize: '13px', fontWeight: 600, color: '#1e293b' }}>
                         {pillar.label}
@@ -224,7 +223,7 @@ export const StrategicAlignmentMatrix: React.FC<StrategicAlignmentMatrixProps> =
                       style={{
                         width: `${pct}%`,
                         height: '100%',
-                        backgroundColor: pillar.color,
+                        backgroundColor: pillar.barColor,
                         borderRadius: '999px',
                         transition: 'width 0.4s ease',
                       }}
@@ -236,7 +235,7 @@ export const StrategicAlignmentMatrix: React.FC<StrategicAlignmentMatrixProps> =
           </div>
         </div>
 
-        {/* Box 2: IAM Core Values */}
+        {/* Box 2: Core Values */}
         <div
           style={{
             backgroundColor: '#ffffff',
@@ -265,7 +264,7 @@ export const StrategicAlignmentMatrix: React.FC<StrategicAlignmentMatrixProps> =
                 <FaAward style={{ fontSize: '15px' }} />
               </div>
               <h3 style={{ margin: 0, fontSize: '15.5px', fontWeight: 700, color: '#0f172a' }}>
-                การขับเคลื่อนตามค่านิยมองค์กร (IAM)
+                การขับเคลื่อนตามค่านิยมหลักขององค์กร
               </h3>
             </div>
             <span
@@ -297,7 +296,7 @@ export const StrategicAlignmentMatrix: React.FC<StrategicAlignmentMatrixProps> =
                     if (val.items.length > 0) {
                       setDrawerState({
                         isOpen: true,
-                        title: `ค่านิยมองค์กร ${val.label}`,
+                        title: `ค่านิยมองค์กร: ${val.label}`,
                         subtitle: `รวม ${val.count} ${unitLabel} (${pct}%) • งบประมาณ ${val.budget.toLocaleString('th-TH')} บาท`,
                         accentColor: val.color,
                         items: val.items,
@@ -318,20 +317,19 @@ export const StrategicAlignmentMatrix: React.FC<StrategicAlignmentMatrixProps> =
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span
                         style={{
-                          width: '24px',
-                          height: '24px',
+                          padding: '2px 7px',
                           borderRadius: '6px',
                           backgroundColor: val.bg,
                           color: val.color,
                           fontWeight: 700,
-                          fontSize: '11.5px',
+                          fontSize: '11px',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          border: `1px solid ${val.color}40`,
+                          border: `1px solid ${val.barColor}`,
                         }}
                       >
-                        {val.id}
+                        {val.badge}
                       </span>
                       <span style={{ fontSize: '13px', fontWeight: 600, color: '#1e293b' }}>
                         {val.label}
@@ -357,7 +355,7 @@ export const StrategicAlignmentMatrix: React.FC<StrategicAlignmentMatrixProps> =
                       style={{
                         width: `${pct}%`,
                         height: '100%',
-                        backgroundColor: val.color,
+                        backgroundColor: val.barColor,
                         borderRadius: '999px',
                         transition: 'width 0.4s ease',
                       }}
@@ -370,12 +368,12 @@ export const StrategicAlignmentMatrix: React.FC<StrategicAlignmentMatrixProps> =
         </div>
       </div>
 
-      {/* SECTION 2: United Nations SDGs 17 Goals Matrix */}
+      {/* SECTION 2: เป้าหมายการพัฒนาที่ยั่งยืน 17 เป้าหมาย */}
       <div>
         <HybridSdgCard
           items={items}
           categoryKey={categoryKey}
-          title="เป้าหมายการพัฒนาที่ยั่งยืน (UN SDGs 17 เป้าหมาย)"
+          title="เป้าหมายการพัฒนาที่ยั่งยืน (17 เป้าหมายหลัก)"
           unitLabel={unitLabel}
           showBudget={showBudget}
         />

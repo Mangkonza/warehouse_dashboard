@@ -32,6 +32,7 @@ export function DepartmentMatrixAndPulse({
   const chartInstances = useRef<Chart[]>([]);
 
   const DEPTS = ['IRE', 'FE', 'IE', 'ME', 'CE', 'CPE', 'AE'];
+  const DEPT_LABELS = ['ชลประทาน', 'การอาหาร', 'อุตสาหการ', 'เครื่องกล', 'โยธา', 'คอมพิวเตอร์', 'เกษตร'];
   const THAI_MONTHS = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
 
   // Helper to get month index 0..11
@@ -87,7 +88,7 @@ export function DepartmentMatrixAndPulse({
   }, [validResearch, validAcademic, validPub, validService, validIP]);
 
   // 2. Dynamic monthly activity counts & cumulative cash
-  const { resMonthly, acaMonthly, pubMonthly, srvMonthly, ipMonthly, cumulativeCash } = useMemo(() => {
+  const { resMonthly, acaMonthly, pubMonthly, srvMonthly, ipMonthly, monthlyInflowCash, cumulativeCash } = useMemo(() => {
     const rM = Array(12).fill(0);
     const aM = Array(12).fill(0);
     const pM = Array(12).fill(0);
@@ -141,6 +142,7 @@ export function DepartmentMatrixAndPulse({
       pubMonthly: pM,
       srvMonthly: sM,
       ipMonthly: iM,
+      monthlyInflowCash: monthlyCash.map((v) => Number(v.toFixed(2))),
       cumulativeCash: cumCash,
     };
   }, [validResearch, validAcademic, validPub, validService, validIP]);
@@ -206,44 +208,82 @@ export function DepartmentMatrixAndPulse({
     };
 
     if (subTab === 'matrix') {
+      const totalOutputsByDept = heatmapData.map((d) => d.res + d.aca + d.pub + d.srv + d.ip);
       createChart('c_ov_dept_budget', {
         type: 'bar',
         data: {
-          labels: DEPTS,
+          labels: DEPT_LABELS,
           datasets: [
             {
-              label: 'โครงการพัฒนาวิชาการ',
+              type: 'bar',
+              label: 'โครงการพัฒนาวิชาการ (ล้านบาท)',
               data: acaBudgets,
-              backgroundColor: '#38BDF8',
+              backgroundColor: '#93C5FD',
               borderRadius: 6,
               stack: 'budget',
+              yAxisID: 'y',
+              order: 2,
             },
             {
-              label: 'โครงการวิจัย',
+              type: 'bar',
+              label: 'โครงการวิจัย (ล้านบาท)',
               data: resBudgets,
-              backgroundColor: '#34D399',
+              backgroundColor: '#86EFAC',
               borderRadius: 6,
               stack: 'budget',
+              yAxisID: 'y',
+              order: 2,
+            },
+            {
+              type: 'line',
+              label: 'จำนวนผลงานรวม 5 พันธกิจ (รายการ)',
+              data: totalOutputsByDept,
+              borderColor: '#C4B5FD',
+              backgroundColor: 'rgba(196, 181, 253, 0.22)',
+              borderWidth: 2.5,
+              tension: 0.35,
+              pointRadius: 4.5,
+              pointBackgroundColor: '#A78BFA',
+              yAxisID: 'y1',
+              order: 1,
             },
           ],
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
           scales: {
             x: { stacked: true, grid: { display: false } },
             y: {
+              type: 'linear',
+              position: 'left',
               stacked: true,
               beginAtZero: true,
+              grace: '20%',
               title: { display: true, text: 'งบประมาณ (ล้านบาท)' },
+            },
+            y1: {
+              type: 'linear',
+              position: 'right',
+              beginAtZero: true,
+              grace: '25%',
+              title: { display: true, text: 'จำนวนผลงานรวม (รายการ)' },
+              grid: { drawOnChartArea: false },
             },
           },
           plugins: {
-            legend: { position: 'top' },
+            legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } },
             datalabels: {
-              color: '#ffffff',
+              anchor: (ctx: any) => (ctx.dataset.type === 'line' ? 'end' : 'center'),
+              align: (ctx: any) => (ctx.dataset.type === 'line' ? 'top' : 'center'),
+              color: (ctx: any) => (ctx.dataset.type === 'line' ? '#6d28d9' : '#1e293b'),
               font: { weight: 'bold', size: 10 },
-              formatter: (v: number) => (v > 10 ? `${v.toFixed(1)}M` : ''),
+              formatter: (v: number, ctx: any) => {
+                if (v <= 0) return '';
+                if (ctx.dataset.type === 'line') return `${v} งาน`;
+                return v > 10 ? `${v.toFixed(1)}` : '';
+              },
             },
           },
         },
@@ -256,22 +296,51 @@ export function DepartmentMatrixAndPulse({
         data: {
           labels: THAI_MONTHS,
           datasets: [
-            { label: 'วิจัย', data: resMonthly, backgroundColor: '#34D399', stack: 'm', borderRadius: 6 },
-            { label: 'พัฒนาวิชาการ', data: acaMonthly, backgroundColor: '#38BDF8', stack: 'm', borderRadius: 6 },
-            { label: 'ตีพิมพ์', data: pubMonthly, backgroundColor: '#FB7185', stack: 'm', borderRadius: 6 },
-            ...(!hideServices ? [{ label: 'บริการวิชาการ', data: srvMonthly, backgroundColor: '#FBBF24', stack: 'm', borderRadius: 6 }] : []),
-            { label: 'ทรัพย์สินฯ', data: ipMonthly, backgroundColor: '#A78BFA', stack: 'm', borderRadius: 6 },
+            { type: 'bar', label: 'วิจัย', data: resMonthly, backgroundColor: '#86EFAC', stack: 'm', borderRadius: 6, yAxisID: 'y', order: 2 },
+            { type: 'bar', label: 'พัฒนาวิชาการ', data: acaMonthly, backgroundColor: '#93C5FD', stack: 'm', borderRadius: 6, yAxisID: 'y', order: 2 },
+            { type: 'bar', label: 'ตีพิมพ์', data: pubMonthly, backgroundColor: '#FDA4AF', stack: 'm', borderRadius: 6, yAxisID: 'y', order: 2 },
+            ...(!hideServices ? [{ type: 'bar', label: 'บริการวิชาการ', data: srvMonthly, backgroundColor: '#FDE68A', stack: 'm', borderRadius: 6, yAxisID: 'y', order: 2 }] : []),
+            { type: 'bar', label: 'ทรัพย์สินฯ', data: ipMonthly, backgroundColor: '#C4B5FD', stack: 'm', borderRadius: 6, yAxisID: 'y', order: 2 },
+            {
+              type: 'line',
+              label: 'งบประมาณโครงการรายเดือน (ล้านบาท)',
+              data: monthlyInflowCash,
+              borderColor: '#34D399',
+              backgroundColor: 'rgba(110, 231, 183, 0.22)',
+              borderWidth: 2.5,
+              tension: 0.35,
+              pointRadius: 4,
+              pointBackgroundColor: '#10B981',
+              yAxisID: 'y1',
+              order: 1,
+            },
           ],
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
           scales: {
             x: { stacked: true, grid: { display: false } },
-            y: { stacked: true, beginAtZero: true, title: { display: true, text: 'จำนวนกิจกรรม (รายการ)' } },
+            y: {
+              type: 'linear',
+              position: 'left',
+              stacked: true,
+              beginAtZero: true,
+              grace: '15%',
+              title: { display: true, text: 'จำนวนกิจกรรม (รายการ)' },
+            },
+            y1: {
+              type: 'linear',
+              position: 'right',
+              beginAtZero: true,
+              grace: '25%',
+              title: { display: true, text: 'งบประมาณรายเดือน (ล้านบาท)' },
+              grid: { drawOnChartArea: false },
+            },
           },
           plugins: {
-            legend: { position: 'top', labels: { boxWidth: 12 } },
+            legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } },
             datalabels: { display: false },
           },
         },
@@ -285,13 +354,13 @@ export function DepartmentMatrixAndPulse({
             {
               label: 'เม็ดเงินสะสมทั้งคณะ (ล้านบาท)',
               data: cumulativeCash,
-              borderColor: '#34D399',
-              backgroundColor: 'rgba(52, 211, 153, 0.14)',
+              borderColor: '#6EE7B7',
+              backgroundColor: 'rgba(110, 231, 183, 0.22)',
               fill: true,
               tension: 0.35,
               borderWidth: 2.5,
               pointRadius: 4,
-              pointBackgroundColor: '#059669',
+              pointBackgroundColor: '#34D399',
             },
           ],
         },
@@ -309,7 +378,7 @@ export function DepartmentMatrixAndPulse({
               align: 'top',
               color: '#047857',
               font: { weight: 'bold', size: 10 },
-              formatter: (v: number, ctx: any) => (ctx.dataIndex % 2 === 1 || ctx.dataIndex === 11 ? `${v.toFixed(0)}M` : ''),
+              formatter: (v: number, ctx: any) => (ctx.dataIndex % 2 === 1 || ctx.dataIndex === 11 ? `${v.toFixed(0)} ล้าน` : ''),
             },
           },
         },
@@ -320,11 +389,11 @@ export function DepartmentMatrixAndPulse({
       createChart('c_ov_pub_quality', {
         type: 'bar',
         data: {
-          labels: DEPTS,
+          labels: DEPT_LABELS,
           datasets: [
-            { label: 'นานาชาติ Q1', data: q1Data, backgroundColor: '#34D399', stack: 'q', borderRadius: 6 },
-            { label: 'นานาชาติ Q2', data: q2Data, backgroundColor: '#38BDF8', stack: 'q', borderRadius: 6 },
-            { label: 'ระดับชาติ TCI', data: tciData, backgroundColor: '#FBBF24', stack: 'q', borderRadius: 6 },
+            { label: 'นานาชาติกลุ่มที่ 1', data: q1Data, backgroundColor: '#86EFAC', stack: 'q', borderRadius: 6 },
+            { label: 'นานาชาติกลุ่มที่ 2', data: q2Data, backgroundColor: '#93C5FD', stack: 'q', borderRadius: 6 },
+            { label: 'วารสารระดับชาติ', data: tciData, backgroundColor: '#FDE68A', stack: 'q', borderRadius: 6 },
           ],
         },
         options: {
@@ -346,8 +415,8 @@ export function DepartmentMatrixAndPulse({
         data: {
           labels: [`ผลงานตีพิมพ์ (${validPub.length} เรื่อง)`, `ทรัพย์สินทางปัญญา (${validIP.length} รายการ)`],
           datasets: [
-            { label: 'สำเร็จเสร็จสิ้น (คุ้มครอง/ตีพิมพ์แล้ว)', data: [pubComplete, ipComplete], backgroundColor: '#34D399', borderRadius: 6 },
-            { label: 'อยู่ระหว่างดำเนินการ (เตรียม/ยื่นคำขอ)', data: [pubPrep, ipPrep], backgroundColor: '#FBBF24', borderRadius: 6 },
+            { label: 'สำเร็จเสร็จสิ้น (คุ้มครอง/ตีพิมพ์แล้ว)', data: [pubComplete, ipComplete], backgroundColor: '#86EFAC', borderRadius: 6 },
+            { label: 'อยู่ระหว่างดำเนินการ (เตรียม/ยื่นคำขอ)', data: [pubPrep, ipPrep], backgroundColor: '#FDE68A', borderRadius: 6 },
           ],
         },
         options: {
@@ -436,16 +505,16 @@ export function DepartmentMatrixAndPulse({
                 style={{
                   padding: '8px 16px',
                   borderRadius: '10px',
-                  border: active ? '1.5px solid #10b981' : '1px solid #cbd5e1',
+                  border: active ? '1.5px solid #6ee7b7' : '1px solid #cbd5e1',
                   backgroundColor: active ? '#ecfdf5' : '#ffffff',
                   color: active ? '#047857' : '#475569',
                   fontSize: '13px',
-                  fontWeight: active ? 700 : 500,
+                  fontWeight: 600,
                   cursor: 'pointer',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  transition: 'all 0.15s ease',
+                  transition: 'background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease',
                 }}
               >
                 <span>{t.icon}</span>
@@ -581,10 +650,10 @@ export function DepartmentMatrixAndPulse({
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
           <div>
             <h4 style={{ margin: '0 0 6px 0', fontSize: '14.5px', fontWeight: 700, color: '#0f172a' }}>
-              คุณภาพผลงานตีพิมพ์รายภาควิชา (Q1, Q2, TCI)
+              คุณภาพผลงานตีพิมพ์รายภาควิชา (ระดับนานาชาติและระดับชาติ)
             </h4>
             <p style={{ margin: '0 0 14px 0', fontSize: '12px', color: '#64748b' }}>
-              นับสดจากฐานข้อมูลตีพิมพ์ตามภาควิชา
+              นับสดจากฐานข้อมูลตีพิมพ์แยกตามระดับคุณภาพวารสารในแต่ละภาควิชา
             </p>
             <div style={{ height: '300px' }}>
               <canvas id="c_ov_pub_quality" />
@@ -596,7 +665,7 @@ export function DepartmentMatrixAndPulse({
               เปรียบเทียบสถานะผลงานที่สำเร็จแล้วกับกำลังดำเนินการ
             </h4>
             <p style={{ margin: '0 0 14px 0', fontSize: '12px', color: '#64748b' }}>
-              เปรียบเทียบสัดส่วนงานสำเร็จ vs อยู่ระหว่างดำเนินการ
+              เปรียบเทียบสัดส่วนผลงานที่ดำเนินการเสร็จสมบูรณ์และผลงานที่อยู่ระหว่างดำเนินการ
             </p>
             <div style={{ height: '300px' }}>
               <canvas id="c_ov_pipeline_completion" />

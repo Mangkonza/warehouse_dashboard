@@ -146,6 +146,7 @@ export function useKpiData(timeFilter?: TimeFilterState) {
   }, [computedKPIs, selectedCategory, selectedStatus]);
 
   return {
+    computedKPIs,
     filteredKPIs,
     overallStats,
     selectedCategory,

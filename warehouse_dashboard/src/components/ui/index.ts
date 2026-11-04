@@ -42,3 +42,4 @@ export * from './SplitPaneTransition';
 export * from './FilterPopover';
 export * from './StrategicFilterSelect';
 export * from './StrategyBadges';
+export * from './PastelIllustratedKpiCard';

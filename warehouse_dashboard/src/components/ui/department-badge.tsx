@@ -57,21 +57,27 @@ export function DepartmentBadge({
 
   const dept = getDepartment(rawList[0] || value);
 
+  const shortThaiName = (() => {
+    const n = dept.name || '';
+    if (n.includes('ประตู') || n.includes('หน้าต่าง')) return 'ศูนย์ทดสอบประตู-หน้าต่างฯ';
+    if (n.includes('พลังงานและสิ่งแวดล้อม')) return 'ศูนย์พลังงานและสิ่งแวดล้อม';
+    if (n.includes('เครื่องจักรกลการเกษตร')) return 'ศูนย์เครื่องจักรกลการเกษตรฯ';
+    return n.replace(/^ภาควิชา/, '').trim() || n;
+  })();
+
   return (
     <span
-      className={cn(
-        cn(BADGE_BASE_CLASSES, "text-white"),
-        className
-      )}
+      className={cn(BADGE_BASE_CLASSES, className)}
       style={{
         backgroundColor: dept.color,
-        color: '#ffffff',
+        color: '#1e293b',
+        fontWeight: 600,
         ...style,
       }}
       title={showTooltip ? dept.name : undefined}
       {...props}
     >
-      {dept.code}
+      {shortThaiName}
     </span>
   );
 }

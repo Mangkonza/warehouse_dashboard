@@ -128,10 +128,10 @@ export function IPTable({
               cursor: 'pointer',
               transition: 'all 0.15s ease',
             }}
-            title="ส่งออกรายงานในรูปแบบ CSV / Excel"
+            title="ส่งออกรายงานในรูปแบบไฟล์ตาราง"
           >
             <FaFileExcel style={{ color: '#059669' }} />
-            <span>ส่งออก Excel</span>
+            <span>ส่งออกไฟล์ตาราง</span>
           </button>
 
           {typeFilter !== 'all' && onTypeChange && (
@@ -170,29 +170,6 @@ export function IPTable({
             size="sm"
             className="w-[175px]"
           />
-
-          {hasActiveFilter && (
-            <button
-              type="button"
-              onClick={() => {
-                onSearchChange('');
-                onDeptChange('all');
-                if (onTypeChange) onTypeChange('all');
-              }}
-              style={{
-                padding: '6px 12px',
-                borderRadius: '8px',
-                border: '1px solid #ddd6fe',
-                backgroundColor: '#f5f3ff',
-                color: '#6d28d9',
-                fontSize: '12px',
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
-            >
-              ล้างตัวกรอง
-            </button>
-          )}
         </div>
       </div>
 
@@ -200,7 +177,7 @@ export function IPTable({
         <table>
           <thead>
             <tr>
-              <th style={{ width: '45px', textAlign: 'center' }}>#</th>
+              <th style={{ width: '45px', textAlign: 'center' }}>ลำดับ</th>
               <th style={{ minWidth: '220px' }}>ชื่อผลงานการประดิษฐ์</th>
               <th>ผู้ประดิษฐ์หลัก</th>
               <th style={{ width: '130px', textAlign: 'left' }}>ภาควิชา</th>
@@ -208,7 +185,7 @@ export function IPTable({
               <th style={{ minWidth: '150px' }}>เลขที่คำขอ / เลขทะเบียน</th>
               <th style={{ textAlign: 'center', width: '150px' }}>สถานะการคุ้มครอง</th>
               <th style={{ textAlign: 'right', width: '130px' }}>เงินสนับสนุน (บาท)</th>
-              <th style={{ textAlign: 'center', width: '150px' }}>ยุทธศาสตร์ (ISEE / IAM / SDGs)</th>
+              <th style={{ textAlign: 'center', width: '150px' }}>ยุทธศาสตร์และความยั่งยืน</th>
             </tr>
           </thead>
           <tbody>
