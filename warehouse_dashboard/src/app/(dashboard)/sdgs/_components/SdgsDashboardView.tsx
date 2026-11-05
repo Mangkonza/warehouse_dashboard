@@ -5,23 +5,71 @@ import { useDashboardTabFilter } from '@/hooks/useDashboardTabFilter';
 import { DashboardTabFilterBar } from '@/components/ui/DashboardTabFilterBar';
 import { SdgIcon } from '@/components/ui/SdgIcon';
 import { SdgAggregationResult, SdgTileData } from '@/lib/sdgAggregationService';
-import { getSdgTextColor } from '@/lib/sdg';
+import { getSdgTextColor, SDG_DEFINITIONS } from '@/lib/sdg';
 import { cn } from '@/lib/utils';
-import { FaFilter, FaUndoAlt, FaInfoCircle, FaCheck } from 'react-icons/fa';
+import { FaFilter, FaUndoAlt, FaInfoCircle, FaCheck, FaExternalLinkAlt } from 'react-icons/fa';
+import { DrillDownProjectDrawer } from '@/components/data-display/DrillDownProjectDrawer';
+import { CategoryKey } from '@/types/dataManagement';
 
-export function SdgsDashboardView() {
+const MONTH_NAMES = [
+  'ม.ค.',
+  'ก.พ.',
+  'มี.ค.',
+  'เม.ย.',
+  'พ.ค.',
+  'มิ.ย.',
+  'ก.ค.',
+  'ส.ค.',
+  'ก.ย.',
+  'ต.ค.',
+  'พ.ย.',
+  'ธ.ค.',
+];
+
+const CATEGORY_TABS = [
+  { id: 'all', label: 'ทุกชุดข้อมูล' },
+  { id: 'research', label: 'โครงการวิจัย' },
+  { id: 'academic', label: 'โครงการพัฒนาวิชาการ' },
+  { id: 'publications', label: 'ผลงานตีพิมพ์' },
+  { id: 'ip', label: 'ทรัพย์สินทางปัญญา' },
+  { id: 'service', label: 'งานบริการวิชาการ' },
+];
+
+export interface SdgsDashboardViewProps {
+  embeddedCategory?: string;
+  isEmbedded?: boolean;
+}
+
+export function SdgsDashboardView({
+  embeddedCategory,
+  isEmbedded = false,
+}: SdgsDashboardViewProps = {}) {
   const { tabFilter, setTabFilter, resetTabFilter } = useDashboardTabFilter('sdgs');
 
   const [selectedSdg, setSelectedSdg] = useState<number | null>(null);
-  const [activeCategory, setActiveCategory] = useState<string>('all');
+  const [activeCategory, setActiveCategory] = useState<string>(embeddedCategory || 'all');
+  const [compareYearsCount, setCompareYearsCount] = useState<number>(3);
+  const [monthFrom, setMonthFrom] = useState<number>(0);
+  const [monthTo, setMonthTo] = useState<number>(11);
   const [data, setData] = useState<SdgAggregationResult | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
+
+  // Drilldown drawer state
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerItems, setDrawerItems] = useState<any[]>([]);
+  const [drawerLoading, setDrawerLoading] = useState(false);
 
   // Sync filters
   const currentFiscalYear = tabFilter.fiscalYear || '2569';
   const currentDept = tabFilter.department || 'all';
   const currentStrategic = tabFilter.customFilters?.strategicFilter || 'all';
+
+  useEffect(() => {
+    if (embeddedCategory) {
+      setActiveCategory(embeddedCategory);
+    }
+  }, [embeddedCategory]);
 
   useEffect(() => {
     let isMounted = true;
@@ -44,7 +92,9 @@ export function SdgsDashboardView() {
     if (selectedSdg !== null) {
       query.set('selectedSdg', String(selectedSdg));
     }
-    query.set('compareYearsCount', '3');
+    query.set('compareYearsCount', String(compareYearsCount));
+    query.set('monthFrom', String(monthFrom));
+    query.set('monthTo', String(monthTo));
 
     fetch(`/api/sdgs/aggregation?${query.toString()}`)
       .then((res) => {
@@ -68,102 +118,223 @@ export function SdgsDashboardView() {
     return () => {
       isMounted = false;
     };
-  }, [currentFiscalYear, currentDept, currentStrategic, activeCategory, selectedSdg]);
+  }, [
+    currentFiscalYear,
+    currentDept,
+    currentStrategic,
+    activeCategory,
+    selectedSdg,
+    compareYearsCount,
+    monthFrom,
+    monthTo,
+  ]);
 
   const toggleSdgSelection = (sdgNum: number) => {
     setSelectedSdg((prev) => (prev === sdgNum ? null : sdgNum));
   };
 
-  const CATEGORY_TABS = [
-    { id: 'all', label: 'ทุกชุดข้อมูล' },
-    { id: 'research', label: 'โครงการวิจัย' },
-    { id: 'academic', label: 'โครงการพัฒนาวิชาการ' },
-    { id: 'publications', label: 'ผลงานตีพิมพ์' },
-    { id: 'ip', label: 'ทรัพย์สินทางปัญญา' },
-    { id: 'service', label: 'งานบริการวิชาการ' },
-  ];
+  const handleOpenDrawer = async (sdgNum: number) => {
+    setDrawerLoading(true);
+    setDrawerOpen(true);
+    try {
+      const cat = activeCategory === 'all' ? 'research' : activeCategory;
+      const res = await fetch(`/api/data/${cat}`);
+      if (!res.ok) throw new Error('Failed to fetch items');
+      const json = await res.json();
+      const all: any[] = Array.isArray(json) ? json : json.data || json.items || [];
+      const filtered = all.filter((item) => {
+        const sdgs: any =
+          item.evaluation?.sdg_ids ||
+          item.sdg_ids ||
+          item.evaluation?.sdgs ||
+          item.sdgs;
+        if (!sdgs) return false;
+        if (Array.isArray(sdgs)) {
+          return sdgs.some((s) => Number(String(s).replace(/\D/g, '')) === sdgNum);
+        }
+        return String(sdgs).includes(String(sdgNum));
+      });
+      setDrawerItems(filtered);
+    } catch (e) {
+      console.error('Error fetching drawer items:', e);
+      setDrawerItems([]);
+    } finally {
+      setDrawerLoading(false);
+    }
+  };
 
-  const renderBadge = (deltaLabel: string, deltaType: 'up' | 'down' | 'neutral' | 'new') => {
+  const renderBadge = (
+    deltaLabel: string,
+    deltaType: 'up' | 'down' | 'neutral' | 'new',
+    isDarkBg = false
+  ) => {
     if (deltaLabel === '–') {
       return (
-        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-500">
+        <span
+          className={cn(
+            'inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-semibold',
+            isDarkBg ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
+          )}
+        >
           –
         </span>
       );
     }
     if (deltaType === 'new') {
       return (
-        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+        <span
+          className={cn(
+            'inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-semibold border',
+            isDarkBg
+              ? 'bg-blue-500/30 text-white border-blue-300'
+              : 'bg-blue-50 text-blue-700 border-blue-200'
+          )}
+        >
           ใหม่
         </span>
       );
     }
     if (deltaType === 'up') {
       return (
-        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+        <span
+          className={cn(
+            'inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-semibold border',
+            isDarkBg
+              ? 'bg-emerald-500/30 text-white border-emerald-300'
+              : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+          )}
+        >
           {deltaLabel}
         </span>
       );
     }
     if (deltaType === 'down') {
       return (
-        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+        <span
+          className={cn(
+            'inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-semibold border',
+            isDarkBg
+              ? 'bg-rose-500/30 text-white border-rose-300'
+              : 'bg-rose-50 text-rose-700 border-rose-200'
+          )}
+        >
           {deltaLabel}
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-600">
+      <span
+        className={cn(
+          'inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-semibold',
+          isDarkBg ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
+        )}
+      >
         {deltaLabel}
       </span>
     );
   };
 
   return (
-    <div className="space-y-6 pb-12 text-slate-800">
+    <div className="space-y-6 pb-10 text-slate-800">
       {/* ========================================================================= */}
-      {/* 1. Header & Title */}
+      {/* 1. Header / Prototype Capsule Control Bar (.ctrl) */}
       {/* ========================================================================= */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2">
-        <div className="flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-xl bg-white shadow-xs border border-slate-200 flex items-center justify-center p-1.5 shrink-0">
-            <SdgIcon n="wheel" size={32} priority />
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        {!isEmbedded ? (
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-xl bg-white shadow-xs border border-slate-200 flex items-center justify-center p-1.5 shrink-0">
+              <SdgIcon n="wheel" size={32} priority />
+            </div>
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+                โครงการแยกตามเป้าหมาย SDGs ทั้ง 17 ข้อ
+              </h1>
+              <p className="text-xs text-slate-500 mt-0.5">
+                ระบบวิเคราะห์และบริหารจัดการข้อมูลหน่วยวิจัยและนวัตกรรม คณะวิศวกรรมศาสตร์ กำแพงแสน
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
-              โครงการแยกตามเป้าหมาย SDGs ทั้ง 17 ข้อ
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-              ระบบวิเคราะห์และบริหารจัดการข้อมูลหน่วยวิจัยและนวัตกรรม คณะวิศวกรรมศาสตร์ กำแพงแสน
-            </p>
+        ) : (
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-white shadow-xs border border-slate-200 flex items-center justify-center p-1 shrink-0">
+              <SdgIcon n="wheel" size={24} priority />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-slate-900">
+                เป้าหมายการพัฒนาที่ยั่งยืน (UN SDGs 17 เป้าหมาย)
+              </h3>
+              <p className="text-xs text-slate-500">
+                วิเคราะห์ความสอดคล้องเชิงลึก เปรียบเทียบย้อนหลัง 3 ปี และแนวโน้มรายเดือน
+              </p>
+            </div>
           </div>
-        </div>
-
-        {selectedSdg !== null && (
-          <button
-            type="button"
-            onClick={() => setSelectedSdg(null)}
-            className="self-start md:self-auto inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-100 transition-colors cursor-pointer"
-          >
-            <FaUndoAlt className="text-[10px]" />
-            <span>ล้างการเลือก SDG {selectedSdg}</span>
-          </button>
         )}
+
+        {/* Prototype .ctrl Capsule Component */}
+        <div className="inline-flex items-center gap-1.5 p-1 bg-white border border-slate-200 rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.05)] text-xs text-slate-700 flex-wrap max-w-full">
+          <select
+            value={currentFiscalYear}
+            onChange={(e) => setTabFilter({ fiscalYear: e.target.value })}
+            className="bg-transparent border-0 rounded-full px-2.5 py-1 font-medium text-slate-800 hover:bg-slate-50 cursor-pointer focus:outline-none"
+            aria-label="ปีงบประมาณ"
+          >
+            <option value="2569">ปี 2569 (2026)</option>
+            <option value="2568">ปี 2568 (2025)</option>
+            <option value="2567">ปี 2567 (2024)</option>
+            <option value="all">ทุกปีงบประมาณ</option>
+          </select>
+          <span className="text-slate-300">|</span>
+          <select
+            value={compareYearsCount}
+            onChange={(e) => setCompareYearsCount(Number(e.target.value))}
+            className="bg-transparent border-0 rounded-full px-2.5 py-1 font-medium text-slate-800 hover:bg-slate-50 cursor-pointer focus:outline-none"
+            aria-label="จำนวนปีที่เทียบ"
+          >
+            <option value={3}>เทียบ 3 ปี</option>
+            <option value={2}>เทียบ 2 ปี</option>
+          </select>
+          <span className="text-slate-300">|</span>
+          <span className="text-slate-400 pl-1 text-[11.5px]">เดือน</span>
+          <select
+            value={monthFrom}
+            onChange={(e) => setMonthFrom(Number(e.target.value))}
+            className="bg-transparent border-0 rounded-full px-2 py-1 font-medium text-slate-800 hover:bg-slate-50 cursor-pointer focus:outline-none"
+            aria-label="เดือนเริ่มต้น"
+          >
+            {MONTH_NAMES.map((m, idx) => (
+              <option key={idx} value={idx}>
+                {m}
+              </option>
+            ))}
+          </select>
+          <span className="text-slate-400 text-[11.5px]">ถึง</span>
+          <select
+            value={monthTo}
+            onChange={(e) => setMonthTo(Number(e.target.value))}
+            className="bg-transparent border-0 rounded-full px-2 py-1 font-medium text-slate-800 hover:bg-slate-50 cursor-pointer focus:outline-none"
+            aria-label="เดือนสิ้นสุด"
+          >
+            {MONTH_NAMES.map((m, idx) => (
+              <option key={idx} value={idx}>
+                {m}
+              </option>
+            ))}
+          </select>
+          {selectedSdg !== null && (
+            <button
+              type="button"
+              onClick={() => setSelectedSdg(null)}
+              className="ml-1 bg-slate-900 text-white rounded-full px-3.5 py-1 font-semibold hover:bg-slate-800 cursor-pointer shadow-xs transition-colors"
+            >
+              ล้างตัวกรอง SDG ({selectedSdg})
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* ========================================================================= */}
-      {/* 2. Standard Top Filter Bar (System Filter) */}
-      {/* ========================================================================= */}
-      <DashboardTabFilterBar
-        tabKey="sdgs"
-        totalCount={data?.kpis.distinctProjectsCount}
-        filteredCount={data?.kpis.distinctProjectsCount}
-        showDepartment={true}
-        showStrategic={true}
-        showFiscalYear={true}
-      >
-        {/* Module Filter Slot: Segmented Buttons */}
-        <div className="flex items-center gap-1 p-1 bg-slate-100/80 rounded-lg border border-slate-200 shrink-0 overflow-x-auto max-w-full">
+      {/* Dataset Capsule Tabs (when not locked to an embedded category) */}
+      {!embeddedCategory && (
+        <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-full border border-slate-200 shrink-0 overflow-x-auto max-w-full">
           {CATEGORY_TABS.map((cat) => {
             const isCatActive = activeCategory === cat.id;
             return (
@@ -172,24 +343,16 @@ export function SdgsDashboardView() {
                 type="button"
                 onClick={() => setActiveCategory(cat.id)}
                 className={cn(
-                  'px-2.5 py-1 text-xs font-medium rounded-md whitespace-nowrap transition-colors cursor-pointer',
+                  'px-3.5 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors cursor-pointer',
                   isCatActive
-                    ? 'bg-white text-emerald-800 font-semibold shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                    ? 'bg-emerald-600 text-white font-bold shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
                 )}
               >
                 {cat.label}
               </button>
             );
           })}
-        </div>
-      </DashboardTabFilterBar>
-
-      {/* Basis notice */}
-      {data?.basisNote && (
-        <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-lg bg-emerald-50/80 border border-emerald-200 text-xs text-emerald-900">
-          <FaInfoCircle className="text-emerald-700 shrink-0 text-sm" />
-          <span>{data.basisNote}</span>
         </div>
       )}
 
@@ -210,16 +373,17 @@ export function SdgsDashboardView() {
       {!isLoading && data && (
         <>
           {/* ========================================================================= */}
-          {/* 3. Four KPI Cards */}
+          {/* 2. Four KPI Cards with Prototype Top Gradient Line */}
           {/* ========================================================================= */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* KPI 1: Distinct Projects */}
-            <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between">
+            {/* KPI 1 */}
+            <div className="rounded-2xl bg-white border border-slate-200/90 shadow-[0_4px_16px_rgba(0,0,0,0.04)] p-4 relative overflow-hidden flex flex-col justify-between">
+              <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-blue-600 via-rose-500 to-[#DD1367]" />
               <span className="text-xs font-semibold text-slate-500">
                 โครงการ ({data.targetYearBe})
               </span>
-              <div className="my-2 flex items-baseline gap-2.5">
-                <span className="text-2xl sm:text-3xl font-extrabold text-slate-900">
+              <div className="my-2.5 flex items-baseline gap-2">
+                <span className="text-[32px] font-extrabold text-slate-900 tracking-tight leading-none">
                   {data.kpis.distinctProjectsCount}
                 </span>
                 <span className="text-xs text-slate-500 font-medium">โครงการ</span>
@@ -238,13 +402,14 @@ export function SdgsDashboardView() {
               </div>
             </div>
 
-            {/* KPI 2: Top SDG */}
-            <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between">
+            {/* KPI 2 */}
+            <div className="rounded-2xl bg-white border border-slate-200/90 shadow-[0_4px_16px_rgba(0,0,0,0.04)] p-4 relative overflow-hidden flex flex-col justify-between">
+              <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-blue-600 via-rose-500 to-[#DD1367]" />
               <span className="text-xs font-semibold text-slate-500">
                 SDG ที่มีจำนวนโครงการสูงสุด
               </span>
-              <div className="my-2">
-                <span className="text-2xl sm:text-3xl font-extrabold text-slate-900">
+              <div className="my-2.5">
+                <span className="text-[32px] font-extrabold text-slate-900 tracking-tight leading-none">
                   SDG {data.kpis.topSdgNumber}
                 </span>
               </div>
@@ -258,13 +423,14 @@ export function SdgsDashboardView() {
               </div>
             </div>
 
-            {/* KPI 3: Highest Growing SDG */}
-            <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between">
+            {/* KPI 3 */}
+            <div className="rounded-2xl bg-white border border-slate-200/90 shadow-[0_4px_16px_rgba(0,0,0,0.04)] p-4 relative overflow-hidden flex flex-col justify-between">
+              <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-blue-600 via-rose-500 to-[#DD1367]" />
               <span className="text-xs font-semibold text-slate-500">
-                SDG ที่เติบโตสูงสุดเทียบกับปี {data.targetYearBe - 1}
+                SDG ที่เติบโตสูงสุดเทียบปี {data.targetYearBe - 1}
               </span>
-              <div className="my-2">
-                <span className="text-2xl sm:text-3xl font-extrabold text-slate-900">
+              <div className="my-2.5">
+                <span className="text-[32px] font-extrabold text-slate-900 tracking-tight leading-none">
                   {data.kpis.highestGrowingSdgNumber
                     ? `SDG ${data.kpis.highestGrowingSdgNumber}`
                     : '–'}
@@ -286,16 +452,17 @@ export function SdgsDashboardView() {
               </div>
             </div>
 
-            {/* KPI 4: SDG Coverage */}
-            <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between">
+            {/* KPI 4 */}
+            <div className="rounded-2xl bg-white border border-slate-200/90 shadow-[0_4px_16px_rgba(0,0,0,0.04)] p-4 relative overflow-hidden flex flex-col justify-between">
+              <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-blue-600 via-rose-500 to-[#DD1367]" />
               <span className="text-xs font-semibold text-slate-500">
                 ความครอบคลุมเป้าหมาย
               </span>
-              <div className="my-2 flex items-baseline gap-1">
-                <span className="text-2xl sm:text-3xl font-extrabold text-slate-900">
+              <div className="my-2.5 flex items-baseline gap-1">
+                <span className="text-[32px] font-extrabold text-slate-900 tracking-tight leading-none">
                   {data.kpis.coveredSdgCount}
                 </span>
-                <span className="text-lg font-bold text-slate-400">/ 17</span>
+                <span className="text-xl font-bold text-slate-400">/ 17</span>
               </div>
               <div className="text-[11.5px] text-slate-500 leading-relaxed">
                 เป้าหมาย SDGs ที่มีโครงการในช่วงเวลานี้
@@ -304,145 +471,185 @@ export function SdgsDashboardView() {
           </div>
 
           {/* ========================================================================= */}
-          {/* 4. Section 1: ภาพรวมจำนวนโครงการจำแนกตามเป้าหมาย SDGs ทั้ง 17 ข้อ */}
+          {/* 3. Section 1: 17 SDG Tiles (Matching Prototype 1:1) */}
           {/* ========================================================================= */}
-          <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
-            <div>
-              <h2 className="text-base sm:text-lg font-bold text-slate-900">
-                ภาพรวมจำนวนโครงการจำแนกตามเป้าหมาย SDGs ทั้ง 17 ข้อ
-              </h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                จำนวนโครงการที่ได้รับการประเมินว่าสอดคล้องกับแต่ละเป้าหมาย เปรียบเทียบกับช่วงเวลาเดียวกันของปีก่อนหน้า (กดที่การ์ดเพื่อกรองข้อมูลในส่วนอื่น)
-              </p>
+          <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-[0_4px_16px_rgba(0,0,0,0.03)] space-y-4">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <h2 className="text-base sm:text-lg font-bold text-slate-900">
+                  ภาพรวมจำนวนโครงการจำแนกตามเป้าหมาย SDGs ทั้ง 17 ข้อ
+                </h2>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  จำนวนโครงการที่ได้รับการประเมินว่าสอดคล้องกับแต่ละเป้าหมาย เปรียบเทียบกับช่วงเวลาเดียวกันของปีก่อนหน้า (กดที่การ์ดเพื่อกรองและดูรายละเอียด)
+                </p>
+              </div>
+              {selectedSdg !== null && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedSdg(null)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors cursor-pointer"
+                >
+                  <FaUndoAlt className="text-[10px]" />
+                  <span>แสดงครบทุกเป้าหมาย</span>
+                </button>
+              )}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            {/* Prototype .tiles Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
               {data.tiles.map((tile) => {
                 const isSelected = selectedSdg === tile.sdgNumber;
                 const textColor = getSdgTextColor(tile.sdgNumber);
 
                 return (
-                  <button
+                  <div
                     key={tile.sdgNumber}
-                    type="button"
                     onClick={() => toggleSdgSelection(tile.sdgNumber)}
                     className={cn(
-                      'flex flex-col justify-between p-3.5 rounded-xl border text-left cursor-pointer transition-all duration-150 select-none',
+                      'flex items-center gap-3.5 p-3 rounded-[18px] border text-left cursor-pointer transition-all select-none relative overflow-hidden',
                       isSelected
-                        ? 'border-black/20 shadow-md ring-2 ring-black/10'
-                        : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/70 shadow-xs'
+                        ? 'border-transparent shadow-md'
+                        : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-sm'
                     )}
                     style={{
-                      backgroundColor: isSelected ? tile.color : '#ffffff',
+                      background: isSelected
+                        ? `linear-gradient(135deg, ${tile.color}, color-mix(in srgb, ${tile.color} 86%, #000))`
+                        : `color-mix(in srgb, ${tile.color} 6%, #ffffff)`,
                     }}
+                    role="button"
+                    tabIndex={0}
                     aria-pressed={isSelected}
                   >
-                    {/* Top Row: Icon + Number & Title */}
-                    <div className="flex items-start gap-2.5">
-                      <div
-                        className={cn(
-                          'shrink-0 flex items-center justify-center transition-all',
-                          isSelected ? 'rounded-md shadow-[0_0_0_3px_#ffffff]' : ''
-                        )}
-                      >
-                        <SdgIcon n={tile.sdgNumber} size={30} />
-                      </div>
-                      <div className="min-w-0 flex-1 leading-snug">
-                        <div
-                          className="text-[12px] font-bold line-clamp-2"
+                    {/* 76x76 SDG Icon (.n) */}
+                    <div
+                      className={cn(
+                        'shrink-0 w-[76px] h-[76px] rounded-[14px] overflow-hidden flex items-center justify-center transition-all',
+                        isSelected ? 'shadow-[0_0_0_3px_#ffffff,0_4px_12px_rgba(0,0,0,0.3)]' : 'shadow-xs'
+                      )}
+                    >
+                      <SdgIcon n={tile.sdgNumber} size={76} />
+                    </div>
+
+                    {/* Right Info Block (.tb) */}
+                    <div className="min-w-0 flex-1 flex flex-col justify-between h-full py-0.5">
+                      {/* Title (.tn) */}
+                      <div className="flex items-start gap-1.5">
+                        <span
+                          className="shrink-0 px-1.5 py-0.2 rounded-md text-[11px] font-bold leading-5"
+                          style={{
+                            backgroundColor: isSelected ? 'rgba(255,255,255,0.25)' : tile.color,
+                            color: isSelected ? '#ffffff' : textColor,
+                          }}
+                        >
+                          {tile.sdgNumber}
+                        </span>
+                        <span
+                          className="text-[12.5px] font-semibold leading-tight line-clamp-1 truncate"
                           style={{ color: isSelected ? textColor : '#0f172a' }}
                           title={`SDG ${tile.sdgNumber}: ${tile.nameTh}`}
                         >
-                          <span className="font-extrabold mr-1.5">
-                            {String(tile.sdgNumber).padStart(2, '0')}
-                          </span>
                           {tile.nameTh}
+                        </span>
+                      </div>
+
+                      {/* Count (.tc & .c) */}
+                      <div className="my-1.5 flex items-baseline justify-between">
+                        <div className="flex items-baseline gap-1">
+                          <span
+                            className="text-[26px] font-black leading-none tracking-tight"
+                            style={{ color: isSelected ? textColor : '#0f172a' }}
+                          >
+                            {tile.currentCount}
+                          </span>
+                          <span
+                            className="text-[11px] font-medium"
+                            style={{
+                              color: isSelected ? textColor : '#64748b',
+                              opacity: isSelected ? 0.85 : 1,
+                            }}
+                          >
+                            โครงการ
+                          </span>
+                        </div>
+                        <div>
+                          {renderBadge(tile.deltaLabel, tile.deltaType, isSelected)}
                         </div>
                       </div>
-                    </div>
 
-                    {/* Middle Row: Count + Delta */}
-                    <div className="my-3 flex items-baseline justify-between">
-                      <div className="flex items-baseline gap-1.5">
-                        <span
-                          className="text-2xl font-black"
-                          style={{ color: isSelected ? textColor : '#0f172a' }}
-                        >
-                          {tile.currentCount}
-                        </span>
-                        <span
-                          className="text-[11px] font-medium"
-                          style={{
-                            color: isSelected ? textColor : '#64748b',
-                            opacity: isSelected ? 0.85 : 1,
-                          }}
-                        >
-                          โครงการ
-                        </span>
+                      {/* 3-Year Breakdown (.y3) */}
+                      <div className="flex items-center pt-1 border-t border-slate-200/50 text-left">
+                        {tile.yearCounts.map((yc, idx) => {
+                          const isLatest = idx === tile.yearCounts.length - 1;
+                          return (
+                            <div
+                              key={yc.year}
+                              className={cn(
+                                'flex flex-col px-2 leading-tight',
+                                idx === 0 ? 'pl-0' : 'border-l border-slate-200/60'
+                              )}
+                            >
+                              <span
+                                className="text-[10px]"
+                                style={{
+                                  color: isSelected ? textColor : '#94a3b8',
+                                  opacity: isSelected ? 0.75 : 1,
+                                }}
+                              >
+                                {yc.yearBe}
+                              </span>
+                              <span
+                                className={cn(
+                                  'text-[13px]',
+                                  isLatest ? 'font-bold' : 'font-medium'
+                                )}
+                                style={{
+                                  color: isSelected
+                                    ? textColor
+                                    : isLatest
+                                    ? '#0f172a'
+                                    : '#64748b',
+                                  borderBottom:
+                                    isLatest && !isSelected
+                                      ? `2px solid ${tile.color}`
+                                      : isLatest && isSelected
+                                      ? `2px solid ${textColor}`
+                                      : 'none',
+                                  paddingBottom: isLatest ? '1px' : '0',
+                                }}
+                              >
+                                {yc.hasData ? yc.count : '–'}
+                              </span>
+                            </div>
+                          );
+                        })}
                       </div>
-                      {!isSelected && renderBadge(tile.deltaLabel, tile.deltaType)}
-                      {isSelected && (
-                        <span
-                          className="px-1.5 py-0.5 rounded text-[11px] font-bold bg-white/20"
+
+                      {/* Drill down trigger */}
+                      {isSelected && tile.currentCount > 0 && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenDrawer(tile.sdgNumber);
+                          }}
+                          className="mt-2 inline-flex items-center justify-center gap-1.5 py-1 px-2.5 rounded-full bg-white/25 hover:bg-white/40 text-[11px] font-bold transition-colors"
                           style={{ color: textColor }}
                         >
-                          {tile.deltaLabel}
-                        </span>
+                          <FaExternalLinkAlt className="text-[9px]" />
+                          <span>ดู {tile.currentCount} โครงการ</span>
+                        </button>
                       )}
                     </div>
-
-                    {/* Bottom Row: Year Columns (year above number, latest year bold + underlined) */}
-                    <div
-                      className={cn(
-                        'pt-2 border-t grid grid-cols-3 gap-1 text-center text-xs',
-                        isSelected ? 'border-white/20' : 'border-slate-100'
-                      )}
-                    >
-                      {tile.yearCounts.map((yc, idx) => {
-                        const isLatest = idx === tile.yearCounts.length - 1;
-                        return (
-                          <div key={yc.year} className="flex flex-col items-center">
-                            <span
-                              className="text-[10px] font-medium"
-                              style={{
-                                color: isSelected ? textColor : '#94a3b8',
-                                opacity: isSelected ? 0.8 : 1,
-                              }}
-                            >
-                              {yc.yearBe}
-                            </span>
-                            <span
-                              className={cn(
-                                'text-[12px]',
-                                isLatest ? 'font-black' : 'font-medium'
-                              )}
-                              style={{
-                                color: isSelected ? textColor : isLatest ? '#0f172a' : '#475569',
-                                borderBottom:
-                                  isLatest && !isSelected
-                                    ? `2px solid ${tile.color}`
-                                    : isLatest && isSelected
-                                    ? `2px solid ${textColor}`
-                                    : 'none',
-                                paddingBottom: isLatest ? '1px' : '0',
-                              }}
-                            >
-                              {yc.hasData ? yc.count : '–'}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </button>
+                  </div>
                 );
               })}
             </div>
           </div>
 
           {/* ========================================================================= */}
-          {/* 5. Section 2: เปรียบเทียบจำนวนโครงการรายเดือน (Bar Chart) */}
+          {/* 4. Section 2: เปรียบเทียบจำนวนโครงการรายเดือน 3 ปี (SVG Bar Chart) */}
           {/* ========================================================================= */}
-          <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
+          <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-[0_4px_16px_rgba(0,0,0,0.03)] space-y-4">
             <div>
               <h2 className="text-base sm:text-lg font-bold text-slate-900">
                 เปรียบเทียบจำนวนโครงการรายเดือน 3 ปี{' '}
@@ -487,7 +694,7 @@ export function SdgsDashboardView() {
               </div>
             </div>
 
-            {/* Responsive Monthly SVG Bar Chart */}
+            {/* Monthly SVG Bar Chart */}
             <div className="overflow-x-auto pb-2">
               <div className="min-w-[700px] h-64 relative">
                 {(() => {
@@ -515,7 +722,7 @@ export function SdgsDashboardView() {
                       role="img"
                       aria-label="กราฟแท่งเปรียบเทียบรายเดือน"
                     >
-                      {/* Horizontal Grid lines */}
+                      {/* Grid lines */}
                       {[0, 0.25, 0.5, 0.75, 1].map((pct, idx) => {
                         const val = Math.round(maxVal * pct);
                         const y = topMargin + chartHeight - chartHeight * pct;
@@ -541,7 +748,7 @@ export function SdgsDashboardView() {
                         );
                       })}
 
-                      {/* Month Bars */}
+                      {/* Bars */}
                       {months.map((m, mIdx) => {
                         const groupX = leftMargin + mIdx * groupWidth;
                         const centerX = groupX + groupWidth / 2;
@@ -573,7 +780,6 @@ export function SdgsDashboardView() {
                               );
                             })}
 
-                            {/* Month Label */}
                             <text
                               x={centerX}
                               y={topMargin + chartHeight + 18}
@@ -590,7 +796,7 @@ export function SdgsDashboardView() {
                 })()}
               </div>
 
-              {/* Delta percentages row beneath each month */}
+              {/* Monthly deltas row */}
               <div className="min-w-[700px] grid grid-flow-col auto-cols-fr gap-1 pt-1 border-t border-slate-100 text-center">
                 {data.monthlyBars.map((m) => (
                   <div key={`delta-${m.monthIndex}`} className="py-1">
@@ -602,9 +808,9 @@ export function SdgsDashboardView() {
           </div>
 
           {/* ========================================================================= */}
-          {/* 6. Section 3: Heatmap (SDG x Month) */}
+          {/* 5. Section 3: Heatmap (SDG x Month) */}
           {/* ========================================================================= */}
-          <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
+          <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-[0_4px_16px_rgba(0,0,0,0.03)] space-y-4">
             <div>
               <h2 className="text-base sm:text-lg font-bold text-slate-900">
                 แผนภาพความเข้มข้นของจำนวนโครงการ จำแนกตาม SDGs และเดือน
@@ -616,25 +822,12 @@ export function SdgsDashboardView() {
 
             <div className="overflow-x-auto pb-2">
               <div className="min-w-[760px] space-y-1">
-                {/* Month Column Headers */}
+                {/* Month headers */}
                 <div className="grid grid-cols-[240px_repeat(12,1fr)] gap-1 pb-1 border-b border-slate-200 text-center">
                   <div className="text-[11px] font-bold text-slate-500 text-left pl-2">
                     เป้าหมาย SDGs
                   </div>
-                  {[
-                    'ม.ค.',
-                    'ก.พ.',
-                    'มี.ค.',
-                    'เม.ย.',
-                    'พ.ค.',
-                    'มิ.ย.',
-                    'ก.ค.',
-                    'ส.ค.',
-                    'ก.ย.',
-                    'ต.ค.',
-                    'พ.ย.',
-                    'ธ.ค.',
-                  ].map((mon) => (
+                  {MONTH_NAMES.map((mon) => (
                     <div
                       key={mon}
                       className="text-[11px] font-bold text-slate-600 py-1"
@@ -644,7 +837,7 @@ export function SdgsDashboardView() {
                   ))}
                 </div>
 
-                {/* Heatmap Rows */}
+                {/* Rows */}
                 {data.heatmap.map((row) => {
                   const isSelected = selectedSdg === row.sdgNumber;
                   const rowTextColor = getSdgTextColor(row.sdgNumber);
@@ -660,7 +853,6 @@ export function SdgsDashboardView() {
                           : 'hover:bg-slate-50'
                       )}
                     >
-                      {/* Row Label Badge: Number + Thai Name */}
                       <div className="flex items-center gap-2 truncate pr-2">
                         <span
                           className="w-6 h-6 rounded-md flex items-center justify-center text-[11px] font-extrabold shrink-0 shadow-2xs"
@@ -682,7 +874,6 @@ export function SdgsDashboardView() {
                         </span>
                       </div>
 
-                      {/* 12 Month Cells */}
                       {row.months.map((m) => {
                         if (m.count === -1) {
                           return (
@@ -732,14 +923,23 @@ export function SdgsDashboardView() {
             </div>
           </div>
 
-          {/* ========================================================================= */}
-          {/* 7. Bottom Footnote */}
-          {/* ========================================================================= */}
+          {/* Bottom Footnote */}
           <div className="pt-2 text-xs text-slate-500 leading-relaxed font-normal">
             * ข้อมูลในหน้านี้เป็นข้อมูลจริงจากฐานข้อมูล โครงการ 1 โครงการอาจถูกประเมินสอดคล้องมากกว่า 1 SDG จึงไม่ควรนำผลรวมรายข้อมาเทียบกับจำนวนโครงการจริง
           </div>
         </>
       )}
+
+      {/* Drill down modal */}
+      <DrillDownProjectDrawer
+        isOpen={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        title={`รายชื่อโครงการที่สอดคล้องกับ SDG ${selectedSdg || ''}`}
+        subtitle={`ชุดข้อมูล: ${activeCategory === 'all' ? 'ทุกชุดข้อมูล' : activeCategory}`}
+        accentColor={selectedSdg ? SDG_DEFINITIONS[selectedSdg]?.color : '#00A651'}
+        categoryKey={(activeCategory === 'all' ? 'research' : activeCategory) as CategoryKey}
+        items={drawerItems}
+      />
     </div>
   );
 }

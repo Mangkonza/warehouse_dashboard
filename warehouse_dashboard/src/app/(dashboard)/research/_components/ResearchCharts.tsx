@@ -642,21 +642,22 @@ export function ResearchCharts({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '16px' }}>
-      {/* Perspective Dimension Selector */}
+            {/* Perspective Dimension Selector */}
       <div
         style={{
-          display: 'flex',
+          display: 'inline-flex',
           alignItems: 'center',
-          gap: '8px',
+          gap: '6px',
           backgroundColor: '#ffffff',
-          padding: '8px 12px',
-          borderRadius: '12px',
+          padding: '6px 10px',
+          borderRadius: '9999px',
           border: '1px solid #e2e8f0',
-          boxShadow: 'none',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
           flexWrap: 'wrap',
+          maxWidth: '100%',
         }}
       >
-        <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#334155', marginRight: '6px' }}>
+        <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#334155', paddingLeft: '8px', marginRight: '4px' }}>
           มิติการวิเคราะห์:
         </span>
         {[
@@ -671,9 +672,9 @@ export function ResearchCharts({
               key={tab.id}
               onClick={() => setActivePerspective(tab.id as ResearchPerspective)}
               style={{
-                padding: '6px 14px',
-                borderRadius: '8px',
-                border: isSel ? '1.5px solid #00A651' : '1px solid #cbd5e1',
+                padding: '6px 16px',
+                borderRadius: '9999px',
+                border: isSel ? '1.5px solid #00A651' : '1px solid #e2e8f0',
                 backgroundColor: isSel ? '#00A651' : '#ffffff',
                 color: isSel ? '#ffffff' : '#475569',
                 fontSize: '12.5px',
@@ -682,6 +683,7 @@ export function ResearchCharts({
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
+                boxShadow: isSel ? '0 2px 6px #00A65140' : 'none',
                 transition: 'all 0.15s ease',
               }}
             >

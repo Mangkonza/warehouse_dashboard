@@ -146,6 +146,19 @@ function extractRecordDate(item: any, category: string): { year: number; month: 
       rawDate = item.start_date || item.date || item.createdAt;
   }
 
+  // If rawDate is duration string like '12 เดือน' or '-' or missing, fallback to fiscal_year or year in id
+  const rawStr = String(rawDate || '').trim();
+  if (!rawDate || /^\d+\s*เดือน/.test(rawStr) || rawStr === '-' || rawStr === 'nan' || rawStr === 'NaT') {
+    if (item.fiscal_year && /^\d{4}$/.test(String(item.fiscal_year).trim())) {
+      rawDate = String(item.fiscal_year).trim();
+    } else {
+      const idMatch = String(item.id || '').match(/(25\d{2}|20\d{2})/);
+      if (idMatch) {
+        rawDate = idMatch[1];
+      }
+    }
+  }
+
   // Fallback to evaluation date if domain date is missing
   if (!rawDate && item.evaluation?.evaluated_at) {
     rawDate = item.evaluation.evaluated_at;
@@ -160,13 +173,13 @@ function extractRecordDate(item: any, category: string): { year: number; month: 
   const str = String(rawDate).trim();
   if (!str || str === '-' || str === 'nan' || str === 'NaT') return null;
 
-  // Year only e.g. "2025" or "2568"
+  // Year only e.g. '2025' or '2568'
   if (/^\d{4}$/.test(str)) {
     const y = toCeYear(parseInt(str, 10));
     return { year: y, month: 0 };
   }
 
-  // "YYYY-MM" or "YYYY-MM-DD"
+  // 'YYYY-MM' or 'YYYY-MM-DD'
   const mMatch = str.match(/^(\d{4})[-/](\d{1,2})(?:[-/](\d{1,2}))?/);
   if (mMatch) {
     const y = toCeYear(parseInt(mMatch[1], 10));
@@ -236,10 +249,21 @@ export function aggregateSdgsData(params: SdgFilterParams = {}): SdgAggregationR
       if (isTestRecord(item)) continue;
 
       // Extract SDGs: from item.evaluation.sdg_ids or item.sdg_ids
-      const rawSdgs: unknown = item.evaluation?.sdg_ids || item.sdg_ids;
-      if (!Array.isArray(rawSdgs) || rawSdgs.length === 0) continue;
+      const rawSdgs: unknown =
+        item.evaluation?.sdg_ids ||
+        item.sdg_ids ||
+        item.evaluation?.sdgs ||
+        item.sdgs;
+      if (!rawSdgs) continue;
 
-      const parsedSdgs = rawSdgs
+      const sdgsArray = Array.isArray(rawSdgs)
+        ? rawSdgs
+        : String(rawSdgs)
+            .split(/[,;\s]+/)
+            .map((s) => s.trim())
+            .filter(Boolean);
+
+      const parsedSdgs = sdgsArray
         .map((s) => parseSdgNumber(s))
         .filter((n): n is number => typeof n === 'number' && n >= 1 && n <= 17);
 

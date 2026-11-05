@@ -262,7 +262,7 @@ export function PersonnelRankingTable({ metrics }: PersonnelRankingTableProps) {
                 }}
                 style={{
                   padding: '5px 12px',
-                  borderRadius: '6px',
+                  borderRadius: '9999px',
                   border: isSel ? `1px solid ${tab.color}` : '1px solid #e2e8f0',
                   backgroundColor: isSel ? tab.color : '#ffffff',
                   color: isSel ? '#ffffff' : '#475569',
@@ -625,7 +625,7 @@ export function PersonnelRankingTable({ metrics }: PersonnelRankingTableProps) {
                             color: '#00A651',
                             backgroundColor: '#ecfdf5',
                             padding: '3px 8px',
-                            borderRadius: '6px',
+                            borderRadius: '9999px',
                             fontSize: '12px',
                           }}
                         >
@@ -651,7 +651,7 @@ export function PersonnelRankingTable({ metrics }: PersonnelRankingTableProps) {
                             color: '#e11d48',
                             backgroundColor: '#fff1f2',
                             padding: '3px 8px',
-                            borderRadius: '6px',
+                            borderRadius: '9999px',
                             fontSize: '12px',
                           }}
                           title={`Q1/Q2: ${item.pubQuartiles.q1 + item.pubQuartiles.q2} เรื่อง`}
@@ -683,7 +683,7 @@ export function PersonnelRankingTable({ metrics }: PersonnelRankingTableProps) {
                             color: '#7c3aed',
                             backgroundColor: '#f5f3ff',
                             padding: '3px 8px',
-                            borderRadius: '6px',
+                            borderRadius: '9999px',
                             fontSize: '12px',
                           }}
                         >
@@ -709,7 +709,7 @@ export function PersonnelRankingTable({ metrics }: PersonnelRankingTableProps) {
                             color: '#0284c7',
                             backgroundColor: '#f0f9ff',
                             padding: '3px 8px',
-                            borderRadius: '6px',
+                            borderRadius: '9999px',
                             fontSize: '12px',
                           }}
                         >
@@ -735,7 +735,7 @@ export function PersonnelRankingTable({ metrics }: PersonnelRankingTableProps) {
                             color: '#d97706',
                             backgroundColor: '#fffbeb',
                             padding: '3px 8px',
-                            borderRadius: '6px',
+                            borderRadius: '9999px',
                             fontSize: '12px',
                           }}
                           title={`จำนวน ${item.serviceHours} ชั่วโมง`}
@@ -798,7 +798,7 @@ export function PersonnelRankingTable({ metrics }: PersonnelRankingTableProps) {
                         }}
                         style={{
                           padding: '6px 12px',
-                          borderRadius: '6px',
+                          borderRadius: '9999px',
                           border: '1px solid #cbd5e1',
                           backgroundColor: '#ffffff',
                           color: '#00A651',
@@ -859,7 +859,7 @@ export function PersonnelRankingTable({ metrics }: PersonnelRankingTableProps) {
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             style={{
               padding: '6px 12px',
-              borderRadius: '6px',
+              borderRadius: '9999px',
               border: '1px solid #cbd5e1',
               backgroundColor: '#ffffff',
               color: currentPage === 1 ? '#cbd5e1' : '#334155',
@@ -881,7 +881,7 @@ export function PersonnelRankingTable({ metrics }: PersonnelRankingTableProps) {
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             style={{
               padding: '6px 12px',
-              borderRadius: '6px',
+              borderRadius: '9999px',
               border: '1px solid #cbd5e1',
               backgroundColor: '#ffffff',
               color: currentPage >= totalPages ? '#cbd5e1' : '#334155',

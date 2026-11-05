@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { parseSdgNumber, getSdgInfo } from '@/lib/sdg';
 import { SdgTag } from './SdgTag';
 import { Popover, PopoverContent, PopoverTrigger } from './popover';
-import { BADGE_BASE_CLASSES } from '@/components/ui/badge-base';
 import { cn } from '@/lib/utils';
 
 export interface SdgTagListProps {
@@ -19,10 +18,10 @@ export interface SdgTagListProps {
 }
 
 /**
- * Universal SdgTagList component:
+ * Universal SdgTagList component matching Image 5:
  * - Deduplicates and sorts SDGs ascending (1 to 17)
  * - Displays up to maxVisible tags
- * - Overflow displayed as "+N" badge with a popover showing remaining tags
+ * - Overflow displayed as crisp "+N" rounded-full badge with popover
  */
 export const SdgTagList: React.FC<SdgTagListProps> = ({
   sdgs,
@@ -85,10 +84,7 @@ export const SdgTagList: React.FC<SdgTagListProps> = ({
               e.stopPropagation();
               setIsOpen((prev) => !prev);
             }}
-            className={cn(
-              BADGE_BASE_CLASSES,
-              'h-6 px-2 text-[11px] font-bold rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 cursor-pointer select-none transition-colors'
-            )}
+            className="h-[22px] px-2 rounded-full text-[11px] font-semibold bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 cursor-pointer select-none transition-colors shrink-0 inline-flex items-center justify-center"
             aria-label={`เป้าหมาย SDGs เพิ่มเติมอีก ${remainingSdgs.length} ข้อ`}
           >
             +{remainingSdgs.length}

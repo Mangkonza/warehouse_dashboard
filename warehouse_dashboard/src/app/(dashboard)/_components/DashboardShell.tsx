@@ -157,12 +157,6 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           path: '/kpi',
           icon: <FaBullseye />,
         },
-        {
-          id: 'sdgs',
-          label: 'เป้าหมาย SDGs',
-          path: '/sdgs',
-          icon: <FaLeaf />,
-        },
       ],
     },
     {

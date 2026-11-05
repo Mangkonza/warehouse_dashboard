@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { getSdgInfo, getSdgTextColor, parseSdgNumber, formatSdgLabel } from '@/lib/sdg';
-import { BADGE_BASE_CLASSES } from '@/components/ui/badge-base';
 import { cn } from '@/lib/utils';
 
 export interface SdgTagProps extends React.HTMLAttributes<HTMLSpanElement> {
@@ -15,17 +14,17 @@ export interface SdgTagProps extends React.HTMLAttributes<HTMLSpanElement> {
 }
 
 /**
- * Universal SDG Tag component.
- * - Capsule height ~24px
- * - Background = official UN SDG color
- * - Text color = WCAG 2.1 contrast ratio >= 4.5:1 (white or dark charcoal)
- * - Tooltip title = Full official Thai goal title
+ * Universal SDG Tag component matching Image 5:
+ * - Perfect capsule pill (rounded-full)
+ * - Exact height: 22px
+ * - Background: official UN SDG color
+ * - Text color: contrast-based (White on dark colors, Black on light colors)
+ * - Tooltip title: Full official Thai goal title
  */
 export const SdgTag: React.FC<SdgTagProps> = ({
   n,
   size = 'md',
   variant = 'capsule',
-  showIcon = false,
   className,
   style,
   ...props
@@ -37,8 +36,7 @@ export const SdgTag: React.FC<SdgTagProps> = ({
     return (
       <span
         className={cn(
-          BADGE_BASE_CLASSES,
-          'bg-slate-100 text-slate-700 border border-slate-300',
+          'inline-flex items-center justify-center h-[22px] px-2.5 rounded-full font-bold text-[11px] leading-none bg-slate-100 text-slate-700 border border-slate-300 select-none shrink-0',
           className
         )}
         style={style}
@@ -52,20 +50,10 @@ export const SdgTag: React.FC<SdgTagProps> = ({
   const bgColor = info.color;
   const textColor = getSdgTextColor(info.number);
 
-  const sizeClasses = {
-    sm: 'h-5 px-2 text-[10.5px]',
-    md: 'h-6 px-2.5 text-[11px] leading-none',
-    lg: 'h-7 px-3 text-[12px]',
-  }[size];
-
-  const variantRadius = variant === 'capsule' ? 'rounded-full' : 'rounded-md';
-
   return (
     <span
       className={cn(
-        'inline-flex items-center justify-center font-bold tracking-tight select-none transition-transform duration-100 shrink-0 shadow-xs border border-black/10',
-        sizeClasses,
-        variantRadius,
+        'inline-flex items-center justify-center h-[22px] px-2.5 rounded-full font-bold text-[11px] leading-none tracking-tight select-none shrink-0 transition-opacity',
         className
       )}
       style={{

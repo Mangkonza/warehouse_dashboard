@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { getSdgInfo, getSdgTextColor } from '@/lib/sdg';
-import { SdgIcon } from './SdgIcon';
 import { cn } from '@/lib/utils';
 
 export interface SdgCardProps {
@@ -14,10 +13,11 @@ export interface SdgCardProps {
 }
 
 /**
- * Universal SDG Selection Card used in the Project Evaluation Drawer (Task 3).
+ * Universal SDG Selection Card used in the Project Evaluation Drawer.
+ * Uses a crisp numeric icon badge instead of photo image as requested.
  * - 2-column multi-select button
- * - Unselected: white background, thin border, colored SdgIcon
- * - Selected: official SDG color background, WCAG contrast text, SdgIcon with ~3px white border
+ * - Unselected: white button background, colored numeric icon box, dark text
+ * - Selected: full SDG color background, contrast text, white numeric icon box
  */
 export const SdgCard: React.FC<SdgCardProps> = ({
   goalNumber,
@@ -35,7 +35,7 @@ export const SdgCard: React.FC<SdgCardProps> = ({
       type="button"
       onClick={() => onToggle(goalNumber)}
       className={cn(
-        'group flex items-center gap-2.5 px-3 py-2 min-h-[46px] rounded-xl text-left transition-all duration-150 cursor-pointer select-none',
+        'group flex items-center gap-2.5 px-3 py-2 min-h-[44px] rounded-xl text-left transition-all duration-150 cursor-pointer select-none',
         selected
           ? 'shadow-sm border border-black/15'
           : 'bg-white text-slate-800 border border-slate-200 hover:border-slate-300 hover:bg-slate-50/80',
@@ -49,21 +49,29 @@ export const SdgCard: React.FC<SdgCardProps> = ({
       aria-pressed={selected}
       aria-label={`SDG ${goalNumber}: ${nameTh}`}
     >
-      {/* SDG Icon with ~3px white border when selected to prevent blending */}
-      <div
+      {/* Numeric Icon Box (Replaces photo image) */}
+      <span
         className={cn(
-          'shrink-0 transition-transform duration-100 flex items-center justify-center',
-          selected ? 'rounded-[6px] shadow-[0_0_0_3px_#ffffff]' : ''
+          'w-7 h-7 rounded-lg flex items-center justify-center font-extrabold text-[12px] shrink-0 transition-transform duration-100 shadow-2xs',
+          selected ? 'bg-white shadow-sm' : ''
         )}
+        style={{
+          backgroundColor: selected ? '#ffffff' : bgColor,
+          color: selected ? bgColor : textColor,
+        }}
       >
-        <SdgIcon n={goalNumber} size={28} />
-      </div>
+        {goalNumber}
+      </span>
 
       {/* Goal Number + Thai Title */}
       <div className="flex flex-col min-w-0 leading-tight">
         <span
-          className="text-[12px] font-bold"
-          style={{ color: selected ? textColor : '#0f172a' }}
+          className="text-[12.5px] font-medium truncate"
+          style={{
+            color: selected ? textColor : '#0f172a',
+            fontWeight: selected ? 700 : 500,
+          }}
+          title={`${goalNumber}. ${nameTh}`}
         >
           {goalNumber}. {nameTh}
         </span>
