@@ -4,8 +4,9 @@ import React, { useMemo } from 'react';
 import { FaFlask, FaGraduationCap, FaBook, FaHandshake, FaCertificate } from 'react-icons/fa';
 import { CANONICAL_DEPARTMENTS, matchDepartmentCode } from '@/config/departments';
 import { getDepartment } from '@/lib/departments';
-import { autoDetectJournalRanking } from '@/config/journalRankingConfig';
+import { classifyPublicationTier, isInternationalTier, isNationalTier } from '../_services/kpiScorecard';
 import { MISSION_THEMES, resolveItemStrategicAlignment } from '@/lib/pastelTheme';
+import { resolveItemFiscalYear } from '@/types/timeFilter';
 import type { OverviewKpiScore } from '../_hooks/useOverviewData';
 import { KpiPulseRow } from './glance/KpiPulseRow';
 import { MissionPulseTiles, type MissionPulse } from './glance/MissionPulseTiles';
@@ -29,11 +30,11 @@ interface GlanceOverviewProps {
 }
 
 const COLUMNS: HeatmapColumn[] = [
-  { key: 'research', label: 'วิจัย', icon: FaFlask, color: MISSION_THEMES.research.color },
-  { key: 'academic', label: 'วิชาการ', icon: FaGraduationCap, color: MISSION_THEMES.academic.color },
-  { key: 'publications', label: 'ตีพิมพ์', icon: FaBook, color: MISSION_THEMES.publications.color },
-  { key: 'service', label: 'บริการ', icon: FaHandshake, color: MISSION_THEMES.service.color },
-  { key: 'ip', label: 'IP', icon: FaCertificate, color: MISSION_THEMES.ip.color },
+  { key: 'research', label: 'วิจัย', icon: FaFlask, accent: MISSION_THEMES.research.card.icon },
+  { key: 'academic', label: 'วิชาการ', icon: FaGraduationCap, accent: MISSION_THEMES.academic.card.icon },
+  { key: 'publications', label: 'ตีพิมพ์', icon: FaBook, accent: MISSION_THEMES.publications.card.icon },
+  { key: 'service', label: 'บริการ', icon: FaHandshake, accent: MISSION_THEMES.service.card.icon },
+  { key: 'ip', label: 'IP', icon: FaCertificate, accent: MISSION_THEMES.ip.card.icon },
 ];
 
 function currentFiscalYearBE(now: Date): number {
@@ -60,10 +61,16 @@ export function GlanceOverview({
   const missions: MissionPulse[] = useMemo(() => {
     const resBudget = research.reduce((s, r) => s + researchBudget(r), 0);
     const acaBudget = academic.reduce((s, a) => s + (Number(a.budget) || 0), 0);
-    const topTier = publications.filter((p) => {
-      const tier = String(p.journal_tier || autoDetectJournalRanking(p.journal || '', p.level || ''));
-      return tier.startsWith('Q1') || tier.startsWith('Q2');
-    }).length;
+
+    // Publication quality breakdown: Q1–Q4 vs TCI 1–2
+    let qCount = 0;
+    let tciCount = 0;
+    publications.forEach((p) => {
+      const tier = classifyPublicationTier(p);
+      if (isInternationalTier(tier)) qCount++;
+      else if (isNationalTier(tier)) tciCount++;
+    });
+
     const staff = new Set(service.map((s) => s.person).filter(Boolean)).size;
     const protectedIp = ip.filter((i) => String(i.status || '').includes('คุ้มครอง')).length;
     const money = (v: number) => {
@@ -103,7 +110,7 @@ export function GlanceOverview({
         unit: 'เรื่อง',
         route: '/publications',
         monthly: monthlyCounts(publications, (p) => [p.month_year || p.pub_date || p.date, p.month]),
-        highlight: { label: 'ระดับ Q1–Q2', value: `${topTier} เรื่อง` },
+        highlight: { label: 'Q1–Q4', value: `${qCount} เรื่อง (TCI: ${tciCount})` },
       },
       {
         key: 'service',
@@ -125,7 +132,7 @@ export function GlanceOverview({
         unit: 'รายการ',
         route: '/ip',
         monthly: monthlyCounts(ip, (i) => [i.filing_date || i.date]),
-        highlight: { label: 'คุ้มครองแล้ว', value: `${protectedIp} รายการ` },
+        highlight: { label: 'คุ้มครองแล้ว', value: `${protectedIp} รายตาราง` },
       },
     ];
   }, [research, academic, publications, service, ip]);
@@ -135,9 +142,9 @@ export function GlanceOverview({
     const totalRes = research.reduce((s, r) => s + researchBudget(r), 0);
     const academicBudget = academic.reduce((s, a) => s + (Number(a.budget) || 0), 0);
     return [
-      { key: 'res_ext', label: 'วิจัย · ทุนภายนอก', value: external, color: '#10b981' },
-      { key: 'res_int', label: 'วิจัย · ทุนภายใน', value: Math.max(0, totalRes - external), color: '#a7f3d0' },
-      { key: 'academic', label: 'พัฒนาวิชาการ', value: academicBudget, color: '#0ea5e9' },
+      { key: 'res_ext', label: 'วิจัย · ทุนภายนอก', value: external, color: '#34D399' },
+      { key: 'res_int', label: 'วิจัย · ทุนภายใน', value: Math.max(0, totalRes - external), color: '#6EE7B7' },
+      { key: 'academic', label: 'พัฒนาวิชาการ', value: academicBudget, color: '#38BDF8' },
     ];
   }, [research, academic]);
 
@@ -200,15 +207,19 @@ export function GlanceOverview({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      {/* 1. KPI Pulse Row (เป้าหมายปีงบประมาณ หรือสัดส่วนผลงานต่อเป้าคณะ) */}
       <KpiPulseRow kpis={kpis} fiscalYearProgress={fiscalYearProgress} isFiltered={isFiltered} />
 
+      {/* 3. 5-Mission Pulse Tiles (พร้อม YoY Delta ▲▼ และคุณภาพตีพิมพ์) */}
       <MissionPulseTiles missions={missions} currentFiscalMonth={currentFiscalMonth} />
 
+      {/* 4. Total Budget & Department Heatmap */}
       <div className="glance-split" style={{ display: 'grid', gap: '16px', alignItems: 'stretch' }}>
         <BudgetDonut segments={budgetSegments} />
         <DepartmentHeatmap columns={COLUMNS} rows={heatmapRows} selected={selectedDept} onSelect={onSelectDept} />
       </div>
 
+      {/* 5. Strategic Alignment (SDGs & ISEE & IAM) */}
       <StrategicStrip topSdgs={topSdgs} isee={isee} iam={iam} />
     </div>
   );

@@ -7,10 +7,16 @@ import { calculateProjectTimeline } from '@/lib/projectMonitoringEngine';
 import { getCachedCategoryData, fetchCategoryData } from '@/lib/dataService';
 import { matchDepartmentCode } from '@/config/departments';
 import { exportMonthlyExecutiveMasterExcel, saveReportSnapshot } from '@/lib/etlEngine';
-import { TimeFilterState, itemMatchesTimeFilter, getTimeFilterLabel } from '@/types/timeFilter';
+import {
+  TimeFilterState,
+  itemMatchesTimeFilter,
+  getTimeFilterLabel,
+  resolveItemDate,
+  resolveItemFiscalYear,
+} from '@/types/timeFilter';
 import { isTestRecord } from '@/lib/sdgEngine';
 import { CategoryKey } from '@/config/dataManagementConfig';
-import { buildKpiScorecard, getFiscalYearProgress } from '../_services/kpiScorecard';
+import { buildKpiScorecard } from '../_services/kpiScorecard';
 
 import rawResearch from '@/data/research.json';
 import rawAcademic from '@/data/academic.json';
@@ -30,12 +36,30 @@ export interface OverviewKpiScore {
   percent: number;
   proRataTarget: number;
   categoryKey: CategoryKey;
+  /** BE fiscal year this KPI is compared against (null when undated). */
+  fiscalYear: string | null;
+  /** True when the actual includes records that have no fiscal year. */
+  includesUndated?: boolean;
+  /** Publication tier counts (Q1–Q4, TCI 1–2) for the counted year. */
+  tierBreakdown?: Record<string, number>;
+  /** Remaining gap from target (0 when target achieved). */
+  gap?: number;
+  /** Human-readable gap text (e.g. "ขาดอีก 3 โครงการ", "ขาดอีก 75.50 ล้านบาท"). */
+  gapFormatted?: string;
   items: any[];
   status: {
     label: string;
     color: string;
     bg: string;
   };
+}
+
+export interface UndatedCounts {
+  research: number;
+  academic: number;
+  publications: number;
+  service: number;
+  ip: number;
 }
 
 export interface DepartmentOverviewStat {
@@ -86,9 +110,16 @@ function resolveAcademicDept(head?: string, currentDept?: string): string {
   return ACADEMIC_HEAD_DEPT_MAP[clean] || '';
 }
 
+function isUsableItem(item: any): boolean {
+  const name = item?.name;
+  if (!name || name === 'nan' || name === 'NaT' || name === 'เรื่อง') return false;
+  return !isTestRecord(item);
+}
+
 export function useOverviewData(timeFilter: TimeFilterState) {
   const [isLiveFromDb, setIsLiveFromDb] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [snapshotToast, setSnapshotToast] = useState<string | null>(null);
 
   const [researchList, setResearchList] = useState<any[]>(() => getCachedCategoryData('research') || rawResearch);
@@ -143,6 +174,7 @@ export function useOverviewData(timeFilter: TimeFilterState) {
       }
 
       setIsLiveFromDb(liveCount > 0);
+      if (liveCount > 0) setLastUpdated(new Date());
     } catch {
       setIsLiveFromDb(false);
     } finally {
@@ -156,55 +188,88 @@ export function useOverviewData(timeFilter: TimeFilterState) {
 
   const validResearch = useMemo(() => {
     return researchList
-      .filter((item) => item.name && item.name !== 'nan' && item.name !== 'NaT' && item.name !== 'เรื่อง' && !isTestRecord(item))
+      .filter(isUsableItem)
       .filter((item) => itemMatchesTimeFilter(item, timeFilter, 'research'))
-      .map((item) => ({ ...item, _categoryKey: 'research' as CategoryKey }));
+      .map((item) => ({
+        ...item,
+        _categoryKey: 'research' as CategoryKey,
+        _fiscalYear: resolveItemFiscalYear(item, 'research'),
+      }));
   }, [researchList, timeFilter]);
 
   const validAcademic = useMemo(() => {
     return academicList
-      .filter((item) => item.name && item.name !== 'nan' && item.name !== 'NaT' && item.name !== 'เรื่อง' && !isTestRecord(item))
-      .filter((item) => itemMatchesTimeFilter(item, timeFilter, 'academic'))
+      .filter(isUsableItem)
+      // Academic records carry only a Thai month name (no year), so they cannot
+      // participate in a fiscal-year filter. Keep them visible instead of
+      // silently emptying the mission.
+      .filter((item) => itemMatchesTimeFilter(item, timeFilter, 'academic', { keepUndated: true }))
       .map((item) => {
         const resolvedDept = resolveAcademicDept(item.head, item.department);
+        const fiscalYear = resolveItemFiscalYear(item, 'academic');
         return {
           ...item,
           department: resolvedDept || item.department,
           _categoryKey: 'academic' as CategoryKey,
+          _fiscalYear: fiscalYear,
+          _undatedFiscalYear: fiscalYear === null,
         };
       });
   }, [academicList, timeFilter]);
 
   const validPub = useMemo(() => {
     return pubList
-      .filter((item) => item.name && item.name !== 'nan' && item.name !== 'NaT' && item.name !== 'เรื่อง' && !isTestRecord(item))
+      .filter(isUsableItem)
       .filter((item) => itemMatchesTimeFilter(item, timeFilter, 'publications'))
-      .map((item) => ({ ...item, _categoryKey: 'publications' as CategoryKey }));
+      .map((item) => ({
+        ...item,
+        _categoryKey: 'publications' as CategoryKey,
+        _fiscalYear: resolveItemFiscalYear(item, 'publications'),
+      }));
   }, [pubList, timeFilter]);
 
   const validService = useMemo(() => {
     return serviceList
-      .filter((item) => item.name && item.name !== 'nan' && item.name !== 'NaT' && item.name !== 'เรื่อง' && !isTestRecord(item))
+      .filter(isUsableItem)
       .filter((item) => itemMatchesTimeFilter(item, timeFilter, 'service'))
-      .map((item) => ({ ...item, _categoryKey: 'service' as CategoryKey }));
+      .map((item) => ({
+        ...item,
+        _categoryKey: 'service' as CategoryKey,
+        _fiscalYear: resolveItemFiscalYear(item, 'service'),
+      }));
   }, [serviceList, timeFilter]);
 
   const validIP = useMemo(() => {
     return ipList
-      .filter((item) => item.name && item.name !== 'nan' && item.name !== 'NaT' && item.name !== 'เรื่อง' && !isTestRecord(item))
+      .filter(isUsableItem)
       .filter((item) => itemMatchesTimeFilter(item, timeFilter, 'ip'))
-      .map((item) => ({ ...item, _categoryKey: 'ip' as CategoryKey }));
+      .map((item) => ({
+        ...item,
+        _categoryKey: 'ip' as CategoryKey,
+        _fiscalYear: resolveItemFiscalYear(item, 'ip'),
+      }));
   }, [ipList, timeFilter]);
 
-  const fiscalYearProgress = useMemo(() => getFiscalYearProgress(), []);
+  /** How many usable records have no resolvable date, per category. */
+  const undatedCounts: UndatedCounts = useMemo(() => {
+    const count = (list: any[], category: string) =>
+      list.filter(isUsableItem).filter((item) => resolveItemDate(item, category) === null).length;
+    return {
+      research: count(researchList, 'research'),
+      academic: count(academicList, 'academic'),
+      publications: count(pubList, 'publications'),
+      service: count(serviceList, 'service'),
+      ip: count(ipList, 'ip'),
+    };
+  }, [researchList, academicList, pubList, serviceList, ipList]);
 
   const kpiScorecard: OverviewKpiScore[] = useMemo(
     () =>
       buildKpiScorecard(
         { research: validResearch, academic: validAcademic, publications: validPub, service: validService, ip: validIP },
-        fiscalYearProgress
+        { fiscalYear: timeFilter.mode === 'fiscal' ? timeFilter.fiscalYear : 'all' }
       ),
-    [validResearch, validAcademic, validPub, validService, validIP, fiscalYearProgress]
+    [validResearch, validAcademic, validPub, validService, validIP, timeFilter]
   );
 
   const departmentStats: DepartmentOverviewStat[] = useMemo(() => {
@@ -316,6 +381,7 @@ export function useOverviewData(timeFilter: TimeFilterState) {
 
   return {
     isLiveFromDb,
+    lastUpdated,
     isRefreshing,
     snapshotToast,
     kpiScorecard,
@@ -326,6 +392,7 @@ export function useOverviewData(timeFilter: TimeFilterState) {
     validPub,
     validService,
     validIP,
+    undatedCounts,
     fetchLiveData,
     handleExportMaster,
     handleSnapshot,

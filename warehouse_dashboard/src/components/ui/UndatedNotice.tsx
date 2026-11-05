@@ -4,6 +4,7 @@ import React from 'react';
 
 interface UndatedNoticeProps {
   count: number;
+  message?: string;
   className?: string;
 }
 
@@ -11,7 +12,7 @@ interface UndatedNoticeProps {
  * Shows how many records cannot participate in a time filter because their
  * source data has no usable date. Rendered only while a time filter is active.
  */
-export function UndatedNotice({ count, className }: UndatedNoticeProps) {
+export function UndatedNotice({ count, message, className }: UndatedNoticeProps) {
   if (!count) return null;
   return (
     <div
@@ -38,7 +39,7 @@ export function UndatedNotice({ count, className }: UndatedNoticeProps) {
           flexShrink: 0,
         }}
       />
-      <span>ไม่ระบุวันที่ {count.toLocaleString('th-TH')} รายการ (ไม่แสดงเมื่อกรองเวลา)</span>
+      <span>{message || `ไม่ระบุวันที่ ${count.toLocaleString('th-TH')} รายการ (ไม่แสดงเมื่อกรองเวลา)`}</span>
     </div>
   );
 }

@@ -9,7 +9,8 @@ export interface HeatmapColumn {
   key: string;
   label: string;
   icon: IconType;
-  color: string;
+  /** Accent color used for the column icon and the heat-cell tint. */
+  accent: string;
 }
 
 export interface HeatmapRow {
@@ -70,7 +71,7 @@ export function DepartmentHeatmap({ columns, rows, selected, onSelect }: Departm
                   title={c.label}
                   style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', fontSize: '11.5px', color: '#475569' }}
                 >
-                  <Icon style={{ color: c.color, fontSize: '14px' }} aria-hidden="true" />
+                  <Icon style={{ color: c.accent, fontSize: '14px' }} aria-hidden="true" />
                   {c.label}
                 </span>
               );
@@ -116,7 +117,6 @@ export function DepartmentHeatmap({ columns, rows, selected, onSelect }: Departm
                 {columns.map((c) => {
                   const v = row.values[c.key] || 0;
                   const intensity = v / colMax[c.key];
-                  const strong = intensity > 0.55;
                   return (
                     <span
                       key={c.key}
@@ -131,8 +131,8 @@ export function DepartmentHeatmap({ columns, rows, selected, onSelect }: Departm
                         fontSize: '13px',
                         fontWeight: 600,
                         fontVariantNumeric: 'tabular-nums',
-                        backgroundColor: v === 0 ? '#f8fafc' : hexToRgba(c.color, 0.12 + intensity * 0.78),
-                        color: v === 0 ? '#cbd5e1' : strong ? '#ffffff' : '#0f172a',
+                        backgroundColor: v === 0 ? '#f8fafc' : hexToRgba(c.accent, 0.15 + intensity * 0.45),
+                        color: v === 0 ? '#cbd5e1' : '#0f172a',
                       }}
                     >
                       {v === 0 ? '–' : v}
@@ -147,7 +147,7 @@ export function DepartmentHeatmap({ columns, rows, selected, onSelect }: Departm
                         display: 'block',
                         height: '100%',
                         width: `${(row.budget / maxBudget) * 100}%`,
-                        backgroundColor: '#10b981',
+                        backgroundColor: '#34D399',
                         borderRadius: 999,
                       }}
                     />

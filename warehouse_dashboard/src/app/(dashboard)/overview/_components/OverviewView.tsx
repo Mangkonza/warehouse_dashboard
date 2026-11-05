@@ -8,8 +8,10 @@ import { buildKpiScorecard, getFiscalYearProgress } from '../_services/kpiScorec
 import { StrategicCommandPanel } from './StrategicCommandPanel';
 import { DepartmentMatrixAndPulse } from './DepartmentMatrixAndPulse';
 import { DashboardTabFilterBar } from '@/components/ui/DashboardTabFilterBar';
+import { UndatedNotice } from '@/components/ui/UndatedNotice';
 import { dashboardPageSubtitleStyle, dashboardPageTitleStyle, dashboardTheme } from '@/lib/dashboardTheme';
 import { itemMatchesStrategicFilter } from '@/lib/pastelTheme';
+import { itemMatchesFiscalYear, resolveItemFiscalYear } from '@/types/timeFilter';
 import { FaSyncAlt, FaDownload, FaCheckCircle, FaChevronDown } from 'react-icons/fa';
 
 export function OverviewView() {
@@ -24,6 +26,7 @@ export function OverviewView() {
 
   const {
     isLiveFromDb,
+    lastUpdated,
     isRefreshing,
     snapshotToast,
     departmentStats,
@@ -32,6 +35,7 @@ export function OverviewView() {
     validPub,
     validService,
     validIP,
+    undatedCounts,
     fetchLiveData,
     handleExportMaster,
   } = useOverviewData(timeFilter);
@@ -43,23 +47,33 @@ export function OverviewView() {
   const totalItemsCount = validResearch.length + validAcademic.length + validPub.length + validService.length + validIP.length;
 
   // Filter items by department, fiscal year, and strategic filter
-  const matchesAllFilters = (item: any) => {
+  const matchesAllFilters = (item: any, category: string) => {
     if (selectedDept !== 'all' && !String(item.department || '').includes(selectedDept)) return false;
     if (fiscalYear !== 'all') {
-      const fy = String(item.fiscal_year_be || item.fiscal_year || '');
-      if (fy && !fy.includes(fiscalYear)) return false;
+      // Academic records have no year in the source data (68/69 are undated).
+      // Keep them visible with an "ไม่ระบุปีงบ" note instead of emptying the
+      // mission, and keep them out of year-specific comparisons.
+      const undatedAcademic = category === 'academic' && resolveItemFiscalYear(item, 'academic') === null;
+      if (!undatedAcademic && !itemMatchesFiscalYear(item, fiscalYear, category)) return false;
     }
     if (strategicFilter !== 'all' && !itemMatchesStrategicFilter(item, strategicFilter)) return false;
     return true;
   };
 
-  const filteredResearch = validResearch.filter(matchesAllFilters);
-  const filteredAcademic = validAcademic.filter(matchesAllFilters);
-  const filteredPub = validPub.filter(matchesAllFilters);
-  const filteredService = validService.filter(matchesAllFilters);
-  const filteredIP = validIP.filter(matchesAllFilters);
+  const filteredResearch = validResearch.filter((item) => matchesAllFilters(item, 'research'));
+  const filteredAcademic = validAcademic.filter((item) => matchesAllFilters(item, 'academic'));
+  const filteredPub = validPub.filter((item) => matchesAllFilters(item, 'publications'));
+  const filteredService = validService.filter((item) => matchesAllFilters(item, 'service'));
+  const filteredIP = validIP.filter((item) => matchesAllFilters(item, 'ip'));
 
   const totalFilteredCount = filteredResearch.length + filteredAcademic.length + filteredPub.length + filteredService.length + filteredIP.length;
+
+  // Records hidden because they have no date at all (only when a year is active).
+  const hiddenUndated =
+    fiscalYear === 'all'
+      ? 0
+      : undatedCounts.research + undatedCounts.publications + undatedCounts.service + undatedCounts.ip;
+  const undatedAcademic = fiscalYear === 'all' ? 0 : undatedCounts.academic;
 
   const fiscalYearProgress = useMemo(() => getFiscalYearProgress(), []);
   const kpis = buildKpiScorecard(
@@ -70,8 +84,33 @@ export function OverviewView() {
       service: filteredService,
       ip: filteredIP,
     },
-    fiscalYearProgress
+    { fiscalYear }
   );
+
+  const liveBadge = isLiveFromDb
+    ? {
+        backgroundColor: '#ecfdf5',
+        border: '1px solid #a7f3d0',
+        color: '#047857',
+        dot: '#10b981',
+        label: lastUpdated
+          ? `ข้อมูลจริงในระบบ · อัปเดต ${lastUpdated.toLocaleString('th-TH', {
+              day: 'numeric',
+              month: 'short',
+              hour: '2-digit',
+              minute: '2-digit',
+            })}`
+          : 'ข้อมูลจริงในระบบ',
+        title: 'ข้อมูลถูกดึงจากฐานข้อมูลล่าสุด',
+      }
+    : {
+        backgroundColor: '#fff7ed',
+        border: '1px solid #fed7aa',
+        color: '#9a3412',
+        dot: '#f59e0b',
+        label: 'ข้อมูลสำรอง (JSON) · เชื่อมต่อฐานข้อมูลไม่ได้',
+        title: 'API ไม่ตอบสนอง ระบบจึงใช้ไฟล์ข้อมูลสำรองในเครื่อง ตัวเลขอาจไม่เป็นปัจจุบัน',
+      };
 
   const [showDetails, setShowDetails] = useState(false);
 
@@ -131,15 +170,16 @@ export function OverviewView() {
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           <div
+            title={liveBadge.title}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
               padding: '5px 12px',
               borderRadius: '999px',
-              backgroundColor: '#ecfdf5',
-              border: '1px solid #a7f3d0',
-              color: '#047857',
+              backgroundColor: liveBadge.backgroundColor,
+              border: liveBadge.border,
+              color: liveBadge.color,
               fontSize: '12.5px',
               fontWeight: 700,
             }}
@@ -149,11 +189,11 @@ export function OverviewView() {
                 width: '8px',
                 height: '8px',
                 borderRadius: '50%',
-                backgroundColor: '#10b981',
-                boxShadow: '0 0 6px #10b981',
+                backgroundColor: liveBadge.dot,
+                boxShadow: `0 0 6px ${liveBadge.dot}`,
               }}
             />
-            <span>ข้อมูลจริงในระบบ</span>
+            <span>{liveBadge.label}</span>
           </div>
 
           <button
@@ -204,6 +244,19 @@ export function OverviewView() {
           </button>
         </div>
       </DashboardTabFilterBar>
+
+      {/* Undated records kept out of year-specific totals */}
+      {(hiddenUndated > 0 || undatedAcademic > 0) && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+          <UndatedNotice count={hiddenUndated} />
+          {undatedAcademic > 0 && (
+            <UndatedNotice
+              count={undatedAcademic}
+              message={`พัฒนาวิชาการ ${undatedAcademic.toLocaleString('th-TH')} รายการ ไม่ระบุปีงบ (แสดงเสมอ)`}
+            />
+          )}
+        </div>
+      )}
 
       {/* ZONE 2: Glance layer — targets, missions, budget, departments, strategy */}
       <GlanceOverview

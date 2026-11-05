@@ -20,11 +20,25 @@ const IAM_SHORT: Record<string, { letter: string; name: string }> = {
   M: { letter: 'M', name: 'ความเป็นมืออาชีพ' },
 };
 
+/** Soft fills for the overview: a step deeper than the lightest pastel. */
+const ISEE_PASTEL: Record<string, string> = {
+  I: '#FB7185',
+  S: '#FBBF24',
+  E1: '#34D399',
+  E2: '#38BDF8',
+};
+
+const IAM_PASTEL: Record<string, string> = {
+  I: '#2DD4BF',
+  A: '#60A5FA',
+  M: '#A78BFA',
+};
+
 interface ShareItem {
   id: string;
   letter: string;
   name: string;
-  color: string;
+  fill: string;
   count: number;
 }
 
@@ -56,8 +70,8 @@ function ShareBreakdown({
               title={`${it.name}: ${it.count} รายการ`}
               style={{
                 width: `${share}%`,
-                backgroundColor: it.color,
-                color: '#ffffff',
+                backgroundColor: it.fill,
+                color: '#0f172a',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -85,8 +99,8 @@ function ShareBreakdown({
                 width: 22,
                 height: 22,
                 borderRadius: 6,
-                backgroundColor: it.color,
-                color: '#ffffff',
+                backgroundColor: it.fill,
+                color: '#0f172a',
                 fontSize: '12px',
                 fontWeight: 700,
                 display: 'inline-flex',
@@ -117,7 +131,7 @@ export function StrategicStrip({ topSdgs, isee, iam }: StrategicStripProps) {
     id: p.id,
     letter: ISEE_SHORT[p.id].letter,
     name: ISEE_SHORT[p.id].name,
-    color: p.color,
+    fill: ISEE_PASTEL[p.id],
     count: isee[p.id] || 0,
   }));
 
@@ -125,7 +139,7 @@ export function StrategicStrip({ topSdgs, isee, iam }: StrategicStripProps) {
     id: v.id,
     letter: IAM_SHORT[v.id].letter,
     name: IAM_SHORT[v.id].name,
-    color: v.color,
+    fill: IAM_PASTEL[v.id],
     count: iam[v.id] || 0,
   }));
 
@@ -139,6 +153,8 @@ export function StrategicStrip({ topSdgs, isee, iam }: StrategicStripProps) {
       }}
       aria-label="ความสอดคล้องเชิงยุทธศาสตร์"
     >
+      <ShareBreakdown title="สัดส่วนตามยุทธศาสตร์ ISEE" items={iseeItems} legendColumns={2} />
+      <ShareBreakdown title="สัดส่วนตามค่านิยมองค์กร IAM" items={iamItems} legendColumns={3} />
       <div
         className="glance-strategic__sdg"
         style={{ display: 'flex', flexDirection: 'column', gap: '14px', minWidth: 0, gridColumn: '1 / -1' }}
@@ -175,9 +191,6 @@ export function StrategicStrip({ topSdgs, isee, iam }: StrategicStripProps) {
           )}
         </div>
       </div>
-
-      <ShareBreakdown title="สัดส่วนตามยุทธศาสตร์ ISEE" items={iseeItems} legendColumns={2} />
-      <ShareBreakdown title="สัดส่วนตามค่านิยมองค์กร IAM" items={iamItems} legendColumns={3} />
     </section>
   );
 }

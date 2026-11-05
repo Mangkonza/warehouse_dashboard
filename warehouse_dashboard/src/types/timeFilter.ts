@@ -118,6 +118,19 @@ const CATEGORY_DATE_FIELDS: Record<string, string[]> = {
   personnel: ['date', 'start_date', 'filing_date'],
 };
 
+/**
+ * Normalise a bare year to the Gregorian calendar.
+ *
+ * - BE labels (2566–2570) are converted by subtracting 543.
+ * - Excel converted BE 2566–2570 into CE 1966–1970 during import, so those
+ *   legacy artefacts are shifted back by +57 (1968 → 2025, i.e. BE 2568).
+ */
+function normaliseYear(rawYear: number): number {
+  if (rawYear >= 2400) return rawYear - 543;
+  if (rawYear >= 1966 && rawYear <= 1972) return rawYear + 57;
+  return rawYear;
+}
+
 function parseDateValue(raw: unknown, field?: string): Date | null {
   if (raw === undefined || raw === null || raw === '') return null;
   if (raw instanceof Date) {
@@ -133,21 +146,19 @@ function parseDateValue(raw: unknown, field?: string): Date | null {
   if (field === 'fiscal_year_be' || field === 'fiscal_year') {
     const y = Number(str.match(/\d{4}/)?.[0]);
     if (Number.isFinite(y)) {
-      const ce = y > 2400 ? y - 543 : y;
-      return new Date(ce - 1, 9, 1);
+      return new Date(normaliseYear(y) - 1, 9, 1);
     }
   }
 
   if (typeof raw === 'number') {
-    const year = raw > 2400 ? raw - 543 : raw;
+    const year = normaliseYear(raw);
     return Number.isFinite(year) ? new Date(year, 0, 1) : null;
   }
 
   // YYYY, YYYY-MM and YYYY-MM-DD (BE years are normalised to CE).
   const match = str.match(/^(\d{4})(?:-(\d{1,2}))?(?:-(\d{1,2}))?$/);
   if (match) {
-    const rawYear = Number(match[1]);
-    const year = rawYear > 2400 ? rawYear - 543 : rawYear;
+    const year = normaliseYear(Number(match[1]));
     const month = match[2] ? Number(match[2]) - 1 : 0;
     const day = match[3] ? Number(match[3]) : 1;
     const d = new Date(year, month, day);
@@ -156,7 +167,10 @@ function parseDateValue(raw: unknown, field?: string): Date | null {
 
   const d = new Date(str);
   if (isNaN(d.getTime())) return null;
-  if (d.getFullYear() > 2400) d.setFullYear(d.getFullYear() - 543);
+  const fullYear = d.getFullYear();
+  if (fullYear >= 2400 || (fullYear >= 1966 && fullYear <= 1972)) {
+    d.setFullYear(normaliseYear(fullYear));
+  }
   return d;
 }
 
@@ -177,7 +191,69 @@ export function getUndatedCount(items: unknown[], category?: string): number {
   return items.filter((item) => item && resolveItemDate(item, category) === null).length;
 }
 
-export const itemMatchesTimeFilter = (item: any, f: TimeFilterState, category?: string): boolean => {
+/**
+ * Resolve the fiscal year (BE) a record belongs to.
+ *
+ * Checks in order:
+ * 1. Explicit `fiscal_year_be`/`fiscal_year` field.
+ * 2. Project ID / code containing a BE year (e.g. `วศ.กพส. 1/2568` or `.68`).
+ * 3. Funding source text containing a BE year (e.g. `ประจำปีงบประมาณ 2568`).
+ * 4. Record date using the Thai fiscal rule (Oct–Dec belong to the next BE year).
+ *
+ * Returns null when the record has no usable year.
+ */
+export function resolveItemFiscalYear(item: any, category?: string): string | null {
+  if (!item || typeof item !== 'object') return null;
+
+  // 1. Explicit field
+  const explicit = item.fiscal_year_be ?? item.fiscal_year;
+  if (explicit !== undefined && explicit !== null && String(explicit).trim() !== '') {
+    const match = String(explicit).match(/25(6[6-9]|70)/);
+    if (match) return `25${match[1]}`;
+    const any4 = String(explicit).match(/\d{4}/);
+    if (any4) {
+      const year = Number(any4[0]);
+      if (Number.isFinite(year)) {
+        return String(year >= 2400 ? year : year + 543);
+      }
+    }
+  }
+
+  // 2. Detect from ID / code
+  const idStr = String(item.id || item._id || '').replace(/\n/g, ' ');
+  const beMatch = idStr.match(/25(6[6-9]|70)/);
+  if (beMatch) return `25${beMatch[1]}`;
+  const shortMatch = idStr.match(/(?:\/|\.)(6[6-9]|70)\b/);
+  if (shortMatch) return `25${shortMatch[1]}`;
+
+  // 3. Detect from funding source
+  const fundStr = String(item.fund_source || '');
+  const fundMatch = fundStr.match(/25(6[6-9]|70)/);
+  if (fundMatch) return `25${fundMatch[1]}`;
+
+  // 4. Fallback to parsed date (Thai fiscal year: Oct–Sep)
+  const d = resolveItemDate(item, category);
+  if (!d) return null;
+  const month = d.getMonth() + 1;
+  const be = d.getFullYear() + 543;
+  return String(month >= 10 ? be + 1 : be);
+}
+
+/** Whether a record belongs to a specific BE fiscal year. */
+export function itemMatchesFiscalYear(item: any, fiscalYear: string, category?: string): boolean {
+  if (!fiscalYear || fiscalYear === 'all') return true;
+  return resolveItemFiscalYear(item, category) === String(fiscalYear);
+}
+
+export interface TimeFilterOptions {
+  /**
+   * Keep records whose date cannot be resolved instead of hiding them.
+   * Used where the source data simply has no year (e.g. academic projects).
+   */
+  keepUndated?: boolean;
+}
+
+export const itemMatchesTimeFilter = (item: any, f: TimeFilterState, category?: string, options?: TimeFilterOptions): boolean => {
   if (f.mode === 'all') return true;
 
   // Prefer the explicit fiscal-year field when the record has one. Imported
@@ -199,7 +275,7 @@ export const itemMatchesTimeFilter = (item: any, f: TimeFilterState, category?: 
   }
 
   const d = resolveItemDate(item, category);
-  if (!d) return false;
+  if (!d) return options?.keepUndated === true;
 
   const month = d.getMonth() + 1;
   const be = d.getFullYear() + 543;
