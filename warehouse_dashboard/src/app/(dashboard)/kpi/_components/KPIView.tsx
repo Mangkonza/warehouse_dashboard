@@ -1,15 +1,17 @@
 'use client';
 
 import React from 'react';
-import { TimeFilterBar, useTimeFilter } from '@/features/time-filter';
+import { useTimeFilter } from '@/features/time-filter';
 import { useKpiData } from '../_hooks/useKpiData';
 import { KpiHeaderToolbar } from './KpiHeaderToolbar';
 import { KpiSummaryCards } from './KpiSummaryCards';
 import { KpiFilterBar } from './KpiFilterBar';
 import { KpiGridCards } from './KpiGridCards';
+import { DashboardTabFilterBar } from '@/components/ui/DashboardTabFilterBar';
+import { dashboardTheme } from '@/lib/dashboardTheme';
 
 export function KPIView() {
-  const { timeFilter, setTimeFilter, resetTimeFilter } = useTimeFilter();
+  const { timeFilter, setIsTimeModalOpen } = useTimeFilter('kpi');
   const {
     filteredKPIs,
     overallStats,
@@ -26,16 +28,26 @@ export function KPIView() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
       <KpiHeaderToolbar
-        timeFilter={timeFilter}
         isRefreshing={isRefreshing}
         onRefresh={loadLiveData}
       />
 
-      <TimeFilterBar
-        value={timeFilter}
-        onChange={setTimeFilter}
-        onReset={resetTimeFilter}
+      <DashboardTabFilterBar
+        tabKey="kpi"
         totalCount={filteredKPIs.length}
+        filteredCount={filteredKPIs.length}
+        showFiscalYear={true}
+        showDepartment={false}
+        showStrategic={false}
+        showDetailedTime={true}
+        onOpenDetailedTime={() => setIsTimeModalOpen(true)}
+        style={{
+          position: 'static',
+          backdropFilter: 'none',
+          backgroundColor: dashboardTheme.colors.surface,
+          borderRadius: `${dashboardTheme.radius.card}px`,
+          boxShadow: 'none',
+        }}
       />
 
       <KpiSummaryCards

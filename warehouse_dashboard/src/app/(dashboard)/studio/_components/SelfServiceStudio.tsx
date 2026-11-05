@@ -47,7 +47,9 @@ import rawPublications from '@/data/publications.json';
 import rawServices from '@/data/services.json';
 import rawIP from '@/data/ip.json';
 import { getCachedCategoryData, fetchCategoryData } from '@/lib/dataService';
-import { TimeFilterBar, useTimeFilter } from '@/features/time-filter';
+import { DashboardTabFilterBar } from '@/components/ui/DashboardTabFilterBar';
+import { dashboardPageSubtitleStyle, dashboardPageTitleStyle, dashboardTheme } from '@/lib/dashboardTheme';
+import { useTimeFilter } from '@/features/time-filter';
 
 const DOMAIN_THEMES: Record<FactDomainId, { color: string; bgColor: string; borderColor: string; textColor: string; badgeText: string }> = {
   research: { color: '#10B981', bgColor: '#ecfdf5', borderColor: '#a7f3d0', textColor: '#047857', badgeText: 'วิจัย (31)' },
@@ -76,7 +78,7 @@ interface ChartCategoryGroup {
 
 const CHART_TYPES_CATALOG: ChartCategoryGroup[] = [
   {
-    groupName: 'แผนภูมิแท่ง (Bar & Columns)',
+    groupName: 'แผนภูมิแท่ง',
     items: [
       { type: 'bar', label: 'คอลัมน์แนวตั้ง', icon: <FaChartBar />, desc: 'เปรียบเทียบค่าระหว่างหมวดหมู่ชัดเจน' },
       { type: 'horizontal_bar', label: 'แถบแนวนอน', icon: <FaSlidersH />, desc: 'เหมาะกับชื่อหมวดยาวหรือข้อมูลหลายกลุ่ม' },
@@ -85,7 +87,7 @@ const CHART_TYPES_CATALOG: ChartCategoryGroup[] = [
     ],
   },
   {
-    groupName: 'แผนภูมิเส้นและพื้นที่ (Line & Area)',
+    groupName: 'แผนภูมิเส้นและพื้นที่',
     items: [
       { type: 'smooth_line', label: 'เส้นโค้งแนวโน้ม', icon: <FaWaveSquare />, desc: 'วิเคราะห์แนวโน้มตามลำดับเวลาอย่างนุ่มนวล' },
       { type: 'line', label: 'เส้นตรงมาตรฐาน', icon: <FaChartLine />, desc: 'ดูอัตราการเติบโตและการเปลี่ยนแปลง' },
@@ -94,18 +96,18 @@ const CHART_TYPES_CATALOG: ChartCategoryGroup[] = [
     ],
   },
   {
-    groupName: 'แผนภูมิสัดส่วนและรัศมี (Radial & Composition)',
+    groupName: 'แผนภูมิสัดส่วนและรัศมี',
     items: [
       { type: 'donut', label: 'โดนัทสัดส่วน', icon: <FaChartPie />, desc: 'เปรียบเทียบสัดส่วนเปอร์เซ็นต์สะดุดตา' },
       { type: 'pie', label: 'วงกลมคลาสสิก', icon: <FaChartPie />, desc: 'แสดงส่วนแบ่งตลาดหรือสัดส่วนรวม' },
       { type: 'polar', label: 'พื้นที่เชิงขั้ว', icon: <FaWaveSquare />, desc: 'ดูความแตกต่างของสัดส่วนในเชิงรัศมี' },
-      { type: 'radar', label: 'ใยแมงมุม Spider', icon: <FaLayerGroup />, desc: 'เปรียบเทียบสมรรถนะรอบด้านหลายมิติ' },
+      { type: 'radar', label: 'ใยแมงมุม', icon: <FaLayerGroup />, desc: 'เปรียบเทียบสมรรถนะรอบด้านหลายมิติ' },
     ],
   },
   {
-    groupName: 'สถิติและตารางสรุป (Matrix & Pivot)',
+    groupName: 'สถิติและตารางสรุป',
     items: [
-      { type: 'pivot', label: 'ตารางสรุป Pivot', icon: <FaTable />, desc: 'ตารางวิเคราะห์สถิติจริงพร้อมยอดรวม' },
+      { type: 'pivot', label: 'ตารางสรุป', icon: <FaTable />, desc: 'ตารางวิเคราะห์สถิติจริงพร้อมยอดรวม' },
     ],
   },
 ];
@@ -116,11 +118,11 @@ const QUICK_CHART_TYPES: { type: ChartType; label: string; icon: any }[] = [
   { type: 'stacked_bar', label: 'แท่งซ้อน', icon: <FaLayerGroup /> },
   { type: 'smooth_line', label: 'เส้นแนวโน้ม', icon: <FaWaveSquare /> },
   { type: 'donut', label: 'โดนัท', icon: <FaChartPie /> },
-  { type: 'pivot', label: 'ตารางสรุป Pivot', icon: <FaTable /> },
+  { type: 'pivot', label: 'ตารางสรุป', icon: <FaTable /> },
 ];
 
 export default function SelfServiceStudio() {
-  const { filterProjectsByTime } = useTimeFilter();
+  const { filterProjectsByTime, setIsTimeModalOpen } = useTimeFilter('studio');
   const [studioMode, setStudioMode] = useState<'standard' | 'crossDomain'>('standard');
   const [showAllCharts, setShowAllCharts] = useState(false);
   const [hideMissingClients, setHideMissingClients] = useState(false);
@@ -189,10 +191,10 @@ export default function SelfServiceStudio() {
     switch (query.factDomain) {
       case 'research':
       case 'monitoring':
-        raw = filterProjectsByTime(getCachedCategoryData('research') || rawResearch, 'start_date');
+        raw = filterProjectsByTime(getCachedCategoryData('research') || rawResearch, 'research');
         break;
       case 'academic':
-        raw = filterProjectsByTime(getCachedCategoryData('academic') || rawAcademic, 'start_date');
+        raw = filterProjectsByTime(getCachedCategoryData('academic') || rawAcademic, 'academic');
         if (hideMissingClients) {
           raw = raw.filter((item) => {
             const c = String(item.client || item.target_group || '').trim();
@@ -201,27 +203,27 @@ export default function SelfServiceStudio() {
         }
         break;
       case 'publications':
-        raw = filterProjectsByTime(getCachedCategoryData('publications') || rawPublications, 'pub_date');
+        raw = filterProjectsByTime(getCachedCategoryData('publications') || rawPublications, 'publications');
         break;
       case 'service':
-        raw = filterProjectsByTime(getCachedCategoryData('service') || rawServices, 'date');
+        raw = filterProjectsByTime(getCachedCategoryData('service') || rawServices, 'service');
         break;
       case 'ip':
-        raw = filterProjectsByTime(getCachedCategoryData('ip') || rawIP, 'date_filed');
+        raw = filterProjectsByTime(getCachedCategoryData('ip') || rawIP, 'ip');
         break;
       default:
-        raw = filterProjectsByTime(getCachedCategoryData('research') || rawResearch, 'start_date');
+        raw = filterProjectsByTime(getCachedCategoryData('research') || rawResearch, 'research');
     }
     return raw;
   }, [query.factDomain, hideMissingClients, filterProjectsByTime, dataVersion]);
 
   // Cross Domain Analysis Data
   const crossDomainDeptData = useMemo(() => {
-    const rawRes = filterProjectsByTime(getCachedCategoryData('research') || rawResearch, 'start_date');
-    const rawAca = filterProjectsByTime(getCachedCategoryData('academic') || rawAcademic, 'start_date');
-    const rawPub = filterProjectsByTime(getCachedCategoryData('publications') || rawPublications, 'pub_date');
-    const rawSrv = filterProjectsByTime(getCachedCategoryData('service') || rawServices, 'date');
-    const rawIp = filterProjectsByTime(getCachedCategoryData('ip') || rawIP, 'date_filed');
+    const rawRes = filterProjectsByTime(getCachedCategoryData('research') || rawResearch, 'research');
+    const rawAca = filterProjectsByTime(getCachedCategoryData('academic') || rawAcademic, 'academic');
+    const rawPub = filterProjectsByTime(getCachedCategoryData('publications') || rawPublications, 'publications');
+    const rawSrv = filterProjectsByTime(getCachedCategoryData('service') || rawServices, 'service');
+    const rawIp = filterProjectsByTime(getCachedCategoryData('ip') || rawIP, 'ip');
 
     const matrix: Record<string, {
       code: string;
@@ -306,11 +308,11 @@ export default function SelfServiceStudio() {
 
   // Total items across all 5 missions for Cross-Domain mode
   const totalCrossDomainCount = useMemo(() => {
-    const r = (filterProjectsByTime(getCachedCategoryData('research') || rawResearch, 'start_date') || []).length;
-    const a = (filterProjectsByTime(getCachedCategoryData('academic') || rawAcademic, 'start_date') || []).length;
-    const p = (filterProjectsByTime(getCachedCategoryData('publications') || rawPublications, 'pub_date') || []).length;
-    const s = (filterProjectsByTime(getCachedCategoryData('service') || rawServices, 'date') || []).length;
-    const ip = (filterProjectsByTime(getCachedCategoryData('ip') || rawIP, 'date_filed') || []).length;
+    const r = (filterProjectsByTime(getCachedCategoryData('research') || rawResearch, 'research') || []).length;
+    const a = (filterProjectsByTime(getCachedCategoryData('academic') || rawAcademic, 'academic') || []).length;
+    const p = (filterProjectsByTime(getCachedCategoryData('publications') || rawPublications, 'publications') || []).length;
+    const s = (filterProjectsByTime(getCachedCategoryData('service') || rawServices, 'service') || []).length;
+    const ip = (filterProjectsByTime(getCachedCategoryData('ip') || rawIP, 'ip') || []).length;
     return r + a + p + s + ip;
   }, [filterProjectsByTime, dataVersion]);
 
@@ -559,7 +561,7 @@ export default function SelfServiceStudio() {
 
         // Top-Left badge: โซนประสิทธิภาพสูง (ใช้งบน้อย • ผลงานตีพิมพ์มาก)
         drawBadge(
-          '⭐ โซนประสิทธิภาพสูง (ใช้งบน้อย • ผลงานตีพิมพ์มาก)',
+          'โซนประสิทธิภาพสูง (ใช้งบน้อย • ผลงานตีพิมพ์มาก)',
           left + 12,
           top + 10,
           'left',
@@ -570,7 +572,7 @@ export default function SelfServiceStudio() {
 
         // Top-Right badge: โซนหัวหอกหลัก (งบประมาณสูง • ผลงานสูง)
         drawBadge(
-          '🚀 โซนหัวหอกหลัก (งบประมาณสูง • ผลงานสูง)',
+          'โซนหัวหอกหลัก (งบประมาณสูง • ผลงานสูง)',
           right - 12,
           top + 10,
           'right',
@@ -718,7 +720,14 @@ export default function SelfServiceStudio() {
   const measureLabel = currentDomainDef.measures.find((m) => m.id === query.measureId)?.label || 'ค่าที่วัดได้';
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%', padding: '16px 24px 48px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%', padding: '16px 24px 48px' }}>
+      <div>
+        <h1 style={dashboardPageTitleStyle}>วิเคราะห์ข้อมูลเชิงลึก</h1>
+        <p style={dashboardPageSubtitleStyle}>
+          สร้างกราฟและตารางวิเคราะห์จากข้อมูลพันธกิจของคณะวิศวกรรมศาสตร์
+        </p>
+      </div>
+
       {/* 0. Studio Mode Switcher Bar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <div style={{ display: 'inline-flex', backgroundColor: '#e2e8f0', padding: '4px', borderRadius: '12px' }}>
@@ -767,13 +776,24 @@ export default function SelfServiceStudio() {
         </div>
       </div>
 
-      {/* Global Time Filter Bar */}
-      <div>
-        <TimeFilterBar
-          totalCount={studioMode === 'crossDomain' ? totalCrossDomainCount : aggregatedData.count}
-          customCountLabel={studioMode === 'crossDomain' ? `${totalCrossDomainCount} รายการ` : undefined}
-        />
-      </div>
+      {/* Shared dashboard time filter */}
+      <DashboardTabFilterBar
+        tabKey="studio"
+        totalCount={studioMode === 'crossDomain' ? totalCrossDomainCount : aggregatedData.count}
+        filteredCount={studioMode === 'crossDomain' ? totalCrossDomainCount : aggregatedData.count}
+        showFiscalYear={true}
+        showDepartment={false}
+        showStrategic={false}
+        showDetailedTime={true}
+        onOpenDetailedTime={() => setIsTimeModalOpen(true)}
+        style={{
+          position: 'static',
+          backdropFilter: 'none',
+          backgroundColor: dashboardTheme.colors.surface,
+          borderRadius: `${dashboardTheme.radius.card}px`,
+          boxShadow: 'none',
+        }}
+      />
 
       {/* ======================= MODE 1: STANDARD SINGLE-DOMAIN STUDIO ======================= */}
       {studioMode === 'standard' && (
@@ -819,7 +839,7 @@ export default function SelfServiceStudio() {
                   onChange={(e) => setHideMissingClients(e.target.checked)}
                   style={{ accentColor: '#0ea5e9', cursor: 'pointer' }}
                 />
-                <span>ซ่อนรายการที่ไม่ระบุผู้ว่าจ้าง (Filter Missing)</span>
+                <span>ซ่อนรายการที่ไม่ระบุผู้ว่าจ้าง</span>
               </label>
             )}
 
@@ -838,7 +858,7 @@ export default function SelfServiceStudio() {
                   cursor: 'pointer',
                 }}
               >
-                {showAllServiceCategories ? 'แสดงเฉพาะ Top 15' : 'แสดงครบทั้งหมด (231 กลุ่ม)'}
+                {showAllServiceCategories ? 'แสดงเฉพาะ 15 อันดับแรก' : 'แสดงครบทั้งหมด (231 กลุ่ม)'}
               </button>
             )}
           </div>
@@ -989,13 +1009,13 @@ export default function SelfServiceStudio() {
                   <span style={{ width: '20px', height: '20px', borderRadius: '50%', backgroundColor: activeTheme.bgColor, color: activeTheme.color, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800 }}>
                     5
                   </span>
-                  <span>กรองภาควิชา / ศูนย์</span>
+                  <span>กรองสังกัด</span>
                 </label>
                 <DepartmentSelect
                   value={query.selectedDept || 'all'}
                   onChange={(val) => setQuery((prev) => ({ ...prev, selectedDept: val }))}
                   allowAll
-                  allLabel="ทุกภาควิชา / ศูนย์"
+                  allLabel="ทุกสังกัด"
                   allValue="all"
                   size="sm"
                   className="w-full h-9"
@@ -1181,7 +1201,7 @@ export default function SelfServiceStudio() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <FaTable style={{ color: activeTheme.color, fontSize: '15px' }} />
                   <h3 style={{ fontSize: '14.5px', fontWeight: 700, color: '#0f172a', margin: 0 }}>
-                    ตารางสรุปข้อมูล (Pivot Table)
+                    ตารางสรุปข้อมูล
                   </h3>
                 </div>
                 <button
@@ -1201,7 +1221,7 @@ export default function SelfServiceStudio() {
                     cursor: 'pointer',
                   }}
                 >
-                  <FaDownload /> Export CSV
+                  <FaDownload /> ส่งออก CSV
                 </button>
               </div>
 
@@ -1333,12 +1353,12 @@ export default function SelfServiceStudio() {
                 <Select value={crossAxisZ} onValueChange={(val: any) => setCrossAxisZ(val)}>
                   <SelectTrigger className="w-full bg-white text-slate-800 text-xs h-9 font-semibold">
                     <SelectValue>
-                      {crossAxisZ === 'bubble_projects' ? 'ขนาดตามจำนวนโครงการวิจัยรวม' : 'ขนาดเท่ากันคงที่ (Scatter)'}
+                      {crossAxisZ === 'bubble_projects' ? 'ขนาดตามจำนวนโครงการวิจัยรวม' : 'ขนาดเท่ากันคงที่'}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="bubble_projects">ขนาดตามจำนวนโครงการวิจัยรวม</SelectItem>
-                    <SelectItem value="bubble_none">ขนาดเท่ากันคงที่ (Scatter)</SelectItem>
+                    <SelectItem value="bubble_none">ขนาดเท่ากันคงที่</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1351,12 +1371,12 @@ export default function SelfServiceStudio() {
                 <Select value={entityLevel} onValueChange={(val: any) => setEntityLevel(val)}>
                   <SelectTrigger className="w-full bg-white text-slate-800 text-xs h-9 font-semibold">
                     <SelectValue>
-                      {entityLevel === 'dept' ? '7 ภาควิชาหลักของคณะฯ' :
+                      {entityLevel === 'dept' ? '7 สังกัดหลักของคณะฯ' :
                        entityLevel === 'units' ? 'ศูนย์ / ห้องปฏิบัติการวิจัย' : 'รายบุคคล (อาจารย์ / นักวิจัย)'}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="dept">7 ภาควิชาหลักของคณะฯ</SelectItem>
+                    <SelectItem value="dept">7 สังกัดหลักของคณะฯ</SelectItem>
                     <SelectItem value="units">ศูนย์ / ห้องปฏิบัติการวิจัย</SelectItem>
                     <SelectItem value="individual">รายบุคคล (อาจารย์ / นักวิจัย)</SelectItem>
                   </SelectContent>
@@ -1373,7 +1393,7 @@ export default function SelfServiceStudio() {
                 <h4 style={{ margin: 0, fontSize: '14.5px', fontWeight: 700, color: '#0f172a' }}>
                   กราฟเปรียบเทียบความคุ้มค่าและผลลัพธ์
                 </h4>
-                <span style={{ fontSize: '11.5px', color: '#64748b' }}>💡 คลิกที่วงกลมแต่ละภาควิชาเพื่อดูรายละเอียด</span>
+                <span style={{ fontSize: '11.5px', color: '#64748b' }}>คลิกที่วงกลมแต่ละสังกัดเพื่อดูรายละเอียด</span>
               </div>
               <div style={{ height: '420px', width: '100%' }}>
                 <canvas ref={crossChartRef} />
@@ -1389,7 +1409,7 @@ export default function SelfServiceStudio() {
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px' }}>
                   <thead>
                     <tr style={{ backgroundColor: '#f0f9ff', borderBottom: '2px solid #bae6fd', color: '#0369a1' }}>
-                      <th style={{ padding: '10px 10px', textAlign: 'left', fontWeight: 700 }}>ภาควิชา</th>
+                      <th style={{ padding: '10px 10px', textAlign: 'left', fontWeight: 700 }}>สังกัด</th>
                       <th style={{ padding: '10px 10px', textAlign: 'right', fontWeight: 700, color: '#047857' }}>งบวิจัย (ลบ.)</th>
                       <th style={{ padding: '10px 10px', textAlign: 'right', fontWeight: 700, color: '#be123c' }}>ตีพิมพ์ (เรื่อง)</th>
                       <th style={{ padding: '10px 10px', textAlign: 'right', fontWeight: 700, color: '#2563eb' }}>Q1-Q2</th>
@@ -1406,7 +1426,7 @@ export default function SelfServiceStudio() {
                           onClick={() =>
                             setDrillDown({
                               isOpen: true,
-                              title: `บูรณาการข้อมูล: ภาควิชา${d.name} (${d.code})`,
+                              title: `บูรณาการข้อมูล: สังกัด ${d.name} (${d.code})`,
                               subtitle: `วิจัย ${d.researchCount} เรื่อง • ตีพิมพ์ ${d.pubTotal} เรื่อง • สิทธิบัตร ${d.ipCount} เรื่อง`,
                               items: [...d.rawResearchItems, ...d.rawPubItems, ...d.rawIpItems],
                               categoryKey: 'research',

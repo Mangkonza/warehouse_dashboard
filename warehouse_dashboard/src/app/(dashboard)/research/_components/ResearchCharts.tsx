@@ -6,6 +6,7 @@ import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { useRouter } from 'next/navigation';
 import {
   FaChartBar,
+  FaChartLine,
   FaChartPie,
   FaCoins,
   FaUserTie,
@@ -19,6 +20,7 @@ import { getDepartment, getDepartmentColor } from '@/lib/departments';
 import { formatTopItemsForTooltip, getClickedChartElement } from '@/lib/chartTooltipHelper';
 import { StrategicAlignmentMatrix } from '@/components/data-display';
 import { DrillDownProjectDrawer, DepartmentBadge } from '@/components/ui';
+import { CHART_PASTEL_PALETTE } from '@/lib/pastelTheme';
 
 interface ResearchChartsProps {
   validData: ResearchItem[];
@@ -26,6 +28,22 @@ interface ResearchChartsProps {
   onSelectDept?: (deptCode: string) => void;
   selectedFund?: string;
   onSelectFund?: (fundName: string) => void;
+}
+
+const THAI_MONTHS = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+
+function resolveMonthIndex(rawDate: unknown): number {
+  if (!rawDate) return -1;
+  const str = String(rawDate).trim();
+  // Source data mixes Buddhist-era and Gregorian years.
+  const dObj = new Date(
+    str.replace('1968', '2025').replace('1969', '2026').replace('2568', '2025').replace('2569', '2026')
+  );
+  if (!isNaN(dObj.getTime())) return dObj.getMonth();
+  for (let i = 0; i < THAI_MONTHS.length; i++) {
+    if (str.includes(THAI_MONTHS[i]) || str.includes(THAI_MONTHS[i].replace('.', ''))) return i;
+  }
+  return -1;
 }
 
 export type ResearchPerspective = 'overview' | 'productivity' | 'faculty' | 'sdg';
@@ -37,6 +55,7 @@ export function ResearchCharts({
 }: ResearchChartsProps) {
   const router = useRouter();
   const [activePerspective, setActivePerspective] = useState<ResearchPerspective>('overview');
+  const [researchBudgetMetric, setResearchBudgetMetric] = useState<'total' | 'average'>('total');
   const chartInstances = useRef<Chart[]>([]);
   const [drillDown, setDrillDown] = useState<{
     isOpen: boolean;
@@ -148,6 +167,33 @@ export function ResearchCharts({
     return tiers;
   }, [validData]);
 
+  // Month-only records cannot establish chronological order across years.
+  const hasMultipleYears = useMemo(() => {
+    const years = new Set<string>();
+    validData.forEach((item) => {
+      [item.start_date, item.end_date, item.fiscal_year, item.fiscal_year_be].forEach((value) => {
+        const match = String(value || '').match(/(\d{4})/);
+        if (match) years.add(match[1]);
+      });
+    });
+    return years.size > 1;
+  }, [validData]);
+
+  // Records without a usable start month stay outside the monthly chart.
+  const undatedResearch = useMemo(() => {
+    let count = 0;
+    let budget = 0;
+    const items: ResearchItem[] = [];
+    validData.forEach((item) => {
+      if (resolveMonthIndex(item.start_date || item.date) >= 0) return;
+      count++;
+      budget +=
+        (Number(item.budget_internal) || 0) + (Number(item.budget_external) || 0) || Number(item.budget) || 0;
+      items.push(item);
+    });
+    return { count, budget, items };
+  }, [validData]);
+
   useEffect(() => {
     chartInstances.current.forEach((c) => c.destroy());
     chartInstances.current = [];
@@ -156,8 +202,6 @@ export function ResearchCharts({
     Chart.defaults.font.family = "'Kanit', sans-serif";
     Chart.defaults.font.size = 12;
     Chart.defaults.color = '#0f172a';
-
-    const UI_PALETTE = ['#10B981', '#0EA5E9', '#8B5CF6', '#F59E0B', '#F43F5E', '#14B8A6', '#64748B'];
 
     const createChart = (id: string, config: any) => {
       const canvas = document.getElementById(id) as HTMLCanvasElement;
@@ -173,9 +217,164 @@ export function ResearchCharts({
     );
 
     if (activePerspective === 'overview') {
+      // 0. Monthly project count + research budget (combined)
+      const monthlyCount = Array(12).fill(0);
+      const monthlyBudget = Array(12).fill(0);
+      const monthlyItems: ResearchItem[][] = Array.from({ length: 12 }, () => []);
+
+      validData.forEach((item) => {
+        const monthIdx = resolveMonthIndex(item.start_date || item.date);
+        if (monthIdx < 0) return;
+        const budget =
+          (Number(item.budget_internal) || 0) + (Number(item.budget_external) || 0) || Number(item.budget) || 0;
+        monthlyCount[monthIdx]++;
+        monthlyBudget[monthIdx] += budget;
+        monthlyItems[monthIdx].push(item);
+      });
+
+      const monthlyBudgetM = monthlyBudget.map((v) => Number((v / 1_000_000).toFixed(2)));
+
+      const openResearchMonth = (index: number) => {
+        const items = monthlyItems[index] || [];
+        if (items.length === 0) return;
+        const budgetSum = monthlyBudget[index];
+        const average = budgetSum / items.length;
+        setDrillDown({
+          isOpen: true,
+          title: `โครงการวิจัย: เดือน ${THAI_MONTHS[index]}`,
+          subtitle: `รวม ${items.length} โครงการ • งบประมาณรวม ${budgetSum.toLocaleString('th-TH')} บาท • เฉลี่ย ${average.toLocaleString('th-TH', { maximumFractionDigits: 0 })} บาท/โครงการ`,
+          accentColor: '#10b981',
+          items,
+        });
+      };
+
+      createChart('c_re_monthly_combo', {
+        type: 'bar',
+        data: {
+          labels: THAI_MONTHS,
+          datasets: [
+            {
+              type: 'bar' as const,
+              label: 'จำนวนโครงการ',
+              data: monthlyCount,
+              backgroundColor: CHART_PASTEL_PALETTE.missions.research.fill,
+              borderColor: CHART_PASTEL_PALETTE.missions.research.border,
+              borderWidth: 1.5,
+              borderRadius: 6,
+              yAxisID: 'y',
+              order: 2,
+            },
+            {
+              type: 'line' as const,
+              label: 'งบประมาณ (ล้านบาท)',
+              data: monthlyBudgetM,
+              borderColor: '#BE123C',
+              backgroundColor: 'rgba(190, 18, 60, 0.08)',
+              borderWidth: 2.5,
+              tension: 0.35,
+              pointRadius: 4,
+              pointHoverRadius: 6,
+              pointBackgroundColor: '#BE123C',
+              pointBorderColor: '#ffffff',
+              pointBorderWidth: 1.5,
+              yAxisID: 'y1',
+              order: 1,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          onHover: (event: any, chartElement: any[]) => {
+            if (event.native?.target) event.native.target.style.cursor = chartElement.length > 0 ? 'pointer' : 'default';
+          },
+          onClick: (event: any, elements: any[], chart: any) => {
+            const hit = getClickedChartElement(event, elements, chart, 'nearest');
+            if (hit) openResearchMonth(hit.index);
+          },
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: {
+                boxWidth: 12,
+                font: { size: 11.5 },
+                padding: 10,
+                sort: (a: any, b: any) => {
+                  const aIsLine = a.text.includes('งบประมาณ');
+                  const bIsLine = b.text.includes('งบประมาณ');
+                  return aIsLine === bIsLine ? 0 : aIsLine ? 1 : -1;
+                },
+              },
+            },
+            tooltip: {
+              callbacks: {
+                label: (context: any) => {
+                  if (context.dataset.yAxisID === 'y1') {
+                    return `งบประมาณรวม: ${monthlyBudget[context.dataIndex].toLocaleString('th-TH')} บาท`;
+                  }
+                  return `จำนวนโครงการ: ${monthlyItems[context.dataIndex]?.length || 0} โครงการ`;
+                },
+                afterBody: (items: any[]) => {
+                  const index = items[0]?.dataIndex ?? -1;
+                  const count = monthlyItems[index]?.length || 0;
+                  if (count === 0) return [];
+                  return [
+                    `เฉลี่ย: ${(monthlyBudget[index] / count).toLocaleString('th-TH', { maximumFractionDigits: 0 })} บาท/โครงการ`,
+                  ];
+                },
+              },
+            },
+            datalabels: {
+              display: (ctx: any) => Number(ctx.dataset.data[ctx.dataIndex]) > 0,
+              anchor: 'end',
+              align: 'top',
+              offset: (ctx: any) => (ctx.dataset.yAxisID === 'y1' ? 7 : 1),
+              color: (ctx: any) =>
+                ctx.dataset.yAxisID === 'y1' ? '#BE123C' : CHART_PASTEL_PALETTE.datalabels.dark,
+              backgroundColor: (ctx: any) =>
+                ctx.dataset.yAxisID === 'y1' ? 'rgba(255, 255, 255, 0.9)' : 'transparent',
+              borderRadius: 3,
+              padding: (ctx: any) => (ctx.dataset.yAxisID === 'y1' ? 3 : 0),
+              clamp: true,
+              font: { weight: 'bold', size: 10 },
+              formatter: (v: number, ctx: any) =>
+                ctx.dataset.yAxisID === 'y1' ? `${v.toFixed(2)}` : `${v}`,
+            },
+          },
+          scales: {
+            y: {
+              type: 'linear',
+              beginAtZero: true,
+              grace: '20%',
+              title: { display: true, text: 'จำนวนโครงการ' },
+              ticks: { stepSize: 1 },
+              grid: { color: CHART_PASTEL_PALETTE.gridLines },
+            },
+            y1: {
+              type: 'linear',
+              position: 'right',
+              beginAtZero: true,
+              grace: '20%',
+              grid: { drawOnChartArea: false },
+              title: { display: true, text: 'ล้านบาท' },
+            },
+            x: { grid: { display: false } },
+          },
+        },
+      });
+
       // 1. Dept budget & project count
-      const deptLabels = deptComparativeMetrics.map((d) => d.code);
-      const deptBudgetM = deptComparativeMetrics.map((d) => Number((d.totalBudget / 1000000).toFixed(2)));
+      const isAverageMode = researchBudgetMetric === 'average';
+      const sortedDeptMetrics = [...deptComparativeMetrics].sort((a, b) => {
+        const aValue = isAverageMode ? (a.count > 0 ? a.totalBudget / a.count : 0) : a.totalBudget;
+        const bValue = isAverageMode ? (b.count > 0 ? b.totalBudget / b.count : 0) : b.totalBudget;
+        return bValue - aValue;
+      });
+      const deptLabels = sortedDeptMetrics.map((d) => d.code);
+      const deptBudgetM = sortedDeptMetrics.map((d) =>
+        Number(((isAverageMode && d.count > 0 ? d.totalBudget / d.count : d.totalBudget) / 1000000).toFixed(2))
+      );
       const deptColors = deptLabels.map((code) => getDepartmentColor(code));
 
       createChart('c_re_dept', {
@@ -184,7 +383,7 @@ export function ResearchCharts({
           labels: deptLabels,
           datasets: [
             {
-              label: 'งบประมาณวิจัย (ล้านบาท)',
+              label: isAverageMode ? 'งบประมาณเฉลี่ยต่อโครงการ (ล้านบาท)' : 'งบประมาณวิจัยรวม (ล้านบาท)',
               data: deptBudgetM,
               backgroundColor: deptColors,
               borderRadius: 8,
@@ -198,14 +397,15 @@ export function ResearchCharts({
           onClick: (event: any, elements: any[], chart: any) => {
             const hit = getClickedChartElement(event, elements, chart, 'y');
             if (hit) {
-              const d = deptComparativeMetrics[hit.index];
+              const d = sortedDeptMetrics[hit.index];
               if (d) {
                 if (onSelectDept) onSelectDept(d.code);
                 const pct = grandTotalResearchBudget > 0 ? ((d.totalBudget / grandTotalResearchBudget) * 100).toFixed(1) : '0';
+                const averageBudget = d.count > 0 ? d.totalBudget / d.count : null;
                 setDrillDown({
                   isOpen: true,
-                  title: `โครงการวิจัย: ภาควิชา${d.name} (${d.code})`,
-                  subtitle: `สัดส่วน ${pct}% ของงบวิจัยทั้งหมด • รวม ${d.count} โครงการ • งบประมาณรวม ${d.totalBudget.toLocaleString('th-TH')} บาท`,
+                  title: `โครงการวิจัย: สังกัด ${d.name} (${d.code})`,
+                  subtitle: `สัดส่วน ${pct}% ของงบวิจัยทั้งหมด • รวม ${d.count} โครงการ • งบประมาณรวม ${d.totalBudget.toLocaleString('th-TH')} บาท • เฉลี่ย ${averageBudget === null ? '—' : `${averageBudget.toLocaleString('th-TH', { maximumFractionDigits: 0 })} บาท/โครงการ`}`,
                   accentColor: getDepartmentColor(d.code),
                   items: d.items,
                 });
@@ -214,19 +414,36 @@ export function ResearchCharts({
           },
           plugins: {
             legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (context: any) => {
+                  const d = sortedDeptMetrics[context.dataIndex];
+                  if (!d) return '';
+                  const averageBudget = d.count > 0 ? d.totalBudget / d.count : null;
+                  return [
+                    `งบประมาณรวม: ${d.totalBudget.toLocaleString('th-TH')} บาท`,
+                    `จำนวนโครงการ: ${d.count} โครงการ`,
+                    `งบเฉลี่ย: ${averageBudget === null ? '—' : `${averageBudget.toLocaleString('th-TH', { maximumFractionDigits: 0 })} บาท/โครงการ`}`,
+                  ];
+                },
+              },
+            },
             datalabels: {
               anchor: 'end',
               align: 'right',
-              color: '#1e293b',
+              color: CHART_PASTEL_PALETTE.datalabels.dark,
               font: { weight: 'bold', size: 11 },
-              formatter: (v: number, ctx: any) => {
-                const d = deptComparativeMetrics[ctx.dataIndex];
-                return `${v.toFixed(2)} ลบ. (${d?.count || 0} โครงการ)`;
-              },
+              formatter: (v: number) =>
+                isAverageMode ? `${v.toFixed(2)} ลบ./โครงการ` : `${v.toFixed(2)} ลบ.`,
             },
           },
           scales: {
-            x: { beginAtZero: true, grace: '28%', title: { display: true, text: 'ล้านบาท' } },
+            x: {
+              beginAtZero: true,
+              grace: '28%',
+              grid: { color: CHART_PASTEL_PALETTE.gridLines },
+              title: { display: true, text: isAverageMode ? 'ล้านบาท / โครงการ' : 'ล้านบาท' },
+            },
             y: { grid: { display: false } },
           },
         },
@@ -251,7 +468,7 @@ export function ResearchCharts({
           datasets: [
             {
               data: sortedFunds.map((f) => f.budget),
-              backgroundColor: UI_PALETTE.slice(0, Math.max(sortedFunds.length, 1)),
+              backgroundColor: CHART_PASTEL_PALETTE.series.slice(0, Math.max(sortedFunds.length, 1)),
               borderWidth: 2,
               borderColor: '#ffffff',
             },
@@ -275,7 +492,7 @@ export function ResearchCharts({
                   isOpen: true,
                   title: `โครงการวิจัยจากแหล่งทุน: ${f.name}`,
                   subtitle: `สัดส่วน ${pct}% ของงบวิจัยทั้งหมด • รวม ${f.count} โครงการ • งบประมาณรวม ${f.budget.toLocaleString('th-TH')} บาท`,
-                  accentColor: UI_PALETTE[hit.index % UI_PALETTE.length],
+                  accentColor: CHART_PASTEL_PALETTE.series[hit.index % CHART_PASTEL_PALETTE.series.length],
                   items: f.items,
                 });
               }
@@ -283,7 +500,7 @@ export function ResearchCharts({
           },
           plugins: {
             datalabels: {
-              color: '#fff',
+              color: CHART_PASTEL_PALETTE.datalabels.dark,
               font: { weight: 'bold', size: 11 },
               formatter: (value: number, context: any) => {
                 const sum = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
@@ -305,7 +522,9 @@ export function ResearchCharts({
             {
               label: 'จำนวนโครงการ (โครงการ)',
               data: budgetScaleData.map((t) => t.count),
-              backgroundColor: ['#60a5fa', '#34d399', '#f59e0b', '#fb923c', '#ef4444'],
+              backgroundColor: CHART_PASTEL_PALETTE.series.slice(0, 5),
+              borderColor: CHART_PASTEL_PALETTE.seriesBorders.slice(0, 5),
+              borderWidth: 1,
               borderRadius: 6,
             },
           ],
@@ -339,19 +558,19 @@ export function ResearchCharts({
             datalabels: {
               anchor: 'end',
               align: 'top',
-              color: '#0f172a',
+              color: CHART_PASTEL_PALETTE.datalabels.dark,
               font: { weight: 'bold', size: 11 },
               formatter: (v: number) => (v > 0 ? `${v} โครงการ` : ''),
             },
           },
           scales: {
-            y: { beginAtZero: true, title: { display: true, text: 'จำนวนโครงการ' } },
+            y: { beginAtZero: true, grid: { color: CHART_PASTEL_PALETTE.gridLines }, title: { display: true, text: 'จำนวนโครงการ' } },
             x: { grid: { display: false } },
           },
         },
       });
 
-      // 4. External vs Internal Ratio
+      // 4. External และ Internal Ratio
       const totalExt = validData.reduce((s, i) => s + (Number(i.budget_external) || 0), 0);
       const totalInt = validData.reduce((s, i) => s + (Number(i.budget_internal) || 0), 0);
 
@@ -362,9 +581,15 @@ export function ResearchCharts({
           datasets: [
             {
               data: [totalExt, totalInt],
-              backgroundColor: ['#0284c7', '#00A651'],
-              borderWidth: 2,
-              borderColor: '#ffffff',
+              backgroundColor: [
+                CHART_PASTEL_PALETTE.missions.academic.fill,
+                CHART_PASTEL_PALETTE.missions.research.fill,
+              ],
+              borderColor: [
+                CHART_PASTEL_PALETTE.missions.academic.border,
+                CHART_PASTEL_PALETTE.missions.research.border,
+              ],
+              borderWidth: 1.5,
             },
           ],
         },
@@ -398,7 +623,7 @@ export function ResearchCharts({
           plugins: {
             legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11.5 } } },
             datalabels: {
-              color: '#ffffff',
+              color: CHART_PASTEL_PALETTE.datalabels.dark,
               font: { weight: 'bold', size: 12 },
               formatter: (v: number, ctx: any) => {
                 const sum = totalExt + totalInt || 1;
@@ -413,7 +638,7 @@ export function ResearchCharts({
     return () => {
       chartInstances.current.forEach((c) => c.destroy());
     };
-  }, [validData, activePerspective, deptComparativeMetrics, budgetScaleData, onSelectDept, onSelectFund]);
+  }, [validData, activePerspective, researchBudgetMetric, deptComparativeMetrics, budgetScaleData, onSelectDept, onSelectFund]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '16px' }}>
@@ -425,9 +650,9 @@ export function ResearchCharts({
           gap: '8px',
           backgroundColor: '#ffffff',
           padding: '8px 12px',
-          borderRadius: '10px',
+          borderRadius: '12px',
           border: '1px solid #e2e8f0',
-          boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+          boxShadow: 'none',
           flexWrap: 'wrap',
         }}
       >
@@ -435,8 +660,8 @@ export function ResearchCharts({
           มิติการวิเคราะห์:
         </span>
         {[
-          { id: 'overview', label: 'ภาพรวมงบประมาณ & แหล่งทุน', icon: <FaCoins /> },
-          { id: 'productivity', label: 'เปรียบเทียบผลผลิตรายภาควิชา', icon: <FaBuilding /> },
+          { id: 'overview', label: 'ภาพรวมงบประมาณและแหล่งทุน', icon: <FaCoins /> },
+          { id: 'productivity', label: 'เปรียบเทียบผลผลิตรายสังกัด', icon: <FaBuilding /> },
           { id: 'faculty', label: 'อาจารย์และหัวหน้าโครงการวิจัย', icon: <FaUserTie /> },
           { id: 'sdg', label: 'ความสอดคล้องเชิงยุทธศาสตร์ (SDGs / ISEE / IAM)', icon: <FaLeaf /> },
         ].map((tab) => {
@@ -471,10 +696,103 @@ export function ResearchCharts({
       {activePerspective === 'overview' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div className="chart-grid">
-            <div className="chart-card">
+            <div className="chart-card chart-full">
               <h3>
-                <FaChartBar style={{ color: '#00A651' }} /> งบประมาณและจำนวนโครงการวิจัยตามภาควิชา
+                <FaChartLine style={{ color: '#00A651' }} /> จำนวนโครงการและงบประมาณวิจัยรายเดือน
               </h3>
+              <p style={{ margin: '-8px 0 10px 0', fontSize: '12px', color: '#64748b' }}>
+                แท่ง = จำนวนโครงการ • เส้น = งบประมาณ (ล้านบาท) • คลิกที่กราฟเพื่อดูรายการ
+                {hasMultipleYears ? ' — โปรไฟล์รายเดือน (ม.ค.–ธ.ค.) รวมปีที่กรอง' : ''}
+              </p>
+              <div className="chart-wrapper" style={{ height: '320px', cursor: 'pointer' }}>
+                <canvas id="c_re_monthly_combo" />
+              </div>
+              {undatedResearch.count > 0 && (
+                <p style={{ margin: '8px 0 0 0', fontSize: '11.5px', color: '#64748b' }}>
+                  หมายเหตุ: อีก {undatedResearch.count} โครงการไม่ระบุเดือนที่เริ่มต้น
+                  (งบประมาณ {(undatedResearch.budget / 1_000_000).toFixed(2)} ล้านบาท) จึงไม่ปรากฏในกราฟรายเดือน{' '}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setDrillDown({
+                        isOpen: true,
+                        title: 'โครงการวิจัยที่ไม่ระบุเดือนที่เริ่มต้น',
+                        subtitle: `รวม ${undatedResearch.count} โครงการ • งบประมาณ ${undatedResearch.budget.toLocaleString('th-TH')} บาท`,
+                        accentColor: '#64748b',
+                        items: undatedResearch.items,
+                      })
+                    }
+                    style={{
+                      border: 'none',
+                      background: 'none',
+                      padding: 0,
+                      color: '#047857',
+                      fontWeight: 700,
+                      fontSize: '11.5px',
+                      cursor: 'pointer',
+                      textDecoration: 'underline',
+                    }}
+                  >
+                    ดูรายการ
+                  </button>
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="chart-grid">
+            <div className="chart-card">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '12px' }}>
+                <h3 style={{ margin: 0 }}>
+                  <FaChartBar style={{ color: '#00A651' }} /> งบประมาณวิจัยตามสังกัด
+                </h3>
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    backgroundColor: '#f1f5f9',
+                    padding: '2px',
+                    borderRadius: '8px',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setResearchBudgetMetric('total')}
+                    style={{
+                      padding: '3px 8px',
+                      borderRadius: '6px',
+                      border: 'none',
+                      backgroundColor: researchBudgetMetric === 'total' ? '#ffffff' : 'transparent',
+                      color: researchBudgetMetric === 'total' ? '#00A651' : '#64748b',
+                      fontWeight: researchBudgetMetric === 'total' ? 700 : 500,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    งบรวม
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setResearchBudgetMetric('average')}
+                    style={{
+                      padding: '3px 8px',
+                      borderRadius: '6px',
+                      border: 'none',
+                      backgroundColor: researchBudgetMetric === 'average' ? '#ffffff' : 'transparent',
+                      color: researchBudgetMetric === 'average' ? '#00A651' : '#64748b',
+                      fontWeight: researchBudgetMetric === 'average' ? 700 : 500,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    เฉลี่ย/โครงการ
+                  </button>
+                </div>
+              </div>
+              <p style={{ margin: '0 0 10px 0', fontSize: '12px', color: '#64748b' }}>
+                {researchBudgetMetric === 'average'
+                  ? 'เรียงจากงบประมาณเฉลี่ยต่อโครงการ • จำนวนโครงการและงบรวมแสดงใน tooltip'
+                  : 'เรียงจากงบประมาณรวม • จำนวนโครงการและงบเฉลี่ยแสดงใน tooltip'}
+              </p>
               <div className="chart-wrapper" style={{ cursor: 'pointer' }}>
                 <canvas id="c_re_dept" />
               </div>
@@ -502,7 +820,7 @@ export function ResearchCharts({
 
             <div className="chart-card">
               <h3>
-                <FaCoins style={{ color: '#d97706' }} /> สัดส่วนงบทุนภายนอก vs ทุนภายใน
+                <FaCoins style={{ color: '#d97706' }} /> สัดส่วนงบทุนภายนอก และ ทุนภายใน
               </h3>
               <div className="chart-wrapper" style={{ cursor: 'pointer' }}>
                 <canvas id="c_re_ext_int" />
@@ -525,7 +843,7 @@ export function ResearchCharts({
         >
           <div style={{ marginBottom: '14px' }}>
             <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
-              ตารางเปรียบเทียบผลผลิตและงบประมาณวิจัยรายภาควิชา
+              ตารางเปรียบเทียบผลผลิตและงบประมาณวิจัยรายสังกัด
             </h3>
             <p style={{ margin: '3px 0 0 0', fontSize: '12.5px', color: '#64748b' }}>
               วิเคราะห์ผลิตภาพเฉลี่ยต่อโครงการ สัดส่วนทุนภายนอก และโครงการขนาดใหญ่ (≥ 10 ล้านบาท)
@@ -533,10 +851,10 @@ export function ResearchCharts({
           </div>
 
           <div style={{ overflowX: 'auto' }}>
-            <table className="table-emerald" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+            <table className="table-manage" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
               <thead>
-                <tr style={{ backgroundColor: '#ecfdf5', color: '#065f46', borderBottom: '2px solid #a7f3d0' }}>
-                  <th style={{ padding: '10px 12px', textAlign: 'left' }}>ภาควิชา / หน่วยงาน</th>
+                <tr style={{ backgroundColor: '#00A651', color: '#ffffff', borderBottom: '2px solid #00A651' }}>
+                  <th style={{ padding: '10px 12px', textAlign: 'left' }}>สังกัด</th>
                   <th style={{ padding: '10px 12px', textAlign: 'center' }}>จำนวนโครงการ</th>
                   <th style={{ padding: '10px 12px', textAlign: 'right' }}>งบประมาณรวม</th>
                   <th style={{ padding: '10px 12px', textAlign: 'right' }}>งบเฉลี่ย / โครงการ</th>
@@ -610,7 +928,7 @@ export function ResearchCharts({
         >
           <div style={{ marginBottom: '14px' }}>
             <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
-              จัดอันดับอาจารย์และหัวหน้าโครงการวิจัย (Top Principal Investigators)
+              จัดอันดับอาจารย์และหัวหน้าโครงการวิจัย
             </h3>
             <p style={{ margin: '3px 0 0 0', fontSize: '12.5px', color: '#64748b' }}>
               รายละเอียดโครงการและแฟ้มผลงานอาจารย์รายบุคคล
@@ -618,12 +936,12 @@ export function ResearchCharts({
           </div>
 
           <div style={{ overflowX: 'auto' }}>
-            <table className="table-emerald" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+            <table className="table-manage" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
               <thead>
-                <tr style={{ backgroundColor: '#ecfdf5', color: '#065f46', borderBottom: '2px solid #a7f3d0' }}>
+                <tr style={{ backgroundColor: '#00A651', color: '#ffffff', borderBottom: '2px solid #00A651' }}>
                   <th style={{ padding: '10px 10px', textAlign: 'center', width: '50px' }}>อันดับ</th>
                   <th style={{ padding: '10px 12px', textAlign: 'left' }}>หัวหน้าโครงการ</th>
-                  <th style={{ padding: '10px 12px', textAlign: 'left' }}>ภาควิชา</th>
+                  <th style={{ padding: '10px 12px', textAlign: 'left' }}>สังกัด</th>
                   <th style={{ padding: '10px 12px', textAlign: 'center' }}>จำนวนโครงการ</th>
                   <th style={{ padding: '10px 12px', textAlign: 'right' }}>งบประมาณวิจัยรวม</th>
                   <th style={{ padding: '10px 12px', textAlign: 'right' }}>งบจากทุนภายนอก</th>

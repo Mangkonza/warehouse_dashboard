@@ -5,7 +5,6 @@ import Link from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import { PersonnelWorkMetric } from '../_hooks/usePersonnelData';
 import { DepartmentBadge, SearchInput } from '@/components/ui';
-import { getDepartment } from '@/lib/departments';
 import {
   FaSortAmountDown,
   FaFilter,
@@ -20,7 +19,6 @@ import {
 
 interface PersonnelRankingTableProps {
   metrics: PersonnelWorkMetric[];
-  departments: string[];
 }
 
 type SortField =
@@ -32,10 +30,9 @@ type SortField =
   | 'service'
   | 'ip';
 
-export function PersonnelRankingTable({ metrics, departments }: PersonnelRankingTableProps) {
+export function PersonnelRankingTable({ metrics }: PersonnelRankingTableProps) {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedDept, setSelectedDept] = useState('all');
   const [activeMissionFilter, setActiveMissionFilter] = useState<string>('all');
   const [sortField, setSortField] = useState<SortField>('total');
   const [showActiveOnly, setShowActiveOnly] = useState(true);
@@ -46,9 +43,6 @@ export function PersonnelRankingTable({ metrics, departments }: PersonnelRanking
     let result = metrics.filter((m) => {
       // 1. Active filter
       if (showActiveOnly && m.counts.total === 0) return false;
-
-      // 2. Department filter
-      if (selectedDept !== 'all' && m.department !== selectedDept) return false;
 
       // 3. Mission specific filter
       if (activeMissionFilter === 'research' && m.counts.research === 0) return false;
@@ -108,7 +102,7 @@ export function PersonnelRankingTable({ metrics, departments }: PersonnelRanking
     });
 
     return result;
-  }, [metrics, searchTerm, selectedDept, activeMissionFilter, sortField, showActiveOnly]);
+  }, [metrics, searchTerm, activeMissionFilter, sortField, showActiveOnly]);
 
   const totalPages = Math.ceil(filteredMetrics.length / pageSize) || 1;
   const paginatedMetrics = useMemo(() => {
@@ -208,40 +202,8 @@ export function PersonnelRankingTable({ metrics, departments }: PersonnelRanking
                 setSearchTerm(val);
                 setCurrentPage(1);
               }}
-              placeholder="ค้นหาชื่ออาจารย์, ตำแหน่ง, ภาควิชา, หรืออีเมล..."
+              placeholder="ค้นหาชื่ออาจารย์, ตำแหน่ง, สังกัด, หรืออีเมล..."
             />
-          </div>
-
-          {/* Department Filter */}
-          <div style={{ minWidth: '190px' }}>
-            <select
-              value={selectedDept}
-              onChange={(e) => {
-                setSelectedDept(e.target.value);
-                setCurrentPage(1);
-              }}
-              style={{
-                width: '100%',
-                padding: '8px 12px',
-                borderRadius: '8px',
-                border: '1px solid #cbd5e1',
-                fontSize: '13px',
-                color: '#1e293b',
-                backgroundColor: '#ffffff',
-                outline: 'none',
-              }}
-            >
-              <option value="all">ทุกภาควิชา / หน่วยงาน ({metrics.length})</option>
-              {departments.map((dept) => {
-                const info = getDepartment(dept);
-                const prefix = info.code && info.code !== '-' && info.code !== 'OTH' ? `${info.code} - ` : '';
-                return (
-                  <option key={dept} value={dept}>
-                    {prefix}{dept}
-                  </option>
-                );
-              })}
-            </select>
           </div>
 
           {/* Sort Selector */}
@@ -346,7 +308,7 @@ export function PersonnelRankingTable({ metrics, departments }: PersonnelRanking
             >
               <th style={{ padding: '12px 10px', textAlign: 'center', width: '50px' }}>อันดับ</th>
               <th style={{ padding: '12px 14px' }}>อาจารย์ / บุคลากร</th>
-              <th style={{ padding: '12px 12px' }}>ภาควิชา / หน่วยงาน</th>
+              <th style={{ padding: '12px 12px' }}>สังกัด</th>
               <th
                 onClick={() => {
                   setSortField('research');

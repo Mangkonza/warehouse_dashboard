@@ -40,7 +40,7 @@ export function KpiFilterBar({
         gap: '12px',
         backgroundColor: '#ffffff',
         padding: '12px 18px',
-        borderRadius: '10px',
+        borderRadius: '12px',
         border: '1px solid #e2e8f0',
       }}
     >

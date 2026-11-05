@@ -128,7 +128,7 @@ export const PerspectiveSection: React.FC<PerspectiveSectionProps> = ({
                   const pct = ((d.budget / totalB) * 100).toFixed(1);
                   setDrillDownState({
                     isOpen: true,
-                    title: `โครงการวิจัย: ภาควิชา${d.name} (${d.code})`,
+                    title: `โครงการวิจัย: สังกัด ${d.name} (${d.code})`,
                     subtitle: `สัดส่วน ${pct}% ของงบวิจัยคณะ • รวม ${d.researchCount} โครงการ • งบประมาณรวม ${d.budget.toLocaleString('th-TH')} บาท`,
                     accentColor: getDepartmentColor(d.code),
                     categoryKey: 'research',
@@ -144,7 +144,7 @@ export const PerspectiveSection: React.FC<PerspectiveSectionProps> = ({
                   title: (items: any) => {
                     const idx = items[0]?.dataIndex;
                     const d = departmentStats[idx];
-                    return d ? `ภาควิชา${d.name} (${d.code})` : items[0]?.label;
+                    return d ? `สังกัด ${d.name} (${d.code})` : items[0]?.label;
                   },
                   label: (c: any) => {
                     const d = departmentStats[c.dataIndex];
@@ -305,8 +305,8 @@ export const PerspectiveSection: React.FC<PerspectiveSectionProps> = ({
       <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px', marginBottom: '16px', flexWrap: 'wrap' }}>
         {[
           { id: 'funding', label: 'งบประมาณและแหล่งทุน', icon: <FaCoins /> },
-          { id: 'quality', label: 'คุณภาพผลงานตีพิมพ์ (Quartile)', icon: <FaAward /> },
-          { id: 'projects', label: 'สรุป 5 พันธกิจรายภาควิชา', icon: <FaTasks /> },
+          { id: 'quality', label: 'คุณภาพผลงานตีพิมพ์', icon: <FaAward /> },
+          { id: 'projects', label: 'สรุป 5 พันธกิจรายสังกัด', icon: <FaTasks /> },
           { id: 'sdg', label: 'ความยั่งยืน (UN SDGs)', icon: <FaLeaf /> },
         ].map((tab) => {
           const isActive = activePerspective === tab.id;
@@ -341,7 +341,7 @@ export const PerspectiveSection: React.FC<PerspectiveSectionProps> = ({
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
           <div>
             <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', fontWeight: 700, color: '#1e293b' }}>
-              งบประมาณวิจัยตาม 7 ภาควิชา (ล้านบาท)
+              งบประมาณวิจัยตาม 7 สังกัด (ล้านบาท)
             </h4>
             <div style={{ height: '280px', cursor: 'pointer' }}>
               <canvas ref={canvasFundingTreemap} />
@@ -349,7 +349,7 @@ export const PerspectiveSection: React.FC<PerspectiveSectionProps> = ({
           </div>
           <div>
             <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', fontWeight: 700, color: '#1e293b' }}>
-              อัตราการเติบโตเปรียบเทียบปีงบประมาณ (YoY: 2567 vs 2568)
+              อัตราการเติบโตเปรียบเทียบปีงบประมาณ 2567 และ 2568
             </h4>
             <div style={{ height: '280px' }}>
               <canvas ref={canvasFundingYoy} />
@@ -408,14 +408,14 @@ export const PerspectiveSection: React.FC<PerspectiveSectionProps> = ({
       {activePerspective === 'projects' && (
         <div>
           <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', fontWeight: 700, color: '#1e293b' }}>
-            สรุปผลงาน 5 พันธกิจราย 7 ภาควิชา
+            สรุปผลงาน 5 พันธกิจราย 7 สังกัด
           </h4>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', marginTop: '6px' }}>
               <thead>
                 <tr style={{ backgroundColor: '#00A651', color: '#ffffff' }}>
-                  <th style={{ width: '100px', padding: '10px 14px', textAlign: 'left', whiteSpace: 'nowrap' }}>ภาควิชา</th>
-                  <th style={{ padding: '10px 14px', textAlign: 'left', whiteSpace: 'nowrap' }}>ชื่อภาควิชา</th>
+                  <th style={{ width: '100px', padding: '10px 14px', textAlign: 'left', whiteSpace: 'nowrap' }}>สังกัด</th>
+                  <th style={{ padding: '10px 14px', textAlign: 'left', whiteSpace: 'nowrap' }}>ชื่อสังกัด</th>
                   <th style={{ padding: '10px 14px', textAlign: 'right', whiteSpace: 'nowrap' }}>โครงการวิจัย</th>
                   <th style={{ padding: '10px 14px', textAlign: 'right', whiteSpace: 'nowrap' }}>งบประมาณวิจัย (บาท)</th>
                   <th style={{ padding: '10px 14px', textAlign: 'right', whiteSpace: 'nowrap' }}>โครงการพัฒนาวิชาการ</th>
@@ -431,7 +431,7 @@ export const PerspectiveSection: React.FC<PerspectiveSectionProps> = ({
                     onClick={() =>
                       setDrillDownState({
                         isOpen: true,
-                        title: `ผลงานและโครงการทั้งหมด: ภาควิชา${d.name} (${d.code})`,
+                        title: `ผลงานและโครงการทั้งหมด: สังกัด ${d.name} (${d.code})`,
                         subtitle: `วิจัย ${d.researchCount} • พัฒนาวิชาการ ${d.academicCount} • ตีพิมพ์ ${d.pubs} • บริการวิชาการ ${d.services} • ทรัพย์สินทางปัญญา ${d.ips}`,
                         accentColor: getDepartmentColor(d.code),
                         categoryKey: 'research',
@@ -448,7 +448,7 @@ export const PerspectiveSection: React.FC<PerspectiveSectionProps> = ({
                       <DepartmentBadge value={d.code} />
                     </td>
                     <td style={{ padding: '10px 14px', textAlign: 'left', color: '#0f172a', fontWeight: 400 }}>
-                      ภาควิชา{d.name}
+                      สังกัด {d.name}
                     </td>
                     <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 600, color: '#0f172a' }}>{d.researchCount}</td>
                     <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 600, color: '#059669', fontFamily: 'monospace' }}>
@@ -466,7 +466,7 @@ export const PerspectiveSection: React.FC<PerspectiveSectionProps> = ({
               <tfoot>
                 <tr style={{ backgroundColor: '#f0fbf5', borderTop: '2px solid #00A651', fontWeight: 700, color: '#0f172a' }}>
                   <td colSpan={2} style={{ padding: '10px 14px', textAlign: 'left' }}>
-                    รวมทั้งสิ้น (7 ภาควิชาหลัก)
+                    รวมทั้งสิ้น (7 สังกัดหลัก)
                   </td>
                   <td style={{ padding: '10px 14px', textAlign: 'right' }}>{totals.researchCount}</td>
                   <td style={{ padding: '10px 14px', textAlign: 'right', color: '#059669', fontFamily: 'monospace' }}>

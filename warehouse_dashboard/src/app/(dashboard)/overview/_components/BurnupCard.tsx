@@ -33,7 +33,7 @@ export const BurnupCard: React.FC<BurnupCardProps> = ({ selectedKpi, onDrillDown
         labels: burnup.months,
         datasets: [
           {
-            label: 'ผลงานสะสมจริง (Actual)',
+            label: 'ผลงานสะสมจริง',
             data: burnup.actualCumulative,
             borderColor: '#00A651',
             backgroundColor: 'rgba(0, 166, 81, 0.1)',
@@ -44,7 +44,7 @@ export const BurnupCard: React.FC<BurnupCardProps> = ({ selectedKpi, onDrillDown
             pointBackgroundColor: '#00A651',
           },
           {
-            label: 'เส้นเป้าหมายตามเวลา (Target)',
+            label: 'เส้นเป้าหมายตามเวลา',
             data: burnup.targetLine,
             borderColor: '#94a3b8',
             borderDash: [5, 5],
@@ -53,7 +53,7 @@ export const BurnupCard: React.FC<BurnupCardProps> = ({ selectedKpi, onDrillDown
             fill: false,
           },
           {
-            label: 'คาดการณ์แนวโน้มสิ้นปี (Forecast)',
+            label: 'คาดการณ์แนวโน้มสิ้นปี',
             data: burnup.forecastLine,
             borderColor: '#0284c7',
             borderDash: [3, 3],

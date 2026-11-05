@@ -60,6 +60,10 @@ export interface FilterPopoverProps {
   align?: 'left' | 'right';
   className?: string;
   style?: React.CSSProperties;
+  /** Compact trigger (32px) for dense dashboard filter bars */
+  compact?: boolean;
+  /** Hide the built-in date range when the shared bar owns detailed time */
+  hideTimeRange?: boolean;
 }
 
 type FlyoutTab =
@@ -74,6 +78,63 @@ type FlyoutTab =
   | 'kpi_calc_type'
   | 'kpi_status'
   | null;
+
+type FlyoutPlacement = {
+  side: 'left' | 'right' | 'overlay';
+  vertical: 'up' | 'down';
+  left: number;
+  width: number;
+  maxHeight: number;
+};
+
+const FLYOUT_MAX_WIDTH = 640;
+const FLYOUT_GAP = 8;
+const VIEWPORT_MARGIN = 16;
+const FLYOUT_MIN_HEIGHT = 280;
+
+/**
+ * Position the flyout inside the viewport: open beside the popover when there is
+ * enough room, otherwise overlay the popover (narrow screens).
+ */
+function computeFlyoutPlacement(
+  popoverRect: DOMRect,
+  viewportWidth: number,
+  viewportHeight: number
+): FlyoutPlacement {
+  const width = Math.min(FLYOUT_MAX_WIDTH, viewportWidth - VIEWPORT_MARGIN * 2);
+  const spaceRight = viewportWidth - popoverRect.right - FLYOUT_GAP - VIEWPORT_MARGIN;
+  const spaceLeft = popoverRect.left - FLYOUT_GAP - VIEWPORT_MARGIN;
+  const spaceBelow = viewportHeight - popoverRect.top - VIEWPORT_MARGIN;
+  const spaceAbove = popoverRect.bottom - VIEWPORT_MARGIN;
+
+  let side: FlyoutPlacement['side'];
+  let left: number;
+
+  if (spaceRight >= width) {
+    side = 'right';
+    left = popoverRect.width + FLYOUT_GAP;
+  } else if (spaceLeft >= width) {
+    side = 'left';
+    left = -width - FLYOUT_GAP;
+  } else {
+    side = 'overlay';
+    const viewportLeft = Math.max(
+      VIEWPORT_MARGIN,
+      Math.min(popoverRect.left, viewportWidth - VIEWPORT_MARGIN - width)
+    );
+    left = viewportLeft - popoverRect.left;
+  }
+
+  const vertical: FlyoutPlacement['vertical'] =
+    spaceBelow < FLYOUT_MIN_HEIGHT && spaceAbove > spaceBelow ? 'up' : 'down';
+  const availableHeight = vertical === 'up' ? spaceAbove : spaceBelow;
+  const maxHeight = Math.max(
+    0,
+    Math.min(availableHeight, viewportHeight * 0.85 - 40)
+  );
+
+  return { side, vertical, left, width, maxHeight };
+}
 
 // ---------------------------------------------------------------------------
 // Constants & Scales
@@ -141,7 +202,7 @@ export const KPI_STRATEGY_MAP: Record<string, string> = {
   strat_y1: 'ยุทธศาสตร์ที่ 1 (ย.1)',
   strat_y2: 'ยุทธศาสตร์ที่ 2 (ย.2)',
   strat_y3: 'ยุทธศาสตร์ที่ 3 (ย.3)',
-  strat_faculty: 'ภาพรวมคณะฯ (KPI)',
+  strat_faculty: 'ภาพรวมคณะฯ',
   research: 'โครงการวิจัย',
   academic: 'พัฒนาวิชาการ',
   publications: 'ผลงานตีพิมพ์',
@@ -158,7 +219,7 @@ export const KPI_STRATEGY_GROUPS = [
       { value: 'strat_y1', label: 'ยุทธศาสตร์ที่ 1 (ย.1 - นวัตกร)', desc: 'เน้นการผลิตบัณฑิตและนวัตกรวิศวกรรม' },
       { value: 'strat_y2', label: 'ยุทธศาสตร์ที่ 2 (ย.2 - วิจัยและนวัตกรรม)', desc: 'งานวิจัยเชิงรุก สิทธิบัตร และการนำไปใช้ประโยชน์' },
       { value: 'strat_y3', label: 'ยุทธศาสตร์ที่ 3 (ย.3 - บริการชุมชน)', desc: 'บริการวิชาการ ยกระดับสังคมและชุมชน' },
-      { value: 'strat_faculty', label: 'ตัวชี้วัดภาพรวมคณะฯ (KPI 2.1-x)', desc: 'ตัวชี้วัดเป้าหมายหลักระดับคณะวิศวกรรมศาสตร์' },
+      { value: 'strat_faculty', label: 'ตัวชี้วัดภาพรวมคณะฯ (2.1-x)', desc: 'ตัวชี้วัดเป้าหมายหลักระดับคณะวิศวกรรมศาสตร์' },
     ],
   },
   {
@@ -198,8 +259,8 @@ export const KPI_CALC_TYPE_OPTIONS = [
   },
   {
     value: 'auto_completeness',
-    label: 'ตรวจสอบความครบถ้วน 7 ภาควิชา',
-    desc: 'ตรวจสอบว่าทุกภาควิชามีการดำเนินงานครบถ้วนหรือไม่',
+    label: 'ตรวจสอบความครบถ้วน 7 สังกัด',
+    desc: 'ตรวจสอบว่าทุกสังกัดมีการดำเนินงานครบถ้วนหรือไม่',
   },
   {
     value: 'manual',
@@ -270,9 +331,12 @@ export function FilterPopover({
   align = 'left',
   className = '',
   style,
+  compact = false,
+  hideTimeRange = false,
 }: FilterPopoverProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeFlyout, setActiveFlyout] = useState<FlyoutTab>(null);
+  const [flyoutPlacement, setFlyoutPlacement] = useState<FlyoutPlacement | null>(null);
 
   // Local draft state
   const [draft, setDraft] = useState<FilterState>({
@@ -346,6 +410,34 @@ export function FilterPopover({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen]);
+
+  // Keep the flyout inside the viewport when the popover sits near an edge.
+  const toggleFlyout = (tab: FlyoutTab) => {
+    if (activeFlyout === tab) {
+      setActiveFlyout(null);
+      return;
+    }
+    const rect = popoverRef.current?.getBoundingClientRect();
+    if (rect) {
+      setFlyoutPlacement(
+        computeFlyoutPlacement(rect, document.documentElement.clientWidth, window.innerHeight)
+      );
+    }
+    setActiveFlyout(tab);
+  };
+
+  useEffect(() => {
+    if (!isOpen || !activeFlyout) return;
+    const reposition = () => {
+      const rect = popoverRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      setFlyoutPlacement(
+        computeFlyoutPlacement(rect, document.documentElement.clientWidth, window.innerHeight)
+      );
+    };
+    window.addEventListener('resize', reposition);
+    return () => window.removeEventListener('resize', reposition);
+  }, [isOpen, activeFlyout]);
 
   // Active filters count badge on the trigger button
   const activeCount = useMemo(() => {
@@ -483,8 +575,9 @@ export function FilterPopover({
     setIsOpen(false);
   };
 
-  // Fixed width for right flyout window (fits widest content - SDGs 2 columns comfortably with no horizontal scroll)
-  const flyoutWidth = '640px';
+  // Fixed width for the flyout (fits its widest content); placement is
+  // computed against the viewport so it never renders off-screen.
+  const flyoutWidth = `${FLYOUT_MAX_WIDTH}px`;
 
   return (
     <div
@@ -550,14 +643,14 @@ export function FilterPopover({
           display: 'inline-flex',
           alignItems: 'center',
           gap: '6px',
-          padding: '7px 14px',
-          height: '36px',
+          padding: compact ? '0 10px' : '7px 14px',
+          height: compact ? '32px' : '36px',
           boxSizing: 'border-box',
           backgroundColor: isOpen || activeCount > 0 ? '#f0fdf4' : '#ffffff',
           border: isOpen || activeCount > 0 ? '1px solid #00A651' : '1px solid #cbd5e1',
           borderRadius: '8px',
           color: isOpen || activeCount > 0 ? '#00A651' : '#334155',
-          fontSize: '13px',
+          fontSize: compact ? '12px' : '13px',
           fontWeight: 400,
           cursor: 'pointer',
           whiteSpace: 'nowrap',
@@ -566,7 +659,7 @@ export function FilterPopover({
         title="เปิดตัวกรองข้อมูล"
       >
         <FaFilter style={{ fontSize: '12px', flexShrink: 0 }} />
-        <span style={{ fontWeight: 400 }}>ตัวกรอง</span>
+        <span className={compact ? 'max-[900px]:hidden' : undefined} style={{ fontWeight: 400 }}>ตัวกรอง</span>
         {activeCount > 0 && (
           <span
             style={{
@@ -651,7 +744,7 @@ export function FilterPopover({
                 {/* 1. หมวดยุทธศาสตร์และประเภทงาน */}
                 <button
                   type="button"
-                  onClick={() => setActiveFlyout(activeFlyout === 'kpi_strategy' ? null : 'kpi_strategy')}
+                  onClick={() => toggleFlyout('kpi_strategy')}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -691,7 +784,7 @@ export function FilterPopover({
                 {/* 2. วิธีการประเมิน */}
                 <button
                   type="button"
-                  onClick={() => setActiveFlyout(activeFlyout === 'kpi_calc_type' ? null : 'kpi_calc_type')}
+                  onClick={() => toggleFlyout('kpi_calc_type')}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -731,7 +824,7 @@ export function FilterPopover({
                 {/* 3. สถานะความสำเร็จ */}
                 <button
                   type="button"
-                  onClick={() => setActiveFlyout(activeFlyout === 'kpi_status' ? null : 'kpi_status')}
+                  onClick={() => toggleFlyout('kpi_status')}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -773,7 +866,7 @@ export function FilterPopover({
             {/* 1. สังกัดที่รับผิดชอบ */}
             <button
               type="button"
-              onClick={() => setActiveFlyout(activeFlyout === 'department' ? null : 'department')}
+              onClick={() => toggleFlyout('department')}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -810,10 +903,11 @@ export function FilterPopover({
               <FaChevronRight style={{ color: '#94a3b8', fontSize: '11px', flexShrink: 0 }} />
             </button>
 
-            {/* 2. ช่วงเวลา */}
+            {/* 2. ช่วงเวลา — hidden when the shared bar owns detailed time */}
+            {!hideTimeRange && (
             <button
               type="button"
-              onClick={() => setActiveFlyout(activeFlyout === 'dates' ? null : 'dates')}
+              onClick={() => toggleFlyout('dates')}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -853,12 +947,13 @@ export function FilterPopover({
               </span>
               <FaChevronRight style={{ color: '#94a3b8', fontSize: '11px', flexShrink: 0 }} />
             </button>
+            )}
 
             {/* 3. งบประมาณ / ค่าตัวเลข */}
             {!hideNumericRanges && numericConfig && (
               <button
                 type="button"
-                onClick={() => setActiveFlyout(activeFlyout === 'budget' ? null : 'budget')}
+                onClick={() => toggleFlyout('budget')}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -897,7 +992,7 @@ export function FilterPopover({
             {/* 4. การประเมิน (SDGs / Framework / Journals) */}
             <button
               type="button"
-              onClick={() => setActiveFlyout(activeFlyout === 'evaluation' ? null : 'evaluation')}
+              onClick={() => toggleFlyout('evaluation')}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -947,7 +1042,7 @@ export function FilterPopover({
             {category === 'publications' && (
               <button
                 type="button"
-                onClick={() => setActiveFlyout(activeFlyout === 'journals' ? null : 'journals')}
+                onClick={() => toggleFlyout('journals')}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -989,7 +1084,7 @@ export function FilterPopover({
             {category === 'personnel' && (
               <button
                 type="button"
-                onClick={() => setActiveFlyout(activeFlyout === 'personnel_role' ? null : 'personnel_role')}
+                onClick={() => toggleFlyout('personnel_role')}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -1086,7 +1181,7 @@ export function FilterPopover({
           </div>
 
           {/* --------------------------------------------------------------- */}
-          {/* 3. Sub Flyout Window (หน้าต่างย่อยด้านข้างขวา - ทุกหน้าต่างขนาดเท่ากัน) */}
+          {/* 3. Sub Flyout Window (หน้าต่างย่อย - จัดตำแหน่งอัตโนมัติให้อยู่ในจอ) */}
           {/* --------------------------------------------------------------- */}
           {activeFlyout && (
             <aside
@@ -1094,12 +1189,15 @@ export function FilterPopover({
               role="dialog"
               aria-label="ตัวกรองย่อย"
               className="filter-scope-root"
+              data-side={flyoutPlacement?.side}
+              data-vertical={flyoutPlacement?.vertical}
               style={{
                 position: 'absolute',
-                top: 0,
-                left: 'calc(100% + 8px)',
-                width: `min(${flyoutWidth}, calc(100vw - 32px))`,
-                maxHeight: 'calc(85vh - 40px)',
+                top: flyoutPlacement?.vertical === 'up' ? 'auto' : 0,
+                bottom: flyoutPlacement?.vertical === 'up' ? 0 : 'auto',
+                left: flyoutPlacement ? `${flyoutPlacement.left}px` : 'calc(100% + 8px)',
+                width: flyoutPlacement ? `${flyoutPlacement.width}px` : `min(${flyoutWidth}, calc(100vw - 32px))`,
+                maxHeight: flyoutPlacement ? `${flyoutPlacement.maxHeight}px` : 'calc(85vh - 40px)',
                 display: 'flex',
                 flexDirection: 'column',
                 backgroundColor: '#ffffff',
@@ -1126,7 +1224,7 @@ export function FilterPopover({
                   {activeFlyout === 'department' && 'สังกัดที่รับผิดชอบ'}
                   {activeFlyout === 'dates' && 'ช่วงเวลา'}
                   {activeFlyout === 'budget' && (numericConfig?.section || 'งบประมาณ')}
-                  {activeFlyout === 'evaluation' && 'การประเมิน (SDGs / Framework)'}
+                  {activeFlyout === 'evaluation' && 'การประเมิน (SDGs / กรอบการประเมิน)'}
                   {activeFlyout === 'journals' && 'ระดับคุณภาพวารสาร (Q / TCI)'}
                   {activeFlyout === 'personnel_role' && 'บทบาท / ตำแหน่ง'}
                   {activeFlyout === 'kpi_strategy' && 'หมวดยุทธศาสตร์และประเภทงาน'}
@@ -1180,7 +1278,7 @@ export function FilterPopover({
                       <FaSearch style={{ color: '#94a3b8', marginRight: '8px', fontSize: '12px' }} />
                       <input
                         type="text"
-                        placeholder="ค้นหาภาควิชา / สังกัด..."
+                        placeholder="ค้นหาสังกัด..."
                         value={deptSearch}
                         onChange={(e) => setDeptSearch(e.target.value)}
                         style={{
@@ -1272,7 +1370,7 @@ export function FilterPopover({
                         return (
                           <div key={grp}>
                             <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '6px', fontWeight: 400 }}>
-                              {grp}
+                              {grp === 'ภาควิชา' ? 'สังกัด' : grp}
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '6px' }}>
                               {itemsInGrp.map((d) => {
@@ -1324,7 +1422,7 @@ export function FilterPopover({
                     {draft.departments.includes('OTH') && (
                       <div style={{ marginTop: '8px', padding: '10px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                         <label style={{ display: 'block', fontSize: '11.5px', color: '#475569', marginBottom: '4px', fontWeight: 400 }}>
-                          ระบุชื่อสังกัด / ภาควิชาอื่น ๆ:
+                          ระบุชื่อสังกัดอื่น ๆ:
                         </label>
                         <input
                           type="text"

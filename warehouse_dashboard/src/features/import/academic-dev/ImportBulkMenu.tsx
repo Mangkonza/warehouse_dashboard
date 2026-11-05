@@ -106,7 +106,7 @@ export const ImportBulkMenu: React.FC<ImportBulkMenuProps> = ({
               <FaBuilding className="text-blue-600 text-sm shrink-0" />
               <div>
                 <div className="font-semibold">กำหนดสังกัดให้ทุกแถวที่ว่าง</div>
-                <div className="text-[10px] text-slate-500">เลือกภาควิชา/ศูนย์สำหรับแถวที่ยังไม่มีสังกัด</div>
+                <div className="text-[10px] text-slate-500">เลือกสังกัดสำหรับแถวที่ยังไม่มีสังกัด</div>
               </div>
             </button>
           </div>
@@ -214,7 +214,7 @@ export const ImportBulkMenu: React.FC<ImportBulkMenuProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">เลือกสังกัดภาควิชา/ศูนย์</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">เลือกสังกัด</label>
               <DepartmentSelect
                 value={batchDept}
                 onChange={(code) => setBatchDept(code)}

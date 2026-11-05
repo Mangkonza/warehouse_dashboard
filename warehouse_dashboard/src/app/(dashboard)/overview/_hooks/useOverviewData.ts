@@ -9,8 +9,8 @@ import { matchDepartmentCode } from '@/config/departments';
 import { exportMonthlyExecutiveMasterExcel, saveReportSnapshot } from '@/lib/etlEngine';
 import { TimeFilterState, itemMatchesTimeFilter, getTimeFilterLabel } from '@/types/timeFilter';
 import { isTestRecord } from '@/lib/sdgEngine';
-import { autoDetectJournalRanking } from '@/config/journalRankingConfig';
 import { CategoryKey } from '@/config/dataManagementConfig';
+import { buildKpiScorecard, getFiscalYearProgress } from '../_services/kpiScorecard';
 
 import rawResearch from '@/data/research.json';
 import rawAcademic from '@/data/academic.json';
@@ -157,14 +157,14 @@ export function useOverviewData(timeFilter: TimeFilterState) {
   const validResearch = useMemo(() => {
     return researchList
       .filter((item) => item.name && item.name !== 'nan' && item.name !== 'NaT' && item.name !== 'เรื่อง' && !isTestRecord(item))
-      .filter((item) => itemMatchesTimeFilter(item, timeFilter))
+      .filter((item) => itemMatchesTimeFilter(item, timeFilter, 'research'))
       .map((item) => ({ ...item, _categoryKey: 'research' as CategoryKey }));
   }, [researchList, timeFilter]);
 
   const validAcademic = useMemo(() => {
     return academicList
       .filter((item) => item.name && item.name !== 'nan' && item.name !== 'NaT' && item.name !== 'เรื่อง' && !isTestRecord(item))
-      .filter((item) => itemMatchesTimeFilter(item, timeFilter))
+      .filter((item) => itemMatchesTimeFilter(item, timeFilter, 'academic'))
       .map((item) => {
         const resolvedDept = resolveAcademicDept(item.head, item.department);
         return {
@@ -178,156 +178,34 @@ export function useOverviewData(timeFilter: TimeFilterState) {
   const validPub = useMemo(() => {
     return pubList
       .filter((item) => item.name && item.name !== 'nan' && item.name !== 'NaT' && item.name !== 'เรื่อง' && !isTestRecord(item))
-      .filter((item) => itemMatchesTimeFilter(item, timeFilter))
+      .filter((item) => itemMatchesTimeFilter(item, timeFilter, 'publications'))
       .map((item) => ({ ...item, _categoryKey: 'publications' as CategoryKey }));
   }, [pubList, timeFilter]);
 
   const validService = useMemo(() => {
     return serviceList
       .filter((item) => item.name && item.name !== 'nan' && item.name !== 'NaT' && item.name !== 'เรื่อง' && !isTestRecord(item))
-      .filter((item) => itemMatchesTimeFilter(item, timeFilter))
+      .filter((item) => itemMatchesTimeFilter(item, timeFilter, 'service'))
       .map((item) => ({ ...item, _categoryKey: 'service' as CategoryKey }));
   }, [serviceList, timeFilter]);
 
   const validIP = useMemo(() => {
     return ipList
       .filter((item) => item.name && item.name !== 'nan' && item.name !== 'NaT' && item.name !== 'เรื่อง' && !isTestRecord(item))
-      .filter((item) => itemMatchesTimeFilter(item, timeFilter))
+      .filter((item) => itemMatchesTimeFilter(item, timeFilter, 'ip'))
       .map((item) => ({ ...item, _categoryKey: 'ip' as CategoryKey }));
   }, [ipList, timeFilter]);
 
-  const fiscalYearProgress = useMemo(() => {
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const fiscalMonthIndex = ((currentMonth + 3) % 12) + 1;
-    return Math.min(100, Math.max(8, Math.round((fiscalMonthIndex / 12) * 100)));
-  }, []);
+  const fiscalYearProgress = useMemo(() => getFiscalYearProgress(), []);
 
-  const kpiScorecard: OverviewKpiScore[] = useMemo(() => {
-    const externalResearchItems = validResearch.filter((cur) => parseNumber(cur.budget_external) > 0);
-    const externalBudget = validResearch.reduce((acc, cur) => acc + parseNumber(cur.budget_external), 0);
-    const targetExternal = 100000000;
-    const pctExternal = Math.min(200, Math.round((externalBudget / targetExternal) * 1000) / 10);
-
-    const scopusItems = validPub.filter((p) => {
-      const tier = autoDetectJournalRanking(p.journal || '', p.level || '');
-      const s = `${p.journal || ''} ${p.level || ''}`.toLowerCase();
-      return (
-        tier.startsWith('Scopus') ||
-        s.includes('scopus') ||
-        s.includes('wos') ||
-        s.includes('นานาชาติ')
-      );
-    });
-    const scopusCount = scopusItems.length || validPub.length;
-    const targetScopus = 330;
-    const pctScopus = Math.min(200, Math.round((scopusCount / targetScopus) * 1000) / 10);
-
-    const megaItems = validResearch.filter(
-      (r) => parseNumber(r.budget_external) + parseNumber(r.budget_internal) >= 10000000
-    );
-    const megaCount = megaItems.length;
-    const targetMega = 5;
-    const pctMega = Math.min(200, Math.round((megaCount / targetMega) * 1000) / 10);
-
-    const academicRevenue = validAcademic.reduce((acc, cur) => acc + parseNumber(cur.budget), 0);
-    const serviceExplicitRevenue = validService.reduce(
-      (acc, cur) => acc + (parseNumber(cur.actual_revenue) || parseNumber(cur.budget) || parseNumber(cur.revenue) || 0),
-      0
-    );
-    const actualServiceRevenue = academicRevenue + serviceExplicitRevenue;
-    const targetServiceRevenue = 50000000;
-    const pctService = Math.min(200, Math.round((actualServiceRevenue / targetServiceRevenue) * 1000) / 10);
-
-    const ipCount = validIP.length;
-    const targetIP = 15;
-    const pctIP = Math.min(200, Math.round((ipCount / targetIP) * 1000) / 10);
-
-    const getStatusInfo = (actualPct: number, targetProRata: number) => {
-      if (actualPct >= 100) return { label: 'บรรลุแล้ว', color: '#059669', bg: '#ecfdf5' };
-      if (actualPct >= targetProRata * 0.9) return { label: 'ตามแผน', color: '#0284c7', bg: '#f0f9ff' };
-      if (actualPct >= targetProRata * 0.7) return { label: 'เสี่ยง', color: '#d97706', bg: '#fffbeb' };
-      return { label: 'ต้องเร่งรัด', color: '#dc2626', bg: '#fef2f2' };
-    };
-
-    return [
-      {
-        id: 'external_budget',
-        code: 'KPI 2.1-6',
-        title: 'งบวิจัยจากแหล่งทุนภายนอก',
-        actual: externalBudget,
-        actualFormatted: `${(externalBudget / 1000000).toFixed(2)} ล้านบาท`,
-        target: targetExternal,
-        targetFormatted: '100.00 ล้านบาท',
-        unit: 'บาท',
-        percent: pctExternal,
-        proRataTarget: fiscalYearProgress,
-        categoryKey: 'research',
-        items: externalResearchItems.length > 0 ? externalResearchItems : validResearch,
-        status: getStatusInfo(pctExternal, fiscalYearProgress),
-      },
-      {
-        id: 'scopus_pub',
-        code: 'KPI 2.1-1',
-        title: 'ตีพิมพ์ระดับนานาชาติ (Scopus/WoS)',
-        actual: scopusCount,
-        actualFormatted: `${scopusCount} เรื่อง`,
-        target: targetScopus,
-        targetFormatted: '330 เรื่อง',
-        unit: 'เรื่อง',
-        percent: pctScopus,
-        proRataTarget: fiscalYearProgress,
-        categoryKey: 'publications',
-        items: scopusItems.length > 0 ? scopusItems : validPub,
-        status: getStatusInfo(pctScopus, fiscalYearProgress),
-      },
-      {
-        id: 'mega_projects',
-        code: 'KPI 2.1-2',
-        title: 'โครงการวิจัยขนาดใหญ่ (≥ 10 ล้าน)',
-        actual: megaCount,
-        actualFormatted: `${megaCount} โครงการ`,
-        target: targetMega,
-        targetFormatted: '5 โครงการ',
-        unit: 'โครงการ',
-        percent: pctMega,
-        proRataTarget: fiscalYearProgress,
-        categoryKey: 'research',
-        items: megaItems,
-        status: getStatusInfo(pctMega, fiscalYearProgress),
-      },
-      {
-        id: 'service_revenue',
-        code: 'KPI 2.2-1',
-        title: 'งบโครงการพัฒนาวิชาการและบริการวิชาการ',
-        actual: actualServiceRevenue,
-        actualFormatted: `${(actualServiceRevenue / 1000000).toFixed(2)} ล้านบาท`,
-        target: targetServiceRevenue,
-        targetFormatted: '50.00 ล้านบาท',
-        unit: 'บาท',
-        percent: pctService,
-        proRataTarget: fiscalYearProgress,
-        categoryKey: 'academic',
-        items: validAcademic,
-        status: getStatusInfo(pctService, fiscalYearProgress),
-      },
-      {
-        id: 'ip_patents',
-        code: 'KPI 2.3-2',
-        title: 'ยื่นจดงานทรัพย์สินทางปัญญา (IP)',
-        actual: ipCount,
-        actualFormatted: `${ipCount} รายการ`,
-        target: targetIP,
-        targetFormatted: '15 รายการ',
-        unit: 'รายการ',
-        percent: pctIP,
-        proRataTarget: fiscalYearProgress,
-        categoryKey: 'ip',
-        items: validIP,
-        status: getStatusInfo(pctIP, fiscalYearProgress),
-      },
-    ];
-  }, [validResearch, validAcademic, validPub, validService, validIP, fiscalYearProgress]);
+  const kpiScorecard: OverviewKpiScore[] = useMemo(
+    () =>
+      buildKpiScorecard(
+        { research: validResearch, academic: validAcademic, publications: validPub, service: validService, ip: validIP },
+        fiscalYearProgress
+      ),
+    [validResearch, validAcademic, validPub, validService, validIP, fiscalYearProgress]
+  );
 
   const departmentStats: DepartmentOverviewStat[] = useMemo(() => {
     const depts: Record<string, DepartmentOverviewStat> = {

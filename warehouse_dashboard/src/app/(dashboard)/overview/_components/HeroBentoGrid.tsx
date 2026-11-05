@@ -10,7 +10,10 @@ import {
   FaCertificate,
   FaCoins,
   FaArrowRight,
-  FaExternalLinkAlt,
+  FaUsers,
+  FaNetworkWired,
+  FaCheckCircle,
+  FaClock,
 } from 'react-icons/fa';
 
 interface HeroBentoGridProps {
@@ -27,6 +30,10 @@ interface HeroBentoGridProps {
   pubCount: number;
   pubQ1: number;
   pubQ2: number;
+  pubQ3?: number;
+  pubQ4?: number;
+  pubTci1?: number;
+  pubTci2?: number;
   pubTci: number;
   pubSupport: number;
   serviceCount: number;
@@ -52,6 +59,10 @@ export function HeroBentoGrid({
   pubCount,
   pubQ1,
   pubQ2,
+  pubQ3 = 0,
+  pubQ4 = 0,
+  pubTci1 = 0,
+  pubTci2 = 0,
   pubTci,
   pubSupport,
   serviceCount,
@@ -64,14 +75,33 @@ export function HeroBentoGrid({
 }: HeroBentoGridProps) {
   const router = useRouter();
 
+  // Financial calculations
   const totalMillions = (totalFinancialVolume / 1000000).toFixed(2);
   const researchMillions = (researchBudget / 1000000).toFixed(2);
   const academicMillions = (academicBudget / 1000000).toFixed(2);
   const overheadMillions = (facultyOverhead / 1000000).toFixed(2);
 
+  // Proportions
   const academicPct = totalFinancialVolume > 0 ? ((academicBudget / totalFinancialVolume) * 100).toFixed(1) : '81.8';
   const researchPct = totalFinancialVolume > 0 ? ((researchBudget / totalFinancialVolume) * 100).toFixed(1) : '18.2';
-  const extResearchPct = researchBudget > 0 ? ((externalResearchBudget / researchBudget) * 100).toFixed(1) : '99.3';
+
+  // Research external vs internal
+  const extResearchPctNum = researchBudget > 0 ? (externalResearchBudget / researchBudget) * 100 : 99.3;
+  const extResearchPct = extResearchPctNum.toFixed(1);
+  const intResearchPct = (100 - extResearchPctNum).toFixed(1);
+
+  // Publications quality tier distribution
+  const totalPubSafe = pubCount || 1;
+  const pubQ1Pct = ((pubQ1 / totalPubSafe) * 100).toFixed(1);
+  const pubQ2Pct = ((pubQ2 / totalPubSafe) * 100).toFixed(1);
+  const pubTciPct = ((pubTci / totalPubSafe) * 100).toFixed(1);
+  const otherPubCount = Math.max(0, pubCount - (pubQ1 + pubQ2 + pubTci));
+  const otherPubPct = ((otherPubCount / totalPubSafe) * 100).toFixed(1);
+
+  // IP pipeline distribution
+  const totalIpSafe = ipCount || 1;
+  const ipProtectedPct = ((ipProtected / totalIpSafe) * 100).toFixed(1);
+  const ipPendingPct = ((ipPending / totalIpSafe) * 100).toFixed(1);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -83,11 +113,11 @@ export function HeroBentoGrid({
           gap: '16px',
         }}
       >
-        {/* Card 1 (Hero 40%): Total Financial Volume */}
+        {/* Card 1: Total Financial Volume (งบประมาณรวมทุกพันธกิจของคณะ) */}
         <div
           style={{
             gridColumn: 'span 1',
-            background: 'linear-gradient(135deg, rgba(236, 253, 245, 0.9) 0%, rgba(240, 253, 250, 0.5) 50%, #ffffff 100%)',
+            background: 'linear-gradient(135deg, rgba(236, 253, 245, 0.95) 0%, rgba(240, 253, 250, 0.6) 50%, #ffffff 100%)',
             border: '1.5px solid #a7f3d0',
             borderRadius: '24px',
             padding: '24px',
@@ -143,7 +173,7 @@ export function HeroBentoGrid({
                 <div
                   style={{
                     width: `${academicPct}%`,
-                    backgroundColor: '#0ea5e9',
+                    backgroundColor: '#93c5fd', // Pastel Sky
                     borderRadius: '999px 0 0 999px',
                   }}
                   title={`โครงการพัฒนาวิชาการ: ${academicPct}% (${academicMillions} ล้านบาท)`}
@@ -151,19 +181,26 @@ export function HeroBentoGrid({
                 <div
                   style={{
                     width: `${researchPct}%`,
-                    backgroundColor: '#10b981',
+                    backgroundColor: '#86efac', // Pastel Mint
                     borderRadius: '0 999px 999px 0',
                   }}
                   title={`โครงการวิจัย: ${researchPct}% (${researchMillions} ล้านบาท)`}
                 />
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px', fontSize: '11.5px', fontWeight: 600 }}>
-                <span style={{ color: '#0284c7' }}>● พัฒนาวิชาการ {academicPct}% ({academicMillions} ล้านบาท)</span>
-                <span style={{ color: '#059669' }}>● วิจัย {researchPct}% ({researchMillions} ล้านบาท)</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#0369a1' }}>
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#0ea5e9' }} />
+                  พัฒนาวิชาการ {academicPct}% ({academicMillions} ล้านบาท)
+                </span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#047857' }}>
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981' }} />
+                  วิจัย {researchPct}% ({researchMillions} ล้านบาท)
+                </span>
               </div>
             </div>
           </div>
 
+          {/* Bottom Micro-stat Bar */}
           <div
             style={{
               marginTop: '18px',
@@ -173,33 +210,50 @@ export function HeroBentoGrid({
               justifyContent: 'space-between',
               alignItems: 'center',
               fontSize: '12px',
+              gap: '8px',
+              flexWrap: 'wrap',
             }}
           >
-            <span style={{ color: '#065f46', fontWeight: 600 }}>
-              รายได้จัดสรรเข้าคณะ (15%): <strong>{overheadMillions} ล้านบาท</strong>
-            </span>
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '4px 10px',
+                borderRadius: '8px',
+                backgroundColor: '#ecfdf5',
+                border: '1px solid #a7f3d0',
+                color: '#065f46',
+                fontSize: '12px',
+                fontWeight: 600,
+              }}
+            >
+              <span>จัดสรรเข้าคณะ (15%):</span>
+              <strong style={{ color: '#047857' }}>{overheadMillions} ล้านบาท</strong>
+            </div>
             <span
               style={{
-                padding: '2px 8px',
-                borderRadius: '6px',
+                padding: '4px 10px',
+                borderRadius: '8px',
                 backgroundColor: '#ffffff',
                 border: '1px solid #a7f3d0',
                 color: '#047857',
                 fontWeight: 700,
+                fontSize: '11.5px',
                 whiteSpace: 'nowrap',
               }}
             >
-              รวม {totalItems} ผลงาน
+              รวม {totalItems.toLocaleString('th-TH')} ผลงาน
             </span>
           </div>
         </div>
 
-        {/* Card 2 (30%): Research Grants */}
+        {/* Card 2: Research Grants (โครงการวิจัย) */}
         <div
           onClick={() => router.push('/research')}
           style={{
             background: 'linear-gradient(135deg, #ecfdf5 0%, #ffffff 100%)',
-            border: '1px solid #a7f3d0',
+            border: '1.5px solid #a7f3d0',
             borderRadius: '24px',
             padding: '22px',
             boxShadow: '0 4px 16px rgba(16, 185, 129, 0.06)',
@@ -221,7 +275,7 @@ export function HeroBentoGrid({
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
-                <span style={{ fontSize: '13px', fontWeight: 700, color: '#047857' }}>
+                <span style={{ fontSize: '13.5px', fontWeight: 700, color: '#047857' }}>
                   โครงการวิจัย
                 </span>
                 <div style={{ marginTop: '4px' }}>
@@ -264,23 +318,69 @@ export function HeroBentoGrid({
               </span>
             </div>
 
-            <div style={{ marginTop: '10px', fontSize: '12px', color: '#065f46' }}>
-              ทุนภายนอก {(externalResearchBudget / 1000000).toFixed(2)} ล้านบาท ({extResearchPct}%) • ทุนภายใน {(internalResearchBudget / 1000000).toFixed(2)} ล้านบาท
+            {/* Visual 2-Segment Pastel Progress Bar (External vs Internal) */}
+            <div style={{ marginTop: '14px' }}>
+              <div
+                style={{
+                  height: '8px',
+                  borderRadius: '999px',
+                  backgroundColor: '#e2e8f0',
+                  overflow: 'hidden',
+                  display: 'flex',
+                }}
+              >
+                <div
+                  style={{
+                    width: `${extResearchPct}%`,
+                    backgroundColor: '#86efac', // Pastel Mint
+                    borderRadius: '999px 0 0 999px',
+                  }}
+                  title={`ทุนภายนอก: ${extResearchPct}%`}
+                />
+                <div
+                  style={{
+                    width: `${intResearchPct}%`,
+                    minWidth: extResearchPctNum < 100 ? '4px' : '0',
+                    backgroundColor: '#93c5fd', // Pastel Sky
+                    borderRadius: '0 999px 999px 0',
+                  }}
+                  title={`ทุนภายใน: ${intResearchPct}%`}
+                />
+              </div>
+
+              {/* Micro-Stat Chips Replacing Dense Sentence */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px', gap: '4px' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '11.5px', color: '#065f46' }}>
+                  <span style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#10b981' }} />
+                  <span>ทุนภายนอก {(externalResearchBudget / 1000000).toFixed(2)}M</span>
+                  <span style={{ fontSize: '10.5px', fontWeight: 700, padding: '1px 5px', borderRadius: '4px', backgroundColor: '#ecfdf5', color: '#047857' }}>
+                    {extResearchPct}%
+                  </span>
+                </div>
+
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '11.5px', color: '#0369a1' }}>
+                  <span style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#0ea5e9' }} />
+                  <span>ทุนภายใน {(internalResearchBudget / 1000000).toFixed(2)}M</span>
+                  <span style={{ fontSize: '10.5px', fontWeight: 700, padding: '1px 5px', borderRadius: '4px', backgroundColor: '#f0f9ff', color: '#0369a1' }}>
+                    {intResearchPct}%
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div style={{ marginTop: '14px', display: 'flex', alignItems: 'center', gap: '4px', color: '#059669', fontSize: '11.5px', fontWeight: 600 }}>
+          <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '4px', color: '#059669', fontSize: '11.5px', fontWeight: 600 }}>
             <span>ดูรายละเอียดโครงการวิจัย</span>
             <FaArrowRight style={{ fontSize: '10px' }} />
           </div>
         </div>
 
-        {/* Card 3 (30%): Academic Development */}
+        {/* Card 3: Academic Development (โครงการพัฒนาวิชาการ) */}
         <div
           onClick={() => router.push('/academic')}
           style={{
             background: 'linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%)',
-            border: '1px solid #bae6fd',
+            border: '1.5px solid #bae6fd',
             borderRadius: '24px',
             padding: '22px',
             boxShadow: '0 4px 16px rgba(14, 165, 233, 0.06)',
@@ -302,7 +402,7 @@ export function HeroBentoGrid({
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
-                <span style={{ fontSize: '13px', fontWeight: 700, color: '#0369a1' }}>
+                <span style={{ fontSize: '13.5px', fontWeight: 700, color: '#0369a1' }}>
                   โครงการพัฒนาวิชาการ
                 </span>
                 <div style={{ marginTop: '4px' }}>
@@ -345,12 +445,73 @@ export function HeroBentoGrid({
               </span>
             </div>
 
-            <div style={{ marginTop: '10px', fontSize: '12px', color: '#075985' }}>
-              รายได้เข้าคณะ (15%): <strong>{overheadMillions} ล้านบาท</strong> • หัวหน้าโครงการ {academicPis} ท่าน
+            {/* Visual 2-Segment Pastel Split Bar (85% Operation vs 15% Overhead) */}
+            <div style={{ marginTop: '14px' }}>
+              <div
+                style={{
+                  height: '8px',
+                  borderRadius: '999px',
+                  backgroundColor: '#e2e8f0',
+                  overflow: 'hidden',
+                  display: 'flex',
+                }}
+              >
+                <div
+                  style={{
+                    width: '85%',
+                    backgroundColor: '#93c5fd', // Pastel Sky
+                    borderRadius: '999px 0 0 999px',
+                  }}
+                  title="งบดำเนินโครงการ: 85%"
+                />
+                <div
+                  style={{
+                    width: '15%',
+                    backgroundColor: '#86efac', // Pastel Mint
+                    borderRadius: '0 999px 999px 0',
+                  }}
+                  title={`จัดสรรเข้าคณะ: 15% (${overheadMillions} ล้านบาท)`}
+                />
+              </div>
+
+              {/* Micro-Stat Badges Replacing Dense Sentence */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px', gap: '6px' }}>
+                <div
+                  style={{
+                    padding: '2px 8px',
+                    borderRadius: '6px',
+                    backgroundColor: '#f0fdf4',
+                    border: '1px solid #bbf7d0',
+                    color: '#15803d',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                  }}
+                >
+                  จัดสรรคณะ 15%: <strong>{overheadMillions}M</strong>
+                </div>
+
+                <div
+                  style={{
+                    padding: '2px 8px',
+                    borderRadius: '6px',
+                    backgroundColor: '#f0f9ff',
+                    border: '1px solid #bae6fd',
+                    color: '#0369a1',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
+                  <FaUsers style={{ fontSize: '10px' }} />
+                  <span>หัวหน้าโครงการ {academicPis} ท่าน</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div style={{ marginTop: '14px', display: 'flex', alignItems: 'center', gap: '4px', color: '#0284c7', fontSize: '11.5px', fontWeight: 600 }}>
+          <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '4px', color: '#0284c7', fontSize: '11.5px', fontWeight: 600 }}>
             <span>ดูรายละเอียดโครงการพัฒนาวิชาการ</span>
             <FaArrowRight style={{ fontSize: '10px' }} />
           </div>
@@ -365,12 +526,12 @@ export function HeroBentoGrid({
           gap: '16px',
         }}
       >
-        {/* Card 4: Publications */}
+        {/* Card 4: Academic Publications (ผลงานตีพิมพ์ทางวิชาการ) */}
         <div
           onClick={() => router.push('/publications')}
           style={{
             background: 'linear-gradient(135deg, #fff1f2 0%, #ffffff 100%)',
-            border: '1px solid #fecdd3',
+            border: '1.5px solid #fecdd3',
             borderRadius: '24px',
             padding: '22px',
             boxShadow: '0 4px 16px rgba(244, 63, 94, 0.06)',
@@ -391,7 +552,7 @@ export function HeroBentoGrid({
         >
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <span style={{ fontSize: '13px', fontWeight: 700, color: '#be123c' }}>
+              <span style={{ fontSize: '13.5px', fontWeight: 700, color: '#be123c' }}>
                 ผลงานตีพิมพ์ทางวิชาการ
               </span>
               <div
@@ -419,20 +580,78 @@ export function HeroBentoGrid({
               </span>
             </div>
 
-            <div style={{ marginTop: '10px', display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-              <span style={{ padding: '2px 8px', borderRadius: '6px', backgroundColor: '#ffe4e6', color: '#be123c', fontSize: '11px', fontWeight: 700 }}>
-                Q1: {pubQ1}
-              </span>
-              <span style={{ padding: '2px 8px', borderRadius: '6px', backgroundColor: '#e0f2fe', color: '#0369a1', fontSize: '11px', fontWeight: 700 }}>
-                Q2: {pubQ2}
-              </span>
-              <span style={{ padding: '2px 8px', borderRadius: '6px', backgroundColor: '#f1f5f9', color: '#475569', fontSize: '11px', fontWeight: 700 }}>
-                TCI: {pubTci}
-              </span>
-            </div>
+            {/* Visual Multi-Segment Pastel Quality Bar (Q1 / Q2 / TCI / Other) */}
+            <div style={{ marginTop: '14px' }}>
+              <div
+                style={{
+                  height: '8px',
+                  borderRadius: '999px',
+                  backgroundColor: '#e2e8f0',
+                  overflow: 'hidden',
+                  display: 'flex',
+                }}
+              >
+                <div
+                  style={{ width: `${pubQ1Pct}%`, backgroundColor: '#fda4af' }} // Pastel Rose
+                  title={`Q1: ${pubQ1} เรื่อง (${pubQ1Pct}%)`}
+                />
+                <div
+                  style={{ width: `${pubQ2Pct}%`, backgroundColor: '#93c5fd' }} // Pastel Sky
+                  title={`Q2: ${pubQ2} เรื่อง (${pubQ2Pct}%)`}
+                />
+                <div
+                  style={{ width: `${pubTciPct}%`, backgroundColor: '#fde68a' }} // Pastel Amber
+                  title={`TCI: ${pubTci} เรื่อง (${pubTciPct}%)`}
+                />
+                {otherPubCount > 0 && (
+                  <div
+                    style={{ width: `${otherPubPct}%`, backgroundColor: '#e2e8f0' }}
+                    title={`อื่นๆ: ${otherPubCount} เรื่อง (${otherPubPct}%)`}
+                  />
+                )}
+              </div>
 
-            <div style={{ marginTop: '10px', fontSize: '12px', color: '#9f1239' }}>
-              คณะสนับสนุนจริง: <strong>{pubSupport.toLocaleString('th-TH')} บาท</strong>
+              {/* Micro-Stat Chips Under Quality Bar */}
+              <div style={{ marginTop: '8px', display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                <span style={{ padding: '2px 6px', borderRadius: '5px', backgroundColor: '#ecfdf5', border: '1px solid #a7f3d0', color: '#047857', fontSize: '10.5px', fontWeight: 700 }}>
+                  Q1: {pubQ1}
+                </span>
+                <span style={{ padding: '2px 6px', borderRadius: '5px', backgroundColor: '#f0f9ff', border: '1px solid #bae6fd', color: '#0369a1', fontSize: '10.5px', fontWeight: 700 }}>
+                  Q2: {pubQ2}
+                </span>
+                <span style={{ padding: '2px 6px', borderRadius: '5px', backgroundColor: '#fefce8', border: '1px solid #fde68a', color: '#b45309', fontSize: '10.5px', fontWeight: 700 }}>
+                  Q3: {pubQ3}
+                </span>
+                <span style={{ padding: '2px 6px', borderRadius: '5px', backgroundColor: '#fff7ed', border: '1px solid #fed7aa', color: '#ea580c', fontSize: '10.5px', fontWeight: 700 }}>
+                  Q4: {pubQ4}
+                </span>
+                <span style={{ padding: '2px 6px', borderRadius: '5px', backgroundColor: '#f5f3ff', border: '1px solid #ddd6fe', color: '#7c3aed', fontSize: '10.5px', fontWeight: 700 }}>
+                  TCI 1: {pubTci1}
+                </span>
+                <span style={{ padding: '2px 6px', borderRadius: '5px', backgroundColor: '#faf5ff', border: '1px solid #e9d5ff', color: '#9333ea', fontSize: '10.5px', fontWeight: 700 }}>
+                  TCI 2: {pubTci2}
+                </span>
+              </div>
+
+              {/* Financial Support Micro-Badge */}
+              <div
+                style={{
+                  marginTop: '8px',
+                  padding: '4px 8px',
+                  borderRadius: '6px',
+                  backgroundColor: '#fff1f2',
+                  border: '1px solid #ffe4e6',
+                  color: '#9f1239',
+                  fontSize: '11.5px',
+                  fontWeight: 600,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
+                <span>เงินสนับสนุนคณะ:</span>
+                <strong style={{ color: '#be123c' }}>฿{pubSupport.toLocaleString('th-TH')}</strong>
+              </div>
             </div>
           </div>
 
@@ -442,12 +661,12 @@ export function HeroBentoGrid({
           </div>
         </div>
 
-        {/* Card 5: Academic Services */}
+        {/* Card 5: Academic Services (งานบริการวิชาการ) */}
         <div
           onClick={() => router.push('/service')}
           style={{
             background: 'linear-gradient(135deg, #fffbeb 0%, #ffffff 100%)',
-            border: '1px solid #fed7aa',
+            border: '1.5px solid #fed7aa',
             borderRadius: '24px',
             padding: '22px',
             boxShadow: '0 4px 16px rgba(245, 158, 11, 0.06)',
@@ -468,7 +687,7 @@ export function HeroBentoGrid({
         >
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <span style={{ fontSize: '13px', fontWeight: 700, color: '#92400e' }}>
+              <span style={{ fontSize: '13.5px', fontWeight: 700, color: '#92400e' }}>
                 งานบริการวิชาการ
               </span>
               <div
@@ -496,12 +715,63 @@ export function HeroBentoGrid({
               </span>
             </div>
 
-            <div style={{ marginTop: '10px', fontSize: '12px', color: '#78350f' }}>
-              บุคลากรออกบริการ <strong>{serviceStaff} ท่าน</strong> • เครือข่ายภายนอก <strong>{serviceNetworks} หน่วยงาน</strong>
+            {/* Dual Micro-Stat Badges Replacing Dense Sentence */}
+            <div style={{ marginTop: '12px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+              <div
+                style={{
+                  padding: '6px 8px',
+                  borderRadius: '8px',
+                  backgroundColor: '#fffbeb',
+                  border: '1px solid #fde68a',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <FaUsers style={{ color: '#d97706', fontSize: '13px', flexShrink: 0 }} />
+                <div>
+                  <div style={{ fontSize: '10px', color: '#92400e', lineHeight: 1.2 }}>บุคลากรออกบริการ</div>
+                  <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#78350f' }}>{serviceStaff} ท่าน</div>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  padding: '6px 8px',
+                  borderRadius: '8px',
+                  backgroundColor: '#fffbeb',
+                  border: '1px solid #fde68a',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <FaNetworkWired style={{ color: '#d97706', fontSize: '12px', flexShrink: 0 }} />
+                <div>
+                  <div style={{ fontSize: '10px', color: '#92400e', lineHeight: 1.2 }}>เครือข่ายภายนอก</div>
+                  <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#78350f' }}>{serviceNetworks} หน่วยงาน</div>
+                </div>
+              </div>
             </div>
 
-            <div style={{ marginTop: '6px', fontSize: '11.5px', color: '#b45309' }}>
-              ครอบคลุมหน่วยงานรัฐ ชุมชน เอกชน และต่างประเทศ
+            {/* Sector Coverage Tags Replacing Narrative Sentence */}
+            <div style={{ marginTop: '8px', display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+              {['ภาครัฐ', 'ภาคเอกชน', 'ชุมชน/สังคม', 'นานาชาติ'].map((tag) => (
+                <span
+                  key={tag}
+                  style={{
+                    fontSize: '10.5px',
+                    fontWeight: 600,
+                    padding: '2px 6px',
+                    borderRadius: '4px',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #fed7aa',
+                    color: '#b45309',
+                  }}
+                >
+                  {tag}
+                </span>
+              ))}
             </div>
           </div>
 
@@ -511,12 +781,12 @@ export function HeroBentoGrid({
           </div>
         </div>
 
-        {/* Card 6: Intellectual Property */}
+        {/* Card 6: Intellectual Property (งานทรัพย์สินทางปัญญา) */}
         <div
           onClick={() => router.push('/ip')}
           style={{
             background: 'linear-gradient(135deg, #f5f3ff 0%, #ffffff 100%)',
-            border: '1px solid #ddd6fe',
+            border: '1.5px solid #ddd6fe',
             borderRadius: '24px',
             padding: '22px',
             boxShadow: '0 4px 16px rgba(139, 92, 246, 0.06)',
@@ -537,7 +807,7 @@ export function HeroBentoGrid({
         >
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <span style={{ fontSize: '13px', fontWeight: 700, color: '#6d28d9' }}>
+              <span style={{ fontSize: '13.5px', fontWeight: 700, color: '#6d28d9' }}>
                 งานทรัพย์สินทางปัญญา
               </span>
               <div
@@ -565,12 +835,85 @@ export function HeroBentoGrid({
               </span>
             </div>
 
-            <div style={{ marginTop: '10px', fontSize: '12px', color: '#5b21b6' }}>
-              ได้รับความคุ้มครองแล้ว <strong>{ipProtected}</strong> • อยู่ระหว่างยื่น/เตรียม <strong>{ipPending}</strong>
-            </div>
+            {/* Visual 2-Segment Pastel Pipeline Bar (Granted vs Pending) */}
+            <div style={{ marginTop: '14px' }}>
+              <div
+                style={{
+                  height: '8px',
+                  borderRadius: '999px',
+                  backgroundColor: '#e2e8f0',
+                  overflow: 'hidden',
+                  display: 'flex',
+                }}
+              >
+                <div
+                  style={{ width: `${ipProtectedPct}%`, backgroundColor: '#ddd6fe' }} // Pastel Violet
+                  title={`ได้รับความคุ้มครองแล้ว: ${ipProtected} (${ipProtectedPct}%)`}
+                />
+                <div
+                  style={{ width: `${ipPendingPct}%`, backgroundColor: '#ede9fe' }} // Soft Lavender
+                  title={`อยู่ระหว่างยื่น/เตรียม: ${ipPending} (${ipPendingPct}%)`}
+                />
+              </div>
 
-            <div style={{ marginTop: '6px', fontSize: '11.5px', color: '#7c3aed' }}>
-              เงินรางวัลสนับสนุน: <strong>{ipSupport.toLocaleString('th-TH')} บาท</strong>
+              {/* Micro-Stat Badges Replacing Dense Sentence */}
+              <div style={{ marginTop: '8px', display: 'flex', justifyContent: 'space-between', gap: '6px' }}>
+                <span
+                  style={{
+                    padding: '2px 7px',
+                    borderRadius: '6px',
+                    backgroundColor: '#f5f3ff',
+                    border: '1px solid #ddd6fe',
+                    color: '#6d28d9',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
+                  <FaCheckCircle style={{ fontSize: '10px', color: '#7c3aed' }} />
+                  คุ้มครองแล้ว: <strong>{ipProtected}</strong> ({ipProtectedPct}%)
+                </span>
+
+                <span
+                  style={{
+                    padding: '2px 7px',
+                    borderRadius: '6px',
+                    backgroundColor: '#f8fafc',
+                    border: '1px solid #e2e8f0',
+                    color: '#64748b',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
+                  <FaClock style={{ fontSize: '10px', color: '#94a3b8' }} />
+                  ยื่น/เตรียม: <strong>{ipPending}</strong> ({ipPendingPct}%)
+                </span>
+              </div>
+
+              {/* Incentive Micro-Badge */}
+              <div
+                style={{
+                  marginTop: '8px',
+                  padding: '4px 8px',
+                  borderRadius: '6px',
+                  backgroundColor: '#f5f3ff',
+                  border: '1px solid #ede9fe',
+                  color: '#5b21b6',
+                  fontSize: '11.5px',
+                  fontWeight: 600,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
+                <span>เงินรางวัลสนับสนุน:</span>
+                <strong style={{ color: '#6d28d9' }}>฿{ipSupport.toLocaleString('th-TH')}</strong>
+              </div>
             </div>
           </div>
 

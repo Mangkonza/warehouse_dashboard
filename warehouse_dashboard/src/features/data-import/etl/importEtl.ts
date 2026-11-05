@@ -669,9 +669,9 @@ export function validateRowUniversal(
     if (!data.department_code || !data.department_code.trim()) {
       issues.push({
         field: 'department_code',
-        label: 'ภาควิชาที่สังกัด',
+        label: 'สังกัด',
         severity: 'error',
-        message: 'ไม่ได้ระบุภาควิชาที่สังกัด',
+        message: 'ไม่ได้ระบุสังกัด',
       });
     }
   }

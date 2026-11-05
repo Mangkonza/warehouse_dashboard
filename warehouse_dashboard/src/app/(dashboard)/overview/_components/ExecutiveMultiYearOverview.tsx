@@ -22,7 +22,7 @@ import {
   FaMinus,
 } from 'react-icons/fa';
 
-interface ExecutiveMultiYearOverviewProps {
+export interface ExecutiveMultiYearOverviewProps {
   researchList: any[];
   academicList: any[];
   pubList: any[];
@@ -33,6 +33,8 @@ interface ExecutiveMultiYearOverviewProps {
   allPubRaw?: any[];
   allServiceRaw?: any[];
   allIpRaw?: any[];
+  showSummaryCards?: boolean;
+  defaultMode?: 'volume' | 'budget' | 'compare';
 }
 
 export interface MissionCategoryConfig {
@@ -166,9 +168,11 @@ export const ExecutiveMultiYearOverview: React.FC<ExecutiveMultiYearOverviewProp
   allPubRaw,
   allServiceRaw,
   allIpRaw,
+  showSummaryCards = true,
+  defaultMode = 'compare',
 }) => {
   // สวิตช์โหมดหลัก: ปริมาณผลงาน (5 พันธกิจ) | ยอดงบประมาณ (5 พันธกิจ) | เปรียบเทียบระหว่างปี (YoY)
-  const [activeMetricMode, setActiveMetricMode] = useState<'volume' | 'budget' | 'compare'>('volume');
+  const [activeMetricMode, setActiveMetricMode] = useState<'volume' | 'budget' | 'compare'>(defaultMode);
 
   // สวิตช์รูปแบบกราฟสำหรับโหมด volume และ budget
   const [volumeChartType, setVolumeChartType] = useState<'grouped' | 'stacked' | 'line'>('grouped');
@@ -266,7 +270,8 @@ export const ExecutiveMultiYearOverview: React.FC<ExecutiveMultiYearOverviewProp
         const int = parseNumber(r.budget_internal);
         data[y].researchExternal += ext;
         data[y].researchInternal += int;
-        data[y].researchTotalBudget += ext + int;
+        const b = ext + int > 0 ? ext + int : parseNumber(r.budget);
+        data[y].researchTotalBudget += b;
         data[y].researchItems.push(r);
       }
     });
@@ -666,14 +671,18 @@ export const ExecutiveMultiYearOverview: React.FC<ExecutiveMultiYearOverviewProp
             type: 'bar',
             label: `ปีฐาน (${compareBaseYear})`,
             data: baseData,
-            backgroundColor: '#94a3b8',
+            backgroundColor: '#94A3B8',
+            borderColor: '#64748B',
+            borderWidth: 1.5,
             borderRadius: 6,
           },
           {
             type: 'bar',
             label: `ปีเปรียบเทียบ (${compareTargetYear})`,
             data: targetData,
-            backgroundColor: '#00A651',
+            backgroundColor: '#86EFAC',
+            borderColor: '#22C55E',
+            borderWidth: 1.5,
             borderRadius: 6,
           },
         ],
@@ -705,9 +714,10 @@ export const ExecutiveMultiYearOverview: React.FC<ExecutiveMultiYearOverviewProp
             },
           },
           datalabels: {
+            color: '#0F172A',
             anchor: 'end',
             align: 'top',
-            font: { size: 11, weight: 'bold' },
+            font: { family: "'Kanit', sans-serif", size: 10.5, weight: 'bold' },
             formatter: (v: number) => {
               if (v === 0) return '';
               return compareMetric === 'budget' ? `${v}M` : `${v}`;
@@ -804,7 +814,7 @@ export const ExecutiveMultiYearOverview: React.FC<ExecutiveMultiYearOverviewProp
       },
       {
         key: 'ip',
-        name: 'งานทรัพย์สินทางปัญญา (IP)',
+        name: 'งานทรัพย์สินทางปัญญา',
         icon: FaCertificate,
         color: '#7c3aed',
         bgColor: '#f5f3ff',
@@ -890,8 +900,9 @@ export const ExecutiveMultiYearOverview: React.FC<ExecutiveMultiYearOverviewProp
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
       {/* 1. Executive Summary Cards (ยกระดับครบ 5 พันธกิจหลักตามสีมาตรฐาน) */}
-      <div
-        style={{
+      {showSummaryCards && (
+        <div
+          style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
           gap: '12px',
@@ -1114,7 +1125,7 @@ export const ExecutiveMultiYearOverview: React.FC<ExecutiveMultiYearOverviewProp
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '12.5px', color: '#64748b', fontWeight: 600 }}>งานทรัพย์สินทางปัญญา (IP)</span>
+            <span style={{ fontSize: '12.5px', color: '#64748b', fontWeight: 600 }}>งานทรัพย์สินทางปัญญา</span>
             <div
               style={{
                 width: '34px',
@@ -1140,6 +1151,7 @@ export const ExecutiveMultiYearOverview: React.FC<ExecutiveMultiYearOverviewProp
           </div>
         </div>
       </div>
+    )}
 
       {/* 2. Multi-Year Trend Analysis & YoY Comparison (กราฟแนวโน้มและเปรียบเทียบรายปี 5 พันธกิจ) */}
       <div
@@ -1250,7 +1262,7 @@ export const ExecutiveMultiYearOverview: React.FC<ExecutiveMultiYearOverviewProp
               }}
             >
               <FaExchangeAlt style={{ color: activeMetricMode === 'compare' ? '#e11d48' : '#94a3b8' }} />
-              เปรียบเทียบระหว่างปี (YoY)
+              เปรียบเทียบระหว่างปี
             </button>
           </div>
         </div>
@@ -1462,7 +1474,7 @@ export const ExecutiveMultiYearOverview: React.FC<ExecutiveMultiYearOverviewProp
               </div>
 
               <div style={{ fontSize: '11.5px', color: '#059669', fontWeight: 600 }}>
-                เปรียบเทียบการเติบโต YoY ระหว่างปี {compareBaseYear} และ {compareTargetYear}
+                เปรียบเทียบการเติบโตระหว่างปี {compareBaseYear} และ {compareTargetYear}
               </div>
             </>
           )}
@@ -1479,7 +1491,7 @@ export const ExecutiveMultiYearOverview: React.FC<ExecutiveMultiYearOverviewProp
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ fontSize: '13.5px', fontWeight: 700, color: '#0f172a' }}>
-                  ตารางวิเคราะห์ผลต่างและอัตราการเติบโตรายพันธกิจ (YoY Executive Breakdown)
+                  ตารางวิเคราะห์ผลต่างและอัตราการเติบโตรายพันธกิจ
                 </span>
                 <span style={{ fontSize: '12px', color: '#64748b' }}>
                   ({compareMetric === 'count' ? 'มิติจำนวนรายการ/ผลงาน' : 'มิติยอดงบประมาณ/รายรับ'})

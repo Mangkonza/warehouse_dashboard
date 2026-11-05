@@ -197,7 +197,7 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
         return;
       }
       if (!formData.department || !String(formData.department).trim()) {
-        setErrorMsg('กรุณาระบุ "สังกัดภาควิชา / ศูนย์"');
+        setErrorMsg('กรุณาระบุ "สังกัด"');
         return;
       }
       if (formData.start_date && formData.end_date && formData.end_date < formData.start_date) {

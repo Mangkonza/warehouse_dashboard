@@ -52,7 +52,7 @@ export const ImportListPane: React.FC<ImportListPaneProps> = ({
           <SearchInput
             value={query}
             onChange={onQueryChange}
-            placeholder="ค้นหาชื่อโครงการ, หัวหน้าโครงการ, ภาควิชา, ชีต..."
+            placeholder="ค้นหาชื่อโครงการ, หัวหน้าโครงการ, สังกัด, ชีต..."
             width="100%"
             className="w-full"
           />

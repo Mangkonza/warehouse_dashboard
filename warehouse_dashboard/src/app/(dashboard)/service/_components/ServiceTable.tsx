@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { FaTable, FaTimes, FaFileExcel } from 'react-icons/fa';
-import { SearchInput, DepartmentBadge, DepartmentSelect, RecordDetailDrawer, StrategyBadges } from '@/components/ui';
+import { SearchInput, DepartmentBadge, RecordDetailDrawer, StrategyBadges } from '@/components/ui';
 import { ServiceItem } from '../_hooks/useServiceData';
 
 interface ServiceTableProps {
@@ -39,7 +39,7 @@ export function ServiceTable({
       'ชื่องานบริการวิชาการ',
       'ลักษณะบทบาทงาน',
       'ผู้ให้บริการ',
-      'ภาควิชา/ศูนย์',
+      'สังกัด',
       'กลุ่มเป้าหมายผู้รับบริการ',
       'ชั่วโมงสะสม',
       'SDGs',
@@ -158,17 +158,6 @@ export function ServiceTable({
             width="240px"
           />
 
-          {onDeptChange && (
-            <DepartmentSelect
-              value={selectedDept}
-              onChange={onDeptChange}
-              allowAll
-              allLabel="ทุกภาควิชา"
-              allValue="all"
-              size="sm"
-              className="w-[175px]"
-            />
-          )}
 
           {hasActiveFilter && (
             <button
@@ -196,7 +185,7 @@ export function ServiceTable({
       </div>
 
       <div className="table-scroll" style={{ maxHeight: '480px' }}>
-        <table>
+        <table className="table-manage">
           <thead>
             <tr>
               <th style={{ width: '44px', textAlign: 'center' }}>#</th>
@@ -204,7 +193,7 @@ export function ServiceTable({
               <th>เรื่อง / กิจกรรม</th>
               <th style={{ width: '160px', textAlign: 'center' }}>ลักษณะบทบาทงาน</th>
               <th>ชื่อ - นามสกุล ผู้ให้บริการ</th>
-              <th style={{ width: '110px', textAlign: 'left' }}>ภาควิชา/ศูนย์</th>
+              <th style={{ width: '110px', textAlign: 'left' }}>สังกัด</th>
               <th>กลุ่มเป้าหมายผู้รับบริการ</th>
               <th style={{ width: '160px', textAlign: 'center' }}>ยุทธศาสตร์ (ISEE / IAM / SDGs)</th>
             </tr>

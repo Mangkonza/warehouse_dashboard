@@ -119,27 +119,27 @@ export function usePersonnelData(timeFilter?: TimeFilterState) {
   // Filter items by time filter if provided
   const filteredResearch = useMemo(() => {
     if (!timeFilter) return researchList;
-    return researchList.filter((item) => itemMatchesTimeFilter(item, timeFilter));
+    return researchList.filter((item) => itemMatchesTimeFilter(item, timeFilter, 'research'));
   }, [researchList, timeFilter]);
 
   const filteredAcademic = useMemo(() => {
     if (!timeFilter) return academicList;
-    return academicList.filter((item) => itemMatchesTimeFilter(item, timeFilter));
+    return academicList.filter((item) => itemMatchesTimeFilter(item, timeFilter, 'academic'));
   }, [academicList, timeFilter]);
 
   const filteredPub = useMemo(() => {
     if (!timeFilter) return pubList;
-    return pubList.filter((item) => itemMatchesTimeFilter(item, timeFilter));
+    return pubList.filter((item) => itemMatchesTimeFilter(item, timeFilter, 'publications'));
   }, [pubList, timeFilter]);
 
   const filteredService = useMemo(() => {
     if (!timeFilter) return serviceList;
-    return serviceList.filter((item) => itemMatchesTimeFilter(item, timeFilter));
+    return serviceList.filter((item) => itemMatchesTimeFilter(item, timeFilter, 'service'));
   }, [serviceList, timeFilter]);
 
   const filteredIP = useMemo(() => {
     if (!timeFilter) return ipList;
-    return ipList.filter((item) => itemMatchesTimeFilter(item, timeFilter));
+    return ipList.filter((item) => itemMatchesTimeFilter(item, timeFilter, 'ip'));
   }, [ipList, timeFilter]);
 
   // Aggregate works for all personnel
@@ -237,7 +237,7 @@ export function usePersonnelData(timeFilter?: TimeFilterState) {
         id: pId || 0,
         name: person.name || 'ไม่ระบุชื่อ',
         cleanName: clean,
-        department: person.department || 'ไม่ระบุภาควิชา',
+        department: person.department || 'ไม่ระบุสังกัด',
         position: person.position || 'อาจารย์/นักวิจัย',
         email: person.email || '',
         imageUrl: person.image_url ? person.image_url.trim() : '',

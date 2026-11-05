@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import ipData from '@/data/ip.json';
 import { getCachedCategoryData, fetchCategoryData } from '@/lib/dataService';
-import { TimeFilterState, itemMatchesTimeFilter } from '@/types/timeFilter';
+import { TimeFilterState, itemMatchesTimeFilter, resolveItemDate } from '@/types/timeFilter';
 import { getDepartment } from '@/lib/departments';
 import { isTestRecord } from '@/lib/sdgEngine';
 import { getIPPipelineStage, getIPTechnologyCluster, itemMatchesStrategicFilter } from '@/lib/pastelTheme';
@@ -70,7 +70,7 @@ export function useIPData(timeFilter?: TimeFilterState) {
   const validIpData = useMemo(() => {
     return dataList
       .filter((item) => (item.name || item.title) && item.name !== 'NaT' && item.name !== 'เรื่อง' && !isTestRecord(item))
-      .filter((item) => !timeFilter || itemMatchesTimeFilter(item, timeFilter))
+      .filter((item) => !timeFilter || itemMatchesTimeFilter(item, timeFilter, 'ip'))
       .map((item) => {
         const stage = getIPPipelineStage(item);
         const title = item.title || item.name || '';
@@ -89,6 +89,13 @@ export function useIPData(timeFilter?: TimeFilterState) {
           _fiscalYear: fy,
         };
       });
+  }, [dataList, timeFilter]);
+
+  const undatedCount = useMemo(() => {
+    if (!timeFilter || timeFilter.mode === 'all') return 0;
+    return dataList
+      .filter((item) => (item.name || item.title) && item.name !== 'NaT' && item.name !== 'เรื่อง' && !isTestRecord(item))
+      .filter((item) => resolveItemDate(item, 'ip') === null).length;
   }, [dataList, timeFilter]);
 
   const availableDepts = useMemo(() => {
@@ -217,6 +224,7 @@ export function useIPData(timeFilter?: TimeFilterState) {
 
   return {
     validIpData,
+    undatedCount,
     filteredIpData,
     availableDepts,
     patentCount,

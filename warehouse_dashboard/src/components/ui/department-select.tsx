@@ -46,7 +46,7 @@ export function DepartmentSelect({
   disabled = false,
   className,
   allowAll = false,
-  allLabel = 'ทุกภาควิชา / ศูนย์',
+  allLabel = 'ทุกสังกัด',
   allValue = 'all',
   returnFormat = 'name',
   size = 'default',
@@ -164,7 +164,7 @@ export function DepartmentSelect({
             <div className="p-3 bg-slate-50">
               <div className="flex items-center gap-2 mb-2">
                 <DepartmentBadge value="OTH" showTooltip={false} />
-                <span className="text-xs font-semibold text-slate-700">ระบุชื่อภาควิชา / สังกัดอื่น ๆ</span>
+                <span className="text-xs font-semibold text-slate-700">ระบุชื่อสังกัดอื่น ๆ</span>
               </div>
               <div className="flex items-center gap-2">
                 <input
@@ -177,7 +177,7 @@ export function DepartmentSelect({
                       handleConfirmCustom();
                     }
                   }}
-                  placeholder="พิมพ์ชื่อภาควิชา หรือสังกัด..."
+                  placeholder="พิมพ์ชื่อสังกัด..."
                   className="flex-1 bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-emerald-500"
                   autoFocus
                 />
@@ -210,7 +210,7 @@ export function DepartmentSelect({
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="ค้นหารหัสย่อ หรือชื่อภาควิชา..."
+                  placeholder="ค้นหารหัสย่อหรือชื่อสังกัด..."
                   className="w-full bg-transparent text-xs text-slate-800 placeholder:text-slate-400 outline-none"
                   autoFocus
                 />
@@ -244,7 +244,7 @@ export function DepartmentSelect({
 
                 {filteredDepartments.length === 0 ? (
                   <div className="px-3 py-6 text-center text-xs text-slate-400">
-                    ไม่พบข้อมูลภาควิชาที่ค้นหา
+                    ไม่พบข้อมูลสังกัดที่ค้นหา
                   </div>
                 ) : (
                   groups.map((group) => {
@@ -254,7 +254,7 @@ export function DepartmentSelect({
                     return (
                       <div key={group} className="mb-2 last:mb-0">
                         <div className="px-2.5 py-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                          {group}
+                          {group === 'ภาควิชา' ? 'สังกัด' : group}
                         </div>
                         <div className="space-y-0.5">
                           {groupItems.map((dept) => {

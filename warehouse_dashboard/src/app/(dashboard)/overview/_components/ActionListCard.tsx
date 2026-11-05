@@ -93,7 +93,7 @@ export const ActionListCard: React.FC<ActionListCardProps> = ({ actionList }) =>
             </span>
             {canViewKpi && (
               <Link href="/kpi" style={{ fontSize: '11px', color: '#dc2626', textDecoration: 'underline' }}>
-                ดูหน้า KPI
+                ดูหน้าตัวชี้วัด
               </Link>
             )}
           </div>
@@ -144,7 +144,7 @@ export const ActionListCard: React.FC<ActionListCardProps> = ({ actionList }) =>
         {actionList.belowAvgDepts && actionList.belowAvgDepts.length > 0 && (
           <div>
             <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
-              ภาควิชาที่ควรส่งเสริมการขอทุนวิจัยเพิ่ม ({actionList.belowAvgDepts.length})
+              สังกัดที่ควรส่งเสริมการขอทุนวิจัยเพิ่ม ({actionList.belowAvgDepts.length})
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
               {actionList.belowAvgDepts.map((dept: any) => (

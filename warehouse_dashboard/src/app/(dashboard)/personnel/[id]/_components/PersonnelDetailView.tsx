@@ -601,7 +601,7 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
                       <tr style={{ backgroundColor: '#f1f5f9', color: '#475569', textAlign: 'left', borderBottom: '1px solid #cbd5e1' }}>
                         <th style={{ padding: '9px 12px' }}>ชื่อบทความ / ผลงาน</th>
                         <th style={{ padding: '9px 12px', width: '220px' }}>วารสาร</th>
-                        <th style={{ padding: '9px 12px', width: '120px', textAlign: 'center' }}>ระดับ / Tier</th>
+                        <th style={{ padding: '9px 12px', width: '120px', textAlign: 'center' }}>ระดับ</th>
                         <th style={{ padding: '9px 12px', width: '90px', textAlign: 'center' }}>ปี / เดือน</th>
                         <th style={{ padding: '9px 12px', width: '110px', textAlign: 'right' }}>เงินสนับสนุน</th>
                       </tr>

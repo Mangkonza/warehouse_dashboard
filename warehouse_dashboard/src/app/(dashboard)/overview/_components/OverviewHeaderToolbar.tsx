@@ -43,7 +43,7 @@ export const OverviewHeaderToolbar: React.FC<OverviewHeaderToolbarProps> = ({
             }}
           />
           <span style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>
-            {isLiveFromDb ? 'เชื่อมต่อฐานข้อมูลจริง (Live DB)' : 'ข้อมูลแคชคลังข้อมูล (Local Cache)'}
+            {isLiveFromDb ? 'เชื่อมต่อฐานข้อมูลจริง' : 'ข้อมูลแคชคลังข้อมูล'}
           </span>
         </div>
 

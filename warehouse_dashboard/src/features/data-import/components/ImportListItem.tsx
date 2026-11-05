@@ -110,7 +110,7 @@ const ImportListItemComponent: React.FC<ImportListItemProps> = ({
           ) : (
             <span className="text-slate-500">
               {row.data.head_name || 'ไม่ระบุผู้รับผิดชอบ'} •{' '}
-              {row.data.department_code || 'ไม่ระบุภาควิชา'} • {formatBudget(row.data.budget)}
+              {row.data.department_code || 'ไม่ระบุสังกัด'} • {formatBudget(row.data.budget)}
             </span>
           )}
         </div>

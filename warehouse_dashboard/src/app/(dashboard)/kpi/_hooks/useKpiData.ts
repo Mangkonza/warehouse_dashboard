@@ -105,7 +105,7 @@ export function useKpiData(timeFilter?: TimeFilterState) {
       if (key === 'personnel') {
         res[key] = list;
       } else {
-        res[key] = (list || []).filter((item) => itemMatchesTimeFilter(item, timeFilter));
+        res[key] = (list || []).filter((item) => itemMatchesTimeFilter(item, timeFilter, key));
       }
     }
     return res;

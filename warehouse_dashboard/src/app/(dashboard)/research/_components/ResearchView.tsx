@@ -1,17 +1,34 @@
 'use client';
 
-import React from 'react';
-import { useTimeFilter, TimeFilterBar } from '@/features/time-filter';
+import React, { useEffect } from 'react';
+import { useDashboardTabFilter, useTimeFilter } from '@/features/time-filter';
 import { useResearchData } from '../_hooks/useResearchData';
 import { ResearchCharts } from './ResearchCharts';
 import { ResearchTable } from './ResearchTable';
-import { DepartmentSelect, StrategicFilterSelect } from '@/components/ui';
+import { DashboardTabFilterBar } from '@/components/ui/DashboardTabFilterBar';
+import { UndatedNotice } from '@/components/ui/UndatedNotice';
+import { MissionKpiCard } from '@/components/data-display/MissionKpiCard';
+import { MissionYoYControls } from '@/components/data-display/MissionYoYControls';
+import {
+  dashboardPageSubtitleStyle,
+  dashboardPageTitleStyle,
+  dashboardTheme,
+} from '@/lib/dashboardTheme';
 import { FaCoins, FaFlask, FaAward, FaChartLine } from 'react-icons/fa';
 
 export function ResearchView() {
-  const { timeFilter, setTimeFilter, resetTimeFilter } = useTimeFilter();
+  const {
+    tabFilter,
+    setTabFilter,
+    resetTabFilter,
+    timeFilter,
+  } = useDashboardTabFilter('research');
+
+  const { setIsTimeModalOpen } = useTimeFilter('research');
+
   const {
     validData,
+    undatedCount,
     filteredData,
     totalInternalBudget,
     totalExternalBudget,
@@ -35,6 +52,33 @@ export function ResearchView() {
     setStrategicFilter,
   } = useResearchData(timeFilter);
 
+  // Synchronize tabFilter to useResearchData internal states
+  useEffect(() => {
+    setSelectedDept(tabFilter.department || 'all');
+  }, [tabFilter.department, setSelectedDept]);
+
+  useEffect(() => {
+    setFundingType(tabFilter.customFilters?.fundingType || 'all');
+  }, [tabFilter.customFilters?.fundingType, setFundingType]);
+
+  useEffect(() => {
+    setGrantTier(tabFilter.customFilters?.grantTier || 'all');
+  }, [tabFilter.customFilters?.grantTier, setGrantTier]);
+
+  useEffect(() => {
+    setSelectedFund(tabFilter.customFilters?.selectedFund || 'all');
+  }, [tabFilter.customFilters?.selectedFund, setSelectedFund]);
+
+  useEffect(() => {
+    setStrategicFilter(tabFilter.customFilters?.strategicFilter || 'all');
+  }, [tabFilter.customFilters?.strategicFilter, setStrategicFilter]);
+
+  useEffect(() => {
+    if (tabFilter.search !== undefined) {
+      setSearchTerm(tabFilter.search);
+    }
+  }, [tabFilter.search, setSearchTerm]);
+
   const budgetMillions = (totalBudgetAll / 1000000).toFixed(2);
   const extMillions = (totalExternalBudget / 1000000).toFixed(2);
   const intMillions = (totalInternalBudget / 1000000).toFixed(2);
@@ -46,92 +90,90 @@ export function ResearchView() {
     : '18.00';
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {/* ZONE 1: Global Filter Bar (Sticky Docked Under Header) */}
-      <div
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      {/* Page header — matches the data-management tab */}
+      <div>
+        <h1 style={dashboardPageTitleStyle}>โครงการวิจัย</h1>
+        <p style={dashboardPageSubtitleStyle}>
+          ภาพรวมงบประมาณ แหล่งทุน และผลผลิตงานวิจัยของคณะวิศวกรรมศาสตร์
+        </p>
+      </div>
+
+      {/* ZONE 1: Unified filter card */}
+      <DashboardTabFilterBar
+        tabKey="research"
+        totalCount={validData.length}
+        filteredCount={filteredData.length}
+        filterState={tabFilter}
+        onFilterChange={setTabFilter}
+        onReset={resetTabFilter}
+        showFiscalYear={true}
+        showDepartment={true}
+        showStrategic={true}
+        showDetailedTime={true}
+        onOpenDetailedTime={() => setIsTimeModalOpen(true)}
         style={{
-          position: 'sticky',
-          top: '50px',
-          zIndex: 40,
-          backdropFilter: 'blur(12px)',
-          backgroundColor: 'rgba(255, 255, 255, 0.95)',
-          border: '1px solid #e2e8f0',
-          padding: '10px 16px',
-          borderRadius: '16px',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          gap: '8px',
+          position: 'static',
+          backdropFilter: 'none',
+          backgroundColor: dashboardTheme.colors.surface,
+          borderRadius: `${dashboardTheme.radius.card}px`,
+          boxShadow: 'none',
         }}
       >
-        <TimeFilterBar
-          value={timeFilter}
-          onChange={setTimeFilter}
-          onReset={resetTimeFilter}
-          totalCount={validData.length}
-        />
-
-        <DepartmentSelect
-          value={selectedDept}
-          onChange={setSelectedDept}
-          allowAll
-          allLabel="ทุกภาควิชา / ศูนย์"
-          allValue="all"
-          size="sm"
-          className="w-[170px]"
-        />
-
-        {/* Funding Type Toggle */}
-        <div
+        {/* Funding Type Dropdown */}
+        <select
+          value={fundingType}
+          onChange={(e) => {
+            const val = e.target.value;
+            setFundingType(val as any);
+            setTabFilter({
+              customFilters: {
+                ...(tabFilter.customFilters || {}),
+                fundingType: val,
+              },
+            });
+          }}
           style={{
-            display: 'inline-flex',
-            backgroundColor: '#f1f5f9',
-            padding: '3px',
-            borderRadius: '9px',
+            padding: '5px 10px',
+            borderRadius: '8px',
+            border: '1px solid #cbd5e1',
+            backgroundColor: '#ffffff',
             fontSize: '12px',
+            color: '#334155',
             fontWeight: 500,
+            cursor: 'pointer',
+            outline: 'none',
             height: '32px',
             boxSizing: 'border-box',
-            alignItems: 'center',
           }}
+          aria-label="ประเภทแหล่งทุน"
         >
-          {[
-            { id: 'all', label: 'ทุนทั้งหมด' },
-            { id: 'external', label: 'ทุนภายนอก' },
-            { id: 'internal', label: 'ทุนภายใน' },
-          ].map((f) => (
-            <button
-              key={f.id}
-              onClick={() => setFundingType(f.id as any)}
-              style={{
-                padding: '4px 10px',
-                borderRadius: '7px',
-                border: 'none',
-                cursor: 'pointer',
-                backgroundColor: fundingType === f.id ? '#ffffff' : 'transparent',
-                color: fundingType === f.id ? '#0f172a' : '#64748b',
-                fontWeight: fundingType === f.id ? 600 : 500,
-                boxShadow: fundingType === f.id ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
+          <option value="all">ทุกประเภทแหล่งทุน</option>
+          <option value="external">ทุนภายนอก</option>
+          <option value="internal">ทุนภายใน</option>
+        </select>
 
         {/* Grant Size Tier Dropdown */}
         <select
           value={grantTier}
-          onChange={(e) => setGrantTier(e.target.value)}
+          onChange={(e) => {
+            const val = e.target.value;
+            setGrantTier(val);
+            setTabFilter({
+              customFilters: {
+                ...(tabFilter.customFilters || {}),
+                grantTier: val,
+              },
+            });
+          }}
           style={{
             padding: '5px 10px',
-            borderRadius: '9px',
-            border: '1px solid #e2e8f0',
+            borderRadius: '8px',
+            border: '1px solid #cbd5e1',
             backgroundColor: '#ffffff',
             fontSize: '12px',
             color: '#334155',
+            fontWeight: 500,
             cursor: 'pointer',
             outline: 'none',
             height: '32px',
@@ -145,152 +187,91 @@ export function ResearchView() {
           <option value="tier3">2 - 10 ล้านบาท</option>
           <option value="tier4">&ge; 10 ล้านบาท (ขนาดใหญ่)</option>
         </select>
+      </DashboardTabFilterBar>
 
-        {/* Standard Touchpoint: Strategic Filter (ต่อหลังตัวกรองก่อนหน้าทันที) */}
-        <StrategicFilterSelect
-          value={strategicFilter}
-          onChange={setStrategicFilter}
-        />
-      </div>
+      {undatedCount > 0 && <UndatedNotice count={undatedCount} />}
 
-      {/* ZONE 2: Executive Bento KPI Grid (Modern Pastel Glow) */}
+      {/* ZONE 2: Executive KPI Grid */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-          gap: '16px',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+          gap: '12px',
         }}
       >
-        {/* Card 1: Total Research Funding */}
-        <div
-          style={{
-            backgroundColor: '#ffffff',
-            borderRadius: '20px',
-            padding: '20px',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 2px 10px rgba(16, 185, 129, 0.06)',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}>งบประมาณวิจัยรวม</span>
-            <div style={{ width: '32px', height: '32px', borderRadius: '10px', backgroundColor: '#ecfdf5', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <FaCoins style={{ fontSize: '15px' }} />
-            </div>
-          </div>
-          <div style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.5px' }}>
-            {budgetMillions} <span style={{ fontSize: '16px', fontWeight: 600, color: '#64748b' }}>ล้านบาท</span>
-          </div>
-          <div style={{ marginTop: '8px', fontSize: '12px', color: '#059669', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ padding: '2px 6px', borderRadius: '6px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', fontWeight: 600 }}>
-              ทุนภายนอก {extMillions} ลบ.
-            </span>
-            <span style={{ color: '#94a3b8' }}>•</span>
-            <span style={{ color: '#64748b' }}>ทุนภายใน {intMillions} ลบ.</span>
-          </div>
-        </div>
+        <MissionKpiCard
+          mission="research"
+          variant="pastel"
+          label="งบประมาณวิจัยรวม"
+          value={budgetMillions}
+          unit="ล้านบาท"
+          subtext={`ทุนภายนอก ${extMillions} ลบ. • ทุนภายใน ${intMillions} ลบ.`}
+          icon={<FaCoins style={{ fontSize: '16px' }} />}
+        />
 
-        {/* Card 2: Total Projects */}
-        <div
-          style={{
-            backgroundColor: '#ffffff',
-            borderRadius: '20px',
-            padding: '20px',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 2px 10px rgba(14, 165, 233, 0.06)',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}>โครงการวิจัยทั้งหมด</span>
-            <div style={{ width: '32px', height: '32px', borderRadius: '10px', backgroundColor: '#f0f9ff', color: '#0ea5e9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <FaFlask style={{ fontSize: '15px' }} />
-            </div>
-          </div>
-          <div style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.5px' }}>
-            {validData.length} <span style={{ fontSize: '16px', fontWeight: 600, color: '#64748b' }}>โครงการ</span>
-          </div>
-          <div style={{ marginTop: '8px', fontSize: '12px', color: '#0369a1', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ padding: '2px 6px', borderRadius: '6px', backgroundColor: '#f0f9ff', border: '1px solid #bae6fd', fontWeight: 600 }}>
-              ครอบคลุม {uniqueDepts.size} หน่วยงาน
-            </span>
-            <span style={{ color: '#94a3b8' }}>•</span>
-            <span style={{ color: '#64748b' }}>หัวหน้าโครงการ {activePisCount} ท่าน</span>
-          </div>
-        </div>
+        <MissionKpiCard
+          mission="research"
+          variant="pastel"
+          label="โครงการวิจัยทั้งหมด"
+          value={validData.length}
+          unit="โครงการ"
+          subtext={`ครอบคลุม ${uniqueDepts.size} สังกัด • หัวหน้าโครงการ ${activePisCount} ท่าน`}
+          icon={<FaFlask style={{ fontSize: '16px' }} />}
+        />
 
-        {/* Card 3: External Ratio */}
-        <div
-          style={{
-            backgroundColor: '#ffffff',
-            borderRadius: '20px',
-            padding: '20px',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 2px 10px rgba(245, 158, 11, 0.06)',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}>สัดส่วนพึ่งพาทุนภายนอก</span>
-            <div style={{ width: '32px', height: '32px', borderRadius: '10px', backgroundColor: '#fffbeb', color: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <FaAward style={{ fontSize: '15px' }} />
-            </div>
-          </div>
-          <div style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.5px' }}>
-            {extPct}%
-          </div>
-          <div style={{ marginTop: '8px', fontSize: '12px', color: '#b45309', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ padding: '2px 6px', borderRadius: '6px', backgroundColor: '#fffbeb', border: '1px solid #fde68a', fontWeight: 600 }}>
-              16 โครงการทุนนอก
-            </span>
-            <span style={{ color: '#94a3b8' }}>•</span>
-            <span style={{ color: '#64748b' }}>{extMillions} จาก {budgetMillions} ล้านบาท</span>
-          </div>
-        </div>
+        <MissionKpiCard
+          mission="research"
+          variant="pastel"
+          label="สัดส่วนพึ่งพาทุนภายนอก"
+          value={`${extPct}%`}
+          subtext={`16 โครงการทุนนอก • ${extMillions} จาก ${budgetMillions} ล้านบาท`}
+          icon={<FaAward style={{ fontSize: '16px' }} />}
+        />
 
-        {/* Card 4: Average & Max Grant */}
-        <div
-          style={{
-            backgroundColor: '#ffffff',
-            borderRadius: '20px',
-            padding: '20px',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 2px 10px rgba(99, 102, 241, 0.06)',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}>งบเฉลี่ยต่อโครงการ</span>
-            <div style={{ width: '32px', height: '32px', borderRadius: '10px', backgroundColor: '#eef2ff', color: '#6366f1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <FaChartLine style={{ fontSize: '15px' }} />
-            </div>
-          </div>
-          <div style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.5px' }}>
-            {avgGrantMillions} <span style={{ fontSize: '16px', fontWeight: 600, color: '#64748b' }}>ล้านบาท</span>
-          </div>
-          <div style={{ marginTop: '8px', fontSize: '12px', color: '#4338ca', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ padding: '2px 6px', borderRadius: '6px', backgroundColor: '#eef2ff', border: '1px solid #c7d2fe', fontWeight: 600 }}>
-              สูงสุด {maxProjectBudgetMillions} ลบ.
-            </span>
-            <span style={{ color: '#94a3b8' }}>•</span>
-            <span style={{ color: '#64748b' }} title={maxProj?.name || ''}>
-              {maxProj?.head || 'ศ.ดร.เชาว์'}
-            </span>
-          </div>
-        </div>
+        <MissionKpiCard
+          mission="research"
+          variant="pastel"
+          label="งบเฉลี่ยต่อโครงการ"
+          value={avgGrantMillions}
+          unit="ล้านบาท"
+          subtext={`สูงสุด ${maxProjectBudgetMillions} ลบ. • ${maxProj?.head || 'ศ.ดร.เชาว์'}`}
+          icon={<FaChartLine style={{ fontSize: '16px' }} />}
+        />
       </div>
+
+      {/* ZONE 2.5: Year-over-Year (YoY) Comparison */}
+      <MissionYoYControls
+        missionKey="research"
+        missionTitle="โครงการวิจัย"
+        allItemsRaw={validData}
+        activeDepartment={selectedDept}
+        primaryMetricLabel="จำนวนโครงการ (โครงการ)"
+        secondaryMetricLabel="งบประมาณวิจัย (ล้านบาท)"
+        hasBudgetMetric={true}
+        defaultBaseYear="2567"
+        defaultTargetYear="2568"
+      />
 
       {/* ZONE 3: Research Charts (Combo Stacked Bar, Pareto Tiers, SDGs/ISEE/IAM) */}
       <ResearchCharts
         validData={filteredData}
         selectedDept={selectedDept}
-        onSelectDept={(dept) => setSelectedDept(dept === selectedDept ? 'all' : dept)}
+        onSelectDept={(dept) => {
+          const nextDept = dept === selectedDept ? 'all' : dept;
+          setSelectedDept(nextDept);
+          setTabFilter({ department: nextDept });
+        }}
         selectedFund={selectedFund}
-        onSelectFund={(fund) => setSelectedFund(fund === selectedFund ? 'all' : fund)}
+        onSelectFund={(fund) => {
+          const nextFund = fund === selectedFund ? 'all' : fund;
+          setSelectedFund(nextFund);
+          setTabFilter({
+            customFilters: {
+              ...(tabFilter.customFilters || {}),
+              selectedFund: nextFund,
+            },
+          });
+        }}
       />
 
       {/* ZONE 4: Research Table with Strategy Badges & Excel Export */}
@@ -298,11 +279,25 @@ export function ResearchView() {
         filteredData={filteredData}
         uniqueDepts={uniqueDepts}
         searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
+        onSearchChange={(s) => {
+          setSearchTerm(s);
+          setTabFilter({ search: s });
+        }}
         selectedDept={selectedDept}
-        onDeptChange={setSelectedDept}
+        onDeptChange={(dept) => {
+          setSelectedDept(dept);
+          setTabFilter({ department: dept });
+        }}
         selectedFund={selectedFund}
-        onFundChange={setSelectedFund}
+        onFundChange={(fund) => {
+          setSelectedFund(fund);
+          setTabFilter({
+            customFilters: {
+              ...(tabFilter.customFilters || {}),
+              selectedFund: fund,
+            },
+          });
+        }}
       />
     </div>
   );

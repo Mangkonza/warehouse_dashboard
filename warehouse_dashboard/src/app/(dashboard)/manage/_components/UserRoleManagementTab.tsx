@@ -786,7 +786,7 @@ function AddRoleModal({
             </label>
             <textarea
               rows={2}
-              placeholder="ระบุเหตุผล เช่น เจ้าหน้าที่ผู้ดูแลระบบประจำภาควิชา..."
+              placeholder="ระบุเหตุผล เช่น เจ้าหน้าที่ผู้ดูแลระบบประจำสังกัด..."
               value={note}
               onChange={(e) => setNote(e.target.value)}
               className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-[#00A651] focus:outline-none"

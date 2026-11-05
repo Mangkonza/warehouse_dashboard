@@ -281,7 +281,7 @@ export const ProjectExtensionModal: React.FC<ProjectExtensionModalProps> = ({
               หัวหน้าโครงการ: <strong>{projectItem.head || projectItem.person || '-'}</strong>
             </span>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-              ภาควิชา: <DepartmentBadge value={projectItem.department} />
+              สังกัด: <DepartmentBadge value={projectItem.department} />
             </span>
           </div>
 

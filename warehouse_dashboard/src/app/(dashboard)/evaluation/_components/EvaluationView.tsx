@@ -520,7 +520,7 @@ export const EvaluationView: React.FC = () => {
         row['เรื่อง'] = item.name || '-';
         row['ประเภท'] = item.service_type || '-';
         row['ผู้ใช้บริการ'] = item.person || '-';
-        row['ภาควิชา/ศูนย์ฯ'] = item.department || '-';
+        row['สังกัด'] = item.department || '-';
       } else if (activeCategory === 'ip') {
         row['เรื่อง'] = item.name || '-';
         row['ประเภททรัพย์สินทางปัญญา'] = item.type || '-';

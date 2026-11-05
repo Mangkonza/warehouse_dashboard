@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import researchData from '@/data/research.json';
 import { getCachedCategoryData, fetchCategoryData } from '@/lib/dataService';
-import { TimeFilterState, itemMatchesTimeFilter } from '@/types/timeFilter';
+import { TimeFilterState, itemMatchesTimeFilter, resolveItemDate } from '@/types/timeFilter';
 import { getDepartment } from '@/lib/departments';
 import { isTestRecord, detectSDGsFromText } from '@/lib/sdgEngine';
 import { itemMatchesStrategicFilter } from '@/lib/pastelTheme';
@@ -78,7 +78,14 @@ export function useResearchData(timeFilter?: TimeFilterState) {
   const validData = useMemo(() => {
     return dataList
       .filter((item) => item.name && item.name !== 'nan' && item.name !== 'NaT' && item.name !== 'เรื่อง' && !isTestRecord(item))
-      .filter((item) => !timeFilter || itemMatchesTimeFilter(item, timeFilter));
+      .filter((item) => !timeFilter || itemMatchesTimeFilter(item, timeFilter, 'research'));
+  }, [dataList, timeFilter]);
+
+  const undatedCount = useMemo(() => {
+    if (!timeFilter || timeFilter.mode === 'all') return 0;
+    return dataList
+      .filter((item) => item.name && item.name !== 'nan' && item.name !== 'NaT' && item.name !== 'เรื่อง' && !isTestRecord(item))
+      .filter((item) => resolveItemDate(item, 'research') === null).length;
   }, [dataList, timeFilter]);
 
   // Aggregate totals
@@ -197,6 +204,7 @@ export function useResearchData(timeFilter?: TimeFilterState) {
 
   return {
     validData,
+    undatedCount,
     filteredData,
     totalInternalBudget,
     totalExternalBudget,

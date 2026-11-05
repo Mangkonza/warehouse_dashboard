@@ -27,7 +27,7 @@ export function AcademicTable({
   const hasActiveFilter = selectedClient !== 'all' || searchTerm.trim() !== '';
 
   const handleExportCSV = () => {
-    const headers = ['ลำดับ', 'เดือน', 'ชื่อโครงการพัฒนาวิชาการ', 'หัวหน้าโครงการ', 'ภาควิชา', 'มูลค่าสัญญารวม (บาท)', 'หักเข้าคณะ/มก. 15% (บาท)', 'ผู้ว่าจ้าง/ลูกค้า'];
+    const headers = ['ลำดับ', 'เดือน', 'ชื่อโครงการพัฒนาวิชาการ', 'หัวหน้าโครงการ', 'สังกัด', 'มูลค่าสัญญารวม (บาท)', 'หักเข้าคณะ/มก. 15% (บาท)', 'ผู้ว่าจ้าง/ลูกค้า'];
     const rows = displayData.map((item, idx) => {
       const b = Number(item.budget) || 0;
       const alloc15 = (b * 15) / 100;
@@ -89,7 +89,7 @@ export function AcademicTable({
             }}
             title="ส่งออกไฟล์สรุปข้อมูล CSV"
           >
-            <FaDownload style={{ fontSize: '11px' }} /> Export CSV
+            <FaDownload style={{ fontSize: '11px' }} /> ส่งออก CSV
           </button>
         </div>
 
@@ -144,14 +144,14 @@ export function AcademicTable({
       </div>
 
       <div className="table-responsive" style={{ overflowX: 'auto' }}>
-        <table className="data-table table-sky" style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, fontSize: '13px' }}>
+        <table className="data-table table-manage" style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, fontSize: '13px' }}>
           <thead>
             <tr style={{ backgroundColor: '#f0f9ff', color: '#0369a1', textAlign: 'left' }}>
               <th style={{ width: '44px', textAlign: 'center', padding: '10px 8px', backgroundColor: '#f0f9ff', color: '#0369a1', borderBottom: '2px solid #bae6fd' }}>#</th>
               <th style={{ width: '70px', textAlign: 'center', padding: '10px 8px', backgroundColor: '#f0f9ff', color: '#0369a1', borderBottom: '2px solid #bae6fd' }}>เดือน</th>
               <th style={{ padding: '10px 8px', backgroundColor: '#f0f9ff', color: '#0369a1', borderBottom: '2px solid #bae6fd' }}>ชื่อโครงการพัฒนาวิชาการ</th>
               <th style={{ padding: '10px 8px', backgroundColor: '#f0f9ff', color: '#0369a1', borderBottom: '2px solid #bae6fd' }}>หัวหน้าโครงการ</th>
-              <th style={{ width: '100px', textAlign: 'left', padding: '10px 8px', backgroundColor: '#f0f9ff', color: '#0369a1', borderBottom: '2px solid #bae6fd' }}>ภาควิชา</th>
+              <th style={{ width: '100px', textAlign: 'left', padding: '10px 8px', backgroundColor: '#f0f9ff', color: '#0369a1', borderBottom: '2px solid #bae6fd' }}>สังกัด</th>
               <th style={{ textAlign: 'right', padding: '10px 8px', backgroundColor: '#f0f9ff', color: '#0369a1', borderBottom: '2px solid #bae6fd' }}>มูลค่าสัญญา (บาท)</th>
               <th style={{ padding: '10px 8px', backgroundColor: '#f0f9ff', color: '#0369a1', borderBottom: '2px solid #bae6fd' }}>ผู้ว่าจ้าง / ลูกค้า</th>
               <th style={{ width: '120px', padding: '10px 8px', backgroundColor: '#f0f9ff', color: '#0369a1', borderBottom: '2px solid #bae6fd' }}>ยุทธศาสตร์</th>

@@ -466,7 +466,7 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
           },
           {
             key: 'alloc_dept',
-            label: 'หักเข้าภาควิชา',
+            label: 'หักเข้าสังกัด',
             type: 'allocation',
             getValue: (item) => {
               const b = Number(item.budget) || 0;

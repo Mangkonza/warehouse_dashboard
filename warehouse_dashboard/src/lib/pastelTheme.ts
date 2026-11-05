@@ -19,6 +19,15 @@ export const MISSION_THEMES = {
     textColor: '#047857',
     glowClass: 'shadow-emerald-500/10 hover:shadow-emerald-500/20',
     gradientBg: 'from-emerald-50/80 via-white to-white',
+    card: {
+      surface: '#ECFDF5',
+      border: '#A7F3D0',
+      header: '#047857',
+      iconBg: '#D1FAE5',
+      icon: '#059669',
+      subtext: '#065F46',
+      glow: 'rgba(16, 185, 129, 0.08)',
+    },
   },
   academic: {
     key: 'academic',
@@ -30,6 +39,15 @@ export const MISSION_THEMES = {
     textColor: '#0369A1',
     glowClass: 'shadow-sky-500/10 hover:shadow-sky-500/20',
     gradientBg: 'from-sky-50/80 via-white to-white',
+    card: {
+      surface: '#F0F9FF',
+      border: '#BAE6FD',
+      header: '#0369A1',
+      iconBg: '#E0F2FE',
+      icon: '#0EA5E9',
+      subtext: '#075985',
+      glow: 'rgba(14, 165, 233, 0.08)',
+    },
   },
   publications: {
     key: 'publications',
@@ -41,6 +59,15 @@ export const MISSION_THEMES = {
     textColor: '#BE123C',
     glowClass: 'shadow-rose-500/10 hover:shadow-rose-500/20',
     gradientBg: 'from-rose-50/80 via-white to-white',
+    card: {
+      surface: '#FFF1F2',
+      border: '#FECDD3',
+      header: '#BE123C',
+      iconBg: '#FFE4E6',
+      icon: '#F43F5E',
+      subtext: '#9F1239',
+      glow: 'rgba(244, 63, 94, 0.08)',
+    },
   },
   service: {
     key: 'service',
@@ -52,6 +79,15 @@ export const MISSION_THEMES = {
     textColor: '#B45309',
     glowClass: 'shadow-amber-500/10 hover:shadow-amber-500/20',
     gradientBg: 'from-amber-50/80 via-white to-white',
+    card: {
+      surface: '#FFFBEB',
+      border: '#FED7AA',
+      header: '#92400E',
+      iconBg: '#FEF3C7',
+      icon: '#D97706',
+      subtext: '#78350F',
+      glow: 'rgba(245, 158, 11, 0.08)',
+    },
   },
   ip: {
     key: 'ip',
@@ -63,6 +99,15 @@ export const MISSION_THEMES = {
     textColor: '#6D28D9',
     glowClass: 'shadow-purple-500/10 hover:shadow-purple-500/20',
     gradientBg: 'from-purple-50/80 via-white to-white',
+    card: {
+      surface: '#F5F3FF',
+      border: '#DDD6FE',
+      header: '#6D28D9',
+      iconBg: '#EDE9FE',
+      icon: '#7C3AED',
+      subtext: '#5B21B6',
+      glow: 'rgba(139, 92, 246, 0.08)',
+    },
   },
   monitoring: {
     key: 'monitoring',
@@ -74,6 +119,15 @@ export const MISSION_THEMES = {
     textColor: '#4338CA',
     glowClass: 'shadow-indigo-500/10 hover:shadow-indigo-500/20',
     gradientBg: 'from-indigo-50/80 via-white to-white',
+    card: {
+      surface: '#EEF2FF',
+      border: '#C7D2FE',
+      header: '#4338CA',
+      iconBg: '#E0E7FF',
+      icon: '#6366F1',
+      subtext: '#3730A3',
+      glow: 'rgba(99, 102, 241, 0.08)',
+    },
   },
 } as const;
 
@@ -434,5 +488,129 @@ export function resolveItemStrategicAlignment(item: any, category?: string): Str
     sdgNumber: sdgNum,
     sdgCode: `SDG ${sdgNum}`,
     sdgNameTh: sdgName,
+  };
+}
+
+// ============================================================================
+// CENTRALIZED PASTEL CHART PALETTE (WCAG 2.1 AA COMPLIANT)
+// ============================================================================
+
+export const CHART_PASTEL_PALETTE = {
+  // 5 Core Mission Fills, Clean Borders & High-Contrast Datalabel Text
+  missions: {
+    research: {
+      fill: '#86EFAC',       // Soft Mint Emerald (Tailwind emerald-300)
+      border: '#22C55E',     // Clean Emerald Border (emerald-500)
+      text: '#0F172A',       // Slate 900 Datalabel (12.71:1 contrast - PASS AAA)
+      label: 'โครงการวิจัย',
+    },
+    academic: {
+      fill: '#93C5FD',       // Soft Sky Blue (Tailwind sky-300)
+      border: '#3B82F6',     // Clean Sky/Blue Border (blue-500)
+      text: '#0F172A',       // Slate 900 Datalabel (9.90:1 contrast - PASS AAA)
+      label: 'โครงการพัฒนาวิชาการ',
+    },
+    publications: {
+      fill: '#FDA4AF',       // Soft Rose Coral (Tailwind rose-300)
+      border: '#F43F5E',     // Clean Rose Border (rose-500)
+      text: '#0F172A',       // Slate 900 Datalabel (9.44:1 contrast - PASS AAA)
+      label: 'ผลงานตีพิมพ์ทางวิชาการ',
+    },
+    service: {
+      fill: '#FDE68A',       // Soft Amber Peach (Tailwind amber-300)
+      border: '#F59E0B',     // Clean Amber Border (amber-500)
+      text: '#0F172A',       // Slate 900 Datalabel (14.33:1 contrast - PASS AAA)
+      label: 'งานบริการวิชาการ',
+    },
+    ip: {
+      fill: '#DDD6FE',       // Soft Lavender Violet (Tailwind violet-300)
+      border: '#8B5CF6',     // Clean Violet Border (violet-500)
+      text: '#0F172A',       // Slate 900 Datalabel (12.86:1 contrast - PASS AAA)
+      label: 'งานทรัพย์สินทางปัญญา',
+    },
+  },
+
+  // 8 High-Contrast Qualitative Pastel Fills for Multi-Series Charts
+  series: [
+    '#93C5FD', // 1. Soft Blue    (CR vs #0F172A:  9.90:1)
+    '#86EFAC', // 2. Soft Emerald (CR vs #0F172A: 12.71:1)
+    '#FDE68A', // 3. Soft Amber   (CR vs #0F172A: 14.33:1)
+    '#DDD6FE', // 4. Soft Purple  (CR vs #0F172A: 12.86:1)
+    '#FDA4AF', // 5. Soft Rose    (CR vs #0F172A:  9.44:1)
+    '#99F6E4', // 6. Soft Teal    (CR vs #0F172A: 14.16:1)
+    '#FED7AA', // 7. Soft Orange  (CR vs #0F172A: 13.19:1)
+    '#C7D2FE', // 8. Soft Indigo  (CR vs #0F172A: 11.97:1)
+  ] as const,
+
+  // Matching Clean 1.5px Borders for Qualitative Series
+  seriesBorders: [
+    '#3B82F6', // Blue
+    '#22C55E', // Emerald
+    '#F59E0B', // Amber
+    '#8B5CF6', // Purple
+    '#F43F5E', // Rose
+    '#14B8A6', // Teal
+    '#F97316', // Orange
+    '#6366F1', // Indigo
+  ] as const,
+
+  // Accessible Datalabel & Layout Defaults
+  datalabels: {
+    dark: '#0F172A',   // Universal dark datalabel (Slate 900) - WCAG AAA
+    light: '#FFFFFF',  // Used only on saturated dark badges
+    fontSize: 10.5,
+    fontWeight: 'bold' as const,
+    fontFamily: "'Kanit', sans-serif",
+  },
+  datalabelDark: '#0F172A',
+
+  // Canvas Geometry & Grid
+  gridLines: 'rgba(226, 232, 240, 0.6)', // slate-200 / 60%
+  borderWidth: 1.5,
+  borderRadius: 6,
+} as const;
+
+/**
+ * Returns pastel color by index with optional alpha transparency.
+ */
+export function getPastelColor(index: number, alpha?: number): string {
+  const hex = CHART_PASTEL_PALETTE.series[Math.abs(index) % CHART_PASTEL_PALETTE.series.length];
+  if (alpha !== undefined && alpha >= 0 && alpha < 1) {
+    const clean = hex.replace('#', '');
+    const r = parseInt(clean.substring(0, 2), 16);
+    const g = parseInt(clean.substring(2, 4), 16);
+    const b = parseInt(clean.substring(4, 6), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+  return hex;
+}
+
+/**
+ * Returns matching clean border color for a series index.
+ */
+export function getPastelBorder(index: number): string {
+  return CHART_PASTEL_PALETTE.seriesBorders[Math.abs(index) % CHART_PASTEL_PALETTE.seriesBorders.length];
+}
+
+/**
+ * Returns mission chart fill, border, and text tokens.
+ */
+export function getMissionChartColor(mission: string): { fill: string; border: string; text: string; label: string } {
+  const key = mission.toLowerCase() as keyof typeof CHART_PASTEL_PALETTE.missions;
+  return CHART_PASTEL_PALETTE.missions[key] || CHART_PASTEL_PALETTE.missions.research;
+}
+
+/**
+ * Helper to build standard accessible datalabel configuration for Chart.js.
+ */
+export function getPastelDatalabelsConfig(overrides?: Record<string, any>) {
+  return {
+    color: CHART_PASTEL_PALETTE.datalabels.dark,
+    font: {
+      family: CHART_PASTEL_PALETTE.datalabels.fontFamily,
+      size: CHART_PASTEL_PALETTE.datalabels.fontSize,
+      weight: CHART_PASTEL_PALETTE.datalabels.fontWeight,
+    },
+    ...overrides,
   };
 }

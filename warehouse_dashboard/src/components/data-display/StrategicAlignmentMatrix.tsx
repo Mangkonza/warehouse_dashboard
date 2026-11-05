@@ -132,7 +132,7 @@ export const StrategicAlignmentMatrix: React.FC<StrategicAlignmentMatrixProps> =
                 <FaChartBar style={{ fontSize: '15px' }} />
               </div>
               <h3 style={{ margin: 0, fontSize: '15.5px', fontWeight: 700, color: '#0f172a' }}>
-                ความสอดคล้องตามยุทธศาสตร์มหาวิทยาลัย (ISEE)
+                ความสอดคล้องตามยุทธศาสตร์มหาวิทยาลัย (ISEE 4 Pillars)
               </h3>
             </div>
             <span
@@ -265,7 +265,7 @@ export const StrategicAlignmentMatrix: React.FC<StrategicAlignmentMatrixProps> =
                 <FaAward style={{ fontSize: '15px' }} />
               </div>
               <h3 style={{ margin: 0, fontSize: '15.5px', fontWeight: 700, color: '#0f172a' }}>
-                การขับเคลื่อนตามค่านิยมองค์กร (IAM)
+                การขับเคลื่อนตามค่านิยมองค์กร (IAM Core Values)
               </h3>
             </div>
             <span

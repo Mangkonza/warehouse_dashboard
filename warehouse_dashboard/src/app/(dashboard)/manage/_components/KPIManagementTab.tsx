@@ -76,8 +76,8 @@ const CALC_LABELS: Record<KPICalcType, { label: string; desc: string }> = {
     desc: 'นับเฉพาะรายการที่ตรงตามเงื่อนไขที่กำหนด เช่น งบ > 10 ล้าน',
   },
   auto_completeness: {
-    label: 'ตรวจสอบความครบถ้วน 7 ภาควิชา',
-    desc: 'ตรวจสอบว่าทุกภาควิชามีการดำเนินงานครบถ้วนหรือไม่',
+    label: 'ตรวจสอบความครบถ้วน 7 สังกัด',
+    desc: 'ตรวจสอบว่าทุกสังกัดมีการดำเนินงานครบถ้วนหรือไม่',
   },
   manual: {
     label: 'บันทึกผลงานแบบแมนนวล',
@@ -1822,9 +1822,9 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets, on
                               <option value="budget_external">งบภายนอก</option>
                               <option value="budget_internal">งบภายใน</option>
                               <option value="budget">งบประมาณ</option>
-                              <option value="department">ภาควิชา</option>
+                              <option value="department">สังกัด</option>
                               <option value="fund_source">แหล่งทุน</option>
-                              <option value="journal">ระดับวารสาร / Quartile</option>
+                              <option value="journal">ระดับวารสาร (Q1-Q4)</option>
                             </select>
 
                             <select
@@ -1867,7 +1867,7 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets, on
                       {formCalcType === 'auto_completeness' && (
                         <div style={{ marginTop: '10px' }}>
                           <div style={{ fontSize: '12px', color: '#059669', fontWeight: 600 }}>
-                            ตรวจสอบการมีส่วนร่วมครบทั้ง 7 ภาควิชา: AE, CPE, IRE, FE, IE, ME, CE
+                            ตรวจสอบการมีส่วนร่วมครบทั้ง 7 สังกัด: AE, CPE, IRE, FE, IE, ME, CE
                           </div>
                         </div>
                       )}

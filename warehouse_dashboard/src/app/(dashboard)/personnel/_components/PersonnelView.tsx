@@ -1,18 +1,28 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { useTimeFilter, TimeFilterBar } from '@/features/time-filter';
+import { useDashboardTabFilter, useTimeFilter } from '@/features/time-filter';
 import { KpiGrid } from '@/components/data-display';
 import { usePersonnelData } from '../_hooks/usePersonnelData';
 import { PersonnelCharts } from './PersonnelCharts';
 import { PersonnelRankingTable } from './PersonnelRankingTable';
+import { DashboardTabFilterBar } from '@/components/ui/DashboardTabFilterBar';
+import { dashboardPageSubtitleStyle, dashboardPageTitleStyle, dashboardTheme } from '@/lib/dashboardTheme';
 import { CANONICAL_DEPARTMENTS } from '@/config/dataManagementConfig';
 import { FaSyncAlt } from 'react-icons/fa';
 
 export function PersonnelView() {
   const router = useRouter();
-  const { timeFilter, setTimeFilter, resetTimeFilter } = useTimeFilter();
+  const {
+    tabFilter,
+    setTabFilter,
+    resetTabFilter,
+    timeFilter,
+  } = useDashboardTabFilter('personnel');
+
+  const { setIsTimeModalOpen } = useTimeFilter('personnel');
+
   const {
     personnelMetrics,
     departmentStats,
@@ -28,7 +38,15 @@ export function PersonnelView() {
   const activePercentage =
     totalFacultyCount > 0 ? Math.round((activeFacultyCount / totalFacultyCount) * 100) : 0;
 
-  const departmentList = departmentStats.map((d) => d.name);
+
+  const displayMetrics = useMemo(() => {
+    if (!tabFilter.department || tabFilter.department === 'all') {
+      return personnelMetrics;
+    }
+    return personnelMetrics.filter((m) =>
+      String(m.department || '').includes(tabFilter.department)
+    );
+  }, [personnelMetrics, tabFilter.department]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
@@ -43,18 +61,10 @@ export function PersonnelView() {
         }}
       >
         <div>
-          <h2
-            style={{
-              margin: 0,
-              fontSize: '22px',
-              fontWeight: 800,
-              color: '#0f172a',
-              letterSpacing: '-0.02em',
-            }}
-          >
+          <h1 style={dashboardPageTitleStyle}>
             วิเคราะห์ด้านบุคลากรและอาจารย์
-          </h2>
-          <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#64748b' }}>
+          </h1>
+          <p style={dashboardPageSubtitleStyle}>
             การประเมินผลิตภาพทางวิชาการและการจัดอันดับผลงานสะสม 5 พันธกิจหลักรายบุคคล
           </p>
         </div>
@@ -83,12 +93,20 @@ export function PersonnelView() {
         </button>
       </div>
 
-      {/* 2. Time Filter Bar */}
-      <TimeFilterBar
-        value={timeFilter}
-        onChange={setTimeFilter}
-        onReset={resetTimeFilter}
+      {/* 2. Unified Tab Filter Bar */}
+      <DashboardTabFilterBar
+        tabKey="personnel"
         totalCount={totalCombinedWorks}
+        filteredCount={displayMetrics.length}
+        filterState={tabFilter}
+        onFilterChange={setTabFilter}
+        onReset={resetTabFilter}
+        showFiscalYear={true}
+        showDepartment={true}
+        showStrategic={false}
+        showDetailedTime={true}
+        onOpenDetailedTime={() => setIsTimeModalOpen(true)}
+        style={{ position: 'static', backdropFilter: 'none', backgroundColor: dashboardTheme.colors.surface, borderRadius: `${dashboardTheme.radius.card}px`, boxShadow: 'none' }}
       />
 
       {/* 3. Core Strategic KPI Cards */}
@@ -97,7 +115,7 @@ export function PersonnelView() {
           {
             label: 'บุคลากรทั้งหมดในระบบ',
             value: `${totalFacultyCount} คน`,
-            subtext: `ครอบคลุม ${departmentStats.length} ภาควิชา/หน่วยงาน`,
+            subtext: `ครอบคลุม ${departmentStats.length} สังกัด`,
             accentColor: '#0f766e',
           },
           {
@@ -123,15 +141,14 @@ export function PersonnelView() {
 
       {/* 4. Strategic Performance Charts */}
       <PersonnelCharts
-        metrics={personnelMetrics}
+        metrics={displayMetrics}
         departmentStats={departmentStats}
         onSelectPerson={(id) => router.push(`/personnel/${id}`)}
       />
 
       {/* 5. Comprehensive Ranking Table */}
       <PersonnelRankingTable
-        metrics={personnelMetrics}
-        departments={departmentList}
+        metrics={displayMetrics}
       />
     </div>
   );

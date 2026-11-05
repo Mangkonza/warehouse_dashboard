@@ -93,26 +93,112 @@ export const getTimeFilterLabel = (f: TimeFilterState): string => {
 };
 
 // ---------- Matching ----------
-/** ดึงวันที่ของ item จาก field ที่พบบ่อย ปรับให้ตรงกับข้อมูลจริงของโปรเจกต์ */
-const DATE_FIELDS = ['startDate', 'start_date', 'date', 'projectDate', 'createdAt', 'created_at'];
+/** Fields used when a caller does not know the record category. */
+const DATE_FIELDS = [
+  'startDate',
+  'start_date',
+  'date',
+  'projectDate',
+  'month_year',
+  'filing_date',
+  'createdAt',
+  'created_at',
+];
 
-const getItemDate = (item: any): Date | null => {
-  if (!item || typeof item !== 'object') return null;
-  for (const key of DATE_FIELDS) {
-    const raw = item[key];
-    if (!raw) continue;
-    const d = raw instanceof Date ? new Date(raw.getTime()) : new Date(raw);
-    if (isNaN(d.getTime())) continue;
-    // กันกรณีเก็บปีเป็น พ.ศ.
-    if (d.getFullYear() > 2400) d.setFullYear(d.getFullYear() - 543);
-    return d;
-  }
-  return null;
+/**
+ * Each dashboard domain stores its dates in a different field. Resolve the
+ * best available date for that domain before falling back to generic fields.
+ */
+const CATEGORY_DATE_FIELDS: Record<string, string[]> = {
+  research: ['start_date', 'fiscal_year_be', 'fiscal_year'],
+  academic: ['start_date', 'integration_start_date'],
+  publications: ['month_year', 'fiscal_year_be'],
+  service: ['date', 'start_date'],
+  ip: ['filing_date', 'protection_start'],
+  personnel: ['date', 'start_date', 'filing_date'],
 };
 
-export const itemMatchesTimeFilter = (item: any, f: TimeFilterState): boolean => {
+function parseDateValue(raw: unknown, field?: string): Date | null {
+  if (raw === undefined || raw === null || raw === '') return null;
+  if (raw instanceof Date) {
+    return isNaN(raw.getTime()) ? null : new Date(raw.getTime());
+  }
+
+  const str = String(raw).trim();
+  if (!str || str === '-' || str === 'nan' || str === 'NaT') return null;
+
+  // A fiscal-year field is the year label, not a calendar date. Point it at
+  // the start of that fiscal year (1 Oct of the previous calendar year) so
+  // quarter filtering behaves correctly.
+  if (field === 'fiscal_year_be' || field === 'fiscal_year') {
+    const y = Number(str.match(/\d{4}/)?.[0]);
+    if (Number.isFinite(y)) {
+      const ce = y > 2400 ? y - 543 : y;
+      return new Date(ce - 1, 9, 1);
+    }
+  }
+
+  if (typeof raw === 'number') {
+    const year = raw > 2400 ? raw - 543 : raw;
+    return Number.isFinite(year) ? new Date(year, 0, 1) : null;
+  }
+
+  // YYYY, YYYY-MM and YYYY-MM-DD (BE years are normalised to CE).
+  const match = str.match(/^(\d{4})(?:-(\d{1,2}))?(?:-(\d{1,2}))?$/);
+  if (match) {
+    const rawYear = Number(match[1]);
+    const year = rawYear > 2400 ? rawYear - 543 : rawYear;
+    const month = match[2] ? Number(match[2]) - 1 : 0;
+    const day = match[3] ? Number(match[3]) : 1;
+    const d = new Date(year, month, day);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  const d = new Date(str);
+  if (isNaN(d.getTime())) return null;
+  if (d.getFullYear() > 2400) d.setFullYear(d.getFullYear() - 543);
+  return d;
+}
+
+/** Resolve the best date for a record, with an optional dashboard category. */
+export function resolveItemDate(item: any, category?: string): Date | null {
+  if (!item || typeof item !== 'object') return null;
+  const fields = (category && CATEGORY_DATE_FIELDS[category]) || DATE_FIELDS;
+  for (const key of fields) {
+    const d = parseDateValue(item[key], key);
+    if (d) return d;
+  }
+  return null;
+}
+
+/** Count records that cannot participate in a time filter. */
+export function getUndatedCount(items: unknown[], category?: string): number {
+  if (!Array.isArray(items)) return 0;
+  return items.filter((item) => item && resolveItemDate(item, category) === null).length;
+}
+
+export const itemMatchesTimeFilter = (item: any, f: TimeFilterState, category?: string): boolean => {
   if (f.mode === 'all') return true;
-  const d = getItemDate(item);
+
+  // Prefer the explicit fiscal-year field when the record has one. Imported
+  // records often carry createdAt/updatedAt timestamps from the import date,
+  // which must not override the record's own fiscal year.
+  if (f.mode === 'fiscal') {
+    const explicitFiscalYear = item?.fiscal_year_be ?? item?.fiscal_year;
+    const hasExplicitFiscalYear =
+      explicitFiscalYear !== undefined &&
+      explicitFiscalYear !== null &&
+      String(explicitFiscalYear).trim() !== '';
+
+    if (hasExplicitFiscalYear) {
+      if (f.fiscalYear !== 'all' && String(explicitFiscalYear).trim() !== String(f.fiscalYear)) {
+        return false;
+      }
+      if (f.fiscalQuarter === 'all') return true;
+    }
+  }
+
+  const d = resolveItemDate(item, category);
   if (!d) return false;
 
   const month = d.getMonth() + 1;

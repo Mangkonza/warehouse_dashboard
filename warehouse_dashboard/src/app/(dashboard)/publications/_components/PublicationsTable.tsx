@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { FaTable, FaCalendarAlt, FaDownload, FaQuoteRight } from 'react-icons/fa';
-import { SearchInput, DepartmentBadge, DepartmentSelect, RecordDetailDrawer, LevelBadge, PublicationTypeBadge, StrategyBadges } from '@/components/ui';
+import { SearchInput, DepartmentBadge, RecordDetailDrawer, LevelBadge, PublicationTypeBadge, StrategyBadges } from '@/components/ui';
 import { JOURNAL_TIER_STYLES } from '@/config/journalRankingConfig';
 import { PublicationItem } from '../_hooks/usePublicationsData';
 
@@ -12,8 +12,6 @@ interface PublicationsTableProps {
   onSearchChange: (value: string) => void;
   levelFilter: string;
   onLevelChange: (value: string) => void;
-  selectedDept?: string;
-  onDeptChange?: (value: string) => void;
   fiscalYearFilter?: string;
   onFiscalYearChange?: (value: string) => void;
   availableFiscalYears?: string[];
@@ -25,8 +23,6 @@ export function PublicationsTable({
   onSearchChange,
   levelFilter,
   onLevelChange,
-  selectedDept = 'all',
-  onDeptChange,
   fiscalYearFilter = 'all',
   onFiscalYearChange,
   availableFiscalYears = [],
@@ -80,7 +76,7 @@ export function PublicationsTable({
 
   // Export CSV
   const handleExportCSV = () => {
-    const headers = ['ลำดับ', 'ชื่อบทความวิชาการ', 'ประเภท', 'ระดับวารสาร', 'งบสนับสนุน (บาท)', 'เจ้าของผลงาน', 'ภาควิชา', 'วารสาร'];
+    const headers = ['ลำดับ', 'ชื่อบทความวิชาการ', 'ประเภท', 'ระดับวารสาร', 'งบสนับสนุน (บาท)', 'เจ้าของผลงาน', 'สังกัด', 'วารสาร'];
     const rows = filteredData.map((item, idx) => [
       idx + 1,
       `"${String(item.name || '').replace(/"/g, '""')}"`,
@@ -170,22 +166,11 @@ export function PublicationsTable({
             width="240px"
             style={{ padding: '6px 10px' }}
           />
-          {onDeptChange && (
-            <DepartmentSelect
-              value={selectedDept}
-              onChange={onDeptChange}
-              allowAll
-              allLabel="ทุกภาควิชา"
-              allValue="all"
-              size="sm"
-              className="w-[170px]"
-            />
-          )}
         </div>
       </div>
 
       <div className="table-responsive" style={{ overflowX: 'auto' }}>
-        <table className="data-table" style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, fontSize: '13px' }}>
+        <table className="data-table table-manage" style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, fontSize: '13px' }}>
           <thead>
             <tr style={{ backgroundColor: '#f8fafc', color: '#475569', textAlign: 'left' }}>
               <th style={{ width: '44px', textAlign: 'center', padding: '10px 8px' }}>#</th>
@@ -194,7 +179,7 @@ export function PublicationsTable({
               <th style={{ width: '100px', textAlign: 'center', padding: '10px 8px' }}>ระดับ/ควอร์ไทล์</th>
               <th style={{ textAlign: 'right', padding: '10px 8px' }}>เงินสนับสนุน</th>
               <th style={{ padding: '10px 8px' }}>เจ้าของผลงาน</th>
-              <th style={{ width: '100px', padding: '10px 8px' }}>ภาควิชา</th>
+              <th style={{ width: '100px', padding: '10px 8px' }}>สังกัด</th>
               <th style={{ padding: '10px 8px' }}>วารสาร</th>
               <th style={{ width: '120px', padding: '10px 8px' }}>ยุทธศาสตร์</th>
             </tr>

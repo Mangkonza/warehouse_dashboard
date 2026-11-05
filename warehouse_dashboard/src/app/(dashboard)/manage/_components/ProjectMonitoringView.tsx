@@ -301,7 +301,7 @@ export const ProjectMonitoringView: React.FC<ProjectMonitoringViewProps> = ({
             value={deptFilter}
             onChange={setDeptFilter}
             allowAll
-            allLabel="ทุกภาควิชา / ศูนย์"
+            allLabel="ทุกสังกัด"
             allValue="all"
             size="sm"
             className="w-[200px]"

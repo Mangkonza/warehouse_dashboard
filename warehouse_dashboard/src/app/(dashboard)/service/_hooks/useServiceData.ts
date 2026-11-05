@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import serviceData from '@/data/services.json';
 import { getCachedCategoryData, fetchCategoryData } from '@/lib/dataService';
-import { TimeFilterState, itemMatchesTimeFilter } from '@/types/timeFilter';
+import { TimeFilterState, itemMatchesTimeFilter, resolveItemDate } from '@/types/timeFilter';
 import { isTestRecord } from '@/lib/sdgEngine';
 import { getDepartment } from '@/lib/departments';
 import { parseServiceFiscalYear, categorizeServiceActivity, itemMatchesStrategicFilter } from '@/lib/pastelTheme';
@@ -101,7 +101,7 @@ export function useServiceData(timeFilter?: TimeFilterState) {
   const validData = useMemo(() => {
     return dataList
       .filter((item) => item.name && item.name !== 'nan' && item.name !== 'NaT' && !isTestRecord(item))
-      .filter((item) => !timeFilter || itemMatchesTimeFilter(item, timeFilter))
+      .filter((item) => !timeFilter || itemMatchesTimeFilter(item, timeFilter, 'service'))
       .map((item) => {
         const resolved = resolveServiceType(item);
         const smartRole = categorizeServiceActivity(item.name, item.topic_title, item.target_group);
@@ -114,6 +114,13 @@ export function useServiceData(timeFilter?: TimeFilterState) {
           _fiscalYear: fYear,
         };
       });
+  }, [dataList, timeFilter]);
+
+  const undatedCount = useMemo(() => {
+    if (!timeFilter || timeFilter.mode === 'all') return 0;
+    return dataList
+      .filter((item) => item.name && item.name !== 'nan' && item.name !== 'NaT' && !isTestRecord(item))
+      .filter((item) => resolveItemDate(item, 'service') === null).length;
   }, [dataList, timeFilter]);
 
   const uniquePersons = useMemo(() => {
@@ -205,6 +212,7 @@ export function useServiceData(timeFilter?: TimeFilterState) {
 
   return {
     validData,
+    undatedCount,
     filteredData,
     uniquePersons,
     uniqueTargets,

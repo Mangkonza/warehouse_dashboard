@@ -1,19 +1,15 @@
 'use client';
 
 import React from 'react';
-import { useRouter } from 'next/navigation';
-import { FaSyncAlt, FaCog } from 'react-icons/fa';
-import { TimeFilterState, getTimeFilterLabel } from '@/types/timeFilter';
+import { FaSyncAlt } from 'react-icons/fa';
+import { dashboardPageSubtitleStyle, dashboardPageTitleStyle } from '@/lib/dashboardTheme';
 
 interface KpiHeaderToolbarProps {
-  timeFilter?: TimeFilterState;
   isRefreshing: boolean;
   onRefresh: () => void;
 }
 
-export function KpiHeaderToolbar({ timeFilter, isRefreshing, onRefresh }: KpiHeaderToolbarProps) {
-  const router = useRouter();
-
+export function KpiHeaderToolbar({ isRefreshing, onRefresh }: KpiHeaderToolbarProps) {
   return (
     <div
       style={{
@@ -22,29 +18,13 @@ export function KpiHeaderToolbar({ timeFilter, isRefreshing, onRefresh }: KpiHea
         alignItems: 'center',
         flexWrap: 'wrap',
         gap: '14px',
-        backgroundColor: '#ffffff',
-        padding: '20px 24px',
-        borderRadius: '12px',
-        border: '1px solid #e2e8f0',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-        <h1 style={{ fontSize: '19px', fontWeight: 800, color: '#0f172a', margin: 0 }}>
-          ตัวชี้วัดตามแผนยุทธศาสตร์ (KPI)
-        </h1>
-        <span
-          style={{
-            backgroundColor: '#e8f5e9',
-            color: '#007a3e',
-            padding: '3px 10px',
-            borderRadius: '16px',
-            fontSize: '12px',
-            fontWeight: 700,
-          }}
-        >
-          {timeFilter && timeFilter.mode !== 'all' ? getTimeFilterLabel(timeFilter) : 'ทุกช่วงเวลา'}
-        </span>
+      <div>
+        <h1 style={dashboardPageTitleStyle}>ตัวชี้วัดตามแผนยุทธศาสตร์</h1>
+        <p style={dashboardPageSubtitleStyle}>
+          ติดตามผลการดำเนินงานของตัวชี้วัดเทียบกับเป้าหมายตามแผนยุทธศาสตร์
+        </p>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>

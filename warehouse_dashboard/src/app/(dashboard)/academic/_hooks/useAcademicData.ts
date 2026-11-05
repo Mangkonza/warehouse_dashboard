@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import academicData from '@/data/academic.json';
 import { getCachedCategoryData, fetchCategoryData } from '@/lib/dataService';
-import { TimeFilterState, itemMatchesTimeFilter } from '@/types/timeFilter';
+import { TimeFilterState, itemMatchesTimeFilter, resolveItemDate } from '@/types/timeFilter';
 import { isTestRecord, detectSDGsFromText } from '@/lib/sdgEngine';
 import { normalizeAcademicMonth, itemMatchesStrategicFilter } from '@/lib/pastelTheme';
 import { getDepartment } from '@/lib/departments';
@@ -65,11 +65,18 @@ export function useAcademicData(timeFilter?: TimeFilterState) {
   const validData = useMemo(() => {
     return dataList
       .filter((item) => item.name && item.name !== 'nan' && item.name !== 'NaT' && item.name !== 'เรื่อง' && !isTestRecord(item))
-      .filter((item) => !timeFilter || itemMatchesTimeFilter(item, timeFilter))
+      .filter((item) => !timeFilter || itemMatchesTimeFilter(item, timeFilter, 'academic'))
       .map((item) => ({
         ...item,
         normalizedMonth: normalizeAcademicMonth(item.month),
       }));
+  }, [dataList, timeFilter]);
+
+  const undatedCount = useMemo(() => {
+    if (!timeFilter || timeFilter.mode === 'all') return 0;
+    return dataList
+      .filter((item) => item.name && item.name !== 'nan' && item.name !== 'NaT' && item.name !== 'เรื่อง' && !isTestRecord(item))
+      .filter((item) => resolveItemDate(item, 'academic') === null).length;
   }, [dataList, timeFilter]);
 
   const {
@@ -220,6 +227,7 @@ export function useAcademicData(timeFilter?: TimeFilterState) {
 
   return {
     validData,
+    undatedCount,
     displayData,
     totalBudgetAll,
     totalAllocFaculty,

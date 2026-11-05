@@ -221,7 +221,7 @@ export function KpiGridCards({ filteredKPIs, expandedId, onToggleExpand }: KpiGr
                   }}
                 >
                   <div style={{ fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-                    สถานะการมีส่วนร่วม 7 ภาควิชา: ({details.completedDepartments?.length || 0}/7)
+                    สถานะการมีส่วนร่วม 7 สังกัด: ({details.completedDepartments?.length || 0}/7)
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                     {ENGINEERING_DEPARTMENTS.map((dept) => {

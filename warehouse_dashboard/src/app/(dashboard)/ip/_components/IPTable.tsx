@@ -2,13 +2,12 @@
 
 import React, { useState } from 'react';
 import { FaTable, FaFileExcel, FaTimes, FaHourglassHalf } from 'react-icons/fa';
-import { SearchInput, DepartmentBadge, DepartmentSelect, RecordDetailDrawer, IPTypeBadge, StrategyBadges } from '@/components/ui';
+import { SearchInput, DepartmentBadge, RecordDetailDrawer, IPTypeBadge, StrategyBadges } from '@/components/ui';
 import { IPItem } from '../_hooks/useIPData';
 
 interface IPTableProps {
   filteredIpData: IPItem[];
   totalCount?: number;
-  availableDepts: string[];
   searchTerm: string;
   onSearchChange: (value: string) => void;
   deptFilter: string;
@@ -20,7 +19,6 @@ interface IPTableProps {
 export function IPTable({
   filteredIpData,
   totalCount,
-  availableDepts,
   searchTerm,
   onSearchChange,
   deptFilter,
@@ -38,8 +36,8 @@ export function IPTable({
       'ลำดับ',
       'ชื่อผลงานการประดิษฐ์',
       'ผู้ประดิษฐ์หลัก',
-      'ภาควิชา',
-      'ประเภท IP',
+      'สังกัด',
+      'ประเภท',
       'เลขที่คำขอ',
       'เลขทะเบียน',
       'สถานะ',
@@ -161,15 +159,6 @@ export function IPTable({
             width="230px"
           />
 
-          <DepartmentSelect
-            value={deptFilter}
-            onChange={onDeptChange}
-            allowAll
-            allLabel="ทุกภาควิชา"
-            allValue="all"
-            size="sm"
-            className="w-[175px]"
-          />
 
           {hasActiveFilter && (
             <button
@@ -197,13 +186,13 @@ export function IPTable({
       </div>
 
       <div className="table-scroll" style={{ maxHeight: '480px' }}>
-        <table>
+        <table className="table-manage">
           <thead>
             <tr>
               <th style={{ width: '45px', textAlign: 'center' }}>#</th>
               <th style={{ minWidth: '220px' }}>ชื่อผลงานการประดิษฐ์</th>
               <th>ผู้ประดิษฐ์หลัก</th>
-              <th style={{ width: '130px', textAlign: 'left' }}>ภาควิชา</th>
+              <th style={{ width: '130px', textAlign: 'left' }}>สังกัด</th>
               <th style={{ textAlign: 'center', width: '110px' }}>ประเภท</th>
               <th style={{ minWidth: '150px' }}>เลขที่คำขอ / เลขทะเบียน</th>
               <th style={{ textAlign: 'center', width: '150px' }}>สถานะการคุ้มครอง</th>

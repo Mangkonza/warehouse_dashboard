@@ -8,6 +8,7 @@ import { PersonnelWorkMetric, DepartmentPersonnelStat } from '../_hooks/usePerso
 import { getDepartment, getDepartmentColor } from '@/lib/departments';
 import { getClickedChartElement } from '@/lib/chartTooltipHelper';
 import { DrillDownProjectDrawer } from '@/components/ui';
+import { CHART_PASTEL_PALETTE } from '@/lib/pastelTheme';
 import { FaChartBar, FaChartPie } from 'react-icons/fa';
 
 interface PersonnelChartsProps {
@@ -18,6 +19,7 @@ interface PersonnelChartsProps {
 
 export function PersonnelCharts({ metrics, departmentStats, onSelectPerson }: PersonnelChartsProps) {
   const router = useRouter();
+  const [rankMetric, setRankMetric] = useState<'total' | 'research' | 'academic' | 'publications' | 'service' | 'ip'>('total');
   const chartInstances = useRef<Chart[]>([]);
   const [drillDown, setDrillDown] = useState<{
     isOpen: boolean;
@@ -43,10 +45,16 @@ export function PersonnelCharts({ metrics, departmentStats, onSelectPerson }: Pe
     Chart.defaults.font.size = 12;
     Chart.defaults.color = '#0f172a';
 
-    // 1. Top 10 Faculty by Combined Works
+    // 1. Top 10 Faculty by Selected Metric
     const sortedByWorks = [...metrics]
-      .filter((m) => m.counts.total > 0)
-      .sort((a, b) => b.counts.total - a.counts.total)
+      .filter((m) => {
+        if (rankMetric === 'total') return m.counts.total > 0;
+        return m.counts[rankMetric] > 0;
+      })
+      .sort((a, b) => {
+        if (rankMetric === 'total') return b.counts.total - a.counts.total;
+        return b.counts[rankMetric] - a.counts[rankMetric] || b.counts.total - a.counts.total;
+      })
       .slice(0, 10);
 
     const topNames = sortedByWorks.map((m) => m.cleanName || m.name);
@@ -73,27 +81,37 @@ export function PersonnelCharts({ metrics, departmentStats, onSelectPerson }: Pe
           {
             label: 'วิจัย',
             data: topResearch,
-            backgroundColor: '#00A651',
+            backgroundColor: CHART_PASTEL_PALETTE.missions.research.fill,
+            borderColor: CHART_PASTEL_PALETTE.missions.research.border,
+            borderWidth: 1,
           },
           {
             label: 'พัฒนาวิชาการ',
             data: topAcademic,
-            backgroundColor: '#0284c7',
+            backgroundColor: CHART_PASTEL_PALETTE.missions.academic.fill,
+            borderColor: CHART_PASTEL_PALETTE.missions.academic.border,
+            borderWidth: 1,
           },
           {
             label: 'ตีพิมพ์',
             data: topPub,
-            backgroundColor: '#e11d48',
+            backgroundColor: CHART_PASTEL_PALETTE.missions.publications.fill,
+            borderColor: CHART_PASTEL_PALETTE.missions.publications.border,
+            borderWidth: 1,
           },
           {
             label: 'ทรัพย์สินฯ',
             data: topIP,
-            backgroundColor: '#7c3aed',
+            backgroundColor: CHART_PASTEL_PALETTE.missions.ip.fill,
+            borderColor: CHART_PASTEL_PALETTE.missions.ip.border,
+            borderWidth: 1,
           },
           {
             label: 'บริการวิชาการ',
             data: topService,
-            backgroundColor: '#d97706',
+            backgroundColor: CHART_PASTEL_PALETTE.missions.service.fill,
+            borderColor: CHART_PASTEL_PALETTE.missions.service.border,
+            borderWidth: 1,
           },
         ],
       },
@@ -128,8 +146,8 @@ export function PersonnelCharts({ metrics, departmentStats, onSelectPerson }: Pe
               setDrillDown({
                 isOpen: true,
                 title: `ผลงานสะสม: ${target.name}`,
-                subtitle: `ภาควิชา ${target.department} • รวม ${uniqueWorks.length} รายการ • งบโครงการ ${(target.budgets.total / 1000000).toFixed(2)} ล้านบาท`,
-                accentColor: '#00A651',
+                subtitle: `สังกัด ${target.department} • รวม ${uniqueWorks.length} รายการ • งบโครงการ ${(target.budgets.total / 1000000).toFixed(2)} ล้านบาท`,
+                accentColor: CHART_PASTEL_PALETTE.missions.research.border,
                 items: uniqueWorks,
               });
             }
@@ -139,6 +157,7 @@ export function PersonnelCharts({ metrics, departmentStats, onSelectPerson }: Pe
           x: {
             stacked: true,
             beginAtZero: true,
+            grid: { color: CHART_PASTEL_PALETTE.gridLines },
             title: { display: true, text: 'จำนวนผลงานรวม (รายการ)' },
           },
           y: {
@@ -153,7 +172,7 @@ export function PersonnelCharts({ metrics, departmentStats, onSelectPerson }: Pe
               const val = ctx.dataset.data[ctx.dataIndex];
               return val >= 4;
             },
-            color: '#ffffff',
+            color: CHART_PASTEL_PALETTE.datalabels.dark,
             font: { weight: 'bold', size: 10 },
             formatter: (v: number) => v,
           },
@@ -222,7 +241,7 @@ export function PersonnelCharts({ metrics, departmentStats, onSelectPerson }: Pe
           }
         },
         scales: {
-          y: { beginAtZero: true, title: { display: true, text: 'รายการผลงาน' } },
+          y: { beginAtZero: true, grid: { color: CHART_PASTEL_PALETTE.gridLines }, title: { display: true, text: 'รายการผลงาน' } },
           x: {
             grid: { display: false },
             ticks: {
@@ -253,7 +272,7 @@ export function PersonnelCharts({ metrics, departmentStats, onSelectPerson }: Pe
           datalabels: {
             anchor: 'end',
             align: 'top',
-            color: '#1e293b',
+            color: CHART_PASTEL_PALETTE.datalabels.dark,
             font: { weight: 'bold', size: 11 },
           },
         },
@@ -280,11 +299,11 @@ export function PersonnelCharts({ metrics, departmentStats, onSelectPerson }: Pe
     const ipItemsAll = dedupe(metrics.flatMap((m) => m.ipItems), 'ip');
 
     const missionBuckets = [
-      { label: 'โครงการวิจัย', cat: 'research', count: researchItemsAll.length, color: '#00A651', items: researchItemsAll },
-      { label: 'โครงการพัฒนาวิชาการ', cat: 'academic', count: academicItemsAll.length, color: '#0284c7', items: academicItemsAll },
-      { label: 'ผลงานตีพิมพ์ทางวิชาการ', cat: 'publications', count: pubItemsAll.length, color: '#e11d48', items: pubItemsAll },
-      { label: 'งานทรัพย์สินทางปัญญา', cat: 'ip', count: ipItemsAll.length, color: '#7c3aed', items: ipItemsAll },
-      { label: 'งานบริการวิชาการ', cat: 'service', count: serviceItemsAll.length, color: '#d97706', items: serviceItemsAll },
+      { label: 'โครงการวิจัย', cat: 'research', count: researchItemsAll.length, color: CHART_PASTEL_PALETTE.missions.research.fill, items: researchItemsAll },
+      { label: 'โครงการพัฒนาวิชาการ', cat: 'academic', count: academicItemsAll.length, color: CHART_PASTEL_PALETTE.missions.academic.fill, items: academicItemsAll },
+      { label: 'ผลงานตีพิมพ์ทางวิชาการ', cat: 'publications', count: pubItemsAll.length, color: CHART_PASTEL_PALETTE.missions.publications.fill, items: pubItemsAll },
+      { label: 'งานทรัพย์สินทางปัญญา', cat: 'ip', count: ipItemsAll.length, color: CHART_PASTEL_PALETTE.missions.ip.fill, items: ipItemsAll },
+      { label: 'งานบริการวิชาการ', cat: 'service', count: serviceItemsAll.length, color: CHART_PASTEL_PALETTE.missions.service.fill, items: serviceItemsAll },
     ];
 
     createChart('c_mission_doughnut', {
@@ -327,7 +346,7 @@ export function PersonnelCharts({ metrics, departmentStats, onSelectPerson }: Pe
         plugins: {
           legend: { position: 'right', labels: { boxWidth: 12, font: { size: 11.5 } } },
           datalabels: {
-            color: '#ffffff',
+            color: CHART_PASTEL_PALETTE.datalabels.dark,
             font: { weight: 'bold', size: 11 },
             formatter: (v: number) => (v > 0 ? v : ''),
           },
@@ -339,7 +358,7 @@ export function PersonnelCharts({ metrics, departmentStats, onSelectPerson }: Pe
       chartInstances.current.forEach((c) => c.destroy());
       chartInstances.current = [];
     };
-  }, [metrics, departmentStats, onSelectPerson]);
+  }, [metrics, departmentStats, onSelectPerson, rankMetric]);
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '16px' }}>
@@ -354,12 +373,37 @@ export function PersonnelCharts({ metrics, departmentStats, onSelectPerson }: Pe
           boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <FaChartBar style={{ color: '#00A651', fontSize: '16px' }} />
             <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
-              10 อันดับอาจารย์ที่มีผลงานสะสมสูงสุด
+              10 อันดับอาจารย์ที่มีผลงานสูงสุด
             </h4>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '12px', color: '#64748b' }}>จัดอันดับตาม:</span>
+            <select
+              value={rankMetric}
+              onChange={(e) => setRankMetric(e.target.value as any)}
+              style={{
+                padding: '4px 10px',
+                borderRadius: '6px',
+                border: '1px solid #cbd5e1',
+                fontSize: '12px',
+                color: '#1e293b',
+                backgroundColor: '#f8fafc',
+                fontWeight: 600,
+                outline: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              <option value="total">ผลงานรวม 5 ด้าน</option>
+              <option value="research">โครงการวิจัย</option>
+              <option value="academic">โครงการพัฒนาวิชาการ</option>
+              <option value="publications">ผลงานตีพิมพ์</option>
+              <option value="service">บริการวิชาการ</option>
+              <option value="ip">ทรัพย์สินทางปัญญา</option>
+            </select>
           </div>
         </div>
         <div style={{ height: '320px', position: 'relative', cursor: 'pointer' }}>
@@ -381,7 +425,7 @@ export function PersonnelCharts({ metrics, departmentStats, onSelectPerson }: Pe
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <FaChartBar style={{ color: '#0284c7', fontSize: '16px' }} />
             <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
-              จำนวนผลงานรวมจำแนกตามภาควิชา
+              จำนวนผลงานรวมจำแนกตามสังกัด
             </h4>
           </div>
         </div>
