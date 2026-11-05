@@ -1,24 +1,32 @@
 'use client';
 
 import React from 'react';
-import { useTimeFilter } from '@/features/time-filter';
+import { TimeFilterBar, useTimeFilter } from '@/features/time-filter';
 import { useKpiData } from '../_hooks/useKpiData';
 import { KpiHeaderToolbar } from './KpiHeaderToolbar';
 import { KpiSummaryCards } from './KpiSummaryCards';
 import { KpiFilterBar } from './KpiFilterBar';
 import { KpiGridCards } from './KpiGridCards';
-import { DashboardTabFilterBar } from '@/components/ui/DashboardTabFilterBar';
-import { dashboardTheme } from '@/lib/dashboardTheme';
+import { KpiStrategicTableView } from './KpiStrategicTableView';
 
 export function KPIView() {
-  const { timeFilter, setIsTimeModalOpen } = useTimeFilter('kpi');
+  const { timeFilter, setTimeFilter, resetTimeFilter } = useTimeFilter();
   const {
     filteredKPIs,
+    reportingRounds,
     overallStats,
+    selectedStrategy,
+    setSelectedStrategy,
     selectedCategory,
     setSelectedCategory,
     selectedStatus,
     setSelectedStatus,
+    selectedRound,
+    setSelectedRound,
+    viewMode,
+    setViewMode,
+    searchQuery,
+    setSearchQuery,
     expandedId,
     setExpandedId,
     isRefreshing,
@@ -28,26 +36,21 @@ export function KPIView() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
       <KpiHeaderToolbar
+        timeFilter={timeFilter}
         isRefreshing={isRefreshing}
         onRefresh={loadLiveData}
+        selectedRound={selectedRound}
+        onSelectRound={setSelectedRound}
+        reportingRounds={reportingRounds}
+        viewMode={viewMode}
+        onSelectViewMode={setViewMode}
       />
 
-      <DashboardTabFilterBar
-        tabKey="kpi"
+      <TimeFilterBar
+        value={timeFilter}
+        onChange={setTimeFilter}
+        onReset={resetTimeFilter}
         totalCount={filteredKPIs.length}
-        filteredCount={filteredKPIs.length}
-        showFiscalYear={true}
-        showDepartment={false}
-        showStrategic={false}
-        showDetailedTime={true}
-        onOpenDetailedTime={() => setIsTimeModalOpen(true)}
-        style={{
-          position: 'static',
-          backdropFilter: 'none',
-          backgroundColor: dashboardTheme.colors.surface,
-          borderRadius: `${dashboardTheme.radius.card}px`,
-          boxShadow: 'none',
-        }}
       />
 
       <KpiSummaryCards
@@ -57,17 +60,30 @@ export function KPIView() {
       />
 
       <KpiFilterBar
+        selectedStrategy={selectedStrategy}
+        onSelectStrategy={setSelectedStrategy}
         selectedCategory={selectedCategory}
         onSelectCategory={setSelectedCategory}
         selectedStatus={selectedStatus}
         onSelectStatus={setSelectedStatus}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
       />
 
-      <KpiGridCards
-        filteredKPIs={filteredKPIs}
-        expandedId={expandedId}
-        onToggleExpand={(id) => setExpandedId(expandedId === id ? null : id)}
-      />
+      {viewMode === 'table' ? (
+        <KpiStrategicTableView
+          filteredKPIs={filteredKPIs}
+          selectedRound={selectedRound}
+          reportingRounds={reportingRounds}
+        />
+      ) : (
+        <KpiGridCards
+          filteredKPIs={filteredKPIs}
+          reportingRounds={reportingRounds}
+          expandedId={expandedId}
+          onToggleExpand={(id) => setExpandedId(expandedId === id ? null : id)}
+        />
+      )}
     </div>
   );
 }

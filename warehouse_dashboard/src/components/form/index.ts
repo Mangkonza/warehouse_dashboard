@@ -23,3 +23,8 @@ export * from './AvatarImageField';
 export * from './PersonnelForm';
 export * from './PersonAddConfirmModal';
 export * from './IntellectualPropertyForm';
+
+export * from './OptionPopoverSelect';
+export * from './CreatableHierarchySelect';
+export * from './UnitSelectInput';
+export * from './PersonnelReporterMultiSelect';

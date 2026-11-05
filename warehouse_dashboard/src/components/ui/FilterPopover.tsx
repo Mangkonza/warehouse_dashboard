@@ -15,6 +15,7 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { SDGTagSelector } from '@/app/(dashboard)/manage/_components/SDGTagSelector';
 import { BlockSingleSelect, BlockSelectOption } from '@/components/ui/BlockSingleSelect';
 import { EvaluationTag } from '@/components/ui/evaluation-tag';
+import { getStoredKPIs, getStoredStrategies } from '@/lib/kpiEngine';
 
 // ---------------------------------------------------------------------------
 // Types & Interfaces
@@ -199,10 +200,6 @@ const ROLES_LIST = [
 
 export const KPI_STRATEGY_MAP: Record<string, string> = {
   all: 'ทุกหมวดยุทธศาสตร์',
-  strat_y1: 'ยุทธศาสตร์ที่ 1 (ย.1)',
-  strat_y2: 'ยุทธศาสตร์ที่ 2 (ย.2)',
-  strat_y3: 'ยุทธศาสตร์ที่ 3 (ย.3)',
-  strat_faculty: 'ภาพรวมคณะฯ',
   research: 'โครงการวิจัย',
   academic: 'พัฒนาวิชาการ',
   publications: 'ผลงานตีพิมพ์',
@@ -214,24 +211,20 @@ export const KPI_STRATEGY_MAP: Record<string, string> = {
 
 export const KPI_STRATEGY_GROUPS = [
   {
-    group: 'แผนยุทธศาสตร์ปี 2570',
+    group: 'แผนยุทธศาสตร์ มก.กพส. ประจำปีงบประมาณ พ.ศ. 2569',
     options: [
-      { value: 'strat_y1', label: 'ยุทธศาสตร์ที่ 1 (ย.1 - นวัตกร)', desc: 'เน้นการผลิตบัณฑิตและนวัตกรวิศวกรรม' },
-      { value: 'strat_y2', label: 'ยุทธศาสตร์ที่ 2 (ย.2 - วิจัยและนวัตกรรม)', desc: 'งานวิจัยเชิงรุก สิทธิบัตร และการนำไปใช้ประโยชน์' },
-      { value: 'strat_y3', label: 'ยุทธศาสตร์ที่ 3 (ย.3 - บริการชุมชน)', desc: 'บริการวิชาการ ยกระดับสังคมและชุมชน' },
-      { value: 'strat_faculty', label: 'ตัวชี้วัดภาพรวมคณะฯ (2.1-x)', desc: 'ตัวชี้วัดเป้าหมายหลักระดับคณะวิศวกรรมศาสตร์' },
     ],
   },
   {
     group: 'จำแนกตามประเภทงาน',
     options: [
-      { value: 'research', label: 'โครงการวิจัย', desc: 'ข้อมูลโครงการวิจัย ทุนภายใน/ภายนอก' },
-      { value: 'academic', label: 'โครงการพัฒนาวิชาการ', desc: 'โครงการพัฒนาการเรียนการสอนและหลักสูตร' },
-      { value: 'publications', label: 'ผลงานตีพิมพ์ทางวิชาการ', desc: 'วารสารวิชาการระดับนานาชาติและชาติ' },
-      { value: 'service', label: 'งานบริการวิชาการ', desc: 'โครงการบริการวิชาการแก่สังคมและอุตสาหกรรม' },
-      { value: 'ip', label: 'งานทรัพย์สินทางปัญญา', desc: 'สิทธิบัตร อนุสิทธิบัตร และลิขสิทธิ์' },
-      { value: 'personnel', label: 'บุคลากร/อาจารย์', desc: 'ข้อมูลอาจารย์ นักวิจัย และสายสนับสนุน' },
-      { value: 'strategy', label: 'ยุทธศาสตร์คณะฯ', desc: 'เป้าหมายและแผนยุทธศาสตร์ภาพรวม' },
+      { value: 'research', label: 'โครงการวิจัย', desc: 'ข้อมูลโครงการวิจัย ทุนภายใน/ภายนอก และ Mega Project' },
+      { value: 'academic', label: 'โครงการพัฒนาวิชาการ', desc: 'โครงการพัฒนาการเรียนการสอนและหลักสูตร Lifelong Learning' },
+      { value: 'publications', label: 'ผลงานตีพิมพ์ทางวิชาการ', desc: 'วารสารวิชาการระดับนานาชาติ Scopus / WoS และ H-index' },
+      { value: 'service', label: 'งานบริการวิชาการ', desc: 'โครงการบริการวิชาการแก่สังคม ชุมชน และอุตสาหกรรม' },
+      { value: 'ip', label: 'งานทรัพย์สินทางปัญญาและเชิงพาณิชย์', desc: 'ผลิตภัณฑ์เชิงพาณิชย์ สิทธิบัตร อนุสิทธิบัตร และรายได้' },
+      { value: 'personnel', label: 'บุคลากร/อาจารย์', desc: 'ข้อมูลอาจารย์ นักวิจัย สมรรถนะวิชาชีพ และสายสนับสนุน' },
+      { value: 'strategy', label: 'ยุทธศาสตร์และความร่วมมือ', desc: 'เป้าหมายความยั่งยืน ระบบฐานข้อมูล และเครือข่ายความร่วมมือ' },
     ],
   },
 ];
@@ -358,6 +351,69 @@ export function FilterPopover({
   });
 
   const [deptSearch, setDeptSearch] = useState('');
+
+  // Dynamic KPI Strategy Counts & Custom Strategies for category="kpi"
+  const kpiStrategyData = useMemo(() => {
+    if (category !== 'kpi') {
+      return { total: 0, counts: {} as Record<string, number>, groups: KPI_STRATEGY_GROUPS };
+    }
+    const kpis = getStoredKPIs();
+    const strategies = getStoredStrategies();
+    const counts: Record<string, number> = { all: kpis.length };
+
+    kpis.forEach((k) => {
+      if (k.strategyCode) {
+        const key = `strat_${k.strategyCode.replace(/\./g, '_')}`;
+        counts[key] = (counts[key] || 0) + 1;
+        counts[k.strategyCode] = (counts[k.strategyCode] || 0) + 1;
+      }
+      if (k.category) {
+        counts[k.category] = (counts[k.category] || 0) + 1;
+      }
+    });
+
+    const baseStratGroup = KPI_STRATEGY_GROUPS[0];
+    const existingValues = new Set(baseStratGroup.options.map((o) => o.value));
+    const customOptions = strategies
+      .map((s) => ({
+        value: `strat_${s.code.replace(/\./g, '_')}`,
+        code: s.code,
+        label: `ยุทธศาสตร์ ${s.code} (${s.name})`,
+        desc: s.pillarGroup || `ยุทธศาสตร์ที่ ${s.code}`,
+      }))
+      .filter((o) => !existingValues.has(o.value));
+
+    const groups = [
+      {
+        group: 'ยุทธศาสตร์ มก.กพส. (ปี 2569)',
+        options: [
+          ...baseStratGroup.options.map((opt) => {
+            const code = opt.value.replace(/^strat_/, '').replace(/_/g, '.');
+            return {
+              ...opt,
+              shortPillLabel: `ยุทธศาสตร์ ${code}`,
+              count: counts[opt.value] ?? counts[code] ?? 0,
+            };
+          }),
+          ...customOptions.map((opt) => ({
+            ...opt,
+            shortPillLabel: `ยุทธศาสตร์ ${opt.code}`,
+            count: counts[opt.value] ?? counts[opt.code] ?? 0,
+          })),
+        ],
+      },
+      {
+        group: KPI_STRATEGY_GROUPS[1].group,
+        options: KPI_STRATEGY_GROUPS[1].options.map((opt) => ({
+          ...opt,
+          shortPillLabel: opt.label,
+          count: counts[opt.value] ?? 0,
+        })),
+      },
+    ];
+
+    return { total: kpis.length, counts, groups };
+  }, [category, isOpen]);
 
   // Sync draft whenever popover opens or prop filters change
   useEffect(() => {
@@ -1881,7 +1937,7 @@ export function FilterPopover({
                         backgroundColor: (!draft.kpiStrategy || draft.kpiStrategy === 'all') ? '#f0fdf4' : '#ffffff',
                         color: (!draft.kpiStrategy || draft.kpiStrategy === 'all') ? '#00A651' : '#334155',
                         fontSize: '13px',
-                        fontWeight: 400,
+                        fontWeight: 500,
                         cursor: 'pointer',
                         textAlign: 'left',
                         display: 'flex',
@@ -1890,18 +1946,18 @@ export function FilterPopover({
                         transition: 'all 0.15s ease',
                       }}
                     >
-                      <span>ทุกหมวดยุทธศาสตร์ (แสดงทั้งหมด)</span>
+                      <span>ทั้งหมด ({kpiStrategyData.total})</span>
                       {(!draft.kpiStrategy || draft.kpiStrategy === 'all') && <FaCheck style={{ fontSize: '11px' }} />}
                     </button>
 
                     {/* Groups */}
-                    {KPI_STRATEGY_GROUPS.map((grp) => (
+                    {kpiStrategyData.groups.map((grp) => (
                       <div key={grp.group} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 500, borderBottom: '1px solid #f1f5f9', paddingBottom: '4px' }}>
+                        <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600, borderBottom: '1px solid #f1f5f9', paddingBottom: '4px' }}>
                           {grp.group}
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                          {grp.options.map((opt) => {
+                          {grp.options.map((opt: any) => {
                             const isSelected = draft.kpiStrategy === opt.value;
                             return (
                               <button
@@ -1923,8 +1979,23 @@ export function FilterPopover({
                                   transition: 'all 0.15s ease',
                                 }}
                               >
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                  <span style={{ fontSize: '13px', fontWeight: 400 }}>{opt.label}</span>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1 }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                                    <span style={{ fontSize: '13px', fontWeight: isSelected ? 600 : 400 }}>{opt.label}</span>
+                                    <span
+                                      style={{
+                                        fontSize: '11.5px',
+                                        fontWeight: 600,
+                                        padding: '1px 7px',
+                                        borderRadius: '999px',
+                                        backgroundColor: isSelected ? '#00A651' : '#f1f5f9',
+                                        color: isSelected ? '#ffffff' : '#475569',
+                                        whiteSpace: 'nowrap',
+                                      }}
+                                    >
+                                      {opt.count ?? 0}
+                                    </span>
+                                  </div>
                                   {opt.desc && (
                                     <span style={{ fontSize: '11.5px', color: isSelected ? '#059669' : '#64748b' }}>
                                       {opt.desc}

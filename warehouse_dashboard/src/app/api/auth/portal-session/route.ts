@@ -8,6 +8,7 @@ import { createSessionToken } from '@/lib/auth/session';
 import { setAuthCookies } from '@/lib/auth/cookies';
 import { sanitizeNextPath } from '@/lib/auth/safeRedirect';
 import { appUrl, type HeaderSource } from '@/lib/auth/paths';
+import { decodeJwtPayloadUnverified } from '@/lib/auth/jwt';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,6 +26,10 @@ async function handlePortalSession(
   let ssoToken = '';
   if (parsed.mode === 'direct') {
     ssoToken = parsed.ssoToken;
+    const unverified = decodeJwtPayloadUnverified(ssoToken);
+    if (unverified && typeof unverified.token === 'string' && unverified.token.trim()) {
+      ssoToken = unverified.token.trim();
+    }
   } else {
     const exchangeRes = await exchangeToken(parsed.exchangeToken);
     if (!exchangeRes.ok) {
@@ -95,6 +100,7 @@ export async function GET(request: NextRequest) {
       request.headers
     );
   } catch (err) {
+    console.error('Portal session error:', err);
     return jsonNoStore({ error: 'Cannot create portal session' }, { status: 500 });
   }
 }
@@ -109,6 +115,7 @@ export async function POST(request: NextRequest) {
     }
     return await handlePortalSession(body, null, false);
   } catch (err) {
+    console.error('Portal session error:', err);
     return jsonNoStore({ error: 'Cannot create portal session' }, { status: 500 });
   }
 }

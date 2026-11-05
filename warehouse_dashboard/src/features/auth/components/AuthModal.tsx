@@ -4,7 +4,11 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { FaRedo } from 'react-icons/fa';
 
-export const AuthModal: React.FC = () => {
+export interface AuthModalProps {
+  forceOpen?: boolean;
+}
+
+export const AuthModal: React.FC<AuthModalProps> = ({ forceOpen = false }) => {
   const { user, isLoginModalOpen, loginWithCredentials, isLoading } = useAuth();
   const [step, setStep] = useState<1 | 2>(1);
   const [username, setUsername] = useState('');
@@ -12,9 +16,12 @@ export const AuthModal: React.FC = () => {
   const [otp, setOtp] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
-  // ต้องล็อกอินก่อนเท่านั้น: ถ้ายังไม่มี user หรือสถานะเปิด modal อยู่ ให้แสดงเสมอ
-  if (isLoading) return null;
-  if (user && !isLoginModalOpen) return null;
+  // ตรวจสอบสถานะการเปิด Modal (หาก forceOpen=true บนหน้า /login จะแสดงเสมอ)
+  if (!forceOpen) {
+    if (isLoading) return null;
+    if (user && !isLoginModalOpen) return null;
+    if (!user && !isLoginModalOpen) return null;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,6 +52,15 @@ export const AuthModal: React.FC = () => {
     if (!result.success) {
       setErrorMsg(result.error || 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
       setStep(1);
+    } else {
+      // ล็อกอินสำเร็จ นำทางไปยัง returnUrl หรือ /overview ทันที
+      const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+      const rawReturnUrl = params?.get('returnUrl');
+      const targetUrl =
+        rawReturnUrl && rawReturnUrl.startsWith('/') && !rawReturnUrl.startsWith('//')
+          ? rawReturnUrl
+          : '/overview';
+      window.location.href = targetUrl;
     }
   };
 
@@ -57,17 +73,25 @@ export const AuthModal: React.FC = () => {
     <div
       style={{
         position: 'fixed',
-        inset: 0,
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100vw',
+        height: '100vh',
         zIndex: 99999,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
         padding: '16px',
+        backgroundColor: '#121518',
         backgroundImage: "url('/bg9.jpg')",
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
+        overflow: 'hidden',
+        boxSizing: 'border-box',
       }}
     >
       {/* Dark overlay บางๆ เพื่อความคมชัด */}
@@ -215,6 +239,34 @@ export const AuthModal: React.FC = () => {
             </div>
 
             {/* ลิงก์ช่วยเหลือ (ตรงตาม Screenshot 1 ของ มก.) */}
+            {/* ตัวเลือกเข้าสู่ระบบด้วย KU Central SSO */}
+            <div style={{ marginBottom: '18px', paddingTop: '14px', borderTop: '1px solid #e2e8f0', textAlign: 'center' }}>
+              <a
+                href="/sso/login"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  width: '100%',
+                  padding: '9px 16px',
+                  borderRadius: '6px',
+                  backgroundColor: '#f8fafc',
+                  border: '1px solid #cbd5e1',
+                  color: '#0f172a',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                  boxSizing: 'border-box',
+                  transition: 'all 0.15s ease',
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#f1f5f9')}
+                onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#f8fafc')}
+              >
+                <span>เข้าสู่ระบบผ่าน KU Central SSO</span>
+              </a>
+            </div>
+
             <div style={{ fontSize: '11px', lineHeight: '1.7', color: '#4b5563', textAlign: 'left' }}>
               <div><a href="https://accounts.ku.ac.th" target="_blank" rel="noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>Forgotten Password</a></div>
               <div><a href="https://accounts.ku.ac.th" target="_blank" rel="noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>Personal information verification</a></div>

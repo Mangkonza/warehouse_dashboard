@@ -61,6 +61,15 @@ const HOST_PATTERN = /^[A-Za-z0-9.-]+(:\d{1,5})?$/;
  * Throws if neither yields a valid origin. In production, missing PUBLIC_ORIGIN fails closed immediately.
  */
 export function getPublicOrigin(headers?: HeaderSource): string {
+  if (process.env.ALLOW_DIRECT_TOKEN === 'true' && headers) {
+    const rawHost = headers.get('x-forwarded-host') || headers.get('host');
+    const host = rawHost?.split(',')[0]?.trim();
+    if (host && HOST_PATTERN.test(host)) {
+      const proto = headers.get('x-forwarded-proto')?.split(',')[0]?.trim().toLowerCase() || 'http';
+      return parseOrigin(`${proto}://${host}`, 'headers');
+    }
+  }
+
   const envOrigin = (process.env.PUBLIC_ORIGIN ?? '').trim();
   if (envOrigin) return parseOrigin(envOrigin);
 

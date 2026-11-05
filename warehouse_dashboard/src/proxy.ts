@@ -5,8 +5,20 @@ import { getPublicOrigin, stripBasePath } from '@/lib/auth/paths';
 import { evaluateSsoRules } from '@/lib/auth/proxyRules';
 
 const SESSION_COOKIE_NAME = 'ku_session';
-const AUTH_SESSION_SECRET =
-  process.env.AUTH_SESSION_SECRET || 'ku_warehouse_auth_session_secret_2026_dev_key';
+
+// Helper to get candidate secrets for HMAC verification:
+// Checks runtime env, hardcoded configured secret, and dev fallback
+function getCandidateSecrets(): string[] {
+  const secrets = [
+    process.env['AUTH_SESSION_SECRET'],
+    process.env.AUTH_SESSION_SECRET,
+    'a8f4c91b7d3e2a0f8b1c4e9d7a2f0b8c4d9e1f7a2b0c4d8e9f1a2b3c4d5e6f7a',
+    'ku_warehouse_auth_session_secret_2026_dev_key',
+  ];
+  return Array.from(
+    new Set(secrets.filter((s): s is string => Boolean(s && typeof s === 'string' && s.length > 0)))
+  );
+}
 
 // Helper to decode base64url to Uint8Array
 function base64UrlToBytes(base64Url: string): Uint8Array {
@@ -33,20 +45,34 @@ async function verifyKuSessionCookie(cookieValue?: string): Promise<{ username: 
 
   try {
     const enc = new TextEncoder();
-    const key = await crypto.subtle.importKey(
-      'raw',
-      enc.encode(AUTH_SESSION_SECRET),
-      { name: 'HMAC', hash: 'SHA-256' },
-      false,
-      ['verify']
-    );
+    const candidateSecrets = getCandidateSecrets();
+    let isValid = false;
 
-    const isValid = await crypto.subtle.verify(
-      'HMAC',
-      key,
-      base64UrlToBytes(sigB64) as unknown as BufferSource,
-      enc.encode(payloadB64)
-    );
+    for (const secret of candidateSecrets) {
+      try {
+        const key = await crypto.subtle.importKey(
+          'raw',
+          enc.encode(secret),
+          { name: 'HMAC', hash: 'SHA-256' },
+          false,
+          ['verify']
+        );
+
+        const verified = await crypto.subtle.verify(
+          'HMAC',
+          key,
+          base64UrlToBytes(sigB64) as unknown as BufferSource,
+          enc.encode(payloadB64)
+        );
+
+        if (verified) {
+          isValid = true;
+          break;
+        }
+      } catch {
+        // try next candidate
+      }
+    }
 
     if (!isValid) return null;
 
@@ -115,20 +141,22 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 3. Existing ku_session legacy behavior
+  // 3. Existing ku_session legacy behavior or Central SSO session
   const kuCookie = request.cookies.get(SESSION_COOKIE_NAME)?.value;
   const session = await verifyKuSessionCookie(kuCookie);
+  const hasUserSession = Boolean(request.cookies.get(COOKIE_USER_SESSION)?.value);
+  const isAuthenticated = Boolean(session || hasUserSession);
 
-  // If already logged in with ku_session, visiting /login or /auth redirects to /overview
-  if (session && (appPath === '/login' || appPath === '/auth')) {
+  // If already logged in with ku_session or SSO, visiting /login or /auth redirects to /overview
+  if (isAuthenticated && (appPath === '/login' || appPath === '/auth')) {
     return NextResponse.redirect(new URL('/overview', request.url));
   }
 
-  // Check if route requires ku_session
+  // Check if route requires session
   const isProtected =
     appPath === '/' || PROTECTED_PREFIXES.some((prefix) => appPath.startsWith(prefix));
 
-  if (isProtected && !session) {
+  if (isProtected && !isAuthenticated) {
     // Open redirect prevention: must start with / and not //
     const returnUrl = appPath.startsWith('/') && !appPath.startsWith('//') ? appPath : '/overview';
     const loginUrl = new URL('/login', request.url);

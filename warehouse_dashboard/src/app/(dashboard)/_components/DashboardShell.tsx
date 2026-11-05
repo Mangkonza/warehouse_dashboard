@@ -48,9 +48,12 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // AuthGate: หากไม่มี session ให้เปลี่ยนไปหน้า Login
+  const isSsoLoading = sso?.status === 'loading';
+  const isAuthenticated = Boolean(user || ssoUser);
+
+  // AuthGate: หากไม่มี session ให้เปลี่ยนไปหน้า Login (รองรับทั้ง Legacy User และ Central SSO User)
   useEffect(() => {
-    if (!isLoading && !user && pathname !== '/login') {
+    if (!isLoading && !isSsoLoading && !isAuthenticated && pathname !== '/login') {
       const returnUrl =
         pathname && pathname.startsWith('/') && !pathname.startsWith('//')
           ? pathname
@@ -58,7 +61,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
       router.replace(`/login?returnUrl=${encodeURIComponent(returnUrl)}`);
     }
-  }, [isLoading, user, pathname, router]);
+  }, [isLoading, isSsoLoading, isAuthenticated, pathname, router]);
 
   const handleTogglePin = (e: React.MouseEvent) => {
     e.stopPropagation();

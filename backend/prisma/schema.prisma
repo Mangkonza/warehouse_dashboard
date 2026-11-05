@@ -382,3 +382,151 @@ model CourseCatalog {
 
   @@map("course_catalog")
 }
+
+
+// ==========================================
+// 9. Strategic KPI 4-Tier & Custom Lookups
+// ==========================================
+
+model KpiOptionLookup {
+  id        Int      @id @default(autoincrement())
+  fieldKey  String   @map("field_key") @db.VarChar(50)
+  value     String   @db.VarChar(255)
+  label     String   @db.VarChar(255)
+  isCustom  Boolean  @default(false) @map("is_custom")
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([fieldKey, value])
+  @@index([fieldKey])
+  @@map("kpi_option_lookups")
+}
+
+model StrategicStrategy {
+  id          String   @id @default(cuid()) @db.VarChar(64)
+  code        String   @unique @db.VarChar(50)
+  name        String   @db.VarChar(500)
+  pillarGroup String?  @map("pillar_group") @db.VarChar(255)
+  fiscalYear  Int      @default(2569) @map("fiscal_year")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  plans      StrategicPlan[]
+  indicators StrategicIndicator[]
+
+  @@index([fiscalYear])
+  @@map("strategic_strategies")
+}
+
+model StrategicPlan {
+  id                  String   @id @default(cuid()) @db.VarChar(64)
+  strategyId          String   @map("strategy_id") @db.VarChar(64)
+  code                String   @db.VarChar(50)
+  name                String   @db.VarChar(500)
+  isDepartmentProject Boolean  @default(false) @map("is_department_project")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  strategy   StrategicStrategy    @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+  indicators StrategicIndicator[]
+
+  @@unique([strategyId, code])
+  @@index([strategyId])
+  @@map("strategic_plans")
+}
+
+model KpiReportingRoundConfig {
+  id           String    @id @default(cuid()) @db.VarChar(64)
+  name         String    @db.VarChar(255)
+  startDate    DateTime? @map("start_date") @db.Date
+  endDate      DateTime? @map("end_date") @db.Date
+  dueDate      DateTime? @map("due_date") @db.Date
+  isCumulative Boolean   @default(true) @map("is_cumulative")
+  fiscalYear   Int       @default(2569) @map("fiscal_year")
+  sortOrder    Int       @default(0) @map("sort_order")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  results StrategicIndicatorRoundResult[]
+
+  @@index([fiscalYear])
+  @@map("kpi_reporting_rounds")
+}
+
+model StrategicIndicator {
+  id               String   @id @default(cuid()) @db.VarChar(64)
+  strategyId       String   @map("strategy_id") @db.VarChar(64)
+  planId           String   @map("plan_id") @db.VarChar(64)
+  code             String   @db.VarChar(100)
+  title            String   @db.VarChar(500)
+  description      String?  @db.Text
+  category         String   @default("research") @db.VarChar(50)
+  fiscalYear       String   @default("2569") @map("fiscal_year") @db.VarChar(20)
+  collectionPeriod String   @default("ปีงบประมาณ") @map("collection_period") @db.VarChar(100)
+  valueType        String   @default("จำนวนนับ") @map("value_type") @db.VarChar(100)
+  reportingLevels  String[] @map("reporting_levels")
+  unit             String   @db.VarChar(100)
+  targetOperator   String   @default("gte") @map("target_operator") @db.VarChar(20)
+  targetValue      Decimal  @default(0) @map("target_value") @db.Decimal(15, 2)
+  targetLabel      String?  @map("target_label") @db.VarChar(100)
+  departmentTarget String?  @map("department_target") @db.VarChar(100)
+  formulaMethod    String   @default("SUM") @map("formula_method") @db.VarChar(50)
+  calcType         String   @default("manual") @map("calc_type") @db.VarChar(50)
+  datasetKey       String   @default("research") @map("dataset_key") @db.VarChar(50)
+  activeRoundIds   String[] @map("active_round_ids")
+  reporters        String[]
+  responsibleUnit  String?  @map("responsible_unit") @db.VarChar(255)
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  strategy      StrategicStrategy               @relation(fields: [strategyId], references: [id], onDelete: Restrict)
+  plan          StrategicPlan                   @relation(fields: [planId], references: [id], onDelete: Restrict)
+  subIndicators StrategicSubIndicator[]
+  roundResults  StrategicIndicatorRoundResult[]
+
+  @@index([strategyId])
+  @@index([planId])
+  @@map("strategic_indicators")
+}
+
+model StrategicSubIndicator {
+  id               String   @id @default(cuid()) @db.VarChar(64)
+  indicatorId      String   @map("indicator_id") @db.VarChar(64)
+  title            String   @db.VarChar(500)
+  unit             String   @db.VarChar(100)
+  formulaRole      String   @default("sum_part") @map("formula_role") @db.VarChar(50)
+  valueSource      String   @default("manual") @map("value_source") @db.VarChar(50)
+  linkedDatasetKey String?  @map("linked_dataset_key") @db.VarChar(50)
+  target           String?  @db.VarChar(100)
+  reporters        String[]
+  sortOrder        Int      @default(0) @map("sort_order")
+
+  indicator    StrategicIndicator              @relation(fields: [indicatorId], references: [id], onDelete: Cascade)
+  roundResults StrategicIndicatorRoundResult[]
+
+  @@index([indicatorId])
+  @@map("strategic_sub_indicators")
+}
+
+model StrategicIndicatorRoundResult {
+  id             String   @id @default(cuid()) @db.VarChar(64)
+  indicatorId    String   @map("indicator_id") @db.VarChar(64)
+  subIndicatorId String?  @map("sub_indicator_id") @db.VarChar(64)
+  roundId        String   @map("round_id") @db.VarChar(64)
+  actualValue    Decimal? @map("actual_value") @db.Decimal(15, 2)
+  actualText     String?  @map("actual_text") @db.VarChar(255)
+  evidence       String?  @db.Text
+  remarks        String?  @db.Text
+  reporter       String?  @db.VarChar(255)
+  status         String   @default("draft") @db.VarChar(30)
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  indicator    StrategicIndicator      @relation(fields: [indicatorId], references: [id], onDelete: Cascade)
+  subIndicator StrategicSubIndicator?  @relation(fields: [subIndicatorId], references: [id], onDelete: Cascade)
+  round        KpiReportingRoundConfig @relation(fields: [roundId], references: [id], onDelete: Cascade)
+
+  @@unique([indicatorId, subIndicatorId, roundId])
+  @@index([indicatorId])
+  @@index([roundId])
+  @@map("strategic_indicator_round_results")
+}

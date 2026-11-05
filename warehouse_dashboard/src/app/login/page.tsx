@@ -2,38 +2,49 @@
 
 import React, { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useAuth } from '@/features/auth';
+import { useAuth, useSsoUserSafe } from '@/features/auth';
 import { AuthModal } from '@/features/auth/components/AuthModal';
 
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, isLoading, openLoginModal } = useAuth();
+  const { user, isLoading: isAuthLoading } = useAuth();
+  const sso = useSsoUserSafe();
+  const ssoUser = sso?.user;
+  const isSsoLoading = sso?.status === 'loading';
 
   const rawReturnUrl = searchParams.get('returnUrl');
   // ป้องกัน open redirect: ตรวจสอบว่า returnUrl ต้องขึ้นต้นด้วย / และไม่ใช่ //
-  const returnUrl = rawReturnUrl && rawReturnUrl.startsWith('/') && !rawReturnUrl.startsWith('//')
-    ? rawReturnUrl
-    : '/overview';
+  const returnUrl =
+    rawReturnUrl && rawReturnUrl.startsWith('/') && !rawReturnUrl.startsWith('//')
+      ? rawReturnUrl
+      : '/overview';
+
+  const isAuthenticated = Boolean(user || ssoUser);
 
   useEffect(() => {
-    if (!isLoading && user) {
+    if (!isAuthLoading && !isSsoLoading && isAuthenticated) {
       router.replace(returnUrl);
-    } else if (!isLoading && !user) {
-      openLoginModal();
     }
-  }, [user, isLoading, router, returnUrl, openLoginModal]);
+  }, [isAuthenticated, isAuthLoading, isSsoLoading, router, returnUrl]);
 
   return (
     <div
       style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100vw',
+        height: '100vh',
         minHeight: '100vh',
         backgroundColor: '#121518',
         backgroundImage: "url('/bg9.jpg')",
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
-        position: 'relative',
+        overflow: 'hidden',
       }}
     >
       <div
@@ -43,7 +54,7 @@ function LoginContent() {
           backgroundColor: 'rgba(0, 0, 0, 0.25)',
         }}
       />
-      <AuthModal />
+      <AuthModal forceOpen />
     </div>
   );
 }
