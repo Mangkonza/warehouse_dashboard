@@ -49,6 +49,43 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFundSource, setSelectedFundSource] = useState<string | null>(null);
 
+  // Smooth slide-in and slide-out animation lifecycle
+  const [isRendered, setIsRendered] = useState(isOpen);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    let animFrame: number;
+    let timer: NodeJS.Timeout;
+
+    if (isOpen) {
+      setIsRendered(true);
+      animFrame = requestAnimationFrame(() => {
+        setIsVisible(true);
+      });
+    } else {
+      setIsVisible(false);
+      timer = setTimeout(() => {
+        setIsRendered(false);
+      }, 300);
+    }
+
+    return () => {
+      cancelAnimationFrame(animFrame);
+      clearTimeout(timer);
+    };
+  }, [isOpen]);
+
+  // Lock background scroll when drawer is open
+  useEffect(() => {
+    if (isOpen) {
+      const originalOverflow = document.documentElement.style.overflow;
+      document.documentElement.style.overflow = 'hidden';
+      return () => {
+        document.documentElement.style.overflow = originalOverflow;
+      };
+    }
+  }, [isOpen]);
+
   useEffect(() => {
     if (!isOpen) {
       setSearchTerm('');
@@ -141,7 +178,7 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
     return filteredItems.reduce((sum, it) => sum + extractItemBudget(it), 0);
   }, [filteredItems]);
 
-  if (!isOpen) return null;
+  if (!isRendered) return null;
 
   const resolveItemCategory = (item: any): CategoryKey => {
     if (item?._category && CATEGORIES_CONFIG[item._category as CategoryKey]) {
@@ -163,7 +200,7 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Backdrop with fade in/out animation */}
       <div
         style={{
           position: 'fixed',
@@ -171,12 +208,15 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
           backgroundColor: 'rgba(15, 23, 42, 0.48)',
           backdropFilter: 'blur(3px)',
           zIndex: 9990,
-          transition: 'opacity 0.2s ease',
+          opacity: isVisible ? 1 : 0,
+          pointerEvents: isVisible ? 'auto' : 'none',
+          transition: 'opacity 0.28s ease',
         }}
         onClick={onClose}
+        aria-hidden="true"
       />
 
-      {/* Slide-over Panel */}
+      {/* Slide-over Panel with silky smooth slide-out and slide-in transition */}
       <div
         role="dialog"
         aria-modal="true"
@@ -194,6 +234,8 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
           display: 'flex',
           flexDirection: 'column',
           borderLeft: '1px solid #e2e8f0',
+          transform: isVisible ? 'translateX(0%)' : 'translateX(100%)',
+          transition: 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
         }}
       >
         {/* Header (อ้างอิงโทนสีและโครงสร้างจากหน้า /manage) */}

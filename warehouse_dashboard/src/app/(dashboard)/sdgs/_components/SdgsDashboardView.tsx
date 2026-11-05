@@ -8,7 +8,7 @@ import { SdgNumberBadge } from '@/components/ui/SdgCard';
 import { SdgAggregationResult, SdgTileData } from '@/lib/sdgAggregationService';
 import { getSdgTextColor, SDG_DEFINITIONS, getSdgInfo } from '@/lib/sdg';
 import { cn } from '@/lib/utils';
-import { FaFilter, FaUndoAlt, FaInfoCircle, FaCheck, FaExternalLinkAlt } from 'react-icons/fa';
+import { FaFilter, FaUndoAlt, FaInfoCircle, FaCheck } from 'react-icons/fa';
 import { DrillDownProjectDrawer } from '@/components/data-display/DrillDownProjectDrawer';
 import { CategoryKey } from '@/types/dataManagement';
 
@@ -555,35 +555,17 @@ export function SdgsDashboardView({
                         </span>
                       </div>
 
-                      {/* Middle Row: Count + Delta + Inline Drilldown Trigger (keeps height constant, no bouncing!) */}
-                      <div className="flex items-center justify-between gap-2 pr-1">
-                        <div className="flex items-baseline gap-2">
-                          <span
-                            className="text-[30px] font-black leading-none tracking-tight"
-                            style={{ color: isSelected ? textColor : '#0f172a' }}
-                          >
-                            {tile.currentCount}
-                          </span>
-                          <div>
-                            {renderBadge(tile.deltaLabel, tile.deltaType, isSelected)}
-                          </div>
+                      {/* Middle Row: Count + Delta */}
+                      <div className="flex items-baseline gap-2">
+                        <span
+                          className="text-[30px] font-black leading-none tracking-tight"
+                          style={{ color: isSelected ? textColor : '#0f172a' }}
+                        >
+                          {tile.currentCount}
+                        </span>
+                        <div>
+                          {renderBadge(tile.deltaLabel, tile.deltaType, isSelected)}
                         </div>
-
-                        {/* Drill down trigger: placed in the whitespace beside count */}
-                        {isSelected && tile.currentCount > 0 && (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleOpenDrawer(tile.sdgNumber);
-                            }}
-                            className="inline-flex items-center gap-1.5 py-1 px-3 rounded-full bg-white/25 hover:bg-white/40 text-xs font-bold transition-all shadow-xs shrink-0 cursor-pointer"
-                            style={{ color: textColor }}
-                          >
-                            <FaExternalLinkAlt className="text-[10px]" />
-                            <span>ดู {tile.currentCount} โครงการ</span>
-                          </button>
-                        )}
                       </div>
 
                       {/* Bottom Row: 3-Year Breakdown (.y3) */}
@@ -639,6 +621,42 @@ export function SdgsDashboardView({
                         })}
                       </div>
                     </div>
+
+                    {/* Square Action Button: 2 lines (Bullet list icon + "ดูทั้งหมด") */}
+                    {isSelected && tile.currentCount > 0 && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenDrawer(tile.sdgNumber);
+                        }}
+                        className="shrink-0 w-[62px] h-[62px] rounded-2xl flex flex-col items-center justify-center gap-1.5 bg-white/20 hover:bg-white/30 active:scale-95 text-white shadow-xs transition-all cursor-pointer select-none"
+                        style={{ color: textColor }}
+                        title="ดูทั้งหมด"
+                        aria-label="ดูทั้งหมด"
+                      >
+                        {/* Bulleted List Icon (Image 2 style) */}
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="w-5 h-5 shrink-0"
+                        >
+                          <line x1="8.5" y1="6" x2="20.5" y2="6" />
+                          <line x1="8.5" y1="12" x2="20.5" y2="12" />
+                          <line x1="8.5" y1="18" x2="20.5" y2="18" />
+                          <circle cx="4" cy="6" r="1.2" fill="currentColor" stroke="none" />
+                          <circle cx="4" cy="12" r="1.2" fill="currentColor" stroke="none" />
+                          <circle cx="4" cy="18" r="1.2" fill="currentColor" stroke="none" />
+                        </svg>
+                        <span className="text-[10.5px] font-bold leading-none tracking-tight whitespace-nowrap">
+                          ดูทั้งหมด
+                        </span>
+                      </button>
+                    )}
                   </div>
                 );
               })}
@@ -938,8 +956,8 @@ export function SdgsDashboardView({
       <DrillDownProjectDrawer
         isOpen={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        title={`รายชื่อโครงการที่สอดคล้องกับ SDG ${selectedSdg || ''}`}
-        subtitle={`ชุดข้อมูล: ${activeCategory === 'all' ? 'ทุกชุดข้อมูล' : activeCategory}`}
+        title={`รายการทั้งหมดที่สอดคล้องกับ SDG ${selectedSdg || ''}`}
+        subtitle={`ชุดข้อมูล: ${CATEGORY_TABS.find((t) => t.id === activeCategory)?.label || 'ทุกชุดข้อมูล'}`}
         accentColor={selectedSdg ? SDG_DEFINITIONS[selectedSdg]?.color : '#00A651'}
         categoryKey={(activeCategory === 'all' ? 'research' : activeCategory) as CategoryKey}
         items={drawerItems}
