@@ -12,7 +12,7 @@
     "journal_index": null,
     "evaluated_by": "admin",
     "evaluated_at": "2026-10-24T21:00:19.475Z",
-    "updated_at": "2026-10-24T21:10:33.976Z"
+    "updated_at": "2026-10-24T21:00:19.475Z"
   },
   "research_วศ.กพส.\n1/2568": {
     "id": "research_วศ.กพส.\n1/2568",
@@ -39,12 +39,12 @@
     ],
     "i_type": "I_SEE",
     "journal_index": {
-      "type": "TCI",
+      "type": "Q",
       "value": "TCI 1"
     },
     "evaluated_by": "admin",
     "evaluated_at": "2026-10-24T20:34:58.707Z",
-    "updated_at": "2026-10-24T21:00:19.539Z"
+    "updated_at": "2026-10-24T20:34:58.707Z"
   },
   "publications_pub_002": {
     "id": "publications_pub_002",
@@ -56,7 +56,9 @@
     ],
     "i_type": null,
     "journal_index": null,
-    "updated_at": "2026-10-24T20:35:13.739Z"
+    "evaluated_by": "system",
+    "evaluated_at": "2026-10-25T10:37:27.669Z",
+    "updated_at": "2026-10-25T10:37:27.669Z"
   },
   "research_วศ.กพส.\n2/2568": {
     "id": "research_วศ.กพส.\n2/2568",
@@ -65,7 +67,9 @@
     "sdg_ids": [],
     "i_type": null,
     "journal_index": null,
-    "updated_at": "2026-10-24T20:37:20.426Z"
+    "evaluated_by": "system",
+    "evaluated_at": "2026-10-25T10:37:27.672Z",
+    "updated_at": "2026-10-25T10:37:27.672Z"
   },
   "academic_academic_idx_0": {
     "id": "academic_academic_idx_0",
@@ -79,7 +83,7 @@
     "journal_index": null,
     "evaluated_by": "admin",
     "evaluated_at": "2026-10-24T20:50:50.558Z",
-    "updated_at": "2026-10-24T21:00:19.510Z"
+    "updated_at": "2026-10-24T20:50:50.558Z"
   },
   "service_service_1792829081701": {
     "id": "service_service_1792829081701",
@@ -107,5 +111,438 @@
     "evaluated_by": "admin",
     "evaluated_at": "2026-10-24T21:00:19.682Z",
     "updated_at": "2026-10-24T21:00:19.682Z"
+  },
+  "research_test_eval_101": {
+    "id": "research_test_eval_101",
+    "category": "research",
+    "record_id": "test_eval_101",
+    "sdg_ids": [
+      4,
+      9,
+      13
+    ],
+    "i_type": "I-1",
+    "journal_index": {
+      "type": "Q",
+      "value": "Q1"
+    },
+    "evaluated_by": "user",
+    "evaluated_at": "2026-10-25T11:15:32.268Z",
+    "updated_at": "2026-10-25T11:15:32.268Z"
+  },
+  "research_test_eval_102": {
+    "id": "research_test_eval_102",
+    "category": "research",
+    "record_id": "test_eval_102",
+    "sdg_ids": [
+      1,
+      2
+    ],
+    "i_type": null,
+    "journal_index": null,
+    "evaluated_by": "bulk",
+    "evaluated_at": "2026-10-25T11:15:32.275Z",
+    "updated_at": "2026-10-25T11:15:32.275Z"
+  },
+  "academic_test_eval_103": {
+    "id": "academic_test_eval_103",
+    "category": "academic",
+    "record_id": "test_eval_103",
+    "sdg_ids": [
+      7,
+      8
+    ],
+    "i_type": null,
+    "journal_index": null,
+    "evaluated_by": "bulk",
+    "evaluated_at": "2026-10-25T11:15:32.275Z",
+    "updated_at": "2026-10-25T11:15:32.275Z"
+  },
+  "research_res_1": {
+    "id": "research_res_1",
+    "category": "research",
+    "record_id": "res_1",
+    "sdg_ids": [
+      4,
+      9
+    ],
+    "i_type": null,
+    "journal_index": null,
+    "evaluated_by": "user",
+    "evaluated_at": "2026-10-25T13:50:34.063Z",
+    "updated_at": "2026-10-25T13:50:34.063Z"
+  },
+  "research_research_idx_30": {
+    "id": "research_research_idx_30",
+    "category": "research",
+    "record_id": "research_idx_30",
+    "sdg_ids": [
+      1,
+      12
+    ],
+    "i_type": "I_SEE",
+    "journal_index": null,
+    "evaluated_by": "user",
+    "evaluated_at": "2026-10-25T20:44:46.092Z",
+    "updated_at": "2026-10-25T20:44:46.092Z"
+  },
+  "research_research_idx_29": {
+    "id": "research_research_idx_29",
+    "category": "research",
+    "record_id": "research_idx_29",
+    "sdg_ids": [
+      15,
+      16
+    ],
+    "i_type": "I_AM",
+    "journal_index": null,
+    "evaluated_by": "user",
+    "evaluated_at": "2026-10-28T19:11:10.054Z",
+    "updated_at": "2026-10-28T19:11:10.054Z"
+  },
+  "research_research_idx_28": {
+    "id": "research_research_idx_28",
+    "category": "research",
+    "record_id": "research_idx_28",
+    "sdg_ids": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      8,
+      13,
+      16,
+      17
+    ],
+    "i_type": null,
+    "journal_index": null,
+    "evaluated_by": "user",
+    "evaluated_at": "2026-10-28T19:11:31.378Z",
+    "updated_at": "2026-10-28T19:11:31.378Z"
+  },
+  "academic_4": {
+    "id": "academic_4",
+    "category": "academic",
+    "record_id": "4",
+    "sdg_ids": [],
+    "i_type": "I_AM",
+    "journal_index": null,
+    "evaluated_by": "user",
+    "evaluated_at": "2026-10-28T19:11:53.872Z",
+    "updated_at": "2026-10-28T19:11:53.872Z"
+  },
+  "publications_pub_290": {
+    "id": "publications_pub_290",
+    "category": "publications",
+    "record_id": "pub_290",
+    "sdg_ids": [],
+    "i_type": null,
+    "journal_index": {
+      "type": "Q",
+      "value": "Q2"
+    },
+    "evaluated_by": "user",
+    "evaluated_at": "2026-10-28T20:46:40.845Z",
+    "updated_at": "2026-10-28T20:46:40.845Z"
+  },
+  "publications_pub_293": {
+    "id": "publications_pub_293",
+    "category": "publications",
+    "record_id": "pub_293",
+    "sdg_ids": [],
+    "i_type": null,
+    "journal_index": {
+      "type": "Q",
+      "value": "Q1"
+    },
+    "evaluated_by": "user",
+    "evaluated_at": "2026-10-28T19:11:39.413Z",
+    "updated_at": "2026-10-28T19:11:39.413Z"
+  },
+  "publications_pub_294": {
+    "id": "publications_pub_294",
+    "category": "publications",
+    "record_id": "pub_294",
+    "sdg_ids": [
+      9
+    ],
+    "i_type": "I_AM",
+    "journal_index": {
+      "type": "Q",
+      "value": "TCI 1"
+    },
+    "evaluated_by": "user",
+    "evaluated_at": "2026-10-28T20:53:07.121Z",
+    "updated_at": "2026-10-28T20:53:07.121Z"
+  },
+  "publications_pub_291": {
+    "id": "publications_pub_291",
+    "category": "publications",
+    "record_id": "pub_291",
+    "sdg_ids": [],
+    "i_type": null,
+    "journal_index": {
+      "type": "Q",
+      "value": "Q3"
+    },
+    "evaluated_by": "user",
+    "evaluated_at": "2026-10-28T21:06:55.068Z",
+    "updated_at": "2026-10-28T21:06:55.068Z"
+  },
+  "academic_academic_idx_68": {
+    "id": "academic_academic_idx_68",
+    "category": "academic",
+    "record_id": "academic_idx_68",
+    "sdg_ids": [],
+    "i_type": "I_SEE",
+    "journal_index": null,
+    "evaluated_by": "user",
+    "evaluated_at": "2026-10-31T11:00:02.472Z",
+    "updated_at": "2026-10-31T11:00:02.472Z"
+  },
+  "publications_pub_055": {
+    "id": "publications_pub_055",
+    "category": "publications",
+    "record_id": "pub_055",
+    "sdg_ids": [],
+    "i_type": "I_SEE",
+    "journal_index": null,
+    "evaluated_by": "user",
+    "evaluated_at": "2026-10-31T11:00:05.879Z",
+    "updated_at": "2026-10-31T11:00:05.879Z"
+  },
+  "research_research_idx_27": {
+    "id": "research_research_idx_27",
+    "category": "research",
+    "record_id": "research_idx_27",
+    "sdg_ids": [
+      5,
+      9
+    ],
+    "i_type": null,
+    "journal_index": null,
+    "evaluated_by": "user",
+    "evaluated_at": "2026-10-31T11:00:16.394Z",
+    "updated_at": "2026-10-31T11:00:16.394Z"
+  },
+  "research_research_idx_26": {
+    "id": "research_research_idx_26",
+    "category": "research",
+    "record_id": "research_idx_26",
+    "sdg_ids": [
+      1
+    ],
+    "i_type": null,
+    "journal_index": null,
+    "evaluated_by": "user",
+    "evaluated_at": "2026-11-05T19:34:29.259Z",
+    "updated_at": "2026-11-05T19:34:29.259Z"
+  },
+  "research_research_idx_22": {
+    "id": "research_research_idx_22",
+    "category": "research",
+    "record_id": "research_idx_22",
+    "sdg_ids": [
+      2
+    ],
+    "i_type": null,
+    "journal_index": null,
+    "evaluated_by": "user",
+    "evaluated_at": "2026-11-05T19:34:32.132Z",
+    "updated_at": "2026-11-05T19:34:32.132Z"
+  },
+  "research_วศ.กพส.\nบ.3/2568": {
+    "id": "research_วศ.กพส.\nบ.3/2568",
+    "category": "research",
+    "record_id": "วศ.กพส.\nบ.3/2568",
+    "sdg_ids": [
+      4
+    ],
+    "i_type": null,
+    "journal_index": null,
+    "evaluated_by": "user",
+    "evaluated_at": "2026-11-05T19:34:34.213Z",
+    "updated_at": "2026-11-05T19:34:34.213Z"
+  },
+  "research_วศ.กพส.\n10/2568": {
+    "id": "research_วศ.กพส.\n10/2568",
+    "category": "research",
+    "record_id": "วศ.กพส.\n10/2568",
+    "sdg_ids": [
+      3
+    ],
+    "i_type": null,
+    "journal_index": null,
+    "evaluated_by": "user",
+    "evaluated_at": "2026-11-05T19:34:36.299Z",
+    "updated_at": "2026-11-05T19:34:36.299Z"
+  },
+  "research_วศ.กพส.\nบ.2/2568": {
+    "id": "research_วศ.กพส.\nบ.2/2568",
+    "category": "research",
+    "record_id": "วศ.กพส.\nบ.2/2568",
+    "sdg_ids": [
+      5
+    ],
+    "i_type": null,
+    "journal_index": null,
+    "evaluated_by": "user",
+    "evaluated_at": "2026-11-05T19:34:39.423Z",
+    "updated_at": "2026-11-05T19:34:39.423Z"
+  },
+  "research_PRP\n6805031920": {
+    "id": "research_PRP\n6805031920",
+    "category": "research",
+    "record_id": "PRP\n6805031920",
+    "sdg_ids": [
+      6
+    ],
+    "i_type": null,
+    "journal_index": null,
+    "evaluated_by": "user",
+    "evaluated_at": "2026-11-05T19:34:41.486Z",
+    "updated_at": "2026-11-05T19:34:41.486Z"
+  },
+  "research_research_idx_17": {
+    "id": "research_research_idx_17",
+    "category": "research",
+    "record_id": "research_idx_17",
+    "sdg_ids": [
+      7
+    ],
+    "i_type": null,
+    "journal_index": null,
+    "evaluated_by": "user",
+    "evaluated_at": "2026-11-05T19:34:43.576Z",
+    "updated_at": "2026-11-05T19:34:43.576Z"
+  },
+  "research_YF(KU)\n37.68": {
+    "id": "research_YF(KU)\n37.68",
+    "category": "research",
+    "record_id": "YF(KU)\n37.68",
+    "sdg_ids": [
+      8
+    ],
+    "i_type": null,
+    "journal_index": null,
+    "evaluated_by": "user",
+    "evaluated_at": "2026-11-05T19:34:48.973Z",
+    "updated_at": "2026-11-05T19:34:48.973Z"
+  },
+  "research_research_idx_15": {
+    "id": "research_research_idx_15",
+    "category": "research",
+    "record_id": "research_idx_15",
+    "sdg_ids": [
+      9
+    ],
+    "i_type": null,
+    "journal_index": null,
+    "evaluated_by": "user",
+    "evaluated_at": "2026-11-05T19:34:52.863Z",
+    "updated_at": "2026-11-05T19:34:52.863Z"
+  },
+  "research_research_idx_14": {
+    "id": "research_research_idx_14",
+    "category": "research",
+    "record_id": "research_idx_14",
+    "sdg_ids": [
+      10
+    ],
+    "i_type": null,
+    "journal_index": null,
+    "evaluated_by": "user",
+    "evaluated_at": "2026-11-05T19:34:55.193Z",
+    "updated_at": "2026-11-05T19:34:55.193Z"
+  },
+  "research_research_idx_13": {
+    "id": "research_research_idx_13",
+    "category": "research",
+    "record_id": "research_idx_13",
+    "sdg_ids": [
+      11
+    ],
+    "i_type": null,
+    "journal_index": null,
+    "evaluated_by": "user",
+    "evaluated_at": "2026-11-05T19:34:57.557Z",
+    "updated_at": "2026-11-05T19:34:57.557Z"
+  },
+  "research_วศ.กพส.\nบ.1/2568": {
+    "id": "research_วศ.กพส.\nบ.1/2568",
+    "category": "research",
+    "record_id": "วศ.กพส.\nบ.1/2568",
+    "sdg_ids": [
+      12
+    ],
+    "i_type": null,
+    "journal_index": null,
+    "evaluated_by": "user",
+    "evaluated_at": "2026-11-05T19:34:59.420Z",
+    "updated_at": "2026-11-05T19:34:59.420Z"
+  },
+  "research_วศ.กพส.\n9/2568": {
+    "id": "research_วศ.กพส.\n9/2568",
+    "category": "research",
+    "record_id": "วศ.กพส.\n9/2568",
+    "sdg_ids": [
+      14
+    ],
+    "i_type": null,
+    "journal_index": null,
+    "evaluated_by": "user",
+    "evaluated_at": "2026-11-05T19:35:01.249Z",
+    "updated_at": "2026-11-05T19:35:01.249Z"
+  },
+  "research_วศ.กพส.\n8/2568": {
+    "id": "research_วศ.กพส.\n8/2568",
+    "category": "research",
+    "record_id": "วศ.กพส.\n8/2568",
+    "sdg_ids": [
+      15
+    ],
+    "i_type": null,
+    "journal_index": null,
+    "evaluated_by": "user",
+    "evaluated_at": "2026-11-05T19:35:03.688Z",
+    "updated_at": "2026-11-05T19:35:03.688Z"
+  },
+  "research_วศ.กพส.\n7/2568": {
+    "id": "research_วศ.กพส.\n7/2568",
+    "category": "research",
+    "record_id": "วศ.กพส.\n7/2568",
+    "sdg_ids": [
+      16
+    ],
+    "i_type": null,
+    "journal_index": null,
+    "evaluated_by": "user",
+    "evaluated_at": "2026-11-05T19:35:05.388Z",
+    "updated_at": "2026-11-05T19:35:05.388Z"
+  },
+  "research_research_idx_8": {
+    "id": "research_research_idx_8",
+    "category": "research",
+    "record_id": "research_idx_8",
+    "sdg_ids": [
+      17
+    ],
+    "i_type": null,
+    "journal_index": null,
+    "evaluated_by": "user",
+    "evaluated_at": "2026-11-05T19:35:07.669Z",
+    "updated_at": "2026-11-05T19:35:07.669Z"
+  },
+  "research_research_idx_7": {
+    "id": "research_research_idx_7",
+    "category": "research",
+    "record_id": "research_idx_7",
+    "sdg_ids": [],
+    "i_type": "I_SEE",
+    "journal_index": null,
+    "evaluated_by": "user",
+    "evaluated_at": "2026-11-05T19:35:10.053Z",
+    "updated_at": "2026-11-05T19:35:10.053Z"
   }
 }

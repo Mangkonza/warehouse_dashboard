@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import researchData from '@/data/research.json';
-import { getCachedCategoryData, fetchCategoryData } from '@/lib/dataService';
+import { getCachedCategoryData, fetchCategoryData, getCachedEvaluations, fetchEvaluations } from '@/lib/dataService';
 import { TimeFilterState, itemMatchesTimeFilter, resolveItemDate } from '@/types/timeFilter';
 import { getDepartment } from '@/lib/departments';
 import { isTestRecord, detectSDGsFromText } from '@/lib/sdgEngine';
@@ -43,6 +43,23 @@ export function normalizeFundSource(rawFund?: string): string {
   return clean;
 }
 
+function lookupItemEvaluation(category: string, item: any, evalMap: Record<string, any>) {
+  if (!item || !evalMap) return null;
+  const catLower = category.toLowerCase();
+  const candidates = [
+    item.id ? `${catLower}_${String(item.id).trim()}` : null,
+    item._id ? `${catLower}_${String(item._id).trim()}` : null,
+    item.name ? `${catLower}_${String(item.name).trim()}` : null,
+    item._id ? String(item._id).trim() : null,
+    item.id ? String(item.id).trim() : null,
+  ].filter(Boolean) as string[];
+
+  for (const k of candidates) {
+    if (evalMap[k]) return evalMap[k];
+  }
+  return null;
+}
+
 export function useResearchData(timeFilter?: TimeFilterState) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDept, setSelectedDept] = useState('all');
@@ -50,6 +67,24 @@ export function useResearchData(timeFilter?: TimeFilterState) {
   const [fundingType, setFundingType] = useState<'all' | 'external' | 'internal'>('all');
   const [grantTier, setGrantTier] = useState<string>('all');
   const [strategicFilter, setStrategicFilter] = useState<string>('all');
+
+  const [evalMap, setEvalMap] = useState<Record<string, any>>(() => getCachedEvaluations());
+
+  useEffect(() => {
+    let isMounted = true;
+    fetchEvaluations('research').then((fresh) => {
+      if (isMounted && fresh) setEvalMap(fresh);
+    });
+
+    const handleEvalUpdate = () => {
+      setEvalMap(getCachedEvaluations());
+    };
+    window.addEventListener('ku_evaluations_updated', handleEvalUpdate);
+    return () => {
+      isMounted = false;
+      window.removeEventListener('ku_evaluations_updated', handleEvalUpdate);
+    };
+  }, []);
 
   const [dataList, setDataList] = useState<ResearchItem[]>(() => {
     return (getCachedCategoryData('research') as ResearchItem[]) || (researchData as ResearchItem[]);
@@ -78,8 +113,20 @@ export function useResearchData(timeFilter?: TimeFilterState) {
   const validData = useMemo(() => {
     return dataList
       .filter((item) => item.name && item.name !== 'nan' && item.name !== 'NaT' && item.name !== 'เรื่อง' && !isTestRecord(item))
+      .map((item) => {
+        const ev = lookupItemEvaluation('research', item, evalMap);
+        if (ev) {
+          return {
+            ...item,
+            evaluation: ev,
+            sdg_ids: (ev.sdg_ids && ev.sdg_ids.length > 0) ? ev.sdg_ids : (item.sdg_ids || []),
+            i_type: ev.i_type || item.i_type || null,
+          };
+        }
+        return item;
+      })
       .filter((item) => !timeFilter || itemMatchesTimeFilter(item, timeFilter, 'research'));
-  }, [dataList, timeFilter]);
+  }, [dataList, evalMap, timeFilter]);
 
   const undatedCount = useMemo(() => {
     if (!timeFilter || timeFilter.mode === 'all') return 0;
