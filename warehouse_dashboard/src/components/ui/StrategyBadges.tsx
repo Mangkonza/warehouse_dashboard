@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { resolveItemStrategicAlignment } from '@/lib/pastelTheme';
+import { SdgTagList } from './SdgTagList';
 
 export interface StrategyBadgesProps {
   sdgs?: number[] | string[];
@@ -43,25 +44,13 @@ export function StrategyBadges({ sdgs, isee, iam, item, category, compact = fals
 
   return (
     <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', alignItems: 'center' }}>
-      {displaySdgs.map((s, idx) => (
-        <span
-          key={`sdg-${idx}-${s}`}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            padding: '1px 6px',
-            borderRadius: '6px',
-            backgroundColor: '#ecfdf5',
-            border: '1px solid #a7f3d0',
-            color: '#047857',
-            fontSize: '10.5px',
-            fontWeight: 600,
-          }}
-          title={`เป้าหมายความยั่งยืน: SDG ${s}`}
-        >
-          SDG {s}
-        </span>
-      ))}
+      {displaySdgs.length > 0 && (
+        <SdgTagList
+          sdgs={displaySdgs}
+          maxVisible={compact ? 2 : 3}
+          size="sm"
+        />
+      )}
 
       {displayIsee && (
         <span

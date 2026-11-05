@@ -1,0 +1,200 @@
+[
+  {
+    "item": "SDG 1",
+    "originalFile": "SDG1.jpg",
+    "origFormat": "JPEG",
+    "origDim": "1280x1284",
+    "origSize": "99.5 KB",
+    "newFile": "sdg-01.png",
+    "newFormat": "PNG",
+    "newDim": "512x512",
+    "newSize": "15.5 KB"
+  },
+  {
+    "item": "SDG 2",
+    "originalFile": "SDG2.jpg",
+    "origFormat": "JPEG",
+    "origDim": "1280x1280",
+    "origSize": "71.2 KB",
+    "newFile": "sdg-02.png",
+    "newFormat": "PNG",
+    "newDim": "512x512",
+    "newSize": "10.8 KB"
+  },
+  {
+    "item": "SDG 3",
+    "originalFile": "SDG3.png",
+    "origFormat": "PNG",
+    "origDim": "1500x1500",
+    "origSize": "47.3 KB",
+    "newFile": "sdg-03.png",
+    "newFormat": "PNG",
+    "newDim": "512x512",
+    "newSize": "8.9 KB"
+  },
+  {
+    "item": "SDG 4",
+    "originalFile": "SDG4.png",
+    "origFormat": "PNG",
+    "origDim": "1500x1500",
+    "origSize": "33.0 KB",
+    "newFile": "sdg-04.png",
+    "newFormat": "PNG",
+    "newDim": "512x512",
+    "newSize": "6.4 KB"
+  },
+  {
+    "item": "SDG 5",
+    "originalFile": "SDG5.jpg",
+    "origFormat": "PNG",
+    "origDim": "1500x1500",
+    "origSize": "31.5 KB",
+    "newFile": "sdg-05.png",
+    "newFormat": "PNG",
+    "newDim": "512x512",
+    "newSize": "6.9 KB"
+  },
+  {
+    "item": "SDG 6",
+    "originalFile": "SDG6.png",
+    "origFormat": "PNG",
+    "origDim": "1500x1500",
+    "origSize": "43.0 KB",
+    "newFile": "sdg-06.png",
+    "newFormat": "PNG",
+    "newDim": "512x512",
+    "newSize": "7.5 KB"
+  },
+  {
+    "item": "SDG 7",
+    "originalFile": "SDG7.jpg",
+    "origFormat": "PNG",
+    "origDim": "1500x1500",
+    "origSize": "49.6 KB",
+    "newFile": "sdg-07.png",
+    "newFormat": "PNG",
+    "newDim": "512x512",
+    "newSize": "8.6 KB"
+  },
+  {
+    "item": "SDG 8",
+    "originalFile": "SDG8.jpg",
+    "origFormat": "PNG",
+    "origDim": "1500x1500",
+    "origSize": "45.0 KB",
+    "newFile": "sdg-08.png",
+    "newFormat": "PNG",
+    "newDim": "512x512",
+    "newSize": "9.7 KB"
+  },
+  {
+    "item": "SDG 9",
+    "originalFile": "SDG9.jpg",
+    "origFormat": "PNG",
+    "origDim": "1500x1500",
+    "origSize": "58.2 KB",
+    "newFile": "sdg-09.png",
+    "newFormat": "PNG",
+    "newDim": "512x512",
+    "newSize": "10.7 KB"
+  },
+  {
+    "item": "SDG 10",
+    "originalFile": "SDG10.jpg",
+    "origFormat": "PNG",
+    "origDim": "1500x1500",
+    "origSize": "28.9 KB",
+    "newFile": "sdg-10.png",
+    "newFormat": "PNG",
+    "newDim": "512x512",
+    "newSize": "5.5 KB"
+  },
+  {
+    "item": "SDG 11",
+    "originalFile": "SDG11.jpg",
+    "origFormat": "PNG",
+    "origDim": "1024x1024",
+    "origSize": "47.9 KB",
+    "newFile": "sdg-11.png",
+    "newFormat": "PNG",
+    "newDim": "512x512",
+    "newSize": "9.3 KB"
+  },
+  {
+    "item": "SDG 12",
+    "originalFile": "SDG12.jpg",
+    "origFormat": "PNG",
+    "origDim": "1500x1500",
+    "origSize": "61.6 KB",
+    "newFile": "sdg-12.png",
+    "newFormat": "PNG",
+    "newDim": "512x512",
+    "newSize": "12.3 KB"
+  },
+  {
+    "item": "SDG 13",
+    "originalFile": "SDG13.jpg",
+    "origFormat": "PNG",
+    "origDim": "1500x1500",
+    "origSize": "53.9 KB",
+    "newFile": "sdg-13.png",
+    "newFormat": "PNG",
+    "newDim": "512x512",
+    "newSize": "9.8 KB"
+  },
+  {
+    "item": "SDG 14",
+    "originalFile": "SDG14.jpg",
+    "origFormat": "PNG",
+    "origDim": "1500x1500",
+    "origSize": "44.6 KB",
+    "newFile": "sdg-14.png",
+    "newFormat": "PNG",
+    "newDim": "512x512",
+    "newSize": "7.3 KB"
+  },
+  {
+    "item": "SDG 15",
+    "originalFile": "SDG15.jpg",
+    "origFormat": "PNG",
+    "origDim": "1500x1500",
+    "origSize": "31.7 KB",
+    "newFile": "sdg-15.png",
+    "newFormat": "PNG",
+    "newDim": "512x512",
+    "newSize": "6.1 KB"
+  },
+  {
+    "item": "SDG 16",
+    "originalFile": "SDG16.jpg",
+    "origFormat": "PNG",
+    "origDim": "1500x1500",
+    "origSize": "55.9 KB",
+    "newFile": "sdg-16.png",
+    "newFormat": "PNG",
+    "newDim": "512x512",
+    "newSize": "11.1 KB"
+  },
+  {
+    "item": "SDG 17",
+    "originalFile": "SDG17.jpg",
+    "origFormat": "PNG",
+    "origDim": "1024x1024",
+    "origSize": "72.4 KB",
+    "newFile": "sdg-17.png",
+    "newFormat": "PNG",
+    "newDim": "512x512",
+    "newSize": "12.5 KB"
+  },
+  {
+    "item": "SDG Wheel (Logo)",
+    "originalFile": "prototype base64",
+    "origFormat": "PNG",
+    "origDim": "89x89",
+    "origSize": "5.3 KB",
+    "newFile": "sdg-wheel.png",
+    "newFormat": "PNG",
+    "newDim": "512x512",
+    "newSize": "26.3 KB"
+  }
+]

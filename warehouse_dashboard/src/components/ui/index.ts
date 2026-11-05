@@ -14,6 +14,7 @@ export * from './textarea';
 export * from './tooltip';
 export * from './RecordDetailDrawer';
 export * from './evaluation-tag';
+export * from './SdgIcon';
 export * from './Drawer';
 export * from './BlockSingleSelect';
 export * from './JournalQualitySelect';

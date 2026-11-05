@@ -2,6 +2,7 @@ export type AppRole = 'user' | 'admin';
 
 export type AppResource =
   | 'overview'
+  | 'sdgs'
   | 'research'
   | 'academic'
   | 'publications'
@@ -22,6 +23,7 @@ export const ROLE_HIERARCHY: Record<AppRole, number> = {
 
 export const RESOURCE_REQUIRED_ROLE: Record<AppResource, AppRole> = {
   overview: 'user',
+  sdgs: 'user',
   research: 'user',
   academic: 'user',
   publications: 'user',

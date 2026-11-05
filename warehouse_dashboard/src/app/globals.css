@@ -603,13 +603,6 @@ tbody td{padding:11px 10px;border-bottom:1px solid #e2e8f0;max-width:260px;overf
 }
 
 @layer components {
-  /* SDG 3-variant global evaluation tags */
-  .tag-sdg {
-    background-color: #006C68 !important;
-    border-color: #004E4B !important;
-    color: #ffffff !important;
-  }
-
   /* I am / I see */
   .tag-iam {
     background-color: #831D1D !important;
