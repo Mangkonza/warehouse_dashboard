@@ -25,6 +25,9 @@ interface IPChartsProps {
   validIpData: IPItem[];
   onSelectDept?: (deptCode: string) => void;
   onSelectType?: (typeName: string) => void;
+  activePerspective?: IPPerspective;
+  onChangePerspective?: (persp: IPPerspective) => void;
+  hideSelector?: boolean;
 }
 
 export type IPPerspective = 'types_dept' | 'protection_status' | 'faculty' | 'sdg';
@@ -33,9 +36,14 @@ export function IPCharts({
   validIpData,
   onSelectDept,
   onSelectType,
+  activePerspective: propPerspective,
+  onChangePerspective,
+  hideSelector = false,
 }: IPChartsProps) {
   const router = useRouter();
-  const [activePerspective, setActivePerspective] = useState<IPPerspective>('types_dept');
+  const [internalPerspective, setInternalPerspective] = useState<IPPerspective>('types_dept');
+  const activePerspective = propPerspective ?? internalPerspective;
+  const setActivePerspective = onChangePerspective ?? setInternalPerspective;
   const [strategyMetric, setStrategyMetric] = useState<'count' | 'budget'>('count');
   const chartInstances = useRef<Chart[]>([]);
   const [drillDown, setDrillDown] = useState<{
@@ -475,57 +483,7 @@ export function IPCharts({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '16px' }}>
-            {/* Perspective Dimension Selector */}
-      <div
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '6px',
-          backgroundColor: '#ffffff',
-          padding: '6px 10px',
-          borderRadius: '9999px',
-          border: '1px solid #e2e8f0',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
-          flexWrap: 'wrap',
-          maxWidth: '100%',
-        }}
-      >
-        <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#334155', paddingLeft: '8px', marginRight: '4px' }}>
-          มิติการวิเคราะห์:
-        </span>
-        {[
-          { id: 'types_dept', label: 'ภาพรวมสถานะและ 7 สังกัด', icon: <FaChartBar /> },
-          { id: 'protection_status', label: 'การติดตามขั้นตอนและหมายเลขคำขอ', icon: <FaCertificate /> },
-          { id: 'faculty', label: 'ผู้ประดิษฐ์ชั้นนำและกลุ่มเทคโนโลยี', icon: <FaUserTie /> },
-          { id: 'sdg', label: 'ความสอดคล้องเชิงยุทธศาสตร์ (SDGs / ISEE / IAM)', icon: <FaLeaf /> },
-        ].map((tab) => {
-          const isSel = activePerspective === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActivePerspective(tab.id as IPPerspective)}
-              style={{
-                padding: '6px 16px',
-                borderRadius: '9999px',
-                border: isSel ? '1.5px solid #8b5cf6' : '1px solid #e2e8f0',
-                backgroundColor: isSel ? '#8b5cf6' : '#ffffff',
-                color: isSel ? '#ffffff' : '#475569',
-                fontSize: '12.5px',
-                fontWeight: isSel ? 700 : 500,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                boxShadow: isSel ? '0 2px 6px #8b5cf640' : 'none',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              <span style={{ fontSize: '11.5px' }}>{tab.icon}</span>
-              <span>{tab.label}</span>
-            </button>
-          );
-        })}
-      </div>
+            
 
       {/* DIMENSION 1: Pipeline & 7-Department Stacked Bar + Funnel */}
       {activePerspective === 'types_dept' && (

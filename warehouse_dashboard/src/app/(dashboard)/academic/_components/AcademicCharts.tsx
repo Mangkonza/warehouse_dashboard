@@ -31,6 +31,9 @@ interface AcademicChartsProps {
   totalAllocRemaining: number;
   hideMissingClient?: boolean;
   onSelectClient?: (clientName: string) => void;
+  activePerspective?: AcademicPerspective;
+  onChangePerspective?: (persp: AcademicPerspective) => void;
+  hideSelector?: boolean;
 }
 
 export type AcademicPerspective = 'timeline_alloc' | 'client_segment' | 'faculty' | 'sdg';
@@ -43,9 +46,14 @@ export function AcademicCharts({
   totalAllocRemaining,
   hideMissingClient = false,
   onSelectClient,
+  activePerspective: propPerspective,
+  onChangePerspective,
+  hideSelector = false,
 }: AcademicChartsProps) {
   const router = useRouter();
-  const [activePerspective, setActivePerspective] = useState<AcademicPerspective>('timeline_alloc');
+  const [internalPerspective, setInternalPerspective] = useState<AcademicPerspective>('timeline_alloc');
+  const activePerspective = propPerspective ?? internalPerspective;
+  const setActivePerspective = onChangePerspective ?? setInternalPerspective;
   const [clientValueMetric, setClientValueMetric] = useState<'total' | 'average'>('total');
   const chartInstances = useRef<Chart[]>([]);
   const [drillDown, setDrillDown] = useState<{
@@ -661,57 +669,7 @@ export function AcademicCharts({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '16px' }}>
-            {/* Perspective Dimension Selector */}
-      <div
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '6px',
-          backgroundColor: '#ffffff',
-          padding: '6px 10px',
-          borderRadius: '9999px',
-          border: '1px solid #e2e8f0',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
-          flexWrap: 'wrap',
-          maxWidth: '100%',
-        }}
-      >
-        <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#334155', paddingLeft: '8px', marginRight: '4px' }}>
-          มิติการวิเคราะห์:
-        </span>
-        {[
-          { id: 'timeline_alloc', label: 'แนวโน้มรายเดือนและการจัดสรรรายรับ', icon: <FaCoins /> },
-          { id: 'client_segment', label: 'กลุ่มประเภทผู้ว่าจ้างและตลาด', icon: <FaHandshake /> },
-          { id: 'faculty', label: 'หัวหน้าโครงการพัฒนาวิชาการ', icon: <FaUserTie /> },
-          { id: 'sdg', label: 'ความสอดคล้องเชิงยุทธศาสตร์ (SDGs / ISEE / IAM)', icon: <FaLeaf /> },
-        ].map((tab) => {
-          const isSel = activePerspective === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActivePerspective(tab.id as AcademicPerspective)}
-              style={{
-                padding: '6px 16px',
-                borderRadius: '9999px',
-                border: isSel ? '1.5px solid #0284c7' : '1px solid #e2e8f0',
-                backgroundColor: isSel ? '#0284c7' : '#ffffff',
-                color: isSel ? '#ffffff' : '#475569',
-                fontSize: '12.5px',
-                fontWeight: isSel ? 700 : 500,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                boxShadow: isSel ? '0 2px 6px #0284c740' : 'none',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              <span style={{ fontSize: '11.5px' }}>{tab.icon}</span>
-              <span>{tab.label}</span>
-            </button>
-          );
-        })}
-      </div>
+            
 
       {/* DIMENSION 1: Timeline & Allocation */}
       {activePerspective === 'timeline_alloc' && (

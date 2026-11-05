@@ -3,7 +3,10 @@
 import React, { useEffect } from 'react';
 import { useDashboardTabFilter, useTimeFilter } from '@/features/time-filter';
 import { useAcademicData } from '../_hooks/useAcademicData';
-import { AcademicCharts } from './AcademicCharts';
+import { AcademicCharts, AcademicPerspective } from './AcademicCharts';
+import { TopSegmentedTabs } from '@/components/ui/TopSegmentedTabs';
+import { StrategicAlignmentMatrix } from '@/components/data-display/StrategicAlignmentMatrix';
+import { FaCoins, FaHandshake, FaLeaf, FaChartLine, FaBuilding } from 'react-icons/fa';
 import { AcademicTable } from './AcademicTable';
 import { DashboardTabFilterBar } from '@/components/ui/DashboardTabFilterBar';
 import { UndatedNotice } from '@/components/ui/UndatedNotice';
@@ -13,6 +16,7 @@ import { dashboardPageSubtitleStyle, dashboardPageTitleStyle, dashboardTheme } f
 import { FaGraduationCap, FaHandHoldingUsd, FaTrophy, FaUserTie } from 'react-icons/fa';
 
 export function AcademicView() {
+  const [activePerspective, setActivePerspective] = React.useState<AcademicPerspective>('timeline_alloc');
   const {
     tabFilter,
     setTabFilter,
@@ -100,6 +104,21 @@ export function AcademicView() {
         <p style={dashboardPageSubtitleStyle}>
           ภาพรวมงบประมาณ ผู้ว่าจ้าง และผลผลิตโครงการพัฒนาวิชาการของคณะวิศวกรรมศาสตร์
         </p>
+      </div>
+
+      {/* Top Segmented Tabs - Style identical to manage?tab=research */}
+      <div style={{ overflowX: 'auto', padding: '2px 0 6px 0' }}>
+        <TopSegmentedTabs
+          activeCategory={activePerspective}
+          onSelectCategory={setActivePerspective}
+          colorTheme="blue"
+          tabs={[
+            { key: 'timeline_alloc', label: 'แนวโน้มรายเดือนและการจัดสรรรายรับ', icon: <FaChartLine style={{ fontSize: '13px' }} /> },
+            { key: 'client_segment', label: 'กลุ่มประเภทผู้ว่าจ้างและตลาด', icon: <FaBuilding style={{ fontSize: '13px' }} /> },
+            { key: 'faculty', label: 'หัวหน้าโครงการพัฒนาวิชาการ', icon: <FaUserTie style={{ fontSize: '13px' }} /> },
+            { key: 'sdg', label: 'ความสอดคล้องเชิงยุทธศาสตร์ (SDGs / ISEE IAM)', icon: <FaLeaf style={{ fontSize: '13px' }} /> },
+          ]}
+        />
       </div>
 
       {/* ZONE 1: Unified filter card */}
@@ -198,108 +217,126 @@ export function AcademicView() {
 
       {undatedCount > 0 && <UndatedNotice count={undatedCount} />}
 
-      {/* ZONE 2: Executive Bento KPI Grid (Academic Sky Glow) */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          gap: '12px',
-        }}
-      >
-        <MissionKpiCard
-          mission="academic"
-          variant="pastel"
-          label="มูลค่าสัญญาพัฒนารวม"
-          value={budgetMillions}
-          unit="ล้านบาท"
-          subtext={`${validData.length} โครงการ • ${uniqueClients.size} องค์กรผู้ว่าจ้าง`}
-          icon={<FaGraduationCap style={{ fontSize: '16px' }} />}
-        />
+      {/* PERSPECTIVE VIEW: Dedicated page view for Strategic Alignment */}
+      {activePerspective === 'sdg' ? (
+        <div style={{ marginTop: '8px' }}>
+          <StrategicAlignmentMatrix
+            items={displayData}
+            categoryKey="academic"
+            missionTitle="โครงการพัฒนาวิชาการ"
+            unitLabel="โครงการ"
+            showBudget={true}
+          />
+        </div>
+      ) : (
+        <>
+          {activePerspective === 'timeline_alloc' && (
+            <>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                  gap: '12px',
+                }}
+              >
+                <MissionKpiCard
+                  mission="academic"
+                  variant="pastel"
+                  label="มูลค่าสัญญาพัฒนารวม"
+                  value={budgetMillions}
+                  unit="ล้านบาท"
+                  subtext={`${validData.length} โครงการ • ${uniqueClients.size} องค์กรผู้ว่าจ้าง`}
+                  icon={<FaGraduationCap style={{ fontSize: '16px' }} />}
+                />
 
-        <MissionKpiCard
-          mission="academic"
-          variant="pastel"
-          label="รายได้จัดสรรสุทธิ (15%)"
-          value={allocMillions}
-          unit="ล้านบาท"
-          subtext={`คณะ ${facMillions} ลบ. • สังกัด ${depMillions} ลบ. • มหาวิทยาลัย ${kuMillions} ลบ.`}
-          icon={<FaHandHoldingUsd style={{ fontSize: '16px' }} />}
-        />
+                <MissionKpiCard
+                  mission="academic"
+                  variant="pastel"
+                  label="รายได้จัดสรรสุทธิ (15%)"
+                  value={allocMillions}
+                  unit="ล้านบาท"
+                  subtext={`คณะ ${facMillions} ลบ. • สังกัด ${depMillions} ลบ. • มหาวิทยาลัย ${kuMillions} ลบ.`}
+                  icon={<FaHandHoldingUsd style={{ fontSize: '16px' }} />}
+                />
 
-        <MissionKpiCard
-          mission="academic"
-          variant="pastel"
-          label="มูลค่าเฉลี่ยต่อโครงการ"
-          value={avgMillions}
-          unit="ล้านบาท"
-          subtext={`สูงสุด ${maxMillions} ลบ. • ระบุผู้ว่าจ้างแล้ว ${specifiedClientsCount} หน่วยงาน`}
-          icon={<FaTrophy style={{ fontSize: '16px' }} />}
-        />
+                <MissionKpiCard
+                  mission="academic"
+                  variant="pastel"
+                  label="มูลค่าเฉลี่ยต่อโครงการ"
+                  value={avgMillions}
+                  unit="ล้านบาท"
+                  subtext={`สูงสุด ${maxMillions} ลบ. • ระบุผู้ว่าจ้างแล้ว ${specifiedClientsCount} หน่วยงาน`}
+                  icon={<FaTrophy style={{ fontSize: '16px' }} />}
+                />
 
-        <MissionKpiCard
-          mission="academic"
-          variant="pastel"
-          label="หัวหน้าโครงการ"
-          value={uniqueHeads.size}
-          unit="ท่าน"
-          subtext={`งบดำเนินงาน 85% • ${remMillions} ล้านบาท`}
-          icon={<FaUserTie style={{ fontSize: '16px' }} />}
-        />
-      </div>
+                <MissionKpiCard
+                  mission="academic"
+                  variant="pastel"
+                  label="หัวหน้าโครงการ"
+                  value={uniqueHeads.size}
+                  unit="ท่าน"
+                  subtext={`งบดำเนินงาน 85% • ${remMillions} ล้านบาท`}
+                  icon={<FaUserTie style={{ fontSize: '16px' }} />}
+                />
+              </div>
 
-      {/* ZONE 2.5: Year-over-Year (YoY) Comparison & Budget Analysis */}
-      <MissionYoYControls
-        missionKey="academic"
-        missionTitle="โครงการพัฒนาวิชาการ"
-        allItemsRaw={validData}
-        activeDepartment={selectedDept}
-        primaryMetricLabel="จำนวนโครงการ (โครงการ)"
-        secondaryMetricLabel="งบประมาณโครงการ (ล้านบาท)"
-        hasBudgetMetric={true}
-        defaultBaseYear="2567"
-        defaultTargetYear="2568"
-      />
+              <MissionYoYControls
+                missionKey="academic"
+                missionTitle="โครงการพัฒนาวิชาการ"
+                allItemsRaw={validData}
+                activeDepartment={selectedDept}
+                primaryMetricLabel="จำนวนโครงการ (โครงการ)"
+                secondaryMetricLabel="งบประมาณโครงการ (ล้านบาท)"
+                hasBudgetMetric={true}
+                defaultBaseYear="2567"
+                defaultTargetYear="2568"
+              />
+            </>
+          )}
 
-      {/* ZONE 3: Academic Charts (Monthly Trend, Dept Breakdown, Top Clients, SDGs/ISEE/IAM) */}
-      <AcademicCharts
-        validData={displayData}
-        totalAllocFaculty={totalAllocFaculty}
-        totalAllocDept={totalAllocDept}
-        totalAllocKu={totalAllocKu}
-        totalAllocRemaining={totalAllocRemaining}
-        hideMissingClient={hideMissingClient}
-        onSelectClient={(client) => {
-          const nextClient = client === selectedClient ? 'all' : client;
-          setSelectedClient(nextClient);
-          setTabFilter({
-            customFilters: {
-              ...(tabFilter.customFilters || {}),
-              selectedClient: nextClient,
-            },
-          });
-        }}
-      />
+          <AcademicCharts
+            validData={displayData}
+            totalAllocFaculty={totalAllocFaculty}
+            totalAllocDept={totalAllocDept}
+            totalAllocKu={totalAllocKu}
+            totalAllocRemaining={totalAllocRemaining}
+            hideMissingClient={hideMissingClient}
+            activePerspective={activePerspective}
+            onChangePerspective={setActivePerspective}
+            hideSelector={true}
+            onSelectClient={(client) => {
+              const nextClient = client === selectedClient ? 'all' : client;
+              setSelectedClient(nextClient);
+              setTabFilter({
+                customFilters: {
+                  ...(tabFilter.customFilters || {}),
+                  selectedClient: nextClient,
+                },
+              });
+            }}
+          />
 
-      {/* ZONE 4: Academic Table with Strategy Badges & Export */}
-      <AcademicTable
-        displayData={displayData}
-        totalCount={validData.length}
-        searchTerm={searchTerm}
-        onSearchChange={(s) => {
-          setSearchTerm(s);
-          setTabFilter({ search: s });
-        }}
-        selectedClient={selectedClient}
-        onClientChange={(client) => {
-          setSelectedClient(client);
-          setTabFilter({
-            customFilters: {
-              ...(tabFilter.customFilters || {}),
-              selectedClient: client,
-            },
-          });
-        }}
-      />
+          <AcademicTable
+            displayData={displayData}
+            totalCount={validData.length}
+            searchTerm={searchTerm}
+            onSearchChange={(s) => {
+              setSearchTerm(s);
+              setTabFilter({ search: s });
+            }}
+            selectedClient={selectedClient}
+            onClientChange={(client) => {
+              setSelectedClient(client);
+              setTabFilter({
+                customFilters: {
+                  ...(tabFilter.customFilters || {}),
+                  selectedClient: client,
+                },
+              });
+            }}
+          />
+        </>
+      )}
     </div>
   );
 }

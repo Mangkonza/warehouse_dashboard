@@ -28,6 +28,9 @@ interface ResearchChartsProps {
   onSelectDept?: (deptCode: string) => void;
   selectedFund?: string;
   onSelectFund?: (fundName: string) => void;
+  activePerspective?: ResearchPerspective;
+  onChangePerspective?: (persp: ResearchPerspective) => void;
+  hideSelector?: boolean;
 }
 
 const THAI_MONTHS = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
@@ -50,11 +53,18 @@ export type ResearchPerspective = 'overview' | 'productivity' | 'faculty' | 'sdg
 
 export function ResearchCharts({
   validData,
+  selectedDept,
   onSelectDept,
+  selectedFund,
   onSelectFund,
+  activePerspective: propPerspective,
+  onChangePerspective,
+  hideSelector = false,
 }: ResearchChartsProps) {
   const router = useRouter();
-  const [activePerspective, setActivePerspective] = useState<ResearchPerspective>('overview');
+  const [internalPerspective, setInternalPerspective] = useState<ResearchPerspective>('overview');
+  const activePerspective = propPerspective ?? internalPerspective;
+  const setActivePerspective = onChangePerspective ?? setInternalPerspective;
   const [researchBudgetMetric, setResearchBudgetMetric] = useState<'total' | 'average'>('total');
   const chartInstances = useRef<Chart[]>([]);
   const [drillDown, setDrillDown] = useState<{
@@ -642,57 +652,7 @@ export function ResearchCharts({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '16px' }}>
-            {/* Perspective Dimension Selector */}
-      <div
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '6px',
-          backgroundColor: '#ffffff',
-          padding: '6px 10px',
-          borderRadius: '9999px',
-          border: '1px solid #e2e8f0',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
-          flexWrap: 'wrap',
-          maxWidth: '100%',
-        }}
-      >
-        <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#334155', paddingLeft: '8px', marginRight: '4px' }}>
-          มิติการวิเคราะห์:
-        </span>
-        {[
-          { id: 'overview', label: 'ภาพรวมงบประมาณและแหล่งทุน', icon: <FaCoins /> },
-          { id: 'productivity', label: 'เปรียบเทียบผลผลิตรายสังกัด', icon: <FaBuilding /> },
-          { id: 'faculty', label: 'อาจารย์และหัวหน้าโครงการวิจัย', icon: <FaUserTie /> },
-          { id: 'sdg', label: 'ความสอดคล้องเชิงยุทธศาสตร์ (SDGs / ISEE / IAM)', icon: <FaLeaf /> },
-        ].map((tab) => {
-          const isSel = activePerspective === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActivePerspective(tab.id as ResearchPerspective)}
-              style={{
-                padding: '6px 16px',
-                borderRadius: '9999px',
-                border: isSel ? '1.5px solid #00A651' : '1px solid #e2e8f0',
-                backgroundColor: isSel ? '#00A651' : '#ffffff',
-                color: isSel ? '#ffffff' : '#475569',
-                fontSize: '12.5px',
-                fontWeight: isSel ? 700 : 500,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                boxShadow: isSel ? '0 2px 6px #00A65140' : 'none',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              <span style={{ fontSize: '11.5px' }}>{tab.icon}</span>
-              <span>{tab.label}</span>
-            </button>
-          );
-        })}
-      </div>
+            
 
       {/* DIMENSION 1: Overview & Funding & Scale */}
       {activePerspective === 'overview' && (

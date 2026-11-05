@@ -25,6 +25,9 @@ interface ServiceChartsProps {
   onSelectDept?: (deptCode: string) => void;
   onSelectType?: (typeName: string) => void;
   onSelectPerson?: (personName: string) => void;
+  activePerspective?: ServicePerspective;
+  onChangePerspective?: (persp: ServicePerspective) => void;
+  hideSelector?: boolean;
 }
 
 export type ServicePerspective = 'timeline_type' | 'department' | 'faculty' | 'sdg';
@@ -34,9 +37,14 @@ export function ServiceCharts({
   onSelectDept,
   onSelectType,
   onSelectPerson,
+  activePerspective: propPerspective,
+  onChangePerspective,
+  hideSelector = false,
 }: ServiceChartsProps) {
   const router = useRouter();
-  const [activePerspective, setActivePerspective] = useState<ServicePerspective>('timeline_type');
+  const [internalPerspective, setInternalPerspective] = useState<ServicePerspective>('timeline_type');
+  const activePerspective = propPerspective ?? internalPerspective;
+  const setActivePerspective = onChangePerspective ?? setInternalPerspective;
   const [strategyMetric, setStrategyMetric] = useState<'activities' | 'targets' | 'staff'>('activities');
   const chartInstances = useRef<Chart[]>([]);
   const [drillDown, setDrillDown] = useState<{
@@ -660,57 +668,7 @@ export function ServiceCharts({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '16px' }}>
-            {/* Perspective Dimension Selector */}
-      <div
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '6px',
-          backgroundColor: '#ffffff',
-          padding: '6px 10px',
-          borderRadius: '9999px',
-          border: '1px solid #e2e8f0',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
-          flexWrap: 'wrap',
-          maxWidth: '100%',
-        }}
-      >
-        <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#334155', paddingLeft: '8px', marginRight: '4px' }}>
-          มิติการวิเคราะห์:
-        </span>
-        {[
-          { id: 'timeline_type', label: 'แนวโน้มรายเดือนและบทบาทงานบริการ', icon: <FaChartLine /> },
-          { id: 'department', label: 'การกระจายตามสังกัดและภาระงาน', icon: <FaBuilding /> },
-          { id: 'faculty', label: 'อาจารย์ผู้ให้บริการวิชาการสูงสุด ', icon: <FaUserTie /> },
-          { id: 'sdg', label: 'ความสอดคล้องเชิงยุทธศาสตร์ (SDGs / ISEE / IAM)', icon: <FaLeaf /> },
-        ].map((tab) => {
-          const isSel = activePerspective === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActivePerspective(tab.id as ServicePerspective)}
-              style={{
-                padding: '6px 16px',
-                borderRadius: '9999px',
-                border: isSel ? '1.5px solid #d97706' : '1px solid #e2e8f0',
-                backgroundColor: isSel ? '#d97706' : '#ffffff',
-                color: isSel ? '#ffffff' : '#475569',
-                fontSize: '12.5px',
-                fontWeight: isSel ? 700 : 500,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                boxShadow: isSel ? '0 2px 6px #d9770640' : 'none',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              <span style={{ fontSize: '11.5px' }}>{tab.icon}</span>
-              <span>{tab.label}</span>
-            </button>
-          );
-        })}
-      </div>
+            
 
       {/* DIMENSION 1: Timeline & Types */}
       {activePerspective === 'timeline_type' && (

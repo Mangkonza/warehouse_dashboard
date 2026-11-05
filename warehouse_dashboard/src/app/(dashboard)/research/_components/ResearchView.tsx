@@ -3,7 +3,9 @@
 import React, { useEffect } from 'react';
 import { useDashboardTabFilter, useTimeFilter } from '@/features/time-filter';
 import { useResearchData } from '../_hooks/useResearchData';
-import { ResearchCharts } from './ResearchCharts';
+import { ResearchCharts, ResearchPerspective } from './ResearchCharts';
+import { TopSegmentedTabs } from '@/components/ui/TopSegmentedTabs';
+import { StrategicAlignmentMatrix } from '@/components/data-display/StrategicAlignmentMatrix';
 import { ResearchTable } from './ResearchTable';
 import { DashboardTabFilterBar } from '@/components/ui/DashboardTabFilterBar';
 import { UndatedNotice } from '@/components/ui/UndatedNotice';
@@ -14,9 +16,10 @@ import {
   dashboardPageTitleStyle,
   dashboardTheme,
 } from '@/lib/dashboardTheme';
-import { FaCoins, FaFlask, FaAward, FaChartLine } from 'react-icons/fa';
+import { FaCoins, FaFlask, FaAward, FaChartLine, FaBuilding, FaUserTie, FaLeaf } from 'react-icons/fa';
 
 export function ResearchView() {
+  const [activePerspective, setActivePerspective] = React.useState<ResearchPerspective>('overview');
   const {
     tabFilter,
     setTabFilter,
@@ -97,6 +100,21 @@ export function ResearchView() {
         <p style={dashboardPageSubtitleStyle}>
           ภาพรวมงบประมาณ แหล่งทุน และผลผลิตงานวิจัยของคณะวิศวกรรมศาสตร์
         </p>
+      </div>
+
+      {/* Top Segmented Tabs - Style identical to manage?tab=research */}
+      <div style={{ overflowX: 'auto', padding: '2px 0 6px 0' }}>
+        <TopSegmentedTabs
+          activeCategory={activePerspective}
+          onSelectCategory={setActivePerspective}
+          colorTheme="emerald"
+          tabs={[
+            { key: 'overview', label: 'ภาพรวมงบประมาณและแหล่งทุน', icon: <FaCoins style={{ fontSize: '13px' }} /> },
+            { key: 'productivity', label: 'เปรียบเทียบผลผลิตรายสังกัด', icon: <FaBuilding style={{ fontSize: '13px' }} /> },
+            { key: 'faculty', label: 'อาจารย์และหัวหน้าโครงการวิจัย', icon: <FaUserTie style={{ fontSize: '13px' }} /> },
+            { key: 'sdg', label: 'ความสอดคล้องเชิงยุทธศาสตร์ (SDGs / ISEE / IAM)', icon: <FaLeaf style={{ fontSize: '13px' }} /> },
+          ]}
+        />
       </div>
 
       {/* ZONE 1: Unified filter card */}
@@ -191,114 +209,136 @@ export function ResearchView() {
 
       {undatedCount > 0 && <UndatedNotice count={undatedCount} />}
 
-      {/* ZONE 2: Executive KPI Grid */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          gap: '12px',
-        }}
-      >
-        <MissionKpiCard
-          mission="research"
-          variant="pastel"
-          label="งบประมาณวิจัยรวม"
-          value={budgetMillions}
-          unit="ล้านบาท"
-          subtext={`ทุนภายนอก ${extMillions} ลบ. • ทุนภายใน ${intMillions} ลบ.`}
-          icon={<FaCoins style={{ fontSize: '16px' }} />}
-        />
+      {/* PERSPECTIVE VIEW: Dedicated page view for Strategic Alignment */}
+      {activePerspective === 'sdg' ? (
+        <div style={{ marginTop: '8px' }}>
+          <StrategicAlignmentMatrix
+            items={filteredData}
+            categoryKey="research"
+            missionTitle="โครงการวิจัย"
+            unitLabel="โครงการ"
+            showBudget={true}
+          />
+        </div>
+      ) : (
+        <>
+          {activePerspective === 'overview' && (
+            <>
+              {/* ZONE 2: Executive KPI Grid */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                  gap: '12px',
+                }}
+              >
+                <MissionKpiCard
+                  mission="research"
+                  variant="pastel"
+                  label="งบประมาณวิจัยรวม"
+                  value={budgetMillions}
+                  unit="ล้านบาท"
+                  subtext={`ทุนภายนอก ${extMillions} ลบ. • ทุนภายใน ${intMillions} ลบ.`}
+                  icon={<FaCoins style={{ fontSize: '16px' }} />}
+                />
 
-        <MissionKpiCard
-          mission="research"
-          variant="pastel"
-          label="โครงการวิจัยทั้งหมด"
-          value={validData.length}
-          unit="โครงการ"
-          subtext={`ครอบคลุม ${uniqueDepts.size} สังกัด • หัวหน้าโครงการ ${activePisCount} ท่าน`}
-          icon={<FaFlask style={{ fontSize: '16px' }} />}
-        />
+                <MissionKpiCard
+                  mission="research"
+                  variant="pastel"
+                  label="โครงการวิจัยทั้งหมด"
+                  value={validData.length}
+                  unit="โครงการ"
+                  subtext={`ครอบคลุม ${uniqueDepts.size} สังกัด • หัวหน้าโครงการ ${activePisCount} ท่าน`}
+                  icon={<FaFlask style={{ fontSize: '16px' }} />}
+                />
 
-        <MissionKpiCard
-          mission="research"
-          variant="pastel"
-          label="สัดส่วนพึ่งพาทุนภายนอก"
-          value={`${extPct}%`}
-          subtext={`16 โครงการทุนนอก • ${extMillions} จาก ${budgetMillions} ล้านบาท`}
-          icon={<FaAward style={{ fontSize: '16px' }} />}
-        />
+                <MissionKpiCard
+                  mission="research"
+                  variant="pastel"
+                  label="สัดส่วนพึ่งพาทุนภายนอก"
+                  value={`${extPct}%`}
+                  subtext={`16 โครงการทุนนอก • ${extMillions} จาก ${budgetMillions} ล้านบาท`}
+                  icon={<FaAward style={{ fontSize: '16px' }} />}
+                />
 
-        <MissionKpiCard
-          mission="research"
-          variant="pastel"
-          label="งบเฉลี่ยต่อโครงการ"
-          value={avgGrantMillions}
-          unit="ล้านบาท"
-          subtext={`สูงสุด ${maxProjectBudgetMillions} ลบ. • ${maxProj?.head || 'ศ.ดร.เชาว์'}`}
-          icon={<FaChartLine style={{ fontSize: '16px' }} />}
-        />
-      </div>
+                <MissionKpiCard
+                  mission="research"
+                  variant="pastel"
+                  label="งบเฉลี่ยต่อโครงการ"
+                  value={avgGrantMillions}
+                  unit="ล้านบาท"
+                  subtext={`สูงสุด ${maxProjectBudgetMillions} ลบ. • ${maxProj?.head || 'ศ.ดร.เชาว์'}`}
+                  icon={<FaChartLine style={{ fontSize: '16px' }} />}
+                />
+              </div>
 
-      {/* ZONE 2.5: Year-over-Year (YoY) Comparison */}
-      <MissionYoYControls
-        missionKey="research"
-        missionTitle="โครงการวิจัย"
-        allItemsRaw={validData}
-        activeDepartment={selectedDept}
-        primaryMetricLabel="จำนวนโครงการ (โครงการ)"
-        secondaryMetricLabel="งบประมาณวิจัย (ล้านบาท)"
-        hasBudgetMetric={true}
-        defaultBaseYear="2567"
-        defaultTargetYear="2568"
-      />
+              {/* ZONE 2.5: Year-over-Year (YoY) Comparison */}
+              <MissionYoYControls
+                missionKey="research"
+                missionTitle="โครงการวิจัย"
+                allItemsRaw={validData}
+                activeDepartment={selectedDept}
+                primaryMetricLabel="จำนวนโครงการ (โครงการ)"
+                secondaryMetricLabel="งบประมาณวิจัย (ล้านบาท)"
+                hasBudgetMetric={true}
+                defaultBaseYear="2567"
+                defaultTargetYear="2568"
+              />
+            </>
+          )}
 
-      {/* ZONE 3: Research Charts (Combo Stacked Bar, Pareto Tiers, SDGs/ISEE/IAM) */}
-      <ResearchCharts
-        validData={filteredData}
-        selectedDept={selectedDept}
-        onSelectDept={(dept) => {
-          const nextDept = dept === selectedDept ? 'all' : dept;
-          setSelectedDept(nextDept);
-          setTabFilter({ department: nextDept });
-        }}
-        selectedFund={selectedFund}
-        onSelectFund={(fund) => {
-          const nextFund = fund === selectedFund ? 'all' : fund;
-          setSelectedFund(nextFund);
-          setTabFilter({
-            customFilters: {
-              ...(tabFilter.customFilters || {}),
-              selectedFund: nextFund,
-            },
-          });
-        }}
-      />
+          {/* ZONE 3: Research Charts */}
+          <ResearchCharts
+            validData={filteredData}
+            selectedDept={selectedDept}
+            activePerspective={activePerspective}
+            onChangePerspective={setActivePerspective}
+            hideSelector={true}
+            onSelectDept={(dept) => {
+              const nextDept = dept === selectedDept ? 'all' : dept;
+              setSelectedDept(nextDept);
+              setTabFilter({ department: nextDept });
+            }}
+            selectedFund={selectedFund}
+            onSelectFund={(fund) => {
+              const nextFund = fund === selectedFund ? 'all' : fund;
+              setSelectedFund(nextFund);
+              setTabFilter({
+                customFilters: {
+                  ...(tabFilter.customFilters || {}),
+                  selectedFund: nextFund,
+                },
+              });
+            }}
+          />
 
-      {/* ZONE 4: Research Table with Strategy Badges & Excel Export */}
-      <ResearchTable
-        filteredData={filteredData}
-        uniqueDepts={uniqueDepts}
-        searchTerm={searchTerm}
-        onSearchChange={(s) => {
-          setSearchTerm(s);
-          setTabFilter({ search: s });
-        }}
-        selectedDept={selectedDept}
-        onDeptChange={(dept) => {
-          setSelectedDept(dept);
-          setTabFilter({ department: dept });
-        }}
-        selectedFund={selectedFund}
-        onFundChange={(fund) => {
-          setSelectedFund(fund);
-          setTabFilter({
-            customFilters: {
-              ...(tabFilter.customFilters || {}),
-              selectedFund: fund,
-            },
-          });
-        }}
-      />
+          {/* ZONE 4: Research Table */}
+          <ResearchTable
+            filteredData={filteredData}
+            uniqueDepts={uniqueDepts}
+            searchTerm={searchTerm}
+            onSearchChange={(s) => {
+              setSearchTerm(s);
+              setTabFilter({ search: s });
+            }}
+            selectedDept={selectedDept}
+            onDeptChange={(dept) => {
+              setSelectedDept(dept);
+              setTabFilter({ department: dept });
+            }}
+            selectedFund={selectedFund}
+            onFundChange={(fund) => {
+              setSelectedFund(fund);
+              setTabFilter({
+                customFilters: {
+                  ...(tabFilter.customFilters || {}),
+                  selectedFund: fund,
+                },
+              });
+            }}
+          />
+        </>
+      )}
     </div>
   );
 }

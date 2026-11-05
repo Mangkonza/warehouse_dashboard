@@ -26,9 +26,12 @@ interface PublicationsChartsProps {
   validData: PublicationItem[];
   onSelectDept?: (deptCode: string) => void;
   onSelectLevel?: (levelKey: string) => void;
+  activePerspective?: PubPerspective;
+  onChangePerspective?: (persp: PubPerspective) => void;
+  hideSelector?: boolean;
 }
 
-export type PubPerspective = 'quartile_timeline' | 'department' | 'faculty' | 'journals' | 'sdg';
+export type PubPerspective = 'timeline' | 'quartile_tci' | 'department' | 'faculty' | 'journals' | 'sdg';
 
 /** Main journal tiers shown in the quartile donut, in display order. */
 const MAIN_PUB_TIERS = [
@@ -44,9 +47,14 @@ export function PublicationsCharts({
   validData,
   onSelectDept,
   onSelectLevel,
+  activePerspective: propPerspective,
+  onChangePerspective,
+  hideSelector = false,
 }: PublicationsChartsProps) {
   const router = useRouter();
-  const [activePerspective, setActivePerspective] = useState<PubPerspective>('quartile_timeline');
+  const [internalPerspective, setInternalPerspective] = useState<PubPerspective>('timeline');
+  const activePerspective = propPerspective ?? internalPerspective;
+  const setActivePerspective = onChangePerspective ?? setInternalPerspective;
   const [pubCountMode, setPubCountMode] = useState<'total' | 'tier'>('tier');
   const chartInstances = useRef<Chart[]>([]);
   const hasChartData = validData.length > 0;
@@ -276,7 +284,7 @@ export function PublicationsCharts({
       }
     };
 
-    if (activePerspective === 'quartile_timeline') {
+    if (activePerspective === 'timeline' || activePerspective === 'quartile_tci') {
       const openPublicationPeriod = (index: number) => {
         const key = periodKeys[index];
         const bucket = key ? monthBuckets[key] : undefined;
@@ -567,63 +575,11 @@ export function PublicationsCharts({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '16px' }}>
-            {/* Perspective Dimension Selector */}
-      <div
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '6px',
-          backgroundColor: '#ffffff',
-          padding: '6px 10px',
-          borderRadius: '9999px',
-          border: '1px solid #e2e8f0',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
-          flexWrap: 'wrap',
-          maxWidth: '100%',
-        }}
-      >
-        <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#334155', paddingLeft: '8px', marginRight: '4px' }}>
-          มิติการวิเคราะห์:
-        </span>
-        {[
-          { id: 'quartile_timeline', label: 'คุณภาพวารสารและแนวโน้มรายเดือน', icon: <FaAward /> },
-          { id: 'department', label: 'การผลิตผลงานรายสังกัด', icon: <FaBuilding /> },
-          { id: 'faculty', label: 'อาจารย์และนักวิจัยตีพิมพ์สูงสุด', icon: <FaUserTie /> },
-          { id: 'journals', label: 'วารสารและแหล่งตีพิมพ์ยอดนิยม', icon: <FaBookOpen /> },
-          { id: 'sdg', label: 'ความสอดคล้องเชิงยุทธศาสตร์ (SDGs / ISEE / IAM)', icon: <FaLeaf /> },
-        ].map((tab) => {
-          const isSel = activePerspective === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActivePerspective(tab.id as PubPerspective)}
-              style={{
-                padding: '6px 16px',
-                borderRadius: '9999px',
-                border: isSel ? '1.5px solid #16a34a' : '1px solid #e2e8f0',
-                backgroundColor: isSel ? '#16a34a' : '#ffffff',
-                color: isSel ? '#ffffff' : '#475569',
-                fontSize: '12.5px',
-                fontWeight: isSel ? 700 : 500,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                boxShadow: isSel ? '0 2px 6px #16a34a40' : 'none',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              <span style={{ fontSize: '11.5px' }}>{tab.icon}</span>
-              <span>{tab.label}</span>
-            </button>
-          );
-        })}
-      </div>
+            
 
-      {/* DIMENSION 1: Quartile & Timeline */}
-      {activePerspective === 'quartile_timeline' && (
-        <>
-          <div className="chart-grid">
+      {/* DIMENSION 1: Timeline */}
+      {activePerspective === 'timeline' && (
+        <div className="chart-grid">
             <div className="chart-card chart-full">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '4px' }}>
                 <div>
@@ -701,8 +657,11 @@ export function PublicationsCharts({
               </div>
             </div>
           </div>
+      )}
 
-          <div className="chart-card">
+      {/* DIMENSION 1.5: Dedicated Quartile & TCI */}
+      {activePerspective === 'quartile_tci' && (
+        <div className="chart-card">
             <h3>
               <FaChartPie style={{ color: '#34d399' }} /> สัดส่วนผลงานตามระดับฐานข้อมูลวารสาร
             </h3>
@@ -836,7 +795,6 @@ export function PublicationsCharts({
               </div>
             </div>
           </div>
-        </>
       )}
 
       {/* DIMENSION 2: Department */}

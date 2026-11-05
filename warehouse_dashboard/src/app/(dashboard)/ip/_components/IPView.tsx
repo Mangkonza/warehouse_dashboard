@@ -3,16 +3,19 @@
 import React, { useEffect } from 'react';
 import { useDashboardTabFilter, useTimeFilter } from '@/features/time-filter';
 import { useIPData } from '../_hooks/useIPData';
-import { IPCharts } from './IPCharts';
+import { IPCharts, IPPerspective } from './IPCharts';
+import { TopSegmentedTabs } from '@/components/ui/TopSegmentedTabs';
+import { StrategicAlignmentMatrix } from '@/components/data-display/StrategicAlignmentMatrix';
+import { FaCertificate, FaShieldAlt, FaUserTie, FaLeaf, FaHourglassHalf, FaCoins } from 'react-icons/fa';
 import { IPTable } from './IPTable';
 import { DashboardTabFilterBar } from '@/components/ui/DashboardTabFilterBar';
 import { UndatedNotice } from '@/components/ui/UndatedNotice';
 import { MissionKpiCard } from '@/components/data-display/MissionKpiCard';
 import { MissionYoYControls } from '@/components/data-display/MissionYoYControls';
 import { dashboardPageSubtitleStyle, dashboardPageTitleStyle, dashboardTheme } from '@/lib/dashboardTheme';
-import { FaCertificate, FaShieldAlt, FaHourglassHalf, FaCoins } from 'react-icons/fa';
 
 export function IPView() {
+  const [activePerspective, setActivePerspective] = React.useState<IPPerspective>('types_dept');
   const {
     tabFilter,
     setTabFilter,
@@ -167,7 +170,22 @@ export function IPView() {
 
       {undatedCount > 0 && <UndatedNotice count={undatedCount} />}
 
-      {/* ZONE 2: Executive Bento KPI Cards in Lavender Violet Palette */}
+      {/* PERSPECTIVE VIEW: Dedicated page view for Strategic Alignment */}
+      {activePerspective === 'sdg' ? (
+        <div style={{ marginTop: '8px' }}>
+          <StrategicAlignmentMatrix
+            items={filteredIpData}
+            categoryKey="ip"
+            missionTitle="งานทรัพย์สินทางปัญญา"
+            unitLabel="รายการ"
+            showBudget={true}
+          />
+        </div>
+      ) : (
+        <>
+          {activePerspective === 'types_dept' && (
+            <>
+              {/* ZONE 2: Executive Bento KPI Cards in Lavender Violet Palette */}
       <div
         style={{
           display: 'grid',
@@ -228,26 +246,31 @@ export function IPView() {
         defaultBaseYear="2567"
         defaultTargetYear="2568"
       />
+            </>
+          )}
 
-      {/* ZONE 3: 4 Dimension Tabs Charts */}
-      <IPCharts
-        validIpData={validIpData}
-        onSelectDept={(dept) => {
-          const nextDept = dept === deptFilter ? 'all' : dept;
-          setDeptFilter(nextDept);
-          setTabFilter({ department: nextDept });
-        }}
-        onSelectType={(type) => {
-          const nextType = type === typeFilter ? 'all' : type;
-          setTypeFilter(nextType);
-          setTabFilter({
-            customFilters: {
-              ...(tabFilter.customFilters || {}),
-              typeFilter: nextType,
-            },
-          });
-        }}
-      />
+          {/* ZONE 3: 4 Dimension Tabs Charts */}
+          <IPCharts
+            validIpData={filteredIpData}
+            activePerspective={activePerspective}
+            onChangePerspective={setActivePerspective}
+            hideSelector={true}
+            onSelectDept={(dept) => {
+              const nextDept = dept === deptFilter ? 'all' : dept;
+              setDeptFilter(nextDept);
+              setTabFilter({ department: nextDept });
+            }}
+            onSelectType={(type) => {
+              const nextType = type === typeFilter ? 'all' : type;
+              setTypeFilter(nextType);
+              setTabFilter({
+                customFilters: {
+                  ...(tabFilter.customFilters || {}),
+                  typeFilter: nextType,
+                },
+              });
+            }}
+          />
 
       {/* ZONE 4: Smart IP Data Grid Table */}
       <IPTable
@@ -274,6 +297,8 @@ export function IPView() {
           });
         }}
       />
+        </>
+      )}
     </div>
   );
 }

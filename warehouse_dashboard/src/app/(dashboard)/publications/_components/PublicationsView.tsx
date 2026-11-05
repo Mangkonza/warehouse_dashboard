@@ -3,16 +3,19 @@
 import React, { useEffect } from 'react';
 import { useDashboardTabFilter, useTimeFilter } from '@/features/time-filter';
 import { usePublicationsData } from '../_hooks/usePublicationsData';
-import { PublicationsCharts } from './PublicationsCharts';
+import { PublicationsCharts, PubPerspective } from './PublicationsCharts';
+import { TopSegmentedTabs } from '@/components/ui/TopSegmentedTabs';
+import { StrategicAlignmentMatrix } from '@/components/data-display/StrategicAlignmentMatrix';
 import { PublicationsTable } from './PublicationsTable';
 import { DashboardTabFilterBar } from '@/components/ui/DashboardTabFilterBar';
 import { UndatedNotice } from '@/components/ui/UndatedNotice';
 import { MissionKpiCard } from '@/components/data-display/MissionKpiCard';
 import { MissionYoYControls } from '@/components/data-display/MissionYoYControls';
 import { dashboardPageSubtitleStyle, dashboardPageTitleStyle, dashboardTheme } from '@/lib/dashboardTheme';
-import { FaBook, FaGlobeAmericas, FaAward, FaCoins } from 'react-icons/fa';
+import { FaBook, FaGlobeAmericas, FaAward, FaCoins, FaChartLine, FaBuilding, FaUserTie, FaBookOpen, FaLeaf } from 'react-icons/fa';
 
 export function PublicationsView() {
+  const [activePerspective, setActivePerspective] = React.useState<PubPerspective>('timeline');
   const {
     tabFilter,
     setTabFilter,
@@ -92,6 +95,23 @@ export function PublicationsView() {
         <p style={dashboardPageSubtitleStyle}>
           ภาพรวมคุณภาพวารสาร เงินสนับสนุน และผลผลิตตีพิมพ์ของคณะวิศวกรรมศาสตร์
         </p>
+      </div>
+
+      {/* Top Segmented Tabs - Style identical to manage?tab=research */}
+      <div style={{ overflowX: 'auto', padding: '2px 0 6px 0' }}>
+        <TopSegmentedTabs
+          activeCategory={activePerspective}
+          onSelectCategory={setActivePerspective}
+          colorTheme="rose"
+          tabs={[
+            { key: 'timeline', label: 'แนวโน้มการตีพิมพ์รายเดือนและงบสนับสนุน', icon: <FaChartLine style={{ fontSize: '13px' }} /> },
+            { key: 'quartile_tci', label: 'ระดับ Q TCI', icon: <FaAward style={{ fontSize: '13px' }} /> },
+            { key: 'department', label: 'การผลิตผลงานรายสังกัด', icon: <FaBuilding style={{ fontSize: '13px' }} /> },
+            { key: 'faculty', label: 'อาจารย์และนักวิจัยตีพิมพ์สูงสุด', icon: <FaUserTie style={{ fontSize: '13px' }} /> },
+            { key: 'journals', label: 'วารสารและแหล่งตีพิมพ์ยอดนิยม', icon: <FaBookOpen style={{ fontSize: '13px' }} /> },
+            { key: 'sdg', label: 'ความสอดคล้องเชิงยุทธศาสตร์ (SDGs / ISEE / IAM)', icon: <FaLeaf style={{ fontSize: '13px' }} /> },
+          ]}
+        />
       </div>
 
       {/* ZONE 1: Unified filter card */}
@@ -190,107 +210,129 @@ export function PublicationsView() {
 
       {undatedCount > 0 && <UndatedNotice count={undatedCount} />}
 
-      {/* ZONE 2: Executive Bento KPI Grid (Publications Rose Glow) */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          gap: '12px',
-        }}
-      >
-        <MissionKpiCard
-          mission="publications"
-          variant="pastel"
-          label="ผลงานตีพิมพ์ทางวิชาการรวม"
-          value={validData.length}
-          unit="เรื่อง"
-          subtext={`ตีพิมพ์สำเร็จ ${publishedCount} • เตรียมความพร้อม ${inPrepCount}`}
-          icon={<FaBook style={{ fontSize: '16px' }} />}
-        />
+      {/* PERSPECTIVE VIEW: Dedicated page view for Strategic Alignment */}
+      {activePerspective === 'sdg' ? (
+        <div style={{ marginTop: '8px' }}>
+          <StrategicAlignmentMatrix
+            items={filteredData}
+            categoryKey="publications"
+            missionTitle="ผลงานตีพิมพ์ทางวิชาการ"
+            unitLabel="เรื่อง"
+            showBudget={true}
+          />
+        </div>
+      ) : (
+        <>
+          {activePerspective === 'timeline' && (
+            <>
+              {/* ZONE 2: Executive Bento KPI Grid */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                  gap: '12px',
+                }}
+              >
+                <MissionKpiCard
+                  mission="publications"
+                  variant="pastel"
+                  label="ผลงานตีพิมพ์ทางวิชาการรวม"
+                  value={validData.length}
+                  unit="เรื่อง"
+                  subtext={`ตีพิมพ์สำเร็จ ${publishedCount} • เตรียมความพร้อม ${inPrepCount}`}
+                  icon={<FaBook style={{ fontSize: '16px' }} />}
+                />
 
-        <MissionKpiCard
-          mission="publications"
-          variant="pastel"
-          label="ผลงานระดับนานาชาติ (Q1 - Q4)"
-          value={`${intlPct}%`}
-          unit={`(${intlAllCount} เรื่อง)`}
-          subtext={`Q1: ${q1Count} • Q2: ${q2Count} • Q3: ${q3Count} • Q4: ${q4Count}`}
-          icon={<FaGlobeAmericas style={{ fontSize: '16px' }} />}
-        />
+                <MissionKpiCard
+                  mission="publications"
+                  variant="pastel"
+                  label="ผลงานระดับนานาชาติ (Q1 - Q4)"
+                  value={`${intlPct}%`}
+                  unit={`(${intlAllCount} เรื่อง)`}
+                  subtext={`Q1: ${q1Count} • Q2: ${q2Count} • Q3: ${q3Count} • Q4: ${q4Count}`}
+                  icon={<FaGlobeAmericas style={{ fontSize: '16px' }} />}
+                />
 
-        <MissionKpiCard
-          mission="publications"
-          variant="pastel"
-          label="ผลงานระดับชาติ (TCI)"
-          value={`${tciPct}%`}
-          unit={`(${tciCount} เรื่อง)`}
-          subtext={`TCI 1: ${tci1Count} • TCI 2: ${tci2Count}${confCount > 0 ? ` • ประชุม: ${confCount}` : ''}`}
-          icon={<FaAward style={{ fontSize: '16px' }} />}
-        />
+                <MissionKpiCard
+                  mission="publications"
+                  variant="pastel"
+                  label="ผลงานระดับชาติ (TCI)"
+                  value={`${tciPct}%`}
+                  unit={`(${tciCount} เรื่อง)`}
+                  subtext={`TCI 1: ${tci1Count} • TCI 2: ${tci2Count}${confCount > 0 ? ` • ประชุม: ${confCount}` : ''}`}
+                  icon={<FaAward style={{ fontSize: '16px' }} />}
+                />
 
-        <MissionKpiCard
-          mission="publications"
-          variant="pastel"
-          label="งบสนับสนุนการตีพิมพ์"
-          value={totalSupportBudget.toLocaleString('th-TH')}
-          unit="บาท"
-          subtext={`เฉลี่ย ${avgSupport} ฿/เรื่อง • เงินรางวัลและค่าตีพิมพ์`}
-          icon={<FaCoins style={{ fontSize: '16px' }} />}
-        />
-      </div>
+                <MissionKpiCard
+                  mission="publications"
+                  variant="pastel"
+                  label="งบสนับสนุนการตีพิมพ์"
+                  value={totalSupportBudget.toLocaleString('th-TH')}
+                  unit="บาท"
+                  subtext={`เฉลี่ย ${avgSupport} ฿/เรื่อง • เงินรางวัลและค่าตีพิมพ์`}
+                  icon={<FaCoins style={{ fontSize: '16px' }} />}
+                />
+              </div>
 
-      {/* ZONE 2.5: Year-over-Year (YoY) Comparison */}
-      <MissionYoYControls
-        missionKey="publications"
-        missionTitle="ผลงานตีพิมพ์ทางวิชาการ"
-        allItemsRaw={validData}
-        activeDepartment={selectedDept}
-        primaryMetricLabel="จำนวนบทความ (เรื่อง)"
-        secondaryMetricLabel="งบสนับสนุน (ล้านบาท)"
-        hasBudgetMetric={true}
-        defaultBaseYear="2567"
-        defaultTargetYear="2568"
-      />
+              {/* ZONE 2.5: Year-over-Year (YoY) Comparison */}
+              <MissionYoYControls
+                missionKey="publications"
+                missionTitle="ผลงานตีพิมพ์ทางวิชาการ"
+                allItemsRaw={validData}
+                activeDepartment={selectedDept}
+                primaryMetricLabel="จำนวนบทความ (เรื่อง)"
+                secondaryMetricLabel="งบสนับสนุน (ล้านบาท)"
+                hasBudgetMetric={true}
+                defaultBaseYear="2567"
+                defaultTargetYear="2568"
+              />
+            </>
+          )}
 
-      {/* ZONE 3: Publications Charts */}
-      <PublicationsCharts
-        validData={filteredData}
-        onSelectDept={(dept) => {
-          const nextDept = dept === selectedDept ? 'all' : dept;
-          setSelectedDept(nextDept);
-          setTabFilter({ department: nextDept });
-        }}
-        onSelectLevel={(lvl) => {
-          const nextLevel = lvl === levelFilter ? 'all' : lvl;
-          setLevelFilter(nextLevel);
-          setTabFilter({
-            customFilters: {
-              ...(tabFilter.customFilters || {}),
-              levelFilter: nextLevel,
-            },
-          });
-        }}
-      />
+          {/* ZONE 3: Publications Charts */}
+          <PublicationsCharts
+            validData={filteredData}
+            activePerspective={activePerspective}
+            onChangePerspective={setActivePerspective}
+            hideSelector={true}
+            onSelectDept={(dept) => {
+              const nextDept = dept === selectedDept ? 'all' : dept;
+              setSelectedDept(nextDept);
+              setTabFilter({ department: nextDept });
+            }}
+            onSelectLevel={(lvl) => {
+              const nextLevel = lvl === levelFilter ? 'all' : lvl;
+              setLevelFilter(nextLevel);
+              setTabFilter({
+                customFilters: {
+                  ...(tabFilter.customFilters || {}),
+                  levelFilter: nextLevel,
+                },
+              });
+            }}
+          />
 
-      {/* ZONE 4: Publications Table with Strategy Badges & BibTeX/CSV Export */}
-      <PublicationsTable
-        filteredData={filteredData}
-        searchTerm={searchTerm}
-        onSearchChange={(s) => {
-          setSearchTerm(s);
-          setTabFilter({ search: s });
-        }}
-        levelFilter={levelFilter}
-        onLevelChange={(lvl) => {
-          setLevelFilter(lvl);
-          setTabFilter({
-            customFilters: {
-              ...(tabFilter.customFilters || {}),
-              levelFilter: lvl,
-            },
-          });
-        }}
-      />
+          {/* ZONE 4: Publications Table */}
+          <PublicationsTable
+            filteredData={filteredData}
+            searchTerm={searchTerm}
+            onSearchChange={(s) => {
+              setSearchTerm(s);
+              setTabFilter({ search: s });
+            }}
+            levelFilter={levelFilter}
+            onLevelChange={(lvl) => {
+              setLevelFilter(lvl);
+              setTabFilter({
+                customFilters: {
+                  ...(tabFilter.customFilters || {}),
+                  levelFilter: lvl,
+                },
+              });
+            }}
+          />
+        </>
+      )}
     </div>
   );
 }
