@@ -117,7 +117,7 @@ export function AcademicView() {
             { key: 'client_segment', label: 'กลุ่มประเภทผู้ว่าจ้างและตลาด', icon: <FaBuilding style={{ fontSize: '13px' }} /> },
             { key: 'faculty', label: 'หัวหน้าโครงการพัฒนาวิชาการ', icon: <FaUserTie style={{ fontSize: '13px' }} /> },
             { key: 'sdg', label: 'ความสอดคล้องเชิงยุทธศาสตร์ (SDGs / ISEE IAM)', icon: <FaLeaf style={{ fontSize: '13px' }} /> },
-            { key: 'table', label: 'รายการทั้งหมด', icon: <FaTable style={{ fontSize: '13px' }} /> },
+            { key: 'table', label: 'รายการโครงการพัฒนาวิชาการ', icon: <FaTable style={{ fontSize: '13px' }} /> },
           ]}
         />
       </div>
