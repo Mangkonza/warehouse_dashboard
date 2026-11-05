@@ -905,7 +905,7 @@ tbody td{padding:11px 10px;border-bottom:1px solid #e2e8f0;max-width:260px;overf
     grid-template-columns: minmax(280px, 1fr) minmax(0, 2.2fr);
   }
   .glance-strategic {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 @media (prefers-reduced-motion: reduce) {

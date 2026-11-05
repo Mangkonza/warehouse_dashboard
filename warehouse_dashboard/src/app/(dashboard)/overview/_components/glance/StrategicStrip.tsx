@@ -20,6 +20,92 @@ const IAM_SHORT: Record<string, { letter: string; name: string }> = {
   M: { letter: 'M', name: 'ความเป็นมืออาชีพ' },
 };
 
+interface ShareItem {
+  id: string;
+  letter: string;
+  name: string;
+  color: string;
+  count: number;
+}
+
+function ShareBreakdown({
+  title,
+  items,
+  legendColumns,
+}: {
+  title: string;
+  items: ShareItem[];
+  legendColumns: number;
+}) {
+  const total = items.reduce((a, b) => a + b.count, 0) || 1;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', minWidth: 0 }}>
+      <h2 style={sectionTitleStyle}>{title}</h2>
+      <div
+        style={{ display: 'flex', height: '40px', borderRadius: '12px', overflow: 'hidden', gap: '3px' }}
+        role="img"
+        aria-label={items.map((it) => `${it.name} ${Math.round((it.count / total) * 100)}%`).join(', ')}
+      >
+        {items.map((it) => {
+          const share = (it.count / total) * 100;
+          if (share <= 0) return null;
+          return (
+            <div
+              key={it.id}
+              title={`${it.name}: ${it.count} รายการ`}
+              style={{
+                width: `${share}%`,
+                backgroundColor: it.color,
+                color: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '13px',
+                fontWeight: 700,
+                minWidth: share > 6 ? undefined : 0,
+              }}
+            >
+              {share >= 8 ? `${Math.round(share)}%` : ''}
+            </div>
+          );
+        })}
+      </div>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: `repeat(${legendColumns}, minmax(0, 1fr))`,
+          gap: '8px 16px',
+        }}
+      >
+        {items.map((it) => (
+          <span key={it.id} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#334155', minWidth: 0 }}>
+            <span
+              style={{
+                width: 22,
+                height: 22,
+                borderRadius: 6,
+                backgroundColor: it.color,
+                color: '#ffffff',
+                fontSize: '12px',
+                fontWeight: 700,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              {it.letter}
+            </span>
+            <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{it.name}</span>
+            <strong style={{ marginLeft: 'auto', color: '#0f172a', fontVariantNumeric: 'tabular-nums' }}>{it.count}</strong>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 interface StrategicStripProps {
   topSdgs: SdgCount[];
   isee: Record<string, number>;
@@ -27,8 +113,21 @@ interface StrategicStripProps {
 }
 
 export function StrategicStrip({ topSdgs, isee, iam }: StrategicStripProps) {
-  const iseeTotal = Object.values(isee).reduce((a, b) => a + b, 0) || 1;
-  const iamTotal = Object.values(iam).reduce((a, b) => a + b, 0) || 1;
+  const iseeItems: ShareItem[] = ISEE_PILLARS.map((p) => ({
+    id: p.id,
+    letter: ISEE_SHORT[p.id].letter,
+    name: ISEE_SHORT[p.id].name,
+    color: p.color,
+    count: isee[p.id] || 0,
+  }));
+
+  const iamItems: ShareItem[] = IAM_VALUES.map((v) => ({
+    id: v.id,
+    letter: IAM_SHORT[v.id].letter,
+    name: IAM_SHORT[v.id].name,
+    color: v.color,
+    count: iam[v.id] || 0,
+  }));
 
   return (
     <section
@@ -36,13 +135,16 @@ export function StrategicStrip({ topSdgs, isee, iam }: StrategicStripProps) {
       style={{
         ...cardStyle,
         display: 'grid',
-        gap: '24px',
+        gap: '20px 24px',
       }}
       aria-label="ความสอดคล้องเชิงยุทธศาสตร์"
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', minWidth: 0 }}>
+      <div
+        className="glance-strategic__sdg"
+        style={{ display: 'flex', flexDirection: 'column', gap: '14px', minWidth: 0, gridColumn: '1 / -1' }}
+      >
         <h2 style={sectionTitleStyle}>SDGs ที่ขับเคลื่อนมากที่สุด</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: '8px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(96px, 1fr))', gap: '8px' }}>
           {topSdgs.map((s) => (
             <div
               key={s.num}
@@ -50,17 +152,17 @@ export function StrategicStrip({ topSdgs, isee, iam }: StrategicStripProps) {
               style={{
                 backgroundColor: SDG_COLORS[s.num] || '#0ea5e9',
                 color: '#ffffff',
-                borderRadius: '14px',
-                padding: '10px 8px',
+                borderRadius: '12px',
+                padding: '10px 12px',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '2px',
-                aspectRatio: '1 / 1',
+                minHeight: '96px',
                 minWidth: 0,
               }}
             >
               <span style={{ fontSize: '12px', fontWeight: 600, opacity: 0.9 }}>SDG {s.num}</span>
-              <span style={{ fontSize: '26px', fontWeight: 700, lineHeight: 1.1, marginTop: 'auto', fontVariantNumeric: 'tabular-nums' }}>
+              <span style={{ fontSize: '28px', fontWeight: 700, lineHeight: 1.1, marginTop: 'auto', fontVariantNumeric: 'tabular-nums' }}>
                 {s.count}
               </span>
               <span style={{ fontSize: '11px', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -74,132 +176,8 @@ export function StrategicStrip({ topSdgs, isee, iam }: StrategicStripProps) {
         </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', minWidth: 0 }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', minWidth: 0 }}>
-          <h2 style={sectionTitleStyle}>สัดส่วนตามยุทธศาสตร์ ISEE</h2>
-          <div
-            style={{ display: 'flex', height: '40px', borderRadius: '12px', overflow: 'hidden', gap: '3px' }}
-            role="img"
-            aria-label={ISEE_PILLARS.map((p) => `${ISEE_SHORT[p.id].name} ${Math.round(((isee[p.id] || 0) / iseeTotal) * 100)}%`).join(', ')}
-          >
-            {ISEE_PILLARS.map((p) => {
-              const share = ((isee[p.id] || 0) / iseeTotal) * 100;
-              if (share <= 0) return null;
-              return (
-                <div
-                  key={p.id}
-                  title={`${p.name}: ${isee[p.id]} รายการ`}
-                  style={{
-                    width: `${share}%`,
-                    backgroundColor: p.color,
-                    color: '#ffffff',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '13px',
-                    fontWeight: 700,
-                    minWidth: share > 6 ? undefined : 0,
-                  }}
-                >
-                  {share >= 8 ? `${Math.round(share)}%` : ''}
-                </div>
-              );
-            })}
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '8px 16px' }}>
-            {ISEE_PILLARS.map((p) => (
-              <span key={p.id} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#334155', minWidth: 0 }}>
-                <span
-                  style={{
-                    width: 22,
-                    height: 22,
-                    borderRadius: 6,
-                    backgroundColor: p.color,
-                    color: '#ffffff',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                  }}
-                >
-                  {ISEE_SHORT[p.id].letter}
-                </span>
-                <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ISEE_SHORT[p.id].name}</span>
-                <strong style={{ marginLeft: 'auto', color: '#0f172a', fontVariantNumeric: 'tabular-nums' }}>{isee[p.id] || 0}</strong>
-              </span>
-            ))}
-          </div>
-        </div>
-
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '14px',
-            minWidth: 0,
-            paddingTop: '20px',
-            borderTop: '1px solid #e2e8f0',
-          }}
-        >
-          <h2 style={sectionTitleStyle}>สัดส่วนตามค่านิยมองค์กร IAM</h2>
-          <div
-            style={{ display: 'flex', height: '40px', borderRadius: '12px', overflow: 'hidden', gap: '3px' }}
-            role="img"
-            aria-label={IAM_VALUES.map((v) => `${IAM_SHORT[v.id].name} ${Math.round(((iam[v.id] || 0) / iamTotal) * 100)}%`).join(', ')}
-          >
-            {IAM_VALUES.map((v) => {
-              const share = ((iam[v.id] || 0) / iamTotal) * 100;
-              if (share <= 0) return null;
-              return (
-                <div
-                  key={v.id}
-                  title={`${v.name}: ${iam[v.id] || 0} รายการ`}
-                  style={{
-                    width: `${share}%`,
-                    backgroundColor: v.color,
-                    color: '#ffffff',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '13px',
-                    fontWeight: 700,
-                    minWidth: share > 6 ? undefined : 0,
-                  }}
-                >
-                  {share >= 8 ? `${Math.round(share)}%` : ''}
-                </div>
-              );
-            })}
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '8px 12px' }}>
-            {IAM_VALUES.map((v) => (
-              <span key={v.id} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#334155', minWidth: 0 }}>
-                <span
-                  style={{
-                    width: 22,
-                    height: 22,
-                    borderRadius: 6,
-                    backgroundColor: v.color,
-                    color: '#ffffff',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                  }}
-                >
-                  {IAM_SHORT[v.id].letter}
-                </span>
-                <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{IAM_SHORT[v.id].name}</span>
-                <strong style={{ marginLeft: 'auto', color: '#0f172a', fontVariantNumeric: 'tabular-nums' }}>{iam[v.id] || 0}</strong>
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
+      <ShareBreakdown title="สัดส่วนตามยุทธศาสตร์ ISEE" items={iseeItems} legendColumns={2} />
+      <ShareBreakdown title="สัดส่วนตามค่านิยมองค์กร IAM" items={iamItems} legendColumns={3} />
     </section>
   );
 }
