@@ -897,9 +897,15 @@ tbody td{padding:11px 10px;border-bottom:1px solid #e2e8f0;max-width:260px;overf
 .glance-split {
   grid-template-columns: minmax(0, 1fr);
 }
+.glance-strategic {
+  grid-template-columns: minmax(0, 1fr);
+}
 @media (min-width: 1100px) {
   .glance-split {
     grid-template-columns: minmax(280px, 1fr) minmax(0, 2.2fr);
+  }
+  .glance-strategic {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
   }
 }
 @media (prefers-reduced-motion: reduce) {

@@ -170,9 +170,10 @@ export function GlanceOverview({
     return Object.values(rows).sort((a, b) => total(b) - total(a) || b.budget - a.budget);
   }, [research, academic, publications, service, ip]);
 
-  const { topSdgs, isee } = useMemo(() => {
+  const { topSdgs, isee, iam } = useMemo(() => {
     const sdgCounts: Record<number, number> = {};
     const iseeCounts: Record<string, number> = { I: 0, S: 0, E1: 0, E2: 0 };
+    const iamCounts: Record<string, number> = { I: 0, A: 0, M: 0 };
     const groups: [any[], string][] = [
       [research, 'research'],
       [academic, 'academic'],
@@ -184,6 +185,7 @@ export function GlanceOverview({
       items.forEach((it) => {
         const res = resolveItemStrategicAlignment(it, category);
         iseeCounts[res.isee] += 1;
+        iamCounts[res.iam] += 1;
         if (res.sdgNumber >= 1 && res.sdgNumber <= 17) {
           sdgCounts[res.sdgNumber] = (sdgCounts[res.sdgNumber] || 0) + 1;
         }
@@ -193,7 +195,7 @@ export function GlanceOverview({
       .map(([num, count]) => ({ num: Number(num), count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 5);
-    return { topSdgs: top, isee: iseeCounts };
+    return { topSdgs: top, isee: iseeCounts, iam: iamCounts };
   }, [research, academic, publications, service, ip]);
 
   return (
@@ -207,7 +209,7 @@ export function GlanceOverview({
         <DepartmentHeatmap columns={COLUMNS} rows={heatmapRows} selected={selectedDept} onSelect={onSelectDept} />
       </div>
 
-      <StrategicStrip topSdgs={topSdgs} isee={isee} />
+      <StrategicStrip topSdgs={topSdgs} isee={isee} iam={iam} />
     </div>
   );
 }
