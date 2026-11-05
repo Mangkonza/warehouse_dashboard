@@ -138,12 +138,29 @@ export function SdgsDashboardView({
     setDrawerLoading(true);
     setDrawerOpen(true);
     try {
-      const cat = activeCategory === 'all' ? 'research' : activeCategory;
-      const res = await fetch(`/api/data/${cat}`);
-      if (!res.ok) throw new Error('Failed to fetch items');
-      const json = await res.json();
-      const all: any[] = Array.isArray(json) ? json : json.data || json.items || [];
-      const filtered = all.filter((item) => {
+      const categories =
+        activeCategory === 'all'
+          ? ['research', 'academic', 'publications', 'ip', 'service']
+          : [activeCategory];
+
+      const allItems: any[] = [];
+      for (const cat of categories) {
+        try {
+          const res = await fetch(`/api/data/${cat}`);
+          if (res.ok) {
+            const json = await res.json();
+            const list = Array.isArray(json) ? json : json.data || json.items || [];
+            list.forEach((item: any) => {
+              item._category = cat;
+              allItems.push(item);
+            });
+          }
+        } catch (err) {
+          console.warn(`Failed to fetch items for ${cat}:`, err);
+        }
+      }
+
+      const filtered = allItems.filter((item) => {
         const sdgs: any =
           item.evaluation?.sdg_ids ||
           item.sdg_ids ||
@@ -151,9 +168,13 @@ export function SdgsDashboardView({
           item.sdgs;
         if (!sdgs) return false;
         if (Array.isArray(sdgs)) {
-          return sdgs.some((s) => Number(String(s).replace(/\D/g, '')) === sdgNum);
+          return sdgs.some((s) => {
+            const n = typeof s === 'number' ? s : Number(String(s).replace(/\D/g, ''));
+            return n === sdgNum;
+          });
         }
-        return String(sdgs).includes(String(sdgNum));
+        const nums = String(sdgs).match(/\d+/g);
+        return nums ? nums.some((n) => Number(n) === sdgNum) : false;
       });
       setDrawerItems(filtered);
     } catch (e) {
@@ -347,21 +368,21 @@ export function SdgsDashboardView({
         </div>
       )}
 
-      {/* Loading & Error States */}
-      {isLoading && (
+      {/* Loading (Only on initial load before data is available to prevent screen jump) */}
+      {isLoading && !data && (
         <div className="py-12 flex flex-col items-center justify-center gap-3 text-slate-500">
           <div className="w-8 h-8 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin" />
           <p className="text-xs font-medium">กำลังประมวลผลข้อมูล SDGs...</p>
         </div>
       )}
 
-      {fetchError && !isLoading && (
+      {fetchError && !data && (
         <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs">
           {fetchError}
         </div>
       )}
 
-      {!isLoading && data && (
+      {data && (
         <>
           {/* ========================================================================= */}
           {/* 2. Four KPI Cards with Prototype Top Gradient Line */}

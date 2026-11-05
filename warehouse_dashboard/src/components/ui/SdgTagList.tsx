@@ -84,7 +84,7 @@ export const SdgTagList: React.FC<SdgTagListProps> = ({
               e.stopPropagation();
               setIsOpen((prev) => !prev);
             }}
-            className="h-[22px] px-2 rounded-full text-[11px] font-semibold bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 cursor-pointer select-none transition-colors shrink-0 inline-flex items-center justify-center"
+            className="inline-flex items-center justify-center min-w-[32px] px-2 py-[3px] rounded-full text-[12px] font-bold bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 cursor-pointer select-none transition-colors shrink-0 shadow-xs"
             aria-label={`เป้าหมาย SDGs เพิ่มเติมอีก ${remainingSdgs.length} ข้อ`}
           >
             +{remainingSdgs.length}

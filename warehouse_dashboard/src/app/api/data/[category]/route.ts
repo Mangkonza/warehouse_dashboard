@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { readCategoryData } from '@/lib/serverDataStore';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -29,13 +30,20 @@ export async function GET(request: NextRequest, context: RouteContext) {
       headers: getForwardHeaders(request),
       cache: 'no-store',
     });
+    if (!res.ok) throw new Error(`Backend status ${res.status}`);
     const data = await res.json();
     return NextResponse.json(data, { status: res.status });
   } catch (error: any) {
-    return NextResponse.json(
-      { status: 'error', message: error?.message || 'Backend connection failed' },
-      { status: 502 }
-    );
+    try {
+      const { category } = await context.params;
+      const items = readCategoryData(category);
+      return NextResponse.json({ status: 'success', data: items });
+    } catch (err: any) {
+      return NextResponse.json(
+        { status: 'error', message: err?.message || 'Backend connection failed' },
+        { status: 502 }
+      );
+    }
   }
 }
 

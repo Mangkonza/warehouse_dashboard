@@ -2,6 +2,12 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { FaTimes, FaSearch, FaFolderOpen, FaCoins } from 'react-icons/fa';
+import { FilterPopover, FilterState } from '@/components/ui/FilterPopover';
+import {
+  itemMatchesDepartmentMulti,
+  itemMatchesDateRange,
+  itemMatchesNumericRanges,
+} from '@/lib/filterMatching';
 import { DepartmentBadge } from '@/components/ui/department-badge';
 import { PublicationTypeBadge } from '@/components/ui/publication-type-badge';
 import { LevelBadge } from '@/components/ui/evaluation-tag';
@@ -33,9 +39,21 @@ export interface DrillDownProjectDrawerProps {
   title: string;
   subtitle?: string;
   accentColor?: string;
-  categoryKey?: CategoryKey;
+  categoryKey?: CategoryKey | 'all';
   items: any[];
 }
+
+const DEFAULT_DRAWER_FILTERS: FilterState = {
+  departments: [],
+  dateFrom: '',
+  dateTo: '',
+  numericRanges: {},
+  journals: [],
+  sdgs: [],
+  framework: 'all',
+  imageStatus: 'all',
+  completeness: 'all',
+};
 
 export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
   isOpen,
@@ -48,31 +66,29 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFundSource, setSelectedFundSource] = useState<string | null>(null);
+  const [filterState, setFilterState] = useState<FilterState>(DEFAULT_DRAWER_FILTERS);
 
   // Smooth slide-in and slide-out animation lifecycle
   const [isRendered, setIsRendered] = useState(isOpen);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    let animFrame: number;
     let timer: NodeJS.Timeout;
 
     if (isOpen) {
       setIsRendered(true);
-      animFrame = requestAnimationFrame(() => {
+      // Small 25ms timeout guarantees DOM has mounted at translateX(100%) before sliding to 0%
+      const timerIn = setTimeout(() => {
         setIsVisible(true);
-      });
+      }, 25);
+      return () => clearTimeout(timerIn);
     } else {
       setIsVisible(false);
       timer = setTimeout(() => {
         setIsRendered(false);
       }, 300);
+      return () => clearTimeout(timer);
     }
-
-    return () => {
-      cancelAnimationFrame(animFrame);
-      clearTimeout(timer);
-    };
   }, [isOpen]);
 
   // Lock background scroll when drawer is open
@@ -90,6 +106,7 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
     if (!isOpen) {
       setSearchTerm('');
       setSelectedFundSource(null);
+      setFilterState(DEFAULT_DRAWER_FILTERS);
     }
   }, [isOpen]);
 
@@ -153,6 +170,8 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
 
   const filteredItems = useMemo(() => {
     let list = items || [];
+
+    // 1. Funding source chip filter
     if (selectedFundSource) {
       list = list.filter((it) => {
         const rawName = String(it.fund_source || it.client || '').replace(/[\r\n]+/g, ' ').trim();
@@ -162,6 +181,38 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
         return fName === selectedFundSource;
       });
     }
+
+    // 2. Department filter from FilterPopover
+    if (filterState.departments.length > 0 || filterState.deptCustomText) {
+      list = list.filter((it) =>
+        itemMatchesDepartmentMulti(it, filterState.departments.join(','), filterState.deptCustomText)
+      );
+    }
+
+    // 3. Date range filter from FilterPopover
+    if (filterState.dateFrom || filterState.dateTo) {
+      list = list.filter((it) =>
+        itemMatchesDateRange(it, filterState.dateFrom, filterState.dateTo)
+      );
+    }
+
+    // 4. Numeric ranges filter (budget/hours) from FilterPopover
+    if (filterState.numericRanges && Object.keys(filterState.numericRanges).length > 0) {
+      list = list.filter((it) =>
+        itemMatchesNumericRanges(it, filterState.numericRanges)
+      );
+    }
+
+    // 5. Evaluation framework filter (I AM / I SEE) from FilterPopover
+    if (filterState.framework && filterState.framework !== 'all') {
+      const target = filterState.framework === 'i_am' ? 'i_am' : 'i_see';
+      list = list.filter((it) => {
+        const iType = String(it.i_type || it.evaluation?.i_type || '').toLowerCase();
+        return iType.includes(target);
+      });
+    }
+
+    // 6. Search term query
     if (!searchTerm.trim()) return list;
     const q = searchTerm.toLowerCase().trim();
     return list.filter((it) => {
@@ -172,7 +223,7 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
       const extra = String(it.fund_source || it.client || it.journal || it.location || '').toLowerCase();
       return name.includes(q) || person.includes(q) || dept.includes(q) || id.includes(q) || extra.includes(q);
     });
-  }, [items, searchTerm, selectedFundSource]);
+  }, [items, searchTerm, selectedFundSource, filterState]);
 
   const totalBudget = useMemo(() => {
     return filteredItems.reduce((sum, it) => sum + extractItemBudget(it), 0);
@@ -188,7 +239,7 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
     if (item?.creator !== undefined || item?.req_no !== undefined || item?.application_number !== undefined) return 'ip';
     if (item?.service_type !== undefined || item?.hours_spent !== undefined || item?.person !== undefined) return 'service';
     if (item?.record_number !== undefined || item?.alloc_faculty !== undefined || item?.client !== undefined) return 'academic';
-    return categoryKey;
+    return categoryKey === 'all' ? 'research' : categoryKey;
   };
 
   const cleanText = (val: any): string => {
@@ -307,30 +358,9 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
               </div>
             </div>
           </div>
-
-          <button
-            type="button"
-            onClick={onClose}
-            style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '8px',
-              border: '1px solid #e2e8f0',
-              backgroundColor: '#ffffff',
-              color: '#64748b',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              flexShrink: 0,
-            }}
-            title="ปิดหน้าต่าง"
-          >
-            <FaTimes />
-          </button>
         </div>
 
-        {/* Search Bar */}
+        {/* Search Bar & FilterPopover Row */}
         <div
           style={{
             padding: '12px 20px',
@@ -339,6 +369,7 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
             display: 'flex',
             alignItems: 'center',
             gap: '10px',
+            flexWrap: 'wrap',
           }}
         >
           <div
@@ -350,6 +381,7 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
               borderRadius: '8px',
               padding: '6px 12px',
               flex: 1,
+              minWidth: '220px',
             }}
           >
             <FaSearch style={{ color: '#94a3b8', fontSize: '12px', marginRight: '8px', flexShrink: 0 }} />
@@ -357,7 +389,7 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="ค้นหาชื่อโครงการ, หัวหน้าโครงการ, แหล่งทุน, วารสาร, หน่วยงาน..."
+              placeholder="ค้นหาชื่อรายการ, หัวหน้าโครงการ, แหล่งทุน, วารสาร, หน่วยงาน..."
               style={{
                 border: 'none',
                 outline: 'none',
@@ -385,6 +417,21 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
               </button>
             )}
           </div>
+
+          {/* 5-Category Native FilterPopover (ภาพที่สอง) */}
+          <FilterPopover
+            category={categoryKey === 'all' ? (items[0]?._category || 'research') : (categoryKey as string)}
+            categoryTitle={
+              categoryKey === 'all'
+                ? 'ทุกชุดข้อมูล'
+                : (CATEGORIES_CONFIG[categoryKey as CategoryKey]?.title || 'โครงการ')
+            }
+            totalCount={items.length}
+            matchCount={filteredItems.length}
+            filters={filterState}
+            onApply={(newFilters) => setFilterState(newFilters)}
+            onReset={() => setFilterState(DEFAULT_DRAWER_FILTERS)}
+          />
         </div>
 
         {/* Scrollable Self-Contained Project Cards */}
