@@ -6,7 +6,7 @@ import { DashboardTabFilterBar } from '@/components/ui/DashboardTabFilterBar';
 import { SdgIcon } from '@/components/ui/SdgIcon';
 import { SdgNumberBadge } from '@/components/ui/SdgCard';
 import { SdgAggregationResult, SdgTileData } from '@/lib/sdgAggregationService';
-import { getSdgTextColor, SDG_DEFINITIONS } from '@/lib/sdg';
+import { getSdgTextColor, SDG_DEFINITIONS, getSdgInfo } from '@/lib/sdg';
 import { cn } from '@/lib/utils';
 import { FaFilter, FaUndoAlt, FaInfoCircle, FaCheck, FaExternalLinkAlt } from 'react-icons/fa';
 import { DrillDownProjectDrawer } from '@/components/data-display/DrillDownProjectDrawer';
@@ -498,45 +498,56 @@ export function SdgsDashboardView({
                     key={tile.sdgNumber}
                     onClick={() => toggleSdgSelection(tile.sdgNumber)}
                     className={cn(
-                      'group flex items-center gap-3.5 p-3 rounded-[18px] text-left transition-all duration-150 select-none relative overflow-hidden cursor-pointer w-full',
+                      'group flex items-center gap-3.5 p-3.5 rounded-[22px] text-left transition-all duration-200 select-none relative overflow-hidden cursor-pointer w-full min-h-[136px]',
                       isSelected
-                        ? 'border border-transparent shadow-md'
-                        : 'border border-slate-200 hover:shadow-md'
+                        ? 'shadow-lg border-2'
+                        : 'bg-white shadow-[0_4px_16px_rgba(15,23,42,0.06)] border-2 border-slate-100 hover:shadow-xl hover:-translate-y-0.5'
                     )}
                     style={{
                       background: isSelected
                         ? `linear-gradient(135deg, ${tile.color}, color-mix(in srgb, ${tile.color} 86%, #000))`
-                        : `color-mix(in srgb, ${tile.color} 6%, #ffffff)`,
+                        : '#ffffff',
+                      borderColor: isSelected ? tile.color : undefined,
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isSelected) {
+                        e.currentTarget.style.borderColor = tile.color;
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isSelected) {
+                        e.currentTarget.style.borderColor = '#f1f5f9';
+                      }
                     }}
                     role="button"
                     tabIndex={0}
                     aria-pressed={isSelected}
                   >
-                    {/* 76x76 SDG Icon (.n) */}
+                    {/* Sized SDG Icon box (.n) */}
                     <div
                       className={cn(
-                        'shrink-0 w-[76px] h-[76px] rounded-[14px] overflow-hidden flex items-center justify-center transition-all',
+                        'shrink-0 w-[86px] h-[86px] rounded-2xl overflow-hidden flex items-center justify-center transition-all',
                         isSelected ? 'shadow-[0_0_0_3px_#ffffff,0_4px_12px_rgba(0,0,0,0.3)]' : 'shadow-xs'
                       )}
                     >
-                      <SdgIcon n={tile.sdgNumber} size={76} />
+                      <SdgIcon n={tile.sdgNumber} size={86} />
                     </div>
 
                     {/* Right Info Block (.tb) */}
-                    <div className="min-w-0 flex-1 flex flex-col gap-1">
-                      {/* Title (.tn) */}
-                      <div className="flex items-start gap-1.5 text-[14px] font-medium leading-[1.35]">
+                    <div className="min-w-0 flex-1 flex flex-col justify-between self-stretch py-0.5">
+                      {/* Top Row: Badge + Title (.tn) */}
+                      <div className="flex items-center gap-2 leading-tight">
                         <span
-                          className="shrink-0 px-1.5 rounded-[6px] text-[12px] font-bold leading-[20px] mt-[1px]"
+                          className="shrink-0 px-2 py-0.5 rounded-[6px] text-[12px] font-bold leading-none"
                           style={{
                             backgroundColor: isSelected ? 'rgba(255,255,255,0.25)' : tile.color,
-                            color: isSelected ? textColor : textColor,
+                            color: textColor,
                           }}
                         >
                           {sdgNumStr}
                         </span>
                         <span
-                          className="text-[13.5px] font-medium truncate"
+                          className="text-[14.5px] font-bold truncate"
                           style={{ color: isSelected ? textColor : '#0f172a' }}
                           title={`SDG ${tile.sdgNumber}: ${tile.nameTh}`}
                         >
@@ -544,28 +555,46 @@ export function SdgsDashboardView({
                         </span>
                       </div>
 
-                      {/* Count (.tc & .c) */}
-                      <div className="flex items-baseline gap-2 flex-wrap">
-                        <span
-                          className="text-[28px] font-bold leading-none tracking-tight"
-                          style={{ color: isSelected ? textColor : '#0f172a' }}
-                        >
-                          {tile.currentCount}
-                        </span>
-                        <div>
-                          {renderBadge(tile.deltaLabel, tile.deltaType, isSelected)}
+                      {/* Middle Row: Count + Delta + Inline Drilldown Trigger (keeps height constant, no bouncing!) */}
+                      <div className="flex items-center justify-between gap-2 pr-1">
+                        <div className="flex items-baseline gap-2">
+                          <span
+                            className="text-[30px] font-black leading-none tracking-tight"
+                            style={{ color: isSelected ? textColor : '#0f172a' }}
+                          >
+                            {tile.currentCount}
+                          </span>
+                          <div>
+                            {renderBadge(tile.deltaLabel, tile.deltaType, isSelected)}
+                          </div>
                         </div>
+
+                        {/* Drill down trigger: placed in the whitespace beside count */}
+                        {isSelected && tile.currentCount > 0 && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenDrawer(tile.sdgNumber);
+                            }}
+                            className="inline-flex items-center gap-1.5 py-1 px-3 rounded-full bg-white/25 hover:bg-white/40 text-xs font-bold transition-all shadow-xs shrink-0 cursor-pointer"
+                            style={{ color: textColor }}
+                          >
+                            <FaExternalLinkAlt className="text-[10px]" />
+                            <span>ดู {tile.currentCount} โครงการ</span>
+                          </button>
+                        )}
                       </div>
 
-                      {/* 3-Year Breakdown (.y3) */}
-                      <div className="flex mt-0.5 text-left">
+                      {/* Bottom Row: 3-Year Breakdown (.y3) */}
+                      <div className="flex text-left">
                         {tile.yearCounts.map((yc, idx) => {
                           const isLatest = idx === tile.yearCounts.length - 1;
                           return (
                             <div
                               key={yc.year}
                               className={cn(
-                                'flex flex-col px-2.5 leading-[1.25]',
+                                'flex flex-col px-3 leading-[1.2]',
                                 idx === 0
                                   ? 'pl-0 border-l-0'
                                   : isSelected
@@ -574,17 +603,17 @@ export function SdgsDashboardView({
                               )}
                             >
                               <span
-                                className="text-[11px]"
+                                className="text-[11.5px]"
                                 style={{
                                   color: isSelected ? textColor : '#64748b',
-                                  opacity: isSelected ? 0.8 : 1,
+                                  opacity: isSelected ? 0.85 : 1,
                                 }}
                               >
                                 {yc.yearBe}
                               </span>
                               <span
                                 className={cn(
-                                  'text-[15px] self-start border-b-2',
+                                  'text-[16px] self-start border-b-2',
                                   isLatest ? 'font-bold' : 'font-medium',
                                   !yc.hasData && 'font-normal'
                                 )}
@@ -609,22 +638,6 @@ export function SdgsDashboardView({
                           );
                         })}
                       </div>
-
-                      {/* Drill down trigger */}
-                      {isSelected && tile.currentCount > 0 && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleOpenDrawer(tile.sdgNumber);
-                          }}
-                          className="mt-1 w-full inline-flex items-center justify-center gap-1.5 py-1 px-2.5 rounded-full bg-white/25 hover:bg-white/40 text-[11px] font-bold transition-colors"
-                          style={{ color: textColor }}
-                        >
-                          <FaExternalLinkAlt className="text-[9px]" />
-                          <span>ดู {tile.currentCount} โครงการ</span>
-                        </button>
-                      )}
                     </div>
                   </div>
                 );
@@ -635,163 +648,168 @@ export function SdgsDashboardView({
           {/* ========================================================================= */}
           {/* 4. Section 2: เปรียบเทียบจำนวนโครงการรายเดือน 3 ปี (SVG Bar Chart) */}
           {/* ========================================================================= */}
-          <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-[0_4px_16px_rgba(0,0,0,0.03)] space-y-4">
-            <div>
-              <h2 className="text-base sm:text-lg font-bold text-slate-900">
-                เปรียบเทียบจำนวนโครงการรายเดือน 3 ปี{' '}
-                {selectedSdg !== null && (
-                  <span className="text-emerald-700 font-extrabold">
-                    – SDG {selectedSdg} ({data.tiles.find((t) => t.sdgNumber === selectedSdg)?.nameTh})
-                  </span>
-                )}
-                {selectedSdg === null && (
-                  <span className="text-slate-500 font-normal">– ทุกเป้าหมาย SDGs</span>
-                )}
-              </h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                แท่งในแต่ละเดือนเรียงจากปีเก่าไปปีล่าสุด และแถวด้านล่างแสดงร้อยละการเปลี่ยนแปลงเทียบกับเดือนเดียวกันของปีก่อนหน้า
-              </p>
-            </div>
+          {(() => {
+            const selectedInfo = selectedSdg !== null ? getSdgInfo(selectedSdg) : null;
+            const activeColor = selectedInfo?.color || '#2563eb';
+            const barColors = ['#cbd5e1', '#94a3b8', activeColor];
 
-            {/* Legend */}
-            <div className="flex items-center gap-4 flex-wrap text-xs text-slate-600 pt-1">
-              {data.comparisonYearsBe.map((yBe, idx) => {
-                const yCe = data.comparisonYears[idx];
-                const hasData = data.yearsWithData.includes(yCe);
-                const colors = ['#cbd5e1', '#94a3b8', '#00A651'];
-                const swatchColor = hasData ? colors[idx] : '#e2e8f0';
+            return (
+              <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-[0_4px_16px_rgba(0,0,0,0.03)] space-y-4">
+                <div>
+                  <h2 className="text-base sm:text-lg font-bold text-slate-900">
+                    เปรียบเทียบจำนวนโครงการรายเดือน 3 ปี{' '}
+                    {selectedSdg !== null && (
+                      <span className="font-extrabold" style={{ color: activeColor }}>
+                        – SDG {selectedSdg} ({data.tiles.find((t) => t.sdgNumber === selectedSdg)?.nameTh})
+                      </span>
+                    )}
+                    {selectedSdg === null && (
+                      <span className="text-slate-500 font-normal">– ทุกเป้าหมาย SDGs</span>
+                    )}
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    แท่งในแต่ละเดือนเรียงจากปีเก่าไปปีล่าสุด และแถวด้านล่างแสดงร้อยละการเปลี่ยนแปลงเทียบกับเดือนเดียวกันของปีก่อนหน้า
+                  </p>
+                </div>
 
-                return (
-                  <div key={yBe} className="flex items-center gap-1.5">
-                    <span
-                      className="w-3 h-3 rounded-xs shrink-0"
-                      style={{ backgroundColor: swatchColor }}
-                    />
-                    <span className="font-medium">
-                      ปี {yBe}
-                      {!hasData && ' (ไม่มีข้อมูล)'}
-                    </span>
+                {/* Legend with dynamic active color for target year */}
+                <div className="flex items-center gap-4 flex-wrap text-xs text-slate-600 pt-1">
+                  {data.comparisonYearsBe.map((yBe, idx) => {
+                    const yCe = data.comparisonYears[idx];
+                    const hasData = data.yearsWithData.includes(yCe);
+                    const swatchColor = hasData ? barColors[idx] : '#e2e8f0';
+
+                    return (
+                      <div key={yBe} className="flex items-center gap-1.5">
+                        <span
+                          className="w-3.5 h-3.5 rounded-sm shrink-0 transition-colors"
+                          style={{ backgroundColor: swatchColor }}
+                        />
+                        <span className="font-medium text-slate-700">
+                          ปี {yBe}
+                          {!hasData && ' (ไม่มีข้อมูล)'}
+                        </span>
+                      </div>
+                    );
+                  })}
+                  <div className="text-slate-300">|</div>
+                  <div className="text-[12px] text-slate-500 font-medium">
+                    ร้อยละการเปลี่ยนแปลงเทียบเดือนเดียวกันของปี {data.targetYearBe - 1}
                   </div>
-                );
-              })}
-              <div className="text-slate-400">|</div>
-              <div className="text-[11.5px] text-slate-500">
-                ร้อยละการเปลี่ยนแปลงเทียบเดือนเดียวกันของปี {data.targetYearBe - 1}
-              </div>
-            </div>
+                </div>
 
-            {/* Monthly SVG Bar Chart */}
-            <div className="overflow-x-auto pb-2">
-              <div className="min-w-[700px] h-64 relative">
-                {(() => {
-                  const months = data.monthlyBars;
-                  const allCounts = months.flatMap((m) =>
-                    m.years.map((y) => (y.hasData ? y.count : 0))
-                  );
-                  const rawMax = Math.max(...allCounts, 1);
-                  const maxVal = Math.ceil(rawMax * 1.25) || 5;
+                {/* Monthly SVG Bar Chart (Enlarged & Bold) */}
+                <div className="overflow-x-auto pb-2">
+                  <div className="min-w-[740px] h-[310px] relative">
+                    {(() => {
+                      const months = data.monthlyBars;
+                      const allCounts = months.flatMap((m) =>
+                        m.years.map((y) => (y.hasData ? y.count : 0))
+                      );
+                      const rawMax = Math.max(...allCounts, 1);
+                      const maxVal = Math.ceil(rawMax * 1.25) || 5;
 
-                  const chartHeight = 200;
-                  const chartWidth = 720;
-                  const leftMargin = 38;
-                  const topMargin = 15;
-                  const innerWidth = chartWidth - leftMargin - 15;
-                  const groupWidth = innerWidth / months.length;
-                  const barWidth = Math.min(22, (groupWidth * 0.7) / 3);
+                      const chartHeight = 250;
+                      const chartWidth = 760;
+                      const leftMargin = 38;
+                      const topMargin = 16;
+                      const innerWidth = chartWidth - leftMargin - 15;
+                      const groupWidth = innerWidth / months.length;
+                      const barWidth = Math.min(26, (groupWidth * 0.75) / 3);
 
-                  const barColors = ['#cbd5e1', '#94a3b8', '#00A651'];
-
-                  return (
-                    <svg
-                      viewBox={`0 0 ${chartWidth} ${chartHeight + 35}`}
-                      className="w-full h-full"
-                      role="img"
-                      aria-label="กราฟแท่งเปรียบเทียบรายเดือน"
-                    >
-                      {/* Grid lines */}
-                      {[0, 0.25, 0.5, 0.75, 1].map((pct, idx) => {
-                        const val = Math.round(maxVal * pct);
-                        const y = topMargin + chartHeight - chartHeight * pct;
-                        return (
-                          <g key={`grid-${idx}`}>
-                            <line
-                              x1={leftMargin}
-                              x2={chartWidth - 10}
-                              y1={y}
-                              y2={y}
-                              stroke="#e2e8f0"
-                              strokeDasharray={pct === 0 ? '' : '3 3'}
-                            />
-                            <text
-                              x={leftMargin - 6}
-                              y={y + 4}
-                              textAnchor="end"
-                              className="text-[10px] fill-slate-400 font-mono"
-                            >
-                              {val}
-                            </text>
-                          </g>
-                        );
-                      })}
-
-                      {/* Bars */}
-                      {months.map((m, mIdx) => {
-                        const groupX = leftMargin + mIdx * groupWidth;
-                        const centerX = groupX + groupWidth / 2;
-                        const barsStartX = centerX - (barWidth * 3 + 4) / 2;
-
-                        return (
-                          <g key={m.monthIndex}>
-                            {m.years.map((y, yIdx) => {
-                              if (!y.hasData) return null;
-                              const barHeight = (y.count / maxVal) * chartHeight;
-                              const barX = barsStartX + yIdx * (barWidth + 2);
-                              const barY = topMargin + chartHeight - barHeight;
-
-                              return (
-                                <rect
-                                  key={y.year}
-                                  x={barX}
-                                  y={barY}
-                                  width={barWidth}
-                                  height={Math.max(2, barHeight)}
-                                  rx={3}
-                                  fill={barColors[yIdx]}
-                                  className="transition-all hover:opacity-80"
+                      return (
+                        <svg
+                          viewBox={`0 0 ${chartWidth} ${chartHeight + 40}`}
+                          className="w-full h-full"
+                          role="img"
+                          aria-label="กราฟแท่งเปรียบเทียบรายเดือน"
+                        >
+                          {/* Grid lines */}
+                          {[0, 0.25, 0.5, 0.75, 1].map((pct, idx) => {
+                            const val = Math.round(maxVal * pct);
+                            const y = topMargin + chartHeight - chartHeight * pct;
+                            return (
+                              <g key={`grid-${idx}`}>
+                                <line
+                                  x1={leftMargin}
+                                  x2={chartWidth - 10}
+                                  y1={y}
+                                  y2={y}
+                                  stroke="#e2e8f0"
+                                  strokeDasharray={pct === 0 ? '' : '3 3'}
+                                />
+                                <text
+                                  x={leftMargin - 6}
+                                  y={y + 4}
+                                  textAnchor="end"
+                                  className="text-[11px] fill-slate-400 font-mono font-medium"
                                 >
-                                  <title>
-                                    {m.monthName} {y.yearBe}: {y.count} โครงการ
-                                  </title>
-                                </rect>
-                              );
-                            })}
+                                  {val}
+                                </text>
+                              </g>
+                            );
+                          })}
 
-                            <text
-                              x={centerX}
-                              y={topMargin + chartHeight + 18}
-                              textAnchor="middle"
-                              className="text-[11px] font-medium fill-slate-600"
-                            >
-                              {m.monthName}
-                            </text>
-                          </g>
-                        );
-                      })}
-                    </svg>
-                  );
-                })()}
-              </div>
+                          {/* Bars */}
+                          {months.map((m, mIdx) => {
+                            const groupX = leftMargin + mIdx * groupWidth;
+                            const centerX = groupX + groupWidth / 2;
+                            const barsStartX = centerX - (barWidth * 3 + 4) / 2;
 
-              {/* Monthly deltas row */}
-              <div className="min-w-[700px] grid grid-flow-col auto-cols-fr gap-1 pt-1 border-t border-slate-100 text-center">
-                {data.monthlyBars.map((m) => (
-                  <div key={`delta-${m.monthIndex}`} className="py-1">
-                    {renderBadge(m.deltaLabel, m.deltaType)}
+                            return (
+                              <g key={m.monthIndex}>
+                                {m.years.map((y, yIdx) => {
+                                  if (!y.hasData) return null;
+                                  const barHeight = (y.count / maxVal) * chartHeight;
+                                  const barX = barsStartX + yIdx * (barWidth + 2);
+                                  const barY = topMargin + chartHeight - barHeight;
+
+                                  return (
+                                    <rect
+                                      key={y.year}
+                                      x={barX}
+                                      y={barY}
+                                      width={barWidth}
+                                      height={Math.max(2, barHeight)}
+                                      rx={3}
+                                      fill={barColors[yIdx]}
+                                      className="transition-all hover:opacity-85"
+                                    >
+                                      <title>
+                                        {m.monthName} {y.yearBe}: {y.count} โครงการ
+                                      </title>
+                                    </rect>
+                                  );
+                                })}
+
+                                <text
+                                  x={centerX}
+                                  y={topMargin + chartHeight + 20}
+                                  textAnchor="middle"
+                                  className="text-[12px] font-bold fill-slate-700"
+                                >
+                                  {m.monthName}
+                                </text>
+                              </g>
+                            );
+                          })}
+                        </svg>
+                      );
+                    })()}
                   </div>
-                ))}
+
+                  {/* Monthly deltas row */}
+                  <div className="min-w-[740px] grid grid-flow-col auto-cols-fr gap-1 pt-2 border-t border-slate-100 text-center">
+                    {data.monthlyBars.map((m) => (
+                      <div key={`delta-${m.monthIndex}`} className="py-1">
+                        {renderBadge(m.deltaLabel, m.deltaType)}
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            );
+          })()}
 
           {/* ========================================================================= */}
           {/* 5. Section 3: Heatmap (SDG x Month) */}
@@ -807,16 +825,16 @@ export function SdgsDashboardView({
             </div>
 
             <div className="overflow-x-auto pb-2">
-              <div className="min-w-[760px] space-y-1">
+              <div className="min-w-[800px] space-y-1">
                 {/* Month headers */}
-                <div className="grid grid-cols-[240px_repeat(12,1fr)] gap-1 pb-1 border-b border-slate-200 text-center">
-                  <div className="text-[11px] font-bold text-slate-500 text-left pl-2">
+                <div className="grid grid-cols-[260px_repeat(12,1fr)] gap-1.5 pb-2 border-b border-slate-200 text-center">
+                  <div className="text-xs font-bold text-slate-700 text-left pl-2">
                     เป้าหมาย SDGs
                   </div>
                   {MONTH_NAMES.map((mon) => (
                     <div
                       key={mon}
-                      className="text-[11px] font-bold text-slate-600 py-1"
+                      className="text-xs font-bold text-slate-700 py-1"
                     >
                       {mon}
                     </div>
@@ -833,18 +851,26 @@ export function SdgsDashboardView({
                       key={row.sdgNumber}
                       onClick={() => toggleSdgSelection(row.sdgNumber)}
                       className={cn(
-                        'grid grid-cols-[240px_repeat(12,1fr)] gap-1 items-center rounded-lg py-1 px-1 transition-colors cursor-pointer select-none',
+                        'grid grid-cols-[260px_repeat(12,1fr)] gap-1.5 items-center rounded-xl py-1 px-1.5 transition-all cursor-pointer select-none',
                         isSelected
-                          ? 'bg-emerald-50 ring-1 ring-emerald-300'
+                          ? 'shadow-xs'
                           : 'hover:bg-slate-50'
                       )}
+                      style={
+                        isSelected
+                          ? {
+                              outline: `2px solid ${row.color}`,
+                              backgroundColor: `color-mix(in srgb, ${row.color} 8%, #ffffff)`,
+                            }
+                          : undefined
+                      }
                     >
-                      <div className="flex items-center gap-2 truncate pr-2">
-                        <SdgNumberBadge goalNumber={row.sdgNumber} />
+                      <div className="flex items-center gap-2.5 truncate pr-2">
+                        <SdgNumberBadge goalNumber={row.sdgNumber} className="w-8 h-8 rounded-lg text-xs font-bold shrink-0" />
                         <span
                           className={cn(
-                            'text-xs truncate',
-                            isSelected ? 'font-bold text-emerald-950' : 'font-medium text-slate-700'
+                            'text-[13.5px] truncate',
+                            isSelected ? 'font-bold text-slate-900' : 'font-semibold text-slate-800'
                           )}
                           title={`${row.code}: ${row.nameTh}`}
                         >
@@ -857,7 +883,7 @@ export function SdgsDashboardView({
                           return (
                             <div
                               key={m.monthIndex}
-                              className="h-8 rounded-md flex items-center justify-center text-xs text-slate-300 font-medium bg-slate-50/50"
+                              className="h-9 rounded-lg flex items-center justify-center text-xs text-slate-300 font-medium bg-slate-50/50"
                             >
                               –
                             </div>
@@ -871,7 +897,7 @@ export function SdgsDashboardView({
                           <div
                             key={m.monthIndex}
                             className={cn(
-                              'h-8 rounded-md flex items-center justify-center text-xs font-semibold transition-all duration-150',
+                              'h-9 rounded-lg flex items-center justify-center text-[13px] font-bold transition-all duration-150',
                               isDimmed ? 'opacity-30' : 'opacity-100'
                             )}
                             style={{
