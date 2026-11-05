@@ -99,7 +99,7 @@ export function IPView() {
             { key: 'types_dept', label: 'ประเภททรัพย์สินทางปัญญาและสังกัด', icon: <FaCertificate style={{ fontSize: '13px' }} /> },
             { key: 'protection_status', label: 'สถานะการยื่นและคุ้มครอง', icon: <FaShieldAlt style={{ fontSize: '13px' }} /> },
             { key: 'faculty', label: 'อาจารย์และนักประดิษฐ์สูงสุด', icon: <FaUserTie style={{ fontSize: '13px' }} /> },
-            { key: 'sdg', label: 'ความสอดคล้องเชิงยุทธศาสตร์ (SDGs / ISEE / IAM)', icon: <FaLeaf style={{ fontSize: '13px' }} /> },
+            { key: 'sdg', label: 'ความสอดคล้องเชิงยุทธศาสตร์ (SDGs)', icon: <FaLeaf style={{ fontSize: '13px' }} /> },
             { key: 'table', label: 'รายการงานทรัพย์สินทางปัญญา', icon: <FaTable style={{ fontSize: '13px' }} /> },
           ]}
         />

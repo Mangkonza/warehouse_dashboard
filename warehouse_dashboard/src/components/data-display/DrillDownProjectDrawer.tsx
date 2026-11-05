@@ -431,6 +431,7 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
             filters={filterState}
             onApply={(newFilters) => setFilterState(newFilters)}
             onReset={() => setFilterState(DEFAULT_DRAWER_FILTERS)}
+            align="right"
           />
         </div>
 

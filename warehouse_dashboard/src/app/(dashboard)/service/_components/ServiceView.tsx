@@ -89,7 +89,7 @@ export function ServiceView() {
             { key: 'timeline_type', label: 'แนวโน้มและประเภทงานบริการ', icon: <FaChartLine style={{ fontSize: '13px' }} /> },
             { key: 'department', label: 'การให้บริการรายสังกัด', icon: <FaBuilding style={{ fontSize: '13px' }} /> },
             { key: 'faculty', label: 'อาจารย์และผู้ให้บริการสูงสุด', icon: <FaUserTie style={{ fontSize: '13px' }} /> },
-            { key: 'sdg', label: 'ความสอดคล้องเชิงยุทธศาสตร์ (SDGs / ISEE IAM)', icon: <FaLeaf style={{ fontSize: '13px' }} /> },
+            { key: 'sdg', label: 'ความสอดคล้องเชิงยุทธศาสตร์ (SDGs)', icon: <FaLeaf style={{ fontSize: '13px' }} /> },
             { key: 'table', label: 'รายการงานบริการวิชาการ', icon: <FaTable style={{ fontSize: '13px' }} /> },
           ]}
         />

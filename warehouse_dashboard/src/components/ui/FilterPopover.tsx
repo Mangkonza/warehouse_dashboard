@@ -100,7 +100,8 @@ const FLYOUT_MIN_HEIGHT = 280;
 function computeFlyoutPlacement(
   popoverRect: DOMRect,
   viewportWidth: number,
-  viewportHeight: number
+  viewportHeight: number,
+  preferLeft = false
 ): FlyoutPlacement {
   const width = Math.min(FLYOUT_MAX_WIDTH, viewportWidth - VIEWPORT_MARGIN * 2);
   const spaceRight = viewportWidth - popoverRect.right - FLYOUT_GAP - VIEWPORT_MARGIN;
@@ -111,19 +112,36 @@ function computeFlyoutPlacement(
   let side: FlyoutPlacement['side'];
   let left: number;
 
-  if (spaceRight >= width) {
-    side = 'right';
-    left = popoverRect.width + FLYOUT_GAP;
-  } else if (spaceLeft >= width) {
-    side = 'left';
-    left = -width - FLYOUT_GAP;
+  if (preferLeft) {
+    if (spaceLeft >= width) {
+      side = 'left';
+      left = -width - FLYOUT_GAP;
+    } else if (spaceRight >= width) {
+      side = 'right';
+      left = popoverRect.width + FLYOUT_GAP;
+    } else {
+      side = 'overlay';
+      const viewportLeft = Math.max(
+        VIEWPORT_MARGIN,
+        Math.min(popoverRect.left, viewportWidth - VIEWPORT_MARGIN - width)
+      );
+      left = viewportLeft - popoverRect.left;
+    }
   } else {
-    side = 'overlay';
-    const viewportLeft = Math.max(
-      VIEWPORT_MARGIN,
-      Math.min(popoverRect.left, viewportWidth - VIEWPORT_MARGIN - width)
-    );
-    left = viewportLeft - popoverRect.left;
+    if (spaceRight >= width) {
+      side = 'right';
+      left = popoverRect.width + FLYOUT_GAP;
+    } else if (spaceLeft >= width) {
+      side = 'left';
+      left = -width - FLYOUT_GAP;
+    } else {
+      side = 'overlay';
+      const viewportLeft = Math.max(
+        VIEWPORT_MARGIN,
+        Math.min(popoverRect.left, viewportWidth - VIEWPORT_MARGIN - width)
+      );
+      left = viewportLeft - popoverRect.left;
+    }
   }
 
   const vertical: FlyoutPlacement['vertical'] =
@@ -330,6 +348,23 @@ export function FilterPopover({
   const [isOpen, setIsOpen] = useState(false);
   const [activeFlyout, setActiveFlyout] = useState<FlyoutTab>(null);
   const [flyoutPlacement, setFlyoutPlacement] = useState<FlyoutPlacement | null>(null);
+  const [effectiveAlign, setEffectiveAlign] = useState<'left' | 'right'>(align || 'left');
+
+  useEffect(() => {
+    if (align) {
+      setEffectiveAlign(align);
+      return;
+    }
+    if (isOpen && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const viewportWidth = document.documentElement.clientWidth || window.innerWidth;
+      if (rect.left + 390 > viewportWidth - VIEWPORT_MARGIN) {
+        setEffectiveAlign('right');
+      } else {
+        setEffectiveAlign('left');
+      }
+    }
+  }, [isOpen, align]);
 
   // Local draft state
   const [draft, setDraft] = useState<FilterState>({
@@ -475,8 +510,10 @@ export function FilterPopover({
     }
     const rect = popoverRef.current?.getBoundingClientRect();
     if (rect) {
+      const viewportWidth = document.documentElement.clientWidth || window.innerWidth;
+      const preferLeft = effectiveAlign === 'right' || rect.right > viewportWidth / 2;
       setFlyoutPlacement(
-        computeFlyoutPlacement(rect, document.documentElement.clientWidth, window.innerHeight)
+        computeFlyoutPlacement(rect, viewportWidth, window.innerHeight, preferLeft)
       );
     }
     setActiveFlyout(tab);
@@ -487,13 +524,15 @@ export function FilterPopover({
     const reposition = () => {
       const rect = popoverRef.current?.getBoundingClientRect();
       if (!rect) return;
+      const viewportWidth = document.documentElement.clientWidth || window.innerWidth;
+      const preferLeft = effectiveAlign === 'right' || rect.right > viewportWidth / 2;
       setFlyoutPlacement(
-        computeFlyoutPlacement(rect, document.documentElement.clientWidth, window.innerHeight)
+        computeFlyoutPlacement(rect, viewportWidth, window.innerHeight, preferLeft)
       );
     };
     window.addEventListener('resize', reposition);
     return () => window.removeEventListener('resize', reposition);
-  }, [isOpen, activeFlyout]);
+  }, [isOpen, activeFlyout, effectiveAlign]);
 
   // Active filters count badge on the trigger button
   const activeCount = useMemo(() => {
@@ -747,7 +786,7 @@ export function FilterPopover({
           style={{
             position: 'absolute',
             top: 'calc(100% + 8px)',
-            ...(align === 'right' ? { right: 0 } : { left: 0 }),
+            ...(effectiveAlign === 'right' ? { right: 0 } : { left: 0 }),
             width: 'min(380px, calc(100vw - 32px))',
             display: 'flex',
             flexDirection: 'column',
@@ -1251,7 +1290,7 @@ export function FilterPopover({
                 position: 'absolute',
                 top: flyoutPlacement?.vertical === 'up' ? 'auto' : 0,
                 bottom: flyoutPlacement?.vertical === 'up' ? 0 : 'auto',
-                left: flyoutPlacement ? `${flyoutPlacement.left}px` : 'calc(100% + 8px)',
+                left: flyoutPlacement ? `${flyoutPlacement.left}px` : effectiveAlign === 'right' ? `-${flyoutWidth}` : 'calc(100% + 8px)',
                 width: flyoutPlacement ? `${flyoutPlacement.width}px` : `min(${flyoutWidth}, calc(100vw - 32px))`,
                 maxHeight: flyoutPlacement ? `${flyoutPlacement.maxHeight}px` : 'calc(85vh - 40px)',
                 display: 'flex',

@@ -94,9 +94,13 @@ export const StrategicAlignmentMatrix: React.FC<StrategicAlignmentMatrixProps> =
     };
   }, [items, categoryKey]);
 
+  // Temporarily hidden from web display per user request, while preserving code and calculations
+  const SHOW_ISEE_IAM = false;
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {/* SECTION 1: Dual Executive Alignment Cards (ISEE & IAM) */}
+      {/* SECTION 1: Dual Executive Alignment Cards (ISEE & IAM) - preserved in code, hidden from UI */}
+      {SHOW_ISEE_IAM && (
       <div
         style={{
           display: 'grid',
@@ -370,12 +374,14 @@ export const StrategicAlignmentMatrix: React.FC<StrategicAlignmentMatrixProps> =
           </div>
         </div>
       </div>
+      )}
 
       {/* SECTION 2: United Nations SDGs 17 Goals Matrix */}
       <div className="space-y-4">
         <SdgsDashboardView
           embeddedCategory={categoryKey}
           isEmbedded={true}
+          embeddedItems={items}
         />
       </div>
 

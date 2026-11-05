@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import { FaFilter, FaUndoAlt, FaInfoCircle, FaCheck } from 'react-icons/fa';
 import { DrillDownProjectDrawer } from '@/components/data-display/DrillDownProjectDrawer';
 import { CategoryKey } from '@/types/dataManagement';
+import { getCachedCategoryData } from '@/lib/dataService';
 
 const MONTH_NAMES = [
   'ม.ค.',
@@ -39,11 +40,13 @@ const CATEGORY_TABS = [
 export interface SdgsDashboardViewProps {
   embeddedCategory?: string;
   isEmbedded?: boolean;
+  embeddedItems?: any[];
 }
 
 export function SdgsDashboardView({
   embeddedCategory,
   isEmbedded = false,
+  embeddedItems,
 }: SdgsDashboardViewProps = {}) {
   const { tabFilter, setTabFilter, resetTabFilter } = useDashboardTabFilter('sdgs');
 
@@ -60,6 +63,7 @@ export function SdgsDashboardView({
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerItems, setDrawerItems] = useState<any[]>([]);
   const [drawerLoading, setDrawerLoading] = useState(false);
+  const [drawerSdg, setDrawerSdg] = useState<number | null>(null);
 
   // Sync filters
   const currentFiscalYear = tabFilter.fiscalYear || '2569';
@@ -137,26 +141,42 @@ export function SdgsDashboardView({
   const handleOpenDrawer = async (sdgNum: number) => {
     setDrawerLoading(true);
     setDrawerOpen(true);
+    setDrawerSdg(sdgNum);
+    setSelectedSdg(sdgNum);
     try {
-      const categories =
-        activeCategory === 'all'
-          ? ['research', 'academic', 'publications', 'ip', 'service']
-          : [activeCategory];
+      let allItems: any[] = [];
 
-      const allItems: any[] = [];
-      for (const cat of categories) {
-        try {
-          const res = await fetch(`/api/data/${cat}`);
-          if (res.ok) {
-            const json = await res.json();
-            const list = Array.isArray(json) ? json : json.data || json.items || [];
-            list.forEach((item: any) => {
-              item._category = cat;
-              allItems.push(item);
+      if (embeddedItems && embeddedItems.length > 0) {
+        allItems = embeddedItems.map((item: any) => ({
+          ...item,
+          _category: item._category || activeCategory,
+        }));
+      } else {
+        const categories =
+          activeCategory === 'all'
+            ? ['research', 'academic', 'publications', 'ip', 'service']
+            : [activeCategory];
+
+        for (const cat of categories) {
+          const localItems = getCachedCategoryData(cat);
+          if (localItems && localItems.length > 0) {
+            localItems.forEach((item: any) => {
+              allItems.push({ ...item, _category: cat });
             });
+          } else {
+            try {
+              const res = await fetch(`/api/data/${cat}`);
+              if (res.ok) {
+                const json = await res.json();
+                const list = Array.isArray(json) ? json : json.data || json.items || [];
+                list.forEach((item: any) => {
+                  allItems.push({ ...item, _category: cat });
+                });
+              }
+            } catch (err) {
+              console.warn(`Failed to fetch items for ${cat}:`, err);
+            }
           }
-        } catch (err) {
-          console.warn(`Failed to fetch items for ${cat}:`, err);
         }
       }
 
@@ -165,7 +185,8 @@ export function SdgsDashboardView({
           item.evaluation?.sdg_ids ||
           item.sdg_ids ||
           item.evaluation?.sdgs ||
-          item.sdgs;
+          item.sdgs ||
+          (item.sdg_code ? [item.sdg_code] : null);
         if (!sdgs) return false;
         if (Array.isArray(sdgs)) {
           return sdgs.some((s) => {
@@ -977,9 +998,9 @@ export function SdgsDashboardView({
       <DrillDownProjectDrawer
         isOpen={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        title={`รายการทั้งหมดที่สอดคล้องกับ SDG ${selectedSdg || ''}`}
+        title={`รายการทั้งหมดที่สอดคล้องกับ SDG ${drawerSdg || selectedSdg || ''}`}
         subtitle={`ชุดข้อมูล: ${CATEGORY_TABS.find((t) => t.id === activeCategory)?.label || 'ทุกชุดข้อมูล'}`}
-        accentColor={selectedSdg ? SDG_DEFINITIONS[selectedSdg]?.color : '#00A651'}
+        accentColor={(drawerSdg || selectedSdg) ? SDG_DEFINITIONS[drawerSdg || selectedSdg!]?.color : '#00A651'}
         categoryKey={(activeCategory === 'all' ? 'research' : activeCategory) as CategoryKey}
         items={drawerItems}
       />
