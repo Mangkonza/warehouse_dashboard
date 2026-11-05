@@ -90,7 +90,7 @@ export function ServiceView() {
             { key: 'department', label: 'การให้บริการรายสังกัด', icon: <FaBuilding style={{ fontSize: '13px' }} /> },
             { key: 'faculty', label: 'อาจารย์และผู้ให้บริการสูงสุด', icon: <FaUserTie style={{ fontSize: '13px' }} /> },
             { key: 'sdg', label: 'ความสอดคล้องเชิงยุทธศาสตร์ (SDGs / ISEE IAM)', icon: <FaLeaf style={{ fontSize: '13px' }} /> },
-            { key: 'table', label: 'ตารางข้อมูลงานบริการวิชาการ', icon: <FaTable style={{ fontSize: '13px' }} /> },
+            { key: 'table', label: 'รายการทั้งหมด', icon: <FaTable style={{ fontSize: '13px' }} /> },
           ]}
         />
       </div>

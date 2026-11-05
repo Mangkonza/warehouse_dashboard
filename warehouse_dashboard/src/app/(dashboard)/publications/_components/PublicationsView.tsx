@@ -110,7 +110,7 @@ export function PublicationsView() {
             { key: 'faculty', label: 'อาจารย์และนักวิจัยตีพิมพ์สูงสุด', icon: <FaUserTie style={{ fontSize: '13px' }} /> },
             { key: 'journals', label: 'วารสารและแหล่งตีพิมพ์ยอดนิยม', icon: <FaBookOpen style={{ fontSize: '13px' }} /> },
             { key: 'sdg', label: 'ความสอดคล้องเชิงยุทธศาสตร์ (SDGs / ISEE / IAM)', icon: <FaLeaf style={{ fontSize: '13px' }} /> },
-            { key: 'table', label: 'ตารางข้อมูลผลงานตีพิมพ์', icon: <FaTable style={{ fontSize: '13px' }} /> },
+            { key: 'table', label: 'รายการทั้งหมด', icon: <FaTable style={{ fontSize: '13px' }} /> },
           ]}
         />
       </div>

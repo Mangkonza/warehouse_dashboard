@@ -113,7 +113,7 @@ export function ResearchView() {
             { key: 'productivity', label: 'เปรียบเทียบผลผลิตรายสังกัด', icon: <FaBuilding style={{ fontSize: '13px' }} /> },
             { key: 'faculty', label: 'อาจารย์และหัวหน้าโครงการวิจัย', icon: <FaUserTie style={{ fontSize: '13px' }} /> },
             { key: 'sdg', label: 'ความสอดคล้องเชิงยุทธศาสตร์ (SDGs / ISEE / IAM)', icon: <FaLeaf style={{ fontSize: '13px' }} /> },
-            { key: 'table', label: 'ตารางข้อมูลโครงการวิจัย', icon: <FaTable style={{ fontSize: '13px' }} /> },
+            { key: 'table', label: 'รายการทั้งหมด', icon: <FaTable style={{ fontSize: '13px' }} /> },
           ]}
         />
       </div>
