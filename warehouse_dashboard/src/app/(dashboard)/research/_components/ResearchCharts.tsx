@@ -49,7 +49,7 @@ function resolveMonthIndex(rawDate: unknown): number {
   return -1;
 }
 
-export type ResearchPerspective = 'overview' | 'productivity' | 'faculty' | 'sdg';
+export type ResearchPerspective = 'overview' | 'productivity' | 'faculty' | 'sdg' | 'table';
 
 export function ResearchCharts({
   validData,

@@ -31,7 +31,7 @@ interface PublicationsChartsProps {
   hideSelector?: boolean;
 }
 
-export type PubPerspective = 'timeline' | 'quartile_tci' | 'department' | 'faculty' | 'journals' | 'sdg';
+export type PubPerspective = 'timeline' | 'quartile_tci' | 'department' | 'faculty' | 'journals' | 'sdg' | 'table';
 
 /** Main journal tiers shown in the quartile donut, in display order. */
 const MAIN_PUB_TIERS = [

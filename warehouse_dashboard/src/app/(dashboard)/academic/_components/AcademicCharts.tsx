@@ -36,7 +36,7 @@ interface AcademicChartsProps {
   hideSelector?: boolean;
 }
 
-export type AcademicPerspective = 'timeline_alloc' | 'client_segment' | 'faculty' | 'sdg';
+export type AcademicPerspective = 'timeline_alloc' | 'client_segment' | 'faculty' | 'sdg' | 'table';
 
 export function AcademicCharts({
   validData,

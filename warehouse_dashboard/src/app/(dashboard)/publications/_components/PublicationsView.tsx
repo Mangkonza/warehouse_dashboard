@@ -6,13 +6,13 @@ import { usePublicationsData } from '../_hooks/usePublicationsData';
 import { PublicationsCharts, PubPerspective } from './PublicationsCharts';
 import { TopSegmentedTabs } from '@/components/ui/TopSegmentedTabs';
 import { StrategicAlignmentMatrix } from '@/components/data-display/StrategicAlignmentMatrix';
-import { PublicationsTable } from './PublicationsTable';
+import { MissionDataTable } from '@/components/data-display/MissionDataTable';
 import { DashboardTabFilterBar } from '@/components/ui/DashboardTabFilterBar';
 import { UndatedNotice } from '@/components/ui/UndatedNotice';
 import { MissionKpiCard } from '@/components/data-display/MissionKpiCard';
 import { MissionYoYControls } from '@/components/data-display/MissionYoYControls';
 import { dashboardPageSubtitleStyle, dashboardPageTitleStyle, dashboardTheme } from '@/lib/dashboardTheme';
-import { FaBook, FaGlobeAmericas, FaAward, FaCoins, FaChartLine, FaBuilding, FaUserTie, FaBookOpen, FaLeaf } from 'react-icons/fa';
+import { FaBook, FaGlobeAmericas, FaAward, FaCoins, FaChartLine, FaBuilding, FaUserTie, FaBookOpen, FaLeaf, FaTable } from 'react-icons/fa';
 
 export function PublicationsView() {
   const [activePerspective, setActivePerspective] = React.useState<PubPerspective>('timeline');
@@ -221,6 +221,14 @@ export function PublicationsView() {
             showBudget={true}
           />
         </div>
+      ) : activePerspective === 'table' ? (
+        <div style={{ marginTop: '8px' }}>
+          <MissionDataTable
+            categoryKey="publications"
+            items={validData}
+            title="ผลงานตีพิมพ์ทางวิชาการ"
+          />
+        </div>
       ) : (
         <>
           {activePerspective === 'timeline' && (
@@ -266,10 +274,10 @@ export function PublicationsView() {
                 <MissionKpiCard
                   mission="publications"
                   variant="pastel"
-                  label="งบสนับสนุนการตีพิมพ์"
+                  label="งบสนับสนุนตีพิมพ์รวม"
                   value={totalSupportBudget.toLocaleString('th-TH')}
                   unit="บาท"
-                  subtext={`เฉลี่ย ${avgSupport} ฿/เรื่อง • เงินรางวัลและค่าตีพิมพ์`}
+                  subtext={`เฉลี่ย ${avgSupport} บาท/เรื่อง • รวม ${internationalCount} นานาชาติ`}
                   icon={<FaCoins style={{ fontSize: '16px' }} />}
                 />
               </div>
@@ -280,8 +288,8 @@ export function PublicationsView() {
                 missionTitle="ผลงานตีพิมพ์ทางวิชาการ"
                 allItemsRaw={validData}
                 activeDepartment={selectedDept}
-                primaryMetricLabel="จำนวนบทความ (เรื่อง)"
-                secondaryMetricLabel="งบสนับสนุน (ล้านบาท)"
+                primaryMetricLabel="จำนวนผลงานตีพิมพ์ (เรื่อง)"
+                secondaryMetricLabel="งบสนับสนุน (บาท)"
                 hasBudgetMetric={true}
                 defaultBaseYear="2567"
                 defaultTargetYear="2568"
@@ -289,7 +297,7 @@ export function PublicationsView() {
             </>
           )}
 
-          {/* ZONE 3: Publications Charts */}
+          {/* ZONE 3: 5 Dimension Tabs Charts */}
           <PublicationsCharts
             validData={filteredData}
             activePerspective={activePerspective}
@@ -301,32 +309,12 @@ export function PublicationsView() {
               setTabFilter({ department: nextDept });
             }}
             onSelectLevel={(lvl) => {
-              const nextLevel = lvl === levelFilter ? 'all' : lvl;
-              setLevelFilter(nextLevel);
+              const nextLvl = lvl === levelFilter ? 'all' : lvl;
+              setLevelFilter(nextLvl);
               setTabFilter({
                 customFilters: {
                   ...(tabFilter.customFilters || {}),
-                  levelFilter: nextLevel,
-                },
-              });
-            }}
-          />
-
-          {/* ZONE 4: Publications Table */}
-          <PublicationsTable
-            filteredData={filteredData}
-            searchTerm={searchTerm}
-            onSearchChange={(s) => {
-              setSearchTerm(s);
-              setTabFilter({ search: s });
-            }}
-            levelFilter={levelFilter}
-            onLevelChange={(lvl) => {
-              setLevelFilter(lvl);
-              setTabFilter({
-                customFilters: {
-                  ...(tabFilter.customFilters || {}),
-                  levelFilter: lvl,
+                  levelFilter: nextLvl,
                 },
               });
             }}

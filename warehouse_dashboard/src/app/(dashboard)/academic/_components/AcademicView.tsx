@@ -6,8 +6,8 @@ import { useAcademicData } from '../_hooks/useAcademicData';
 import { AcademicCharts, AcademicPerspective } from './AcademicCharts';
 import { TopSegmentedTabs } from '@/components/ui/TopSegmentedTabs';
 import { StrategicAlignmentMatrix } from '@/components/data-display/StrategicAlignmentMatrix';
-import { FaCoins, FaHandshake, FaLeaf, FaChartLine, FaBuilding } from 'react-icons/fa';
-import { AcademicTable } from './AcademicTable';
+import { MissionDataTable } from '@/components/data-display/MissionDataTable';
+import { FaCoins, FaHandshake, FaLeaf, FaChartLine, FaBuilding, FaTable } from 'react-icons/fa';
 import { DashboardTabFilterBar } from '@/components/ui/DashboardTabFilterBar';
 import { UndatedNotice } from '@/components/ui/UndatedNotice';
 import { MissionKpiCard } from '@/components/data-display/MissionKpiCard';
@@ -228,10 +228,19 @@ export function AcademicView() {
             showBudget={true}
           />
         </div>
+      ) : activePerspective === 'table' ? (
+        <div style={{ marginTop: '8px' }}>
+          <MissionDataTable
+            categoryKey="academic"
+            items={validData}
+            title="โครงการพัฒนาวิชาการ"
+          />
+        </div>
       ) : (
         <>
           {activePerspective === 'timeline_alloc' && (
             <>
+              {/* ZONE 2: Executive Bento KPI Grid in Emerald Palette */}
               <div
                 style={{
                   display: 'grid',
@@ -242,11 +251,11 @@ export function AcademicView() {
                 <MissionKpiCard
                   mission="academic"
                   variant="pastel"
-                  label="มูลค่าสัญญาพัฒนารวม"
+                  label="งบประมาณโครงการรวม"
                   value={budgetMillions}
                   unit="ล้านบาท"
-                  subtext={`${validData.length} โครงการ • ${uniqueClients.size} องค์กรผู้ว่าจ้าง`}
-                  icon={<FaGraduationCap style={{ fontSize: '16px' }} />}
+                  subtext={`ทั้งหมด ${validData.length} โครงการ • ดำเนินการสูงสุด ${topDeptBudgetM} ลบ.`}
+                  icon={<FaCoins style={{ fontSize: '16px' }} />}
                 />
 
                 <MissionKpiCard
@@ -311,26 +320,6 @@ export function AcademicView() {
                 customFilters: {
                   ...(tabFilter.customFilters || {}),
                   selectedClient: nextClient,
-                },
-              });
-            }}
-          />
-
-          <AcademicTable
-            displayData={displayData}
-            totalCount={validData.length}
-            searchTerm={searchTerm}
-            onSearchChange={(s) => {
-              setSearchTerm(s);
-              setTabFilter({ search: s });
-            }}
-            selectedClient={selectedClient}
-            onClientChange={(client) => {
-              setSelectedClient(client);
-              setTabFilter({
-                customFilters: {
-                  ...(tabFilter.customFilters || {}),
-                  selectedClient: client,
                 },
               });
             }}

@@ -6,8 +6,8 @@ import { useServiceData } from '../_hooks/useServiceData';
 import { ServiceCharts, ServicePerspective } from './ServiceCharts';
 import { TopSegmentedTabs } from '@/components/ui/TopSegmentedTabs';
 import { StrategicAlignmentMatrix } from '@/components/data-display/StrategicAlignmentMatrix';
-import { FaChartLine, FaBuilding, FaUserTie, FaLeaf, FaHandshake, FaUsers, FaGlobeAsia } from 'react-icons/fa';
-import { ServiceTable } from './ServiceTable';
+import { MissionDataTable } from '@/components/data-display/MissionDataTable';
+import { FaChartLine, FaBuilding, FaUserTie, FaLeaf, FaHandshake, FaUsers, FaGlobeAsia, FaTable } from 'react-icons/fa';
 import { DashboardTabFilterBar } from '@/components/ui/DashboardTabFilterBar';
 import { UndatedNotice } from '@/components/ui/UndatedNotice';
 import { MissionKpiCard } from '@/components/data-display/MissionKpiCard';
@@ -162,6 +162,14 @@ export function ServiceView() {
             showBudget={true}
           />
         </div>
+      ) : activePerspective === 'table' ? (
+        <div style={{ marginTop: '8px' }}>
+          <MissionDataTable
+            categoryKey="service"
+            items={validData}
+            title="งานบริการวิชาการ"
+          />
+        </div>
       ) : (
         <>
           {activePerspective === 'timeline_type' && (
@@ -255,32 +263,6 @@ export function ServiceView() {
               const nextPerson = searchTerm === person ? '' : person;
               setSearchTerm(nextPerson);
               setTabFilter({ search: nextPerson });
-            }}
-          />
-
-          {/* ZONE 4: Interactive Service Explorer Table */}
-          <ServiceTable
-            filteredData={filteredData}
-            totalCount={validData.length}
-            searchTerm={searchTerm}
-            onSearchChange={(s) => {
-              setSearchTerm(s);
-              setTabFilter({ search: s });
-            }}
-            selectedDept={selectedDept}
-            onDeptChange={(dept) => {
-              setSelectedDept(dept);
-              setTabFilter({ department: dept });
-            }}
-            selectedType={selectedRole}
-            onTypeChange={(role) => {
-              setSelectedRole(role);
-              setTabFilter({
-                customFilters: {
-                  ...(tabFilter.customFilters || {}),
-                  selectedRole: role,
-                },
-              });
             }}
           />
         </>

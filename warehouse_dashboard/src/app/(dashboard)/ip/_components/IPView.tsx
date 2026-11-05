@@ -6,8 +6,8 @@ import { useIPData } from '../_hooks/useIPData';
 import { IPCharts, IPPerspective } from './IPCharts';
 import { TopSegmentedTabs } from '@/components/ui/TopSegmentedTabs';
 import { StrategicAlignmentMatrix } from '@/components/data-display/StrategicAlignmentMatrix';
-import { FaCertificate, FaShieldAlt, FaUserTie, FaLeaf, FaHourglassHalf, FaCoins } from 'react-icons/fa';
-import { IPTable } from './IPTable';
+import { MissionDataTable } from '@/components/data-display/MissionDataTable';
+import { FaCertificate, FaShieldAlt, FaUserTie, FaLeaf, FaHourglassHalf, FaCoins, FaTable } from 'react-icons/fa';
 import { DashboardTabFilterBar } from '@/components/ui/DashboardTabFilterBar';
 import { UndatedNotice } from '@/components/ui/UndatedNotice';
 import { MissionKpiCard } from '@/components/data-display/MissionKpiCard';
@@ -181,71 +181,79 @@ export function IPView() {
             showBudget={true}
           />
         </div>
+      ) : activePerspective === 'table' ? (
+        <div style={{ marginTop: '8px' }}>
+          <MissionDataTable
+            categoryKey="ip"
+            items={validIpData}
+            title="งานทรัพย์สินทางปัญญา"
+          />
+        </div>
       ) : (
         <>
           {activePerspective === 'types_dept' && (
             <>
               {/* ZONE 2: Executive Bento KPI Cards in Lavender Violet Palette */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          gap: '12px',
-        }}
-      >
-        <MissionKpiCard
-          mission="ip"
-          variant="pastel"
-          label="ทรัพย์สินทางปัญญาทั้งหมด"
-          value={validIpData.length}
-          unit="รายการ"
-          subtext={`อนุสิทธิบัตร ${pettyPatentCount} (95.2%) • สิทธิบัตรการประดิษฐ์ ${patentCount} (4.8%)`}
-          icon={<FaCertificate style={{ fontSize: '16px' }} />}
-        />
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                  gap: '12px',
+                }}
+              >
+                <MissionKpiCard
+                  mission="ip"
+                  variant="pastel"
+                  label="ทรัพย์สินทางปัญญาทั้งหมด"
+                  value={validIpData.length}
+                  unit="รายการ"
+                  subtext={`อนุสิทธิบัตร ${pettyPatentCount} (95.2%) • สิทธิบัตรการประดิษฐ์ ${patentCount} (4.8%)`}
+                  icon={<FaCertificate style={{ fontSize: '16px' }} />}
+                />
 
-        <MissionKpiCard
-          mission="ip"
-          variant="pastel"
-          label="ได้รับความคุ้มครองแล้ว"
-          value={protectedCount}
-          unit="รายการ"
-          subtext={`คิดเป็น ${protectedPct}% ของผลงานทั้งหมด • รอพิจารณาคำขอ ${pendingCount} รายการ`}
-          icon={<FaShieldAlt style={{ fontSize: '16px' }} />}
-        />
+                <MissionKpiCard
+                  mission="ip"
+                  variant="pastel"
+                  label="ได้รับความคุ้มครองแล้ว"
+                  value={protectedCount}
+                  unit="รายการ"
+                  subtext={`คิดเป็น ${protectedPct}% ของผลงานทั้งหมด • รอพิจารณาคำขอ ${pendingCount} รายการ`}
+                  icon={<FaShieldAlt style={{ fontSize: '16px' }} />}
+                />
 
-        <MissionKpiCard
-          mission="ip"
-          variant="pastel"
-          label="อยู่ระหว่างเตรียมยื่นจด"
-          value={inPrepCount}
-          unit="รายการ"
-          subtext={`คิดเป็น ${inPrepPct}% (คอขวดเร่งด่วน) • รอยื่นเอกสารรับเลขคำขอ`}
-          icon={<FaHourglassHalf style={{ fontSize: '16px' }} />}
-        />
+                <MissionKpiCard
+                  mission="ip"
+                  variant="pastel"
+                  label="อยู่ระหว่างเตรียมยื่นจด"
+                  value={inPrepCount}
+                  unit="รายการ"
+                  subtext={`คิดเป็น ${inPrepPct}% (คอขวดเร่งด่วน) • รอยื่นเอกสารรับเลขคำขอ`}
+                  icon={<FaHourglassHalf style={{ fontSize: '16px' }} />}
+                />
 
-        <MissionKpiCard
-          mission="ip"
-          variant="pastel"
-          label="งบสนับสนุนที่คณะจ่ายจริง"
-          value={totalSupportAmount.toLocaleString('th-TH')}
-          unit="บาท"
-          subtext="สนับสนุนแล้ว 12 รายการ (@20,000 บ.) • รอพิจารณา 9 รายการ"
-          icon={<FaCoins style={{ fontSize: '16px' }} />}
-        />
-      </div>
+                <MissionKpiCard
+                  mission="ip"
+                  variant="pastel"
+                  label="งบสนับสนุนที่คณะจ่ายจริง"
+                  value={totalSupportAmount.toLocaleString('th-TH')}
+                  unit="บาท"
+                  subtext="สนับสนุนแล้ว 12 รายการ (@20,000 บ.) • รอพิจารณา 9 รายการ"
+                  icon={<FaCoins style={{ fontSize: '16px' }} />}
+                />
+              </div>
 
-      {/* ZONE 2.5: Year-over-Year (YoY) Comparison */}
-      <MissionYoYControls
-        missionKey="ip"
-        missionTitle="งานทรัพย์สินทางปัญญา"
-        allItemsRaw={validIpData}
-        activeDepartment={deptFilter}
-        primaryMetricLabel="จำนวนคำขอ/จดทะเบียน (รายการ)"
-        secondaryMetricLabel="งบสนับสนุน (ล้านบาท)"
-        hasBudgetMetric={true}
-        defaultBaseYear="2567"
-        defaultTargetYear="2568"
-      />
+              {/* ZONE 2.5: Year-over-Year (YoY) Comparison */}
+              <MissionYoYControls
+                missionKey="ip"
+                missionTitle="งานทรัพย์สินทางปัญญา"
+                allItemsRaw={validIpData}
+                activeDepartment={deptFilter}
+                primaryMetricLabel="จำนวนคำขอ/จดทะเบียน (รายการ)"
+                secondaryMetricLabel="งบสนับสนุน (ล้านบาท)"
+                hasBudgetMetric={true}
+                defaultBaseYear="2567"
+                defaultTargetYear="2568"
+              />
             </>
           )}
 
@@ -271,32 +279,6 @@ export function IPView() {
               });
             }}
           />
-
-      {/* ZONE 4: Smart IP Data Grid Table */}
-      <IPTable
-        filteredIpData={filteredIpData}
-        totalCount={validIpData.length}
-        searchTerm={searchTerm}
-        onSearchChange={(s) => {
-          setSearchTerm(s);
-          setTabFilter({ search: s });
-        }}
-        deptFilter={deptFilter}
-        onDeptChange={(dept) => {
-          setDeptFilter(dept);
-          setTabFilter({ department: dept });
-        }}
-        typeFilter={typeFilter}
-        onTypeChange={(type) => {
-          setTypeFilter(type);
-          setTabFilter({
-            customFilters: {
-              ...(tabFilter.customFilters || {}),
-              typeFilter: type,
-            },
-          });
-        }}
-      />
         </>
       )}
     </div>

@@ -13,7 +13,6 @@ import { CategoryKey } from '@/types/dataManagement';
 import { resolveItemStrategicAlignment } from '@/lib/pastelTheme';
 import { extractItemBudget } from '@/lib/sdgEngine';
 import { DrillDownProjectDrawer } from './DrillDownProjectDrawer';
-import { HybridSdgCard } from './HybridSdgCard';
 import { SdgsDashboardView } from '@/app/(dashboard)/sdgs/_components/SdgsDashboardView';
 import { cn } from '@/lib/utils';
 
@@ -32,7 +31,6 @@ export const StrategicAlignmentMatrix: React.FC<StrategicAlignmentMatrixProps> =
   unitLabel = 'โครงการ',
   showBudget = true,
 }) => {
-  const [sdgDisplayMode, setSdgDisplayMode] = useState<'dashboard' | 'summary'>('dashboard');
   const [drawerState, setDrawerState] = useState<{
     isOpen: boolean;
     title: string;
@@ -375,49 +373,10 @@ export const StrategicAlignmentMatrix: React.FC<StrategicAlignmentMatrixProps> =
 
       {/* SECTION 2: United Nations SDGs 17 Goals Matrix */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div className="inline-flex items-center gap-1.5 p-1 bg-white border border-slate-200 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
-            <button
-              type="button"
-              onClick={() => setSdgDisplayMode('dashboard')}
-              className={cn(
-                'px-4 py-1.5 text-xs font-semibold rounded-full transition-colors cursor-pointer',
-                sdgDisplayMode === 'dashboard'
-                  ? 'bg-emerald-600 text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-              )}
-            >
-              แดชบอร์ด SDGs 17 ข้อ (วิเคราะห์แนวโน้ม 3 ปี & Heatmap)
-            </button>
-            <button
-              type="button"
-              onClick={() => setSdgDisplayMode('summary')}
-              className={cn(
-                'px-4 py-1.5 text-xs font-semibold rounded-full transition-colors cursor-pointer',
-                sdgDisplayMode === 'summary'
-                  ? 'bg-emerald-600 text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-              )}
-            >
-              สรุปภาพรวมรายเป้าหมาย (Hybrid Summary)
-            </button>
-          </div>
-        </div>
-
-        {sdgDisplayMode === 'dashboard' ? (
-          <SdgsDashboardView
-            embeddedCategory={categoryKey}
-            isEmbedded={true}
-          />
-        ) : (
-          <HybridSdgCard
-            items={items}
-            categoryKey={categoryKey}
-            title="เป้าหมายการพัฒนาที่ยั่งยืน (UN SDGs 17 เป้าหมาย)"
-            unitLabel={unitLabel}
-            showBudget={showBudget}
-          />
-        )}
+        <SdgsDashboardView
+          embeddedCategory={categoryKey}
+          isEmbedded={true}
+        />
       </div>
 
       {/* DrillDown Project Drawer */}

@@ -6,7 +6,7 @@ import { useResearchData } from '../_hooks/useResearchData';
 import { ResearchCharts, ResearchPerspective } from './ResearchCharts';
 import { TopSegmentedTabs } from '@/components/ui/TopSegmentedTabs';
 import { StrategicAlignmentMatrix } from '@/components/data-display/StrategicAlignmentMatrix';
-import { ResearchTable } from './ResearchTable';
+import { MissionDataTable } from '@/components/data-display/MissionDataTable';
 import { DashboardTabFilterBar } from '@/components/ui/DashboardTabFilterBar';
 import { UndatedNotice } from '@/components/ui/UndatedNotice';
 import { MissionKpiCard } from '@/components/data-display/MissionKpiCard';
@@ -16,7 +16,7 @@ import {
   dashboardPageTitleStyle,
   dashboardTheme,
 } from '@/lib/dashboardTheme';
-import { FaCoins, FaFlask, FaAward, FaChartLine, FaBuilding, FaUserTie, FaLeaf } from 'react-icons/fa';
+import { FaCoins, FaFlask, FaAward, FaChartLine, FaBuilding, FaUserTie, FaLeaf, FaTable } from 'react-icons/fa';
 
 export function ResearchView() {
   const [activePerspective, setActivePerspective] = React.useState<ResearchPerspective>('overview');
@@ -220,6 +220,14 @@ export function ResearchView() {
             showBudget={true}
           />
         </div>
+      ) : activePerspective === 'table' ? (
+        <div style={{ marginTop: '8px' }}>
+          <MissionDataTable
+            categoryKey="research"
+            items={validData}
+            title="โครงการวิจัย"
+          />
+        </div>
       ) : (
         <>
           {activePerspective === 'overview' && (
@@ -307,32 +315,6 @@ export function ResearchView() {
                 customFilters: {
                   ...(tabFilter.customFilters || {}),
                   selectedFund: nextFund,
-                },
-              });
-            }}
-          />
-
-          {/* ZONE 4: Research Table */}
-          <ResearchTable
-            filteredData={filteredData}
-            uniqueDepts={uniqueDepts}
-            searchTerm={searchTerm}
-            onSearchChange={(s) => {
-              setSearchTerm(s);
-              setTabFilter({ search: s });
-            }}
-            selectedDept={selectedDept}
-            onDeptChange={(dept) => {
-              setSelectedDept(dept);
-              setTabFilter({ department: dept });
-            }}
-            selectedFund={selectedFund}
-            onFundChange={(fund) => {
-              setSelectedFund(fund);
-              setTabFilter({
-                customFilters: {
-                  ...(tabFilter.customFilters || {}),
-                  selectedFund: fund,
                 },
               });
             }}

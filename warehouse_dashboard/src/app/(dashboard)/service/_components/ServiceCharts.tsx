@@ -30,7 +30,7 @@ interface ServiceChartsProps {
   hideSelector?: boolean;
 }
 
-export type ServicePerspective = 'timeline_type' | 'department' | 'faculty' | 'sdg';
+export type ServicePerspective = 'timeline_type' | 'department' | 'faculty' | 'sdg' | 'table';
 
 export function ServiceCharts({
   validData,

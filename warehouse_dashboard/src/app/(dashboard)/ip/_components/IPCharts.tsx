@@ -30,7 +30,7 @@ interface IPChartsProps {
   hideSelector?: boolean;
 }
 
-export type IPPerspective = 'types_dept' | 'protection_status' | 'faculty' | 'sdg';
+export type IPPerspective = 'types_dept' | 'protection_status' | 'faculty' | 'sdg' | 'table';
 
 export function IPCharts({
   validIpData,
