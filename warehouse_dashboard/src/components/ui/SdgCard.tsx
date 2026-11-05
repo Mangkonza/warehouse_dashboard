@@ -4,6 +4,42 @@ import React from 'react';
 import { getSdgInfo, getSdgTextColor } from '@/lib/sdg';
 import { cn } from '@/lib/utils';
 
+export interface SdgNumberBadgeProps {
+  goalNumber: number; // 1 - 17
+  selected?: boolean;
+  className?: string;
+}
+
+/**
+ * Shared crisp numeric SDG icon badge component.
+ * Used in the Evaluation Drawer and Heatmap row headers.
+ */
+export const SdgNumberBadge: React.FC<SdgNumberBadgeProps> = ({
+  goalNumber,
+  selected = false,
+  className,
+}) => {
+  const info = getSdgInfo(goalNumber);
+  const bgColor = info?.color || '#00A651';
+  const textColor = getSdgTextColor(goalNumber);
+
+  return (
+    <span
+      className={cn(
+        'w-7 h-7 rounded-lg flex items-center justify-center font-extrabold text-[12.5px] shrink-0 transition-transform duration-100 shadow-2xs',
+        selected ? 'bg-white shadow-sm' : '',
+        className
+      )}
+      style={{
+        backgroundColor: selected ? '#ffffff' : bgColor,
+        color: selected ? bgColor : textColor,
+      }}
+    >
+      {goalNumber}
+    </span>
+  );
+};
+
 export interface SdgCardProps {
   goalNumber: number; // 1 - 17
   nameTh: string;
@@ -50,20 +86,9 @@ export const SdgCard: React.FC<SdgCardProps> = ({
       aria-label={`SDG ${goalNumber}: ${nameTh}`}
     >
       {/* Numeric Icon Box (Replaces photo image) */}
-      <span
-        className={cn(
-          'w-7 h-7 rounded-lg flex items-center justify-center font-extrabold text-[12px] shrink-0 transition-transform duration-100 shadow-2xs',
-          selected ? 'bg-white shadow-sm' : ''
-        )}
-        style={{
-          backgroundColor: selected ? '#ffffff' : bgColor,
-          color: selected ? bgColor : textColor,
-        }}
-      >
-        {goalNumber}
-      </span>
+      <SdgNumberBadge goalNumber={goalNumber} selected={selected} />
 
-      {/* Goal Number + Thai Title */}
+      {/* Thai Title (number removed to prevent duplication with icon) */}
       <div className="flex flex-col min-w-0 leading-tight">
         <span
           className="text-[12.5px] font-medium truncate"
@@ -71,9 +96,9 @@ export const SdgCard: React.FC<SdgCardProps> = ({
             color: selected ? textColor : '#0f172a',
             fontWeight: selected ? 700 : 500,
           }}
-          title={`${goalNumber}. ${nameTh}`}
+          title={nameTh}
         >
-          {goalNumber}. {nameTh}
+          {nameTh}
         </span>
       </div>
     </button>

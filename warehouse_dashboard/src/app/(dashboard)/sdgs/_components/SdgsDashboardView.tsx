@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useDashboardTabFilter } from '@/hooks/useDashboardTabFilter';
 import { DashboardTabFilterBar } from '@/components/ui/DashboardTabFilterBar';
 import { SdgIcon } from '@/components/ui/SdgIcon';
+import { SdgNumberBadge } from '@/components/ui/SdgCard';
 import { SdgAggregationResult, SdgTileData } from '@/lib/sdgAggregationService';
 import { getSdgTextColor, SDG_DEFINITIONS } from '@/lib/sdg';
 import { cn } from '@/lib/utils';
@@ -172,7 +173,7 @@ export function SdgsDashboardView({
       return (
         <span
           className={cn(
-            'inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-semibold',
+            'inline-block text-[12px] font-medium px-2 py-0.5 rounded-full',
             isDarkBg ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
           )}
         >
@@ -184,10 +185,10 @@ export function SdgsDashboardView({
       return (
         <span
           className={cn(
-            'inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-semibold border',
+            'inline-block text-[12px] font-medium px-2 py-0.5 rounded-full',
             isDarkBg
-              ? 'bg-blue-500/30 text-white border-blue-300'
-              : 'bg-blue-50 text-blue-700 border-blue-200'
+              ? 'bg-blue-500/30 text-white'
+              : 'bg-blue-50 text-blue-700'
           )}
         >
           ใหม่
@@ -197,12 +198,7 @@ export function SdgsDashboardView({
     if (deltaType === 'up') {
       return (
         <span
-          className={cn(
-            'inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-semibold border',
-            isDarkBg
-              ? 'bg-emerald-500/30 text-white border-emerald-300'
-              : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-          )}
+          className="inline-block text-[12px] font-medium px-2 py-0.5 rounded-full bg-[#dcfce7] text-[#15803d]"
         >
           {deltaLabel}
         </span>
@@ -211,12 +207,7 @@ export function SdgsDashboardView({
     if (deltaType === 'down') {
       return (
         <span
-          className={cn(
-            'inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-semibold border',
-            isDarkBg
-              ? 'bg-rose-500/30 text-white border-rose-300'
-              : 'bg-rose-50 text-rose-700 border-rose-200'
-          )}
+          className="inline-block text-[12px] font-medium px-2 py-0.5 rounded-full bg-[#fee2e2] text-[#b91c1c]"
         >
           {deltaLabel}
         </span>
@@ -225,8 +216,8 @@ export function SdgsDashboardView({
     return (
       <span
         className={cn(
-          'inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-semibold',
-          isDarkBg ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
+          'inline-block text-[12px] font-medium px-2 py-0.5 rounded-full',
+          isDarkBg ? 'bg-white/90 text-slate-700' : 'bg-slate-100 text-slate-600'
         )}
       >
         {deltaLabel}
@@ -500,16 +491,17 @@ export function SdgsDashboardView({
               {data.tiles.map((tile) => {
                 const isSelected = selectedSdg === tile.sdgNumber;
                 const textColor = getSdgTextColor(tile.sdgNumber);
+                const sdgNumStr = String(tile.sdgNumber).padStart(2, '0');
 
                 return (
                   <div
                     key={tile.sdgNumber}
                     onClick={() => toggleSdgSelection(tile.sdgNumber)}
                     className={cn(
-                      'flex flex-col justify-between p-3.5 rounded-[18px] border text-left cursor-pointer transition-all select-none relative overflow-hidden',
+                      'group flex items-center gap-3.5 p-3 rounded-[18px] text-left transition-all duration-150 select-none relative overflow-hidden cursor-pointer w-full',
                       isSelected
-                        ? 'border-transparent shadow-md'
-                        : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-sm'
+                        ? 'border border-transparent shadow-md'
+                        : 'border border-slate-200 hover:shadow-md'
                     )}
                     style={{
                       background: isSelected
@@ -520,129 +512,120 @@ export function SdgsDashboardView({
                     tabIndex={0}
                     aria-pressed={isSelected}
                   >
-                    {/* Top Section: 76px Icon + 76px Info Block (title at top, count flush with icon bottom edge) */}
-                    <div className="flex items-start gap-3.5">
-                      {/* 76x76 SDG Icon (.n) */}
-                      <div
-                        className={cn(
-                          'shrink-0 w-[76px] h-[76px] rounded-[14px] overflow-hidden flex items-center justify-center transition-all',
-                          isSelected ? 'shadow-[0_0_0_3px_#ffffff,0_4px_12px_rgba(0,0,0,0.3)]' : 'shadow-xs'
-                        )}
-                      >
-                        <SdgIcon n={tile.sdgNumber} size={76} />
-                      </div>
-
-                      {/* Right Info Block (.tb): exact 76px height matching the icon */}
-                      <div className="min-w-0 flex-1 h-[76px] flex flex-col justify-between py-0.5">
-                        {/* Title (.tn) */}
-                        <div className="flex items-start gap-1.5">
-                          <span
-                            className="shrink-0 px-1.5 py-0.2 rounded-md text-[11px] font-bold leading-5"
-                            style={{
-                              backgroundColor: isSelected ? 'rgba(255,255,255,0.25)' : tile.color,
-                              color: isSelected ? '#ffffff' : textColor,
-                            }}
-                          >
-                            {tile.sdgNumber}
-                          </span>
-                          <span
-                            className="text-[12.5px] font-semibold leading-tight line-clamp-1 truncate"
-                            style={{ color: isSelected ? textColor : '#0f172a' }}
-                            title={`SDG ${tile.sdgNumber}: ${tile.nameTh}`}
-                          >
-                            {tile.nameTh}
-                          </span>
-                        </div>
-
-                        {/* Count (.tc & .c) - bottom edge flush with the icon */}
-                        <div className="flex items-baseline justify-between">
-                          <div className="flex items-baseline gap-1.5">
-                            <span
-                              className="text-[26px] font-black leading-none tracking-tight"
-                              style={{ color: isSelected ? textColor : '#0f172a' }}
-                            >
-                              {tile.currentCount}
-                            </span>
-                            <span
-                              className="text-[11.5px] font-medium"
-                              style={{
-                                color: isSelected ? textColor : '#64748b',
-                                opacity: isSelected ? 0.85 : 1,
-                              }}
-                            >
-                              โครงการ
-                            </span>
-                          </div>
-                          <div>
-                            {renderBadge(tile.deltaLabel, tile.deltaType, isSelected)}
-                          </div>
-                        </div>
-                      </div>
+                    {/* 76x76 SDG Icon (.n) */}
+                    <div
+                      className={cn(
+                        'shrink-0 w-[76px] h-[76px] rounded-[14px] overflow-hidden flex items-center justify-center transition-all',
+                        isSelected ? 'shadow-[0_0_0_3px_#ffffff,0_4px_12px_rgba(0,0,0,0.3)]' : 'shadow-xs'
+                      )}
+                    >
+                      <SdgIcon n={tile.sdgNumber} size={76} />
                     </div>
 
-                    {/* 3-Year Breakdown (.y3) */}
-                    <div className="flex items-center pt-2 mt-2.5 border-t border-slate-200/50 text-left">
-                      {tile.yearCounts.map((yc, idx) => {
-                        const isLatest = idx === tile.yearCounts.length - 1;
-                        return (
-                          <div
-                            key={yc.year}
-                            className={cn(
-                              'flex flex-col px-2.5 leading-tight flex-1',
-                              idx === 0 ? 'pl-0' : 'border-l border-slate-200/60'
-                            )}
-                          >
-                            <span
-                              className="text-[10px]"
-                              style={{
-                                color: isSelected ? textColor : '#94a3b8',
-                                opacity: isSelected ? 0.75 : 1,
-                              }}
-                            >
-                              {yc.yearBe}
-                            </span>
-                            <span
+                    {/* Right Info Block (.tb) */}
+                    <div className="min-w-0 flex-1 flex flex-col gap-1">
+                      {/* Title (.tn) */}
+                      <div className="flex items-start gap-1.5 text-[14px] font-medium leading-[1.35]">
+                        <span
+                          className="shrink-0 px-1.5 rounded-[6px] text-[12px] font-bold leading-[20px] mt-[1px]"
+                          style={{
+                            backgroundColor: isSelected ? 'rgba(255,255,255,0.25)' : tile.color,
+                            color: isSelected ? textColor : textColor,
+                          }}
+                        >
+                          {sdgNumStr}
+                        </span>
+                        <span
+                          className="text-[13.5px] font-medium truncate"
+                          style={{ color: isSelected ? textColor : '#0f172a' }}
+                          title={`SDG ${tile.sdgNumber}: ${tile.nameTh}`}
+                        >
+                          {tile.nameTh}
+                        </span>
+                      </div>
+
+                      {/* Count (.tc & .c) */}
+                      <div className="flex items-baseline gap-2 flex-wrap">
+                        <span
+                          className="text-[28px] font-bold leading-none tracking-tight"
+                          style={{ color: isSelected ? textColor : '#0f172a' }}
+                        >
+                          {tile.currentCount}
+                        </span>
+                        <div>
+                          {renderBadge(tile.deltaLabel, tile.deltaType, isSelected)}
+                        </div>
+                      </div>
+
+                      {/* 3-Year Breakdown (.y3) */}
+                      <div className="flex mt-0.5 text-left">
+                        {tile.yearCounts.map((yc, idx) => {
+                          const isLatest = idx === tile.yearCounts.length - 1;
+                          return (
+                            <div
+                              key={yc.year}
                               className={cn(
-                                'text-[13px]',
-                                isLatest ? 'font-bold' : 'font-medium'
+                                'flex flex-col px-2.5 leading-[1.25]',
+                                idx === 0
+                                  ? 'pl-0 border-l-0'
+                                  : isSelected
+                                  ? 'border-l border-white/35'
+                                  : 'border-l border-slate-200'
                               )}
-                              style={{
-                                color: isSelected
-                                  ? textColor
-                                  : isLatest
-                                  ? '#0f172a'
-                                  : '#64748b',
-                                borderBottom:
-                                  isLatest && !isSelected
-                                    ? `2px solid ${tile.color}`
-                                    : isLatest && isSelected
-                                    ? `2px solid ${textColor}`
-                                    : 'none',
-                                paddingBottom: isLatest ? '1px' : '0',
-                              }}
                             >
-                              {yc.hasData ? yc.count : '–'}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
+                              <span
+                                className="text-[11px]"
+                                style={{
+                                  color: isSelected ? textColor : '#64748b',
+                                  opacity: isSelected ? 0.8 : 1,
+                                }}
+                              >
+                                {yc.yearBe}
+                              </span>
+                              <span
+                                className={cn(
+                                  'text-[15px] self-start border-b-2',
+                                  isLatest ? 'font-bold' : 'font-medium',
+                                  !yc.hasData && 'font-normal'
+                                )}
+                                style={{
+                                  color: isSelected
+                                    ? textColor
+                                    : !yc.hasData
+                                    ? '#94a3b8'
+                                    : '#0f172a',
+                                  borderBottomColor:
+                                    isLatest && !isSelected
+                                      ? tile.color
+                                      : isLatest && isSelected
+                                      ? textColor
+                                      : 'transparent',
+                                  paddingBottom: isLatest ? '1px' : '0',
+                                }}
+                              >
+                                {yc.hasData ? yc.count : '–'}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
 
-                    {/* Drill down trigger */}
-                    {isSelected && tile.currentCount > 0 && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleOpenDrawer(tile.sdgNumber);
-                        }}
-                        className="mt-2.5 w-full inline-flex items-center justify-center gap-1.5 py-1 px-2.5 rounded-full bg-white/25 hover:bg-white/40 text-[11px] font-bold transition-colors"
-                        style={{ color: textColor }}
-                      >
-                        <FaExternalLinkAlt className="text-[9px]" />
-                        <span>ดู {tile.currentCount} โครงการ</span>
-                      </button>
-                    )}
+                      {/* Drill down trigger */}
+                      {isSelected && tile.currentCount > 0 && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenDrawer(tile.sdgNumber);
+                          }}
+                          className="mt-1 w-full inline-flex items-center justify-center gap-1.5 py-1 px-2.5 rounded-full bg-white/25 hover:bg-white/40 text-[11px] font-bold transition-colors"
+                          style={{ color: textColor }}
+                        >
+                          <FaExternalLinkAlt className="text-[9px]" />
+                          <span>ดู {tile.currentCount} โครงการ</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
                 );
               })}
@@ -857,15 +840,7 @@ export function SdgsDashboardView({
                       )}
                     >
                       <div className="flex items-center gap-2 truncate pr-2">
-                        <span
-                          className="w-6 h-6 rounded-md flex items-center justify-center text-[11px] font-extrabold shrink-0 shadow-2xs"
-                          style={{
-                            backgroundColor: row.color,
-                            color: rowTextColor,
-                          }}
-                        >
-                          {row.sdgNumber}
-                        </span>
+                        <SdgNumberBadge goalNumber={row.sdgNumber} />
                         <span
                           className={cn(
                             'text-xs truncate',
