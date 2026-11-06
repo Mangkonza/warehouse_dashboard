@@ -310,9 +310,20 @@ export function ServiceCharts({
         },
       });
 
-      // 2. Smart Activity Breakdown Horizontal Bar
+      // 2. Service Activity Breakdown Horizontal Bar
+      // Distinct qualitative palette specifically avoiding amber/yellow (#FDE68A) to prevent visual collision with the top monthly chart
+      const SERVICE_ROLE_PALETTE = [
+        { fill: '#93C5FD', border: '#3B82F6' }, // 1. Soft Sky Blue
+        { fill: '#86EFAC', border: '#22C55E' }, // 2. Soft Emerald Mint
+        { fill: '#DDD6FE', border: '#8B5CF6' }, // 3. Soft Lavender Violet
+        { fill: '#FDA4AF', border: '#F43F5E' }, // 4. Soft Rose Coral
+        { fill: '#99F6E4', border: '#0D9488' }, // 5. Soft Teal
+        { fill: '#C7D2FE', border: '#6366F1' }, // 6. Soft Indigo Slate
+        { fill: '#F5D0FE', border: '#C026D3' }, // 7. Soft Fuchsia Pink
+        { fill: '#BAE6FD', border: '#0284C7' }, // 8. Light Ocean Blue
+      ];
+
       const sortedRoles = Object.values(roleGroups).sort((a, b) => b.count - a.count);
-      const ROLE_PALETTE = CHART_PASTEL_PALETTE.series;
 
       createChart('c_sv_roles', {
         type: 'bar',
@@ -322,10 +333,11 @@ export function ServiceCharts({
             {
               label: 'จำนวนงาน',
               data: sortedRoles.map((r) => r.count),
-              backgroundColor: sortedRoles.map((_, i) => ROLE_PALETTE[i % ROLE_PALETTE.length]),
-              borderColor: '#cbd5e1',
-              borderWidth: 1,
+              backgroundColor: sortedRoles.map((_, i) => SERVICE_ROLE_PALETTE[i % SERVICE_ROLE_PALETTE.length].fill),
+              borderColor: sortedRoles.map((_, i) => SERVICE_ROLE_PALETTE[i % SERVICE_ROLE_PALETTE.length].border),
+              borderWidth: 1.5,
               borderRadius: 6,
+              maxBarThickness: 32,
             },
           ],
         },
@@ -346,7 +358,7 @@ export function ServiceCharts({
                   isOpen: true,
                   title: `บทบาทงาน: ${r.label}`,
                   subtitle: `รวมทั้งสิ้น ${r.count} งาน`,
-                  accentColor: ROLE_PALETTE[hit.index % ROLE_PALETTE.length],
+                  accentColor: SERVICE_ROLE_PALETTE[hit.index % SERVICE_ROLE_PALETTE.length].border,
                   items: r.items,
                 });
               }
@@ -358,13 +370,39 @@ export function ServiceCharts({
               anchor: 'end',
               align: 'right',
               color: CHART_PASTEL_PALETTE.datalabels.dark,
-              font: { weight: 'bold', size: 11 },
+              font: { weight: 'bold', size: 12 },
               formatter: (v: number) => `${v} งาน`,
+            },
+            tooltip: {
+              callbacks: {
+                label: (context: any) => `จำนวนงาน: ${context.raw} งาน`,
+                afterBody: (items: any[]) => {
+                  const idx = items[0]?.dataIndex ?? -1;
+                  const r = sortedRoles[idx];
+                  if (!r) return [];
+                  const uniqueStaff = new Set(
+                    r.items.map((it) => it.person).filter((p) => p && p !== '-' && p !== 'nan')
+                  );
+                  return [
+                    `บุคลากรที่เกี่ยวข้อง: ${uniqueStaff.size} ท่าน`,
+                    `คลิกที่แท่งกราฟเพื่อดูรายชื่อโครงการ`,
+                  ];
+                },
+              },
             },
           },
           scales: {
-            x: { beginAtZero: true, grid: { color: CHART_PASTEL_PALETTE.gridLines }, title: { display: true, text: 'จำนวนงาน' } },
-            y: { grid: { display: false } },
+            x: {
+              beginAtZero: true,
+              grace: '14%',
+              grid: { color: CHART_PASTEL_PALETTE.gridLines },
+              title: { display: true, text: 'จำนวนงาน (งาน)', font: { size: 12, weight: 600 } },
+              ticks: { precision: 0 },
+            },
+            y: {
+              grid: { display: false },
+              ticks: { font: { size: 12.5, weight: 500 }, color: '#334155' },
+            },
           },
         },
       });
@@ -689,10 +727,13 @@ export function ServiceCharts({
 
           <div className="chart-grid">
             <div className="chart-card chart-full">
-              <h3 style={{ margin: '0 0 12px 0', fontSize: '14.5px', fontWeight: 700, color: '#1e293b' }}>
-                <FaChartBar style={{ color: '#f59e0b', marginRight: '6px' }} /> จำแนกตามบทบาทงานบริการวิชาการ (Smart Breakdown)
+              <h3 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: 700, color: '#1e293b' }}>
+                <FaChartBar style={{ color: '#0284c7', marginRight: '6px' }} /> จำนวนงานบริการวิชาการจำแนกตามลักษณะบทบาทหน้าที่
               </h3>
-              <div className="chart-wrapper">
+              <p style={{ margin: '0 0 14px 0', fontSize: '12px', color: '#64748b' }}>
+                จัดอันดับตามจำนวนงานจากมากไปน้อย • จำแนกตามบทบาท เช่น คณะกรรมการ วิทยากร ผู้ทรงคุณวุฒิ ที่ปรึกษา • คลิกที่แท่งกราฟเพื่อดูรายชื่อโครงการและบุคลากร
+              </p>
+              <div className="chart-wrapper" style={{ height: '390px', cursor: 'pointer' }}>
                 <canvas id="c_sv_roles" />
               </div>
             </div>
