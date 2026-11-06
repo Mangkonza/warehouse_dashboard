@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useDashboardTabFilter, useTimeFilter } from '@/features/time-filter';
 import { useOverviewData } from '../_hooks/useOverviewData';
 import { GlanceOverview } from './GlanceOverview';
@@ -43,6 +43,13 @@ export function OverviewView() {
   const selectedDept = tabFilter.department || 'all';
   const fiscalYear = tabFilter.fiscalYear || 'all';
   const strategicFilter = tabFilter.customFilters?.strategicFilter || 'all';
+
+  // Clear any lingering department filter state since department filter is disabled on overview
+  useEffect(() => {
+    if (tabFilter.department && tabFilter.department !== 'all') {
+      setTabFilter({ department: 'all' });
+    }
+  }, [tabFilter.department, setTabFilter]);
 
   const totalItemsCount = validResearch.length + validAcademic.length + validPub.length + validService.length + validIP.length;
 
@@ -156,9 +163,11 @@ export function OverviewView() {
         onFilterChange={setTabFilter}
         onReset={resetTabFilter}
         showFiscalYear={true}
-        showDepartment={true}
-        showStrategic={true}
+        showDepartment={false}
+        showStrategic={false}
+        showFilterToggle={false}
         showDetailedTime={true}
+        detailedTimeLabel="เลือกช่วงเวลา"
         onOpenDetailedTime={() => setIsTimeModalOpen(true)}
         style={{
           position: 'static',
@@ -269,7 +278,7 @@ export function OverviewView() {
         fiscalYearProgress={fiscalYearProgress}
         fiscalYear={fiscalYear}
         selectedDept={selectedDept}
-        onSelectDept={(dept) => setTabFilter({ department: dept })}
+        onSelectDept={() => {}}
       />
 
       {/* ZONE 3: Deep-dive panels, collapsed so the overview stays scannable */}
