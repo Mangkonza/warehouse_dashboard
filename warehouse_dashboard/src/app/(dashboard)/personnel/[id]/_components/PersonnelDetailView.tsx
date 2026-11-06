@@ -43,6 +43,38 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
   const [ignoreTimeFilter, setIgnoreTimeFilter] = useState(false);
   const [imageError, setImageError] = useState(false);
 
+  const handleBack = () => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const returnTo = urlParams.get('returnTo') || urlParams.get('from');
+      if (returnTo && returnTo.startsWith('/')) {
+        router.push(returnTo);
+        return;
+      }
+
+      const isExternalReferrer =
+        typeof document !== 'undefined' &&
+        document.referrer &&
+        !document.referrer.startsWith(window.location.origin);
+
+      if (!isExternalReferrer && window.history.length > 1) {
+        router.back();
+        return;
+      }
+
+      if (
+        typeof document !== 'undefined' &&
+        document.referrer &&
+        document.referrer.startsWith(window.location.origin)
+      ) {
+        router.push(document.referrer.replace(window.location.origin, ''));
+        return;
+      }
+    }
+
+    router.push('/personnel');
+  };
+
   useEffect(() => {
     setImageError(false);
   }, [personnelId]);
@@ -76,7 +108,7 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
         </p>
         <button
           type="button"
-          onClick={() => router.push('/personnel')}
+          onClick={handleBack}
           style={{
             marginTop: '16px',
             padding: '8px 16px',
@@ -86,9 +118,14 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
             color: '#ffffff',
             fontWeight: 600,
             cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
           }}
+          title="ย้อนกลับไปหน้าเดิม"
         >
-          กลับสู่หน้ารายการบุคลากร
+          <FaArrowLeft style={{ fontSize: '12px' }} />
+          <span>ย้อนกลับ</span>
         </button>
       </div>
     );
@@ -112,7 +149,7 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
       >
         <button
           type="button"
-          onClick={() => router.push('/personnel')}
+          onClick={handleBack}
           style={{
             padding: '7px 14px',
             borderRadius: '8px',
@@ -133,9 +170,10 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
           onMouseLeave={(e) => {
             e.currentTarget.style.backgroundColor = '#ffffff';
           }}
+          title="ย้อนกลับไปหน้าเดิม"
         >
           <FaArrowLeft style={{ fontSize: '12px' }} />
-          <span>กลับสู่ตารางจัดอันดับ</span>
+          <span>ย้อนกลับ</span>
         </button>
 
         {/* Time Filter Mode Toggle */}

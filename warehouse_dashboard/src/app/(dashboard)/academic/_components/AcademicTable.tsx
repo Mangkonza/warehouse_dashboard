@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { FaListUl, FaTimes, FaDownload } from 'react-icons/fa';
 import { SearchInput, RecordDetailDrawer, StrategyBadges, DepartmentBadge } from '@/components/ui';
 import { AcademicItem } from '../_hooks/useAcademicData';
@@ -193,14 +194,14 @@ export function AcademicTable({
                   <td style={{ color: '#334155', fontWeight: 400, padding: '10px 8px' }}>
                     {item.head && item.head !== 'nan' ? (
                       item.head_id ? (
-                        <a
+                        <Link
                           href={`/personnel/${item.head_id}`}
                           onClick={(e) => e.stopPropagation()}
                           style={{ color: '#0284c7', fontWeight: 600, textDecoration: 'none' }}
                           title="คลิกเพื่อดูแฟ้มผลงานอาจารย์"
                         >
                           {String(item.head).replace('\n', ' ')}
-                        </a>
+                        </Link>
                       ) : (
                         String(item.head).replace('\n', ' ')
                       )

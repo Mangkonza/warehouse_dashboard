@@ -13,9 +13,22 @@ import { UndatedNotice } from '@/components/ui/UndatedNotice';
 import { MissionKpiCard } from '@/components/data-display/MissionKpiCard';
 import { MissionYoYControls } from '@/components/data-display/MissionYoYControls';
 import { dashboardPageSubtitleStyle, dashboardPageTitleStyle, dashboardTheme } from '@/lib/dashboardTheme';
+import { usePerspectiveTab } from '@/hooks/usePerspectiveTab';
+
+const VALID_SERVICE_TABS: ServicePerspective[] = [
+  'timeline_type',
+  'department',
+  'faculty',
+  'sdg',
+  'table',
+];
 
 export function ServiceView() {
-  const [activePerspective, setActivePerspective] = React.useState<ServicePerspective>('timeline_type');
+  const [activePerspective, setActivePerspective] = usePerspectiveTab<ServicePerspective>(
+    'service',
+    VALID_SERVICE_TABS,
+    'timeline_type'
+  );
   const {
     tabFilter,
     setTabFilter,

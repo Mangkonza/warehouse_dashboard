@@ -14,9 +14,16 @@ import { MissionKpiCard } from '@/components/data-display/MissionKpiCard';
 import { MissionYoYControls } from '@/components/data-display/MissionYoYControls';
 import { dashboardPageSubtitleStyle, dashboardPageTitleStyle, dashboardTheme } from '@/lib/dashboardTheme';
 import { FaGraduationCap, FaHandHoldingUsd, FaTrophy, FaUserTie } from 'react-icons/fa';
+import { usePerspectiveTab } from '@/hooks/usePerspectiveTab';
+
+const VALID_ACADEMIC_TABS: AcademicPerspective[] = ['timeline_alloc', 'client_segment', 'faculty', 'sdg', 'table'];
 
 export function AcademicView() {
-  const [activePerspective, setActivePerspective] = React.useState<AcademicPerspective>('timeline_alloc');
+  const [activePerspective, setActivePerspective] = usePerspectiveTab<AcademicPerspective>(
+    'academic',
+    VALID_ACADEMIC_TABS,
+    'timeline_alloc'
+  );
   const {
     tabFilter,
     setTabFilter,

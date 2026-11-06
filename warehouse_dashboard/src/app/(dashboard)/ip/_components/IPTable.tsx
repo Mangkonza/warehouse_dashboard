@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { FaTable, FaFileExcel, FaTimes, FaHourglassHalf } from 'react-icons/fa';
 import { SearchInput, DepartmentBadge, RecordDetailDrawer, IPTypeBadge, StrategyBadges } from '@/components/ui';
 import { IPItem } from '../_hooks/useIPData';
@@ -252,14 +253,14 @@ export function IPTable({
                     <td style={{ fontWeight: 500, color: '#334155' }}>
                       {item.creator && item.creator !== 'nan' ? (
                         item.person_id ? (
-                          <a
+                          <Link
                             href={`/personnel/${item.person_id}`}
                             onClick={(e) => e.stopPropagation()}
                             style={{ color: '#7c3aed', fontWeight: 600, textDecoration: 'none' }}
                             title="คลิกเพื่อดูแฟ้มผลงานอาจารย์"
                           >
                             {item.creator}
-                          </a>
+                          </Link>
                         ) : (
                           item.creator
                         )

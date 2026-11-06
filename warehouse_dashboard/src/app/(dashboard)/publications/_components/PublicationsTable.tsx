@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import Link from 'next/link';
 import { FaTable, FaCalendarAlt, FaDownload, FaQuoteRight } from 'react-icons/fa';
 import { SearchInput, DepartmentBadge, RecordDetailDrawer, LevelBadge, PublicationTypeBadge, StrategyBadges } from '@/components/ui';
 import { JOURNAL_TIER_STYLES } from '@/config/journalRankingConfig';
@@ -247,14 +248,14 @@ export function PublicationsTable({
                         <td style={{ color: '#334155', padding: '10px 8px' }}>
                           {item.owner && item.owner !== 'nan' ? (
                             item.person_id || item.owner_id ? (
-                              <a
+                              <Link
                                 href={`/personnel/${item.person_id || item.owner_id}`}
                                 onClick={(e) => e.stopPropagation()}
                                 style={{ color: '#be123c', fontWeight: 600, textDecoration: 'none' }}
                                 title="คลิกดูแฟ้มผลงาน"
                               >
                                 {item.owner}
-                              </a>
+                              </Link>
                             ) : (
                               item.owner
                             )

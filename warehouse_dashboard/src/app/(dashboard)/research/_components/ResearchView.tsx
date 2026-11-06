@@ -11,15 +11,18 @@ import { DashboardTabFilterBar } from '@/components/ui/DashboardTabFilterBar';
 import { UndatedNotice } from '@/components/ui/UndatedNotice';
 import { MissionKpiCard } from '@/components/data-display/MissionKpiCard';
 import { MissionYoYControls } from '@/components/data-display/MissionYoYControls';
-import {
-  dashboardPageSubtitleStyle,
-  dashboardPageTitleStyle,
-  dashboardTheme,
-} from '@/lib/dashboardTheme';
+import { dashboardPageSubtitleStyle, dashboardPageTitleStyle, dashboardTheme } from '@/lib/dashboardTheme';
 import { FaCoins, FaFlask, FaAward, FaChartLine, FaBuilding, FaUserTie, FaLeaf, FaTable } from 'react-icons/fa';
+import { usePerspectiveTab } from '@/hooks/usePerspectiveTab';
+
+const VALID_RESEARCH_TABS: ResearchPerspective[] = ['overview', 'productivity', 'faculty', 'sdg', 'table'];
 
 export function ResearchView() {
-  const [activePerspective, setActivePerspective] = React.useState<ResearchPerspective>('overview');
+  const [activePerspective, setActivePerspective] = usePerspectiveTab<ResearchPerspective>(
+    'research',
+    VALID_RESEARCH_TABS,
+    'overview'
+  );
   const {
     tabFilter,
     setTabFilter,

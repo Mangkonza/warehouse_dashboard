@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { FaTable, FaTimes, FaFileExcel } from 'react-icons/fa';
 import { SearchInput, DepartmentBadge, RecordDetailDrawer, StrategyBadges } from '@/components/ui';
 import { ServiceItem } from '../_hooks/useServiceData';
@@ -237,14 +238,14 @@ export function ServiceTable({
                   <td style={{ fontWeight: 500, color: '#334155' }}>
                     {item.person && item.person !== 'nan' ? (
                       item.person_id ? (
-                        <a
+                        <Link
                           href={`/personnel/${item.person_id}`}
                           onClick={(e) => e.stopPropagation()}
                           style={{ color: '#d97706', fontWeight: 600, textDecoration: 'none' }}
                           title="คลิกเพื่อดูแฟ้มผลงานบุคลากร"
                         >
                           {item.person}
-                        </a>
+                        </Link>
                       ) : (
                         item.person
                       )

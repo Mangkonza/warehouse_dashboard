@@ -13,9 +13,16 @@ import { UndatedNotice } from '@/components/ui/UndatedNotice';
 import { MissionKpiCard } from '@/components/data-display/MissionKpiCard';
 import { MissionYoYControls } from '@/components/data-display/MissionYoYControls';
 import { dashboardPageSubtitleStyle, dashboardPageTitleStyle, dashboardTheme } from '@/lib/dashboardTheme';
+import { usePerspectiveTab } from '@/hooks/usePerspectiveTab';
+
+const VALID_IP_TABS: IPPerspective[] = ['types_dept', 'protection_status', 'faculty', 'sdg', 'table'];
 
 export function IPView() {
-  const [activePerspective, setActivePerspective] = React.useState<IPPerspective>('types_dept');
+  const [activePerspective, setActivePerspective] = usePerspectiveTab<IPPerspective>(
+    'ip',
+    VALID_IP_TABS,
+    'types_dept'
+  );
   const {
     tabFilter,
     setTabFilter,

@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import Link from 'next/navigation';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { usePerspectiveTab } from '@/hooks/usePerspectiveTab';
 import { PersonnelWorkMetric } from '../_hooks/usePersonnelData';
 import { DepartmentBadge, SearchInput } from '@/components/ui';
 import {
@@ -30,10 +31,17 @@ type SortField =
   | 'service'
   | 'ip';
 
+const VALID_MISSION_FILTERS = ['all', 'research', 'publications', 'ip', 'academic', 'service'] as const;
+
 export function PersonnelRankingTable({ metrics }: PersonnelRankingTableProps) {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeMissionFilter, setActiveMissionFilter] = useState<string>('all');
+  const [activeMissionFilter, setActiveMissionFilter] = usePerspectiveTab<string>(
+    'personnel_ranking',
+    VALID_MISSION_FILTERS,
+    'all',
+    'mission'
+  );
   const [sortField, setSortField] = useState<SortField>('total');
   const [showActiveOnly, setShowActiveOnly] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);

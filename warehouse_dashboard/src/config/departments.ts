@@ -27,5 +27,5 @@ export const DEPARTMENT_NAMES = CANONICAL_DEPARTMENTS.map((d) => d.name);
 export function matchDepartmentCode(rawDept?: string | null): string | null {
   if (!rawDept) return null;
   const dept = getDepartment(rawDept);
-  return dept.code !== '-' ? dept.code : null;
+  return dept?.code && dept.code !== '-' ? dept.code : null;
 }

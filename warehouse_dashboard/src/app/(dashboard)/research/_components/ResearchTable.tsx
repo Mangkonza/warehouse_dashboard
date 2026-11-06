@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { FaTable, FaTimes, FaDownload } from 'react-icons/fa';
 import { SearchInput, DepartmentBadge, RecordDetailDrawer, StrategyBadges } from '@/components/ui';
 import { dashboardCardStyle } from '@/lib/dashboardTheme';
@@ -198,14 +199,14 @@ export function ResearchTable({
                   <td style={{ fontWeight: 400, color: '#334155', padding: '10px 8px' }}>
                     {item.head && item.head !== 'nan' ? (
                       item.head_id ? (
-                        <a
+                        <Link
                           href={`/personnel/${item.head_id}`}
                           onClick={(e) => e.stopPropagation()}
                           style={{ color: '#10b981', fontWeight: 600, textDecoration: 'none' }}
                           title="คลิกเพื่อดูแฟ้มผลงานอาจารย์"
                         >
                           {item.head}
-                        </a>
+                        </Link>
                       ) : (
                         item.head
                       )

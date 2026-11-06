@@ -13,9 +13,24 @@ import { MissionKpiCard } from '@/components/data-display/MissionKpiCard';
 import { MissionYoYControls } from '@/components/data-display/MissionYoYControls';
 import { dashboardPageSubtitleStyle, dashboardPageTitleStyle, dashboardTheme } from '@/lib/dashboardTheme';
 import { FaBook, FaGlobeAmericas, FaAward, FaCoins, FaChartLine, FaBuilding, FaUserTie, FaBookOpen, FaLeaf, FaTable } from 'react-icons/fa';
+import { usePerspectiveTab } from '@/hooks/usePerspectiveTab';
+
+const VALID_PUB_TABS: PubPerspective[] = [
+  'timeline',
+  'quartile_tci',
+  'department',
+  'faculty',
+  'journals',
+  'sdg',
+  'table',
+];
 
 export function PublicationsView() {
-  const [activePerspective, setActivePerspective] = React.useState<PubPerspective>('timeline');
+  const [activePerspective, setActivePerspective] = usePerspectiveTab<PubPerspective>(
+    'publications',
+    VALID_PUB_TABS,
+    'timeline'
+  );
   const {
     tabFilter,
     setTabFilter,

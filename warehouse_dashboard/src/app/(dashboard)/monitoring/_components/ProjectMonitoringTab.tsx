@@ -15,6 +15,7 @@ import {
 } from '@/lib/filterMatching';
 import { ProjectExtensionModal } from '@/features/monitoring/components/ProjectExtensionModal';
 import { ChangeStatusModal, ProjectStatusActionType } from '@/features/monitoring/components/ChangeStatusModal';
+import { usePerspectiveTab } from '@/hooks/usePerspectiveTab';
 import {
   getCachedCategoryData,
   fetchCategoryData,
@@ -105,8 +106,14 @@ export default function ProjectMonitoringTab({}: ProjectMonitoringTabProps) {
     return getCachedEvaluations();
   });
 
+  const VALID_MONITORING_TABS: MonitoringTabKey[] = ['research', 'academic'];
+
   // 3. Tab State: exactly two tabs (research & academic)
-  const [activeTab, setActiveTab] = useState<MonitoringTabKey>('research');
+  const [activeTab, setActiveTab] = usePerspectiveTab<MonitoringTabKey>(
+    'monitoring',
+    VALID_MONITORING_TABS,
+    'research'
+  );
 
   // 4. Filters & Search State
   const [searchTerm, setSearchTerm] = useState('');

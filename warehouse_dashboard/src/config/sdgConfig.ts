@@ -229,7 +229,7 @@ export const SDG_STRATEGIC_CLUSTERS: SDGStrategicCluster[] = [
     bgTint: '#eff6ff',
     borderTint: '#bfdbfe',
     sdgNumbers: [6, 7, 13, 14, 15],
-    relatedDepts: ['IRE', 'ME', 'EEEC'],
+    relatedDepts: ['IRRE', 'ME', 'EEEC'],
   },
   {
     key: 'smart_industry_infra',
@@ -240,7 +240,7 @@ export const SDG_STRATEGIC_CLUSTERS: SDGStrategicCluster[] = [
     bgTint: '#fff7ed',
     borderTint: '#fed7aa',
     sdgNumbers: [8, 9, 11, 12],
-    relatedDepts: ['CPE', 'CE', 'IE', 'DWT', 'NAMC'],
+    relatedDepts: ['CPE', 'CE', 'IE', 'TDWCB', 'NAMC'],
   },
   {
     key: 'education_partnership',
