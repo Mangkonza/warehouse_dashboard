@@ -49,6 +49,20 @@ function resolveMonthIndex(rawDate: unknown): number {
   return -1;
 }
 
+export function isExternalResearchItem(item: ResearchItem): boolean {
+  const ext = Number(item.budget_external) || 0;
+  const int = Number(item.budget_internal) || 0;
+  if (ext > 0 && int === 0) return true;
+  if (int > 0 && ext === 0) return false;
+  if (ext > int) return true;
+  if (int > ext) return false;
+  if (item.fund_type === 'ภายนอก') return true;
+  if (item.fund_type === 'ภายใน') return false;
+  const src = String(item.fund_source || '');
+  if (src.includes('ภายใน') || src.includes('คณะวิศวกรรมศาสตร์') || src.includes('วิทยาเขต')) return false;
+  return true;
+}
+
 export type ResearchPerspective = 'overview' | 'productivity' | 'faculty' | 'sdg' | 'table';
 
 export function ResearchCharts({
@@ -66,6 +80,8 @@ export function ResearchCharts({
   const activePerspective = propPerspective ?? internalPerspective;
   const setActivePerspective = onChangePerspective ?? setInternalPerspective;
   const [researchBudgetMetric, setResearchBudgetMetric] = useState<'total' | 'average'>('total');
+  const [monthlyBarMode, setMonthlyBarMode] = useState<'grouped' | 'stacked'>('grouped');
+  const [monthlyMetric, setMonthlyMetric] = useState<'count' | 'budget'>('count');
   const chartInstances = useRef<Chart[]>([]);
   const [drillDown, setDrillDown] = useState<{
     isOpen: boolean;
@@ -227,68 +243,99 @@ export function ResearchCharts({
     );
 
     if (activePerspective === 'overview') {
-      // 0. Monthly project count + research budget (combined)
-      const monthlyCount = Array(12).fill(0);
-      const monthlyBudget = Array(12).fill(0);
-      const monthlyItems: ResearchItem[][] = Array.from({ length: 12 }, () => []);
+      // 0. Monthly project count (external vs internal vertical bar chart)
+      const monthlyExtItems: ResearchItem[][] = Array.from({ length: 12 }, () => []);
+      const monthlyIntItems: ResearchItem[][] = Array.from({ length: 12 }, () => []);
+      const monthlyExtBudget = Array(12).fill(0);
+      const monthlyIntBudget = Array(12).fill(0);
 
       validData.forEach((item) => {
         const monthIdx = resolveMonthIndex(item.start_date || item.date);
-        if (monthIdx < 0) return;
-        const budget =
-          (Number(item.budget_internal) || 0) + (Number(item.budget_external) || 0) || Number(item.budget) || 0;
-        monthlyCount[monthIdx]++;
-        monthlyBudget[monthIdx] += budget;
-        monthlyItems[monthIdx].push(item);
+        if (monthIdx < 0 || monthIdx >= 12) return;
+        const extB = Number(item.budget_external) || 0;
+        const intB = Number(item.budget_internal) || 0;
+        const totalB = extB + intB || Number(item.budget) || 0;
+
+        if (isExternalResearchItem(item)) {
+          monthlyExtItems[monthIdx].push(item);
+          monthlyExtBudget[monthIdx] += extB || totalB;
+        } else {
+          monthlyIntItems[monthIdx].push(item);
+          monthlyIntBudget[monthIdx] += intB || totalB;
+        }
       });
 
-      const monthlyBudgetM = monthlyBudget.map((v) => Number((v / 1_000_000).toFixed(2)));
+      const monthlyExtCount = monthlyExtItems.map((list) => list.length);
+      const monthlyIntCount = monthlyIntItems.map((list) => list.length);
+      const monthlyExtBudgetM = monthlyExtBudget.map((v) => Number((v / 1_000_000).toFixed(2)));
+      const monthlyIntBudgetM = monthlyIntBudget.map((v) => Number((v / 1_000_000).toFixed(2)));
 
-      const openResearchMonth = (index: number) => {
-        const items = monthlyItems[index] || [];
-        if (items.length === 0) return;
-        const budgetSum = monthlyBudget[index];
-        const average = budgetSum / items.length;
-        setDrillDown({
-          isOpen: true,
-          title: `โครงการวิจัย: เดือน ${THAI_MONTHS[index]}`,
-          subtitle: `รวม ${items.length} โครงการ • งบประมาณรวม ${budgetSum.toLocaleString('th-TH')} บาท • เฉลี่ย ${average.toLocaleString('th-TH', { maximumFractionDigits: 0 })} บาท/โครงการ`,
-          accentColor: '#10b981',
-          items,
-        });
+      const openMonthlyDrillDown = (monthIndex: number, datasetIndex?: number) => {
+        const mName = THAI_MONTHS[monthIndex];
+        if (!mName) return;
+
+        const extItems = monthlyExtItems[monthIndex] || [];
+        const intItems = monthlyIntItems[monthIndex] || [];
+        const extB = monthlyExtBudget[monthIndex] || 0;
+        const intB = monthlyIntBudget[monthIndex] || 0;
+
+        if (datasetIndex === 0) {
+          if (extItems.length === 0) return;
+          setDrillDown({
+            isOpen: true,
+            title: `โครงการวิจัยทุนภายนอก: เดือน ${mName}`,
+            subtitle: `รวม ${extItems.length} โครงการ • งบประมาณรวม ${extB.toLocaleString('th-TH')} บาท`,
+            accentColor: '#0284c7',
+            items: extItems,
+          });
+        } else if (datasetIndex === 1) {
+          if (intItems.length === 0) return;
+          setDrillDown({
+            isOpen: true,
+            title: `โครงการวิจัยทุนภายใน: เดือน ${mName}`,
+            subtitle: `รวม ${intItems.length} โครงการ • งบประมาณรวม ${intB.toLocaleString('th-TH')} บาท`,
+            accentColor: '#00A651',
+            items: intItems,
+          });
+        } else {
+          const allMonthItems = [...extItems, ...intItems];
+          if (allMonthItems.length === 0) return;
+          const totalB = extB + intB;
+          setDrillDown({
+            isOpen: true,
+            title: `โครงการวิจัย: เดือน ${mName}`,
+            subtitle: `รวม ${allMonthItems.length} โครงการ (ทุนภายนอก ${extItems.length} • ทุนภายใน ${intItems.length}) • งบประมาณรวม ${totalB.toLocaleString('th-TH')} บาท`,
+            accentColor: '#00A651',
+            items: allMonthItems,
+          });
+        }
       };
 
-      createChart('c_re_monthly_combo', {
+      const isStacked = monthlyBarMode === 'stacked';
+      const isCount = monthlyMetric === 'count';
+
+      createChart('c_re_monthly_ext_int', {
         type: 'bar',
         data: {
           labels: THAI_MONTHS,
           datasets: [
             {
-              type: 'bar' as const,
-              label: 'จำนวนโครงการ',
-              data: monthlyCount,
-              backgroundColor: CHART_PASTEL_PALETTE.missions.research.fill,
-              borderColor: CHART_PASTEL_PALETTE.missions.research.border,
+              label: 'ทุนภายนอก',
+              data: isCount ? monthlyExtCount : monthlyExtBudgetM,
+              backgroundColor: '#38BDF8', // Sky Blue
+              borderColor: '#0284C7',
               borderWidth: 1.5,
-              borderRadius: 6,
-              yAxisID: 'y',
-              order: 2,
+              borderRadius: isStacked ? 0 : 6,
+              stack: isStacked ? 'monthlyStack' : undefined,
             },
             {
-              type: 'line' as const,
-              label: 'งบประมาณ (ล้านบาท)',
-              data: monthlyBudgetM,
-              borderColor: '#BE123C',
-              backgroundColor: 'rgba(190, 18, 60, 0.08)',
-              borderWidth: 2.5,
-              tension: 0.35,
-              pointRadius: 4,
-              pointHoverRadius: 6,
-              pointBackgroundColor: '#BE123C',
-              pointBorderColor: '#ffffff',
-              pointBorderWidth: 1.5,
-              yAxisID: 'y1',
-              order: 1,
+              label: 'ทุนภายใน',
+              data: isCount ? monthlyIntCount : monthlyIntBudgetM,
+              backgroundColor: '#4ADE80', // Mint Emerald
+              borderColor: '#16A34A',
+              borderWidth: 1.5,
+              borderRadius: isStacked ? 6 : 6,
+              stack: isStacked ? 'monthlyStack' : undefined,
             },
           ],
         },
@@ -301,75 +348,85 @@ export function ResearchCharts({
           },
           onClick: (event: any, elements: any[], chart: any) => {
             const hit = getClickedChartElement(event, elements, chart, 'nearest');
-            if (hit) openResearchMonth(hit.index);
+            if (hit) {
+              openMonthlyDrillDown(hit.index, hit.datasetIndex);
+            }
           },
           plugins: {
             legend: {
               position: 'top',
               labels: {
-                boxWidth: 12,
-                font: { size: 11.5 },
-                padding: 10,
-                sort: (a: any, b: any) => {
-                  const aIsLine = a.text.includes('งบประมาณ');
-                  const bIsLine = b.text.includes('งบประมาณ');
-                  return aIsLine === bIsLine ? 0 : aIsLine ? 1 : -1;
-                },
+                boxWidth: 14,
+                boxHeight: 14,
+                borderRadius: 3,
+                useBorderRadius: true,
+                font: { size: 12, weight: 600 },
+                padding: 12,
               },
             },
             tooltip: {
               callbacks: {
+                title: (items: any[]) => {
+                  const idx = items[0]?.dataIndex ?? -1;
+                  return idx >= 0 ? `เดือน ${THAI_MONTHS[idx]}` : '';
+                },
                 label: (context: any) => {
-                  if (context.dataset.yAxisID === 'y1') {
-                    return `งบประมาณรวม: ${monthlyBudget[context.dataIndex].toLocaleString('th-TH')} บาท`;
+                  const isExt = context.datasetIndex === 0;
+                  const count = isExt ? monthlyExtCount[context.dataIndex] : monthlyIntCount[context.dataIndex];
+                  const budget = isExt ? monthlyExtBudget[context.dataIndex] : monthlyIntBudget[context.dataIndex];
+                  const label = context.dataset.label || '';
+                  if (!isCount) {
+                    return `${label}: ${(budget / 1_000_000).toFixed(2)} ล้านบาท (${count} โครงการ)`;
                   }
-                  return `จำนวนโครงการ: ${monthlyItems[context.dataIndex]?.length || 0} โครงการ`;
+                  return `${label}: ${count} โครงการ (${(budget / 1_000_000).toFixed(2)} ล้านบาท)`;
                 },
                 afterBody: (items: any[]) => {
                   const index = items[0]?.dataIndex ?? -1;
-                  const count = monthlyItems[index]?.length || 0;
-                  if (count === 0) return [];
+                  if (index < 0) return [];
+                  const totalCount = monthlyExtCount[index] + monthlyIntCount[index];
+                  const totalBudget = monthlyExtBudget[index] + monthlyIntBudget[index];
+                  if (totalCount === 0) return [];
                   return [
-                    `เฉลี่ย: ${(monthlyBudget[index] / count).toLocaleString('th-TH', { maximumFractionDigits: 0 })} บาท/โครงการ`,
+                    `─────────────────────────────`,
+                    `รวมทั้งสิ้น: ${totalCount} โครงการ • ${(totalBudget / 1_000_000).toFixed(2)} ล้านบาท`,
                   ];
                 },
               },
             },
             datalabels: {
               display: (ctx: any) => Number(ctx.dataset.data[ctx.dataIndex]) > 0,
-              anchor: 'end',
-              align: 'top',
-              offset: (ctx: any) => (ctx.dataset.yAxisID === 'y1' ? 7 : 1),
-              color: (ctx: any) =>
-                ctx.dataset.yAxisID === 'y1' ? '#BE123C' : CHART_PASTEL_PALETTE.datalabels.dark,
-              backgroundColor: (ctx: any) =>
-                ctx.dataset.yAxisID === 'y1' ? 'rgba(255, 255, 255, 0.9)' : 'transparent',
-              borderRadius: 3,
-              padding: (ctx: any) => (ctx.dataset.yAxisID === 'y1' ? 3 : 0),
-              clamp: true,
-              font: { weight: 'bold', size: 10 },
-              formatter: (v: number, ctx: any) =>
-                ctx.dataset.yAxisID === 'y1' ? `${v.toFixed(2)}` : `${v}`,
+              anchor: isStacked ? 'center' : 'end',
+              align: isStacked ? 'center' : 'top',
+              offset: isStacked ? 0 : 2,
+              color: isStacked ? '#0f172a' : CHART_PASTEL_PALETTE.datalabels.dark,
+              font: { weight: 'bold', size: 10.5 },
+              formatter: (v: number) => {
+                if (v <= 0) return '';
+                return isCount ? `${v}` : `${v.toFixed(1)}`;
+              },
             },
           },
           scales: {
             y: {
               type: 'linear',
               beginAtZero: true,
-              grace: '20%',
-              title: { display: true, text: 'จำนวนโครงการ' },
-              ticks: { stepSize: 1 },
+              stacked: isStacked,
+              grace: isStacked ? '12%' : '18%',
+              title: {
+                display: true,
+                text: isCount ? 'จำนวนโครงการ (โครงการ)' : 'งบประมาณ (ล้านบาท)',
+                font: { weight: 600, size: 11.5 },
+              },
+              ticks: {
+                stepSize: isCount ? 1 : undefined,
+                precision: isCount ? 0 : 1,
+              },
               grid: { color: CHART_PASTEL_PALETTE.gridLines },
             },
-            y1: {
-              type: 'linear',
-              position: 'right',
-              beginAtZero: true,
-              grace: '20%',
-              grid: { drawOnChartArea: false },
-              title: { display: true, text: 'ล้านบาท' },
+            x: {
+              stacked: isStacked,
+              grid: { display: false },
             },
-            x: { grid: { display: false } },
           },
         },
       });
@@ -648,7 +705,7 @@ export function ResearchCharts({
     return () => {
       chartInstances.current.forEach((c) => c.destroy());
     };
-  }, [validData, activePerspective, researchBudgetMetric, deptComparativeMetrics, budgetScaleData, onSelectDept, onSelectFund]);
+  }, [validData, activePerspective, researchBudgetMetric, deptComparativeMetrics, budgetScaleData, onSelectDept, onSelectFund, monthlyBarMode, monthlyMetric]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '16px' }}>
@@ -659,15 +716,110 @@ export function ResearchCharts({
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div className="chart-grid">
             <div className="chart-card chart-full">
-              <h3>
-                <FaChartLine style={{ color: '#00A651' }} /> จำนวนโครงการและงบประมาณวิจัยรายเดือน
-              </h3>
-              <p style={{ margin: '-8px 0 10px 0', fontSize: '12px', color: '#64748b' }}>
-                แท่ง = จำนวนโครงการ • เส้น = งบประมาณ (ล้านบาท) • คลิกที่กราฟเพื่อดูรายการ
-                {hasMultipleYears ? ' — โปรไฟล์รายเดือน (ม.ค.–ธ.ค.) รวมปีที่กรอง' : ''}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <FaChartBar style={{ color: '#00A651' }} /> เปรียบเทียบโครงการวิจัยรายเดือน (ทุนภายนอก vs ทุนภายใน)
+                </h3>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                  {/* Mode toggle: Grouped vs Stacked */}
+                  <div
+                    style={{
+                      display: 'inline-flex',
+                      backgroundColor: '#f1f5f9',
+                      padding: '2px',
+                      borderRadius: '8px',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setMonthlyBarMode('grouped')}
+                      style={{
+                        padding: '3px 8px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        backgroundColor: monthlyBarMode === 'grouped' ? '#ffffff' : 'transparent',
+                        color: monthlyBarMode === 'grouped' ? '#00A651' : '#64748b',
+                        fontWeight: monthlyBarMode === 'grouped' ? 700 : 500,
+                        cursor: 'pointer',
+                        boxShadow: monthlyBarMode === 'grouped' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                      }}
+                    >
+                      แยกแท่ง (Grouped)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMonthlyBarMode('stacked')}
+                      style={{
+                        padding: '3px 8px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        backgroundColor: monthlyBarMode === 'stacked' ? '#ffffff' : 'transparent',
+                        color: monthlyBarMode === 'stacked' ? '#00A651' : '#64748b',
+                        fontWeight: monthlyBarMode === 'stacked' ? 700 : 500,
+                        cursor: 'pointer',
+                        boxShadow: monthlyBarMode === 'stacked' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                      }}
+                    >
+                      แท่งซ้อน (Stacked)
+                    </button>
+                  </div>
+
+                  {/* Metric toggle: Count vs Budget */}
+                  <div
+                    style={{
+                      display: 'inline-flex',
+                      backgroundColor: '#f1f5f9',
+                      padding: '2px',
+                      borderRadius: '8px',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setMonthlyMetric('count')}
+                      style={{
+                        padding: '3px 8px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        backgroundColor: monthlyMetric === 'count' ? '#ffffff' : 'transparent',
+                        color: monthlyMetric === 'count' ? '#00A651' : '#64748b',
+                        fontWeight: monthlyMetric === 'count' ? 700 : 500,
+                        cursor: 'pointer',
+                        boxShadow: monthlyMetric === 'count' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                      }}
+                    >
+                      จำนวนโครงการ
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMonthlyMetric('budget')}
+                      style={{
+                        padding: '3px 8px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        backgroundColor: monthlyMetric === 'budget' ? '#ffffff' : 'transparent',
+                        color: monthlyMetric === 'budget' ? '#00A651' : '#64748b',
+                        fontWeight: monthlyMetric === 'budget' ? 700 : 500,
+                        cursor: 'pointer',
+                        boxShadow: monthlyMetric === 'budget' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                      }}
+                    >
+                      งบประมาณ
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <p style={{ margin: '-2px 0 10px 0', fontSize: '12px', color: '#64748b' }}>
+                {monthlyMetric === 'count'
+                  ? 'กราฟแท่งแนวตั้งเปรียบเทียบจำนวนโครงการทุนภายนอก (สีฟ้า) และ ทุนภายใน (สีเขียว) รายเดือน • คลิกที่แท่งกราฟเพื่อดูรายละเอียดโครงการ'
+                  : 'กราฟแท่งแนวตั้งเปรียบเทียบงบประมาณทุนภายนอก (สีฟ้า) และ ทุนภายใน (สีเขียว) รายเดือน • หน่วยล้านบาท • คลิกที่แท่งกราฟเพื่อดูรายละเอียดโครงการ'}
+                {hasMultipleYears ? ' — ข้อมูลสรุปรวมตามปีที่เลือกกรอง' : ''}
               </p>
               <div className="chart-wrapper" style={{ height: '320px', cursor: 'pointer' }}>
-                <canvas id="c_re_monthly_combo" />
+                <canvas id="c_re_monthly_ext_int" />
               </div>
               {undatedResearch.count > 0 && (
                 <p style={{ margin: '8px 0 0 0', fontSize: '11.5px', color: '#64748b' }}>
