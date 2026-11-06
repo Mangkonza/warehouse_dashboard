@@ -9,7 +9,7 @@ import { StrategicAlignmentMatrix } from '@/components/data-display/StrategicAli
 import { MissionDataTable } from '@/components/data-display/MissionDataTable';
 import { DashboardTabFilterBar } from '@/components/ui/DashboardTabFilterBar';
 import { UndatedNotice } from '@/components/ui/UndatedNotice';
-import { MissionKpiCard } from '@/components/data-display/MissionKpiCard';
+import { ExecutiveKpiDeck } from '@/components/data-display/ExecutiveKpiDeck';
 import { MissionYoYControls } from '@/components/data-display/MissionYoYControls';
 import { dashboardPageSubtitleStyle, dashboardPageTitleStyle, dashboardTheme } from '@/lib/dashboardTheme';
 import { FaBook, FaGlobeAmericas, FaAward, FaCoins, FaChartLine, FaBuilding, FaUserTie, FaBookOpen, FaLeaf, FaTable } from 'react-icons/fa';
@@ -104,13 +104,22 @@ export function PublicationsView() {
   const intlPct = validData.length > 0 ? ((intlAllCount / validData.length) * 100).toFixed(1) : '0';
   const tciPct = validData.length > 0 ? ((tciCount / validData.length) * 100).toFixed(1) : '0';
   const avgSupport = validData.length > 0 ? Math.round(totalSupportBudget / validData.length).toLocaleString('th-TH') : '0';
+  const uniqueDepts = new Set(validData.map((d: any) => d.department_clean || d.department).filter(Boolean));
+  const topTierCount = q1Count + q2Count;
+  const topTierPct = validData.length > 0 ? ((topTierCount / validData.length) * 100).toFixed(1) : '0';
+  const hasTierData = topTierCount > 0;
+
+  const pubBudgetValue = (totalSupportBudget / 1000000).toFixed(2);
+  const pubBudgetUnit = 'ล้านบาท';
+  const pubBudgetCurrent = totalSupportBudget / 1000000;
+  const pubBudgetMax = Math.max(1.5, Math.ceil((totalSupportBudget / 1000000) * 1.5 * 10) / 10);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       <div>
         <h1 style={dashboardPageTitleStyle}>ผลงานตีพิมพ์ทางวิชาการ</h1>
         <p style={dashboardPageSubtitleStyle}>
-          ภาพรวมคุณภาพวารสาร เงินสนับสนุน และผลผลิตตีพิมพ์ของคณะวิศวกรรมศาสตร์
+          ภาพรวมคุณภาพวารสาร เงินสนับสนุน และผลผลิตตีพิมพ์
         </p>
       </div>
 
@@ -180,54 +189,57 @@ export function PublicationsView() {
         <>
           {activePerspective === 'timeline' && (
             <>
-              {/* ZONE 2: Executive Bento KPI Grid */}
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-                  gap: '12px',
+              {/* ZONE 2: Executive Blueprint KPI Deck */}
+              <ExecutiveKpiDeck
+                mission="publications"
+                blueprintCard={{
+                  label: 'ผลงานตีพิมพ์ทางวิชาการรวม',
+                  value: validData.length,
+                  unit: 'เรื่อง',
+                  splitRatio: validData.length > 0 ? intlAllCount / validData.length : 0.7,
+                  primaryLegend: {
+                    label: 'นานาชาติ (Q1-Q4)',
+                    value: `${intlAllCount} เรื่อง`,
+                    percent: `${intlPct}%`,
+                    color: '#fb7185',
+                  },
+                  secondaryLegend: {
+                    label: 'ระดับชาติ (TCI)',
+                    value: `${tciCount} เรื่อง`,
+                    percent: `${tciPct}%`,
+                    color: '#fda4af',
+                  },
                 }}
-              >
-                <MissionKpiCard
-                  mission="publications"
-                  variant="pastel"
-                  label="ผลงานตีพิมพ์ทางวิชาการรวม"
-                  value={validData.length}
-                  unit="เรื่อง"
-                  subtext={`ตีพิมพ์สำเร็จ ${publishedCount} • เตรียมความพร้อม ${inPrepCount}`}
-                  icon={<FaBook style={{ fontSize: '16px' }} />}
-                />
-
-                <MissionKpiCard
-                  mission="publications"
-                  variant="pastel"
-                  label="ผลงานระดับนานาชาติ (Q1 - Q4)"
-                  value={`${intlPct}%`}
-                  unit={`(${intlAllCount} เรื่อง)`}
-                  subtext={`Q1: ${q1Count} • Q2: ${q2Count} • Q3: ${q3Count} • Q4: ${q4Count}`}
-                  icon={<FaGlobeAmericas style={{ fontSize: '16px' }} />}
-                />
-
-                <MissionKpiCard
-                  mission="publications"
-                  variant="pastel"
-                  label="ผลงานระดับชาติ (TCI)"
-                  value={`${tciPct}%`}
-                  unit={`(${tciCount} เรื่อง)`}
-                  subtext={`TCI 1: ${tci1Count} • TCI 2: ${tci2Count}${confCount > 0 ? ` • ประชุม: ${confCount}` : ''}`}
-                  icon={<FaAward style={{ fontSize: '16px' }} />}
-                />
-
-                <MissionKpiCard
-                  mission="publications"
-                  variant="pastel"
-                  label="งบสนับสนุนตีพิมพ์รวม"
-                  value={totalSupportBudget.toLocaleString('th-TH')}
-                  unit="บาท"
-                  subtext={`เฉลี่ย ${avgSupport} บาท/เรื่อง • รวม ${internationalCount} นานาชาติ`}
-                  icon={<FaCoins style={{ fontSize: '16px' }} />}
-                />
-              </div>
+                gearCard={{
+                  label: 'ผลงานที่ตีพิมพ์สำเร็จแล้ว',
+                  value: publishedCount,
+                  unit: 'เรื่อง',
+                  gearValue: uniqueDepts.size,
+                  gearLabel: 'สังกัด',
+                }}
+                tallyCard={{
+                  label: hasTierData ? 'ผลงานกลุ่มควอร์ไทล์สูง (Q1 - Q2)' : 'ผลงานตีพิมพ์สำเร็จ (Published)',
+                  chip: `${hasTierData ? topTierPct : (validData.length > 0 ? Math.round((publishedCount / validData.length) * 100) : 0)}%`,
+                  value: hasTierData ? topTierCount : publishedCount,
+                  unit: `จาก ${validData.length} เรื่อง`,
+                  percent: hasTierData ? (parseFloat(topTierPct) || 0) : (validData.length > 0 ? (publishedCount / validData.length) * 100 : 0),
+                  totalCount: validData.length,
+                  activeCount: hasTierData ? topTierCount : publishedCount,
+                }}
+                rulerCard={{
+                  label: 'เงินสนับสนุนตีพิมพ์รวม',
+                  value: pubBudgetValue,
+                  unit: pubBudgetUnit,
+                  current: pubBudgetCurrent,
+                  max: pubBudgetMax,
+                  marks: [
+                    { label: '0', positionPercent: 2 },
+                    { label: (pubBudgetMax / 3).toFixed(2), positionPercent: 33 },
+                    { label: ((pubBudgetMax * 2) / 3).toFixed(2), positionPercent: 66 },
+                    { label: `สูงสุด ${pubBudgetMax.toFixed(2)}`, positionPercent: 96 },
+                  ],
+                }}
+              />
 
               {/* ZONE 2.5: Year-over-Year (YoY) Comparison */}
               <MissionYoYControls
@@ -235,8 +247,8 @@ export function PublicationsView() {
                 missionTitle="ผลงานตีพิมพ์ทางวิชาการ"
                 allItemsRaw={validData}
                 activeDepartment={selectedDept}
-                primaryMetricLabel="จำนวนผลงานตีพิมพ์ (เรื่อง)"
-                secondaryMetricLabel="งบสนับสนุน (บาท)"
+                primaryMetricLabel="จำนวนผลงานตีพิมพ์"
+                secondaryMetricLabel="เงินสนับสนุนการตีพิมพ์"
                 hasBudgetMetric={true}
                 defaultBaseYear="2567"
                 defaultTargetYear="2568"

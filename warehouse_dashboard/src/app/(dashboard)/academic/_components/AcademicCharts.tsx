@@ -267,6 +267,11 @@ export function AcademicCharts({
       .sort((a, b) => b.budget - a.budget)
       .slice(0, 7);
 
+    Chart.register(ChartDataLabels);
+    Chart.defaults.font.family = "'Kanit', sans-serif";
+    Chart.defaults.font.size = 13.5;
+    Chart.defaults.color = '#0f172a';
+
     const createChart = (id: string, config: any) => {
       const canvas = document.getElementById(id) as HTMLCanvasElement;
       if (canvas) {
@@ -343,9 +348,12 @@ export function AcademicCharts({
             legend: {
               position: 'top',
               labels: {
-                boxWidth: 12,
-                font: { size: 11.5 },
-                padding: 10,
+                boxWidth: 16,
+                boxHeight: 16,
+                borderRadius: 4,
+                useBorderRadius: true,
+                font: { size: 13.5, weight: 600 },
+                padding: 14,
                 sort: (a: any, b: any) => {
                   const aIsLine = a.text.includes('งบประมาณ');
                   const bIsLine = b.text.includes('งบประมาณ');
@@ -376,7 +384,7 @@ export function AcademicCharts({
               display: (ctx: any) => Number(ctx.dataset.data[ctx.dataIndex]) > 0,
               anchor: 'end',
               align: 'top',
-              offset: (ctx: any) => (ctx.dataset.yAxisID === 'y1' ? 7 : 1),
+              offset: (ctx: any) => (ctx.dataset.yAxisID === 'y1' ? 7 : 2),
               color: (ctx: any) =>
                 ctx.dataset.yAxisID === 'y1' ? '#9F1239' : CHART_PASTEL_PALETTE.datalabels.dark,
               backgroundColor: (ctx: any) =>
@@ -387,7 +395,7 @@ export function AcademicCharts({
               borderRadius: 4,
               padding: (ctx: any) => (ctx.dataset.yAxisID === 'y1' ? { top: 2, bottom: 2, left: 5, right: 5 } : 0),
               clamp: true,
-              font: { weight: 'bold', size: 10 },
+              font: { weight: 'bold', size: 12.5 },
               formatter: (v: number, ctx: any) =>
                 ctx.dataset.yAxisID === 'y1' ? `${v.toFixed(2)}` : `${v}`,
             },
@@ -397,8 +405,8 @@ export function AcademicCharts({
               type: 'linear',
               beginAtZero: true,
               grace: '20%',
-              title: { display: true, text: 'จำนวนโครงการ' },
-              ticks: { stepSize: 2 },
+              title: { display: true, text: 'จำนวนโครงการ (โครงการ)', font: { size: 13.5, weight: 700 } },
+              ticks: { stepSize: 2, font: { size: 13, weight: 600 } },
               grid: { color: CHART_PASTEL_PALETTE.gridLines },
             },
             y1: {
@@ -407,16 +415,17 @@ export function AcademicCharts({
               beginAtZero: true,
               grace: '20%',
               grid: { drawOnChartArea: false },
-              title: { display: true, text: 'ล้านบาท' },
+              title: { display: true, text: 'งบประมาณ (ล้านบาท)', font: { size: 13.5, weight: 700 } },
+              ticks: { font: { size: 13, weight: 600 } },
             },
-            x: { grid: { display: false } },
+            x: { grid: { display: false }, ticks: { font: { size: 13.5, weight: 600 } } },
           },
         },
       });
 
-      // 2. Contract Size Tiers Chart
-      const TIER_COLORS = CHART_PASTEL_PALETTE.series.slice(0, 4);
-      const TIER_BORDERS = CHART_PASTEL_PALETTE.seriesBorders.slice(0, 4);
+      // 2. Contract Size Tiers Chart (Sequential scale progression avoiding collision with income/alloc colors above)
+      const TIER_COLORS = ['#C7D2FE', '#DDD6FE', '#FDE68A', '#FDA4AF'];
+      const TIER_BORDERS = ['#6366F1', '#8B5CF6', '#F59E0B', '#F43F5E'];
       createChart('c_ac_contract_tiers', {
         type: 'bar',
         data: {
@@ -461,7 +470,7 @@ export function AcademicCharts({
               anchor: 'end',
               align: 'top',
               color: CHART_PASTEL_PALETTE.datalabels.dark,
-              font: { weight: 'bold', size: 10.5 },
+              font: { weight: 'bold', size: 13 },
               formatter: (v: number, ctx: any) => {
                 const tier = contractSizeData[ctx.dataIndex];
                 if (v <= 0) return '';
@@ -470,8 +479,14 @@ export function AcademicCharts({
             },
           },
           scales: {
-            y: { beginAtZero: true, grace: '25%', grid: { color: CHART_PASTEL_PALETTE.gridLines }, title: { display: true, text: 'จำนวนโครงการ' } },
-            x: { grid: { display: false } },
+            y: {
+              beginAtZero: true,
+              grace: '25%',
+              grid: { color: CHART_PASTEL_PALETTE.gridLines },
+              title: { display: true, text: 'จำนวนโครงการ (โครงการ)', font: { size: 13.5, weight: 700 } },
+              ticks: { font: { size: 13, weight: 600 } },
+            },
+            x: { grid: { display: false }, ticks: { font: { size: 13, weight: 600 } } },
           },
         },
       });
@@ -526,7 +541,7 @@ export function AcademicCharts({
               anchor: 'end',
               align: 'right',
               color: CHART_PASTEL_PALETTE.datalabels.dark,
-              font: { weight: 'bold', size: 10.5 },
+              font: { weight: 'bold', size: 13 },
               formatter: (v: number, ctx: any) => {
                 const d = deptMetrics[ctx.dataIndex];
                 return `${v} ลบ. (${d?.count || 0} เรื่อง)`;
@@ -534,8 +549,14 @@ export function AcademicCharts({
             },
           },
           scales: {
-            x: { beginAtZero: true, grace: '25%', grid: { color: CHART_PASTEL_PALETTE.gridLines }, title: { display: true, text: 'ล้านบาท' } },
-            y: { grid: { display: false } },
+            x: {
+              beginAtZero: true,
+              grace: '25%',
+              grid: { color: CHART_PASTEL_PALETTE.gridLines },
+              title: { display: true, text: 'งบประมาณรวม (ล้านบาท)', font: { size: 13.5, weight: 700 } },
+              ticks: { font: { size: 13, weight: 600 } },
+            },
+            y: { grid: { display: false }, ticks: { font: { size: 13.5, weight: 600 } } },
           },
         },
       });
@@ -604,7 +625,7 @@ export function AcademicCharts({
               anchor: 'end',
               align: 'right',
               color: CHART_PASTEL_PALETTE.datalabels.dark,
-              font: { weight: 'bold', size: 10.5 },
+              font: { weight: 'bold', size: 13 },
               formatter: (v: number, ctx: any) => {
                 const seg = displaySegments[ctx.dataIndex];
                 if (v <= 0) return '';
@@ -617,14 +638,15 @@ export function AcademicCharts({
               beginAtZero: true,
               grace: '25%',
               grid: { color: CHART_PASTEL_PALETTE.gridLines },
-              title: { display: true, text: 'ล้านบาท' },
+              title: { display: true, text: 'งบประมาณรวม (ล้านบาท)', font: { size: 13.5, weight: 700 } },
+              ticks: { font: { size: 13, weight: 600 } },
             },
-            y: { grid: { display: false } },
+            y: { grid: { display: false }, ticks: { font: { size: 13.5, weight: 600 } } },
           },
         },
       });
 
-      // 2. Top Clients Bar Chart (Moved from timeline_alloc to client_segment)
+      // 2. Top Clients Bar Chart (Color-coded by client segment to match the left segment chart)
       const isClientAverageMode = clientValueMetric === 'average';
       const clientList = Object.values(clientGroups)
         .filter((c) => !hideMissingClient || (c.name !== 'ไม่ระบุหน่วยงาน' && c.name !== '-'))
@@ -634,6 +656,25 @@ export function AcademicCharts({
           return bValue - aValue;
         })
         .slice(0, 7);
+
+      const getClientSegmentStyle = (clientName: string) => {
+        const c = clientName.toLowerCase();
+        if (c.includes('การไฟฟ้า') || c.includes('การประปา') || c.includes('การทาง') || c.includes('ปตท') || c.includes('รัฐวิสาหกิจ')) {
+          return { label: 'รัฐวิสาหกิจ', fill: '#86EFAC', border: '#22C55E' };
+        }
+        if (c.includes('บริษัท') || c.includes('จำกัด') || c.includes('บมจ') || c.includes('corp') || c.includes('ltd') || c.includes('ผู้ประกอบการ')) {
+          return { label: 'ภาคเอกชน', fill: '#FDE68A', border: '#F59E0B' };
+        }
+        if (c.includes('มูลนิธิ') || c.includes('สมาคม')) {
+          return { label: 'องค์กรอิสระ', fill: '#DDD6FE', border: '#8B5CF6' };
+        }
+        if (c.includes('กรม') || c.includes('กระทรวง') || c.includes('สำนักงาน') || c.includes('เทศบาล') || c.includes('อบต') || c.includes('อบจ') || c.includes('ภาครัฐ')) {
+          return { label: 'หน่วยงานภาครัฐ', fill: '#93C5FD', border: '#3B82F6' };
+        }
+        return { label: 'ทั่วไป', fill: '#C7D2FE', border: '#6366F1' };
+      };
+
+      const clientStyles = clientList.map((c) => getClientSegmentStyle(c.name));
 
       createChart('c_ac_client', {
         type: 'bar',
@@ -648,8 +689,8 @@ export function AcademicCharts({
               data: clientList.map((c) =>
                 Number(((isClientAverageMode && c.count > 0 ? c.budget / c.count : c.budget) / 1000000).toFixed(2))
               ),
-              backgroundColor: CHART_PASTEL_PALETTE.missions.academic.fill,
-              borderColor: CHART_PASTEL_PALETTE.missions.academic.border,
+              backgroundColor: clientStyles.map((s) => s.fill),
+              borderColor: clientStyles.map((s) => s.border),
               borderWidth: 1.5,
               borderRadius: 6,
             },
@@ -669,11 +710,12 @@ export function AcademicCharts({
               if (cl) {
                 if (onSelectClient) onSelectClient(cl.name);
                 const average = cl.count > 0 ? cl.budget / cl.count : null;
+                const style = clientStyles[hit.index];
                 setDrillDown({
                   isOpen: true,
                   title: `โครงการพัฒนาวิชาการ: ${cl.name.replace(/\r?\n/g, ' ')}`,
-                  subtitle: `รวม ${cl.count} โครงการ • งบประมาณรวม ${cl.budget.toLocaleString('th-TH')} บาท • เฉลี่ย ${average === null ? '—' : `${average.toLocaleString('th-TH', { maximumFractionDigits: 0 })} บาท/สัญญา`}`,
-                  accentColor: '#3B82F6',
+                  subtitle: `กลุ่ม${style?.label || 'ผู้ว่าจ้าง'} • รวม ${cl.count} โครงการ • งบประมาณรวม ${cl.budget.toLocaleString('th-TH')} บาท • เฉลี่ย ${average === null ? '—' : `${average.toLocaleString('th-TH', { maximumFractionDigits: 0 })} บาท/สัญญา`}`,
+                  accentColor: style?.border || '#3B82F6',
                   items: cl.items,
                 });
               }
@@ -686,8 +728,10 @@ export function AcademicCharts({
                 label: (context: any) => {
                   const cl = clientList[context.dataIndex];
                   if (!cl) return '';
+                  const style = clientStyles[context.dataIndex];
                   const average = cl.count > 0 ? cl.budget / cl.count : null;
                   return [
+                    `กลุ่มผู้ว่าจ้าง: ${style?.label || 'ทั่วไป'}`,
                     `จำนวนโครงการ: ${cl.count} โครงการ`,
                     `งบประมาณรวม: ${cl.budget.toLocaleString('th-TH')} บาท`,
                     `เฉลี่ย: ${average === null ? '—' : `${average.toLocaleString('th-TH', { maximumFractionDigits: 0 })} บาท/สัญญา`}`,
@@ -699,7 +743,7 @@ export function AcademicCharts({
               anchor: 'end',
               align: 'right',
               color: CHART_PASTEL_PALETTE.datalabels.dark,
-              font: { weight: 'bold', size: 10.5 },
+              font: { weight: 'bold', size: 13 },
               formatter: (v: number, ctx: any) => {
                 const cl = clientList[ctx.dataIndex];
                 if (v <= 0) return '';
@@ -714,9 +758,10 @@ export function AcademicCharts({
               beginAtZero: true,
               grace: '25%',
               grid: { color: CHART_PASTEL_PALETTE.gridLines },
-              title: { display: true, text: isClientAverageMode ? 'ล้านบาท / สัญญา' : 'ล้านบาท' },
+              title: { display: true, text: isClientAverageMode ? 'ล้านบาท / สัญญา' : 'ล้านบาท', font: { size: 13.5, weight: 700 } },
+              ticks: { font: { size: 13, weight: 600 } },
             },
-            y: { grid: { display: false } },
+            y: { grid: { display: false }, ticks: { font: { size: 13.5, weight: 600 } } },
           },
         },
       });
@@ -791,7 +836,7 @@ export function AcademicCharts({
               anchor: 'end',
               align: 'right',
               color: CHART_PASTEL_PALETTE.datalabels.dark,
-              font: { weight: 'bold', size: 10.5 },
+              font: { weight: 'bold', size: 13 },
               formatter: (v: number, ctx: any) => {
                 const f = top10Faculty[ctx.dataIndex];
                 if (v <= 0) return '';
@@ -804,9 +849,10 @@ export function AcademicCharts({
               beginAtZero: true,
               grace: '25%',
               grid: { color: CHART_PASTEL_PALETTE.gridLines },
-              title: { display: true, text: 'มูลค่าสัญญารวม (ล้านบาท)' },
+              title: { display: true, text: 'มูลค่าสัญญารวม (ล้านบาท)', font: { size: 13.5, weight: 700 } },
+              ticks: { font: { size: 13, weight: 600 } },
             },
-            y: { grid: { display: false } },
+            y: { grid: { display: false }, ticks: { font: { size: 13.5, weight: 600 } } },
           },
         },
       });
@@ -840,16 +886,10 @@ export function AcademicCharts({
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div className="chart-grid">
             <div className="chart-card chart-full">
-              <h3 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h3 style={{ margin: '0 0 10px 0', fontSize: '15px', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <FaChartLine style={{ color: '#0284c7' }} /> จำนวนโครงการและงบประมาณสัญญารายเดือน
               </h3>
-              <p style={{ margin: '-2px 0 10px 0', fontSize: '12px', color: '#64748b' }}>
-                แท่ง = จำนวนโครงการ (สีฟ้าพาสเทล) • เส้น = งบประมาณ (ล้านบาท) • คลิกที่แท่งกราฟเพื่อดูรายการ
-                {hasMultipleYears
-                  ? ' — โปรไฟล์รายเดือน (ม.ค.–ธ.ค.) รวมปีที่กรอง ไม่ได้เรียงตามลำดับเวลาต่อเนื่อง'
-                  : ''}
-              </p>
-              <div className="chart-wrapper" style={{ height: '320px', cursor: 'pointer' }}>
+              <div className="chart-wrapper" style={{ height: '390px', cursor: 'pointer' }}>
                 <canvas id="c_ac_monthly_combo" />
               </div>
             </div>
@@ -857,24 +897,18 @@ export function AcademicCharts({
 
           <div className="chart-grid">
             <div className="chart-card">
-              <h3 style={{ margin: '0 0 4px 0', fontSize: '14.5px', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h3 style={{ margin: '0 0 10px 0', fontSize: '15px', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <FaLayerGroup style={{ color: '#059669' }} /> การกระจายตัวตามขนาดมูลค่าสัญญา
               </h3>
-              <p style={{ margin: '0 0 10px 0', fontSize: '12px', color: '#64748b' }}>
-                จำแนกตามช่วงขนาดมูลค่าสัญญา 4 ระดับ • คลิกที่แท่งกราฟเพื่อดูรายการ
-              </p>
-              <div className="chart-wrapper" style={{ height: '280px', cursor: 'pointer' }}>
+              <div className="chart-wrapper" style={{ height: '360px', cursor: 'pointer' }}>
                 <canvas id="c_ac_contract_tiers" />
               </div>
             </div>
             <div className="chart-card">
-              <h3 style={{ margin: '0 0 4px 0', fontSize: '14.5px', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h3 style={{ margin: '0 0 10px 0', fontSize: '15px', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <FaBuilding style={{ color: '#00A651' }} /> งบประมาณโครงการพัฒนาวิชาการตามสังกัด
               </h3>
-              <p style={{ margin: '0 0 10px 0', fontSize: '12px', color: '#64748b' }}>
-                เรียงตามมูลค่างบประมาณสัญญารวมจากมากไปน้อย • คลิกที่แท่งกราฟเพื่อดูรายการ
-              </p>
-              <div className="chart-wrapper" style={{ height: '280px', cursor: 'pointer' }}>
+              <div className="chart-wrapper" style={{ height: '360px', cursor: 'pointer' }}>
                 <canvas id="c_ac_dept" />
               </div>
             </div>
@@ -887,29 +921,26 @@ export function AcademicCharts({
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div className="chart-grid">
             <div className="chart-card">
-              <h3 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h3 style={{ margin: '0 0 10px 0', fontSize: '15px', fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <FaBuilding style={{ color: '#0284c7' }} /> มูลค่าโครงการจำแนกตามกลุ่มประเภทหน่วยงานผู้ว่าจ้าง
               </h3>
-              <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
-                เปรียบเทียบสัดส่วนระหว่างหน่วยงานภาครัฐ รัฐวิสาหกิจ และภาคเอกชน • คลิกที่แท่งเพื่อดูรายการ
-              </p>
-              <div className="chart-wrapper" style={{ height: '320px', cursor: 'pointer' }}>
+              <div className="chart-wrapper" style={{ height: '380px', cursor: 'pointer' }}>
                 <canvas id="c_ac_segment_bar" />
               </div>
             </div>
 
             <div className="chart-card">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '4px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '8px' }}>
                 <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <FaHandshake style={{ color: '#0284c7' }} /> อันดับหน่วยงานผู้ว่าจ้างสูงสุด (Top 7)
+                  <FaHandshake style={{ color: '#0284c7' }} /> 7 อันดับหน่วยงานผู้ว่าจ้างสูงสุด
                 </h3>
                 <div
                   style={{
                     display: 'inline-flex',
                     backgroundColor: '#f1f5f9',
-                    padding: '2px',
-                    borderRadius: '8px',
-                    fontSize: '11px',
+                    padding: '3px 4px',
+                    borderRadius: '10px',
+                    fontSize: '13px',
                     fontWeight: 600,
                   }}
                 >
@@ -917,14 +948,15 @@ export function AcademicCharts({
                     type="button"
                     onClick={() => setClientValueMetric('total')}
                     style={{
-                      padding: '3px 8px',
-                      borderRadius: '6px',
+                      padding: '6px 14px',
+                      borderRadius: '8px',
                       border: 'none',
                       backgroundColor: clientValueMetric === 'total' ? '#ffffff' : 'transparent',
                       color: clientValueMetric === 'total' ? '#0284c7' : '#64748b',
-                      fontWeight: clientValueMetric === 'total' ? 700 : 500,
+                      fontWeight: clientValueMetric === 'total' ? 700 : 600,
                       cursor: 'pointer',
-                      boxShadow: clientValueMetric === 'total' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                      boxShadow: clientValueMetric === 'total' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                      fontSize: '13px',
                     }}
                   >
                     มูลค่ารวม
@@ -933,26 +965,27 @@ export function AcademicCharts({
                     type="button"
                     onClick={() => setClientValueMetric('average')}
                     style={{
-                      padding: '3px 8px',
-                      borderRadius: '6px',
+                      padding: '6px 14px',
+                      borderRadius: '8px',
                       border: 'none',
                       backgroundColor: clientValueMetric === 'average' ? '#ffffff' : 'transparent',
                       color: clientValueMetric === 'average' ? '#0284c7' : '#64748b',
-                      fontWeight: clientValueMetric === 'average' ? 700 : 500,
+                      fontWeight: clientValueMetric === 'average' ? 700 : 600,
                       cursor: 'pointer',
-                      boxShadow: clientValueMetric === 'average' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                      boxShadow: clientValueMetric === 'average' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                      fontSize: '13px',
                     }}
                   >
                     เฉลี่ย/สัญญา
                   </button>
                 </div>
               </div>
-              <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
+              <p style={{ margin: '0 0 12px 0', fontSize: '13px', color: '#64748b' }}>
                 {clientValueMetric === 'average'
-                  ? 'เรียงจากมูลค่าเฉลี่ยต่อสัญญา • คลิกที่แท่งกราฟเพื่อดูรายการ'
-                  : 'เรียงจากมูลค่าสัญญารวม • คลิกที่แท่งกราฟเพื่อดูรายการ'}
+                  ? 'เรียงตามมูลค่าเฉลี่ยต่อสัญญาจากมากไปน้อย'
+                  : 'เรียงตามมูลค่าสัญญารวมจากมากไปน้อย'}
               </p>
-              <div className="chart-wrapper" style={{ height: '320px', cursor: 'pointer' }}>
+              <div className="chart-wrapper" style={{ height: '380px', cursor: 'pointer' }}>
                 <canvas id="c_ac_client" />
               </div>
             </div>
@@ -975,13 +1008,10 @@ export function AcademicCharts({
           >
             <div style={{ marginBottom: '12px' }}>
               <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <FaUserTie style={{ color: '#0284c7' }} /> Top 10 อาจารย์หัวหน้าโครงการพัฒนาวิชาการที่มีมูลค่าสัญญารวมสูงสุด
+                <FaUserTie style={{ color: '#0284c7' }} /> 10 อันดับอาจารย์หัวหน้าโครงการพัฒนาวิชาการที่มีมูลค่าสัญญารวมสูงสุด
               </h3>
-              <p style={{ margin: '3px 0 0 0', fontSize: '12px', color: '#64748b' }}>
-                เรียงตามมูลค่างบประมาณสัญญารวมจากมากไปน้อย • คลิกที่แท่งกราฟเพื่อดูรายการโครงการ
-              </p>
             </div>
-            <div style={{ height: '340px', cursor: 'pointer' }}>
+            <div style={{ height: '420px', cursor: 'pointer' }}>
               <canvas id="c_ac_faculty_top10" />
             </div>
           </div>

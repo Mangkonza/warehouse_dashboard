@@ -20,13 +20,15 @@ import {
 } from 'react-icons/fa';
 
 const compactButtonStyle: React.CSSProperties = {
-  padding: '4px 8px',
-  borderRadius: '6px',
+  padding: '6px 14px',
+  borderRadius: '8px',
   border: '1px solid #cbd5e1',
   backgroundColor: '#f8fafc',
-  fontSize: '11.5px',
-  color: '#64748b',
+  fontSize: '13px',
+  fontWeight: 600,
+  color: '#334155',
   cursor: 'pointer',
+  transition: 'all 0.15s ease-in-out',
 };
 
 export interface MissionYoYControlsProps {
@@ -47,6 +49,8 @@ export function MissionYoYControls({
   missionTitle,
   allItemsRaw,
   activeDepartment = 'all',
+  primaryMetricLabel,
+  secondaryMetricLabel,
   hasBudgetMetric = true,
   defaultBaseYear = '2567',
   defaultTargetYear = '2568',
@@ -65,6 +69,15 @@ export function MissionYoYControls({
 
   const chartCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const chartInstanceRef = useRef<Chart | null>(null);
+
+  // Unit and button labels
+  const countUnit = missionKey === 'publications' ? 'ผลงาน' : missionKey === 'ip' ? 'รายการ' : 'โครงการ';
+  const metricUnit = metricMode === 'count' ? countUnit : 'ล้านบาท';
+  const countBtnLabel = primaryMetricLabel ? primaryMetricLabel.replace(/\s*\(.*?\)\s*/g, '').trim() : `จำนวน${countUnit}`;
+  const budgetBtnLabel = secondaryMetricLabel ? secondaryMetricLabel.replace(/\s*\(.*?\)\s*/g, '').trim() : (
+    missionKey === 'service' ? 'มูลค่าบริการวิชาการ' :
+    missionKey === 'publications' || missionKey === 'ip' ? 'เงินสนับสนุน' : 'งบประมาณ'
+  );
 
   // Department-filtered multi-year items
   const deptFilteredItems = useMemo(() => {
@@ -119,7 +132,6 @@ export function MissionYoYControls({
   const activeYoY = metricMode === 'count' ? countYoY : budgetYoY;
   const activeBaseValue = metricMode === 'count' ? baseCount : baseBudgetM;
   const activeTargetValue = metricMode === 'count' ? targetCount : targetBudgetM;
-  const metricUnit = metricMode === 'count' ? 'รายการ' : 'ล้านบาท';
   const formatMetricValue = (value: number) => metricMode === 'count'
     ? value.toLocaleString('th-TH')
     : value.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -216,14 +228,14 @@ export function MissionYoYControls({
   const defaultVisibleRows = nonZeroRows.slice(0, 8);
   const visibleRows = showAllRows ? detailRows : defaultVisibleRows;
   const hasRowToggle = detailRows.length > defaultVisibleRows.length;
-  const chartHeight = Math.min(460, Math.max(280, breakdownData.labels.length * 40));
+  const chartHeight = Math.min(520, Math.max(340, breakdownData.labels.length * 44));
 
   const handleDownloadCsv = () => {
     const escapeCsv = (value: string | number) => {
       const text = String(value);
       return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
     };
-    const header = ['สังกัด', `ปีฐาน (${baseYear})`, `ปีเปรียบเทียบ (${targetYear})`, 'ผลต่าง', 'เปลี่ยนแปลง (%)'];
+    const header = ['สังกัด', `ปีฐาน ${baseYear}`, `ปีเปรียบเทียบ ${targetYear}`, 'ผลต่าง', 'เปลี่ยนแปลง (%)'];
     const rows = detailRows.map((row) => [
       row.label,
       formatMetricValue(row.baseValue),
@@ -254,6 +266,8 @@ export function MissionYoYControls({
 
     if (!chartCanvasRef.current || !isExpanded) return;
     Chart.register(ChartDataLabels);
+    Chart.defaults.font.family = "'Kanit', sans-serif";
+    Chart.defaults.font.size = 13.5;
 
     const canvas = chartCanvasRef.current;
     const ctx = canvas.getContext('2d');
@@ -265,22 +279,22 @@ export function MissionYoYControls({
         labels: breakdownData.labels,
         datasets: [
           {
-            label: `ปีฐาน (${baseYear})`,
+            label: `ปีฐาน ${baseYear}`,
             data: breakdownData.baseValues,
             backgroundColor: '#94A3B8', // Soft slate
             borderColor: '#64748B',
             borderWidth: 1.5,
             borderRadius: 6,
-            maxBarThickness: 18,
+            maxBarThickness: 22,
           },
           {
-            label: `ปีเปรียบเทียบ (${targetYear})`,
+            label: `ปีเปรียบเทียบ ${targetYear}`,
             data: breakdownData.targetValues,
             backgroundColor: missionTheme.fill,
             borderColor: missionTheme.border,
             borderWidth: 1.5,
             borderRadius: 6,
-            maxBarThickness: 18,
+            maxBarThickness: 22,
           },
         ],
       },
@@ -291,19 +305,20 @@ export function MissionYoYControls({
           legend: {
             position: 'top',
             labels: {
-              boxWidth: 12,
-              font: { size: 11.5, weight: 600, family: "'Kanit', sans-serif" },
-              color: '#334155',
+              boxWidth: 14,
+              padding: 14,
+              font: { size: 13.5, weight: 600, family: "'Kanit', sans-serif" },
+              color: '#0F172A',
             },
           },
           datalabels: {
             color: '#0F172A',
-            font: { family: "'Kanit', sans-serif", weight: 'bold', size: 10.5 },
+            font: { family: "'Kanit', sans-serif", weight: 'bold', size: 12.5 },
             anchor: 'end',
             align: 'end',
             formatter: (v: number) => {
               if (v <= 0) return '';
-              return metricMode === 'budget' ? `${v}M` : `${v}`;
+              return metricMode === 'budget' ? `${v} ล้านบาท` : `${v}`;
             },
           },
           tooltip: {
@@ -315,8 +330,7 @@ export function MissionYoYControls({
                 return d.name && d.name !== '-' ? `${d.name} (${code})` : code;
               },
               label: (context: any) => {
-                const unit = metricMode === 'budget' ? 'ล้านบาท' : 'รายการ';
-                return ` ${context.dataset.label}: ${context.raw} ${unit}`;
+                return ` ${context.dataset.label}: ${context.raw} ${metricUnit}`;
               },
             },
           },
@@ -328,21 +342,21 @@ export function MissionYoYControls({
             grace: '20%',
             title: {
               display: true,
-              text: metricMode === 'budget' ? 'งบประมาณ (ล้านบาท)' : 'จำนวน (รายการ)',
-              color: '#64748b',
-              font: { size: 11.5, weight: 600 },
+              text: metricMode === 'budget' ? 'งบประมาณ (ล้านบาท)' : `จำนวน (${countUnit})`,
+              color: '#0F172A',
+              font: { size: 13.5, weight: 700, family: "'Kanit', sans-serif" },
             },
             ticks: {
-              font: { size: 11, family: "'Kanit', sans-serif" },
-              color: '#64748b',
+              font: { size: 12.5, weight: 600, family: "'Kanit', sans-serif" },
+              color: '#334155',
             },
             grid: { color: CHART_PASTEL_PALETTE.gridLines },
           },
           y: {
             grid: { display: false },
             ticks: {
-              font: { size: 11.5, family: "'Kanit', sans-serif" },
-              color: '#475569',
+              font: { size: 13, weight: 600, family: "'Kanit', sans-serif" },
+              color: '#0F172A',
               callback: (value: string | number, index: number) => {
                 const raw = breakdownData.labels[index] ?? String(value);
                 const department = getDepartment(raw);
@@ -410,10 +424,10 @@ export function MissionYoYControls({
             <FaExchangeAlt style={{ fontSize: '14px' }} />
           </div>
           <div>
-            <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
+            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
               เปรียบเทียบข้อมูลรายปี • {missionTitle}
             </h3>
-            <span style={{ fontSize: '11.5px', color: '#64748b' }}>
+            <span style={{ fontSize: '12.5px', color: '#64748b' }}>
               {activeDepartment !== 'all' ? `กรองเฉพาะ: ${activeDepartment}` : 'ครอบคลุมทั้งคณะ'}
             </span>
           </div>
@@ -423,16 +437,16 @@ export function MissionYoYControls({
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           {/* Base Year Selector */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <span style={{ fontSize: '12px', fontWeight: 600, color: '#475569' }}>ปีฐาน:</span>
+            <span style={{ fontSize: '13px', fontWeight: 600, color: '#475569' }}>ปีฐาน:</span>
             <select
               value={baseYear}
               onChange={(e) => setBaseYear(e.target.value)}
               style={{
-                padding: '4px 8px',
-                borderRadius: '6px',
+                padding: '6px 12px',
+                borderRadius: '8px',
                 border: '1px solid #cbd5e1',
                 backgroundColor: '#ffffff',
-                fontSize: '12px',
+                fontSize: '13px',
                 fontWeight: 600,
                 color: '#334155',
                 cursor: 'pointer',
@@ -446,20 +460,20 @@ export function MissionYoYControls({
             </select>
           </div>
 
-          <span style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 700 }}>เทียบกับ</span>
+          <span style={{ fontSize: '13px', color: '#94a3b8', fontWeight: 700 }}>เทียบกับ</span>
 
           {/* Target Year Selector */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <span style={{ fontSize: '12px', fontWeight: 600, color: '#475569' }}>ปีเปรียบเทียบ:</span>
+            <span style={{ fontSize: '13px', fontWeight: 600, color: '#475569' }}>ปีเปรียบเทียบ:</span>
             <select
               value={targetYear}
               onChange={(e) => setTargetYear(e.target.value)}
               style={{
-                padding: '4px 8px',
-                borderRadius: '6px',
+                padding: '6px 12px',
+                borderRadius: '8px',
                 border: `1.5px solid ${missionTheme.border}`,
                 backgroundColor: '#ffffff',
-                fontSize: '12px',
+                fontSize: '13px',
                 fontWeight: 700,
                 color: missionTheme.text,
                 cursor: 'pointer',
@@ -479,45 +493,47 @@ export function MissionYoYControls({
               <div
                 style={{
                   display: 'inline-flex',
-                  borderRadius: '8px',
+                  borderRadius: '10px',
                   border: '1px solid #e2e8f0',
-                  padding: '2px',
-                  backgroundColor: '#f8fafc',
+                  padding: '3px 4px',
+                  backgroundColor: '#f1f5f9',
                 }}
               >
                 <button
                   type="button"
                   onClick={() => setMetricMode('count')}
                   style={{
-                    padding: '4px 10px',
-                    borderRadius: '6px',
+                    padding: '6px 14px',
+                    borderRadius: '8px',
                     border: 'none',
                     backgroundColor: metricMode === 'count' ? '#ffffff' : 'transparent',
                     color: metricMode === 'count' ? '#0f172a' : '#64748b',
-                    fontSize: '12px',
-                    fontWeight: metricMode === 'count' ? 700 : 500,
+                    fontSize: '13px',
+                    fontWeight: metricMode === 'count' ? 700 : 600,
                     cursor: 'pointer',
-                    boxShadow: metricMode === 'count' ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+                    boxShadow: metricMode === 'count' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                    transition: 'all 0.15s ease-in-out',
                   }}
                 >
-                  จำนวนรายการ
+                  {countBtnLabel}
                 </button>
                 <button
                   type="button"
                   onClick={() => setMetricMode('budget')}
                   style={{
-                    padding: '4px 10px',
-                    borderRadius: '6px',
+                    padding: '6px 14px',
+                    borderRadius: '8px',
                     border: 'none',
                     backgroundColor: metricMode === 'budget' ? '#ffffff' : 'transparent',
                     color: metricMode === 'budget' ? '#0f172a' : '#64748b',
-                    fontSize: '12px',
-                    fontWeight: metricMode === 'budget' ? 700 : 500,
+                    fontSize: '13px',
+                    fontWeight: metricMode === 'budget' ? 700 : 600,
                     cursor: 'pointer',
-                    boxShadow: metricMode === 'budget' ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+                    boxShadow: metricMode === 'budget' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                    transition: 'all 0.15s ease-in-out',
                   }}
                 >
-                  งบประมาณ
+                  {budgetBtnLabel}
                 </button>
               </div>
             )}
@@ -528,15 +544,7 @@ export function MissionYoYControls({
               onClick={() => setIsExpanded(!isExpanded)}
               aria-expanded={isExpanded}
               aria-controls={expandedContentId}
-              style={{
-                padding: '4px 8px',
-                borderRadius: '6px',
-                border: '1px solid #cbd5e1',
-                backgroundColor: '#f8fafc',
-                fontSize: '11.5px',
-                color: '#64748b',
-                cursor: 'pointer',
-              }}
+              style={compactButtonStyle}
             >
               {isExpanded ? 'ย่อมุมมอง' : 'ดูกราฟและรายละเอียด'}
             </button>
@@ -550,34 +558,34 @@ export function MissionYoYControls({
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '10px',
+            gap: '12px',
             flexWrap: 'wrap',
-            padding: '10px 14px',
+            padding: '12px 16px',
             borderRadius: '12px',
             border: `1px solid ${cardTheme.border}`,
             background: `linear-gradient(135deg, ${cardTheme.surface} 0%, #ffffff 100%)`,
           }}
         >
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-            <span style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b', whiteSpace: 'nowrap' }}>
               ปีฐาน {baseYear}
             </span>
-            <strong style={{ fontSize: '20px', fontWeight: 800, color: '#334155', fontVariantNumeric: 'tabular-nums' }}>
+            <strong style={{ fontSize: '22px', fontWeight: 800, color: '#334155', fontVariantNumeric: 'tabular-nums' }}>
               {formatMetricValue(activeBaseValue)}
             </strong>
-            <span style={{ fontSize: '11.5px', color: '#64748b' }}>{metricUnit}</span>
+            <span style={{ fontSize: '13px', color: '#64748b' }}>{metricUnit}</span>
           </div>
 
           <span aria-hidden="true" style={{ color: '#94a3b8', fontWeight: 700 }}>→</span>
 
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-            <span style={{ fontSize: '12px', fontWeight: 700, color: cardTheme.header, whiteSpace: 'nowrap' }}>
-              ปี {targetYear}
+            <span style={{ fontSize: '13px', fontWeight: 700, color: cardTheme.header, whiteSpace: 'nowrap' }}>
+              ปีเปรียบเทียบ {targetYear}
             </span>
-            <strong style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a', fontVariantNumeric: 'tabular-nums' }}>
+            <strong style={{ fontSize: '22px', fontWeight: 800, color: '#0f172a', fontVariantNumeric: 'tabular-nums' }}>
               {formatMetricValue(activeTargetValue)}
             </strong>
-            <span style={{ fontSize: '11.5px', color: '#64748b' }}>{metricUnit}</span>
+            <span style={{ fontSize: '13px', color: '#64748b' }}>{metricUnit}</span>
           </div>
 
           <span aria-hidden="true" style={{ width: '1px', height: '28px', backgroundColor: '#e2e8f0' }} />
@@ -589,13 +597,13 @@ export function MissionYoYControls({
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: '26px',
-                height: '26px',
+                width: '28px',
+                height: '28px',
                 borderRadius: '8px',
                 border: `1px solid ${cardTheme.border}`,
                 backgroundColor: cardTheme.iconBg,
                 color: cardTheme.icon,
-                fontSize: '12px',
+                fontSize: '13px',
               }}
             >
               {activeYoY.trend === 'up' && <FaArrowUp />}
@@ -603,10 +611,10 @@ export function MissionYoYControls({
               {activeYoY.trend === 'neutral' && <FaMinus />}
             </span>
             <div>
-              <div style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a', fontVariantNumeric: 'tabular-nums' }}>
+              <div style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', fontVariantNumeric: 'tabular-nums' }}>
                 {formatDelta(activeYoY.absDiff)}
               </div>
-              <div style={{ fontSize: '11px', color: '#64748b' }}>
+              <div style={{ fontSize: '12px', color: '#64748b' }}>
                 เปลี่ยนแปลง {getGrowthValue(activeBaseValue, activeTargetValue)}
                 {activeBaseValue > 0 && activeBaseValue < 5 ? ' · ฐานต่ำ' : ''}
               </div>
@@ -614,7 +622,7 @@ export function MissionYoYControls({
           </div>
 
           {topRow && Math.abs(topRow.delta) > 0 && (
-            <div className="hidden md:block" style={{ marginLeft: 'auto', fontSize: '11.5px', color: '#475569' }}>
+            <div className="hidden md:block" style={{ marginLeft: 'auto', fontSize: '12.5px', color: '#475569' }}>
               เปลี่ยนแปลงมากที่สุด: <strong style={{ color: cardTheme.header }}>{topRow.label}</strong>{' '}
               ({formatDeltaValue(topRow.delta)} {metricUnit})
             </div>
@@ -641,23 +649,23 @@ export function MissionYoYControls({
                 backgroundColor: '#f8fafc',
                 borderRadius: '12px',
                 border: '1px solid #e2e8f0',
-                padding: '12px 14px',
+                padding: '14px 16px',
               }}
             >
-              <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>
-                ปีฐาน ({baseYear})
+              <div style={{ fontSize: '13px', color: '#64748b', fontWeight: 600 }}>
+                ปีฐาน {baseYear}
               </div>
-              <div style={{ fontSize: '22px', fontWeight: 800, color: '#334155', marginTop: '4px' }}>
+              <div style={{ fontSize: '24px', fontWeight: 800, color: '#334155', marginTop: '4px' }}>
                 {metricMode === 'count' ? (
-                  `${baseCount.toLocaleString()} รายการ`
+                  `${baseCount.toLocaleString()} ${metricUnit}`
                 ) : (
                   `${baseBudgetM.toFixed(2)} ล้านบาท`
                 )}
               </div>
-              <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>
+              <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
                 {metricMode === 'count'
-                  ? `งบรวม ${baseBudgetM.toFixed(2)} ลบ.`
-                  : `${baseCount} รายการ`}
+                  ? `งบประมาณ ${baseBudgetM.toFixed(2)} ล้านบาท`
+                  : `${baseCount.toLocaleString()} ${countUnit}`}
               </div>
             </div>
 
@@ -667,23 +675,23 @@ export function MissionYoYControls({
                 backgroundColor: '#f0fdf4',
                 borderRadius: '12px',
                 border: `1px solid ${missionTheme.border}`,
-                padding: '12px 14px',
+                padding: '14px 16px',
               }}
             >
-              <div style={{ fontSize: '12px', color: missionTheme.text, fontWeight: 700 }}>
-                ปีเปรียบเทียบ ({targetYear})
+              <div style={{ fontSize: '13px', color: missionTheme.text, fontWeight: 700 }}>
+                ปีเปรียบเทียบ {targetYear}
               </div>
-              <div style={{ fontSize: '22px', fontWeight: 800, color: '#0f172a', marginTop: '4px' }}>
+              <div style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', marginTop: '4px' }}>
                 {metricMode === 'count' ? (
-                  `${targetCount.toLocaleString()} รายการ`
+                  `${targetCount.toLocaleString()} ${metricUnit}`
                 ) : (
                   `${targetBudgetM.toFixed(2)} ล้านบาท`
                 )}
               </div>
-              <div style={{ fontSize: '11px', color: '#16a34a', marginTop: '2px' }}>
+              <div style={{ fontSize: '12px', color: '#16a34a', marginTop: '2px' }}>
                 {metricMode === 'count'
-                  ? `งบรวม ${targetBudgetM.toFixed(2)} ลบ.`
-                  : `${targetCount} รายการ`}
+                  ? `งบประมาณ ${targetBudgetM.toFixed(2)} ล้านบาท`
+                  : `${targetCount.toLocaleString()} ${countUnit}`}
               </div>
             </div>
 
@@ -693,13 +701,13 @@ export function MissionYoYControls({
                 backgroundColor: '#ffffff',
                 borderRadius: '12px',
                 border: '1px solid #e2e8f0',
-                padding: '12px 14px',
+                padding: '14px 16px',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'center',
               }}
             >
-              <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>
+              <div style={{ fontSize: '13px', color: '#64748b', fontWeight: 600 }}>
                 ผลต่างระหว่างปี
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
@@ -708,18 +716,18 @@ export function MissionYoYControls({
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '8px',
-                    fontSize: '22px',
+                    fontSize: '24px',
                     fontWeight: 800,
                     color: '#0f172a',
                   }}
                 >
-                  {activeYoY.trend === 'up' && <FaArrowUp aria-hidden="true" style={{ fontSize: '14px', color: '#64748b' }} />}
-                  {activeYoY.trend === 'down' && <FaArrowDown aria-hidden="true" style={{ fontSize: '14px', color: '#64748b' }} />}
-                  {activeYoY.trend === 'neutral' && <FaMinus aria-hidden="true" style={{ fontSize: '14px', color: '#64748b' }} />}
+                  {activeYoY.trend === 'up' && <FaArrowUp aria-hidden="true" style={{ fontSize: '16px', color: '#64748b' }} />}
+                  {activeYoY.trend === 'down' && <FaArrowDown aria-hidden="true" style={{ fontSize: '16px', color: '#64748b' }} />}
+                  {activeYoY.trend === 'neutral' && <FaMinus aria-hidden="true" style={{ fontSize: '16px', color: '#64748b' }} />}
                   <span>{formatDelta(activeYoY.absDiff)}</span>
                 </span>
               </div>
-              <div style={{ fontSize: '11.5px', color: '#64748b', marginTop: '4px' }}>
+              <div style={{ fontSize: '12.5px', color: '#64748b', marginTop: '4px' }}>
                 เปลี่ยนแปลง {getGrowthValue(activeBaseValue, activeTargetValue)}
                 {activeBaseValue > 0 && activeBaseValue < 5 && (
                   <span> · ฐานต่ำ ({formatMetricValue(activeBaseValue)} {metricUnit})</span>
@@ -746,11 +754,11 @@ export function MissionYoYControls({
           </div>
 
           {/* Visible takeaway doubles as the chart's text alternative and keeps the detail table optional. */}
-          <p id={summaryId} aria-live="polite" style={{ margin: 0, fontSize: '11.5px', lineHeight: 1.55, color: '#475569' }}>
+          <p id={summaryId} aria-live="polite" style={{ margin: 0, fontSize: '13px', lineHeight: 1.6, color: '#334155' }}>
             {summaryText}
           </p>
 
-          <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '12px' }}>
+          <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '14px' }}>
             <div
               style={{
                 display: 'flex',
@@ -761,15 +769,15 @@ export function MissionYoYControls({
               }}
             >
               <div>
-                <h4 style={{ margin: 0, fontSize: '13px', fontWeight: 700, color: '#334155' }}>
+                <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#1e293b' }}>
                   รายละเอียดตามสังกัด
                 </h4>
-                <div style={{ marginTop: '2px', fontSize: '11.5px', color: '#64748b' }}>
+                <div style={{ marginTop: '2px', fontSize: '12.5px', color: '#64748b' }}>
                   {detailRows.length} สังกัด · ↑{upCount} ↓{downCount} –{flatCount}
                   {activeDepartment !== 'all' ? ` · กรองเฉพาะ ${activeDepartment}` : ''}
                 </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                 <button
                   type="button"
                   onClick={handleDownloadCsv}
@@ -790,61 +798,61 @@ export function MissionYoYControls({
               </div>
             </div>
 
-            <div id={detailId} style={{ marginTop: '10px', display: isDetailExpanded ? 'block' : 'none' }}>
+            <div id={detailId} style={{ marginTop: '12px', display: isDetailExpanded ? 'block' : 'none' }}>
               <div className="hidden sm:block" style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', maxWidth: '820px', borderCollapse: 'collapse', fontSize: '12px' }}>
+                <table style={{ width: '100%', maxWidth: '820px', borderCollapse: 'collapse', fontSize: '13px' }}>
                   <caption className="sr-only">
                     เปรียบเทียบข้อมูลตามสังกัดระหว่างปีฐาน {baseYear} กับปีเปรียบเทียบ {targetYear} หน่วย{metricUnit}
                   </caption>
                   <thead>
-                    <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#64748b', textAlign: 'left' }}>
-                      <th scope="col" style={{ padding: '8px 10px 8px 0', fontWeight: 600 }}>สังกัด</th>
-                      <th scope="col" style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                    <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#334155', textAlign: 'left' }}>
+                      <th scope="col" style={{ padding: '10px 12px 10px 0', fontWeight: 700, fontSize: '13px' }}>สังกัด</th>
+                      <th scope="col" style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, fontSize: '13px', whiteSpace: 'nowrap' }}>
                         ปี {baseYear} → {targetYear}
                       </th>
-                      <th scope="col" style={{ padding: '8px 0 8px 10px', textAlign: 'right', fontWeight: 600, whiteSpace: 'nowrap' }}>เปลี่ยนแปลง</th>
+                      <th scope="col" style={{ padding: '10px 0 10px 12px', textAlign: 'right', fontWeight: 700, fontSize: '13px', whiteSpace: 'nowrap' }}>เปลี่ยนแปลง</th>
                     </tr>
                   </thead>
                   <tbody>
                     {visibleRows.map((row) => (
                       <tr key={row.cat} style={{ borderBottom: '1px solid #f1f5f9', color: '#334155' }}>
-                        <th scope="row" style={{ padding: '8px 10px 8px 0', fontWeight: 600, textAlign: 'left', overflowWrap: 'anywhere' }}>
+                        <th scope="row" style={{ padding: '10px 12px 10px 0', fontWeight: 600, textAlign: 'left', overflowWrap: 'anywhere' }}>
                           {row.label}
                         </th>
-                        <td style={{ padding: '8px 10px', textAlign: 'right', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+                        <td style={{ padding: '10px 12px', textAlign: 'right', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
                           <span className="sr-only">ปีฐาน </span>
                           <span style={{ color: '#64748b' }}>{formatMetricValue(row.baseValue)}</span>
                           <span aria-hidden="true" style={{ color: '#94a3b8', margin: '0 4px' }}>→</span>
                           <span className="sr-only"> ปีเปรียบเทียบ </span>
                           <strong>{formatMetricValue(row.targetValue)}</strong>
-                          <span style={{ marginLeft: '6px', fontSize: '11px', color: '#64748b' }}>
+                          <span style={{ marginLeft: '6px', fontSize: '12px', color: '#64748b' }}>
                             (<span className="sr-only">ผลต่าง </span>{formatDeltaValue(row.delta)})
                           </span>
                         </td>
-                        <td style={{ padding: '8px 0 8px 10px', textAlign: 'right', color: '#64748b', fontVariantNumeric: 'tabular-nums' }}>
+                        <td style={{ padding: '10px 0 10px 12px', textAlign: 'right', color: '#64748b', fontVariantNumeric: 'tabular-nums' }}>
                           <div>{row.growth}</div>
                           {row.baseValue > 0 && row.baseValue < 5 && (
-                            <div style={{ fontSize: '10px', color: '#475569', marginTop: '1px' }}>ฐานต่ำ</div>
+                            <div style={{ fontSize: '11px', color: '#475569', marginTop: '1px' }}>ฐานต่ำ</div>
                           )}
                         </td>
                       </tr>
                     ))}
                   </tbody>
                   <tfoot>
-                    <tr style={{ borderTop: '1px solid #cbd5e1', color: '#334155', fontWeight: 700 }}>
-                      <th scope="row" style={{ padding: '8px 10px 8px 0', textAlign: 'left' }}>รวมทั้งหมด</th>
-                      <td style={{ padding: '8px 10px', textAlign: 'right', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+                    <tr style={{ borderTop: '1px solid #cbd5e1', color: '#1e293b', fontWeight: 700 }}>
+                      <th scope="row" style={{ padding: '10px 12px 10px 0', textAlign: 'left' }}>รวมทั้งหมด</th>
+                      <td style={{ padding: '10px 12px', textAlign: 'right', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
                         <span style={{ color: '#64748b' }}>{formatMetricValue(activeBaseValue)}</span>
                         <span aria-hidden="true" style={{ color: '#94a3b8', margin: '0 4px' }}>→</span>
                         <strong>{formatMetricValue(activeTargetValue)}</strong>
-                        <span style={{ marginLeft: '6px', fontSize: '11px', color: '#64748b' }}>
+                        <span style={{ marginLeft: '6px', fontSize: '12px', color: '#64748b' }}>
                           ({formatDeltaValue(activeTargetValue - activeBaseValue)})
                         </span>
                       </td>
-                      <td style={{ padding: '8px 0 8px 10px', textAlign: 'right', color: '#64748b', fontVariantNumeric: 'tabular-nums' }}>
+                      <td style={{ padding: '10px 0 10px 12px', textAlign: 'right', color: '#334155', fontVariantNumeric: 'tabular-nums' }}>
                         <div>{getGrowthValue(activeBaseValue, activeTargetValue)}</div>
                         {activeBaseValue > 0 && activeBaseValue < 5 && (
-                          <div style={{ fontSize: '10px', color: '#475569', marginTop: '1px' }}>ฐานต่ำ</div>
+                          <div style={{ fontSize: '11px', color: '#475569', marginTop: '1px' }}>ฐานต่ำ</div>
                         )}
                       </td>
                     </tr>
@@ -854,17 +862,17 @@ export function MissionYoYControls({
 
               <div className="grid sm:hidden">
                 {visibleRows.map((row) => (
-                  <div key={row.cat} style={{ padding: '9px 0', borderBottom: '1px solid #f1f5f9' }}>
+                  <div key={row.cat} style={{ padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
                     <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px' }}>
-                      <div style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>{row.label}</div>
-                      <div style={{ fontSize: '11.5px', color: '#64748b', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums', textAlign: 'right' }}>
+                      <div style={{ fontSize: '13px', fontWeight: 700, color: '#334155' }}>{row.label}</div>
+                      <div style={{ fontSize: '12px', color: '#64748b', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums', textAlign: 'right' }}>
                         <div>{row.growth}</div>
                         {row.baseValue > 0 && row.baseValue < 5 && (
-                          <div style={{ fontSize: '10px', color: '#475569', marginTop: '1px' }}>ฐานต่ำ</div>
+                          <div style={{ fontSize: '11px', color: '#475569', marginTop: '1px' }}>ฐานต่ำ</div>
                         )}
                       </div>
                     </div>
-                    <div style={{ marginTop: '3px', fontSize: '11.5px', color: '#64748b', fontVariantNumeric: 'tabular-nums' }}>
+                    <div style={{ marginTop: '3px', fontSize: '12px', color: '#64748b', fontVariantNumeric: 'tabular-nums' }}>
                       {baseYear}: <strong style={{ color: '#334155' }}>{formatMetricValue(row.baseValue)}</strong>
                       <span aria-hidden="true" style={{ margin: '0 4px', color: '#94a3b8' }}>→</span>
                       {targetYear}: <strong style={{ color: '#334155' }}>{formatMetricValue(row.targetValue)}</strong>
@@ -873,19 +881,19 @@ export function MissionYoYControls({
                   </div>
                 ))}
 
-                <div style={{ padding: '10px 0 0', borderTop: '1px solid #e2e8f0' }}>
-                  <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px', fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+                <div style={{ padding: '12px 0 0', borderTop: '1px solid #e2e8f0' }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px', fontSize: '13px', fontWeight: 700, color: '#334155' }}>
                     <span>รวมทั้งหมด</span>
                     <span style={{ fontVariantNumeric: 'tabular-nums' }}>{getGrowthValue(activeBaseValue, activeTargetValue)}</span>
                   </div>
-                  <div style={{ marginTop: '2px', fontSize: '11.5px', color: '#64748b', fontVariantNumeric: 'tabular-nums' }}>
+                  <div style={{ marginTop: '2px', fontSize: '12px', color: '#64748b', fontVariantNumeric: 'tabular-nums' }}>
                     {baseYear}: <strong style={{ color: '#334155' }}>{formatMetricValue(activeBaseValue)}</strong>
                     <span aria-hidden="true" style={{ margin: '0 4px', color: '#94a3b8' }}>→</span>
                     {targetYear}: <strong style={{ color: '#334155' }}>{formatMetricValue(activeTargetValue)}</strong>
                     <span style={{ marginLeft: '6px' }}>({formatDeltaValue(activeTargetValue - activeBaseValue)})</span>
                   </div>
                   {activeBaseValue > 0 && activeBaseValue < 5 && (
-                    <div style={{ marginTop: '2px', fontSize: '10px', color: '#475569' }}>
+                    <div style={{ marginTop: '2px', fontSize: '11px', color: '#475569' }}>
                       ฐานต่ำ (ปีฐานมี {formatMetricValue(activeBaseValue)} {metricUnit})
                     </div>
                   )}
@@ -893,13 +901,13 @@ export function MissionYoYControls({
               </div>
 
               {metricMode === 'budget' && (
-                <div style={{ marginTop: '6px', fontSize: '10.5px', color: '#94a3b8' }}>
+                <div style={{ marginTop: '8px', fontSize: '11.5px', color: '#94a3b8' }}>
                   ผลรวมอาจไม่เท่ากับผลบวกของแต่ละแถวเนื่องจากการปัดเศษ
                 </div>
               )}
 
               {hasRowToggle && (
-                <div style={{ display: 'flex', justifyContent: 'center', marginTop: '8px' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', marginTop: '10px' }}>
                   <button
                     type="button"
                     onClick={() => setShowAllRows((prev) => !prev)}

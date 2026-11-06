@@ -84,7 +84,7 @@ export const FACT_DOMAINS_CONFIG: Record<FactDomainId, FactDomainDef> = {
     id: 'ip',
     nameTh: 'งานทรัพย์สินทางปัญญา',
     nameEn: 'Intellectual Property',
-    description: 'สิทธิบัตรการประดิษฐ์ อนุสิทธิบัตร และลิขสิทธิ์ของคณะวิศวกรรมศาสตร์',
+    description: 'สิทธิบัตรการประดิษฐ์ อนุสิทธิบัตร และลิขสิทธิ์',
     iconName: 'FaCertificate',
     color: '#6a1b9a',
     measures: [

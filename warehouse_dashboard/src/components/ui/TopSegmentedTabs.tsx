@@ -6,7 +6,7 @@ import { CATEGORIES_CONFIG } from '@/config/dataManagementConfig';
 import { LiquidButton } from '@/components/ui/liquid-glass';
 import { cn } from '@/lib/utils';
 
-export type TabColorTheme = 'emerald' | 'blue' | 'rose' | 'purple' | 'amber';
+export type TabColorTheme = 'emerald' | 'blue' | 'rose' | 'purple' | 'amber' | 'teal';
 
 export interface TabItem<T = string> {
   key: T;
@@ -49,6 +49,11 @@ const THEME_CLASSES: Record<TabColorTheme, { active: string; hover: string }> = 
     active:
       'bg-gradient-to-r from-[#d97706] via-[#b45309] to-[#92400e] text-white shadow-[0_4px_12px_rgba(217,119,6,0.3)]',
     hover: 'hover:text-[#d97706]',
+  },
+  teal: {
+    active:
+      'bg-gradient-to-r from-[#0d9488] via-[#0f766e] to-[#115e59] text-white shadow-[0_4px_12px_rgba(13,148,136,0.3)]',
+    hover: 'hover:text-[#0d9488]',
   },
 };
 
@@ -101,7 +106,7 @@ export const TopSegmentedTabs = <T extends string = CategoryKey>({
             variant={isActive ? 'active' : 'tab'}
             size="tab"
             className={cn(
-              'cursor-pointer select-none transition-all duration-300',
+              'cursor-pointer select-none transition-all duration-300 h-11 px-5 py-2',
               isActive
                 ? cn(
                     'rounded-full text-white scale-[1.02] [&>div:nth-child(-n+2)]:hidden',
@@ -114,19 +119,19 @@ export const TopSegmentedTabs = <T extends string = CategoryKey>({
             )}
           >
             {tab.icon && (
-              <span className="text-[13px] shrink-0 mr-1.5 opacity-90">
+              <span className="text-[15px] shrink-0 mr-2 opacity-90">
                 {tab.icon}
               </span>
             )}
 
-            <span className="font-semibold text-[13.5px] whitespace-nowrap">
+            <span className="font-bold text-[14.5px] whitespace-nowrap">
               {tab.label}
             </span>
 
             {count !== undefined && (
               <span
                 className={cn(
-                  'inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs min-w-[22px] ml-1.5 transition-all',
+                  'inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs min-w-[24px] ml-2 transition-all',
                   isActive
                     ? 'bg-white/25 text-white font-bold'
                     : 'bg-slate-100 text-slate-600 font-semibold border border-slate-200/60'

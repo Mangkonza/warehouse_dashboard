@@ -150,7 +150,7 @@ export function OverviewView() {
       <div>
         <h1 style={dashboardPageTitleStyle}>แดชบอร์ด ภาพรวม</h1>
         <p style={dashboardPageSubtitleStyle}>
-          ภาพรวมเป้าหมายยุทธศาสตร์ งบประมาณ และผลผลิตของคณะวิศวกรรมศาสตร์
+          ภาพรวมเป้าหมายยุทธศาสตร์ งบประมาณ และผลผลิต
         </p>
       </div>
 

@@ -5,3 +5,4 @@ export * from './DrillDownProjectDrawer';
 export * from './HybridSdgCard';
 export * from './StrategicAlignmentMatrix';
 export * from './MissionDataTable';
+export * from './ExecutiveKpiDeck';

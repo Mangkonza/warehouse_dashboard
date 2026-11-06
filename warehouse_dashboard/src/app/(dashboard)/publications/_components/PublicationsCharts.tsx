@@ -324,6 +324,11 @@ export function PublicationsCharts({
     const periodKeys = Object.keys(monthBuckets).sort();
     const periodLabels = periodKeys.map((key) => monthBuckets[key].label);
 
+    Chart.register(ChartDataLabels);
+    Chart.defaults.font.family = "'Kanit', sans-serif";
+    Chart.defaults.font.size = 13.5;
+    Chart.defaults.color = '#0f172a';
+
     const createChart = (id: string, config: any) => {
       const canvas = document.getElementById(id) as HTMLCanvasElement;
       if (canvas) {
@@ -419,15 +424,26 @@ export function PublicationsCharts({
             }
           },
           scales: {
-            x: { stacked: isTierMode, grid: { display: false } },
+            x: {
+              stacked: isTierMode,
+              grid: { display: false },
+              ticks: { font: { size: 13, weight: 600 } },
+            },
             y: {
               type: 'linear',
               stacked: isTierMode,
               beginAtZero: true,
               grace: '15%',
-              ticks: isTierMode ? undefined : { stepSize: 1 },
+              ticks: {
+                stepSize: isTierMode ? undefined : 1,
+                font: { size: 12.5 },
+              },
               grid: { color: CHART_PASTEL_PALETTE.gridLines },
-              title: { display: true, text: 'จำนวนผลงาน (เรื่อง)' },
+              title: {
+                display: true,
+                text: 'จำนวนผลงาน (เรื่อง)',
+                font: { size: 13.5, weight: 700 },
+              },
             },
             y1: {
               type: 'linear',
@@ -435,7 +451,12 @@ export function PublicationsCharts({
               beginAtZero: true,
               grace: '20%',
               grid: { drawOnChartArea: false },
-              title: { display: true, text: 'เงินสนับสนุน (ล้านบาท)' },
+              ticks: { font: { size: 12.5 } },
+              title: {
+                display: true,
+                text: 'เงินสนับสนุน (ล้านบาท)',
+                font: { size: 13.5, weight: 700 },
+              },
             },
           },
           plugins: {
@@ -443,9 +464,10 @@ export function PublicationsCharts({
               display: true,
               position: 'top',
               labels: {
-                boxWidth: 10,
-                font: { size: 10.5 },
-                padding: 8,
+                boxWidth: 14,
+                boxHeight: 14,
+                font: { size: 13.5, weight: 600 },
+                padding: 12,
                 sort: (a: any, b: any) => {
                   const aIsLine = a.text.includes('เงินสนับสนุน');
                   const bIsLine = b.text.includes('เงินสนับสนุน');
@@ -489,9 +511,9 @@ export function PublicationsCharts({
                 ctx.dataset.yAxisID === 'y1' ? '#FECDD3' : 'transparent',
               borderWidth: (ctx: any) => (ctx.dataset.yAxisID === 'y1' ? 1 : 0),
               borderRadius: 4,
-              padding: (ctx: any) => (ctx.dataset.yAxisID === 'y1' ? { top: 2, bottom: 2, left: 5, right: 5 } : 0),
+              padding: (ctx: any) => (ctx.dataset.yAxisID === 'y1' ? { top: 2, bottom: 2, left: 6, right: 6 } : 0),
               clamp: true,
-              font: { weight: 'bold', size: isTierMode ? 9 : 10 },
+              font: { weight: 'bold', size: isTierMode ? 11.5 : 12.5 },
               formatter: (v: number, ctx: any) =>
                 ctx.dataset.yAxisID === 'y1' ? `${v.toFixed(2)}` : `${v}`,
             },
@@ -540,7 +562,7 @@ export function PublicationsCharts({
             legend: { display: false },
             datalabels: {
               color: CHART_PASTEL_PALETTE.datalabels.dark,
-              font: { weight: 'bold', size: 11 },
+              font: { weight: 'bold', size: 13 },
               formatter: (v: number) => (v > 0 ? `${v} เรื่อง` : ''),
             },
           },
@@ -613,7 +635,7 @@ export function PublicationsCharts({
               anchor: 'end',
               align: 'right',
               color: CHART_PASTEL_PALETTE.datalabels.dark,
-              font: { weight: 'bold', size: 10.5 },
+              font: { weight: 'bold', size: 13 },
               formatter: (v: number, ctx: any) => {
                 const d = deptMetrics[ctx.dataIndex];
                 return `${v} เรื่อง (Q1/Q2: ${d?.q1Count || 0})`;
@@ -621,8 +643,21 @@ export function PublicationsCharts({
             },
           },
           scales: {
-            x: { beginAtZero: true, grace: '25%', grid: { color: CHART_PASTEL_PALETTE.gridLines }, title: { display: true, text: 'จำนวนผลงาน (เรื่อง)' } },
-            y: { grid: { display: false } },
+            x: {
+              beginAtZero: true,
+              grace: '25%',
+              grid: { color: CHART_PASTEL_PALETTE.gridLines },
+              title: {
+                display: true,
+                text: 'จำนวนผลงาน (เรื่อง)',
+                font: { size: 13.5, weight: 700 },
+              },
+              ticks: { font: { size: 12.5 } },
+            },
+            y: {
+              grid: { display: false },
+              ticks: { font: { size: 13.5, weight: 600 } },
+            },
           },
         },
       });
@@ -695,7 +730,7 @@ export function PublicationsCharts({
               anchor: 'end',
               align: 'right',
               color: CHART_PASTEL_PALETTE.datalabels.dark,
-              font: { weight: 'bold', size: 10.5 },
+              font: { weight: 'bold', size: 13 },
               formatter: (v: number, ctx: any) => {
                 const a = top10Authors[ctx.dataIndex];
                 const topTier = (a?.q1 || 0) + (a?.q2 || 0);
@@ -708,9 +743,17 @@ export function PublicationsCharts({
               beginAtZero: true,
               grace: '25%',
               grid: { color: CHART_PASTEL_PALETTE.gridLines },
-              title: { display: true, text: 'จำนวนผลงาน (เรื่อง)' },
+              title: {
+                display: true,
+                text: 'จำนวนผลงาน (เรื่อง)',
+                font: { size: 13.5, weight: 700 },
+              },
+              ticks: { font: { size: 12.5 } },
             },
-            y: { grid: { display: false } },
+            y: {
+              grid: { display: false },
+              ticks: { font: { size: 13.5, weight: 600 } },
+            },
           },
         },
       });
@@ -796,7 +839,7 @@ export function PublicationsCharts({
               anchor: 'end',
               align: 'right',
               color: CHART_PASTEL_PALETTE.datalabels.dark,
-              font: { weight: 'bold', size: 10.5 },
+              font: { weight: 'bold', size: 13 },
               formatter: (v: number, ctx: any) => {
                 const j = top10Journals[ctx.dataIndex];
                 return `${v} เรื่อง (${j?.tier || '-'})`;
@@ -808,9 +851,17 @@ export function PublicationsCharts({
               beginAtZero: true,
               grace: '25%',
               grid: { color: CHART_PASTEL_PALETTE.gridLines },
-              title: { display: true, text: 'จำนวนผลงาน (เรื่อง)' },
+              title: {
+                display: true,
+                text: 'จำนวนผลงาน (เรื่อง)',
+                font: { size: 13.5, weight: 700 },
+              },
+              ticks: { font: { size: 12.5 } },
             },
-            y: { grid: { display: false } },
+            y: {
+              grid: { display: false },
+              ticks: { font: { size: 13.5, weight: 600 } },
+            },
           },
         },
       });
@@ -843,30 +894,30 @@ export function PublicationsCharts({
                   <h3 style={{ margin: 0 }}>
                     <FaChartLine style={{ color: '#fb7185' }} /> ผลงานตีพิมพ์และเงินสนับสนุนรายเดือน
                   </h3>
-                  <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#64748b' }}>
-                    แท่ง = จำนวนผลงาน • เส้น = เงินสนับสนุน (ล้านบาท) • คลิกที่กราฟเพื่อดูรายการ
+                  <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#64748b' }}>
+                    แท่ง = จำนวนผลงาน • เส้น = เงินสนับสนุน (ล้านบาท)
                   </p>
                 </div>
                 <div
                   style={{
                     display: 'inline-flex',
                     backgroundColor: '#f1f5f9',
-                    padding: '2px',
-                    borderRadius: '8px',
-                    fontSize: '11px',
-                    fontWeight: 600,
+                    padding: '3px 4px',
+                    borderRadius: '10px',
                   }}
                 >
                   <button
                     type="button"
                     onClick={() => setPubCountMode('total')}
                     style={{
-                      padding: '3px 8px',
-                      borderRadius: '6px',
+                      padding: '6px 14px',
+                      borderRadius: '8px',
                       border: 'none',
                       backgroundColor: pubCountMode === 'total' ? '#ffffff' : 'transparent',
                       color: pubCountMode === 'total' ? '#16a34a' : '#64748b',
-                      fontWeight: pubCountMode === 'total' ? 700 : 500,
+                      fontWeight: pubCountMode === 'total' ? 700 : 600,
+                      fontSize: '13px',
+                      boxShadow: pubCountMode === 'total' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
                       cursor: 'pointer',
                     }}
                   >
@@ -876,12 +927,14 @@ export function PublicationsCharts({
                     type="button"
                     onClick={() => setPubCountMode('tier')}
                     style={{
-                      padding: '3px 8px',
-                      borderRadius: '6px',
+                      padding: '6px 14px',
+                      borderRadius: '8px',
                       border: 'none',
                       backgroundColor: pubCountMode === 'tier' ? '#ffffff' : 'transparent',
                       color: pubCountMode === 'tier' ? '#16a34a' : '#64748b',
-                      fontWeight: pubCountMode === 'tier' ? 700 : 500,
+                      fontWeight: pubCountMode === 'tier' ? 700 : 600,
+                      fontSize: '13px',
+                      boxShadow: pubCountMode === 'tier' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
                       cursor: 'pointer',
                     }}
                   >
@@ -889,7 +942,7 @@ export function PublicationsCharts({
                   </button>
                 </div>
               </div>
-              <div className="chart-wrapper" style={{ height: '320px', position: 'relative' }}>
+              <div className="chart-wrapper" style={{ height: '390px', position: 'relative' }}>
                 <canvas id="c_pub_monthly" />
                 {!hasChartData && (
                   <div
@@ -923,7 +976,7 @@ export function PublicationsCharts({
               <FaChartPie style={{ color: '#34d399' }} /> สัดส่วนผลงานตามระดับฐานข้อมูลวารสาร
             </h3>
             <div className="pub-level-layout">
-              <div className="chart-wrapper" style={{ position: 'relative', height: '300px' }}>
+              <div className="chart-wrapper" style={{ position: 'relative', height: '360px' }}>
                 <canvas id="c_pub_level" />
                 {!hasChartData && (
                   <div
@@ -1069,11 +1122,11 @@ export function PublicationsCharts({
             <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <FaBuilding style={{ color: '#fb7185' }} /> จำนวนผลงานตีพิมพ์จำแนกตามสังกัด
             </h3>
-            <p style={{ margin: '3px 0 0 0', fontSize: '12px', color: '#64748b' }}>
-              เรียงตามจำนวนผลงานตีพิมพ์รวมจากมากไปน้อย • วงเล็บระบุผลงานระดับ Q1/Q2 • คลิกที่แท่งกราฟเพื่อดูรายการ
+            <p style={{ margin: '3px 0 0 0', fontSize: '13px', color: '#64748b' }}>
+              เรียงตามจำนวนผลงานตีพิมพ์รวม • วงเล็บระบุผลงานระดับ Q1/Q2
             </p>
           </div>
-          <div style={{ height: '340px', position: 'relative', cursor: 'pointer' }}>
+          <div style={{ height: '380px', position: 'relative', cursor: 'pointer' }}>
             <canvas id="c_pub_dept" />
             {!hasChartData && (
               <div
@@ -1114,13 +1167,13 @@ export function PublicationsCharts({
           >
             <div style={{ marginBottom: '12px' }}>
               <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <FaUserTie style={{ color: '#fb7185' }} /> Top 10 อาจารย์และนักวิจัยที่มีผลงานตีพิมพ์สูงสุด
+                <FaUserTie style={{ color: '#fb7185' }} /> 10 อันดับอาจารย์และนักวิจัยที่มีผลงานตีพิมพ์สูงสุด
               </h3>
-              <p style={{ margin: '3px 0 0 0', fontSize: '12px', color: '#64748b' }}>
-                เรียงลำดับตามจำนวนผลงานตีพิมพ์รวมจากมากไปน้อย • วงเล็บระบุผลงานระดับ Q1/Q2 • คลิกที่แท่งกราฟเพื่อดูรายการผลงาน
+              <p style={{ margin: '3px 0 0 0', fontSize: '13px', color: '#64748b' }}>
+                เรียงตามจำนวนผลงานตีพิมพ์รวม • วงเล็บระบุผลงานระดับ Q1/Q2
               </p>
             </div>
-            <div style={{ height: '340px', cursor: 'pointer' }}>
+            <div style={{ height: '420px', cursor: 'pointer' }}>
               <canvas id="c_pub_faculty_top10" />
             </div>
           </div>
@@ -1268,11 +1321,11 @@ export function PublicationsCharts({
               <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <FaBookOpen style={{ color: '#fb7185' }} /> 10 อันดับวารสารและแหล่งตีพิมพ์ที่มีผลงานเผยแพร่สูงสุด
               </h3>
-              <p style={{ margin: '3px 0 0 0', fontSize: '12px', color: '#64748b' }}>
-                แท่งสีกราฟจำแนกตามระดับคุณภาพวารสาร (Q1–Q4, TCI 1–2) • คลิกที่แท่งกราฟเพื่อดูรายการผลงาน
+              <p style={{ margin: '3px 0 0 0', fontSize: '13px', color: '#64748b' }}>
+                แท่งสีกราฟจำแนกตามระดับคุณภาพวารสาร (Q1–Q4, TCI 1–2)
               </p>
             </div>
-            <div style={{ height: '340px', cursor: 'pointer' }}>
+            <div style={{ height: '420px', cursor: 'pointer' }}>
               <canvas id="c_pub_journals_top10" />
             </div>
           </div>

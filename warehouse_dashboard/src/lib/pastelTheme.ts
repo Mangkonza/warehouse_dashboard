@@ -558,7 +558,7 @@ export const CHART_PASTEL_PALETTE = {
   datalabels: {
     dark: '#0F172A',   // Universal dark datalabel (Slate 900) - WCAG AAA
     light: '#FFFFFF',  // Used only on saturated dark badges
-    fontSize: 10.5,
+    fontSize: 13,
     fontWeight: 'bold' as const,
     fontFamily: "'Kanit', sans-serif",
   },
