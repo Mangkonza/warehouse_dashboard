@@ -13,6 +13,8 @@ import {
   FaLeaf,
   FaChevronRight,
   FaLightbulb,
+  FaShieldAlt,
+  FaCalendarAlt,
 } from 'react-icons/fa';
 import { IPItem } from '../_hooks/useIPData';
 import { getDepartment, getDepartmentColor } from '@/lib/departments';
@@ -45,6 +47,7 @@ export function IPCharts({
   const activePerspective = propPerspective ?? internalPerspective;
   const setActivePerspective = onChangePerspective ?? setInternalPerspective;
   const [strategyMetric, setStrategyMetric] = useState<'count' | 'budget'>('count');
+  const [deptStackMode, setDeptStackMode] = useState<'type' | 'stage'>('type');
   const chartInstances = useRef<Chart[]>([]);
   const [drillDown, setDrillDown] = useState<{
     isOpen: boolean;
@@ -117,11 +120,35 @@ export function IPCharts({
     };
 
     if (activePerspective === 'types_dept') {
-      // 1. 7-Department Stacked Bar Chart (AE, ME, FE, CE, IRRE, CPE, IE)
+      // 1. 7-Department Stacked Bar Chart with Type or Stage Stack
       const ALL_DEPTS = ['AE', 'ME', 'FE', 'CE', 'IRRE', 'CPE', 'IE'];
-      const deptGranted = Array(7).fill(0);
-      const deptPending = Array(7).fill(0);
-      const deptInPrep = Array(7).fill(0);
+      const deptStats: Record<string, {
+        code: string;
+        name: string;
+        total: number;
+        patents: number;
+        pettyPatents: number;
+        copyrights: number;
+        granted: number;
+        pending: number;
+        inPrep: number;
+        items: IPItem[];
+      }> = {};
+
+      ALL_DEPTS.forEach((code) => {
+        deptStats[code] = {
+          code,
+          name: getDepartment(code).name,
+          total: 0,
+          patents: 0,
+          pettyPatents: 0,
+          copyrights: 0,
+          granted: 0,
+          pending: 0,
+          inPrep: 0,
+          items: [],
+        };
+      });
 
       validIpData.forEach((item) => {
         const parts: string[] = [String(item.department || '')];
@@ -145,70 +172,169 @@ export function IPCharts({
         }
 
         const allDeptStrings = parts.join(' ');
+        const t = String(item.type || '').trim();
+        const isPetty = t.includes('อนุสิทธิบัตร');
+        const isCopy = t.includes('ลิขสิทธิ์');
+        const isPatent = !isPetty && !isCopy;
 
-        ALL_DEPTS.forEach((code, idx) => {
-          if (allDeptStrings.includes(code) || (code === 'AE' && allDeptStrings.includes('เกษตร')) ||
-              (code === 'ME' && allDeptStrings.includes('เครื่องกล')) ||
-              (code === 'FE' && allDeptStrings.includes('อาหาร')) ||
-              (code === 'CE' && allDeptStrings.includes('โยธา')) ||
-              ((code === 'IRRE' || code === 'IRE') && allDeptStrings.includes('ชลประทาน')) ||
-              (code === 'CPE' && allDeptStrings.includes('คอมพิวเตอร์')) ||
-              (code === 'IE' && allDeptStrings.includes('อุตสาหการ'))) {
-            if (item._pipelineStage === 'granted') deptGranted[idx]++;
-            else if (item._pipelineStage === 'pending') deptPending[idx]++;
-            else deptInPrep[idx]++;
+        ALL_DEPTS.forEach((code) => {
+          if (
+            allDeptStrings.includes(code) ||
+            (code === 'AE' && allDeptStrings.includes('เกษตร')) ||
+            (code === 'ME' && allDeptStrings.includes('เครื่องกล')) ||
+            (code === 'FE' && allDeptStrings.includes('อาหาร')) ||
+            (code === 'CE' && allDeptStrings.includes('โยธา')) ||
+            ((code === 'IRRE' || code === 'IRE') && allDeptStrings.includes('ชลประทาน')) ||
+            (code === 'CPE' && allDeptStrings.includes('คอมพิวเตอร์')) ||
+            (code === 'IE' && allDeptStrings.includes('อุตสาหการ'))
+          ) {
+            const ds = deptStats[code];
+            ds.total++;
+            ds.items.push(item);
+            if (isPatent) ds.patents++;
+            else if (isPetty) ds.pettyPatents++;
+            else ds.copyrights++;
+
+            if (item._pipelineStage === 'granted') ds.granted++;
+            else if (item._pipelineStage === 'pending') ds.pending++;
+            else ds.inPrep++;
           }
         });
       });
+
+      const isTypeMode = deptStackMode === 'type';
 
       createChart('c_ip_dept_stacked', {
         type: 'bar',
         data: {
           labels: ALL_DEPTS,
-          datasets: [
-            {
-              label: 'ได้รับความคุ้มครองแล้ว',
-              data: deptGranted,
-              backgroundColor: CHART_PASTEL_PALETTE.missions.research.fill,
-              borderColor: CHART_PASTEL_PALETTE.missions.research.border,
-              borderWidth: 1,
-              borderRadius: 4,
-              stack: 'stack1',
-            },
-            {
-              label: 'ยื่นคำขอแล้ว',
-              data: deptPending,
-              backgroundColor: CHART_PASTEL_PALETTE.missions.academic.fill,
-              borderColor: CHART_PASTEL_PALETTE.missions.academic.border,
-              borderWidth: 1,
-              borderRadius: 4,
-              stack: 'stack1',
-            },
-            {
-              label: 'เตรียมความพร้อมยื่นจด',
-              data: deptInPrep,
-              backgroundColor: CHART_PASTEL_PALETTE.missions.service.fill,
-              borderColor: CHART_PASTEL_PALETTE.missions.service.border,
-              borderWidth: 1,
-              borderRadius: 4,
-              stack: 'stack1',
-            },
-          ],
+          datasets: isTypeMode
+            ? [
+                {
+                  label: 'สิทธิบัตรการประดิษฐ์',
+                  data: ALL_DEPTS.map((c) => deptStats[c].patents),
+                  backgroundColor: '#DDD6FE', // Soft Lavender Violet
+                  borderColor: '#8B5CF6',
+                  borderWidth: 1.5,
+                  borderRadius: 4,
+                  stack: 'stack1',
+                },
+                {
+                  label: 'อนุสิทธิบัตร',
+                  data: ALL_DEPTS.map((c) => deptStats[c].pettyPatents),
+                  backgroundColor: '#93C5FD', // Soft Sky Blue
+                  borderColor: '#3B82F6',
+                  borderWidth: 1.5,
+                  borderRadius: 4,
+                  stack: 'stack1',
+                },
+                {
+                  label: 'ลิขสิทธิ์ / อื่นๆ',
+                  data: ALL_DEPTS.map((c) => deptStats[c].copyrights),
+                  backgroundColor: '#86EFAC', // Soft Mint Emerald
+                  borderColor: '#22C55E',
+                  borderWidth: 1.5,
+                  borderRadius: 4,
+                  stack: 'stack1',
+                },
+              ]
+            : [
+                {
+                  label: 'ได้รับความคุ้มครองแล้ว',
+                  data: ALL_DEPTS.map((c) => deptStats[c].granted),
+                  backgroundColor: '#86EFAC', // Soft Mint Emerald
+                  borderColor: '#22C55E',
+                  borderWidth: 1.5,
+                  borderRadius: 4,
+                  stack: 'stack1',
+                },
+                {
+                  label: 'ยื่นคำขอแล้ว',
+                  data: ALL_DEPTS.map((c) => deptStats[c].pending),
+                  backgroundColor: '#93C5FD', // Soft Sky Blue
+                  borderColor: '#3B82F6',
+                  borderWidth: 1.5,
+                  borderRadius: 4,
+                  stack: 'stack1',
+                },
+                {
+                  label: 'เตรียมความพร้อมยื่นจด',
+                  data: ALL_DEPTS.map((c) => deptStats[c].inPrep),
+                  backgroundColor: '#FDE68A', // Soft Amber Peach
+                  borderColor: '#F59E0B',
+                  borderWidth: 1.5,
+                  borderRadius: 4,
+                  stack: 'stack1',
+                },
+              ],
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          onHover: (event: any, chartElement: any[]) => {
+            if (event.native?.target) event.native.target.style.cursor = chartElement.length > 0 ? 'pointer' : 'default';
+          },
+          onClick: (event: any, elements: any[], chart: any) => {
+            const hit = getClickedChartElement(event, elements, chart, 'nearest');
+            if (hit) {
+              const code = ALL_DEPTS[hit.index];
+              const ds = deptStats[code];
+              if (ds && ds.items.length > 0) {
+                if (onSelectDept) onSelectDept(code);
+                setDrillDown({
+                  isOpen: true,
+                  title: `ทรัพย์สินทางปัญญา: สังกัด ${ds.name} (${code})`,
+                  subtitle: `รวม ${ds.items.length} รายการ (สิทธิบัตร: ${ds.patents}, อนุสิทธิบัตร: ${ds.pettyPatents}, ลิขสิทธิ์: ${ds.copyrights}) • คลิกรายการเพื่อดูรายละเอียด`,
+                  accentColor: getDepartmentColor(code),
+                  items: ds.items,
+                });
+              }
+            }
+          },
           scales: {
             x: { stacked: true, grid: { display: false } },
             y: {
               stacked: true,
               beginAtZero: true,
+              grace: '10%',
               grid: { color: CHART_PASTEL_PALETTE.gridLines },
               title: { display: true, text: 'จำนวนรายการทรัพย์สินทางปัญญา' },
+              ticks: { precision: 0 },
             },
           },
           plugins: {
-            legend: { position: 'top' },
+            legend: {
+              position: 'top',
+              labels: {
+                boxWidth: 12,
+                boxHeight: 12,
+                borderRadius: 2,
+                useBorderRadius: true,
+                font: { size: 11.5, weight: 600 },
+                padding: 10,
+              },
+            },
+            tooltip: {
+              callbacks: {
+                title: (items: any[]) => {
+                  const idx = items[0]?.dataIndex ?? -1;
+                  const code = ALL_DEPTS[idx];
+                  const ds = deptStats[code];
+                  return ds ? `สังกัด: ${ds.name} (${code})` : '';
+                },
+                afterBody: (items: any[]) => {
+                  const idx = items[0]?.dataIndex ?? -1;
+                  const code = ALL_DEPTS[idx];
+                  const ds = deptStats[code];
+                  if (!ds) return [];
+                  return [
+                    `─────────────────────────────`,
+                    `รวมทั้งสิ้น: ${ds.total} รายการ`,
+                    `คลิกที่แท่งกราฟเพื่อดูรายการทั้งหมด`,
+                  ];
+                },
+              },
+            },
             datalabels: {
               color: CHART_PASTEL_PALETTE.datalabels.dark,
               font: { weight: 'bold', size: 10 },
@@ -218,7 +344,99 @@ export function IPCharts({
         },
       });
 
-      // 2. Snapshot count by current stage (not a cohort conversion funnel)
+      // 2. IP Types Breakdown (Donut)
+      let pettyCount = 0;
+      let patentCount = 0;
+      let copyrightCount = 0;
+      const pettyItems: IPItem[] = [];
+      const patentItems: IPItem[] = [];
+      const copyrightItems: IPItem[] = [];
+
+      validIpData.forEach((item) => {
+        const t = String(item.type || '').trim();
+        if (t.includes('อนุสิทธิบัตร')) {
+          pettyCount++;
+          pettyItems.push(item);
+        } else if (t.includes('สิทธิบัตร')) {
+          patentCount++;
+          patentItems.push(item);
+        } else {
+          copyrightCount++;
+          copyrightItems.push(item);
+        }
+      });
+
+      const typeData = [
+        { label: 'อนุสิทธิบัตร', count: pettyCount, color: '#93C5FD', border: '#3B82F6', items: pettyItems },
+        { label: 'สิทธิบัตรการประดิษฐ์', count: patentCount, color: '#DDD6FE', border: '#8B5CF6', items: patentItems },
+        { label: 'ลิขสิทธิ์ / อื่นๆ', count: copyrightCount, color: '#86EFAC', border: '#22C55E', items: copyrightItems },
+      ].filter((t) => t.count > 0 || validIpData.length === 0);
+
+      createChart('c_ip_types_breakdown', {
+        type: 'doughnut',
+        data: {
+          labels: typeData.map((t) => t.label),
+          datasets: [
+            {
+              data: typeData.map((t) => t.count),
+              backgroundColor: typeData.map((t) => t.color),
+              borderColor: typeData.map((t) => t.border),
+              borderWidth: 1.5,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '62%',
+          onHover: (event: any, chartElement: any[]) => {
+            if (event.native?.target) event.native.target.style.cursor = chartElement.length > 0 ? 'pointer' : 'default';
+          },
+          onClick: (event: any, elements: any[], chart: any) => {
+            const hit = getClickedChartElement(event, elements, chart, 'nearest');
+            if (hit) {
+              const td = typeData[hit.index];
+              if (td && td.items.length > 0) {
+                if (onSelectType) onSelectType(td.label);
+                setDrillDown({
+                  isOpen: true,
+                  title: `ประเภททรัพย์สินทางปัญญา: ${td.label}`,
+                  subtitle: `รวม ${td.count} รายการ (${validIpData.length > 0 ? ((td.count / validIpData.length) * 100).toFixed(1) : 0}%) • คลิกรายการเพื่อดูรายละเอียด`,
+                  accentColor: td.border,
+                  items: td.items,
+                });
+              }
+            }
+          },
+          plugins: {
+            legend: { position: 'bottom' },
+            tooltip: {
+              callbacks: {
+                label: (context: any) => {
+                  const td = typeData[context.dataIndex];
+                  if (!td) return '';
+                  const pct = validIpData.length > 0 ? ((td.count / validIpData.length) * 100).toFixed(1) : '0';
+                  return `${td.label}: ${td.count} รายการ (${pct}%)`;
+                },
+              },
+            },
+            datalabels: {
+              color: CHART_PASTEL_PALETTE.datalabels.dark,
+              font: { weight: 'bold', size: 11 },
+              formatter: (v: number) => {
+                const total = validIpData.length;
+                if (total === 0 || v === 0) return '';
+                const pct = ((v / total) * 100).toFixed(1);
+                return `${v} (${pct}%)`;
+              },
+            },
+          },
+        },
+      });
+    }
+
+    if (activePerspective === 'protection_status') {
+      // 1. Snapshot count by current stage
       const stageGroups = [
         {
           key: 'granted',
@@ -273,7 +491,7 @@ export function IPCharts({
                 setDrillDown({
                   isOpen: true,
                   title: `ทรัพย์สินทางปัญญา: ${stage.label}`,
-                  subtitle: `สถานะปัจจุบัน ${stage.items.length} รายการ • เป็นภาพรวม ณ ปัจจุบัน ไม่ใช่อัตราแปลงจากรุ่นคำขอ`,
+                  subtitle: `สถานะปัจจุบัน ${stage.items.length} รายการ • คลิกรายการเพื่อดูรายละเอียด`,
                   accentColor: stage.border,
                   items: stage.items,
                 });
@@ -301,53 +519,18 @@ export function IPCharts({
           },
         },
       });
-    }
 
-    if (activePerspective === 'protection_status') {
-      // Readiness & Registration
-      let hasReg = 0;
-      let hasReqOnly = 0;
-      let noReq = 0;
-      validIpData.forEach((d) => {
-        if (d.registration_number && d.registration_number !== '-' && d.registration_number !== 'nan') hasReg++;
-        else if (d.application_number && d.application_number !== '-' && d.application_number !== 'nan') hasReqOnly++;
-        else noReq++;
-      });
-
-      createChart('c_ip_readiness', {
-        type: 'doughnut',
-        data: {
-          labels: ['มีเลขทะเบียนคุ้มครองสมบูรณ์', 'มีเฉพาะเลขที่คำขอ', 'รอหมายเลขคำขอ'],
-          datasets: [
-            {
-              data: [hasReg, hasReqOnly, noReq],
-              backgroundColor: ['#86EFAC', '#93C5FD', '#FDE68A'],
-              borderWidth: 2,
-              borderColor: '#ffffff',
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          cutout: '65%',
-          plugins: {
-            legend: { position: 'bottom' },
-            datalabels: {
-              color: CHART_PASTEL_PALETTE.datalabels.dark,
-              font: { weight: 'bold', size: 11 },
-              formatter: (v: number) => (v > 0 ? `${v} (${((v / validIpData.length) * 100).toFixed(1)}%)` : ''),
-            },
-          },
-        },
-      });
-
-      // Fiscal Year trend
+      // 2. Fiscal Year trend
       const fyCounts: Record<string, number> = { '2568': 0, '2569': 0, '2570': 0 };
+      const fyItems: Record<string, IPItem[]> = { '2568': [], '2569': [], '2570': [] };
       validIpData.forEach((d) => {
         const y = d._fiscalYear || '2568';
-        if (fyCounts[y] !== undefined) fyCounts[y]++;
+        if (fyCounts[y] !== undefined) {
+          fyCounts[y]++;
+          fyItems[y].push(d);
+        }
       });
+
       createChart('c_ip_fy_trend', {
         type: 'bar',
         data: {
@@ -358,7 +541,7 @@ export function IPCharts({
               data: [fyCounts['2568'], fyCounts['2569'], fyCounts['2570']],
               backgroundColor: ['#DDD6FE', '#C7D2FE', '#A5B4FC'],
               borderColor: '#8B5CF6',
-              borderWidth: 1,
+              borderWidth: 1.5,
               borderRadius: 6,
             },
           ],
@@ -366,6 +549,26 @@ export function IPCharts({
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          onHover: (event: any, chartElement: any[]) => {
+            if (event.native?.target) event.native.target.style.cursor = chartElement.length > 0 ? 'pointer' : 'default';
+          },
+          onClick: (event: any, elements: any[], chart: any) => {
+            const hit = getClickedChartElement(event, elements, chart, 'nearest');
+            if (hit) {
+              const years = ['2568', '2569', '2570'];
+              const y = years[hit.index];
+              const items = fyItems[y] || [];
+              if (items.length > 0) {
+                setDrillDown({
+                  isOpen: true,
+                  title: `ทรัพย์สินทางปัญญา: ปีงบประมาณ ${y}`,
+                  subtitle: `รวม ${items.length} รายการ • คลิกรายการเพื่อดูรายละเอียด`,
+                  accentColor: '#8B5CF6',
+                  items,
+                });
+              }
+            }
+          },
           scales: {
             y: { beginAtZero: true, grid: { color: CHART_PASTEL_PALETTE.gridLines }, title: { display: true, text: 'รายการ' } },
             x: { grid: { display: false } },
@@ -385,7 +588,94 @@ export function IPCharts({
     }
 
     if (activePerspective === 'faculty') {
-      // Tech Clusters Horizontal Bar
+      const top10 = topInventors.slice(0, 10);
+
+      // 1. Top 10 Inventors Horizontal Bar Chart
+      createChart('c_ip_faculty_top10', {
+        type: 'bar',
+        data: {
+          labels: top10.map((inv) => {
+            const clean = inv.creator.replace(/\r?\n/g, ' ').replace(/\s+/g, ' ');
+            return clean.length > 22 ? clean.substring(0, 20) + '...' : clean;
+          }),
+          datasets: [
+            {
+              label: 'จำนวนผลงาน (รายการ)',
+              data: top10.map((inv) => inv.count),
+              backgroundColor: CHART_PASTEL_PALETTE.missions.ip.fill,
+              borderColor: CHART_PASTEL_PALETTE.missions.ip.border,
+              borderWidth: 1.5,
+              borderRadius: 6,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          indexAxis: 'y',
+          onHover: (event: any, chartElement: any[]) => {
+            if (event.native?.target) event.native.target.style.cursor = chartElement.length > 0 ? 'pointer' : 'default';
+          },
+          onClick: (event: any, elements: any[], chart: any) => {
+            const hit = getClickedChartElement(event, elements, chart, 'y');
+            if (hit) {
+              const inv = top10[hit.index];
+              if (inv && inv.items.length > 0) {
+                setDrillDown({
+                  isOpen: true,
+                  title: `นักประดิษฐ์: ${inv.creator}`,
+                  subtitle: `สังกัด ${inv.dept} • รวม ${inv.count} ผลงาน${inv.support > 0 ? ` • เงินสนับสนุน ${inv.support.toLocaleString('th-TH')} บาท` : ''}`,
+                  accentColor: getDepartmentColor(inv.dept),
+                  items: inv.items,
+                });
+              }
+            }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                title: (items: any[]) => {
+                  const idx = items[0]?.dataIndex ?? -1;
+                  const inv = top10[idx];
+                  return inv ? `นักประดิษฐ์: ${inv.creator} (${inv.dept})` : '';
+                },
+                label: (context: any) => {
+                  const inv = top10[context.dataIndex];
+                  if (!inv) return '';
+                  return [
+                    `จำนวนผลงาน: ${inv.count} รายการ`,
+                    inv.support > 0 ? `เงินสนับสนุน: ${inv.support.toLocaleString('th-TH')} บาท` : '',
+                    `คลิกที่แท่งกราฟเพื่อดูรายการผลงานทั้งหมด`,
+                  ].filter(Boolean);
+                },
+              },
+            },
+            datalabels: {
+              anchor: 'end',
+              align: 'right',
+              color: CHART_PASTEL_PALETTE.datalabels.dark,
+              font: { weight: 'bold', size: 11 },
+              formatter: (v: number) => `${v} รายการ`,
+            },
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              grace: '18%',
+              grid: { color: CHART_PASTEL_PALETTE.gridLines },
+              title: { display: true, text: 'จำนวนผลงาน (รายการ)' },
+              ticks: { precision: 0 },
+            },
+            y: {
+              grid: { display: false },
+              ticks: { font: { size: 12 }, color: '#334155' },
+            },
+          },
+        },
+      });
+
+      // 2. Tech Clusters Horizontal Bar
       createChart('c_ip_clusters', {
         type: 'bar',
         data: {
@@ -396,7 +686,7 @@ export function IPCharts({
               data: techClusters.map((c) => c.count),
               backgroundColor: CHART_PASTEL_PALETTE.series.slice(0, 5),
               borderColor: ['#3B82F6', '#22C55E', '#F59E0B', '#8B5CF6', '#F43F5E'],
-              borderWidth: 1,
+              borderWidth: 1.5,
               borderRadius: 6,
             },
           ],
@@ -405,6 +695,24 @@ export function IPCharts({
           responsive: true,
           maintainAspectRatio: false,
           indexAxis: 'y',
+          onHover: (event: any, chartElement: any[]) => {
+            if (event.native?.target) event.native.target.style.cursor = chartElement.length > 0 ? 'pointer' : 'default';
+          },
+          onClick: (event: any, elements: any[], chart: any) => {
+            const hit = getClickedChartElement(event, elements, chart, 'y');
+            if (hit) {
+              const c = techClusters[hit.index];
+              if (c && c.items.length > 0) {
+                setDrillDown({
+                  isOpen: true,
+                  title: `กลุ่มเทคโนโลยี: ${c.cluster}`,
+                  subtitle: `รวม ${c.count} ผลงานทรัพย์สินทางปัญญา • คลิกรายการเพื่อดูรายละเอียด`,
+                  accentColor: '#8B5CF6',
+                  items: c.items,
+                });
+              }
+            }
+          },
           plugins: {
             legend: { display: false },
             datalabels: {
@@ -416,7 +724,12 @@ export function IPCharts({
             },
           },
           scales: {
-            x: { beginAtZero: true, max: 12, grid: { color: CHART_PASTEL_PALETTE.gridLines } },
+            x: {
+              beginAtZero: true,
+              grace: '15%',
+              grid: { color: CHART_PASTEL_PALETTE.gridLines },
+              ticks: { precision: 0 },
+            },
             y: { grid: { display: false } },
           },
         },
@@ -479,163 +792,284 @@ export function IPCharts({
     return () => {
       chartInstances.current.forEach((c) => c.destroy());
     };
-  }, [validIpData, activePerspective, strategyMetric, techClusters]);
+  }, [validIpData, activePerspective, strategyMetric, techClusters, deptStackMode, topInventors, onSelectDept, onSelectType]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '16px' }}>
-            
-
-      {/* DIMENSION 1: Pipeline & 7-Department Stacked Bar + Funnel */}
+      {/* DIMENSION 1: Department Distribution & IP Types Breakdown */}
       {activePerspective === 'types_dept' && (
-        <div className="chart-grid">
-          <div className="chart-card">
-            <h3 style={{ margin: '0 0 12px 0', fontSize: '14.5px', fontWeight: 700, color: '#1e293b' }}>
-              <FaBuilding style={{ color: '#8b5cf6', marginRight: '6px' }} /> การกระจายตัวตาม 7 สังกัดและสถานะ 3 ระดับ
-            </h3>
-            <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
-              จำนวนรายการทรัพย์สินทางปัญญา แยกตามสังกัดและสถานะปัจจุบัน • สถานะที่แสดงคือภาพรวม ณ ปัจจุบัน
-            </p>
-            <div className="chart-wrapper">
-              <canvas id="c_ip_dept_stacked" />
+        <>
+          {validIpData.length === 0 ? (
+            <div
+              style={{
+                backgroundColor: '#ffffff',
+                borderRadius: '16px',
+                border: '1px solid #e2e8f0',
+                padding: '32px',
+                textAlign: 'center',
+                color: '#64748b',
+                fontSize: '13.5px',
+              }}
+            >
+              ไม่พบข้อมูลทรัพย์สินทางปัญญาตามตัวกรองที่เลือก
             </div>
-          </div>
+          ) : (
+            <div className="chart-grid">
+              <div className="chart-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <h3 style={{ margin: 0, fontSize: '14.5px', fontWeight: 700, color: '#1e293b' }}>
+                    <FaBuilding style={{ color: '#8b5cf6', marginRight: '6px' }} /> การกระจายตัวตาม 7 สังกัด ({deptStackMode === 'type' ? 'แยกตามประเภท' : 'แยกตามสถานะ'})
+                  </h3>
+                  <div
+                    style={{
+                      display: 'inline-flex',
+                      backgroundColor: '#f1f5f9',
+                      padding: '2px',
+                      borderRadius: '8px',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setDeptStackMode('type')}
+                      style={{
+                        padding: '3px 8px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        backgroundColor: deptStackMode === 'type' ? '#ffffff' : 'transparent',
+                        color: deptStackMode === 'type' ? '#6d28d9' : '#64748b',
+                        fontWeight: deptStackMode === 'type' ? 700 : 500,
+                        cursor: 'pointer',
+                        boxShadow: deptStackMode === 'type' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                      }}
+                    >
+                      แยกตามประเภท
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDeptStackMode('stage')}
+                      style={{
+                        padding: '3px 8px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        backgroundColor: deptStackMode === 'stage' ? '#ffffff' : 'transparent',
+                        color: deptStackMode === 'stage' ? '#6d28d9' : '#64748b',
+                        fontWeight: deptStackMode === 'stage' ? 700 : 500,
+                        cursor: 'pointer',
+                        boxShadow: deptStackMode === 'stage' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                      }}
+                    >
+                      แยกตามสถานะ
+                    </button>
+                  </div>
+                </div>
+                <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
+                  {deptStackMode === 'type'
+                    ? 'สัดส่วนสิทธิบัตรการประดิษฐ์ อนุสิทธิบัตร และลิขสิทธิ์ ในแต่ละภาควิชา • คลิกที่แท่งเพื่อดูรายการ'
+                    : 'สัดส่วนตามสถานะความคุ้มครอง (ได้รับความคุ้มครอง, ยื่นคำขอแล้ว, เตรียมยื่น) • คลิกที่แท่งเพื่อดูรายการ'}
+                </p>
+                <div className="chart-wrapper">
+                  <canvas id="c_ip_dept_stacked" />
+                </div>
+              </div>
 
-          <div className="chart-card">
-            <h3 style={{ margin: '0 0 4px 0', fontSize: '14.5px', fontWeight: 700, color: '#1e293b' }}>
-              <FaFilter style={{ color: '#8b5cf6', marginRight: '6px' }} /> จำนวนผลงานตามสถานะปัจจุบัน
-            </h3>
-            <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
-              เป็นภาพรวมจำนวนรายการ ณ ปัจจุบัน แยกตามสถานะ — ไม่ได้คำนวณอัตราแปลงจากรุ่นคำขอ
-            </p>
-            <div className="chart-wrapper">
-              <canvas id="c_ip_stage_snapshot" />
+              <div className="chart-card">
+                <h3 style={{ margin: '0 0 4px 0', fontSize: '14.5px', fontWeight: 700, color: '#1e293b' }}>
+                  <FaCertificate style={{ color: '#8b5cf6', marginRight: '6px' }} /> สัดส่วนประเภททรัพย์สินทางปัญญา
+                </h3>
+                <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
+                  สัดส่วนระหว่างอนุสิทธิบัตร สิทธิบัตรการประดิษฐ์ และลิขสิทธิ์ / อื่นๆ • คลิกที่ชิ้นกราฟเพื่อดูรายการ
+                </p>
+                <div className="chart-wrapper">
+                  <canvas id="c_ip_types_breakdown" />
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          )}
+        </>
       )}
 
       {/* DIMENSION 2: Application Tracking & Timeline */}
       {activePerspective === 'protection_status' && (
-        <div className="chart-grid">
-          <div className="chart-card">
-            <h3 style={{ margin: '0 0 12px 0', fontSize: '14.5px', fontWeight: 700, color: '#1e293b' }}>
-              <FaCertificate style={{ color: '#8b5cf6', marginRight: '6px' }} /> ความพร้อมของหมายเลขคำขอ / เลขทะเบียน
-            </h3>
-            <div className="chart-wrapper">
-              <canvas id="c_ip_readiness" />
+        <>
+          {validIpData.length === 0 ? (
+            <div
+              style={{
+                backgroundColor: '#ffffff',
+                borderRadius: '16px',
+                border: '1px solid #e2e8f0',
+                padding: '32px',
+                textAlign: 'center',
+                color: '#64748b',
+                fontSize: '13.5px',
+              }}
+            >
+              ไม่พบข้อมูลทรัพย์สินทางปัญญาตามตัวกรองที่เลือก
             </div>
-          </div>
+          ) : (
+            <div className="chart-grid">
+              <div className="chart-card">
+                <h3 style={{ margin: '0 0 4px 0', fontSize: '14.5px', fontWeight: 700, color: '#1e293b' }}>
+                  <FaShieldAlt style={{ color: '#8b5cf6', marginRight: '6px' }} /> สถานะการยื่นคำขอและการคุ้มครอง (3 ระดับ)
+                </h3>
+                <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
+                  จำนวนรายการตามสถานะปัจจุบัน (ได้รับความคุ้มครองแล้ว, ยื่นคำขอแล้ว, เตรียมความพร้อมยื่นจด) • คลิกที่แท่งกราฟเพื่อดูรายการ
+                </p>
+                <div className="chart-wrapper">
+                  <canvas id="c_ip_stage_snapshot" />
+                </div>
+              </div>
 
-          <div className="chart-card">
-            <h3 style={{ margin: '0 0 12px 0', fontSize: '14.5px', fontWeight: 700, color: '#1e293b' }}>
-              <FaCertificate style={{ color: '#8b5cf6', marginRight: '6px' }} /> แนวโน้มการสร้างสรรค์ผลงานตามปีงบประมาณ
-            </h3>
-            <div className="chart-wrapper">
-              <canvas id="c_ip_fy_trend" />
+              <div className="chart-card">
+                <h3 style={{ margin: '0 0 4px 0', fontSize: '14.5px', fontWeight: 700, color: '#1e293b' }}>
+                  <FaCalendarAlt style={{ color: '#8b5cf6', marginRight: '6px' }} /> แนวโน้มการสร้างสรรค์ผลงานตามปีงบประมาณ
+                </h3>
+                <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
+                  จำนวนรายการทรัพย์สินทางปัญญาที่เกิดขึ้นในแต่ละปีงบประมาณ • คลิกที่แท่งกราฟเพื่อดูรายการ
+                </p>
+                <div className="chart-wrapper">
+                  <canvas id="c_ip_fy_trend" />
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          )}
+        </>
       )}
 
       {/* DIMENSION 3: Faculty & Tech Clusters */}
       {activePerspective === 'faculty' && (
-        <div className="chart-grid">
-          <div
-            style={{
-              backgroundColor: '#ffffff',
-              borderRadius: '16px',
-              border: '1px solid #e2e8f0',
-              padding: '20px',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-            }}
-          >
-            <div style={{ marginBottom: '14px' }}>
-              <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
-                10 อันดับผู้ประดิษฐ์ที่มีผลงานสูงสุด
-              </h3>
-              <p style={{ margin: '3px 0 0 0', fontSize: '12px', color: '#64748b' }}>
-                นักประดิษฐ์ผู้สร้างสรรค์ทรัพย์สินทางปัญญาสูงสุดของคณะฯ
-              </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {topInventors.length === 0 ? (
+            <div
+              style={{
+                backgroundColor: '#ffffff',
+                borderRadius: '16px',
+                border: '1px solid #e2e8f0',
+                padding: '32px',
+                textAlign: 'center',
+                color: '#64748b',
+                fontSize: '13.5px',
+              }}
+            >
+              ไม่พบข้อมูลนักประดิษฐ์ตามตัวกรองที่เลือก
             </div>
+          ) : (
+            <>
+              {/* Row 1: Charts (Top 10 Inventors & Tech Clusters) */}
+              <div className="chart-grid">
+                <div className="chart-card">
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '14.5px', fontWeight: 700, color: '#1e293b' }}>
+                    <FaUserTie style={{ color: '#8b5cf6', marginRight: '6px' }} /> 10 อันดับอาจารย์และนักประดิษฐ์ที่มีผลงานสูงสุด
+                  </h3>
+                  <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
+                    นักประดิษฐ์ผู้สร้างสรรค์ทรัพย์สินทางปัญญาสูงสุดของคณะฯ (รายการ) • คลิกที่แท่งกราฟเพื่อดูผลงาน
+                  </p>
+                  <div className="chart-wrapper">
+                    <canvas id="c_ip_faculty_top10" />
+                  </div>
+                </div>
 
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px' }}>
-                <thead>
-                  <tr style={{ backgroundColor: '#f8fafc', color: '#475569', borderBottom: '2px solid #e2e8f0' }}>
-                    <th style={{ padding: '8px 10px', textAlign: 'center', width: '40px' }}>#</th>
-                    <th style={{ padding: '8px 10px', textAlign: 'left' }}>นักประดิษฐ์</th>
-                    <th style={{ padding: '8px 10px', textAlign: 'left' }}>สังกัด</th>
-                    <th style={{ padding: '8px 10px', textAlign: 'center' }}>ผลงาน</th>
-                    <th style={{ padding: '8px 10px', textAlign: 'right' }}>เงินสนับสนุน</th>
-                    <th style={{ padding: '8px 10px', textAlign: 'center', width: '70px' }}>แฟ้ม</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {topInventors.slice(0, 10).map((inv, idx) => (
-                    <tr
-                      key={`top-inv-${inv.person_id || inv.creator || idx}`}
-                      style={{ borderBottom: '1px solid #f1f5f9' }}
-                    >
-                      <td style={{ padding: '8px 10px', textAlign: 'center', fontWeight: 700, color: idx < 3 ? '#7c3aed' : '#64748b' }}>
-                        {idx + 1}
-                      </td>
-                      <td style={{ padding: '8px 10px', fontWeight: 600, color: '#0f172a' }}>
-                        {inv.creator}
-                      </td>
-                      <td style={{ padding: '8px 10px' }}>
-                        <DepartmentBadge value={inv.dept} />
-                      </td>
-                      <td style={{ padding: '8px 10px', textAlign: 'center', fontWeight: 700 }}>
-                        <span style={{ padding: '2px 8px', borderRadius: '6px', backgroundColor: '#f5f3ff', color: '#6d28d9' }}>
-                          {inv.count} รายการ
-                        </span>
-                      </td>
-                      <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 600, color: inv.support > 0 ? '#047857' : '#94a3b8' }}>
-                        {inv.support > 0 ? `${inv.support.toLocaleString('th-TH')} ฿` : '-'}
-                      </td>
-                      <td style={{ padding: '8px 10px', textAlign: 'center' }}>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (inv.person_id) router.push(`/personnel/${inv.person_id}`);
-                            else router.push(`/personnel?q=${encodeURIComponent(inv.creator)}`);
-                          }}
-                          style={{
-                            padding: '4px 8px',
-                            borderRadius: '6px',
-                            border: '1px solid #cbd5e1',
-                            backgroundColor: '#ffffff',
-                            color: '#6d28d9',
-                            fontSize: '11px',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                          }}
+                <div className="chart-card">
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '14.5px', fontWeight: 700, color: '#1e293b' }}>
+                    <FaLightbulb style={{ color: '#8b5cf6', marginRight: '6px' }} /> กลุ่มเทคโนโลยีและนวัตกรรม
+                  </h3>
+                  <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
+                    การจัดกลุ่มคลัสเตอร์เทคโนโลยีจากชื่อผลงานการประดิษฐ์จริง • คลิกที่แท่งกราฟเพื่อดูผลงาน
+                  </p>
+                  <div className="chart-wrapper">
+                    <canvas id="c_ip_clusters" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Row 2: Detailed Top Inventors Table */}
+              <div
+                style={{
+                  backgroundColor: '#ffffff',
+                  borderRadius: '16px',
+                  border: '1px solid #e2e8f0',
+                  padding: '20px',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                }}
+              >
+                <div style={{ marginBottom: '14px' }}>
+                  <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
+                    ตารางทำเนียบ 10 อันดับนักประดิษฐ์
+                  </h3>
+                  <p style={{ margin: '3px 0 0 0', fontSize: '12px', color: '#64748b' }}>
+                    รายละเอียดรายชื่อ สังกัด จำนวนผลงาน และงบสนับสนุน พร้อมลิงก์ไปยังประวัติบุคลากร
+                  </p>
+                </div>
+
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px' }}>
+                    <thead>
+                      <tr style={{ backgroundColor: '#f8fafc', color: '#475569', borderBottom: '2px solid #e2e8f0' }}>
+                        <th style={{ padding: '8px 10px', textAlign: 'center', width: '40px' }}>#</th>
+                        <th style={{ padding: '8px 10px', textAlign: 'left' }}>นักประดิษฐ์</th>
+                        <th style={{ padding: '8px 10px', textAlign: 'left' }}>สังกัด</th>
+                        <th style={{ padding: '8px 10px', textAlign: 'center' }}>ผลงาน</th>
+                        <th style={{ padding: '8px 10px', textAlign: 'right' }}>เงินสนับสนุน</th>
+                        <th style={{ padding: '8px 10px', textAlign: 'center', width: '70px' }}>แฟ้ม</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {topInventors.slice(0, 10).map((inv, idx) => (
+                        <tr
+                          key={`top-inv-${inv.person_id || inv.creator || idx}`}
+                          style={{ borderBottom: '1px solid #f1f5f9' }}
                         >
-                          <span>ดู</span>
-                          <FaChevronRight style={{ fontSize: '8px' }} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div className="chart-card">
-            <h3 style={{ margin: '0 0 4px 0', fontSize: '14.5px', fontWeight: 700, color: '#1e293b' }}>
-              <FaLightbulb style={{ color: '#8b5cf6', marginRight: '6px' }} /> กลุ่มเทคโนโลยีและนวัตกรรม
-            </h3>
-            <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
-              การจัดกลุ่มคลัสเตอร์เทคโนโลยีจากชื่อผลงานการประดิษฐ์จริง
-            </p>
-            <div className="chart-wrapper">
-              <canvas id="c_ip_clusters" />
-            </div>
-          </div>
+                          <td style={{ padding: '8px 10px', textAlign: 'center', fontWeight: 700, color: idx < 3 ? '#7c3aed' : '#64748b' }}>
+                            {idx + 1}
+                          </td>
+                          <td style={{ padding: '8px 10px', fontWeight: 600, color: '#0f172a' }}>
+                            {inv.creator}
+                          </td>
+                          <td style={{ padding: '8px 10px' }}>
+                            <DepartmentBadge value={inv.dept} />
+                          </td>
+                          <td style={{ padding: '8px 10px', textAlign: 'center', fontWeight: 700 }}>
+                            <span style={{ padding: '2px 8px', borderRadius: '6px', backgroundColor: '#f5f3ff', color: '#6d28d9' }}>
+                              {inv.count} รายการ
+                            </span>
+                          </td>
+                          <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 600, color: inv.support > 0 ? '#047857' : '#94a3b8' }}>
+                            {inv.support > 0 ? `${inv.support.toLocaleString('th-TH')} ฿` : '-'}
+                          </td>
+                          <td style={{ padding: '8px 10px', textAlign: 'center' }}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (inv.person_id) router.push(`/personnel/${inv.person_id}`);
+                                else router.push(`/personnel?q=${encodeURIComponent(inv.creator)}`);
+                              }}
+                              style={{
+                                padding: '4px 8px',
+                                borderRadius: '6px',
+                                border: '1px solid #cbd5e1',
+                                backgroundColor: '#ffffff',
+                                color: '#6d28d9',
+                                fontSize: '11px',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                              }}
+                            >
+                              <span>ดู</span>
+                              <FaChevronRight style={{ fontSize: '8px' }} />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       )}
 
