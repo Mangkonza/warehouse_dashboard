@@ -45,6 +45,9 @@ export interface DashboardTabFilterBarProps {
   /** Opens the shared detailed time modal */
   onOpenDetailedTime?: () => void;
 
+  /** Custom label for the detailed time button (default: 'เลือกช่วงเวลา') */
+  detailedTimeLabel?: string;
+
   /**
    * Custom fiscal year options. Leave undefined (recommended) to use the shared
    * options so every dashboard page shows the same years and stays aligned.
@@ -76,6 +79,11 @@ export interface DashboardTabFilterBarProps {
   /** Custom primary controls rendered between Department and FilterPopover */
   children?: React.ReactNode;
 
+  /** Explicitly toggle whether secondary filter toggle button is rendered */
+  showFilterToggle?: boolean;
+
+  /** Whether to show the top-bar reset button (default: true) */
+  showResetButton?: boolean;
 
   /** Whether to render ActiveFilterChips below bar (default: true) */
   showActiveChips?: boolean;
@@ -112,6 +120,7 @@ export function DashboardTabFilterBar({
   showFiscalYear = true,
   showDetailedTime = false,
   onOpenDetailedTime,
+  detailedTimeLabel = 'เลือกช่วงเวลา',
   fiscalYearOptions = DEFAULT_FY_OPTIONS,
   showDepartment = true,
   departmentAllLabel = 'ทุกสังกัด',
@@ -123,6 +132,8 @@ export function DashboardTabFilterBar({
   searchValue,
   onSearchChange,
   children,
+  showFilterToggle,
+  showResetButton = true,
   showActiveChips = true,
   extraChips = [],
   className = '',
@@ -194,9 +205,9 @@ export function DashboardTabFilterBar({
   const activeCount = useMemo(() => {
     let count = 0;
     if (hookResult.timeFilter.mode !== 'all') count++;
-    if (currentDepartment !== 'all') count++;
-    if (currentStrategic !== 'all') count++;
-    if (currentSearch && currentSearch.trim() !== '') count++;
+    if (showDepartment && currentDepartment !== 'all') count++;
+    if (showStrategic && currentStrategic !== 'all') count++;
+    if (showSearch && currentSearch && currentSearch.trim() !== '') count++;
     if (filterState.customFilters) {
       Object.entries(filterState.customFilters).forEach(([key, val]) => {
         if (key === 'strategicFilter' || key === 'timeFilter' || key === 'popoverFilters' || key === 'dateFrom' || key === 'dateTo' || key === 'sdgs') return;
@@ -216,7 +227,7 @@ export function DashboardTabFilterBar({
       count += extraChips.length;
     }
     return count;
-  }, [hookResult.timeFilter, currentDepartment, currentStrategic, currentSearch, filterState.customFilters, extraChips]);
+  }, [hookResult.timeFilter, showDepartment, currentDepartment, showStrategic, currentStrategic, showSearch, currentSearch, filterState.customFilters, extraChips]);
 
   const hasActiveFilters = activeCount > 0;
 
@@ -234,7 +245,7 @@ export function DashboardTabFilterBar({
     }
 
     // 2. Department
-    if (currentDepartment !== 'all') {
+    if (showDepartment && currentDepartment !== 'all') {
       list.push({
         id: 'department',
         label: `สังกัด: ${currentDepartment}`,
@@ -243,7 +254,7 @@ export function DashboardTabFilterBar({
     }
 
     // 3. Search
-    if (currentSearch && currentSearch.trim() !== '') {
+    if (showSearch && currentSearch && currentSearch.trim() !== '') {
       list.push({
         id: 'search',
         label: `คำค้นหา: "${currentSearch.trim().slice(0, 30)}${currentSearch.length > 30 ? '...' : ''}"`,
@@ -252,7 +263,7 @@ export function DashboardTabFilterBar({
     }
 
     // 4. Strategic Filter
-    if (currentStrategic !== 'all') {
+    if (showStrategic && currentStrategic !== 'all') {
       list.push({
         id: 'strategicFilter',
         label: `ยุทธศาสตร์: ${currentStrategic}`,
@@ -382,7 +393,7 @@ export function DashboardTabFilterBar({
   // Count only secondary/advanced filters (excluding primary fiscalYear & department)
   const secondaryActiveCount = useMemo(() => {
     let count = 0;
-    if (currentStrategic !== 'all') count++;
+    if (showStrategic && currentStrategic !== 'all') count++;
     if (filterState.customFilters) {
       Object.entries(filterState.customFilters).forEach(([key, val]) => {
         if (key === 'strategicFilter' || key === 'timeFilter' || key === 'popoverFilters' || key === 'dateFrom' || key === 'dateTo' || key === 'sdgs') return;
@@ -399,11 +410,14 @@ export function DashboardTabFilterBar({
       });
     }
     return count;
-  }, [currentStrategic, filterState.customFilters]);
+  }, [showStrategic, currentStrategic, filterState.customFilters]);
 
   const isOverviewTab = tabKey === 'overview';
   // Overview's children are action buttons; every other tab's children are filters.
-  const hasSecondaryControls = showStrategic || (!isOverviewTab && Boolean(children));
+  const hasSecondaryControls =
+    showFilterToggle !== undefined
+      ? showFilterToggle
+      : showStrategic || (!isOverviewTab && Boolean(children));
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
@@ -500,8 +514,8 @@ export function DashboardTabFilterBar({
                   <button
                     type="button"
                     onClick={onOpenDetailedTime}
-                    aria-label="เลือกช่วงเวลาละเอียด"
-                    title="เลือกช่วงเวลาละเอียด"
+                    aria-label={detailedTimeLabel}
+                    title={detailedTimeLabel}
                     style={{
                       display: 'inline-flex',
                       alignItems: 'center',
@@ -519,7 +533,7 @@ export function DashboardTabFilterBar({
                     }}
                   >
                     <FaSlidersH style={{ fontSize: '10px' }} />
-                    <span>เลือกช่วงเวลาละเอียด</span>
+                    <span>{detailedTimeLabel}</span>
                   </button>
                 ) : olderYearOptions.length > 0 && (
                   <Popover open={isOtherYearsOpen} onOpenChange={setIsOtherYearsOpen}>
@@ -672,8 +686,8 @@ export function DashboardTabFilterBar({
 
             {isOverviewTab && children}
 
-            {/* Single-Tab Reset Button */}
-            {hasActiveFilters && (
+            {/* Single-Tab Reset Button: shown only when not already duplicated by active chips row */}
+            {hasActiveFilters && (!showActiveChips || activeChips.length === 0) && showResetButton && (
               <button
                 type="button"
                 onClick={onReset}
@@ -807,7 +821,7 @@ export function DashboardTabFilterBar({
               textDecoration: 'underline',
             }}
           >
-            ล้างทั้งหมด
+            ล้างตัวกรอง
           </button>
         </div>
       )}

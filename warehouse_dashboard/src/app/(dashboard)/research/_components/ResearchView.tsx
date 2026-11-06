@@ -60,8 +60,10 @@ export function ResearchView() {
 
   // Synchronize tabFilter to useResearchData internal states
   useEffect(() => {
-    setSelectedDept(tabFilter.department || 'all');
-  }, [tabFilter.department, setSelectedDept]);
+    if (tabFilter.department && tabFilter.department !== 'all') {
+      setTabFilter({ department: 'all' });
+    }
+  }, [tabFilter.department, setTabFilter]);
 
   useEffect(() => {
     setFundingType(tabFilter.customFilters?.fundingType || 'all');
@@ -130,9 +132,10 @@ export function ResearchView() {
         onFilterChange={setTabFilter}
         onReset={resetTabFilter}
         showFiscalYear={true}
-        showDepartment={true}
-        showStrategic={true}
+        showDepartment={false}
+        showStrategic={false}
         showDetailedTime={true}
+        detailedTimeLabel="เลือกช่วงเวลา"
         onOpenDetailedTime={() => setIsTimeModalOpen(true)}
         style={{
           position: 'static',
@@ -141,75 +144,7 @@ export function ResearchView() {
           borderRadius: `${dashboardTheme.radius.card}px`,
           boxShadow: 'none',
         }}
-      >
-        {/* Funding Type Dropdown */}
-        <select
-          value={fundingType}
-          onChange={(e) => {
-            const val = e.target.value;
-            setFundingType(val as any);
-            setTabFilter({
-              customFilters: {
-                ...(tabFilter.customFilters || {}),
-                fundingType: val,
-              },
-            });
-          }}
-          style={{
-            padding: '5px 10px',
-            borderRadius: '8px',
-            border: '1px solid #cbd5e1',
-            backgroundColor: '#ffffff',
-            fontSize: '12px',
-            color: '#334155',
-            fontWeight: 500,
-            cursor: 'pointer',
-            outline: 'none',
-            height: '32px',
-            boxSizing: 'border-box',
-          }}
-          aria-label="ประเภทแหล่งทุน"
-        >
-          <option value="all">ทุกประเภทแหล่งทุน</option>
-          <option value="external">ทุนภายนอก</option>
-          <option value="internal">ทุนภายใน</option>
-        </select>
-
-        {/* Grant Size Tier Dropdown */}
-        <select
-          value={grantTier}
-          onChange={(e) => {
-            const val = e.target.value;
-            setGrantTier(val);
-            setTabFilter({
-              customFilters: {
-                ...(tabFilter.customFilters || {}),
-                grantTier: val,
-              },
-            });
-          }}
-          style={{
-            padding: '5px 10px',
-            borderRadius: '8px',
-            border: '1px solid #cbd5e1',
-            backgroundColor: '#ffffff',
-            fontSize: '12px',
-            color: '#334155',
-            fontWeight: 500,
-            cursor: 'pointer',
-            outline: 'none',
-            height: '32px',
-            boxSizing: 'border-box',
-          }}
-          aria-label="ขนาดงบประมาณ"
-        >
-          <option value="all">ทุกขนาดงบประมาณ</option>
-          <option value="tier1">&lt; 5 แสนบาท</option>
-          <option value="tier2">5 แสน - 2 ล้านบาท</option>
-          <option value="tier3">2 - 10 ล้านบาท</option>
-          <option value="tier4">&ge; 10 ล้านบาท (ขนาดใหญ่)</option>
-        </select>
-      </DashboardTabFilterBar>
+      />
 
       {undatedCount > 0 && <UndatedNotice count={undatedCount} />}
 
@@ -309,7 +244,6 @@ export function ResearchView() {
             onSelectDept={(dept) => {
               const nextDept = dept === selectedDept ? 'all' : dept;
               setSelectedDept(nextDept);
-              setTabFilter({ department: nextDept });
             }}
             selectedFund={selectedFund}
             onSelectFund={(fund) => {

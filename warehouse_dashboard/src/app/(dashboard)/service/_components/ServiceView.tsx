@@ -59,8 +59,10 @@ export function ServiceView() {
 
   // Synchronize tabFilter to useServiceData internal states
   useEffect(() => {
-    setSelectedDept(tabFilter.department || 'all');
-  }, [tabFilter.department, setSelectedDept]);
+    if (tabFilter.department && tabFilter.department !== 'all') {
+      setTabFilter({ department: 'all' });
+    }
+  }, [tabFilter.department, setTabFilter]);
 
   useEffect(() => {
     setFiscalYear(tabFilter.fiscalYear || 'all');
@@ -117,51 +119,19 @@ export function ServiceView() {
         onFilterChange={setTabFilter}
         onReset={resetTabFilter}
         showFiscalYear={true}
-        showDepartment={true}
-        showStrategic={true}
+        showDepartment={false}
+        showStrategic={false}
         showDetailedTime={true}
+        detailedTimeLabel="เลือกช่วงเวลา"
         onOpenDetailedTime={() => setIsTimeModalOpen(true)}
-        style={{ position: 'static', backdropFilter: 'none', backgroundColor: dashboardTheme.colors.surface, borderRadius: `${dashboardTheme.radius.card}px`, boxShadow: 'none' }}
-      >
-        {/* Smart Activity Role Dropdown */}
-        <select
-          value={selectedRole}
-          onChange={(e) => {
-            const val = e.target.value;
-            setSelectedRole(val);
-            setTabFilter({
-              customFilters: {
-                ...(tabFilter.customFilters || {}),
-                selectedRole: val,
-              },
-            });
-          }}
-          style={{
-            padding: '5px 10px',
-            borderRadius: '9px',
-            border: '1px solid #cbd5e1',
-            backgroundColor: '#ffffff',
-            fontSize: '12px',
-            color: '#334155',
-            cursor: 'pointer',
-            fontWeight: 500,
-            outline: 'none',
-            height: '32px',
-            boxSizing: 'border-box',
-            maxWidth: '200px',
-          }}
-          aria-label="เลือกลักษณะบทบาท"
-        >
-          <option value="all">ทุกลักษณะบทบาท</option>
-          <option value="คณะกรรมการ/อนุกรรมการ/คณะทำงาน">คณะกรรมการ/อนุกรรมการ</option>
-          <option value="วิทยากร/บรรยายพิเศษ">วิทยากร/บรรยายพิเศษ</option>
-          <option value="ผู้ทรงคุณวุฒิ/ประเมินผลงาน">ผู้ทรงคุณวุฒิ/ประเมิน</option>
-          <option value="ศึกษาดูงาน/ต้อนรับ">ศึกษาดูงาน/ต้อนรับ</option>
-          <option value="กรรมการสอบวิทยานิพนธ์ภายนอก">กรรมการสอบวิทยานิพนธ์</option>
-          <option value="ที่ปรึกษา/บริการวิชาชีพ/ตรวจวัด">ที่ปรึกษา/บริการวิชาชีพ</option>
-          <option value="งานบริการวิชาการอื่นๆ">งานอื่นๆ</option>
-        </select>
-      </DashboardTabFilterBar>
+        style={{
+          position: 'static',
+          backdropFilter: 'none',
+          backgroundColor: dashboardTheme.colors.surface,
+          borderRadius: `${dashboardTheme.radius.card}px`,
+          boxShadow: 'none',
+        }}
+      />
 
       {undatedCount > 0 && <UndatedNotice count={undatedCount} />}
 
@@ -261,7 +231,6 @@ export function ServiceView() {
             onSelectDept={(dept) => {
               const nextDept = dept === selectedDept ? 'all' : dept;
               setSelectedDept(nextDept);
-              setTabFilter({ department: nextDept });
             }}
             onSelectType={(type) => {
               const nextRole = type === selectedRole ? 'all' : type;
