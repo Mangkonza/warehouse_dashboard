@@ -41,7 +41,7 @@ export function DepartmentHeatmap({ columns, rows, selected, onSelect }: Departm
     <section style={{ ...cardStyle, display: 'flex', flexDirection: 'column', gap: '14px' }} aria-label="ผลงานรายสังกัด">
       <header style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
         <h2 style={sectionTitleStyle}>ผลงานรายสังกัด</h2>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#64748b' }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', color: '#64748b' }}>
           น้อย
           <span
             style={{
@@ -51,7 +51,7 @@ export function DepartmentHeatmap({ columns, rows, selected, onSelect }: Departm
               background: 'linear-gradient(90deg, #f1f5f9, #64748b)',
             }}
           />
-          มาก · คลิกแถวเพื่อกรอง
+          มาก
         </span>
       </header>
 
@@ -69,14 +69,14 @@ export function DepartmentHeatmap({ columns, rows, selected, onSelect }: Departm
                   key={c.key}
                   role="columnheader"
                   title={c.label}
-                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', fontSize: '11.5px', color: '#475569' }}
+                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', fontSize: '12.5px', fontWeight: 600, color: '#334155' }}
                 >
-                  <Icon style={{ color: c.accent, fontSize: '14px' }} aria-hidden="true" />
+                  <Icon style={{ color: c.accent, fontSize: '15px' }} aria-hidden="true" />
                   {c.label}
                 </span>
               );
             })}
-            <span role="columnheader" style={{ fontSize: '11.5px', color: '#475569', paddingLeft: '8px' }}>
+            <span role="columnheader" style={{ fontSize: '12.5px', fontWeight: 600, color: '#334155', paddingLeft: '8px' }}>
               งบประมาณ
             </span>
           </div>
@@ -97,7 +97,7 @@ export function DepartmentHeatmap({ columns, rows, selected, onSelect }: Departm
                   gridTemplateColumns: gridTemplate,
                   gap: '4px',
                   alignItems: 'center',
-                  padding: '3px 4px',
+                  padding: '4px 6px',
                   margin: '0 -4px',
                   borderRadius: '10px',
                   border: `1px solid ${isSelected ? '#94a3b8' : 'transparent'}`,
@@ -109,7 +109,7 @@ export function DepartmentHeatmap({ columns, rows, selected, onSelect }: Departm
               >
                 <span role="cell" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
                   <DepartmentBadge value={row.code} showTooltip={false} />
-                  <span style={{ fontSize: '13px', color: '#334155', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <span style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {row.name}
                   </span>
                 </span>
@@ -123,13 +123,13 @@ export function DepartmentHeatmap({ columns, rows, selected, onSelect }: Departm
                       role="cell"
                       title={`${row.name} · ${c.label}: ${v}`}
                       style={{
-                        height: '34px',
+                        height: '36px',
                         borderRadius: '8px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        fontSize: '13px',
-                        fontWeight: 600,
+                        fontSize: '13.5px',
+                        fontWeight: 700,
                         fontVariantNumeric: 'tabular-nums',
                         backgroundColor: v === 0 ? '#f8fafc' : hexToRgba(c.accent, 0.15 + intensity * 0.45),
                         color: v === 0 ? '#cbd5e1' : '#0f172a',
@@ -152,7 +152,7 @@ export function DepartmentHeatmap({ columns, rows, selected, onSelect }: Departm
                       }}
                     />
                   </span>
-                  <span style={{ fontSize: '12px', color: '#475569', width: '52px', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
+                  <span style={{ fontSize: '12.5px', fontWeight: 600, color: '#475569', width: '58px', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
                     {row.budget > 0 ? `${budget.num}${UNIT_SUFFIX[budget.unit] ?? ''}` : '–'}
                   </span>
                 </span>

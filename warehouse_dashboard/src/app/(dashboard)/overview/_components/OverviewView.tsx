@@ -5,7 +5,6 @@ import { useDashboardTabFilter, useTimeFilter } from '@/features/time-filter';
 import { useOverviewData } from '../_hooks/useOverviewData';
 import { GlanceOverview } from './GlanceOverview';
 import { buildKpiScorecard, getFiscalYearProgress } from '../_services/kpiScorecard';
-import { StrategicCommandPanel } from './StrategicCommandPanel';
 import { DepartmentMatrixAndPulse } from './DepartmentMatrixAndPulse';
 import { DashboardTabFilterBar } from '@/components/ui/DashboardTabFilterBar';
 import { UndatedNotice } from '@/components/ui/UndatedNotice';
@@ -184,12 +183,12 @@ export function OverviewView() {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
-              padding: '5px 12px',
+              padding: '6px 14px',
               borderRadius: '999px',
               backgroundColor: liveBadge.backgroundColor,
               border: liveBadge.border,
               color: liveBadge.color,
-              fontSize: '12.5px',
+              fontSize: '13px',
               fontWeight: 700,
             }}
           >
@@ -213,18 +212,19 @@ export function OverviewView() {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
-              padding: '6px 12px',
+              padding: '6px 14px',
               borderRadius: '8px',
               border: '1px solid #cbd5e1',
               backgroundColor: '#ffffff',
               color: '#334155',
-              fontSize: '12px',
+              fontSize: '13px',
               fontWeight: 600,
               cursor: isRefreshing ? 'not-allowed' : 'pointer',
+              transition: 'all 0.15s ease',
             }}
             title="รีเฟรชข้อมูลสดจากฐานข้อมูล"
           >
-            <FaSyncAlt style={{ animation: isRefreshing ? 'spin 1s linear infinite' : 'none', fontSize: '11px' }} />
+            <FaSyncAlt style={{ animation: isRefreshing ? 'spin 1s linear infinite' : 'none', fontSize: '12px' }} />
             <span>{isRefreshing ? 'กำลังดึงข้อมูล...' : 'รีเฟรช'}</span>
           </button>
 
@@ -235,12 +235,12 @@ export function OverviewView() {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
-              padding: '6px 14px',
+              padding: '6px 16px',
               backgroundColor: '#ecfdf5',
               border: '1px solid #a7f3d0',
               color: '#065f46',
               borderRadius: '8px',
-              fontSize: '12px',
+              fontSize: '13px',
               fontWeight: 600,
               cursor: 'pointer',
               boxShadow: '0 1px 3px rgba(16, 185, 129, 0.1)',
@@ -248,7 +248,7 @@ export function OverviewView() {
             }}
             title="ดาวน์โหลดรายงาน Excel สรุปผู้บริหารแบบ Master รวม 5 พันธกิจ"
           >
-            <FaDownload style={{ fontSize: '11px', color: '#059669' }} />
+            <FaDownload style={{ fontSize: '12px', color: '#059669' }} />
             <span>ดาวน์โหลดรายงาน Excel</span>
           </button>
         </div>
@@ -292,14 +292,16 @@ export function OverviewView() {
           display: 'inline-flex',
           alignItems: 'center',
           gap: '8px',
-          padding: '8px 18px',
+          padding: '10px 24px',
           borderRadius: '999px',
           border: '1px solid #cbd5e1',
           backgroundColor: '#ffffff',
           color: '#334155',
-          fontSize: '13px',
+          fontSize: '14px',
           fontWeight: 600,
           cursor: 'pointer',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+          transition: 'all 0.15s ease',
         }}
       >
         {showDetails ? 'ซ่อนการวิเคราะห์เชิงลึก' : 'ดูการวิเคราะห์เชิงลึก'}
@@ -309,23 +311,14 @@ export function OverviewView() {
       </button>
 
       {showDetails && (
-        <>
-          <StrategicCommandPanel
-            validResearch={filteredResearch}
-            validAcademic={filteredAcademic}
-            validPub={filteredPub}
-            validService={filteredService}
-            validIP={filteredIP}
-          />
-          <DepartmentMatrixAndPulse
-            departmentStats={departmentStats}
-            validResearch={filteredResearch}
-            validAcademic={filteredAcademic}
-            validPub={filteredPub}
-            validService={filteredService}
-            validIP={filteredIP}
-          />
-        </>
+        <DepartmentMatrixAndPulse
+          departmentStats={departmentStats}
+          validResearch={filteredResearch}
+          validAcademic={filteredAcademic}
+          validPub={filteredPub}
+          validService={filteredService}
+          validIP={filteredIP}
+        />
       )}
     </div>
   );

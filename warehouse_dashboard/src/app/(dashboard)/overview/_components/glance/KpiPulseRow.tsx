@@ -108,7 +108,7 @@ export function KpiPulseRow({ kpis, fiscalYearProgress, isFiltered }: KpiPulseRo
             statusCounts.map((s) => (
               <span
                 key={s.label}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', color: '#334155' }}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#334155' }}
               >
                 <span style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: STATUS_COLORS[s.label] }} />
                 {s.label}
@@ -121,7 +121,7 @@ export function KpiPulseRow({ kpis, fiscalYearProgress, isFiltered }: KpiPulseRo
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
-                fontSize: '12.5px',
+                fontSize: '13px',
                 color: '#334155',
                 paddingLeft: isFiltered ? '0' : '14px',
                 borderLeft: isFiltered ? 'none' : '1px solid #e2e8f0',
@@ -170,34 +170,34 @@ export function KpiPulseRow({ kpis, fiscalYearProgress, isFiltered }: KpiPulseRo
               marker={isFiltered ? undefined : k.proRataTarget}
               color={isFiltered ? theme.icon : (STATUS_PASTEL[k.status.label] || k.status.color)}
             >
-              <span style={{ fontSize: '26px', fontWeight: 700, color: '#0f172a', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
+              <span style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
                 {Math.round(k.percent)}
                 <span style={{ fontSize: '14px', fontWeight: 600, color: '#64748b' }}>%</span>
               </span>
             </RingGauge>
-            <span style={{ fontSize: '14px', fontWeight: 600, color: theme.header, lineHeight: 1.3 }}>
+            <span style={{ fontSize: '14px', fontWeight: 700, color: theme.header, lineHeight: 1.3 }}>
               {SHORT_LABELS[k.id] || k.title}
             </span>
-            <span style={{ fontSize: '12px', color: theme.subtext, fontVariantNumeric: 'tabular-nums' }}>
+            <span style={{ fontSize: '12.5px', color: theme.subtext, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
               {actualVsTarget(k)}
             </span>
             {k.id === 'scopus_pub' && k.tierBreakdown && (
-              <span style={{ fontSize: '11px', color: theme.subtext, fontVariantNumeric: 'tabular-nums' }}>
-                TCI 1–2 {nationalTierCount(k)} เรื่อง
+              <span style={{ fontSize: '11.5px', color: theme.subtext, fontVariantNumeric: 'tabular-nums' }}>
+                ระดับชาติ {nationalTierCount(k)} เรื่อง
               </span>
             )}
-            <span style={{ fontSize: '11px', color: theme.subtext, opacity: 0.85 }}>
+            <span style={{ fontSize: '11.5px', color: theme.subtext, opacity: 0.85 }}>
               {k.fiscalYear ? `ปีงบ ${k.fiscalYear}` : 'ไม่ระบุปีงบ'}
               {k.includesUndated ? ' · รวมข้อมูลไม่ระบุปี' : ''}
             </span>
             <span
               style={{
-                fontSize: '11.5px',
-                fontWeight: 600,
+                fontSize: '12px',
+                fontWeight: 700,
                 color: isFiltered ? '#0369a1' : k.status.color,
                 backgroundColor: isFiltered ? '#f0f9ff' : k.status.bg,
                 border: isFiltered ? '1px solid #bae6fd' : 'none',
-                padding: '2px 10px',
+                padding: '3px 12px',
                 borderRadius: '999px',
               }}
             >
