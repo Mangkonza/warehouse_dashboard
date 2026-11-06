@@ -82,6 +82,7 @@ export function ResearchCharts({
   const [researchBudgetMetric, setResearchBudgetMetric] = useState<'total' | 'average'>('total');
   const [monthlyBarMode, setMonthlyBarMode] = useState<'grouped' | 'stacked'>('grouped');
   const [monthlyMetric, setMonthlyMetric] = useState<'count' | 'budget'>('count');
+  const [prodBudgetView, setProdBudgetView] = useState<'total' | 'stacked'>('total');
   const chartInstances = useRef<Chart[]>([]);
   const [drillDown, setDrillDown] = useState<{
     isOpen: boolean;
@@ -164,6 +165,31 @@ export function ResearchCharts({
 
     return Object.values(map).sort((a, b) => b.totalBudget - a.totalBudget);
   }, [validData]);
+
+  // Qualitative Department Pastel Palette (Soft, high-contrast, WCAG AAA compliant)
+  const DEPT_PASTEL_PALETTE = useMemo(
+    () => [
+      { fill: '#93C5FD', border: '#3B82F6' }, // 1. Soft Sky Blue
+      { fill: '#86EFAC', border: '#22C55E' }, // 2. Soft Mint Emerald
+      { fill: '#FDE68A', border: '#F59E0B' }, // 3. Soft Amber Peach
+      { fill: '#DDD6FE', border: '#8B5CF6' }, // 4. Soft Lavender Violet
+      { fill: '#FDA4AF', border: '#F43F5E' }, // 5. Soft Rose Coral
+      { fill: '#99F6E4', border: '#0D9488' }, // 6. Soft Aqua Teal
+      { fill: '#FED7AA', border: '#F97316' }, // 7. Soft Apricot Orange
+      { fill: '#C7D2FE', border: '#6366F1' }, // 8. Soft Periwinkle Indigo
+      { fill: '#F5D0FE', border: '#C026D3' }, // 9. Soft Orchid Pink
+      { fill: '#E2E8F0', border: '#94A3B8' }, // 10. Soft Slate Gray
+    ],
+    []
+  );
+
+  const deptPastelColorMap = useMemo(() => {
+    const map = new Map<string, { fill: string; border: string }>();
+    deptComparativeMetrics.forEach((d, i) => {
+      map.set(d.code, DEPT_PASTEL_PALETTE[i % DEPT_PASTEL_PALETTE.length]);
+    });
+    return map;
+  }, [deptComparativeMetrics, DEPT_PASTEL_PALETTE]);
 
   // Calculate project scale tiers
   const budgetScaleData = useMemo(() => {
@@ -442,7 +468,12 @@ export function ResearchCharts({
       const deptBudgetM = sortedDeptMetrics.map((d) =>
         Number(((isAverageMode && d.count > 0 ? d.totalBudget / d.count : d.totalBudget) / 1000000).toFixed(2))
       );
-      const deptColors = deptLabels.map((code) => getDepartmentColor(code));
+      const deptColors = deptLabels.map(
+        (code) => (deptPastelColorMap.get(code) || DEPT_PASTEL_PALETTE[0]).fill
+      );
+      const deptBorders = deptLabels.map(
+        (code) => (deptPastelColorMap.get(code) || DEPT_PASTEL_PALETTE[0]).border
+      );
 
       createChart('c_re_dept', {
         type: 'bar',
@@ -453,7 +484,9 @@ export function ResearchCharts({
               label: isAverageMode ? 'งบประมาณเฉลี่ยต่อโครงการ (ล้านบาท)' : 'งบประมาณวิจัยรวม (ล้านบาท)',
               data: deptBudgetM,
               backgroundColor: deptColors,
-              borderRadius: 8,
+              borderColor: deptBorders,
+              borderWidth: 1.5,
+              borderRadius: 6,
             },
           ],
         },
@@ -473,7 +506,7 @@ export function ResearchCharts({
                   isOpen: true,
                   title: `โครงการวิจัย: สังกัด ${d.name} (${d.code})`,
                   subtitle: `สัดส่วน ${pct}% ของงบวิจัยทั้งหมด • รวม ${d.count} โครงการ • งบประมาณรวม ${d.totalBudget.toLocaleString('th-TH')} บาท • เฉลี่ย ${averageBudget === null ? '—' : `${averageBudget.toLocaleString('th-TH', { maximumFractionDigits: 0 })} บาท/โครงการ`}`,
-                  accentColor: getDepartmentColor(d.code),
+                  accentColor: (deptPastelColorMap.get(d.code) || DEPT_PASTEL_PALETTE[0]).border,
                   items: d.items,
                 });
               }
@@ -636,66 +669,457 @@ export function ResearchCharts({
           },
         },
       });
+    }
 
-      // 4. External และ Internal Ratio
-      const totalExt = validData.reduce((s, i) => s + (Number(i.budget_external) || 0), 0);
-      const totalInt = validData.reduce((s, i) => s + (Number(i.budget_internal) || 0), 0);
+    if (activePerspective === 'productivity') {
+      const openDeptDrillDown = (index: number) => {
+        const d = deptComparativeMetrics[index];
+        if (!d) return;
+        if (onSelectDept) onSelectDept(d.code);
+        const pct = grandTotalResearchBudget > 0 ? ((d.totalBudget / grandTotalResearchBudget) * 100).toFixed(1) : '0';
+        const avgBudget = d.count > 0 ? d.totalBudget / d.count : null;
+        setDrillDown({
+          isOpen: true,
+          title: `โครงการวิจัย: สังกัด ${d.name} (${d.code})`,
+          subtitle: `สัดส่วน ${pct}% ของงบวิจัยทั้งหมด • รวม ${d.count} โครงการ • งบประมาณรวม ${d.totalBudget.toLocaleString('th-TH')} บาท • เฉลี่ย ${avgBudget === null ? '—' : `${avgBudget.toLocaleString('th-TH', { maximumFractionDigits: 0 })} บาท/โครงการ`}`,
+          accentColor: (deptPastelColorMap.get(d.code) || DEPT_PASTEL_PALETTE[0]).border,
+          items: d.items,
+        });
+      };
 
-      createChart('c_re_ext_int', {
-        type: 'pie',
+      // 1. Main Department Comparative Output (Full Width Combo / Stacked)
+      const deptLabels = deptComparativeMetrics.map((d) => d.code);
+      const deptCounts = deptComparativeMetrics.map((d) => d.count);
+      const deptTotalBudgetM = deptComparativeMetrics.map((d) => Number((d.totalBudget / 1_000_000).toFixed(2)));
+      const deptExtBudgetM = deptComparativeMetrics.map((d) => Number((d.extBudget / 1_000_000).toFixed(2)));
+      const deptIntBudgetM = deptComparativeMetrics.map((d) => Number((d.intBudget / 1_000_000).toFixed(2)));
+      const isStackedBudget = prodBudgetView === 'stacked';
+
+      createChart('c_re_prod_dept_combo', {
+        type: 'bar',
         data: {
-          labels: ['งบทุนภายนอก', 'งบทุนภายใน'],
+          labels: deptLabels,
+          datasets: isStackedBudget
+            ? [
+                {
+                  type: 'bar' as const,
+                  label: 'ทุนภายนอก (ล้านบาท)',
+                  data: deptExtBudgetM,
+                  backgroundColor: '#93C5FD', // Soft Pastel Sky Blue
+                  borderColor: '#3B82F6',
+                  borderWidth: 1.5,
+                  borderRadius: 0,
+                  stack: 'deptBudget',
+                  yAxisID: 'y',
+                  order: 2,
+                },
+                {
+                  type: 'bar' as const,
+                  label: 'ทุนภายใน (ล้านบาท)',
+                  data: deptIntBudgetM,
+                  backgroundColor: '#86EFAC', // Soft Pastel Mint Emerald
+                  borderColor: '#22C55E',
+                  borderWidth: 1.5,
+                  borderRadius: 6,
+                  stack: 'deptBudget',
+                  yAxisID: 'y',
+                  order: 2,
+                },
+                {
+                  type: 'line' as const,
+                  label: 'จำนวนโครงการ (โครงการ)',
+                  data: deptCounts,
+                  borderColor: '#FB7185', // Soft Pastel Rose
+                  backgroundColor: 'rgba(251, 113, 133, 0.12)',
+                  borderWidth: 2.5,
+                  tension: 0.35,
+                  pointRadius: 4.5,
+                  pointHoverRadius: 6.5,
+                  pointBackgroundColor: '#FB7185',
+                  pointBorderColor: '#ffffff',
+                  pointBorderWidth: 1.5,
+                  yAxisID: 'y1',
+                  order: 1,
+                },
+              ]
+            : [
+                {
+                  type: 'bar' as const,
+                  label: 'งบประมาณวิจัยรวม (ล้านบาท)',
+                  data: deptTotalBudgetM,
+                  backgroundColor: '#86EFAC', // Soft Pastel Mint Emerald (KU Research Theme)
+                  borderColor: '#22C55E',
+                  borderWidth: 1.5,
+                  borderRadius: 6,
+                  yAxisID: 'y',
+                  order: 2,
+                },
+                {
+                  type: 'line' as const,
+                  label: 'จำนวนโครงการ (โครงการ)',
+                  data: deptCounts,
+                  borderColor: '#FB7185', // Soft Pastel Rose
+                  backgroundColor: 'rgba(251, 113, 133, 0.12)',
+                  borderWidth: 2.5,
+                  tension: 0.35,
+                  pointRadius: 4.5,
+                  pointHoverRadius: 6.5,
+                  pointBackgroundColor: '#FB7185',
+                  pointBorderColor: '#ffffff',
+                  pointBorderWidth: 1.5,
+                  yAxisID: 'y1',
+                  order: 1,
+                },
+              ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          onHover: (event: any, chartElement: any[]) => {
+            if (event.native?.target) event.native.target.style.cursor = chartElement.length > 0 ? 'pointer' : 'default';
+          },
+          onClick: (event: any, elements: any[], chart: any) => {
+            const hit = getClickedChartElement(event, elements, chart, 'nearest');
+            if (hit) openDeptDrillDown(hit.index);
+          },
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: {
+                boxWidth: 14,
+                boxHeight: 14,
+                borderRadius: 3,
+                useBorderRadius: true,
+                font: { size: 12, weight: 600 },
+                padding: 12,
+              },
+            },
+            tooltip: {
+              callbacks: {
+                title: (items: any[]) => {
+                  const idx = items[0]?.dataIndex ?? -1;
+                  const d = deptComparativeMetrics[idx];
+                  return d ? `สังกัด: ${d.name} (${d.code})` : '';
+                },
+                label: (context: any) => {
+                  const d = deptComparativeMetrics[context.dataIndex];
+                  if (!d) return '';
+                  if (context.dataset.yAxisID === 'y1') {
+                    return `จำนวนโครงการ: ${d.count} โครงการ`;
+                  }
+                  if (isStackedBudget) {
+                    const isExt = context.datasetIndex === 0;
+                    const val = isExt ? d.extBudget : d.intBudget;
+                    return `${context.dataset.label}: ${(val / 1_000_000).toFixed(2)} ล้านบาท`;
+                  }
+                  return `งบประมาณรวม: ${(d.totalBudget / 1_000_000).toFixed(2)} ล้านบาท`;
+                },
+                afterBody: (items: any[]) => {
+                  const idx = items[0]?.dataIndex ?? -1;
+                  const d = deptComparativeMetrics[idx];
+                  if (!d) return [];
+                  const avgM = d.count > 0 ? (d.totalBudget / d.count / 1_000_000).toFixed(2) : '0.00';
+                  const extPct = d.totalBudget > 0 ? ((d.extBudget / d.totalBudget) * 100).toFixed(1) : '0';
+                  return [
+                    `─────────────────────────────`,
+                    `งบเฉลี่ยต่อโครงการ: ${avgM} ล้านบาท/โครงการ`,
+                    `สัดส่วนทุนภายนอก: ${extPct}% (${(d.extBudget / 1_000_000).toFixed(2)} ลบ.)`,
+                    d.megaCount > 0 ? `โครงการขนาดใหญ่ (≥10 ลบ.): ${d.megaCount} โครงการ` : '',
+                    `คลิกที่กราฟเพื่อดูรายชื่อโครงการทั้งหมด`,
+                  ].filter(Boolean);
+                },
+              },
+            },
+            datalabels: {
+              display: (ctx: any) => Number(ctx.dataset.data[ctx.dataIndex]) > 0,
+              anchor: 'end',
+              align: 'top',
+              offset: (ctx: any) => (ctx.dataset.yAxisID === 'y1' ? 8 : 2),
+              color: (ctx: any) =>
+                ctx.dataset.yAxisID === 'y1' ? '#BE123C' : CHART_PASTEL_PALETTE.datalabels.dark,
+              backgroundColor: (ctx: any) =>
+                ctx.dataset.yAxisID === 'y1' ? '#FFFFFF' : 'transparent',
+              borderColor: (ctx: any) =>
+                ctx.dataset.yAxisID === 'y1' ? '#FECDD3' : 'transparent',
+              borderWidth: (ctx: any) => (ctx.dataset.yAxisID === 'y1' ? 1 : 0),
+              borderRadius: 4,
+              padding: (ctx: any) => (ctx.dataset.yAxisID === 'y1' ? { top: 2, bottom: 2, left: 4, right: 4 } : 0),
+              font: { weight: 'bold', size: 10.5 },
+              formatter: (v: number, ctx: any) =>
+                ctx.dataset.yAxisID === 'y1' ? `${v} โครงการ` : `${v.toFixed(1)} ลบ.`,
+            },
+          },
+          scales: {
+            y: {
+              type: 'linear',
+              beginAtZero: true,
+              grace: '12%',
+              stacked: isStackedBudget,
+              title: { display: true, text: 'งบประมาณ (ล้านบาท)', font: { size: 11.5, weight: 600 } },
+              grid: { color: CHART_PASTEL_PALETTE.gridLines },
+            },
+            y1: {
+              type: 'linear',
+              position: 'right',
+              beginAtZero: true,
+              suggestedMax: Math.max(...deptCounts, 1) + 3,
+              ticks: { stepSize: 1, precision: 0 },
+              grid: { drawOnChartArea: false },
+              title: { display: true, text: 'จำนวนโครงการ (โครงการ)', font: { size: 11.5, weight: 600 } },
+            },
+            x: {
+              stacked: isStackedBudget,
+              grid: { display: false },
+            },
+          },
+        },
+      });
+
+      // 2. Department External Funding Dependency Ratio (Non-redundant Competitive Output)
+      const sortedByExtPct = [...deptComparativeMetrics]
+        .map((d) => ({
+          ...d,
+          extPct: d.totalBudget > 0 ? Math.round((d.extBudget / d.totalBudget) * 100) : 0,
+        }))
+        .sort((a, b) => b.extPct - a.extPct || b.totalBudget - a.totalBudget);
+
+      createChart('c_re_prod_dept_ext_pct', {
+        type: 'bar',
+        data: {
+          labels: sortedByExtPct.map((d) => d.code),
           datasets: [
             {
-              data: [totalExt, totalInt],
-              backgroundColor: [
-                CHART_PASTEL_PALETTE.missions.academic.fill,
-                CHART_PASTEL_PALETTE.missions.research.fill,
-              ],
-              borderColor: [
-                CHART_PASTEL_PALETTE.missions.academic.border,
-                CHART_PASTEL_PALETTE.missions.research.border,
-              ],
+              label: 'สัดส่วนทุนภายนอก (%)',
+              data: sortedByExtPct.map((d) => d.extPct),
+              backgroundColor: '#93C5FD', // Soft Pastel Sky Blue (External Funding Theme)
+              borderColor: '#3B82F6',
               borderWidth: 1.5,
+              borderRadius: 6,
+              maxBarThickness: 28,
             },
           ],
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          indexAxis: 'y',
           onHover: (event: any, chartElement: any[]) => {
-            if (event.native?.target) {
-              event.native.target.style.cursor = chartElement.length > 0 ? 'pointer' : 'default';
-            }
+            if (event.native?.target) event.native.target.style.cursor = chartElement.length > 0 ? 'pointer' : 'default';
           },
           onClick: (event: any, elements: any[], chart: any) => {
-            const hit = getClickedChartElement(event, elements, chart, 'nearest');
+            const hit = getClickedChartElement(event, elements, chart, 'y');
             if (hit) {
-              const isExt = hit.index === 0;
-              const items = validData.filter((i) =>
-                isExt ? (Number(i.budget_external) || 0) > 0 : (Number(i.budget_internal) || 0) > 0
-              );
-              const totalExtInt = totalExt + totalInt || 1;
-              const selBudget = isExt ? totalExt : totalInt;
-              const pct = ((selBudget / totalExtInt) * 100).toFixed(1);
-              setDrillDown({
-                isOpen: true,
-                title: isExt ? 'โครงการวิจัยที่ได้รับงบทุนภายนอก' : 'โครงการวิจัยที่ได้รับงบทุนภายใน',
-                subtitle: `สัดส่วน ${pct}% ของงบประมาณรวม • รวม ${items.length} โครงการ • งบประมาณ ${selBudget.toLocaleString('th-TH')} บาท`,
-                accentColor: isExt ? '#0284c7' : '#00A651',
-                items,
-              });
+              const d = sortedByExtPct[hit.index];
+              if (d) {
+                const originalIndex = deptComparativeMetrics.findIndex((item) => item.code === d.code);
+                if (originalIndex >= 0) openDeptDrillDown(originalIndex);
+              }
             }
           },
           plugins: {
-            legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11.5 } } },
+            legend: { display: false },
             datalabels: {
+              anchor: 'end',
+              align: 'right',
               color: CHART_PASTEL_PALETTE.datalabels.dark,
-              font: { weight: 'bold', size: 12 },
-              formatter: (v: number, ctx: any) => {
-                const sum = totalExt + totalInt || 1;
-                return `${((v / sum) * 100).toFixed(0)}%`;
+              font: { weight: 'bold', size: 11 },
+              formatter: (v: number) => `${v}%`,
+            },
+            tooltip: {
+              callbacks: {
+                title: (items: any[]) => {
+                  const idx = items[0]?.dataIndex ?? -1;
+                  const d = sortedByExtPct[idx];
+                  return d ? `สังกัด: ${d.name} (${d.code})` : '';
+                },
+                label: (context: any) => {
+                  const d = sortedByExtPct[context.dataIndex];
+                  if (!d) return '';
+                  return [
+                    `สัดส่วนทุนภายนอก: ${d.extPct}%`,
+                    `ทุนภายนอก: ${(d.extBudget / 1_000_000).toFixed(2)} ล้านบาท`,
+                    `ทุนภายใน: ${(d.intBudget / 1_000_000).toFixed(2)} ล้านบาท`,
+                    `งบประมาณรวม: ${(d.totalBudget / 1_000_000).toFixed(2)} ล้านบาท`,
+                  ];
+                },
               },
+            },
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              max: 108,
+              grid: { color: CHART_PASTEL_PALETTE.gridLines },
+              ticks: {
+                callback: (v: any) => `${v}%`,
+                stepSize: 20,
+              },
+              title: { display: true, text: 'ร้อยละ (%)', font: { size: 11.5, weight: 600 } },
+            },
+            y: { grid: { display: false } },
+          },
+        },
+      });
+
+      // 3. Average Budget per Project by Department (Horizontal Bar Chart)
+      const sortedByAvg = [...deptComparativeMetrics]
+        .map((d) => ({
+          ...d,
+          avgBudget: d.count > 0 ? d.totalBudget / d.count : 0,
+        }))
+        .sort((a, b) => b.avgBudget - a.avgBudget);
+
+      createChart('c_re_prod_dept_avg', {
+        type: 'bar',
+        data: {
+          labels: sortedByAvg.map((d) => d.code),
+          datasets: [
+            {
+              label: 'งบประมาณเฉลี่ยต่อโครงการ (ล้านบาท)',
+              data: sortedByAvg.map((d) => Number((d.avgBudget / 1_000_000).toFixed(2))),
+              backgroundColor: '#86EFAC', // Soft Pastel Mint Emerald
+              borderColor: '#22C55E',
+              borderWidth: 1.5,
+              borderRadius: 6,
+              maxBarThickness: 28,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          indexAxis: 'y',
+          onHover: (event: any, chartElement: any[]) => {
+            if (event.native?.target) event.native.target.style.cursor = chartElement.length > 0 ? 'pointer' : 'default';
+          },
+          onClick: (event: any, elements: any[], chart: any) => {
+            const hit = getClickedChartElement(event, elements, chart, 'y');
+            if (hit) {
+              const d = sortedByAvg[hit.index];
+              if (d) {
+                const originalIndex = deptComparativeMetrics.findIndex((item) => item.code === d.code);
+                if (originalIndex >= 0) openDeptDrillDown(originalIndex);
+              }
+            }
+          },
+          plugins: {
+            legend: { display: false },
+            datalabels: {
+              anchor: 'end',
+              align: 'right',
+              color: CHART_PASTEL_PALETTE.datalabels.dark,
+              font: { weight: 'bold', size: 11 },
+              formatter: (v: number) => `${v.toFixed(2)} ลบ./โครงการ`,
+            },
+            tooltip: {
+              callbacks: {
+                label: (context: any) => {
+                  const d = sortedByAvg[context.dataIndex];
+                  if (!d) return '';
+                  return [
+                    `งบเฉลี่ย: ${(d.avgBudget / 1_000_000).toFixed(2)} ล้านบาท/โครงการ`,
+                    `งบรวม: ${(d.totalBudget / 1_000_000).toFixed(2)} ล้านบาท`,
+                    `จำนวนโครงการ: ${d.count} โครงการ`,
+                  ];
+                },
+              },
+            },
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              grace: '25%',
+              grid: { color: CHART_PASTEL_PALETTE.gridLines },
+              title: { display: true, text: 'ล้านบาท / โครงการ', font: { size: 11.5, weight: 600 } },
+            },
+            y: { grid: { display: false } },
+          },
+        },
+      });
+    }
+
+    if (activePerspective === 'faculty') {
+      const top10Pis = facultyPiRanking.slice(0, 10);
+      const piLabels = top10Pis.map((f) => f.head);
+      const piBudgetsM = top10Pis.map((f) => Number((f.totalBudget / 1_000_000).toFixed(2)));
+
+      createChart('c_re_faculty_top10', {
+        type: 'bar',
+        data: {
+          labels: piLabels,
+          datasets: [
+            {
+              label: 'งบประมาณวิจัยรวม (ล้านบาท)',
+              data: piBudgetsM,
+              backgroundColor: '#86EFAC', // Soft Pastel Mint Emerald (KU Research Theme)
+              borderColor: '#22C55E',
+              borderWidth: 1.5,
+              borderRadius: 6,
+              maxBarThickness: 28,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          indexAxis: 'y',
+          onHover: (event: any, chartElement: any[]) => {
+            if (event.native?.target) event.native.target.style.cursor = chartElement.length > 0 ? 'pointer' : 'default';
+          },
+          onClick: (event: any, elements: any[], chart: any) => {
+            const hit = getClickedChartElement(event, elements, chart, 'y');
+            if (hit) {
+              const f = top10Pis[hit.index];
+              if (f) {
+                setDrillDown({
+                  isOpen: true,
+                  title: `โครงการวิจัย: ${f.head} (${f.dept})`,
+                  subtitle: `รวม ${f.count} โครงการ • งบประมาณรวม ${f.totalBudget.toLocaleString('th-TH')} บาท • ทุนภายนอก ${f.extBudget.toLocaleString('th-TH')} บาท`,
+                  accentColor: '#22C55E',
+                  items: f.items,
+                });
+              }
+            }
+          },
+          plugins: {
+            legend: { display: false },
+            datalabels: {
+              anchor: 'end',
+              align: 'right',
+              color: CHART_PASTEL_PALETTE.datalabels.dark,
+              font: { weight: 'bold', size: 11 },
+              formatter: (v: number) => `${v.toFixed(2)} ลบ.`,
+            },
+            tooltip: {
+              callbacks: {
+                title: (items: any[]) => {
+                  const idx = items[0]?.dataIndex ?? -1;
+                  const f = top10Pis[idx];
+                  return f ? `หัวหน้าโครงการ: ${f.head} (${f.dept})` : '';
+                },
+                label: (context: any) => {
+                  const f = top10Pis[context.dataIndex];
+                  if (!f) return '';
+                  return [
+                    `งบประมาณรวม: ${(f.totalBudget / 1_000_000).toFixed(2)} ล้านบาท`,
+                    `งบทุนภายนอก: ${(f.extBudget / 1_000_000).toFixed(2)} ล้านบาท`,
+                    `จำนวนโครงการ: ${f.count} โครงการ`,
+                  ];
+                },
+              },
+            },
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              grace: '25%',
+              grid: { color: CHART_PASTEL_PALETTE.gridLines },
+              title: { display: true, text: 'ล้านบาท', font: { size: 11.5, weight: 600 } },
+            },
+            y: {
+              grid: { display: false },
+              ticks: { font: { size: 12, weight: 500 }, color: '#334155' },
             },
           },
         },
@@ -705,7 +1129,21 @@ export function ResearchCharts({
     return () => {
       chartInstances.current.forEach((c) => c.destroy());
     };
-  }, [validData, activePerspective, researchBudgetMetric, deptComparativeMetrics, budgetScaleData, onSelectDept, onSelectFund, monthlyBarMode, monthlyMetric]);
+  }, [
+    validData,
+    activePerspective,
+    researchBudgetMetric,
+    deptComparativeMetrics,
+    budgetScaleData,
+    facultyPiRanking,
+    onSelectDept,
+    onSelectFund,
+    monthlyBarMode,
+    monthlyMetric,
+    prodBudgetView,
+    deptPastelColorMap,
+    DEPT_PASTEL_PALETTE,
+  ]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '16px' }}>
@@ -922,22 +1360,16 @@ export function ResearchCharts({
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '16px' }}>
-            <div className="chart-card">
-              <h3>
+          <div className="chart-grid">
+            <div className="chart-card chart-full">
+              <h3 style={{ margin: '0 0 4px 0', fontSize: '14.5px', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <FaLayerGroup style={{ color: '#0284c7' }} /> การกระจายโครงการตามช่วงขนาดงบประมาณ
               </h3>
-              <div className="chart-wrapper" style={{ cursor: 'pointer' }}>
+              <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
+                จำนวนโครงการวิจัยจำแนกตามช่วงขนาดงบประมาณ (5 ช่วงขนาด) • คลิกที่แท่งกราฟเพื่อดูรายการ
+              </p>
+              <div className="chart-wrapper" style={{ height: '300px', cursor: 'pointer' }}>
                 <canvas id="c_re_scale" />
-              </div>
-            </div>
-
-            <div className="chart-card">
-              <h3>
-                <FaCoins style={{ color: '#d97706' }} /> สัดส่วนงบทุนภายนอก และ ทุนภายใน
-              </h3>
-              <div className="chart-wrapper" style={{ cursor: 'pointer' }}>
-                <canvas id="c_re_ext_int" />
               </div>
             </div>
           </div>
@@ -946,191 +1378,302 @@ export function ResearchCharts({
 
       {/* DIMENSION 2: Department Comparative Output */}
       {activePerspective === 'productivity' && (
-        <div
-          style={{
-            backgroundColor: '#ffffff',
-            borderRadius: '12px',
-            border: '1px solid #e2e8f0',
-            padding: '20px',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-          }}
-        >
-          <div style={{ marginBottom: '14px' }}>
-            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
-              ตารางเปรียบเทียบผลผลิตและงบประมาณวิจัยรายสังกัด
-            </h3>
-            <p style={{ margin: '3px 0 0 0', fontSize: '12.5px', color: '#64748b' }}>
-              วิเคราะห์ผลิตภาพเฉลี่ยต่อโครงการ สัดส่วนทุนภายนอก และโครงการขนาดใหญ่ (≥ 10 ล้านบาท)
-            </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* 1. Main Full-Width Comparative Chart: Dual-axis Budget & Project Count */}
+          <div className="chart-grid">
+            <div className="chart-card chart-full">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <FaChartLine style={{ color: '#00A651' }} /> เปรียบเทียบงบประมาณวิจัยและจำนวนโครงการรายสังกัด
+                </h3>
+                <div style={{ display: 'inline-flex', backgroundColor: '#f1f5f9', padding: '2px', borderRadius: '8px', fontSize: '11px', fontWeight: 600 }}>
+                  <button
+                    type="button"
+                    onClick={() => setProdBudgetView('total')}
+                    style={{
+                      padding: '3px 8px',
+                      borderRadius: '6px',
+                      border: 'none',
+                      backgroundColor: prodBudgetView === 'total' ? '#ffffff' : 'transparent',
+                      color: prodBudgetView === 'total' ? '#00A651' : '#64748b',
+                      fontWeight: prodBudgetView === 'total' ? 700 : 500,
+                      cursor: 'pointer',
+                      boxShadow: prodBudgetView === 'total' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                    }}
+                  >
+                    งบรวม + โครงการ
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setProdBudgetView('stacked')}
+                    style={{
+                      padding: '3px 8px',
+                      borderRadius: '6px',
+                      border: 'none',
+                      backgroundColor: prodBudgetView === 'stacked' ? '#ffffff' : 'transparent',
+                      color: prodBudgetView === 'stacked' ? '#00A651' : '#64748b',
+                      fontWeight: prodBudgetView === 'stacked' ? 700 : 500,
+                      cursor: 'pointer',
+                      boxShadow: prodBudgetView === 'stacked' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                    }}
+                  >
+                    แยกทุนภายนอก/ภายใน
+                  </button>
+                </div>
+              </div>
+              <p style={{ margin: '-2px 0 10px 0', fontSize: '12px', color: '#64748b' }}>
+                {prodBudgetView === 'total'
+                  ? 'แท่ง = งบประมาณวิจัยรวม (ล้านบาท) • เส้นสีแดง = จำนวนโครงการ (โครงการ) • คลิกที่กราฟเพื่อดูรายการโครงการ'
+                  : 'แท่งสีฟ้า = ทุนภายนอก • แท่งสีเขียว = ทุนภายใน • เส้นสีแดง = จำนวนโครงการ (โครงการ) • คลิกที่กราฟเพื่อดูรายการโครงการ'}
+              </p>
+              <div className="chart-wrapper" style={{ height: '330px', cursor: 'pointer' }}>
+                <canvas id="c_re_prod_dept_combo" />
+              </div>
+            </div>
           </div>
 
-          <div style={{ overflowX: 'auto' }}>
-            <table className="table-manage" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-              <thead>
-                <tr style={{ backgroundColor: '#00A651', color: '#ffffff', borderBottom: '2px solid #00A651' }}>
-                  <th style={{ padding: '10px 12px', textAlign: 'left' }}>สังกัด</th>
-                  <th style={{ padding: '10px 12px', textAlign: 'center' }}>จำนวนโครงการ</th>
-                  <th style={{ padding: '10px 12px', textAlign: 'right' }}>งบประมาณรวม</th>
-                  <th style={{ padding: '10px 12px', textAlign: 'right' }}>งบเฉลี่ย / โครงการ</th>
-                  <th style={{ padding: '10px 12px', textAlign: 'right' }}>ทุนภายนอก (สัดส่วน)</th>
-                  <th style={{ padding: '10px 12px', textAlign: 'center' }}>โครงการขนาดใหญ่ (≥10 ลบ.)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {deptComparativeMetrics.map((d) => {
-                  const avgM = d.count > 0 ? (d.totalBudget / d.count / 1000000).toFixed(2) : '0.00';
-                  const extPct = d.totalBudget > 0 ? Math.round((d.extBudget / d.totalBudget) * 100) : 0;
-                  return (
-                    <tr
-                      key={d.code}
-                      onClick={() => {
-                        if (onSelectDept) onSelectDept(d.code);
-                        setDrillDown({
-                          isOpen: true,
-                          title: `โครงการวิจัย: ${d.name} (${d.code})`,
-                          subtitle: `รวม ${d.count} โครงการ • งบประมาณ ${d.totalBudget.toLocaleString('th-TH')} บาท`,
-                          accentColor: getDepartmentColor(d.code),
-                          items: d.items,
-                        });
-                      }}
-                      style={{ borderBottom: '1px solid #f1f5f9', cursor: 'pointer' }}
-                    >
-                      <td style={{ padding: '10px 12px', fontWeight: 600, color: '#0f172a' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: getDepartmentColor(d.code) }} />
-                          <span>{d.name} ({d.code})</span>
-                        </div>
-                      </td>
-                      <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 700 }}>{d.count}</td>
-                      <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, color: '#047857' }}>
-                        {(d.totalBudget / 1000000).toFixed(2)} ลบ.
-                      </td>
-                      <td style={{ padding: '10px 12px', textAlign: 'right', color: '#475569' }}>
-                        {avgM} ลบ.
-                      </td>
-                      <td style={{ padding: '10px 12px', textAlign: 'right', color: '#0284c7', fontWeight: 600 }}>
-                        {(d.extBudget / 1000000).toFixed(2)} ลบ. ({extPct}%)
-                      </td>
-                      <td style={{ padding: '10px 12px', textAlign: 'center' }}>
-                        {d.megaCount > 0 ? (
-                          <span style={{ padding: '2px 8px', borderRadius: '6px', backgroundColor: '#fef3c7', color: '#b45309', fontWeight: 700 }}>
-                            {d.megaCount} โครงการ
-                          </span>
-                        ) : (
-                          <span style={{ color: '#cbd5e1' }}>-</span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+          {/* 2. Grid: External Funding Ratio & Average Budget per Project (Non-redundant Essential Insights) */}
+          <div className="chart-grid">
+            <div className="chart-card">
+              <h3>
+                <FaCoins style={{ color: '#0284c7' }} /> สัดส่วนทุนวิจัยภายนอกรายสังกัด (%)
+              </h3>
+              <p style={{ margin: '0 0 10px 0', fontSize: '12px', color: '#64748b' }}>
+                ร้อยละของงบประมาณที่มาจากทุนภายนอก • สะท้อนความสามารถในการแข่งขันทุนภายนอก • คลิกเพื่อดูรายการ
+              </p>
+              <div className="chart-wrapper" style={{ cursor: 'pointer' }}>
+                <canvas id="c_re_prod_dept_ext_pct" />
+              </div>
+            </div>
+
+            <div className="chart-card">
+              <h3>
+                <FaChartBar style={{ color: '#00A651' }} /> งบประมาณเฉลี่ยต่อโครงการรายสังกัด
+              </h3>
+              <p style={{ margin: '0 0 10px 0', fontSize: '12px', color: '#64748b' }}>
+                เรียงตามขนาดงบประมาณเฉลี่ยต่อโครงการจากมากไปน้อย • หน่วยล้านบาท/โครงการ • คลิกเพื่อดูรายการ
+              </p>
+              <div className="chart-wrapper" style={{ cursor: 'pointer' }}>
+                <canvas id="c_re_prod_dept_avg" />
+              </div>
+            </div>
+          </div>
+
+          {/* 3. Existing Table */}
+          <div
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '12px',
+              border: '1px solid #e2e8f0',
+              padding: '20px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+            }}
+          >
+            <div style={{ marginBottom: '14px' }}>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
+                ตารางเปรียบเทียบผลผลิตและงบประมาณวิจัยรายสังกัด
+              </h3>
+              <p style={{ margin: '3px 0 0 0', fontSize: '12.5px', color: '#64748b' }}>
+                วิเคราะห์ผลิตภาพเฉลี่ยต่อโครงการ สัดส่วนทุนภายนอก และโครงการขนาดใหญ่ (≥ 10 ล้านบาท)
+              </p>
+            </div>
+
+            <div style={{ overflowX: 'auto' }}>
+              <table className="table-manage" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                <thead>
+                  <tr style={{ backgroundColor: '#00A651', color: '#ffffff', borderBottom: '2px solid #00A651' }}>
+                    <th style={{ padding: '10px 12px', textAlign: 'left' }}>สังกัด</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'center' }}>จำนวนโครงการ</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'right' }}>งบประมาณรวม</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'right' }}>งบเฉลี่ย / โครงการ</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'right' }}>ทุนภายนอก (สัดส่วน)</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'center' }}>โครงการขนาดใหญ่ (≥10 ลบ.)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {deptComparativeMetrics.map((d) => {
+                    const avgM = d.count > 0 ? (d.totalBudget / d.count / 1000000).toFixed(2) : '0.00';
+                    const extPct = d.totalBudget > 0 ? Math.round((d.extBudget / d.totalBudget) * 100) : 0;
+                    return (
+                      <tr
+                        key={d.code}
+                        onClick={() => {
+                          if (onSelectDept) onSelectDept(d.code);
+                          const deptPastel = deptPastelColorMap.get(d.code) || DEPT_PASTEL_PALETTE[0];
+                          setDrillDown({
+                            isOpen: true,
+                            title: `โครงการวิจัย: ${d.name} (${d.code})`,
+                            subtitle: `รวม ${d.count} โครงการ • งบประมาณ ${d.totalBudget.toLocaleString('th-TH')} บาท`,
+                            accentColor: deptPastel.border,
+                            items: d.items,
+                          });
+                        }}
+                        style={{ borderBottom: '1px solid #f1f5f9', cursor: 'pointer' }}
+                      >
+                        <td style={{ padding: '10px 12px', fontWeight: 600, color: '#0f172a' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span
+                              style={{
+                                width: '10px',
+                                height: '10px',
+                                borderRadius: '50%',
+                                backgroundColor: (deptPastelColorMap.get(d.code) || DEPT_PASTEL_PALETTE[0]).fill,
+                                border: `1.5px solid ${(deptPastelColorMap.get(d.code) || DEPT_PASTEL_PALETTE[0]).border}`,
+                                flexShrink: 0,
+                              }}
+                            />
+                            <span>{d.name} ({d.code})</span>
+                          </div>
+                        </td>
+                        <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 700 }}>{d.count}</td>
+                        <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, color: '#047857' }}>
+                          {(d.totalBudget / 1000000).toFixed(2)} ลบ.
+                        </td>
+                        <td style={{ padding: '10px 12px', textAlign: 'right', color: '#475569' }}>
+                          {avgM} ลบ.
+                        </td>
+                        <td style={{ padding: '10px 12px', textAlign: 'right', color: '#0284c7', fontWeight: 600 }}>
+                          {(d.extBudget / 1000000).toFixed(2)} ลบ. ({extPct}%)
+                        </td>
+                        <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                          {d.megaCount > 0 ? (
+                            <span style={{ padding: '2px 8px', borderRadius: '6px', backgroundColor: '#fef3c7', color: '#b45309', fontWeight: 700 }}>
+                              {d.megaCount} โครงการ
+                            </span>
+                          ) : (
+                            <span style={{ color: '#cbd5e1' }}>-</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
 
       {/* DIMENSION 3: Top Research Faculty & PIs */}
       {activePerspective === 'faculty' && (
-        <div
-          style={{
-            backgroundColor: '#ffffff',
-            borderRadius: '12px',
-            border: '1px solid #e2e8f0',
-            padding: '20px',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-          }}
-        >
-          <div style={{ marginBottom: '14px' }}>
-            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
-              จัดอันดับอาจารย์และหัวหน้าโครงการวิจัย
-            </h3>
-            <p style={{ margin: '3px 0 0 0', fontSize: '12.5px', color: '#64748b' }}>
-              รายละเอียดโครงการและแฟ้มผลงานอาจารย์รายบุคคล
-            </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* Top 10 PIs Ranking Chart */}
+          <div className="chart-grid">
+            <div className="chart-card chart-full">
+              <h3 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <FaUserTie style={{ color: '#00A651' }} /> 10 อันดับหัวหน้าโครงการวิจัยที่มีงบประมาณวิจัยสูงสุด
+              </h3>
+              <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
+                จัดอันดับตามงบประมาณวิจัยรวม • คลิกที่แท่งกราฟเพื่อดูรายชื่อโครงการวิจัย
+              </p>
+              <div className="chart-wrapper" style={{ height: '360px', cursor: 'pointer' }}>
+                <canvas id="c_re_faculty_top10" />
+              </div>
+            </div>
           </div>
 
-          <div style={{ overflowX: 'auto' }}>
-            <table className="table-manage" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-              <thead>
-                <tr style={{ backgroundColor: '#00A651', color: '#ffffff', borderBottom: '2px solid #00A651' }}>
-                  <th style={{ padding: '10px 10px', textAlign: 'center', width: '50px' }}>อันดับ</th>
-                  <th style={{ padding: '10px 12px', textAlign: 'left' }}>หัวหน้าโครงการ</th>
-                  <th style={{ padding: '10px 12px', textAlign: 'left' }}>สังกัด</th>
-                  <th style={{ padding: '10px 12px', textAlign: 'center' }}>จำนวนโครงการ</th>
-                  <th style={{ padding: '10px 12px', textAlign: 'right' }}>งบประมาณวิจัยรวม</th>
-                  <th style={{ padding: '10px 12px', textAlign: 'right' }}>งบจากทุนภายนอก</th>
-                  <th style={{ padding: '10px 14px', textAlign: 'center', width: '120px' }}>แฟ้มผลงาน</th>
-                </tr>
-              </thead>
-              <tbody>
-                {facultyPiRanking.map((f, idx) => (
-                  <tr
-                    key={idx}
-                    onClick={() => {
-                      if (f.head_id) router.push(`/personnel/${f.head_id}`);
-                      else router.push(`/personnel?q=${encodeURIComponent(f.head)}`);
-                    }}
-                    style={{
-                      borderBottom: '1px solid #f1f5f9',
-                      cursor: 'pointer',
-                      transition: 'background-color 0.15s ease',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = '#f0fdf4';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                    }}
-                  >
-                    <td style={{ padding: '10px 10px', textAlign: 'center', fontWeight: 700, color: idx < 3 ? '#b45309' : '#64748b' }}>
-                      {idx + 1}
-                    </td>
-                    <td style={{ padding: '10px 12px', fontWeight: 700, color: '#0f172a' }}>
-                      {f.head}
-                    </td>
-                    <td style={{ padding: '10px 12px' }}>
-                      <DepartmentBadge value={f.dept} />
-                    </td>
-                    <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 700 }}>
-                      <span style={{ padding: '2px 8px', borderRadius: '6px', backgroundColor: '#ecfdf5', color: '#00A651' }}>
-                        {f.count}
-                      </span>
-                    </td>
-                    <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, color: '#047857' }}>
-                      {(f.totalBudget / 1000000).toFixed(2)} ลบ.
-                    </td>
-                    <td style={{ padding: '10px 12px', textAlign: 'right', color: '#0284c7', fontWeight: 600 }}>
-                      {(f.extBudget / 1000000).toFixed(2)} ลบ.
-                    </td>
-                    <td style={{ padding: '10px 14px', textAlign: 'center' }}>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (f.head_id) router.push(`/personnel/${f.head_id}`);
-                          else router.push(`/personnel?q=${encodeURIComponent(f.head)}`);
-                        }}
-                        style={{
-                          padding: '5px 10px',
-                          borderRadius: '6px',
-                          border: '1px solid #cbd5e1',
-                          backgroundColor: '#ffffff',
-                          color: '#00A651',
-                          fontSize: '11.5px',
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                        }}
-                      >
-                        <span>ดูผลงาน</span>
-                        <FaChevronRight style={{ fontSize: '9px' }} />
-                      </button>
-                    </td>
+          {/* Full Table */}
+          <div
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '12px',
+              border: '1px solid #e2e8f0',
+              padding: '20px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+            }}
+          >
+            <div style={{ marginBottom: '14px' }}>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
+                ตารางจัดอันดับอาจารย์และหัวหน้าโครงการวิจัย
+              </h3>
+              <p style={{ margin: '3px 0 0 0', fontSize: '12.5px', color: '#64748b' }}>
+                รายละเอียดโครงการและแฟ้มผลงานอาจารย์รายบุคคล
+              </p>
+            </div>
+
+            <div style={{ overflowX: 'auto' }}>
+              <table className="table-manage" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                <thead>
+                  <tr style={{ backgroundColor: '#00A651', color: '#ffffff', borderBottom: '2px solid #00A651' }}>
+                    <th style={{ padding: '10px 10px', textAlign: 'center', width: '50px' }}>อันดับ</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'left' }}>หัวหน้าโครงการ</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'left' }}>สังกัด</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'center' }}>จำนวนโครงการ</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'right' }}>งบประมาณวิจัยรวม</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'right' }}>งบจากทุนภายนอก</th>
+                    <th style={{ padding: '10px 14px', textAlign: 'center', width: '120px' }}>แฟ้มผลงาน</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {facultyPiRanking.map((f, idx) => (
+                    <tr
+                      key={idx}
+                      onClick={() => {
+                        if (f.head_id) router.push(`/personnel/${f.head_id}`);
+                        else router.push(`/personnel?q=${encodeURIComponent(f.head)}`);
+                      }}
+                      style={{
+                        borderBottom: '1px solid #f1f5f9',
+                        cursor: 'pointer',
+                        transition: 'background-color 0.15s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#f0fdf4';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                      }}
+                    >
+                      <td style={{ padding: '10px 10px', textAlign: 'center', fontWeight: 700, color: idx < 3 ? '#b45309' : '#64748b' }}>
+                        {idx + 1}
+                      </td>
+                      <td style={{ padding: '10px 12px', fontWeight: 700, color: '#0f172a' }}>
+                        {f.head}
+                      </td>
+                      <td style={{ padding: '10px 12px' }}>
+                        <DepartmentBadge value={f.dept} />
+                      </td>
+                      <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 700 }}>
+                        <span style={{ padding: '2px 8px', borderRadius: '6px', backgroundColor: '#ecfdf5', color: '#00A651' }}>
+                          {f.count}
+                        </span>
+                      </td>
+                      <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, color: '#047857' }}>
+                        {(f.totalBudget / 1000000).toFixed(2)} ลบ.
+                      </td>
+                      <td style={{ padding: '10px 12px', textAlign: 'right', color: '#0284c7', fontWeight: 600 }}>
+                        {(f.extBudget / 1000000).toFixed(2)} ลบ.
+                      </td>
+                      <td style={{ padding: '10px 14px', textAlign: 'center' }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (f.head_id) router.push(`/personnel/${f.head_id}`);
+                            else router.push(`/personnel?q=${encodeURIComponent(f.head)}`);
+                          }}
+                          style={{
+                            padding: '5px 10px',
+                            borderRadius: '6px',
+                            border: '1px solid #cbd5e1',
+                            backgroundColor: '#ffffff',
+                            color: '#00A651',
+                            fontSize: '11.5px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          <span>ดูผลงาน</span>
+                          <FaChevronRight style={{ fontSize: '9px' }} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}

@@ -46,6 +46,7 @@ export function ServiceCharts({
   const activePerspective = propPerspective ?? internalPerspective;
   const setActivePerspective = onChangePerspective ?? setInternalPerspective;
   const [strategyMetric, setStrategyMetric] = useState<'activities' | 'targets' | 'staff'>('activities');
+  const [deptChartMode, setDeptChartMode] = useState<'grouped' | 'combo'>('grouped');
   const chartInstances = useRef<Chart[]>([]);
   const [drillDown, setDrillDown] = useState<{
     isOpen: boolean;
@@ -426,23 +427,59 @@ export function ServiceCharts({
         });
       };
 
-      // Left: activity count only (no dual axis)
-      createChart('c_sv_dept_activity', {
+      const isCombo = deptChartMode === 'combo';
+
+      // Unified Combined Chart: Comparing Service Activities & Identified Providers
+      createChart('c_sv_dept_combined', {
         type: 'bar',
         data: {
           labels: sortedDepts.map((d) => d.code),
           datasets: [
             {
+              type: 'bar' as const,
               label: 'จำนวนงานบริการ (กิจกรรม)',
               data: sortedDepts.map((d) => d.count),
-              backgroundColor: sortedDepts.map((d) => getDepartmentColor(d.code)),
+              backgroundColor: '#FDE68A', // Soft Amber (Service Mission Theme)
+              borderColor: '#F59E0B',
+              borderWidth: 1.5,
               borderRadius: 6,
+              yAxisID: 'y',
+              order: 2,
             },
+            isCombo
+              ? {
+                  type: 'line' as const,
+                  label: 'บุคลากรที่พบในบันทึก (ท่าน)',
+                  data: sortedDepts.map((d) => d.staffSet.size),
+                  borderColor: '#E11D48', // Rose Red
+                  backgroundColor: 'rgba(225, 29, 72, 0.08)',
+                  borderWidth: 2.5,
+                  tension: 0.35,
+                  pointRadius: 4.5,
+                  pointHoverRadius: 6.5,
+                  pointBackgroundColor: '#E11D48',
+                  pointBorderColor: '#ffffff',
+                  pointBorderWidth: 1.5,
+                  yAxisID: 'y1',
+                  order: 1,
+                }
+              : {
+                  type: 'bar' as const,
+                  label: 'บุคลากรที่พบในบันทึก (ท่าน)',
+                  data: sortedDepts.map((d) => d.staffSet.size),
+                  backgroundColor: '#FDA4AF', // Soft Rose Coral
+                  borderColor: '#E11D48',
+                  borderWidth: 1.5,
+                  borderRadius: 6,
+                  yAxisID: 'y',
+                  order: 1,
+                },
           ],
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
           onHover: (event: any, chartElement: any[]) => {
             if (event.native?.target) event.native.target.style.cursor = chartElement.length > 0 ? 'pointer' : 'default';
           },
@@ -450,99 +487,86 @@ export function ServiceCharts({
             const hit = getClickedChartElement(event, elements, chart, 'nearest');
             if (hit) openDept(hit.index);
           },
-          scales: {
-            y: {
-              type: 'linear',
-              title: { display: true, text: 'จำนวนงาน (กิจกรรม)' },
-              beginAtZero: true,
-              grid: { color: CHART_PASTEL_PALETTE.gridLines },
-            },
-            x: { grid: { display: false } },
-          },
           plugins: {
-            legend: { display: false },
+            legend: {
+              position: 'top',
+              labels: {
+                boxWidth: 14,
+                boxHeight: 14,
+                borderRadius: 3,
+                useBorderRadius: true,
+                font: { size: 12, weight: 600 },
+                padding: 12,
+              },
+            },
             tooltip: {
               callbacks: {
+                title: (items: any[]) => {
+                  const idx = items[0]?.dataIndex ?? -1;
+                  const d = sortedDepts[idx];
+                  return d ? `สังกัด: ${d.name} (${d.code})` : '';
+                },
                 label: (context: any) => {
+                  const isStaff = context.datasetIndex === 1;
                   const d = sortedDepts[context.dataIndex];
                   if (!d) return '';
-                  const average = d.staffSet.size > 0 ? d.count / d.staffSet.size : null;
+                  if (isStaff) {
+                    return `บุคลากรที่พบในบันทึก: ${d.staffSet.size} ท่าน`;
+                  }
+                  return `จำนวนงานบริการ: ${d.count} กิจกรรม`;
+                },
+                afterBody: (items: any[]) => {
+                  const idx = items[0]?.dataIndex ?? -1;
+                  const d = sortedDepts[idx];
+                  if (!d) return [];
+                  const avg = d.staffSet.size > 0 ? (d.count / d.staffSet.size).toFixed(1) : '—';
                   return [
-                    `กิจกรรม: ${d.count} งาน`,
-                    `บุคลากรที่พบในบันทึก: ${d.staffSet.size} ท่าน`,
-                    `เฉลี่ย: ${average === null ? '—' : `${average.toFixed(1)} งาน/ท่าน`}`,
+                    `─────────────────────────────`,
+                    `ภาระงานเฉลี่ย: ${avg} งาน/ท่าน`,
+                    `คลิกที่กราฟเพื่อดูรายชื่อโครงการและบุคลากร`,
                   ];
                 },
               },
             },
             datalabels: {
+              display: (ctx: any) => Number(ctx.dataset.data[ctx.dataIndex]) > 0,
               anchor: 'end',
               align: 'top',
-              color: CHART_PASTEL_PALETTE.datalabels.dark,
-              font: { weight: 'bold', size: 10 },
+              offset: (ctx: any) => (isCombo && ctx.dataset.yAxisID === 'y1' ? 6 : 1),
+              color: (ctx: any) =>
+                isCombo && ctx.dataset.yAxisID === 'y1' ? '#E11D48' : CHART_PASTEL_PALETTE.datalabels.dark,
+              backgroundColor: (ctx: any) =>
+                isCombo && ctx.dataset.yAxisID === 'y1' ? 'rgba(255, 255, 255, 0.9)' : 'transparent',
+              borderRadius: 3,
+              font: { weight: 'bold', size: 10.5 },
               formatter: (v: number) => `${v}`,
             },
-          },
-        },
-      });
-
-      // Right: identified providers only (same department order)
-      createChart('c_sv_dept_staff', {
-        type: 'bar',
-        data: {
-          labels: sortedDepts.map((d) => d.code),
-          datasets: [
-            {
-              label: 'บุคลากรที่พบในบันทึก (ท่าน)',
-              data: sortedDepts.map((d) => d.staffSet.size),
-              backgroundColor: '#FDA4AF',
-              borderColor: '#E11D48',
-              borderWidth: 1,
-              borderRadius: 6,
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          onHover: (event: any, chartElement: any[]) => {
-            if (event.native?.target) event.native.target.style.cursor = chartElement.length > 0 ? 'pointer' : 'default';
-          },
-          onClick: (event: any, elements: any[], chart: any) => {
-            const hit = getClickedChartElement(event, elements, chart, 'nearest');
-            if (hit) openDept(hit.index);
           },
           scales: {
             y: {
               type: 'linear',
-              title: { display: true, text: 'จำนวนบุคลากร (ท่าน)' },
               beginAtZero: true,
+              grace: '15%',
+              ticks: { stepSize: 10 },
               grid: { color: CHART_PASTEL_PALETTE.gridLines },
-            },
-            x: { grid: { display: false } },
-          },
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: (context: any) => {
-                  const d = sortedDepts[context.dataIndex];
-                  if (!d) return '';
-                  return [
-                    `บุคลากรที่พบในบันทึก: ${d.staffSet.size} ท่าน`,
-                    `กิจกรรม: ${d.count} งาน`,
-                    'ไม่ใช่จำนวนอาจารย์หรือ ภาระงานเต็มเวลา ทั้งหมดของสังกัด',
-                  ];
-                },
+              title: {
+                display: true,
+                text: isCombo ? 'จำนวนงานบริการ (กิจกรรม)' : 'จำนวน (กิจกรรม / ท่าน)',
+                font: { size: 11.5, weight: 600 },
               },
             },
-            datalabels: {
-              anchor: 'end',
-              align: 'top',
-              color: CHART_PASTEL_PALETTE.datalabels.dark,
-              font: { weight: 'bold', size: 10 },
-              formatter: (v: number) => `${v}`,
-            },
+            y1: isCombo
+              ? {
+                  type: 'linear',
+                  position: 'right',
+                  beginAtZero: true,
+                  grace: '15%',
+                  ticks: { stepSize: 5 },
+                  grid: { drawOnChartArea: false },
+                  title: { display: true, text: 'บุคลากร (ท่าน)', font: { size: 11.5, weight: 600 } },
+                }
+              : { display: false },
+            x: { grid: { display: false } },
           },
         },
       });
@@ -702,7 +726,7 @@ export function ServiceCharts({
     return () => {
       chartInstances.current.forEach((c) => c.destroy());
     };
-  }, [validData, activePerspective, strategyMetric, workloadTiers]);
+  }, [validData, activePerspective, strategyMetric, workloadTiers, deptChartMode]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '16px' }}>
@@ -745,27 +769,60 @@ export function ServiceCharts({
       {activePerspective === 'department' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div className="chart-grid">
-            <div className="chart-card">
-              <h3 style={{ margin: '0 0 4px 0', fontSize: '14.5px', fontWeight: 700, color: '#1e293b' }}>
-                <FaBuilding style={{ color: '#f59e0b', marginRight: '6px' }} /> จำนวนงานบริการรายสังกัด
-              </h3>
-              <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
-                เรียงตามจำนวนกิจกรรมจากมากไปน้อย • คลิกเพื่อดูรายการ
-              </p>
-              <div className="chart-wrapper">
-                <canvas id="c_sv_dept_activity" />
+            <div className="chart-card chart-full">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <FaBuilding style={{ color: '#f59e0b' }} /> เปรียบเทียบจำนวนงานบริการและบุคลากรรายสังกัด
+                </h3>
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    backgroundColor: '#f1f5f9',
+                    padding: '2px',
+                    borderRadius: '8px',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setDeptChartMode('grouped')}
+                    style={{
+                      padding: '3px 8px',
+                      borderRadius: '6px',
+                      border: 'none',
+                      backgroundColor: deptChartMode === 'grouped' ? '#ffffff' : 'transparent',
+                      color: deptChartMode === 'grouped' ? '#f59e0b' : '#64748b',
+                      fontWeight: deptChartMode === 'grouped' ? 700 : 500,
+                      cursor: 'pointer',
+                      boxShadow: deptChartMode === 'grouped' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                    }}
+                  >
+                    แยกแท่งคู่เคียง (Grouped)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDeptChartMode('combo')}
+                    style={{
+                      padding: '3px 8px',
+                      borderRadius: '6px',
+                      border: 'none',
+                      backgroundColor: deptChartMode === 'combo' ? '#ffffff' : 'transparent',
+                      color: deptChartMode === 'combo' ? '#f59e0b' : '#64748b',
+                      fontWeight: deptChartMode === 'combo' ? 700 : 500,
+                      cursor: 'pointer',
+                      boxShadow: deptChartMode === 'combo' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                    }}
+                  >
+                    แท่ง + เส้นแนวโน้ม (Combo)
+                  </button>
+                </div>
               </div>
-            </div>
-
-            <div className="chart-card">
-              <h3 style={{ margin: '0 0 4px 0', fontSize: '14.5px', fontWeight: 700, color: '#1e293b' }}>
-                <FaUserTie style={{ color: '#e11d48', marginRight: '6px' }} /> บุคลากรที่พบในบันทึก (ท่าน)
-              </h3>
-              <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
-                นับเฉพาะผู้ให้บริการที่ระบุชื่อในบันทึก — ไม่ใช่จำนวนอาจารย์หรือ ภาระงานเต็มเวลา ทั้งหมด
+              <p style={{ margin: '-2px 0 12px 0', fontSize: '12px', color: '#64748b' }}>
+                เปรียบเทียบจำนวนงานบริการ (สีเหลืองอำพัน) และบุคลากรที่ให้บริการ (สีชมพู) รายสังกัด • เรียงตามจำนวนกิจกรรมจากมากไปน้อย • คลิกที่แท่งกราฟเพื่อดูรายการ
               </p>
-              <div className="chart-wrapper">
-                <canvas id="c_sv_dept_staff" />
+              <div className="chart-wrapper" style={{ height: '350px', cursor: 'pointer' }}>
+                <canvas id="c_sv_dept_combined" />
               </div>
             </div>
           </div>
