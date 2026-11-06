@@ -9,6 +9,7 @@ import {
   FaChartBar,
   FaBuilding,
   FaUserTie,
+  FaUsers,
   FaLeaf,
   FaChevronRight,
   FaExternalLinkAlt,
@@ -113,6 +114,24 @@ export function ServiceCharts({
     ];
   }, [topServiceFaculty]);
 
+  // Department Metrics
+  const deptMetrics = useMemo(() => {
+    const map: Record<string, { code: string; name: string; count: number; staffSet: Set<string>; items: ServiceItem[] }> = {};
+    validData.forEach((item) => {
+      const dept = getDepartment(item.department);
+      const code = dept.code !== '-' ? dept.code : 'OTH';
+      if (!map[code]) {
+        map[code] = { code, name: dept.name, count: 0, staffSet: new Set<string>(), items: [] };
+      }
+      map[code].count++;
+      if (item.person && item.person !== '-' && item.person !== 'nan') {
+        map[code].staffSet.add(item.person);
+      }
+      map[code].items.push(item);
+    });
+    return Object.values(map).sort((a, b) => b.count - a.count);
+  }, [validData]);
+
   useEffect(() => {
     chartInstances.current.forEach((c) => c.destroy());
     chartInstances.current = [];
@@ -129,7 +148,6 @@ export function ServiceCharts({
     const monthlyItems: ServiceItem[][] = Array.from({ length: 12 }, () => []);
 
     const roleGroups: Record<string, { label: string; count: number; items: ServiceItem[] }> = {};
-    const deptMap: Record<string, { code: string; name: string; count: number; staffSet: Set<string>; items: ServiceItem[] }> = {};
 
     validData.forEach((item) => {
       // Date handling
@@ -160,18 +178,6 @@ export function ServiceCharts({
       if (!roleGroups[r]) roleGroups[r] = { label: r, count: 0, items: [] };
       roleGroups[r].count++;
       roleGroups[r].items.push(item);
-
-      // Dept group
-      const dept = getDepartment(item.department);
-      const code = dept.code !== '-' ? dept.code : 'OTH';
-      if (!deptMap[code]) {
-        deptMap[code] = { code, name: dept.name, count: 0, staffSet: new Set<string>(), items: [] };
-      }
-      deptMap[code].count++;
-      if (item.person && item.person !== '-' && item.person !== 'nan') {
-        deptMap[code].staffSet.add(item.person);
-      }
-      deptMap[code].items.push(item);
     });
 
     const createChart = (id: string, config: any) => {
@@ -206,13 +212,13 @@ export function ServiceCharts({
               type: 'line' as const,
               label: 'บุคลากรที่มีส่วนร่วม (ท่าน)',
               data: monthlyStaffCount,
-              borderColor: '#0F766E',
-              backgroundColor: 'rgba(15, 118, 110, 0.08)',
+              borderColor: '#E11D48',
+              backgroundColor: 'rgba(225, 29, 72, 0.08)',
               borderWidth: 2.5,
               tension: 0.35,
               pointRadius: 4,
               pointHoverRadius: 6,
-              pointBackgroundColor: '#0F766E',
+              pointBackgroundColor: '#E11D48',
               pointBorderColor: '#ffffff',
               pointBorderWidth: 1.5,
               yAxisID: 'y1',
@@ -410,10 +416,8 @@ export function ServiceCharts({
     }
 
     if (activePerspective === 'department') {
-      const sortedDepts = Object.values(deptMap).sort((a, b) => b.count - a.count);
-
       const openDept = (index: number) => {
-        const d = sortedDepts[index];
+        const d = deptMetrics[index];
         if (!d) return;
         const providerCount = d.staffSet.size;
         const average = providerCount > 0 ? d.count / providerCount : null;
@@ -433,12 +437,12 @@ export function ServiceCharts({
       createChart('c_sv_dept_combined', {
         type: 'bar',
         data: {
-          labels: sortedDepts.map((d) => d.code),
+          labels: deptMetrics.map((d) => d.code),
           datasets: [
             {
               type: 'bar' as const,
               label: 'จำนวนงานบริการ (กิจกรรม)',
-              data: sortedDepts.map((d) => d.count),
+              data: deptMetrics.map((d) => d.count),
               backgroundColor: '#FDE68A', // Soft Amber (Service Mission Theme)
               borderColor: '#F59E0B',
               borderWidth: 1.5,
@@ -450,7 +454,7 @@ export function ServiceCharts({
               ? {
                   type: 'line' as const,
                   label: 'บุคลากรที่พบในบันทึก (ท่าน)',
-                  data: sortedDepts.map((d) => d.staffSet.size),
+                  data: deptMetrics.map((d) => d.staffSet.size),
                   borderColor: '#E11D48', // Rose Red
                   backgroundColor: 'rgba(225, 29, 72, 0.08)',
                   borderWidth: 2.5,
@@ -466,7 +470,7 @@ export function ServiceCharts({
               : {
                   type: 'bar' as const,
                   label: 'บุคลากรที่พบในบันทึก (ท่าน)',
-                  data: sortedDepts.map((d) => d.staffSet.size),
+                  data: deptMetrics.map((d) => d.staffSet.size),
                   backgroundColor: '#FDA4AF', // Soft Rose Coral
                   borderColor: '#E11D48',
                   borderWidth: 1.5,
@@ -503,12 +507,12 @@ export function ServiceCharts({
               callbacks: {
                 title: (items: any[]) => {
                   const idx = items[0]?.dataIndex ?? -1;
-                  const d = sortedDepts[idx];
+                  const d = deptMetrics[idx];
                   return d ? `สังกัด: ${d.name} (${d.code})` : '';
                 },
                 label: (context: any) => {
                   const isStaff = context.datasetIndex === 1;
-                  const d = sortedDepts[context.dataIndex];
+                  const d = deptMetrics[context.dataIndex];
                   if (!d) return '';
                   if (isStaff) {
                     return `บุคลากรที่พบในบันทึก: ${d.staffSet.size} ท่าน`;
@@ -517,7 +521,7 @@ export function ServiceCharts({
                 },
                 afterBody: (items: any[]) => {
                   const idx = items[0]?.dataIndex ?? -1;
-                  const d = sortedDepts[idx];
+                  const d = deptMetrics[idx];
                   if (!d) return [];
                   const avg = d.staffSet.size > 0 ? (d.count / d.staffSet.size).toFixed(1) : '—';
                   return [
@@ -572,7 +576,7 @@ export function ServiceCharts({
       });
 
       // Workload per identified provider (null when no provider is known)
-      const avgPerStaffData = sortedDepts.map((d) => {
+      const avgPerStaffData = deptMetrics.map((d) => {
         if (d.staffSet.size === 0) return null;
         return Number((d.count / d.staffSet.size).toFixed(1));
       });
@@ -580,14 +584,14 @@ export function ServiceCharts({
       createChart('c_sv_dept_avg', {
         type: 'bar',
         data: {
-          labels: sortedDepts.map((d) => d.code),
+          labels: deptMetrics.map((d) => d.code),
           datasets: [
             {
               label: 'ภาระงานเฉลี่ย (งาน/ท่าน)',
               data: avgPerStaffData,
-              backgroundColor: sortedDepts.map((d) => (d.code === 'ME' ? '#FDA4AF' : '#93C5FD')),
-              borderColor: sortedDepts.map((d) => (d.code === 'ME' ? '#F43F5E' : '#3B82F6')),
-              borderWidth: 1,
+              backgroundColor: deptMetrics.map((d) => getDepartmentColor(d.code)),
+              borderColor: deptMetrics.map((d) => getDepartmentColor(d.code)),
+              borderWidth: 1.5,
               borderRadius: 6,
             },
           ],
@@ -608,9 +612,10 @@ export function ServiceCharts({
             tooltip: {
               callbacks: {
                 label: (context: any) => {
-                  const d = sortedDepts[context.dataIndex];
+                  const d = deptMetrics[context.dataIndex];
                   if (!d) return '';
                   return [
+                    `สังกัด: ${d.name} (${d.code})`,
                     `กิจกรรม: ${d.count} งาน`,
                     `บุคลากรที่พบในบันทึก: ${d.staffSet.size} ท่าน`,
                     `เฉลี่ย: ${d.staffSet.size > 0 ? `${(d.count / d.staffSet.size).toFixed(1)} งาน/ท่าน` : '—'}`,
@@ -630,7 +635,7 @@ export function ServiceCharts({
             x: {
               beginAtZero: true,
               grid: { color: CHART_PASTEL_PALETTE.gridLines },
-              title: { display: true, text: 'เฉลี่ยงานต่อบุคลากรที่พบในบันทึก' },
+              title: { display: true, text: 'เฉลี่ยงานต่อบุคลากรที่พบในบันทึก (งาน/ท่าน)' },
             },
             y: { grid: { display: false } },
           },
@@ -639,6 +644,93 @@ export function ServiceCharts({
     }
 
     if (activePerspective === 'faculty') {
+      const top10Faculty = topServiceFaculty.slice(0, 10);
+
+      createChart('c_sv_faculty_top10', {
+        type: 'bar',
+        data: {
+          labels: top10Faculty.map((f) => {
+            const clean = f.name.replace(/\r?\n/g, ' ').replace(/\s+/g, ' ');
+            return clean.length > 22 ? clean.substring(0, 20) + '...' : clean;
+          }),
+          datasets: [
+            {
+              label: 'จำนวนงานบริการ (งาน)',
+              data: top10Faculty.map((f) => f.count),
+              backgroundColor: CHART_PASTEL_PALETTE.missions.service.fill,
+              borderColor: CHART_PASTEL_PALETTE.missions.service.border,
+              borderWidth: 1.5,
+              borderRadius: 6,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          indexAxis: 'y',
+          onHover: (event: any, chartElement: any[]) => {
+            if (event.native?.target) event.native.target.style.cursor = chartElement.length > 0 ? 'pointer' : 'default';
+          },
+          onClick: (event: any, elements: any[], chart: any) => {
+            const hit = getClickedChartElement(event, elements, chart, 'y');
+            if (hit) {
+              const f = top10Faculty[hit.index];
+              if (f) {
+                if (onSelectPerson) onSelectPerson(f.name);
+                setDrillDown({
+                  isOpen: true,
+                  title: `ผู้ให้บริการวิชาการ: ${f.name}`,
+                  subtitle: `สังกัด ${f.dept} • รวม ${f.count} งาน • เครือข่ายภายนอก ${f.targets.size} แห่ง${f.hours > 0 ? ` • ชั่วโมงสะสม ${f.hours.toLocaleString('th-TH')} ชม.` : ''}`,
+                  accentColor: CHART_PASTEL_PALETTE.missions.service.border,
+                  items: f.items,
+                });
+              }
+            }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                title: (items: any[]) => {
+                  const idx = items[0]?.dataIndex ?? -1;
+                  const f = top10Faculty[idx];
+                  return f ? `ผู้ให้บริการ: ${f.name} (${f.dept})` : '';
+                },
+                label: (context: any) => {
+                  const f = top10Faculty[context.dataIndex];
+                  if (!f) return '';
+                  return [
+                    `จำนวนงานบริการ: ${f.count} งาน`,
+                    `เครือข่ายภายนอก: ${f.targets.size} แห่ง`,
+                    f.hours > 0 ? `ชั่วโมงสะสม: ${f.hours.toLocaleString('th-TH')} ชม.` : '',
+                    `คลิกที่แท่งกราฟเพื่อดูโครงการทั้งหมด`,
+                  ].filter(Boolean);
+                },
+              },
+            },
+            datalabels: {
+              anchor: 'end',
+              align: 'right',
+              color: CHART_PASTEL_PALETTE.datalabels.dark,
+              font: { weight: 'bold', size: 11 },
+              formatter: (v: number) => `${v} งาน`,
+            },
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              grace: '18%',
+              grid: { color: CHART_PASTEL_PALETTE.gridLines },
+              title: { display: true, text: 'จำนวนงาน (งาน)' },
+              ticks: { precision: 0 },
+            },
+            y: {
+              grid: { display: false },
+              ticks: { font: { size: 12 }, color: '#334155' },
+            },
+          },
+        },
+      });
       // Workload distribution donut
       createChart('c_sv_workload_tier', {
         type: 'doughnut',
@@ -726,7 +818,18 @@ export function ServiceCharts({
     return () => {
       chartInstances.current.forEach((c) => c.destroy());
     };
-  }, [validData, activePerspective, strategyMetric, workloadTiers, deptChartMode]);
+  }, [
+    validData,
+    activePerspective,
+    strategyMetric,
+    workloadTiers,
+    deptChartMode,
+    deptMetrics,
+    topServiceFaculty,
+    onSelectDept,
+    onSelectPerson,
+    onSelectType,
+  ]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '16px' }}>
@@ -735,226 +838,285 @@ export function ServiceCharts({
       {/* DIMENSION 1: Timeline & Types */}
       {activePerspective === 'timeline_type' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div className="chart-grid">
-            <div className="chart-card chart-full">
-              <h3 style={{ margin: '0 0 4px 0', fontSize: '14.5px', fontWeight: 700, color: '#1e293b' }}>
-                <FaChartLine style={{ color: '#f59e0b', marginRight: '6px' }} /> จำนวนครั้งและบุคลากรที่ให้บริการรายเดือน
-              </h3>
-              <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
-                แท่ง = จำนวนครั้ง • เส้น = บุคลากรที่มีส่วนร่วม (ท่าน) • คลิกที่กราฟเพื่อดูรายการ
-              </p>
-              <div className="chart-wrapper" style={{ height: '320px', cursor: 'pointer' }}>
-                <canvas id="c_sv_timeline" />
-              </div>
+          {validData.length === 0 ? (
+            <div
+              style={{
+                backgroundColor: '#ffffff',
+                borderRadius: '12px',
+                border: '1px solid #e2e8f0',
+                padding: '40px 20px',
+                textAlign: 'center',
+                color: '#64748b',
+                fontSize: '13px',
+              }}
+            >
+              ไม่พบข้อมูลแนวโน้มและประเภทงานบริการในช่วงเวลาที่เลือก
             </div>
-          </div>
+          ) : (
+            <>
+              <div className="chart-grid">
+                <div className="chart-card chart-full">
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '14.5px', fontWeight: 700, color: '#1e293b' }}>
+                    <FaChartLine style={{ color: '#f59e0b', marginRight: '6px' }} /> จำนวนครั้งและบุคลากรที่ให้บริการรายเดือน
+                  </h3>
+                  <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
+                    แท่ง = จำนวนครั้ง • เส้น = บุคลากรที่มีส่วนร่วม (ท่าน) • คลิกที่กราฟเพื่อดูรายการ
+                  </p>
+                  <div className="chart-wrapper" style={{ height: '320px', cursor: 'pointer' }}>
+                    <canvas id="c_sv_timeline" />
+                  </div>
+                </div>
+              </div>
 
-          <div className="chart-grid">
-            <div className="chart-card chart-full">
-              <h3 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: 700, color: '#1e293b' }}>
-                <FaChartBar style={{ color: '#0284c7', marginRight: '6px' }} /> จำนวนงานบริการวิชาการจำแนกตามลักษณะบทบาทหน้าที่
-              </h3>
-              <p style={{ margin: '0 0 14px 0', fontSize: '12px', color: '#64748b' }}>
-                จัดอันดับตามจำนวนงานจากมากไปน้อย • จำแนกตามบทบาท เช่น คณะกรรมการ วิทยากร ผู้ทรงคุณวุฒิ ที่ปรึกษา • คลิกที่แท่งกราฟเพื่อดูรายชื่อโครงการและบุคลากร
-              </p>
-              <div className="chart-wrapper" style={{ height: '390px', cursor: 'pointer' }}>
-                <canvas id="c_sv_roles" />
+              <div className="chart-grid">
+                <div className="chart-card chart-full">
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: 700, color: '#1e293b' }}>
+                    <FaChartBar style={{ color: '#0284c7', marginRight: '6px' }} /> จำนวนงานบริการวิชาการจำแนกตามลักษณะบทบาทหน้าที่
+                  </h3>
+                  <p style={{ margin: '0 0 14px 0', fontSize: '12px', color: '#64748b' }}>
+                    จัดอันดับตามจำนวนงานจากมากไปน้อย • จำแนกตามบทบาท เช่น คณะกรรมการ วิทยากร ผู้ทรงคุณวุฒิ ที่ปรึกษา • คลิกที่แท่งกราฟเพื่อดูรายชื่อโครงการและบุคลากร
+                  </p>
+                  <div className="chart-wrapper" style={{ height: '390px', cursor: 'pointer' }}>
+                    <canvas id="c_sv_roles" />
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            </>
+          )}
         </div>
       )}
 
       {/* DIMENSION 2: Department */}
       {activePerspective === 'department' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div className="chart-grid">
-            <div className="chart-card chart-full">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '8px' }}>
-                <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <FaBuilding style={{ color: '#f59e0b' }} /> เปรียบเทียบจำนวนงานบริการและบุคลากรรายสังกัด
-                </h3>
-                <div
-                  style={{
-                    display: 'inline-flex',
-                    backgroundColor: '#f1f5f9',
-                    padding: '2px',
-                    borderRadius: '8px',
-                    fontSize: '11px',
-                    fontWeight: 600,
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => setDeptChartMode('grouped')}
-                    style={{
-                      padding: '3px 8px',
-                      borderRadius: '6px',
-                      border: 'none',
-                      backgroundColor: deptChartMode === 'grouped' ? '#ffffff' : 'transparent',
-                      color: deptChartMode === 'grouped' ? '#f59e0b' : '#64748b',
-                      fontWeight: deptChartMode === 'grouped' ? 700 : 500,
-                      cursor: 'pointer',
-                      boxShadow: deptChartMode === 'grouped' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
-                    }}
-                  >
-                    แยกแท่งคู่เคียง (Grouped)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDeptChartMode('combo')}
-                    style={{
-                      padding: '3px 8px',
-                      borderRadius: '6px',
-                      border: 'none',
-                      backgroundColor: deptChartMode === 'combo' ? '#ffffff' : 'transparent',
-                      color: deptChartMode === 'combo' ? '#f59e0b' : '#64748b',
-                      fontWeight: deptChartMode === 'combo' ? 700 : 500,
-                      cursor: 'pointer',
-                      boxShadow: deptChartMode === 'combo' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
-                    }}
-                  >
-                    แท่ง + เส้นแนวโน้ม (Combo)
-                  </button>
+          {deptMetrics.length === 0 ? (
+            <div
+              style={{
+                backgroundColor: '#ffffff',
+                borderRadius: '12px',
+                border: '1px solid #e2e8f0',
+                padding: '40px 20px',
+                textAlign: 'center',
+                color: '#64748b',
+                fontSize: '13px',
+              }}
+            >
+              ไม่พบข้อมูลบริการวิชาการรายสังกัดในช่วงเวลาที่เลือก
+            </div>
+          ) : (
+            <>
+              <div className="chart-grid">
+                <div className="chart-card chart-full">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                    <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <FaBuilding style={{ color: '#f59e0b' }} /> เปรียบเทียบจำนวนงานบริการและบุคลากรรายสังกัด
+                    </h3>
+                    <div
+                      style={{
+                        display: 'inline-flex',
+                        backgroundColor: '#f1f5f9',
+                        padding: '2px',
+                        borderRadius: '8px',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                      }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setDeptChartMode('grouped')}
+                        style={{
+                          padding: '3px 8px',
+                          borderRadius: '6px',
+                          border: 'none',
+                          backgroundColor: deptChartMode === 'grouped' ? '#ffffff' : 'transparent',
+                          color: deptChartMode === 'grouped' ? '#f59e0b' : '#64748b',
+                          fontWeight: deptChartMode === 'grouped' ? 700 : 500,
+                          cursor: 'pointer',
+                          boxShadow: deptChartMode === 'grouped' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                        }}
+                      >
+                        แยกแท่งคู่เคียง (Grouped)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDeptChartMode('combo')}
+                        style={{
+                          padding: '3px 8px',
+                          borderRadius: '6px',
+                          border: 'none',
+                          backgroundColor: deptChartMode === 'combo' ? '#ffffff' : 'transparent',
+                          color: deptChartMode === 'combo' ? '#f59e0b' : '#64748b',
+                          fontWeight: deptChartMode === 'combo' ? 700 : 500,
+                          cursor: 'pointer',
+                          boxShadow: deptChartMode === 'combo' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                        }}
+                      >
+                        แท่ง + เส้นแนวโน้ม (Combo)
+                      </button>
+                    </div>
+                  </div>
+                  <p style={{ margin: '-2px 0 12px 0', fontSize: '12px', color: '#64748b' }}>
+                    เปรียบเทียบจำนวนงานบริการ (สีเหลืองอำพัน) และบุคลากรที่ให้บริการ (สีชมพู) รายสังกัด • เรียงตามจำนวนกิจกรรมจากมากไปน้อย • คลิกที่แท่งกราฟเพื่อดูรายการ
+                  </p>
+                  <div className="chart-wrapper" style={{ height: '350px', cursor: 'pointer' }}>
+                    <canvas id="c_sv_dept_combined" />
+                  </div>
                 </div>
               </div>
-              <p style={{ margin: '-2px 0 12px 0', fontSize: '12px', color: '#64748b' }}>
-                เปรียบเทียบจำนวนงานบริการ (สีเหลืองอำพัน) และบุคลากรที่ให้บริการ (สีชมพู) รายสังกัด • เรียงตามจำนวนกิจกรรมจากมากไปน้อย • คลิกที่แท่งกราฟเพื่อดูรายการ
-              </p>
-              <div className="chart-wrapper" style={{ height: '350px', cursor: 'pointer' }}>
-                <canvas id="c_sv_dept_combined" />
-              </div>
-            </div>
-          </div>
 
-          <div className="chart-grid">
-            <div className="chart-card chart-full">
-              <h3 style={{ margin: '0 0 4px 0', fontSize: '14.5px', fontWeight: 700, color: '#1e293b' }}>
-                <FaBuilding style={{ color: '#f59e0b', marginRight: '6px' }} /> ภาระงานเฉลี่ยต่อบุคลากรที่พบในบันทึก (งาน/ท่าน)
-              </h3>
-              <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
-                คำนวณจากกิจกรรม ÷ ผู้ให้บริการที่ระบุชื่อในบันทึกของแต่ละสังกัด • แสดง “—” เมื่อไม่พบผู้ให้บริการ
-              </p>
-              <div className="chart-wrapper">
-                <canvas id="c_sv_dept_avg" />
+              <div className="chart-grid">
+                <div className="chart-card chart-full">
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '14.5px', fontWeight: 700, color: '#1e293b' }}>
+                    <FaBuilding style={{ color: '#f59e0b', marginRight: '6px' }} /> ภาระงานเฉลี่ยต่อบุคลากรที่พบในบันทึก (งาน/ท่าน)
+                  </h3>
+                  <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
+                    คำนวณจากกิจกรรม ÷ ผู้ให้บริการที่ระบุชื่อในบันทึกของแต่ละสังกัด • แสดง “—” เมื่อไม่พบผู้ให้บริการ
+                  </p>
+                  <div className="chart-wrapper">
+                    <canvas id="c_sv_dept_avg" />
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            </>
+          )}
         </div>
       )}
 
       {/* DIMENSION 3: Top Service Faculty */}
       {activePerspective === 'faculty' && (
-        <div className="chart-grid">
-          <div
-            style={{
-              backgroundColor: '#ffffff',
-              borderRadius: '16px',
-              border: '1px solid #e2e8f0',
-              padding: '20px',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-            }}
-          >
-            <div style={{ marginBottom: '14px' }}>
-              <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
-                10 อันดับผู้ให้บริการสูงสุด
-              </h3>
-              <p style={{ margin: '3px 0 0 0', fontSize: '12px', color: '#64748b' }}>
-                บุคลากรที่ออกให้บริการวิชาการและเชื่อมโยงเครือข่ายภายนอกสูงสุด
-              </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {topServiceFaculty.length === 0 ? (
+            <div
+              style={{
+                backgroundColor: '#ffffff',
+                borderRadius: '12px',
+                border: '1px solid #e2e8f0',
+                padding: '40px 20px',
+                textAlign: 'center',
+                color: '#64748b',
+                fontSize: '13px',
+              }}
+            >
+              ไม่พบข้อมูลผู้ให้บริการวิชาการในช่วงเวลาที่เลือก
             </div>
+          ) : (
+            <>
+              {/* Row 1: Top 10 Faculty Bar Chart & Workload Tier Donut */}
+              <div className="chart-grid" style={{ marginBottom: 0 }}>
+                {/* 1. Bar Chart: Top 10 Service Faculty */}
+                <div className="chart-card">
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: 700, color: '#1e293b' }}>
+                    <FaUserTie style={{ color: '#f59e0b', marginRight: '6px' }} /> 10 อันดับผู้ให้บริการสูงสุด
+                  </h3>
+                  <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
+                    บุคลากรที่ออกให้บริการวิชาการสูงสุด (งาน) • คลิกที่แท่งกราฟเพื่อดูโครงการ
+                  </p>
+                  <div className="chart-wrapper" style={{ height: '300px', cursor: 'pointer' }}>
+                    <canvas id="c_sv_faculty_top10" />
+                  </div>
+                </div>
 
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px' }}>
-                <thead>
-                  <tr style={{ backgroundColor: '#f8fafc', color: '#475569', borderBottom: '2px solid #e2e8f0' }}>
-                    <th style={{ padding: '8px 10px', textAlign: 'center', width: '40px' }}>#</th>
-                    <th style={{ padding: '8px 10px', textAlign: 'left' }}>บุคลากร</th>
-                    <th style={{ padding: '8px 10px', textAlign: 'left' }}>สังกัด</th>
-                    <th style={{ padding: '8px 10px', textAlign: 'center' }}>กิจกรรม</th>
-                    <th style={{ padding: '8px 10px', textAlign: 'center' }}>เครือข่าย</th>
-                    <th style={{ padding: '8px 10px', textAlign: 'center', width: '80px' }}>แฟ้ม</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {topServiceFaculty.slice(0, 10).map((s, idx) => (
-                    <tr
-                      key={`top-fac-${s.person_id || s.name || idx}`}
-                      style={{ borderBottom: '1px solid #f1f5f9' }}
-                    >
-                      <td style={{ padding: '8px 10px', textAlign: 'center', fontWeight: 700, color: idx < 3 ? '#b45309' : '#64748b' }}>
-                        {idx + 1}
-                      </td>
-                      <td style={{ padding: '8px 10px', fontWeight: 600, color: '#0f172a' }}>
-                        {s.name}
-                      </td>
-                      <td style={{ padding: '8px 10px' }}>
-                        <DepartmentBadge value={s.dept} />
-                      </td>
-                      <td style={{ padding: '8px 10px', textAlign: 'center', fontWeight: 700 }}>
-                        <span style={{ padding: '2px 8px', borderRadius: '6px', backgroundColor: '#fffbeb', color: '#d97706' }}>
-                          {s.count} งาน
-                        </span>
-                      </td>
-                      <td style={{ padding: '8px 10px', textAlign: 'center', color: '#475569' }}>
-                        {s.targets.size} แห่ง
-                      </td>
-                      <td style={{ padding: '8px 10px', textAlign: 'center' }}>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (s.person_id) router.push(`/personnel/${s.person_id}`);
-                            else router.push(`/personnel?q=${encodeURIComponent(s.name)}`);
-                          }}
-                          style={{
-                            padding: '4px 8px',
-                            borderRadius: '6px',
-                            border: '1px solid #cbd5e1',
-                            backgroundColor: '#ffffff',
-                            color: '#b45309',
-                            fontSize: '11px',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                          }}
+                {/* 2. Donut Chart: Workload Tier Distribution */}
+                <div className="chart-card">
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: 700, color: '#1e293b' }}>
+                    <FaUsers style={{ color: '#0284c7', marginRight: '6px' }} /> การกระจายภาระงานบุคลากร
+                  </h3>
+                  <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
+                    สัดส่วนผู้ให้บริการที่พบในบันทึก ({topServiceFaculty.length} ท่าน) จำแนกตามความถี่
+                  </p>
+                  <div className="chart-wrapper" style={{ height: '300px' }}>
+                    <canvas id="c_sv_workload_tier" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Row 2: Detailed Table */}
+              <div
+                style={{
+                  backgroundColor: '#ffffff',
+                  borderRadius: '12px',
+                  border: '1px solid #e2e8f0',
+                  padding: '20px',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                }}
+              >
+                <div style={{ marginBottom: '14px' }}>
+                  <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
+                    รายละเอียด 10 อันดับผู้ให้บริการสูงสุด
+                  </h3>
+                  <p style={{ margin: '3px 0 0 0', fontSize: '12px', color: '#64748b' }}>
+                    สรุปจำนวนกิจกรรม เครือข่ายภายนอก และลิงก์เชื่อมโยงไปยังแฟ้มประวัติบุคลากร
+                  </p>
+                </div>
+
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px' }}>
+                    <thead>
+                      <tr style={{ backgroundColor: '#f8fafc', color: '#475569', borderBottom: '2px solid #e2e8f0' }}>
+                        <th style={{ padding: '8px 10px', textAlign: 'center', width: '40px' }}>#</th>
+                        <th style={{ padding: '8px 10px', textAlign: 'left' }}>บุคลากร</th>
+                        <th style={{ padding: '8px 10px', textAlign: 'left' }}>สังกัด</th>
+                        <th style={{ padding: '8px 10px', textAlign: 'center' }}>กิจกรรม</th>
+                        <th style={{ padding: '8px 10px', textAlign: 'center' }}>เครือข่าย</th>
+                        <th style={{ padding: '8px 10px', textAlign: 'center', width: '80px' }}>แฟ้ม</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {topServiceFaculty.slice(0, 10).map((s, idx) => (
+                        <tr
+                          key={`top-fac-${s.person_id || s.name || idx}`}
+                          style={{ borderBottom: '1px solid #f1f5f9' }}
                         >
-                          <span>ดู</span>
-                          <FaChevronRight style={{ fontSize: '8px' }} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div
-            style={{
-              backgroundColor: '#ffffff',
-              borderRadius: '16px',
-              border: '1px solid #e2e8f0',
-              padding: '20px',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-            }}
-          >
-            <div>
-              <h3 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
-                การกระจายภาระงานบุคลากร
-              </h3>
-              <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
-                สัดส่วนของผู้ให้บริการที่พบในบันทึก ({topServiceFaculty.length} ท่าน) — ไม่ใช่จำนวนอาจารย์ทั้งหมด
-              </p>
-            </div>
-            <div style={{ height: '280px', marginTop: '12px' }}>
-              <canvas id="c_sv_workload_tier" />
-            </div>
-          </div>
+                          <td style={{ padding: '8px 10px', textAlign: 'center', fontWeight: 700, color: idx < 3 ? '#b45309' : '#64748b' }}>
+                            {idx + 1}
+                          </td>
+                          <td style={{ padding: '8px 10px', fontWeight: 600, color: '#0f172a' }}>
+                            {s.name}
+                          </td>
+                          <td style={{ padding: '8px 10px' }}>
+                            <DepartmentBadge value={s.dept} />
+                          </td>
+                          <td style={{ padding: '8px 10px', textAlign: 'center', fontWeight: 700 }}>
+                            <span style={{ padding: '2px 8px', borderRadius: '6px', backgroundColor: '#fffbeb', color: '#d97706' }}>
+                              {s.count} งาน
+                            </span>
+                          </td>
+                          <td style={{ padding: '8px 10px', textAlign: 'center', color: '#475569' }}>
+                            {s.targets.size} แห่ง
+                          </td>
+                          <td style={{ padding: '8px 10px', textAlign: 'center' }}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (s.person_id) router.push(`/personnel/${s.person_id}`);
+                                else router.push(`/personnel?q=${encodeURIComponent(s.name)}`);
+                              }}
+                              style={{
+                                padding: '4px 8px',
+                                borderRadius: '6px',
+                                border: '1px solid #cbd5e1',
+                                backgroundColor: '#ffffff',
+                                color: '#b45309',
+                                fontSize: '11px',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                              }}
+                            >
+                              <span>ดู</span>
+                              <FaChevronRight style={{ fontSize: '8px' }} />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       )}
 
