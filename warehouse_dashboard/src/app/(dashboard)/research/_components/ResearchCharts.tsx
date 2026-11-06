@@ -428,7 +428,7 @@ export function ResearchCharts({
               font: { weight: 'bold', size: 10.5 },
               formatter: (v: number) => {
                 if (v <= 0) return '';
-                return isCount ? `${v}` : `${v.toFixed(1)}`;
+                return isCount ? `${v}` : `${v.toFixed(2)}`;
               },
             },
           },
@@ -445,7 +445,7 @@ export function ResearchCharts({
               },
               ticks: {
                 stepSize: isCount ? 1 : undefined,
-                precision: isCount ? 0 : 1,
+                precision: isCount ? 0 : 2,
               },
               grid: { color: CHART_PASTEL_PALETTE.gridLines },
             },
@@ -847,7 +847,7 @@ export function ResearchCharts({
               padding: (ctx: any) => (ctx.dataset.yAxisID === 'y1' ? { top: 2, bottom: 2, left: 4, right: 4 } : 0),
               font: { weight: 'bold', size: 10.5 },
               formatter: (v: number, ctx: any) =>
-                ctx.dataset.yAxisID === 'y1' ? `${v} โครงการ` : `${v.toFixed(1)} ลบ.`,
+                ctx.dataset.yAxisID === 'y1' ? `${v} โครงการ` : `${v.toFixed(2)} ลบ.`,
             },
           },
           scales: {

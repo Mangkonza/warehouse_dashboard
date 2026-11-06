@@ -465,7 +465,7 @@ export function AcademicCharts({
               formatter: (v: number, ctx: any) => {
                 const tier = contractSizeData[ctx.dataIndex];
                 if (v <= 0) return '';
-                return `${v} โครงการ (${(tier.total / 1000000).toFixed(1)} ลบ.)`;
+                return `${v} โครงการ (${(tier.total / 1000000).toFixed(2)} ลบ.)`;
               },
             },
           },
