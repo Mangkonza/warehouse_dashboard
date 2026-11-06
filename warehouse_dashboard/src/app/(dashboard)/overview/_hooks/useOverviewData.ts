@@ -276,7 +276,7 @@ export function useOverviewData(timeFilter: TimeFilterState) {
     const depts: Record<string, DepartmentOverviewStat> = {
       AE: { code: 'AE', name: 'วิศวกรรมเกษตร', budget: 0, researchCount: 0, academicCount: 0, academicBudget: 0, pubs: 0, services: 0, ips: 0, researchItems: [], allItems: [] },
       CPE: { code: 'CPE', name: 'วิศวกรรมคอมพิวเตอร์', budget: 0, researchCount: 0, academicCount: 0, academicBudget: 0, pubs: 0, services: 0, ips: 0, researchItems: [], allItems: [] },
-      IRE: { code: 'IRE', name: 'วิศวกรรมชลประทาน', budget: 0, researchCount: 0, academicCount: 0, academicBudget: 0, pubs: 0, services: 0, ips: 0, researchItems: [], allItems: [] },
+      IRRE: { code: 'IRRE', name: 'วิศวกรรมชลประทาน', budget: 0, researchCount: 0, academicCount: 0, academicBudget: 0, pubs: 0, services: 0, ips: 0, researchItems: [], allItems: [] },
       FE: { code: 'FE', name: 'วิศวกรรมอาหาร', budget: 0, researchCount: 0, academicCount: 0, academicBudget: 0, pubs: 0, services: 0, ips: 0, researchItems: [], allItems: [] },
       IE: { code: 'IE', name: 'วิศวกรรมอุตสาหการ', budget: 0, researchCount: 0, academicCount: 0, academicBudget: 0, pubs: 0, services: 0, ips: 0, researchItems: [], allItems: [] },
       ME: { code: 'ME', name: 'วิศวกรรมเครื่องกล', budget: 0, researchCount: 0, academicCount: 0, academicBudget: 0, pubs: 0, services: 0, ips: 0, researchItems: [], allItems: [] },

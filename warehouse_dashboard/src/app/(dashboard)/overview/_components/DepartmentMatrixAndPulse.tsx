@@ -31,7 +31,7 @@ export function DepartmentMatrixAndPulse({
   const [hideServices, setHideServices] = useState(false);
   const chartInstances = useRef<Chart[]>([]);
 
-  const DEPTS = ['IRE', 'FE', 'IE', 'ME', 'CE', 'CPE', 'AE'];
+  const DEPTS = ['IRRE', 'FE', 'IE', 'ME', 'CE', 'CPE', 'AE'];
   const THAI_MONTHS = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
 
   // Helper to get month index 0..11

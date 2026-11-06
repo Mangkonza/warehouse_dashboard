@@ -117,8 +117,8 @@ export function IPCharts({
     };
 
     if (activePerspective === 'types_dept') {
-      // 1. 7-Department Stacked Bar Chart (AE, ME, FE, CE, IRE, CPE, IE)
-      const ALL_DEPTS = ['AE', 'ME', 'FE', 'CE', 'IRE', 'CPE', 'IE'];
+      // 1. 7-Department Stacked Bar Chart (AE, ME, FE, CE, IRRE, CPE, IE)
+      const ALL_DEPTS = ['AE', 'ME', 'FE', 'CE', 'IRRE', 'CPE', 'IE'];
       const deptGranted = Array(7).fill(0);
       const deptPending = Array(7).fill(0);
       const deptInPrep = Array(7).fill(0);
@@ -151,7 +151,7 @@ export function IPCharts({
               (code === 'ME' && allDeptStrings.includes('เครื่องกล')) ||
               (code === 'FE' && allDeptStrings.includes('อาหาร')) ||
               (code === 'CE' && allDeptStrings.includes('โยธา')) ||
-              (code === 'IRE' && allDeptStrings.includes('ชลประทาน')) ||
+              ((code === 'IRRE' || code === 'IRE') && allDeptStrings.includes('ชลประทาน')) ||
               (code === 'CPE' && allDeptStrings.includes('คอมพิวเตอร์')) ||
               (code === 'IE' && allDeptStrings.includes('อุตสาหการ'))) {
             if (item._pipelineStage === 'granted') deptGranted[idx]++;

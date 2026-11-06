@@ -15,7 +15,7 @@ export interface DepartmentInfo {
 export const CANONICAL_DEPARTMENTS: DepartmentInfo[] = [
   { code: 'AE', name: 'วิศวกรรมเกษตร', abbrTh: 'วศ.กษ.' },
   { code: 'CPE', name: 'วิศวกรรมคอมพิวเตอร์', abbrTh: 'วศ.คพ.' },
-  { code: 'IRE', name: 'วิศวกรรมชลประทาน', abbrTh: 'วศ.ชป.' },
+  { code: 'IRRE', name: 'วิศวกรรมชลประทาน', abbrTh: 'วศ.ชป.' },
   { code: 'FE',  name: 'วิศวกรรมอาหาร', abbrTh: 'วศ.อห.' },
   { code: 'IE',  name: 'วิศวกรรมอุตสาหการ', abbrTh: 'วศ.อหก.' },
   { code: 'ME',  name: 'วิศวกรรมเครื่องกล', abbrTh: 'วศ.คก.' },

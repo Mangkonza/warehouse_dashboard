@@ -17,7 +17,7 @@ export function normalizeDepartmentName(raw?: string): string {
   
   if (clean.includes('เกษตร') || clean.includes('ABE')) return 'ภาควิชาวิศวกรรมเกษตร';
   if (clean.includes('คอมพิวเตอร์') || clean.includes('CPE')) return 'ภาควิชาวิศวกรรมคอมพิวเตอร์';
-  if (clean.includes('ชลประทาน') || clean.includes('IRE')) return 'ภาควิชาวิศวกรรมชลประทาน';
+  if (clean.includes('ชลประทาน') || clean.includes('IRRE') || clean.includes('IRE')) return 'ภาควิชาวิศวกรรมชลประทาน';
   if (clean.includes('อาหาร') || clean.includes('FE')) return 'ภาควิชาวิศวกรรมอาหาร';
   if (clean.includes('อุตสาหการ') || clean.includes('IE')) return 'ภาควิชาวิศวกรรมอุตสาหการ';
   if (clean.includes('เครื่องกล') || clean.includes('ME')) return 'ภาควิชาวิศวกรรมเครื่องกล';
@@ -39,8 +39,8 @@ export const DEPARTMENT_ABBR_MAP: Record<string, string> = {
   'วิศวกรรมเกษตร': 'AE',
   'ภาควิชาวิศวกรรมคอมพิวเตอร์': 'CPE',
   'วิศวกรรมคอมพิวเตอร์': 'CPE',
-  'ภาควิชาวิศวกรรมชลประทาน': 'IRE',
-  'วิศวกรรมชลประทาน': 'IRE',
+  'ภาควิชาวิศวกรรมชลประทาน': 'IRRE',
+  'วิศวกรรมชลประทาน': 'IRRE',
   'ภาควิชาวิศวกรรมอาหาร': 'FE',
   'ภาควิชาวิศวกรรมการอาหาร': 'FE',
   'วิศวกรรมอาหาร': 'FE',
@@ -52,7 +52,7 @@ export const DEPARTMENT_ABBR_MAP: Record<string, string> = {
   'ภาควิชาวิศวกรรมโยธา': 'CE',
   'วิศวกรรมโยธา': 'CE',
   'ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม': 'EEEC',
-  'ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร': 'DWT',
+  'ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร': 'TDWCB',
   'ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ': 'NAMC',
   'สำนักงานเลขานุการ': 'OFS',
 };

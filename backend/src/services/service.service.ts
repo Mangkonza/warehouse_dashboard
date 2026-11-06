@@ -20,9 +20,9 @@ const DEPT_MAP: Record<string, string> = {
   'อาหาร': 'FE',
   'อุตสาหการ': 'IE',
   'เครื่องกล': 'ME',
-  'ชลประทาน': 'IRE',
-  'ทรัพยากรน้ำ': 'IRE',
-  'ประตู': 'DWT',
+  'ชลประทาน': 'IRRE',
+  'ทรัพยากรน้ำ': 'IRRE',
+  'ประตู': 'TDWCB',
   'เกษตร': 'NAMC',
   'สำนักงาน': 'OFS',
 };
@@ -30,7 +30,7 @@ const DEPT_MAP: Record<string, string> = {
 function resolveDeptCode(input?: string): string | null {
   if (!input) return null;
   const s = input.trim();
-  const validCodes = ['AE', 'CE', 'CPE', 'DWT', 'EEEC', 'FE', 'IE', 'IRE', 'ME', 'NAMC', 'OFS', 'OTH'];
+  const validCodes = ['AE', 'CE', 'CPE', 'DWT', 'EEEC', 'FE', 'IE', 'IRE', 'IRRE', 'ME', 'NAMC', 'OFS', 'OTH', 'TDWCB'];
   if (validCodes.includes(s.toUpperCase())) return s.toUpperCase();
   for (const [kw, code] of Object.entries(DEPT_MAP)) {
     if (s.includes(kw)) return code;

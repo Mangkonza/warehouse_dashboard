@@ -179,8 +179,21 @@ export function resolveItemDate(item: any, category?: string): Date | null {
   if (!item || typeof item !== 'object') return null;
   const fields = (category && CATEGORY_DATE_FIELDS[category]) || DATE_FIELDS;
   for (const key of fields) {
-    const d = parseDateValue(item[key], key);
+    const val = item[key];
+    const strVal = String(val || '').trim();
+    if (/^\d+\s*เดือน/.test(strVal)) continue;
+    const d = parseDateValue(val, key);
     if (d) return d;
+  }
+  // Fallback to fiscal_year or year in id
+  if (item.fiscal_year && /^\d{4}$/.test(String(item.fiscal_year).trim())) {
+    const y = normaliseYear(parseInt(String(item.fiscal_year).trim(), 10));
+    return new Date(y, 0, 1);
+  }
+  const idMatch = String(item.id || item._id || '').match(/(25\d{2}|20\d{2})/);
+  if (idMatch) {
+    const y = normaliseYear(parseInt(idMatch[1], 10));
+    return new Date(y, 0, 1);
   }
   return null;
 }

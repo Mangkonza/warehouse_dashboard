@@ -100,7 +100,7 @@ export function useIPData(timeFilter?: TimeFilterState) {
 
   const availableDepts = useMemo(() => {
     // Return all 7 engineering departments to show complete picture
-    return ['AE', 'ME', 'FE', 'CE', 'IRE', 'CPE', 'IE'];
+    return ['AE', 'ME', 'FE', 'CE', 'IRRE', 'CPE', 'IE'];
   }, []);
 
   const filteredIpData = useMemo(() => {

@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import { FaFilter, FaUndoAlt, FaInfoCircle, FaCheck } from 'react-icons/fa';
 import { DrillDownProjectDrawer } from '@/components/data-display/DrillDownProjectDrawer';
 import { CategoryKey } from '@/types/dataManagement';
-import { getCachedCategoryData } from '@/lib/dataService';
+import { getCachedCategoryData, getCachedEvaluations } from '@/lib/dataService';
 
 const MONTH_NAMES = [
   'ม.ค.',
@@ -180,13 +180,22 @@ export function SdgsDashboardView({
         }
       }
 
-      const filtered = allItems.filter((item) => {
-        const sdgs: any =
-          item.evaluation?.sdg_ids ||
+      const cachedEvals = getCachedEvaluations();
+      const extractSdgs = (item: any) => {
+        const cat = (item._category || activeCategory || '').toLowerCase();
+        const recId = String(item.id || item._id || item.name || '').trim();
+        const ev = item.evaluation || cachedEvals[`${cat}_${recId}`] || (item._id ? cachedEvals[`${cat}_${String(item._id).trim()}`] : null);
+        return (
+          ev?.sdg_ids ||
           item.sdg_ids ||
-          item.evaluation?.sdgs ||
+          ev?.sdgs ||
           item.sdgs ||
-          (item.sdg_code ? [item.sdg_code] : null);
+          (item.sdg_code ? [item.sdg_code] : null)
+        );
+      };
+
+      const matchSdg = (item: any) => {
+        const sdgs: any = extractSdgs(item);
         if (!sdgs) return false;
         if (Array.isArray(sdgs)) {
           return sdgs.some((s) => {
@@ -196,7 +205,27 @@ export function SdgsDashboardView({
         }
         const nums = String(sdgs).match(/\d+/g);
         return nums ? nums.some((n) => Number(n) === sdgNum) : false;
-      });
+      };
+
+      let filtered = allItems.filter(matchSdg);
+
+      // Fallback: If embeddedItems was heavily filtered (e.g. by fiscal year), but user wants to view the SDG projects,
+      // load all items for this category so matching projects are never hidden from the drawer
+      if (filtered.length === 0 && embeddedItems && embeddedItems.length > 0) {
+        const fallbackItems: any[] = [];
+        const cats = activeCategory === 'all' ? ['research', 'academic', 'publications', 'ip', 'service'] : [activeCategory];
+        for (const cat of cats) {
+          const local = getCachedCategoryData(cat);
+          if (local && local.length > 0) {
+            local.forEach((it: any) => fallbackItems.push({ ...it, _category: cat }));
+          }
+        }
+        const fallbackFiltered = fallbackItems.filter(matchSdg);
+        if (fallbackFiltered.length > 0) {
+          filtered = fallbackFiltered;
+        }
+      }
+
       setDrawerItems(filtered);
     } catch (e) {
       console.error('Error fetching drawer items:', e);
@@ -987,10 +1016,7 @@ export function SdgsDashboardView({
             </div>
           </div>
 
-          {/* Bottom Footnote */}
-          <div className="pt-2 text-xs text-slate-500 leading-relaxed font-normal">
-            * ข้อมูลในหน้านี้เป็นข้อมูลจริงจากฐานข้อมูล โครงการ 1 โครงการอาจถูกประเมินสอดคล้องมากกว่า 1 SDG จึงไม่ควรนำผลรวมรายข้อมาเทียบกับจำนวนโครงการจริง
-          </div>
+          
         </>
       )}
 
