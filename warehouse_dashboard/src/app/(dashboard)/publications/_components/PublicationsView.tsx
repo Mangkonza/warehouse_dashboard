@@ -73,8 +73,10 @@ export function PublicationsView() {
 
   // Synchronize tabFilter to usePublicationsData internal states
   useEffect(() => {
-    setSelectedDept(tabFilter.department || 'all');
-  }, [tabFilter.department, setSelectedDept]);
+    if (tabFilter.department && tabFilter.department !== 'all') {
+      setTabFilter({ department: 'all' });
+    }
+  }, [tabFilter.department, setTabFilter]);
 
   useEffect(() => {
     setFiscalYearFilter(tabFilter.fiscalYear || 'all');
@@ -139,9 +141,10 @@ export function PublicationsView() {
         onFilterChange={setTabFilter}
         onReset={resetTabFilter}
         showFiscalYear={true}
-        showDepartment={true}
-        showStrategic={true}
+        showDepartment={false}
+        showStrategic={false}
         showDetailedTime={true}
+        detailedTimeLabel="เลือกช่วงเวลา"
         onOpenDetailedTime={() => setIsTimeModalOpen(true)}
         style={{
           position: 'static',
@@ -150,79 +153,7 @@ export function PublicationsView() {
           borderRadius: `${dashboardTheme.radius.card}px`,
           boxShadow: 'none',
         }}
-      >
-        {/* Database Tier Dropdown */}
-        <select
-          value={levelFilter}
-          onChange={(e) => {
-            const val = e.target.value;
-            setLevelFilter(val);
-            setTabFilter({
-              customFilters: {
-                ...(tabFilter.customFilters || {}),
-                levelFilter: val,
-              },
-            });
-          }}
-          style={{
-            padding: '5px 10px',
-            borderRadius: '8px',
-            border: '1px solid #cbd5e1',
-            backgroundColor: '#ffffff',
-            fontSize: '12px',
-            color: '#334155',
-            fontWeight: 500,
-            cursor: 'pointer',
-            outline: 'none',
-            height: '32px',
-            boxSizing: 'border-box',
-          }}
-          aria-label="ระดับคุณภาพวารสาร"
-        >
-          <option value="all">ทุกระดับคุณภาพวารสาร</option>
-          <option value="Q1">นานาชาติ Q1</option>
-          <option value="Q2">นานาชาติ Q2</option>
-          <option value="Q3">นานาชาติ Q3</option>
-          <option value="Q4">นานาชาติ Q4</option>
-          <option value="TCI 1">ระดับชาติ TCI กลุ่ม 1</option>
-          <option value="TCI 2">ระดับชาติ TCI กลุ่ม 2</option>
-          {confCount > 0 && <option value="conf">บทความประชุมวิชาการ</option>}
-          {otherCount > 0 && <option value="other">อื่นๆ</option>}
-        </select>
-
-        {/* Status Dropdown */}
-        <select
-          value={statusFilter}
-          onChange={(e) => {
-            const val = e.target.value;
-            setStatusFilter(val);
-            setTabFilter({
-              customFilters: {
-                ...(tabFilter.customFilters || {}),
-                statusFilter: val,
-              },
-            });
-          }}
-          style={{
-            padding: '5px 10px',
-            borderRadius: '8px',
-            border: '1px solid #cbd5e1',
-            backgroundColor: '#ffffff',
-            fontSize: '12px',
-            color: '#334155',
-            fontWeight: 500,
-            cursor: 'pointer',
-            outline: 'none',
-            height: '32px',
-            boxSizing: 'border-box',
-          }}
-          aria-label="สถานะการตีพิมพ์"
-        >
-          <option value="all">ทุกสถานะการตีพิมพ์</option>
-          <option value="published">ตีพิมพ์แล้ว</option>
-          <option value="prep">อยู่ระหว่างเตรียมความพร้อม</option>
-        </select>
-      </DashboardTabFilterBar>
+      />
 
       {undatedCount > 0 && <UndatedNotice count={undatedCount} />}
 
@@ -322,7 +253,6 @@ export function PublicationsView() {
             onSelectDept={(dept) => {
               const nextDept = dept === selectedDept ? 'all' : dept;
               setSelectedDept(nextDept);
-              setTabFilter({ department: nextDept });
             }}
             onSelectLevel={(lvl) => {
               const nextLvl = lvl === levelFilter ? 'all' : lvl;

@@ -59,8 +59,10 @@ export function IPView() {
 
   // Synchronize tabFilter to useIPData internal states
   useEffect(() => {
-    setDeptFilter(tabFilter.department || 'all');
-  }, [tabFilter.department, setDeptFilter]);
+    if (tabFilter.department && tabFilter.department !== 'all') {
+      setTabFilter({ department: 'all' });
+    }
+  }, [tabFilter.department, setTabFilter]);
 
   useEffect(() => {
     setFiscalYearFilter(tabFilter.fiscalYear || 'all');
@@ -121,75 +123,19 @@ export function IPView() {
         onFilterChange={setTabFilter}
         onReset={resetTabFilter}
         showFiscalYear={true}
-        showDepartment={true}
-        showStrategic={true}
+        showDepartment={false}
+        showStrategic={false}
         showDetailedTime={true}
+        detailedTimeLabel="เลือกช่วงเวลา"
         onOpenDetailedTime={() => setIsTimeModalOpen(true)}
-        style={{ position: 'static', backdropFilter: 'none', backgroundColor: dashboardTheme.colors.surface, borderRadius: `${dashboardTheme.radius.card}px`, boxShadow: 'none' }}
-      >
-        {/* Pipeline Status Dropdown */}
-        <select
-          value={pipelineFilter}
-          onChange={(e) => {
-            const val = e.target.value;
-            setPipelineFilter(val as any);
-            setTabFilter({
-              customFilters: {
-                ...(tabFilter.customFilters || {}),
-                pipelineFilter: val,
-              },
-            });
-          }}
-          style={{
-            padding: '6px 12px',
-            borderRadius: '8px',
-            border: '1px solid #cbd5e1',
-            backgroundColor: '#ffffff',
-            fontSize: '12px',
-            color: '#334155',
-            cursor: 'pointer',
-            fontWeight: 500,
-            outline: 'none',
-          }}
-          aria-label="เลือกสถานะคำขอสิทธิบัตร"
-        >
-          <option value="all">ทุกสถานะคำขอ</option>
-          <option value="granted">คุ้มครองแล้ว</option>
-          <option value="pending">ยื่นคำขอแล้ว</option>
-          <option value="in_prep">เตรียมยื่นจด</option>
-        </select>
-
-        {/* IP Type Select */}
-        <select
-          value={typeFilter}
-          onChange={(e) => {
-            const val = e.target.value;
-            setTypeFilter(val);
-            setTabFilter({
-              customFilters: {
-                ...(tabFilter.customFilters || {}),
-                typeFilter: val,
-              },
-            });
-          }}
-          style={{
-            padding: '6px 12px',
-            borderRadius: '8px',
-            border: '1px solid #cbd5e1',
-            backgroundColor: '#ffffff',
-            fontSize: '12px',
-            color: '#334155',
-            cursor: 'pointer',
-            fontWeight: 500,
-            outline: 'none',
-          }}
-          aria-label="เลือกประเภททรัพย์สินทางปัญญา"
-        >
-          <option value="all">ทุกประเภททรัพย์สินทางปัญญา</option>
-          <option value="อนุสิทธิบัตร">อนุสิทธิบัตร</option>
-          <option value="สิทธิบัตรการประดิษฐ์">สิทธิบัตรการประดิษฐ์</option>
-        </select>
-      </DashboardTabFilterBar>
+        style={{
+          position: 'static',
+          backdropFilter: 'none',
+          backgroundColor: dashboardTheme.colors.surface,
+          borderRadius: `${dashboardTheme.radius.card}px`,
+          boxShadow: 'none',
+        }}
+      />
 
       {undatedCount > 0 && <UndatedNotice count={undatedCount} />}
 
@@ -289,7 +235,6 @@ export function IPView() {
             onSelectDept={(dept) => {
               const nextDept = dept === deptFilter ? 'all' : dept;
               setDeptFilter(nextDept);
-              setTabFilter({ department: nextDept });
             }}
             onSelectType={(type) => {
               const nextType = type === typeFilter ? 'all' : type;

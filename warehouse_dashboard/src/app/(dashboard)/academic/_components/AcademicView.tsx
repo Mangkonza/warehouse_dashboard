@@ -67,8 +67,10 @@ export function AcademicView() {
 
   // Synchronize tabFilter to useAcademicData internal states
   useEffect(() => {
-    setSelectedDept(tabFilter.department || 'all');
-  }, [tabFilter.department, setSelectedDept]);
+    if (tabFilter.department && tabFilter.department !== 'all') {
+      setTabFilter({ department: 'all' });
+    }
+  }, [tabFilter.department, setTabFilter]);
 
   useEffect(() => {
     setSelectedMonth(tabFilter.customFilters?.selectedMonth || 'all');
@@ -138,9 +140,10 @@ export function AcademicView() {
         onFilterChange={setTabFilter}
         onReset={resetTabFilter}
         showFiscalYear={true}
-        showDepartment={true}
-        showStrategic={true}
+        showDepartment={false}
+        showStrategic={false}
         showDetailedTime={true}
+        detailedTimeLabel="เลือกช่วงเวลา"
         onOpenDetailedTime={() => setIsTimeModalOpen(true)}
         style={{
           position: 'static',
@@ -149,79 +152,7 @@ export function AcademicView() {
           borderRadius: `${dashboardTheme.radius.card}px`,
           boxShadow: 'none',
         }}
-      >
-        {/* Month Filter */}
-        <select
-          value={selectedMonth}
-          onChange={(e) => {
-            const val = e.target.value;
-            setSelectedMonth(val);
-            setTabFilter({
-              customFilters: {
-                ...(tabFilter.customFilters || {}),
-                selectedMonth: val,
-              },
-            });
-          }}
-          style={{
-            padding: '5px 10px',
-            borderRadius: '9px',
-            border: '1px solid #e2e8f0',
-            backgroundColor: '#ffffff',
-            fontSize: '12px',
-            color: '#334155',
-            cursor: 'pointer',
-            outline: 'none',
-            height: '32px',
-            boxSizing: 'border-box',
-          }}
-          aria-label="เลือกเดือนดำเนินงาน"
-        >
-          <option value="all">ทุกเดือน (ม.ค. - ธ.ค.)</option>
-          {MONTHS.map((m) => (
-            <option key={m} value={m}>
-              เดือน {m}
-            </option>
-          ))}
-          <option value="ไม่ระบุ">ไม่ระบุเดือน</option>
-        </select>
-
-        {/* Checkbox: Hide missing client */}
-        <label
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            fontSize: '12px',
-            color: '#475569',
-            cursor: 'pointer',
-            userSelect: 'none',
-            padding: '4px 8px',
-            borderRadius: '8px',
-            backgroundColor: hideMissingClient ? '#f0f9ff' : 'transparent',
-            border: hideMissingClient ? '1px solid #bae6fd' : '1px solid transparent',
-            height: '32px',
-            boxSizing: 'border-box',
-          }}
-        >
-          <input
-            type="checkbox"
-            checked={hideMissingClient}
-            onChange={(e) => {
-              const checked = e.target.checked;
-              setHideMissingClient(checked);
-              setTabFilter({
-                customFilters: {
-                  ...(tabFilter.customFilters || {}),
-                  hideMissingClient: checked,
-                },
-              });
-            }}
-            style={{ cursor: 'pointer', accentColor: '#0ea5e9' }}
-          />
-          <span>ซ่อนไม่ระบุลูกค้า</span>
-        </label>
-      </DashboardTabFilterBar>
+      />
 
       {undatedCount > 0 && <UndatedNotice count={undatedCount} />}
 
