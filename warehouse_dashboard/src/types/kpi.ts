@@ -190,7 +190,7 @@ export interface KPIComputedResult {
   textsByRound?: Record<string, string>;         // ข้อความแสดงผลรายรอบการรายงานผล
   targetValue: number;           // เป้าหมาย
   percentage: number;            // % ความสำเร็จ
-  status: 'achieved' | 'on_track' | 'at_risk' | 'behind'; // สถานะความสำเร็จ
+  status: 'achieved' | 'in_progress' | 'on_track' | 'at_risk' | 'behind'; // สถานะความสำเร็จ (3 ระดับหลัก: achieved, in_progress, behind)
   statusLabel: string;           // ป้ายกำกับสถานะภาษาไทย
   statusColor: string;           // สีสถานะ
   variance: number;              // ผลต่าง (current - target)

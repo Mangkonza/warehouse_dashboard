@@ -12,9 +12,11 @@ import {
 import {
   getKPIById,
   updateKPI,
+  syncRoundReportToBackend,
   getStoredReportingRounds,
   formatRoundDateRange,
   evaluateKPI,
+  getProjectKey,
   includeProjectInKPI,
   excludeProjectFromKPI,
 } from '@/lib/kpiEngine';
@@ -170,7 +172,7 @@ export function StrategicKpiRoundReportView({
       };
     });
     setSubDrafts(nextSubDrafts);
-  }, [kpi, selectedRoundId]);
+  }, [kpi?.id, selectedRoundId]);
 
   const activeRound = useMemo(
     () => rounds.find((r) => r.id === selectedRoundId) || rounds[0],
@@ -253,7 +255,12 @@ export function StrategicKpiRoundReportView({
     const updated = includeProjectInKPI(kpi.id, projId);
     if (updated) {
       setKpi(updated);
-      if (showToast) showToast('ผูกโครงการเข้ากับตัวชี้วัดเรียบร้อยแล้ว', 'success');
+      if (showToast) {
+        showToast('ผูกโครงการเข้ากับตัวชี้วัดเรียบร้อยแล้ว', 'success');
+      } else {
+        setToastMessage('ผูกโครงการเข้ากับตัวชี้วัดเรียบร้อยแล้ว');
+        setTimeout(() => setToastMessage(null), 3000);
+      }
       if (onSaved) onSaved();
     }
   };
@@ -263,7 +270,12 @@ export function StrategicKpiRoundReportView({
     const updated = excludeProjectFromKPI(kpi.id, projId);
     if (updated) {
       setKpi(updated);
-      if (showToast) showToast('นำโครงการออกจากตัวชี้วัดเรียบร้อยแล้ว', 'warning');
+      if (showToast) {
+        showToast('นำโครงการออกจากตัวชี้วัดเรียบร้อยแล้ว', 'warning');
+      } else {
+        setToastMessage('นำโครงการออกจากตัวชี้วัดเรียบร้อยแล้ว');
+        setTimeout(() => setToastMessage(null), 3000);
+      }
       if (onSaved) onSaved();
     }
   };
@@ -272,11 +284,18 @@ export function StrategicKpiRoundReportView({
     const matched = evaluation?.matchedProjects || [];
     if (matched.length === 0) return;
     setMainActualVal(String(matched.length));
-    const lines = matched.map(
-      (p: any, idx: number) =>
-        `${idx + 1}. ${p.name || p.title}${p.leader || p.author ? ` (${p.leader || p.author})` : ''}`
-    );
+    const lines = matched.map((p: any, idx: number) => {
+      const owner = p.leader || p.head || p.author || p.creator || p.department || '';
+      return `${idx + 1}. ${p.name || p.title}${owner ? ` (${owner})` : ''}`;
+    });
     setRoundRemarks(lines.join('\n'));
+    const msg = `ดึงจำนวน (${matched.length} รายการ) และรายชื่อโครงการใส่ผลรายงานเรียบร้อยแล้ว`;
+    if (showToast) {
+      showToast(msg, 'success');
+    } else {
+      setToastMessage(msg);
+      setTimeout(() => setToastMessage(null), 3000);
+    }
   };
 
   const handleClose = () => {
@@ -290,10 +309,15 @@ export function StrategicKpiRoundReportView({
   const handleSaveRoundReport = (status: 'draft' | 'submitted') => {
     if (!kpi || !selectedRoundId) return;
 
+    const matched = evaluation?.matchedProjects || [];
     const effectiveNum =
       mainActualVal.trim() !== '' && !isNaN(Number(mainActualVal))
         ? Number(mainActualVal)
-        : formulaComputedPreview?.value ?? null;
+        : formulaComputedPreview?.value !== undefined && formulaComputedPreview?.value !== null
+        ? formulaComputedPreview.value
+        : matched.length > 0 && (kpi.subIndicators || []).length === 0
+        ? matched.length
+        : null;
 
     const existingEntries = (kpi.resultsByRound || []).filter((r) => r.roundId !== selectedRoundId);
     const updatedRoundResults: KPIRoundResultEntry[] = [
@@ -345,6 +369,22 @@ export function StrategicKpiRoundReportView({
     };
 
     updateKPI(updatedKpi);
+    syncRoundReportToBackend(kpi.id, {
+      roundId: selectedRoundId,
+      actualValue: effectiveNum,
+      actualText: mainActualText.trim() || undefined,
+      evidence: roundEvidence.trim() || undefined,
+      remarks: roundRemarks.trim() || undefined,
+      reporter: kpi.reporter,
+      status,
+      subDrafts: (kpi.subIndicators || []).map((sub, idx) => ({
+        subIndicatorId: sub.id,
+        actualValue: subDrafts[idx]?.val && !isNaN(Number(subDrafts[idx]?.val)) ? Number(subDrafts[idx]?.val) : null,
+        actualText: subDrafts[idx]?.val,
+        evidence: subDrafts[idx]?.evidence,
+        remarks: subDrafts[idx]?.remarks,
+      })),
+    });
     setKpi(updatedKpi);
 
     const msg =
@@ -1001,11 +1041,18 @@ export function StrategicKpiRoundReportView({
                         if (!mappingSearch.trim()) return true;
                         const q = mappingSearch.toLowerCase();
                         const name = (p.name || p.title || '').toLowerCase();
-                        const leader = (p.leader || p.author || p.creator || '').toLowerCase();
-                        return name.includes(q) || leader.includes(q);
+                        const owner = (
+                          p.leader ||
+                          p.head ||
+                          p.author ||
+                          p.creator ||
+                          p.department ||
+                          ''
+                        ).toLowerCase();
+                        return name.includes(q) || owner.includes(q);
                       })
                       .map((proj: any, idx: number) => {
-                        const projId = String(proj.id || proj.code || `idx-${idx}`);
+                        const projId = getProjectKey(proj, idx);
                         const isManuallyAdded = (kpi.manualIncludedProjectIds || []).includes(
                           projId
                         );
@@ -1037,6 +1084,7 @@ export function StrategicKpiRoundReportView({
                               </div>
                               <div className="text-[11px] text-slate-500 truncate">
                                 {proj.leader ||
+                                  proj.head ||
                                   proj.author ||
                                   proj.creator ||
                                   proj.department ||
@@ -1076,14 +1124,21 @@ export function StrategicKpiRoundReportView({
                         if (!mappingSearch.trim()) return true;
                         const q = mappingSearch.toLowerCase();
                         const name = (p.name || p.title || '').toLowerCase();
-                        const leader = (p.leader || p.author || p.creator || '').toLowerCase();
-                        return name.includes(q) || leader.includes(q);
+                        const owner = (
+                          p.leader ||
+                          p.head ||
+                          p.author ||
+                          p.creator ||
+                          p.department ||
+                          ''
+                        ).toLowerCase();
+                        return name.includes(q) || owner.includes(q);
                       })
                       .slice(0, 35)
                       .map((proj: any, idx: number) => {
-                        const projId = String(proj.id || proj.code || `idx-${idx}`);
+                        const projId = getProjectKey(proj, idx);
                         const isAlreadyMatched = (evaluation?.matchedProjects || []).some(
-                          (m: any) => String(m.id || m.code || '') === projId
+                          (m: any, mIdx: number) => getProjectKey(m, mIdx) === projId
                         );
 
                         return (
@@ -1096,7 +1151,7 @@ export function StrategicKpiRoundReportView({
                                 {proj.name || proj.title}
                               </div>
                               <div className="text-[11px] text-slate-500 truncate">
-                                {proj.leader || proj.author || proj.creator || proj.department}
+                                {proj.leader || proj.head || proj.author || proj.creator || proj.department}
                               </div>
                             </div>
 

@@ -13,7 +13,7 @@ import {
   ENGINEERING_DEPARTMENTS,
   STRATEGIC_PILLARS,
   COLLECTION_PERIOD_OPTIONS,
-  getStrategicPillar,
+  StrategicPillarOption,
 } from '../config/kpiConfig';
 import { isTestRecord } from './sdgEngine';
 
@@ -22,14 +22,46 @@ export {
   ENGINEERING_DEPARTMENTS,
   STRATEGIC_PILLARS,
   COLLECTION_PERIOD_OPTIONS,
-  getStrategicPillar,
 };
 
 const STORAGE_KEY = 'ku_warehouse_dynamic_kpis_v4';
+const KPI_DB_SYNCED_KEY = 'ku_warehouse_kpi_db_synced_v1';
 const STRATEGIES_STORAGE_KEY = 'ku_warehouse_strategic_strategies_v1';
 const PLANS_STORAGE_KEY = 'ku_warehouse_strategic_plans_v1';
+const HIERARCHY_DB_SYNCED_KEY = 'ku_warehouse_hierarchy_db_synced_v1';
 const ROUNDS_STORAGE_KEY = 'ku_warehouse_kpi_reporting_rounds_v1';
 const LOOKUPS_STORAGE_KEY = 'ku_warehouse_kpi_lookup_options_v1';
+
+const STRATEGY_COLOR_MAP: Record<string, { bg: string; border: string; text: string }> = {
+  '1.1': { bg: '#eff6ff', border: '#bfdbfe', text: '#1d4ed8' },
+  '1.2': { bg: '#eef2ff', border: '#c7d2fe', text: '#4338ca' },
+  '1.3': { bg: '#f5f3ff', border: '#ddd6fe', text: '#6d28d9' },
+  '2.1': { bg: '#ecfdf5', border: '#a7f3d0', text: '#047857' },
+  '2.2': { bg: '#f0f9ff', border: '#bae6fd', text: '#0369a1' },
+  '2.3': { bg: '#fffbeb', border: '#fde68a', text: '#b45309' },
+  '3.1': { bg: '#f0fdf4', border: '#bbf7d0', text: '#15803d' },
+  '3.2': { bg: '#fdf2f8', border: '#fbcfe8', text: '#be185d' },
+  '4.1': { bg: '#fff7ed', border: '#fed7aa', text: '#c2410c' },
+};
+
+const EXTRA_STRATEGY_COLORS = [
+  { bg: '#ecfeff', border: '#a5f3fc', text: '#0e7490' },
+  { bg: '#faf5ff', border: '#e9d5ff', text: '#7e22ce' },
+  { bg: '#f0fdf4', border: '#bbf7d0', text: '#15803d' },
+  { bg: '#fff1f2', border: '#fecdd3', text: '#be123c' },
+  { bg: '#f8fafc', border: '#cbd5e1', text: '#334155' },
+];
+
+export const getStrategyColor = (code?: string): { bg: string; border: string; text: string } => {
+  if (!code) return { bg: '#ecfdf5', border: '#a7f3d0', text: '#047857' };
+  const clean = code.trim();
+  if (STRATEGY_COLOR_MAP[clean]) return STRATEGY_COLOR_MAP[clean];
+  let hash = 0;
+  for (let i = 0; i < clean.length; i++) {
+    hash = (hash * 31 + clean.charCodeAt(i)) >>> 0;
+  }
+  return EXTRA_STRATEGY_COLORS[hash % EXTRA_STRATEGY_COLORS.length];
+};
 
 export const parseNumber = (val: any): number => {
   if (typeof val === 'number') return isNaN(val) ? 0 : val;
@@ -164,15 +196,50 @@ export const getStoredKpiLookupOptions = (category: KpiLookupCategory): string[]
     const raw = localStorage.getItem(LOOKUPS_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as Record<string, string[]>;
-      const customList = Array.isArray(parsed[category])
+      const list = Array.isArray(parsed[category])
         ? parsed[category].filter((x) => typeof x === 'string' && !x.includes('?'))
         : [];
-      return Array.from(new Set([...defaults, ...customList]));
+      if (list.length > 0) {
+        return Array.from(new Set(list));
+      }
     }
   } catch {
     // ignore
   }
   return defaults;
+};
+
+export const fetchLookupOptionsFromBackend = async (): Promise<void> => {
+  if (typeof window === 'undefined') return;
+  try {
+    const res = await fetch('/api/v1/kpi/options', {
+      method: 'GET',
+      credentials: 'include',
+      cache: 'no-store',
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (json && Array.isArray(json.data) && json.data.length > 0) {
+        const grouped: Record<string, string[]> = {
+          collection_period: [],
+          value_type: [],
+          reporting_level: [],
+        };
+        json.data.forEach((opt: any) => {
+          if (opt.fieldKey && opt.value) {
+            if (!grouped[opt.fieldKey]) grouped[opt.fieldKey] = [];
+            if (!grouped[opt.fieldKey].includes(opt.value)) {
+              grouped[opt.fieldKey].push(opt.value);
+            }
+          }
+        });
+        localStorage.setItem(LOOKUPS_STORAGE_KEY, JSON.stringify(grouped));
+        window.dispatchEvent(new CustomEvent('kpi_lookups_updated'));
+      }
+    }
+  } catch (err) {
+    console.warn('[kpiEngine] fetchLookupOptionsFromBackend failed:', err);
+  }
 };
 
 export const addKpiLookupOption = async (
@@ -277,26 +344,104 @@ export const getStoredStrategies = (): StrategicStrategyEntity[] => {
   const defaults = getDefaultStrategies();
   if (typeof window === 'undefined') return defaults;
   try {
+    const isDbSynced = localStorage.getItem(HIERARCHY_DB_SYNCED_KEY) === 'true';
     const raw = localStorage.getItem(STRATEGIES_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as StrategicStrategyEntity[];
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        const merged = [...defaults];
-        parsed.forEach((item) => {
-          const idx = merged.findIndex((d) => d.id === item.id || d.code === item.code);
-          if (idx >= 0) {
-            merged[idx] = { ...merged[idx], ...item };
-          } else {
-            merged.push(item);
-          }
-        });
-        return merged;
+      if (Array.isArray(parsed)) {
+        if (isDbSynced || parsed.length > 0) {
+          return parsed.map((s) => ({
+            ...s,
+            color: s.color || getStrategyColor(s.code),
+          }));
+        }
       }
     }
   } catch {
     // ignore
   }
   return defaults;
+};
+
+export const getStrategicPillar = (strategyCode?: string): StrategicPillarOption | undefined => {
+  if (!strategyCode) return undefined;
+  const cleanCode = strategyCode.trim();
+  const strategies = getStoredStrategies();
+  const found = strategies.find((s) => s.code === cleanCode);
+  if (found) {
+    return {
+      code: found.code,
+      shortLabel: `ยุทธศาสตร์ที่ ${found.code} (${found.name})`,
+      fullName: `ยุทธศาสตร์ที่ ${found.code} : ${found.name}`,
+      pillarGroup: found.pillarGroup || `ยุทธศาสตร์ที่ ${found.code}`,
+      color: found.color || getStrategyColor(found.code),
+    };
+  }
+  return STRATEGIC_PILLARS.find((s) => s.code === cleanCode);
+};
+
+export const fetchHierarchyFromBackend = async (): Promise<{
+  strategies: StrategicStrategyEntity[];
+  plans: StrategicPlanEntity[];
+}> => {
+  if (typeof window === 'undefined') {
+    return { strategies: getStoredStrategies(), plans: getStoredPlans() };
+  }
+  try {
+    const res = await fetch('/api/v1/kpi/hierarchy', {
+      method: 'GET',
+      credentials: 'include',
+      cache: 'no-store',
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (json && Array.isArray(json.data)) {
+        const dbStrategies: StrategicStrategyEntity[] = [];
+        const dbPlans: StrategicPlanEntity[] = [];
+
+        json.data.forEach((s: any) => {
+          const code = String(s.code).trim();
+          const stratEntity: StrategicStrategyEntity = {
+            id: s.id,
+            code,
+            name: normalizeStrategyNameOnly(String(s.name || ''), code),
+            pillarGroup: s.pillarGroup || `ยุทธศาสตร์ที่ ${code}`,
+            color: getStrategyColor(code),
+          };
+          dbStrategies.push(stratEntity);
+
+          if (Array.isArray(s.plans)) {
+            s.plans.forEach((p: any) => {
+              const pCode = normalizePlanCodeOnly(String(p.code || ''));
+              dbPlans.push({
+                id: p.id,
+                strategyId: s.id,
+                code: pCode,
+                name: normalizePlanNameOnly(String(p.name || ''), pCode) || String(p.name || ''),
+                isDepartmentProject: Boolean(p.isDepartmentProject),
+              });
+            });
+          }
+        });
+
+        dbStrategies.sort((a, b) =>
+          a.code.localeCompare(b.code, undefined, { numeric: true, sensitivity: 'base' })
+        );
+        dbPlans.sort((a, b) =>
+          a.code.localeCompare(b.code, undefined, { numeric: true, sensitivity: 'base' })
+        );
+
+        localStorage.setItem(HIERARCHY_DB_SYNCED_KEY, 'true');
+        localStorage.setItem(STRATEGIES_STORAGE_KEY, JSON.stringify(dbStrategies));
+        localStorage.setItem(PLANS_STORAGE_KEY, JSON.stringify(dbPlans));
+        window.dispatchEvent(new CustomEvent('kpi_hierarchy_updated'));
+        return { strategies: dbStrategies, plans: dbPlans };
+      }
+    }
+  } catch (err) {
+    console.warn('[kpiEngine] fetchHierarchyFromBackend failed:', err);
+  }
+  return { strategies: getStoredStrategies(), plans: getStoredPlans() };
 };
 
 export const saveStoredStrategies = (list: StrategicStrategyEntity[]): void => {
@@ -415,22 +560,14 @@ export const getStoredPlans = (): StrategicPlanEntity[] => {
   const defaults = getDefaultPlans();
   if (typeof window === 'undefined') return defaults;
   try {
+    const isDbSynced = localStorage.getItem(HIERARCHY_DB_SYNCED_KEY) === 'true';
     const raw = localStorage.getItem(PLANS_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as StrategicPlanEntity[];
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        const merged = [...defaults];
-        parsed.forEach((item) => {
-          const idx = merged.findIndex(
-            (d) => d.id === item.id || (d.strategyId === item.strategyId && d.code === item.code)
-          );
-          if (idx >= 0) {
-            merged[idx] = { ...merged[idx], ...item };
-          } else {
-            merged.push(item);
-          }
-        });
-        return merged;
+      if (Array.isArray(parsed)) {
+        if (isDbSynced || parsed.length > 0) {
+          return parsed;
+        }
       }
     }
   } catch {
@@ -817,22 +954,111 @@ export const hasKpiReportedResults = (kpi?: KPIItem | null): boolean => {
 };
 
 // ==========================================
-// 5. LocalStorage KPI Persistence
+// 5. Database & LocalStorage KPI Persistence
 // ==========================================
-export const getStoredKPIs = (): KPIItem[] => {
-  if (typeof window === 'undefined') return DEFAULT_KPIS.map(enrichKPIItem);
+export const fetchKPIsFromBackend = async (): Promise<KPIItem[]> => {
+  if (typeof window === 'undefined') return getStoredKPIs();
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw !== null) {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed.map(enrichKPIItem);
+    // ดึงข้อมูลยุทธศาสตร์ แผนงาน และตัวเลือก Dropdown จากฐานข้อมูลควบคู่กันเสมอ
+    await Promise.allSettled([
+      fetchHierarchyFromBackend(),
+      fetchLookupOptionsFromBackend(),
+    ]);
+
+    const res = await fetch('/api/v1/kpi', {
+      method: 'GET',
+      credentials: 'include',
+      cache: 'no-store',
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (json && Array.isArray(json.data)) {
+        const localKpis = getStoredKPIs();
+        const localMap = new Map(localKpis.map((k) => [k.id, k]));
+        const enriched = json.data.map((item: KPIItem) => {
+          const localItem = localMap.get(item.id);
+          const merged: KPIItem = {
+            ...item,
+            manualIncludedProjectIds:
+              item.manualIncludedProjectIds && item.manualIncludedProjectIds.length > 0
+                ? item.manualIncludedProjectIds
+                : localItem?.manualIncludedProjectIds || [],
+            manualExcludedProjectIds:
+              item.manualExcludedProjectIds && item.manualExcludedProjectIds.length > 0
+                ? item.manualExcludedProjectIds
+                : localItem?.manualExcludedProjectIds || [],
+          };
+          return enrichKPIItem(merged);
+        });
+        try {
+          localStorage.setItem(KPI_DB_SYNCED_KEY, 'true');
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(enriched));
+          window.dispatchEvent(new CustomEvent('kpi_updated', { detail: enriched }));
+        } catch (_) {}
+        return enriched;
       }
     }
   } catch (err) {
-    console.warn('Failed to load KPIs from localStorage, using default:', err);
+    console.warn('[kpiEngine] fetchKPIsFromBackend failed, fallback to cache:', err);
   }
-  return DEFAULT_KPIS.map(enrichKPIItem);
+  return getStoredKPIs();
+};
+
+export const fetchReportingRoundsFromBackend = async (): Promise<KPIReportingRoundConfig[]> => {
+  if (typeof window === 'undefined') return getStoredReportingRounds();
+  try {
+    const res = await fetch('/api/v1/kpi/rounds', {
+      method: 'GET',
+      credentials: 'include',
+      cache: 'no-store',
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (json && Array.isArray(json.data) && json.data.length > 0) {
+        saveStoredReportingRounds(json.data);
+        return json.data;
+      }
+    }
+  } catch (err) {
+    console.warn('[kpiEngine] fetchReportingRoundsFromBackend failed:', err);
+  }
+  return getStoredReportingRounds();
+};
+
+export const syncRoundReportToBackend = async (
+  indicatorId: string,
+  payload: any
+): Promise<void> => {
+  if (typeof window === 'undefined') return;
+  try {
+    await fetch(`/api/v1/kpi/${indicatorId}/results`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(payload),
+    });
+  } catch (err) {
+    console.warn('Failed to sync round report to backend:', err);
+  }
+};
+
+export const getStoredKPIs = (): KPIItem[] => {
+  if (typeof window === 'undefined') return [];
+  try {
+    const isDbSynced = localStorage.getItem(KPI_DB_SYNCED_KEY) === 'true';
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw !== null) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        if (isDbSynced || parsed.length > 0) {
+          return parsed.map(enrichKPIItem);
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to load KPIs from localStorage:', err);
+  }
+  return [];
 };
 
 export const getKPIById = (id: string): KPIItem | null => {
@@ -870,6 +1096,14 @@ export const addKPI = (kpi: Omit<KPIItem, 'id'>): KPIItem => {
   });
   const updated = [...current, newItem];
   saveStoredKPIs(updated);
+  if (typeof window !== 'undefined') {
+    fetch('/api/v1/kpi', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(newItem),
+    }).catch((err) => console.warn('Failed to sync new KPI to backend:', err));
+  }
   return newItem;
 };
 
@@ -878,6 +1112,14 @@ export const updateKPI = (kpi: KPIItem): KPIItem => {
   const enriched = enrichKPIItem({ ...kpi, updatedAt: new Date().toISOString() });
   const updated = current.map((item) => (item.id === kpi.id ? enriched : item));
   saveStoredKPIs(updated);
+  if (typeof window !== 'undefined') {
+    fetch(`/api/v1/kpi/${kpi.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(enriched),
+    }).catch((err) => console.warn('Failed to sync KPI update to backend:', err));
+  }
   return enriched;
 };
 
@@ -886,11 +1128,28 @@ export const deleteKPI = (id: string): void => {
   const targetId = String(id).trim();
   const updated = current.filter((item) => String(item.id).trim() !== targetId);
   saveStoredKPIs(updated);
+  if (typeof window !== 'undefined') {
+    fetch(`/api/v1/kpi/${targetId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    }).catch((err) => console.warn('Failed to delete KPI from backend:', err));
+  }
 };
 
 // ==========================================
 // 6. Project Mapping Operations (Manual Override)
 // ==========================================
+export const getProjectKey = (item: any, fallbackIdx?: number): string => {
+  if (!item) return fallbackIdx !== undefined ? `idx-${fallbackIdx}` : '';
+  const rawId = item.id ?? item._id ?? item.code;
+  if (rawId !== undefined && rawId !== null && String(rawId).trim() !== '') {
+    return String(rawId).trim();
+  }
+  const title = String(item.name || item.title || '').trim();
+  if (title) return `title:${title}`;
+  return fallbackIdx !== undefined ? `idx-${fallbackIdx}` : '';
+};
+
 export const includeProjectInKPI = (kpiId: string, projectId: string): KPIItem | null => {
   const current = getStoredKPIs();
   const target = current.find((k) => k.id === kpiId);
@@ -943,7 +1202,11 @@ export const evaluateKPI = (
   datasets: Record<string, any[]>,
   round: KPIReportingRound = '9M'
 ): KPIComputedResult => {
-  const rawData = datasets[kpi.datasetKey] || [];
+  const activeDatasetKeys =
+    Array.isArray(kpi.datasetKeys) && kpi.datasetKeys.length > 0
+      ? kpi.datasetKeys
+      : [kpi.datasetKey || 'research'];
+  const rawData = activeDatasetKeys.flatMap((key) => datasets[key] || []);
   const data = rawData.filter(
     (item) =>
       item &&
@@ -1007,20 +1270,34 @@ export const evaluateKPI = (
     }
   }
 
-  // 2. ปรับแต่งด้วยมือ
+  // 2. ปรับแต่งด้วยมือ (รองรับการผูกโครงการด้วยมือข้ามทุกหมวดข้อมูลในระบบ)
   const autoMatchedMap = new Map<string, any>();
   autoMatched.forEach((item, index) => {
-    const key = String(item.id || item.code || `idx-${index}`);
+    const key = getProjectKey(item, index);
     if (!manualExcluded.has(key)) {
       autoMatchedMap.set(key, item);
     }
   });
 
-  data.forEach((item, index) => {
-    const key = String(item.id || item.code || `idx-${index}`);
-    if (manualIncluded.has(key)) {
-      autoMatchedMap.set(key, item);
-    }
+  // ค้นหาโครงการที่ผูกด้วยมือ (manualIncluded) จากทุกหมวดข้อมูล (วิจัย, พัฒนาวิชาการ, บริการวิชาการ, ตีพิมพ์, IP)
+  Object.values(datasets).forEach((datasetList) => {
+    if (!Array.isArray(datasetList)) return;
+    datasetList.forEach((item, index) => {
+      if (
+        !item ||
+        (!item.name && !item.title) ||
+        item.name === 'nan' ||
+        item.name === 'NaT' ||
+        item.name === 'เรื่อง' ||
+        isTestRecord(item)
+      ) {
+        return;
+      }
+      const key = getProjectKey(item, index);
+      if (manualIncluded.has(key) && !manualExcluded.has(key)) {
+        autoMatchedMap.set(key, item);
+      }
+    });
   });
 
   const finalMatchedProjects = Array.from(autoMatchedMap.values());
@@ -1125,15 +1402,15 @@ export const evaluateKPI = (
   if (percentage >= 100) {
     status = 'achieved';
     statusLabel = 'บรรลุเป้าหมาย';
-    statusColor = '#16a34a';
-  } else if (percentage >= 70) {
-    status = 'on_track';
-    statusLabel = 'เป็นไปตามเป้า';
-    statusColor = '#2563eb';
-  } else if (percentage >= 40) {
-    status = 'at_risk';
-    statusLabel = 'เฝ้าระวัง';
-    statusColor = '#d97706';
+    statusColor = '#059669';
+  } else if (percentage >= 50) {
+    status = 'in_progress';
+    statusLabel = 'กำลังดำเนินการ (50–99%)';
+    statusColor = '#ca8a04';
+  } else {
+    status = 'behind';
+    statusLabel = 'ต้องเร่งรัด';
+    statusColor = '#dc2626';
   }
 
   return {

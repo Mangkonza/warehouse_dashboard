@@ -20,20 +20,24 @@ const ROUTES: Record<string, string> = {
   ip: '/ip',
 };
 
-const STATUS_ORDER = ['บรรลุแล้ว', 'ตามแผน', 'เสี่ยง', 'ต้องเร่งรัด'];
+const STATUS_ORDER = ['บรรลุเป้าหมาย', 'กำลังดำเนินการ (50–99%)', 'ต้องเร่งรัด', 'บรรลุแล้ว', 'ตามแผน', 'เสี่ยง'];
 const STATUS_COLORS: Record<string, string> = {
+  'บรรลุเป้าหมาย': '#059669',
+  'กำลังดำเนินการ (50–99%)': '#ca8a04',
+  'ต้องเร่งรัด': '#dc2626',
   'บรรลุแล้ว': '#059669',
   'ตามแผน': '#0284c7',
   'เสี่ยง': '#d97706',
-  'ต้องเร่งรัด': '#dc2626',
 };
 
 /** Soft pastel versions of the status colors, used for the gauge arcs. */
 const STATUS_PASTEL: Record<string, string> = {
+  'บรรลุเป้าหมาย': '#34D399',
+  'กำลังดำเนินการ (50–99%)': '#FDE047',
+  'ต้องเร่งรัด': '#FB7185',
   'บรรลุแล้ว': '#34D399',
   'ตามแผน': '#38BDF8',
   'เสี่ยง': '#FBBF24',
-  'ต้องเร่งรัด': '#FB7185',
 };
 
 function actualVsTarget(k: OverviewKpiScore): string {

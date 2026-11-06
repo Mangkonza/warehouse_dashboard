@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaSearch, FaTimes } from 'react-icons/fa';
 import {
   Select,
@@ -9,7 +9,8 @@ import {
   SelectTrigger,
 } from '@/components/ui/select';
 import { CATEGORY_NAMES } from '../_hooks/useKpiData';
-import { STRATEGIC_PILLARS } from '@/config/kpiConfig';
+import { getStoredStrategies, getStrategyColor } from '@/lib/kpiEngine';
+import { StrategicStrategyEntity } from '@/types/kpi';
 
 interface KpiFilterBarProps {
   selectedStrategy: string;
@@ -25,9 +26,10 @@ interface KpiFilterBarProps {
 const STATUS_LABELS: Record<string, string> = {
   all: 'ทุกสถานะ',
   achieved: 'บรรลุเป้าหมาย (≥ 100%)',
-  on_track: 'เป็นไปตามเป้า (70–99%)',
-  at_risk: 'เฝ้าระวัง (40–69%)',
-  behind: 'ต้องเร่งรัด (< 40%)',
+  in_progress: 'กำลังดำเนินการ (50–99%)',
+  behind: 'ต้องเร่งรัด (≤ 49%)',
+  on_track: 'กำลังดำเนินการ (50–99%)',
+  at_risk: 'กำลังดำเนินการ (50–99%)',
 };
 
 export function KpiFilterBar({
@@ -40,6 +42,24 @@ export function KpiFilterBar({
   searchQuery,
   onSearchChange,
 }: KpiFilterBarProps) {
+  const [strategies, setStrategies] = useState<StrategicStrategyEntity[]>(() => getStoredStrategies());
+
+  useEffect(() => {
+    const syncStrategies = () => {
+      setStrategies(getStoredStrategies());
+    };
+    syncStrategies();
+    window.addEventListener('kpi_hierarchy_updated', syncStrategies);
+    window.addEventListener('kpi_updated', syncStrategies);
+    return () => {
+      window.removeEventListener('kpi_hierarchy_updated', syncStrategies);
+      window.removeEventListener('kpi_updated', syncStrategies);
+    };
+  }, []);
+
+  const firstCode = strategies[0]?.code || '1.1';
+  const lastCode = strategies[strategies.length - 1]?.code || '4.1';
+
   return (
     <div
       style={{
@@ -52,7 +72,7 @@ export function KpiFilterBar({
         border: '1px solid #e2e8f0',
       }}
     >
-      {/* แถวที่ 1: ปุ่มกรองตามยุทธศาสตร์ 1.1 - 4.1 ตามแบบรายงาน มก.กพส. */}
+      {/* แถวที่ 1: ปุ่มกรองตามยุทธศาสตร์ที่ดึงจากฐานข้อมูล */}
       <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
         <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#334155', marginRight: '4px' }}>
           ยุทธศาสตร์ มก.กพส.:
@@ -73,25 +93,26 @@ export function KpiFilterBar({
             transition: 'all 0.15s ease',
           }}
         >
-          ทุกยุทธศาสตร์ (1.1 - 4.1)
+          ทุกยุทธศาสตร์ ({firstCode} - {lastCode})
         </button>
 
-        {STRATEGIC_PILLARS.map((strat) => {
+        {strategies.map((strat) => {
           const isSel = selectedStrategy === strat.code;
+          const color = strat.color || getStrategyColor(strat.code);
           return (
             <button
-              key={strat.code}
+              key={strat.id || strat.code}
               type="button"
               onClick={() => onSelectStrategy(strat.code)}
-              title={strat.fullName}
+              title={`ยุทธศาสตร์ที่ ${strat.code} : ${strat.name}`}
               style={{
                 padding: '5px 12px',
                 borderRadius: '16px',
                 fontSize: '12px',
                 fontWeight: isSel ? 700 : 500,
-                border: isSel ? `1px solid ${strat.color.text}` : `1px solid ${strat.color.border}`,
-                backgroundColor: isSel ? strat.color.text : strat.color.bg,
-                color: isSel ? '#ffffff' : strat.color.text,
+                border: isSel ? `1px solid ${color.text}` : `1px solid ${color.border}`,
+                backgroundColor: isSel ? color.text : color.bg,
+                color: isSel ? '#ffffff' : color.text,
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
               }}
@@ -189,9 +210,8 @@ export function KpiFilterBar({
               <SelectContent>
                 <SelectItem value="all">ทุกสถานะ</SelectItem>
                 <SelectItem value="achieved">บรรลุเป้าหมาย (≥ 100%)</SelectItem>
-                <SelectItem value="on_track">เป็นไปตามเป้า (70–99%)</SelectItem>
-                <SelectItem value="at_risk">เฝ้าระวัง (40–69%)</SelectItem>
-                <SelectItem value="behind">ต้องเร่งรัด (&lt; 40%)</SelectItem>
+                <SelectItem value="in_progress">กำลังดำเนินการ (50–99%)</SelectItem>
+                <SelectItem value="behind">ต้องเร่งรัด (≤ 49%)</SelectItem>
               </SelectContent>
             </Select>
           </div>

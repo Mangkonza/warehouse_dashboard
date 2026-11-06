@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   FaBullseye,
   FaChevronDown,
@@ -17,11 +17,13 @@ import {
   KPIComputedResult,
   KPIReportingRound,
   KPIReportingRoundConfig,
+  StrategicStrategyEntity,
 } from '@/types/kpi';
-import { STRATEGIC_PILLARS } from '@/config/kpiConfig';
+import { getStoredStrategies, getStrategyColor } from '@/lib/kpiEngine';
 import { CATEGORY_NAMES } from '../_hooks/useKpiData';
 import { StrategicKpiModal } from './StrategicKpiFormView';
 import { StrategicKpiRoundReportModal } from './StrategicKpiRoundReportView';
+import { KpiHoverTooltip } from './KpiHoverTooltip';
 
 interface KpiStrategicTableViewProps {
   filteredKPIs: KPIComputedResult[];
@@ -64,6 +66,18 @@ export function KpiStrategicTableView({
   const [collapsedStrategies, setCollapsedStrategies] = useState<Record<string, boolean>>({});
   const [editingKpiId, setEditingKpiId] = useState<string | null>(null);
   const [roundReportKpiId, setRoundReportKpiId] = useState<string | null>(null);
+  const [strategies, setStrategies] = useState<StrategicStrategyEntity[]>(() => getStoredStrategies());
+
+  useEffect(() => {
+    const syncStrategies = () => setStrategies(getStoredStrategies());
+    syncStrategies();
+    window.addEventListener('kpi_hierarchy_updated', syncStrategies);
+    window.addEventListener('kpi_updated', syncStrategies);
+    return () => {
+      window.removeEventListener('kpi_hierarchy_updated', syncStrategies);
+      window.removeEventListener('kpi_updated', syncStrategies);
+    };
+  }, []);
 
   const activeRounds = useMemo(() => {
     if (reportingRounds.length > 0) return reportingRounds;
@@ -110,12 +124,12 @@ export function KpiStrategicTableView({
       }
     >();
 
-    STRATEGIC_PILLARS.forEach((p) => {
-      map.set(p.code, {
-        code: p.code,
-        title: p.fullName,
-        pillarGroup: p.pillarGroup,
-        color: p.color,
+    strategies.forEach((s) => {
+      map.set(s.code, {
+        code: s.code,
+        title: `ยุทธศาสตร์ที่ ${s.code} : ${s.name}`,
+        pillarGroup: s.pillarGroup || `ยุทธศาสตร์ที่ ${s.code}`,
+        color: s.color || getStrategyColor(s.code),
         items: [],
       });
     });
@@ -136,7 +150,7 @@ export function KpiStrategicTableView({
             code: sCode,
             title: item.kpi.strategyName || `ยุทธศาสตร์ที่ ${sCode}`,
             pillarGroup: `ยุทธศาสตร์ที่ ${sCode}`,
-            color: { bg: '#ecfdf5', border: '#a7f3d0', text: '#047857' },
+            color: getStrategyColor(sCode),
             items: [],
           });
         }
@@ -151,7 +165,7 @@ export function KpiStrategicTableView({
       result.push(otherGroup);
     }
     return result;
-  }, [filteredKPIs]);
+  }, [filteredKPIs, strategies]);
 
   if (filteredKPIs.length === 0) {
     return (
@@ -452,6 +466,7 @@ export function KpiStrategicTableView({
                                 padding: '12px',
                                 verticalAlign: 'top',
                                 borderRight: '1px solid #f1f5f9',
+                                maxWidth: '220px',
                               }}
                             >
                               {kpi.planCode && (
@@ -471,7 +486,13 @@ export function KpiStrategicTableView({
                                   {kpi.planCode}
                                 </span>
                               )}
-                              <div
+                              <KpiHoverTooltip
+                                badge={kpi.planCode || group.title}
+                                fullText={
+                                  kpi.planName
+                                    ? kpi.planName.replace(/^แผนงาน(ที่)?\s*[0-9.-]+\s*:\s*/, '')
+                                    : CATEGORY_NAMES[kpi.category] || kpi.category
+                                }
                                 style={{
                                   fontSize: '12px',
                                   color: '#475569',
@@ -481,7 +502,7 @@ export function KpiStrategicTableView({
                                 {kpi.planName
                                   ? kpi.planName.replace(/^แผนงาน(ที่)?\s*[0-9.-]+\s*:\s*/, '')
                                   : CATEGORY_NAMES[kpi.category] || kpi.category}
-                              </div>
+                              </KpiHoverTooltip>
                             </td>
 
                             {/* รหัสและชื่อตัวชี้วัด */}
@@ -490,9 +511,10 @@ export function KpiStrategicTableView({
                                 padding: '12px',
                                 verticalAlign: 'top',
                                 borderRight: '1px solid #f1f5f9',
+                                maxWidth: '380px',
                               }}
                             >
-                              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', minWidth: 0 }}>
                                 <span
                                   style={{
                                     padding: '2px 7px',
@@ -504,12 +526,21 @@ export function KpiStrategicTableView({
                                     fontFamily: 'monospace',
                                     whiteSpace: 'nowrap',
                                     marginTop: '1px',
+                                    flexShrink: 0,
                                   }}
                                 >
                                   {kpi.code}
                                 </span>
-                                <div style={{ flex: 1 }}>
-                                  <div
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <KpiHoverTooltip
+                                    badge={kpi.code}
+                                    fullText={kpi.title}
+                                    subText={
+                                      hasExtraDetails
+                                        ? 'คลิกที่ชื่อเพื่อดูคำอธิบายตัวชี้วัด • หลักฐาน • หมายเหตุ'
+                                        : undefined
+                                    }
+                                    onClick={hasExtraDetails ? () => toggleDetail(kpi.id) : undefined}
                                     style={{
                                       fontWeight: 600,
                                       color: '#0f172a',
@@ -518,7 +549,7 @@ export function KpiStrategicTableView({
                                     }}
                                   >
                                     {kpi.title}
-                                  </div>
+                                  </KpiHoverTooltip>
 
                                   {hasExtraDetails && (
                                     <button
@@ -837,11 +868,22 @@ export function KpiStrategicTableView({
                                     color: isDeptProj ? '#9a3412' : '#334155',
                                     fontWeight: isDeptProj ? 600 : 400,
                                     borderRight: '1px solid #f1f5f9',
+                                    maxWidth: '380px',
                                   }}
                                 >
-                                  <div>{sub.title}</div>
+                                  <KpiHoverTooltip
+                                    badge={isDeptProj ? 'โครงการ/กิจกรรมส่วนงาน' : `ตัวชี้วัดย่อยของ ${kpi.code}`}
+                                    badgeColor={isDeptProj ? 'orange' : 'blue'}
+                                    fullText={sub.title}
+                                    subText={sub.remarks || undefined}
+                                  >
+                                    {sub.title}
+                                  </KpiHoverTooltip>
                                   {sub.remarks && (
-                                    <div
+                                    <KpiHoverTooltip
+                                      badge="หมายเหตุตัวชี้วัดย่อย"
+                                      badgeColor="slate"
+                                      fullText={sub.remarks}
                                       style={{
                                         fontSize: '11.5px',
                                         color: '#64748b',
@@ -849,7 +891,7 @@ export function KpiStrategicTableView({
                                       }}
                                     >
                                       {sub.remarks}
-                                    </div>
+                                    </KpiHoverTooltip>
                                   )}
                                 </td>
                                 <td

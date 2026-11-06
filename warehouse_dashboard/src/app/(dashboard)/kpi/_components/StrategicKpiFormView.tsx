@@ -48,6 +48,8 @@ import {
   createPlanEntity,
   updatePlanEntity,
   deletePlanEntity,
+  fetchHierarchyFromBackend,
+  fetchLookupOptionsFromBackend,
   getStoredReportingRounds,
   saveStoredReportingRounds,
   DEFAULT_REPORTING_ROUNDS,
@@ -351,6 +353,12 @@ export function StrategicKpiFormView({
       1;
     setCode(`${planCodeStr} (${nextNum})`);
     setActiveRoundIds(rounds.map((r) => r.id));
+
+    fetchHierarchyFromBackend().then(({ strategies: dbStrats, plans: dbPlans }) => {
+      setStrategies(dbStrats);
+      setPlans(dbPlans);
+    });
+    fetchLookupOptionsFromBackend();
   }, [kpiId]);
 
   // แผนงานที่ผูกกับยุทธศาสตร์ที่เลือก (อ้างอิงด้วย strategyId ภายใน)

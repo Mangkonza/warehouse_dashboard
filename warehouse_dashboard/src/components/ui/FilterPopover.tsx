@@ -282,10 +282,9 @@ export const KPI_CALC_TYPE_OPTIONS = [
 
 export const KPI_STATUS_OPTIONS = [
   { value: 'all', label: 'ทุกสถานะ', color: '#64748b', desc: 'แสดงทุกสถานะความสำเร็จ' },
-  { value: 'achieved', label: 'บรรลุเป้าหมาย (≥ 100%)', color: '#16a34a', desc: 'ผลงานเป็นไปตามเป้าหมาย 100% ขึ้นไป' },
-  { value: 'on_track', label: 'เป็นไปตามเป้า (70–99%)', color: '#2563eb', desc: 'ความคืบหน้าใกล้เคียงเป้าหมาย' },
-  { value: 'at_risk', label: 'เฝ้าระวัง (40–69%)', color: '#d97706', desc: 'ความคืบหน้าปานกลาง ต้องติดตามผล' },
-  { value: 'behind', label: 'ต้องเร่งรัด (< 40%)', color: '#dc2626', desc: 'ต่ำกว่าเกณฑ์ ต้องเร่งรัดการดำเนินงาน' },
+  { value: 'achieved', label: 'บรรลุเป้าหมาย (≥ 100%)', color: '#059669', desc: 'ผลงานเป็นไปตามเป้าหมาย 100% ขึ้นไป' },
+  { value: 'in_progress', label: 'กำลังดำเนินการ (50–99%)', color: '#ca8a04', desc: 'ความคืบหน้าระดับปานกลาง อยู่ระหว่างดำเนินการ' },
+  { value: 'behind', label: 'ต้องเร่งรัด (≤ 49%)', color: '#dc2626', desc: 'ต่ำกว่าเกณฑ์ ต้องเร่งรัดการดำเนินงาน' },
 ];
 
 function posToVal(stops: number[], pos: number): number {
@@ -386,6 +385,18 @@ export function FilterPopover({
   });
 
   const [deptSearch, setDeptSearch] = useState('');
+  const [kpiSyncTick, setKpiSyncTick] = useState(0);
+
+  useEffect(() => {
+    if (category !== 'kpi') return;
+    const handleKpiSync = () => setKpiSyncTick((t) => t + 1);
+    window.addEventListener('kpi_hierarchy_updated', handleKpiSync);
+    window.addEventListener('kpi_updated', handleKpiSync);
+    return () => {
+      window.removeEventListener('kpi_hierarchy_updated', handleKpiSync);
+      window.removeEventListener('kpi_updated', handleKpiSync);
+    };
+  }, [category]);
 
   // Dynamic KPI Strategy Counts & Custom Strategies for category="kpi"
   const kpiStrategyData = useMemo(() => {
@@ -448,7 +459,7 @@ export function FilterPopover({
     ];
 
     return { total: kpis.length, counts, groups };
-  }, [category, isOpen]);
+  }, [category, isOpen, kpiSyncTick]);
 
   // Sync draft whenever popover opens or prop filters change
   useEffect(() => {

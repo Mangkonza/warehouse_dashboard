@@ -18,7 +18,7 @@ const getForwardHeaders = (request: NextRequest): Record<string, string> => {
 
 export async function GET(request: NextRequest) {
   try {
-    const res = await fetch(`${BACKEND_URL}/api/v1/lookups/strategic-hierarchy`, {
+    const res = await fetch(`${BACKEND_URL}/api/v1/kpi/hierarchy`, {
       method: 'GET',
       headers: getForwardHeaders(request),
       cache: 'no-store',
@@ -27,8 +27,8 @@ export async function GET(request: NextRequest) {
       const data = await res.json();
       return NextResponse.json(data, { status: 200 });
     }
-  } catch {
-    // Fallback handled by client
+  } catch (err) {
+    console.warn('[strategic-hierarchy GET] Backend error:', err);
   }
   return NextResponse.json({ status: 'success', total: 0, data: [] });
 }
@@ -36,27 +36,16 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { entityType, ...payload } = body || {};
-    const endpoint =
-      entityType === 'plan'
-        ? `${BACKEND_URL}/api/v1/lookups/strategic-plans`
-        : `${BACKEND_URL}/api/v1/lookups/strategic-strategies`;
-
-    try {
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: getForwardHeaders(request),
-        body: JSON.stringify(payload),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        return NextResponse.json(data, { status: 201 });
-      }
-    } catch {
-      // Fallback handled by client
+    const res = await fetch(`${BACKEND_URL}/api/v1/kpi/hierarchy`, {
+      method: 'POST',
+      headers: getForwardHeaders(request),
+      body: JSON.stringify(body),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      return NextResponse.json(data, { status: 201 });
     }
-
-    return NextResponse.json({ status: 'success', data: payload }, { status: 201 });
+    return NextResponse.json({ status: 'success', data: body }, { status: 201 });
   } catch (error: any) {
     return NextResponse.json(
       { status: 'error', message: error?.message || 'Failed to save hierarchy entity' },

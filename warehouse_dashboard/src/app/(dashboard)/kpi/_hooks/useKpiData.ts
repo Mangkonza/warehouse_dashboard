@@ -10,6 +10,8 @@ import {
 } from '@/types/kpi';
 import {
   getStoredKPIs,
+  fetchKPIsFromBackend,
+  fetchReportingRoundsFromBackend,
   evaluateAllKPIs,
   getStoredReportingRounds,
 } from '@/lib/kpiEngine';
@@ -67,7 +69,14 @@ export function useKpiData(timeFilter?: TimeFilterState) {
         fetchCategoryData('service'),
         fetchCategoryData('ip'),
         fetchCategoryData('personnel'),
+        fetchKPIsFromBackend(),
+        fetchReportingRoundsFromBackend(),
       ]);
+
+      const liveKpis = await fetchKPIsFromBackend();
+      if (liveKpis && liveKpis.length > 0) {
+        setKpiList(liveKpis);
+      }
 
       const newDatasets = {
         research:
@@ -162,8 +171,7 @@ export function useKpiData(timeFilter?: TimeFilterState) {
   const overallStats = useMemo(() => {
     const total = computedKPIs.length;
     const achieved = computedKPIs.filter((k) => k.status === 'achieved').length;
-    const onTrack = computedKPIs.filter((k) => k.status === 'on_track').length;
-    const atRisk = computedKPIs.filter((k) => k.status === 'at_risk').length;
+    const inProgress = computedKPIs.filter((k) => k.status === 'in_progress' || k.status === 'on_track' || k.status === 'at_risk').length;
     const behind = computedKPIs.filter((k) => k.status === 'behind').length;
     const avgScore =
       total > 0
@@ -172,7 +180,15 @@ export function useKpiData(timeFilter?: TimeFilterState) {
           )
         : 0;
 
-    return { total, achieved, onTrack, atRisk, behind, avgScore };
+    return {
+      total,
+      achieved,
+      inProgress,
+      onTrack: inProgress,
+      atRisk: 0,
+      behind,
+      avgScore,
+    };
   }, [computedKPIs]);
 
   const filteredKPIs = useMemo(() => {
@@ -185,7 +201,9 @@ export function useKpiData(timeFilter?: TimeFilterState) {
       }
       if (selectedCategory !== 'all' && k.category !== selectedCategory) return false;
       if (selectedStatus !== 'all') {
-        if (selectedStatus === 'risk_or_behind') {
+        if (selectedStatus === 'in_progress' || selectedStatus === 'on_track') {
+          if (item.status !== 'in_progress' && item.status !== 'on_track' && item.status !== 'at_risk') return false;
+        } else if (selectedStatus === 'risk_or_behind') {
           if (item.status !== 'at_risk' && item.status !== 'behind') return false;
         } else if (item.status !== selectedStatus) {
           return false;

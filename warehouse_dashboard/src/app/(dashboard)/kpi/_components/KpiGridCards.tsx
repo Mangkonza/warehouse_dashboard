@@ -13,7 +13,7 @@ import {
   FaEdit,
 } from 'react-icons/fa';
 import { KPIComputedResult, KPIReportingRoundConfig } from '@/types/kpi';
-import { ENGINEERING_DEPARTMENTS, getStrategicPillar } from '@/config/kpiConfig';
+import { ENGINEERING_DEPARTMENTS, getStrategicPillar } from '@/lib/kpiEngine';
 import { CATEGORY_NAMES } from '../_hooks/useKpiData';
 import { DepartmentBadge } from '@/components/ui';
 import { DrillDownProjectDrawer } from '@/components/data-display';
@@ -244,10 +244,8 @@ export function KpiGridCards({
                   backgroundColor:
                     status === 'achieved'
                       ? '#ecfdf5'
-                      : status === 'on_track'
-                      ? '#f0f9ff'
-                      : status === 'at_risk'
-                      ? '#fffbeb'
+                      : status === 'in_progress' || status === 'on_track' || status === 'at_risk'
+                      ? '#fefce8'
                       : '#fef2f2',
                   color: statusColor,
                   border: `1px solid ${statusColor}33`,

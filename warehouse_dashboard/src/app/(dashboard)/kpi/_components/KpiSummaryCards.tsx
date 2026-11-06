@@ -5,8 +5,9 @@ import React from 'react';
 interface OverallStats {
   total: number;
   achieved: number;
-  onTrack: number;
-  atRisk: number;
+  inProgress?: number;
+  onTrack?: number;
+  atRisk?: number;
   behind: number;
   avgScore: number;
 }
@@ -84,35 +85,35 @@ export function KpiSummaryCards({
         </div>
       </div>
 
-      {/* Card 3: เป็นไปตามเป้า */}
+      {/* Card 3: กำลังดำเนินการ */}
       <div
-        onClick={() => handleToggle('on_track')}
-        style={getCardStyle('on_track', '#0284c7')}
+        onClick={() => handleToggle('in_progress')}
+        style={getCardStyle('in_progress', '#ca8a04')}
       >
         <div style={{ fontSize: '13px', color: '#475569', fontWeight: 600 }}>
-          เป็นไปตามเป้า (70 - 99%)
+          กำลังดำเนินการ (50–99%)
         </div>
-        <div style={{ fontSize: '24px', fontWeight: 800, color: '#0284c7', fontVariantNumeric: 'tabular-nums', margin: '4px 0' }}>
-          {stats.onTrack} ข้อ
+        <div style={{ fontSize: '24px', fontWeight: 800, color: '#ca8a04', fontVariantNumeric: 'tabular-nums', margin: '4px 0' }}>
+          {stats.inProgress ?? stats.onTrack ?? 0} ข้อ
         </div>
         <div style={{ fontSize: '12px', color: '#64748b' }}>
-          {stats.total ? Math.round((stats.onTrack / stats.total) * 100) : 0}% ของทั้งหมด
+          {stats.total ? Math.round(((stats.inProgress ?? stats.onTrack ?? 0) / stats.total) * 100) : 0}% ของทั้งหมด
         </div>
       </div>
 
-      {/* Card 4: ต้องเร่งรัด / เฝ้าระวัง */}
+      {/* Card 4: ต้องเร่งรัด */}
       <div
-        onClick={() => handleToggle('risk_or_behind')}
-        style={getCardStyle('risk_or_behind', '#dc2626')}
+        onClick={() => handleToggle('behind')}
+        style={getCardStyle('behind', '#dc2626')}
       >
         <div style={{ fontSize: '13px', color: '#475569', fontWeight: 600 }}>
-          เฝ้าระวัง & ต้องเร่งรัด (&lt; 70%)
+          ต้องเร่งรัด (≤ 49%)
         </div>
         <div style={{ fontSize: '24px', fontWeight: 800, color: '#dc2626', fontVariantNumeric: 'tabular-nums', margin: '4px 0' }}>
-          {stats.atRisk + stats.behind} ข้อ
+          {stats.behind} ข้อ
         </div>
         <div style={{ fontSize: '12px', color: '#b91c1c', fontWeight: 600 }}>
-          {stats.total ? Math.round(((stats.atRisk + stats.behind) / stats.total) * 100) : 0}% ของทั้งหมด
+          {stats.total ? Math.round((stats.behind / stats.total) * 100) : 0}% ของทั้งหมด
         </div>
       </div>
     </div>

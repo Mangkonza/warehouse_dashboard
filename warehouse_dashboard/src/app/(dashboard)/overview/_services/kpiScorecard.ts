@@ -68,9 +68,8 @@ function inFiscalYear(items: any[], category: string, year: string | null): any[
 }
 
 function getStatusInfo(actualPct: number, targetProRata: number) {
-  if (actualPct >= 100) return { label: 'บรรลุแล้ว', color: '#059669', bg: '#ecfdf5' };
-  if (actualPct >= targetProRata * 0.9) return { label: 'ตามแผน', color: '#0284c7', bg: '#f0f9ff' };
-  if (actualPct >= targetProRata * 0.7) return { label: 'เสี่ยง', color: '#d97706', bg: '#fffbeb' };
+  if (actualPct >= 100) return { label: 'บรรลุเป้าหมาย', color: '#059669', bg: '#ecfdf5' };
+  if (actualPct >= 50) return { label: 'กำลังดำเนินการ (50–99%)', color: '#ca8a04', bg: '#fefce8' };
   return { label: 'ต้องเร่งรัด', color: '#dc2626', bg: '#fef2f2' };
 }
 

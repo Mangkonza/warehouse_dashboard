@@ -12,6 +12,7 @@ import { ipRouter } from './routes/ip.routes.js';
 import { serviceRouter } from './routes/service.routes.js';
 import { evaluationRouter } from './routes/evaluation.routes.js';
 import { dataRouter } from './routes/data.routes.js';
+import { kpiRouter } from './routes/kpi.routes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
@@ -74,6 +75,8 @@ app.use('/api/v1/ip', ipRouter);
 app.use('/api/v1/services', serviceRouter);
 app.use('/api/v1/evaluation', evaluationRouter);
 app.use('/api/v1/data', dataRouter);
+app.use('/api/v1/kpis', kpiRouter);
+app.use('/api/v1/kpi', kpiRouter);
 
 // Global Error Handler
 app.use(errorHandler);

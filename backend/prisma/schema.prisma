@@ -471,11 +471,14 @@ model StrategicIndicator {
   targetLabel      String?  @map("target_label") @db.VarChar(100)
   departmentTarget String?  @map("department_target") @db.VarChar(100)
   formulaMethod    String   @default("SUM") @map("formula_method") @db.VarChar(50)
-  calcType         String   @default("manual") @map("calc_type") @db.VarChar(50)
-  datasetKey       String   @default("research") @map("dataset_key") @db.VarChar(50)
-  activeRoundIds   String[] @map("active_round_ids")
-  reporters        String[]
-  responsibleUnit  String?  @map("responsible_unit") @db.VarChar(255)
+  calcType                 String   @default("manual") @map("calc_type") @db.VarChar(50)
+  datasetKey               String   @default("research") @map("dataset_key") @db.VarChar(50)
+  datasetKeys              String[] @default([]) @map("dataset_keys")
+  manualIncludedProjectIds String[] @default([]) @map("manual_included_project_ids")
+  manualExcludedProjectIds String[] @default([]) @map("manual_excluded_project_ids")
+  activeRoundIds           String[] @map("active_round_ids")
+  reporters                String[]
+  responsibleUnit          String?  @map("responsible_unit") @db.VarChar(255)
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
 

@@ -10,6 +10,8 @@ import {
 } from '@/types/kpi';
 import {
   getStoredKPIs,
+  fetchKPIsFromBackend,
+  fetchReportingRoundsFromBackend,
   deleteKPI,
   evaluateKPI,
   getStrategicPillar,
@@ -31,6 +33,7 @@ import {
 import * as XLSX from 'xlsx';
 import { StrategicKpiModal } from '@/app/(dashboard)/kpi/_components/StrategicKpiFormView';
 import { StrategicKpiRoundReportModal } from '@/app/(dashboard)/kpi/_components/StrategicKpiRoundReportView';
+import { KpiHoverTooltip } from '@/app/(dashboard)/kpi/_components/KpiHoverTooltip';
 
 interface KPIManagementTabProps {
   datasets: Record<string, any[]>;
@@ -113,6 +116,14 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({
 
   useEffect(() => {
     refreshList();
+    fetchKPIsFromBackend().then((liveKpis) => {
+      if (liveKpis && liveKpis.length > 0) setKpis(liveKpis);
+    });
+    fetchReportingRoundsFromBackend().then((liveRounds) => {
+      if (liveRounds && liveRounds.length > 0) {
+        setReportingRounds(liveRounds.filter((r) => r.isActive !== false));
+      }
+    });
     const handleUpdate = () => refreshList();
     window.addEventListener('kpi_updated', handleUpdate);
     window.addEventListener('kpi_rounds_updated', handleUpdate);
@@ -195,7 +206,11 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({
 
       if (selectedStatus !== 'all') {
         const evalRes = evaluateKPI(item, datasets);
-        if (evalRes.status !== selectedStatus) return false;
+        const matchStatus =
+          evalRes.status === selectedStatus ||
+          ((selectedStatus === 'in_progress' || selectedStatus === 'on_track') &&
+            (evalRes.status === 'in_progress' || evalRes.status === 'on_track' || evalRes.status === 'at_risk'));
+        if (!matchStatus) return false;
       }
 
       if (!searchQuery.trim()) return true;
@@ -348,7 +363,7 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({
           borderRadius: '12px',
           border: '1px solid #e2e8f0',
           boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
-          overflow: 'hidden',
+          overflow: 'visible',
         }}
       >
 
@@ -360,6 +375,8 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({
             alignItems: 'center',
             padding: '14px 20px',
             backgroundColor: '#ffffff',
+            borderTopLeftRadius: '12px',
+            borderTopRightRadius: '12px',
             borderBottom: '1px solid #e2e8f0',
             flexWrap: 'wrap',
             gap: '12px',
@@ -575,11 +592,18 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({
         )}
 
         {/* ตารางจัดการตัวชี้วัดตามแผนยุทธศาสตร์ */}
-        <div style={{ width: '100%', overflowX: 'auto' }}>
+        <div
+          style={{
+            width: '100%',
+            overflowX: 'auto',
+            scrollbarWidth: 'thin',
+            scrollbarColor: '#94a3b8 #f1f5f9',
+          }}
+        >
           <table
             style={{
               width: '100%',
-              minWidth: '1260px',
+              minWidth: '1380px',
               tableLayout: 'fixed',
               borderCollapse: 'collapse',
               textAlign: 'left',
@@ -721,16 +745,20 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({
                 </th>
                 <th
                   style={{
-                    width: '8%',
-                    minWidth: '105px',
+                    width: '175px',
+                    minWidth: '175px',
                     textAlign: 'center',
-                    padding: '12px 6px',
+                    padding: '12px 8px',
                     backgroundColor: '#00A651',
                     color: '#ffffff',
                     fontWeight: 600,
                     fontSize: '12.5px',
                     borderBottom: '2px solid #00A651',
                     whiteSpace: 'nowrap',
+                    position: 'sticky',
+                    right: 0,
+                    zIndex: 10,
+                    boxShadow: '-3px 0 6px rgba(0, 0, 0, 0.08)',
                   }}
                 >
                   จัดการ
@@ -765,11 +793,17 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({
                           backgroundColor: idx % 2 === 1 ? '#fafcfb' : '#ffffff',
                           transition: 'background-color 0.15s ease',
                         }}
-                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f0fbf5')}
-                        onMouseLeave={(e) =>
-                          (e.currentTarget.style.backgroundColor =
-                            idx % 2 === 1 ? '#fafcfb' : '#ffffff')
-                        }
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#f0fbf5';
+                          const stickyTd = e.currentTarget.querySelector('.sticky-action-cell') as HTMLElement;
+                          if (stickyTd) stickyTd.style.backgroundColor = '#f0fbf5';
+                        }}
+                        onMouseLeave={(e) => {
+                          const bg = idx % 2 === 1 ? '#fafcfb' : '#ffffff';
+                          e.currentTarget.style.backgroundColor = bg;
+                          const stickyTd = e.currentTarget.querySelector('.sticky-action-cell') as HTMLElement;
+                          if (stickyTd) stickyTd.style.backgroundColor = bg;
+                        }}
                       >
                         <td
                           style={{
@@ -820,16 +854,20 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({
                               </span>
                             )}
                             {kpi.planCode && (
-                              <span style={{ fontSize: '11.5px', color: '#475569', fontWeight: 600 }}>
+                              <KpiHoverTooltip
+                                badge={`ยุทธศาสตร์ที่ ${pillar?.code || kpi.strategyCode || '-'}`}
+                                fullText={kpi.planName || kpi.planCode}
+                                style={{ fontSize: '11.5px', color: '#475569', fontWeight: 600 }}
+                              >
                                 {kpi.planCode}
-                              </span>
+                              </KpiHoverTooltip>
                             )}
                           </div>
                         </td>
 
                         {/* รหัส และชื่อตัวชี้วัด */}
-                        <td style={{ padding: '11px 10px', verticalAlign: 'top' }}>
-                          <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                        <td style={{ padding: '11px 10px', verticalAlign: 'top', maxWidth: '340px' }}>
+                          <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', minWidth: 0 }}>
                             <span
                               style={{
                                 fontWeight: 700,
@@ -837,25 +875,28 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({
                                 fontFamily: 'monospace',
                                 fontSize: '12.5px',
                                 whiteSpace: 'nowrap',
+                                flexShrink: 0,
                               }}
                             >
                               {kpi.code}
                             </span>
-                            <div
+                            <KpiHoverTooltip
+                              badge={kpi.code}
+                              fullText={kpi.title}
+                              subText="คลิกที่ชื่อเพื่อดูตัวชี้วัดย่อย คำอธิบาย หลักฐาน และหมายเหตุ"
                               onClick={() =>
                                 setExpandedKpis((prev) => ({ ...prev, [kpi.id]: !prev[kpi.id] }))
                               }
                               style={{
+                                flex: 1,
                                 fontWeight: 600,
                                 color: '#0f172a',
                                 fontSize: '13px',
                                 lineHeight: 1.4,
-                                cursor: 'pointer',
                               }}
-                              title="คลิกเพื่อดูตัวชี้วัดย่อย คำอธิบาย หลักฐาน และหมายเหตุ"
                             >
                               {kpi.title}
-                            </div>
+                            </KpiHoverTooltip>
                           </div>
 
                           <div
@@ -1099,11 +1140,21 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({
 
                         {/* จัดการ (ยุบรวมรายงานผลตามรอบ + ผูกโครงการ ไว้ในปุ่มเดียว พร้อมปุ่มแก้ไขและลบ) */}
                         <td
+                          className="sticky-action-cell"
                           style={{
+                            width: '175px',
+                            minWidth: '175px',
                             textAlign: 'center',
-                            padding: '8px 6px',
+                            padding: '10px 8px',
                             whiteSpace: 'nowrap',
                             verticalAlign: 'top',
+                            position: 'sticky',
+                            right: 0,
+                            zIndex: 5,
+                            backgroundColor: idx % 2 === 1 ? '#fafcfb' : '#ffffff',
+                            boxShadow: '-3px 0 6px rgba(0, 0, 0, 0.04)',
+                            borderBottom: isExpanded ? '1px dashed #cbd5e1' : '1px solid #e2e8f0',
+                            transition: 'background-color 0.15s ease',
                           }}
                         >
                           <div
@@ -1111,7 +1162,8 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({
                               display: 'inline-flex',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              gap: '4px',
+                              gap: '6px',
+                              flexWrap: 'nowrap',
                             }}
                           >
                             <button
@@ -1129,6 +1181,7 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({
                                 borderRadius: '6px',
                                 fontSize: '11.5px',
                                 fontWeight: 600,
+                                flexShrink: 0,
                                 transition: 'all 0.15s ease',
                               }}
                               onMouseEnter={(e) => {
@@ -1149,13 +1202,26 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({
                               type="button"
                               onClick={() => handleOpenEdit(kpi)}
                               style={{
-                                background: 'none',
-                                border: 'none',
-                                color: '#e5a812',
+                                background: '#fefce8',
+                                border: '1px solid #fef08a',
+                                color: '#ca8a04',
                                 cursor: 'pointer',
-                                padding: '4px 5px',
-                                borderRadius: '4px',
-                                fontSize: '13px',
+                                padding: '5px 7px',
+                                borderRadius: '6px',
+                                fontSize: '12px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0,
+                                transition: 'all 0.15s ease',
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = '#fef08a';
+                                e.currentTarget.style.borderColor = '#eab308';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = '#fefce8';
+                                e.currentTarget.style.borderColor = '#fef08a';
                               }}
                               title="แก้ไขโครงสร้างตัวชี้วัดตามแผนยุทธศาสตร์"
                             >
@@ -1166,13 +1232,26 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({
                               type="button"
                               onClick={() => setDeleteConfirmId(kpi.id)}
                               style={{
-                                background: 'none',
-                                border: 'none',
-                                color: '#ef4444',
+                                background: '#fef2f2',
+                                border: '1px solid #fecaca',
+                                color: '#dc2626',
                                 cursor: 'pointer',
-                                padding: '4px 5px',
-                                borderRadius: '4px',
-                                fontSize: '13px',
+                                padding: '5px 7px',
+                                borderRadius: '6px',
+                                fontSize: '12px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0,
+                                transition: 'all 0.15s ease',
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = '#fee2e2';
+                                e.currentTarget.style.borderColor = '#ef4444';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = '#fef2f2';
+                                e.currentTarget.style.borderColor = '#fecaca';
                               }}
                               title="ลบตัวชี้วัด"
                             >
@@ -1352,6 +1431,8 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({
             alignItems: 'center',
             padding: '12px 20px',
             borderTop: '1px solid #e2e8f0',
+            borderBottomLeftRadius: '12px',
+            borderBottomRightRadius: '12px',
             backgroundColor: '#ffffff',
             fontSize: '13px',
             color: '#64748b',
