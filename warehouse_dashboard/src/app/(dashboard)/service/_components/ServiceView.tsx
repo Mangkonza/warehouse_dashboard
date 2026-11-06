@@ -10,7 +10,7 @@ import { MissionDataTable } from '@/components/data-display/MissionDataTable';
 import { FaChartLine, FaBuilding, FaUserTie, FaLeaf, FaHandshake, FaUsers, FaGlobeAsia, FaTable } from 'react-icons/fa';
 import { DashboardTabFilterBar } from '@/components/ui/DashboardTabFilterBar';
 import { UndatedNotice } from '@/components/ui/UndatedNotice';
-import { MissionKpiCard } from '@/components/data-display/MissionKpiCard';
+import { ExecutiveKpiDeck } from '@/components/data-display/ExecutiveKpiDeck';
 import { MissionYoYControls } from '@/components/data-display/MissionYoYControls';
 import { dashboardPageSubtitleStyle, dashboardPageTitleStyle, dashboardTheme } from '@/lib/dashboardTheme';
 import { usePerspectiveTab } from '@/hooks/usePerspectiveTab';
@@ -85,6 +85,25 @@ export function ServiceView() {
   const avgPerMonth = (validData.length / 12).toFixed(1);
   const avgPerStaff = uniquePersons.size > 0 ? (validData.length / uniquePersons.size).toFixed(1) : '0';
 
+  const expertCount = validData.filter((d: any) => {
+    const t = String(d._resolvedType || d.service_type || '');
+    return t.includes('ผู้ทรงคุณวุฒิ') || t.includes('ประเมิน') || t.includes('กรรมการ');
+  }).length;
+  const directServiceCount = Math.max(0, validData.length - expertCount);
+  const expertPct = validData.length > 0 ? ((expertCount / validData.length) * 100).toFixed(1) : '0';
+  const directPct = validData.length > 0 ? ((directServiceCount / validData.length) * 100).toFixed(1) : '0';
+  const serviceSplitRatio = validData.length > 0 ? expertCount / validData.length : 0.5;
+
+  const FACULTY_STAFF_BASELINE = 82; // บุคลากรสายวิชาการประจำ 7 ภาควิชา
+  const participationPct = Math.min(100, Math.round((uniquePersons.size / FACULTY_STAFF_BASELINE) * 100));
+
+  const personFreq: Record<string, number> = {};
+  validData.forEach((d: any) => {
+    const p = d.person || '';
+    if (p && p !== 'ไม่ระบุ' && p !== '-') personFreq[p] = (personFreq[p] || 0) + 1;
+  });
+  const maxWorkload = Math.max(10, ...Object.values(personFreq));
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       <div>
@@ -158,54 +177,57 @@ export function ServiceView() {
         <>
           {activePerspective === 'timeline_type' && (
             <>
-              {/* ZONE 2: Executive Bento KPI Cards in Amber Peach Palette */}
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-                  gap: '12px',
+              {/* ZONE 2: Executive Blueprint KPI Deck */}
+              <ExecutiveKpiDeck
+                mission="service"
+                blueprintCard={{
+                  label: 'งานบริการวิชาการทั้งหมด',
+                  value: validData.length,
+                  unit: 'ครั้ง',
+                  splitRatio: serviceSplitRatio,
+                  primaryLegend: {
+                    label: 'ผู้ทรงคุณวุฒิ/ประเมิน',
+                    value: `${expertCount} ครั้ง`,
+                    percent: `${expertPct}%`,
+                    color: '#f59e0b',
+                  },
+                  secondaryLegend: {
+                    label: 'วิชาการ/วิชาชีพ',
+                    value: `${directServiceCount} ครั้ง`,
+                    percent: `${directPct}%`,
+                    color: '#fde68a',
+                  },
                 }}
-              >
-                <MissionKpiCard
-                  mission="service"
-                  variant="pastel"
-                  label="งานบริการวิชาการทั้งหมด"
-                  value={validData.length}
-                  unit="ครั้ง"
-                  subtext={`เฉลี่ย ~${avgPerMonth} ครั้ง/เดือน • ม.ค. พีคสูงสุด (43-47 ครั้ง)`}
-                  icon={<FaHandshake style={{ fontSize: '16px' }} />}
-                />
-
-                <MissionKpiCard
-                  mission="service"
-                  variant="pastel"
-                  label="บุคลากรผู้ให้บริการวิชาการ"
-                  value={uniquePersons.size}
-                  unit="ท่าน"
-                  subtext={`เฉลี่ย ${avgPerStaff} ครั้ง/ท่าน • สูงสุด รศ.ดร.บัญชา (54 ครั้ง)`}
-                  icon={<FaUsers style={{ fontSize: '16px' }} />}
-                />
-
-                <MissionKpiCard
-                  mission="service"
-                  variant="pastel"
-                  label="เครือข่ายผู้รับบริการภายนอก"
-                  value={uniqueTargets.size}
-                  unit="หน่วยงาน"
-                  subtext="ครอบคลุมหน่วยงานรัฐ ชุมชน เอกชน และสากล"
-                  icon={<FaGlobeAsia style={{ fontSize: '16px' }} />}
-                />
-
-                <MissionKpiCard
-                  mission="service"
-                  variant="pastel"
-                  label="หน่วยงานที่ร่วมดำเนินการ"
-                  value={10}
-                  unit="หน่วยงาน"
-                  subtext="7 สังกัด • 3 ศูนย์วิจัย (บุคลากรมีส่วนร่วม 100%)"
-                  icon={<FaBuilding style={{ fontSize: '16px' }} />}
-                />
-              </div>
+                gearCard={{
+                  label: 'หน่วยงานร่วมดำเนินการ',
+                  value: 10,
+                  unit: 'หน่วยงาน',
+                  gearValue: 7,
+                  gearLabel: 'ภาควิชา',
+                }}
+                tallyCard={{
+                  label: 'บุคลากรผู้ให้บริการวิชาการ',
+                  chip: `${participationPct}% มีส่วนร่วม`,
+                  value: uniquePersons.size,
+                  unit: 'ท่าน',
+                  percent: participationPct,
+                  totalCount: FACULTY_STAFF_BASELINE,
+                  activeCount: uniquePersons.size,
+                }}
+                rulerCard={{
+                  label: 'ภาระงานเฉลี่ยต่อบุคลากร',
+                  value: avgPerStaff,
+                  unit: 'ครั้ง/ท่าน',
+                  current: parseFloat(avgPerStaff) || 0,
+                  max: maxWorkload,
+                  marks: [
+                    { label: '0', positionPercent: 2 },
+                    { label: Math.round(maxWorkload / 3).toString(), positionPercent: 33 },
+                    { label: Math.round((maxWorkload * 2) / 3).toString(), positionPercent: 66 },
+                    { label: `สูงสุด ${maxWorkload}`, positionPercent: 96 },
+                  ],
+                }}
+              />
 
               {/* ZONE 2.5: Year-over-Year (YoY) Comparison */}
               <MissionYoYControls
@@ -213,8 +235,8 @@ export function ServiceView() {
                 missionTitle="งานบริการวิชาการ"
                 allItemsRaw={validData}
                 activeDepartment={selectedDept}
-                primaryMetricLabel="จำนวนโครงการบริการวิชาการ (งาน)"
-                secondaryMetricLabel="ชั่วโมงให้บริการ (ชม.)"
+                primaryMetricLabel="จำนวนโครงการบริการวิชาการ"
+                secondaryMetricLabel="ชั่วโมงให้บริการ"
                 hasBudgetMetric={false}
                 defaultBaseYear="2567"
                 defaultTargetYear="2568"

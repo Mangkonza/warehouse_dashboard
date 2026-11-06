@@ -9,7 +9,7 @@ import { StrategicAlignmentMatrix } from '@/components/data-display/StrategicAli
 import { MissionDataTable } from '@/components/data-display/MissionDataTable';
 import { DashboardTabFilterBar } from '@/components/ui/DashboardTabFilterBar';
 import { UndatedNotice } from '@/components/ui/UndatedNotice';
-import { MissionKpiCard } from '@/components/data-display/MissionKpiCard';
+import { ExecutiveKpiDeck } from '@/components/data-display/ExecutiveKpiDeck';
 import { MissionYoYControls } from '@/components/data-display/MissionYoYControls';
 import { dashboardPageSubtitleStyle, dashboardPageTitleStyle, dashboardTheme } from '@/lib/dashboardTheme';
 import { FaCoins, FaFlask, FaAward, FaChartLine, FaBuilding, FaUserTie, FaLeaf, FaTable } from 'react-icons/fa';
@@ -96,6 +96,10 @@ export function ResearchView() {
   const maxProjectBudgetMillions = maxProj
     ? (((Number(maxProj.budget_internal) || 0) + (Number(maxProj.budget_external) || 0) || Number(maxProj.budget) || 0) / 1000000).toFixed(2)
     : '18.00';
+  const extProjectCount = validData.filter(
+    (d: any) => (Number(d.budget_external) || 0) > 0 || String(d.funding_type || '').includes('ภายนอก')
+  ).length;
+  const extProjectPct = validData.length > 0 ? Math.round((extProjectCount / validData.length) * 100) : 0;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -103,7 +107,7 @@ export function ResearchView() {
       <div>
         <h1 style={dashboardPageTitleStyle}>โครงการวิจัย</h1>
         <p style={dashboardPageSubtitleStyle}>
-          ภาพรวมงบประมาณ แหล่งทุน และผลผลิตงานวิจัยของคณะวิศวกรรมศาสตร์
+          ภาพรวมงบประมาณ แหล่งทุน และผลผลิตงานวิจัย
         </p>
       </div>
 
@@ -171,53 +175,57 @@ export function ResearchView() {
         <>
           {activePerspective === 'overview' && (
             <>
-              {/* ZONE 2: Executive KPI Grid */}
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-                  gap: '12px',
+              {/* ZONE 2: Executive Blueprint KPI Deck */}
+              <ExecutiveKpiDeck
+                mission="research"
+                blueprintCard={{
+                  label: 'งบประมาณวิจัยรวม',
+                  value: budgetMillions,
+                  unit: 'ล้านบาท',
+                  splitRatio: totalBudgetAll > 0 ? totalExternalBudget / totalBudgetAll : 0.993,
+                  primaryLegend: {
+                    label: 'ทุนภายนอก',
+                    value: `${extMillions} ลบ.`,
+                    percent: `${extPct}%`,
+                    color: '#38bdf8',
+                  },
+                  secondaryLegend: {
+                    label: 'ทุนภายใน',
+                    value: `${intMillions} ลบ.`,
+                    percent: `${(100 - parseFloat(extPct)).toFixed(1)}%`,
+                    color: '#86efac',
+                  },
                 }}
-              >
-                <MissionKpiCard
-                  mission="research"
-                  variant="pastel"
-                  label="งบประมาณวิจัยรวม"
-                  value={budgetMillions}
-                  unit="ล้านบาท"
-                  subtext={`ทุนภายนอก ${extMillions} ลบ. • ทุนภายใน ${intMillions} ลบ.`}
-                  icon={<FaCoins style={{ fontSize: '16px' }} />}
-                />
-
-                <MissionKpiCard
-                  mission="research"
-                  variant="pastel"
-                  label="โครงการวิจัยทั้งหมด"
-                  value={validData.length}
-                  unit="โครงการ"
-                  subtext={`ครอบคลุม ${uniqueDepts.size} สังกัด • หัวหน้าโครงการ ${activePisCount} ท่าน`}
-                  icon={<FaFlask style={{ fontSize: '16px' }} />}
-                />
-
-                <MissionKpiCard
-                  mission="research"
-                  variant="pastel"
-                  label="สัดส่วนพึ่งพาทุนภายนอก"
-                  value={`${extPct}%`}
-                  subtext={`16 โครงการทุนนอก • ${extMillions} จาก ${budgetMillions} ล้านบาท`}
-                  icon={<FaAward style={{ fontSize: '16px' }} />}
-                />
-
-                <MissionKpiCard
-                  mission="research"
-                  variant="pastel"
-                  label="งบเฉลี่ยต่อโครงการ"
-                  value={avgGrantMillions}
-                  unit="ล้านบาท"
-                  subtext={`สูงสุด ${maxProjectBudgetMillions} ลบ. • ${maxProj?.head || 'ศ.ดร.เชาว์'}`}
-                  icon={<FaChartLine style={{ fontSize: '16px' }} />}
-                />
-              </div>
+                gearCard={{
+                  label: 'โครงการวิจัยทั้งหมด',
+                  value: validData.length,
+                  unit: 'โครงการ',
+                  gearValue: uniqueDepts.size,
+                  gearLabel: 'สังกัด',
+                }}
+                tallyCard={{
+                  label: 'โครงการที่ได้ทุนภายนอก',
+                  chip: `${extProjectPct}%`,
+                  value: extProjectCount,
+                  unit: `จาก ${validData.length} โครงการ`,
+                  percent: extProjectPct,
+                  totalCount: validData.length,
+                  activeCount: extProjectCount,
+                }}
+                rulerCard={{
+                  label: 'งบเฉลี่ยต่อโครงการ',
+                  value: avgGrantMillions,
+                  unit: 'ล้านบาท',
+                  current: parseFloat(avgGrantMillions) || 0,
+                  max: parseFloat(maxProjectBudgetMillions) || 18,
+                  marks: [
+                    { label: '0', positionPercent: 2 },
+                    { label: ((parseFloat(maxProjectBudgetMillions) || 18) / 3).toFixed(0), positionPercent: 33 },
+                    { label: (((parseFloat(maxProjectBudgetMillions) || 18) * 2) / 3).toFixed(0), positionPercent: 66 },
+                    { label: `สูงสุด ${(parseFloat(maxProjectBudgetMillions) || 18).toFixed(2)}`, positionPercent: 96 },
+                  ],
+                }}
+              />
 
               {/* ZONE 2.5: Year-over-Year (YoY) Comparison */}
               <MissionYoYControls
@@ -225,8 +233,8 @@ export function ResearchView() {
                 missionTitle="โครงการวิจัย"
                 allItemsRaw={validData}
                 activeDepartment={selectedDept}
-                primaryMetricLabel="จำนวนโครงการ (โครงการ)"
-                secondaryMetricLabel="งบประมาณวิจัย (ล้านบาท)"
+                primaryMetricLabel="จำนวนโครงการ"
+                secondaryMetricLabel="งบประมาณวิจัย"
                 hasBudgetMetric={true}
                 defaultBaseYear="2567"
                 defaultTargetYear="2568"

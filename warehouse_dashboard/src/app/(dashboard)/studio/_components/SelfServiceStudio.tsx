@@ -724,7 +724,7 @@ export default function SelfServiceStudio() {
       <div>
         <h1 style={dashboardPageTitleStyle}>วิเคราะห์ข้อมูลเชิงลึก</h1>
         <p style={dashboardPageSubtitleStyle}>
-          สร้างกราฟและตารางวิเคราะห์จากข้อมูลพันธกิจของคณะวิศวกรรมศาสตร์
+          สร้างกราฟและตารางวิเคราะห์จากข้อมูลพันธกิจ
         </p>
       </div>
 

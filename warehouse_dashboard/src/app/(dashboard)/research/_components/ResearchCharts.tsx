@@ -252,7 +252,7 @@ export function ResearchCharts({
 
     Chart.register(ChartDataLabels);
     Chart.defaults.font.family = "'Kanit', sans-serif";
-    Chart.defaults.font.size = 12;
+    Chart.defaults.font.size = 13.5;
     Chart.defaults.color = '#0f172a';
 
     const createChart = (id: string, config: any) => {
@@ -382,12 +382,12 @@ export function ResearchCharts({
             legend: {
               position: 'top',
               labels: {
-                boxWidth: 14,
-                boxHeight: 14,
-                borderRadius: 3,
+                boxWidth: 16,
+                boxHeight: 16,
+                borderRadius: 4,
                 useBorderRadius: true,
-                font: { size: 12, weight: 600 },
-                padding: 12,
+                font: { size: 13.5, weight: 600 },
+                padding: 14,
               },
             },
             tooltip: {
@@ -423,9 +423,9 @@ export function ResearchCharts({
               display: (ctx: any) => Number(ctx.dataset.data[ctx.dataIndex]) > 0,
               anchor: isStacked ? 'center' : 'end',
               align: isStacked ? 'center' : 'top',
-              offset: isStacked ? 0 : 2,
+              offset: isStacked ? 0 : 3,
               color: isStacked ? '#0f172a' : CHART_PASTEL_PALETTE.datalabels.dark,
-              font: { weight: 'bold', size: 10.5 },
+              font: { weight: 'bold', size: 13 },
               formatter: (v: number) => {
                 if (v <= 0) return '';
                 return isCount ? `${v}` : `${v.toFixed(2)}`;
@@ -441,17 +441,19 @@ export function ResearchCharts({
               title: {
                 display: true,
                 text: isCount ? 'จำนวนโครงการ (โครงการ)' : 'งบประมาณ (ล้านบาท)',
-                font: { weight: 600, size: 11.5 },
+                font: { weight: 700, size: 13.5 },
               },
               ticks: {
                 stepSize: isCount ? 1 : undefined,
                 precision: isCount ? 0 : 2,
+                font: { size: 13, weight: 600 },
               },
               grid: { color: CHART_PASTEL_PALETTE.gridLines },
             },
             x: {
               stacked: isStacked,
               grid: { display: false },
+              ticks: { font: { size: 13.5, weight: 600 } },
             },
           },
         },
@@ -532,7 +534,7 @@ export function ResearchCharts({
               anchor: 'end',
               align: 'right',
               color: CHART_PASTEL_PALETTE.datalabels.dark,
-              font: { weight: 'bold', size: 11 },
+              font: { weight: 'bold', size: 13 },
               formatter: (v: number) =>
                 isAverageMode ? `${v.toFixed(2)} ลบ./โครงการ` : `${v.toFixed(2)} ลบ.`,
             },
@@ -542,9 +544,10 @@ export function ResearchCharts({
               beginAtZero: true,
               grace: '28%',
               grid: { color: CHART_PASTEL_PALETTE.gridLines },
-              title: { display: true, text: isAverageMode ? 'ล้านบาท / โครงการ' : 'ล้านบาท' },
+              title: { display: true, text: isAverageMode ? 'ล้านบาท / โครงการ' : 'ล้านบาท', font: { size: 13.5, weight: 700 } },
+              ticks: { font: { size: 13, weight: 600 } },
             },
-            y: { grid: { display: false } },
+            y: { grid: { display: false }, ticks: { font: { size: 13.5, weight: 600 } } },
           },
         },
       });
@@ -601,19 +604,21 @@ export function ResearchCharts({
           plugins: {
             datalabels: {
               color: CHART_PASTEL_PALETTE.datalabels.dark,
-              font: { weight: 'bold', size: 11 },
+              font: { weight: 'bold', size: 13 },
               formatter: (value: number, context: any) => {
                 const sum = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
                 const pct = (value * 100) / (sum || 1);
                 return pct >= 6 ? `${pct.toFixed(0)}%` : '';
               },
             },
-            legend: { position: 'right', labels: { padding: 10, boxWidth: 12, font: { size: 11.5 } } },
+            legend: { position: 'right', labels: { padding: 14, boxWidth: 16, boxHeight: 16, font: { size: 13.5, weight: 600 } } },
           },
         },
       });
 
-      // 3. Project Budget Scale Tiers Chart
+      // 3. Project Budget Scale Tiers Chart (Sequential scale progression avoiding collision with external/internal colors)
+      const SCALE_COLORS = ['#BAE6FD', '#C7D2FE', '#DDD6FE', '#FDE68A', '#FDA4AF'];
+      const SCALE_BORDERS = ['#0EA5E9', '#6366F1', '#8B5CF6', '#F59E0B', '#F43F5E'];
       createChart('c_re_scale', {
         type: 'bar',
         data: {
@@ -622,8 +627,8 @@ export function ResearchCharts({
             {
               label: 'จำนวนโครงการ (โครงการ)',
               data: budgetScaleData.map((t) => t.count),
-              backgroundColor: CHART_PASTEL_PALETTE.series.slice(0, 5),
-              borderColor: CHART_PASTEL_PALETTE.seriesBorders.slice(0, 5),
+              backgroundColor: SCALE_COLORS,
+              borderColor: SCALE_BORDERS,
               borderWidth: 1,
               borderRadius: 6,
             },
@@ -647,7 +652,7 @@ export function ResearchCharts({
                   isOpen: true,
                   title: `โครงการวิจัย: ขนาดงบประมาณ ${tier.label}`,
                   subtitle: `สัดส่วน ${pct}% ของงบวิจัยทั้งหมด • รวม ${tier.count} โครงการ • งบประมาณรวม ${tier.total.toLocaleString('th-TH')} บาท`,
-                  accentColor: '#0284c7',
+                  accentColor: SCALE_BORDERS[hit.index] || '#6366F1',
                   items: tier.items,
                 });
               }
@@ -659,13 +664,19 @@ export function ResearchCharts({
               anchor: 'end',
               align: 'top',
               color: CHART_PASTEL_PALETTE.datalabels.dark,
-              font: { weight: 'bold', size: 11 },
+              font: { weight: 'bold', size: 13 },
               formatter: (v: number) => (v > 0 ? `${v} โครงการ` : ''),
             },
           },
           scales: {
-            y: { beginAtZero: true, grid: { color: CHART_PASTEL_PALETTE.gridLines }, title: { display: true, text: 'จำนวนโครงการ' } },
-            x: { grid: { display: false } },
+            y: {
+              beginAtZero: true,
+              grace: '20%',
+              grid: { color: CHART_PASTEL_PALETTE.gridLines },
+              title: { display: true, text: 'จำนวนโครงการ (โครงการ)', font: { size: 13.5, weight: 700 } },
+              ticks: { font: { size: 13, weight: 600 } },
+            },
+            x: { grid: { display: false }, ticks: { font: { size: 13, weight: 600 } } },
           },
         },
       });
@@ -787,12 +798,12 @@ export function ResearchCharts({
             legend: {
               position: 'top',
               labels: {
-                boxWidth: 14,
-                boxHeight: 14,
-                borderRadius: 3,
+                boxWidth: 16,
+                boxHeight: 16,
+                borderRadius: 4,
                 useBorderRadius: true,
-                font: { size: 12, weight: 600 },
-                padding: 12,
+                font: { size: 13.5, weight: 600 },
+                padding: 14,
               },
             },
             tooltip: {
@@ -826,7 +837,6 @@ export function ResearchCharts({
                     `งบเฉลี่ยต่อโครงการ: ${avgM} ล้านบาท/โครงการ`,
                     `สัดส่วนทุนภายนอก: ${extPct}% (${(d.extBudget / 1_000_000).toFixed(2)} ลบ.)`,
                     d.megaCount > 0 ? `โครงการขนาดใหญ่ (≥10 ลบ.): ${d.megaCount} โครงการ` : '',
-                    `คลิกที่กราฟเพื่อดูรายชื่อโครงการทั้งหมด`,
                   ].filter(Boolean);
                 },
               },
@@ -845,7 +855,7 @@ export function ResearchCharts({
               borderWidth: (ctx: any) => (ctx.dataset.yAxisID === 'y1' ? 1 : 0),
               borderRadius: 4,
               padding: (ctx: any) => (ctx.dataset.yAxisID === 'y1' ? { top: 2, bottom: 2, left: 4, right: 4 } : 0),
-              font: { weight: 'bold', size: 10.5 },
+              font: { weight: 'bold', size: 12.5 },
               formatter: (v: number, ctx: any) =>
                 ctx.dataset.yAxisID === 'y1' ? `${v} โครงการ` : `${v.toFixed(2)} ลบ.`,
             },
@@ -856,7 +866,8 @@ export function ResearchCharts({
               beginAtZero: true,
               grace: '12%',
               stacked: isStackedBudget,
-              title: { display: true, text: 'งบประมาณ (ล้านบาท)', font: { size: 11.5, weight: 600 } },
+              title: { display: true, text: 'งบประมาณ (ล้านบาท)', font: { size: 13.5, weight: 700 } },
+              ticks: { font: { size: 13, weight: 600 } },
               grid: { color: CHART_PASTEL_PALETTE.gridLines },
             },
             y1: {
@@ -864,13 +875,14 @@ export function ResearchCharts({
               position: 'right',
               beginAtZero: true,
               suggestedMax: Math.max(...deptCounts, 1) + 3,
-              ticks: { stepSize: 1, precision: 0 },
+              ticks: { stepSize: 1, precision: 0, font: { size: 13, weight: 600 } },
               grid: { drawOnChartArea: false },
-              title: { display: true, text: 'จำนวนโครงการ (โครงการ)', font: { size: 11.5, weight: 600 } },
+              title: { display: true, text: 'จำนวนโครงการ (โครงการ)', font: { size: 13.5, weight: 700 } },
             },
             x: {
               stacked: isStackedBudget,
               grid: { display: false },
+              ticks: { font: { size: 13.5, weight: 600 } },
             },
           },
         },
@@ -923,7 +935,7 @@ export function ResearchCharts({
               anchor: 'end',
               align: 'right',
               color: CHART_PASTEL_PALETTE.datalabels.dark,
-              font: { weight: 'bold', size: 11 },
+              font: { weight: 'bold', size: 13 },
               formatter: (v: number) => `${v}%`,
             },
             tooltip: {
@@ -954,10 +966,11 @@ export function ResearchCharts({
               ticks: {
                 callback: (v: any) => `${v}%`,
                 stepSize: 20,
+                font: { size: 13, weight: 600 },
               },
-              title: { display: true, text: 'ร้อยละ (%)', font: { size: 11.5, weight: 600 } },
+              title: { display: true, text: 'ร้อยละ (%)', font: { size: 13.5, weight: 700 } },
             },
-            y: { grid: { display: false } },
+            y: { grid: { display: false }, ticks: { font: { size: 13.5, weight: 600 } } },
           },
         },
       });
@@ -978,8 +991,8 @@ export function ResearchCharts({
             {
               label: 'งบประมาณเฉลี่ยต่อโครงการ (ล้านบาท)',
               data: sortedByAvg.map((d) => Number((d.avgBudget / 1_000_000).toFixed(2))),
-              backgroundColor: '#86EFAC', // Soft Pastel Mint Emerald
-              borderColor: '#22C55E',
+              backgroundColor: '#DDD6FE', // Soft Pastel Lavender Violet (Distinct analytical metric, avoiding confusion with Internal Funding)
+              borderColor: '#8B5CF6',
               borderWidth: 1.5,
               borderRadius: 6,
               maxBarThickness: 28,
@@ -1009,7 +1022,7 @@ export function ResearchCharts({
               anchor: 'end',
               align: 'right',
               color: CHART_PASTEL_PALETTE.datalabels.dark,
-              font: { weight: 'bold', size: 11 },
+              font: { weight: 'bold', size: 13 },
               formatter: (v: number) => `${v.toFixed(2)} ลบ./โครงการ`,
             },
             tooltip: {
@@ -1031,9 +1044,10 @@ export function ResearchCharts({
               beginAtZero: true,
               grace: '25%',
               grid: { color: CHART_PASTEL_PALETTE.gridLines },
-              title: { display: true, text: 'ล้านบาท / โครงการ', font: { size: 11.5, weight: 600 } },
+              title: { display: true, text: 'ล้านบาท / โครงการ', font: { size: 13.5, weight: 700 } },
+              ticks: { font: { size: 13, weight: 600 } },
             },
-            y: { grid: { display: false } },
+            y: { grid: { display: false }, ticks: { font: { size: 13.5, weight: 600 } } },
           },
         },
       });
@@ -1088,7 +1102,7 @@ export function ResearchCharts({
               anchor: 'end',
               align: 'right',
               color: CHART_PASTEL_PALETTE.datalabels.dark,
-              font: { weight: 'bold', size: 11 },
+              font: { weight: 'bold', size: 13 },
               formatter: (v: number) => `${v.toFixed(2)} ลบ.`,
             },
             tooltip: {
@@ -1115,11 +1129,12 @@ export function ResearchCharts({
               beginAtZero: true,
               grace: '25%',
               grid: { color: CHART_PASTEL_PALETTE.gridLines },
-              title: { display: true, text: 'ล้านบาท', font: { size: 11.5, weight: 600 } },
+              title: { display: true, text: 'ล้านบาท', font: { size: 13.5, weight: 700 } },
+              ticks: { font: { size: 13, weight: 600 } },
             },
             y: {
               grid: { display: false },
-              ticks: { font: { size: 12, weight: 500 }, color: '#334155' },
+              ticks: { font: { size: 13.5, weight: 600 }, color: '#334155' },
             },
           },
         },
@@ -1164,9 +1179,9 @@ export function ResearchCharts({
                     style={{
                       display: 'inline-flex',
                       backgroundColor: '#f1f5f9',
-                      padding: '2px',
-                      borderRadius: '8px',
-                      fontSize: '11px',
+                      padding: '3px 4px',
+                      borderRadius: '10px',
+                      fontSize: '13px',
                       fontWeight: 600,
                     }}
                   >
@@ -1174,33 +1189,35 @@ export function ResearchCharts({
                       type="button"
                       onClick={() => setMonthlyBarMode('grouped')}
                       style={{
-                        padding: '3px 8px',
-                        borderRadius: '6px',
+                        padding: '6px 14px',
+                        borderRadius: '8px',
                         border: 'none',
                         backgroundColor: monthlyBarMode === 'grouped' ? '#ffffff' : 'transparent',
                         color: monthlyBarMode === 'grouped' ? '#00A651' : '#64748b',
-                        fontWeight: monthlyBarMode === 'grouped' ? 700 : 500,
+                        fontWeight: monthlyBarMode === 'grouped' ? 700 : 600,
                         cursor: 'pointer',
-                        boxShadow: monthlyBarMode === 'grouped' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                        boxShadow: monthlyBarMode === 'grouped' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                        fontSize: '13px',
                       }}
                     >
-                      แยกแท่ง (Grouped)
+                      แยกแท่ง
                     </button>
                     <button
                       type="button"
                       onClick={() => setMonthlyBarMode('stacked')}
                       style={{
-                        padding: '3px 8px',
-                        borderRadius: '6px',
+                        padding: '6px 14px',
+                        borderRadius: '8px',
                         border: 'none',
                         backgroundColor: monthlyBarMode === 'stacked' ? '#ffffff' : 'transparent',
                         color: monthlyBarMode === 'stacked' ? '#00A651' : '#64748b',
-                        fontWeight: monthlyBarMode === 'stacked' ? 700 : 500,
+                        fontWeight: monthlyBarMode === 'stacked' ? 700 : 600,
                         cursor: 'pointer',
-                        boxShadow: monthlyBarMode === 'stacked' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                        boxShadow: monthlyBarMode === 'stacked' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                        fontSize: '13px',
                       }}
                     >
-                      แท่งซ้อน (Stacked)
+                      แท่งซ้อน
                     </button>
                   </div>
 
@@ -1209,9 +1226,9 @@ export function ResearchCharts({
                     style={{
                       display: 'inline-flex',
                       backgroundColor: '#f1f5f9',
-                      padding: '2px',
-                      borderRadius: '8px',
-                      fontSize: '11px',
+                      padding: '3px 4px',
+                      borderRadius: '10px',
+                      fontSize: '13px',
                       fontWeight: 600,
                     }}
                   >
@@ -1219,14 +1236,15 @@ export function ResearchCharts({
                       type="button"
                       onClick={() => setMonthlyMetric('count')}
                       style={{
-                        padding: '3px 8px',
-                        borderRadius: '6px',
+                        padding: '6px 14px',
+                        borderRadius: '8px',
                         border: 'none',
                         backgroundColor: monthlyMetric === 'count' ? '#ffffff' : 'transparent',
                         color: monthlyMetric === 'count' ? '#00A651' : '#64748b',
-                        fontWeight: monthlyMetric === 'count' ? 700 : 500,
+                        fontWeight: monthlyMetric === 'count' ? 700 : 600,
                         cursor: 'pointer',
-                        boxShadow: monthlyMetric === 'count' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                        boxShadow: monthlyMetric === 'count' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                        fontSize: '13px',
                       }}
                     >
                       จำนวนโครงการ
@@ -1235,14 +1253,15 @@ export function ResearchCharts({
                       type="button"
                       onClick={() => setMonthlyMetric('budget')}
                       style={{
-                        padding: '3px 8px',
-                        borderRadius: '6px',
+                        padding: '6px 14px',
+                        borderRadius: '8px',
                         border: 'none',
                         backgroundColor: monthlyMetric === 'budget' ? '#ffffff' : 'transparent',
                         color: monthlyMetric === 'budget' ? '#00A651' : '#64748b',
-                        fontWeight: monthlyMetric === 'budget' ? 700 : 500,
+                        fontWeight: monthlyMetric === 'budget' ? 700 : 600,
                         cursor: 'pointer',
-                        boxShadow: monthlyMetric === 'budget' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                        boxShadow: monthlyMetric === 'budget' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                        fontSize: '13px',
                       }}
                     >
                       งบประมาณ
@@ -1250,17 +1269,11 @@ export function ResearchCharts({
                   </div>
                 </div>
               </div>
-              <p style={{ margin: '-2px 0 10px 0', fontSize: '12px', color: '#64748b' }}>
-                {monthlyMetric === 'count'
-                  ? 'กราฟแท่งแนวตั้งเปรียบเทียบจำนวนโครงการทุนภายนอก (สีฟ้า) และ ทุนภายใน (สีเขียว) รายเดือน • คลิกที่แท่งกราฟเพื่อดูรายละเอียดโครงการ'
-                  : 'กราฟแท่งแนวตั้งเปรียบเทียบงบประมาณทุนภายนอก (สีฟ้า) และ ทุนภายใน (สีเขียว) รายเดือน • หน่วยล้านบาท • คลิกที่แท่งกราฟเพื่อดูรายละเอียดโครงการ'}
-                {hasMultipleYears ? ' — ข้อมูลสรุปรวมตามปีที่เลือกกรอง' : ''}
-              </p>
-              <div className="chart-wrapper" style={{ height: '320px', cursor: 'pointer' }}>
+              <div className="chart-wrapper" style={{ height: '390px', cursor: 'pointer' }}>
                 <canvas id="c_re_monthly_ext_int" />
               </div>
               {undatedResearch.count > 0 && (
-                <p style={{ margin: '8px 0 0 0', fontSize: '11.5px', color: '#64748b' }}>
+                <p style={{ margin: '8px 0 0 0', fontSize: '12.5px', color: '#64748b' }}>
                   หมายเหตุ: อีก {undatedResearch.count} โครงการไม่ระบุเดือนที่เริ่มต้น
                   (งบประมาณ {(undatedResearch.budget / 1_000_000).toFixed(2)} ล้านบาท) จึงไม่ปรากฏในกราฟรายเดือน{' '}
                   <button
@@ -1280,7 +1293,7 @@ export function ResearchCharts({
                       padding: 0,
                       color: '#047857',
                       fontWeight: 700,
-                      fontSize: '11.5px',
+                      fontSize: '12.5px',
                       cursor: 'pointer',
                       textDecoration: 'underline',
                     }}
@@ -1295,16 +1308,16 @@ export function ResearchCharts({
           <div className="chart-grid">
             <div className="chart-card">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '12px' }}>
-                <h3 style={{ margin: 0 }}>
+                <h3 style={{ margin: 0, fontSize: '15px' }}>
                   <FaChartBar style={{ color: '#00A651' }} /> งบประมาณวิจัยตามสังกัด
                 </h3>
                 <div
                   style={{
                     display: 'inline-flex',
                     backgroundColor: '#f1f5f9',
-                    padding: '2px',
-                    borderRadius: '8px',
-                    fontSize: '11px',
+                    padding: '3px 4px',
+                    borderRadius: '10px',
+                    fontSize: '13px',
                     fontWeight: 600,
                   }}
                 >
@@ -1312,13 +1325,15 @@ export function ResearchCharts({
                     type="button"
                     onClick={() => setResearchBudgetMetric('total')}
                     style={{
-                      padding: '3px 8px',
-                      borderRadius: '6px',
+                      padding: '6px 14px',
+                      borderRadius: '8px',
                       border: 'none',
                       backgroundColor: researchBudgetMetric === 'total' ? '#ffffff' : 'transparent',
                       color: researchBudgetMetric === 'total' ? '#00A651' : '#64748b',
-                      fontWeight: researchBudgetMetric === 'total' ? 700 : 500,
+                      fontWeight: researchBudgetMetric === 'total' ? 700 : 600,
                       cursor: 'pointer',
+                      boxShadow: researchBudgetMetric === 'total' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                      fontSize: '13px',
                     }}
                   >
                     งบรวม
@@ -1327,34 +1342,36 @@ export function ResearchCharts({
                     type="button"
                     onClick={() => setResearchBudgetMetric('average')}
                     style={{
-                      padding: '3px 8px',
-                      borderRadius: '6px',
+                      padding: '6px 14px',
+                      borderRadius: '8px',
                       border: 'none',
                       backgroundColor: researchBudgetMetric === 'average' ? '#ffffff' : 'transparent',
                       color: researchBudgetMetric === 'average' ? '#00A651' : '#64748b',
-                      fontWeight: researchBudgetMetric === 'average' ? 700 : 500,
+                      fontWeight: researchBudgetMetric === 'average' ? 700 : 600,
                       cursor: 'pointer',
+                      boxShadow: researchBudgetMetric === 'average' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                      fontSize: '13px',
                     }}
                   >
                     เฉลี่ย/โครงการ
                   </button>
                 </div>
               </div>
-              <p style={{ margin: '0 0 10px 0', fontSize: '12px', color: '#64748b' }}>
+              <p style={{ margin: '0 0 10px 0', fontSize: '13px', color: '#64748b' }}>
                 {researchBudgetMetric === 'average'
-                  ? 'เรียงจากงบประมาณเฉลี่ยต่อโครงการ • จำนวนโครงการและงบรวมแสดงใน tooltip'
-                  : 'เรียงจากงบประมาณรวม • จำนวนโครงการและงบเฉลี่ยแสดงใน tooltip'}
+                  ? 'เรียงตามงบประมาณเฉลี่ยต่อโครงการ'
+                  : 'เรียงตามงบประมาณรวมจากมากไปน้อย'}
               </p>
-              <div className="chart-wrapper" style={{ cursor: 'pointer' }}>
+              <div className="chart-wrapper" style={{ height: '380px', cursor: 'pointer' }}>
                 <canvas id="c_re_dept" />
               </div>
             </div>
 
             <div className="chart-card">
-              <h3>
+              <h3 style={{ fontSize: '15px' }}>
                 <FaChartPie style={{ color: '#00A651' }} /> สัดส่วนงบประมาณตามแหล่งทุนวิจัย
               </h3>
-              <div className="chart-wrapper" style={{ cursor: 'pointer' }}>
+              <div className="chart-wrapper" style={{ height: '380px', cursor: 'pointer' }}>
                 <canvas id="c_re_fund" />
               </div>
             </div>
@@ -1362,13 +1379,10 @@ export function ResearchCharts({
 
           <div className="chart-grid">
             <div className="chart-card chart-full">
-              <h3 style={{ margin: '0 0 4px 0', fontSize: '14.5px', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h3 style={{ margin: '0 0 8px 0', fontSize: '15px', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <FaLayerGroup style={{ color: '#0284c7' }} /> การกระจายโครงการตามช่วงขนาดงบประมาณ
               </h3>
-              <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
-                จำนวนโครงการวิจัยจำแนกตามช่วงขนาดงบประมาณ (5 ช่วงขนาด) • คลิกที่แท่งกราฟเพื่อดูรายการ
-              </p>
-              <div className="chart-wrapper" style={{ height: '300px', cursor: 'pointer' }}>
+              <div className="chart-wrapper" style={{ height: '360px', cursor: 'pointer' }}>
                 <canvas id="c_re_scale" />
               </div>
             </div>
@@ -1383,22 +1397,23 @@ export function ResearchCharts({
           <div className="chart-grid">
             <div className="chart-card chart-full">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '8px' }}>
-                <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', fontSize: '15px' }}>
                   <FaChartLine style={{ color: '#00A651' }} /> เปรียบเทียบงบประมาณวิจัยและจำนวนโครงการรายสังกัด
                 </h3>
-                <div style={{ display: 'inline-flex', backgroundColor: '#f1f5f9', padding: '2px', borderRadius: '8px', fontSize: '11px', fontWeight: 600 }}>
+                <div style={{ display: 'inline-flex', backgroundColor: '#f1f5f9', padding: '3px 4px', borderRadius: '10px', fontSize: '13px', fontWeight: 600 }}>
                   <button
                     type="button"
                     onClick={() => setProdBudgetView('total')}
                     style={{
-                      padding: '3px 8px',
-                      borderRadius: '6px',
+                      padding: '6px 14px',
+                      borderRadius: '8px',
                       border: 'none',
                       backgroundColor: prodBudgetView === 'total' ? '#ffffff' : 'transparent',
                       color: prodBudgetView === 'total' ? '#00A651' : '#64748b',
-                      fontWeight: prodBudgetView === 'total' ? 700 : 500,
+                      fontWeight: prodBudgetView === 'total' ? 700 : 600,
                       cursor: 'pointer',
-                      boxShadow: prodBudgetView === 'total' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                      boxShadow: prodBudgetView === 'total' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                      fontSize: '13px',
                     }}
                   >
                     งบรวม + โครงการ
@@ -1407,26 +1422,22 @@ export function ResearchCharts({
                     type="button"
                     onClick={() => setProdBudgetView('stacked')}
                     style={{
-                      padding: '3px 8px',
-                      borderRadius: '6px',
+                      padding: '6px 14px',
+                      borderRadius: '8px',
                       border: 'none',
                       backgroundColor: prodBudgetView === 'stacked' ? '#ffffff' : 'transparent',
                       color: prodBudgetView === 'stacked' ? '#00A651' : '#64748b',
-                      fontWeight: prodBudgetView === 'stacked' ? 700 : 500,
+                      fontWeight: prodBudgetView === 'stacked' ? 700 : 600,
                       cursor: 'pointer',
-                      boxShadow: prodBudgetView === 'stacked' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                      boxShadow: prodBudgetView === 'stacked' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                      fontSize: '13px',
                     }}
                   >
                     แยกทุนภายนอก/ภายใน
                   </button>
                 </div>
               </div>
-              <p style={{ margin: '-2px 0 10px 0', fontSize: '12px', color: '#64748b' }}>
-                {prodBudgetView === 'total'
-                  ? 'แท่ง = งบประมาณวิจัยรวม (ล้านบาท) • เส้นสีแดง = จำนวนโครงการ (โครงการ) • คลิกที่กราฟเพื่อดูรายการโครงการ'
-                  : 'แท่งสีฟ้า = ทุนภายนอก • แท่งสีเขียว = ทุนภายใน • เส้นสีแดง = จำนวนโครงการ (โครงการ) • คลิกที่กราฟเพื่อดูรายการโครงการ'}
-              </p>
-              <div className="chart-wrapper" style={{ height: '330px', cursor: 'pointer' }}>
+              <div className="chart-wrapper" style={{ height: '400px', cursor: 'pointer' }}>
                 <canvas id="c_re_prod_dept_combo" />
               </div>
             </div>
@@ -1435,25 +1446,19 @@ export function ResearchCharts({
           {/* 2. Grid: External Funding Ratio & Average Budget per Project (Non-redundant Essential Insights) */}
           <div className="chart-grid">
             <div className="chart-card">
-              <h3>
+              <h3 style={{ fontSize: '15px' }}>
                 <FaCoins style={{ color: '#0284c7' }} /> สัดส่วนทุนวิจัยภายนอกรายสังกัด (%)
               </h3>
-              <p style={{ margin: '0 0 10px 0', fontSize: '12px', color: '#64748b' }}>
-                ร้อยละของงบประมาณที่มาจากทุนภายนอก • สะท้อนความสามารถในการแข่งขันทุนภายนอก • คลิกเพื่อดูรายการ
-              </p>
-              <div className="chart-wrapper" style={{ cursor: 'pointer' }}>
+              <div className="chart-wrapper" style={{ height: '360px', cursor: 'pointer' }}>
                 <canvas id="c_re_prod_dept_ext_pct" />
               </div>
             </div>
 
             <div className="chart-card">
-              <h3>
+              <h3 style={{ fontSize: '15px' }}>
                 <FaChartBar style={{ color: '#00A651' }} /> งบประมาณเฉลี่ยต่อโครงการรายสังกัด
               </h3>
-              <p style={{ margin: '0 0 10px 0', fontSize: '12px', color: '#64748b' }}>
-                เรียงตามขนาดงบประมาณเฉลี่ยต่อโครงการจากมากไปน้อย • หน่วยล้านบาท/โครงการ • คลิกเพื่อดูรายการ
-              </p>
-              <div className="chart-wrapper" style={{ cursor: 'pointer' }}>
+              <div className="chart-wrapper" style={{ height: '360px', cursor: 'pointer' }}>
                 <canvas id="c_re_prod_dept_avg" />
               </div>
             </div>
@@ -1560,13 +1565,10 @@ export function ResearchCharts({
           {/* Top 10 PIs Ranking Chart */}
           <div className="chart-grid">
             <div className="chart-card chart-full">
-              <h3 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h3 style={{ margin: '0 0 10px 0', fontSize: '15px', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <FaUserTie style={{ color: '#00A651' }} /> 10 อันดับหัวหน้าโครงการวิจัยที่มีงบประมาณวิจัยสูงสุด
               </h3>
-              <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
-                จัดอันดับตามงบประมาณวิจัยรวม • คลิกที่แท่งกราฟเพื่อดูรายชื่อโครงการวิจัย
-              </p>
-              <div className="chart-wrapper" style={{ height: '360px', cursor: 'pointer' }}>
+              <div className="chart-wrapper" style={{ height: '420px', cursor: 'pointer' }}>
                 <canvas id="c_re_faculty_top10" />
               </div>
             </div>

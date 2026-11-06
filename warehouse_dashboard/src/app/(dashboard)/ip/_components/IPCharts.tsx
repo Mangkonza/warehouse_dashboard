@@ -108,7 +108,7 @@ export function IPCharts({
 
     Chart.register(ChartDataLabels);
     Chart.defaults.font.family = "'Kanit', sans-serif";
-    Chart.defaults.font.size = 12;
+    Chart.defaults.font.size = 13.5;
     Chart.defaults.color = '#0f172a';
 
     const createChart = (id: string, config: any) => {
@@ -292,26 +292,26 @@ export function IPCharts({
             }
           },
           scales: {
-            x: { stacked: true, grid: { display: false } },
+            x: { stacked: true, grid: { display: false }, ticks: { font: { size: 13.5, weight: 600 } } },
             y: {
               stacked: true,
               beginAtZero: true,
               grace: '10%',
               grid: { color: CHART_PASTEL_PALETTE.gridLines },
-              title: { display: true, text: 'จำนวนรายการทรัพย์สินทางปัญญา' },
-              ticks: { precision: 0 },
+              title: { display: true, text: 'จำนวนรายการ (รายการ)', font: { size: 13.5, weight: 700 } },
+              ticks: { precision: 0, font: { size: 13, weight: 600 } },
             },
           },
           plugins: {
             legend: {
               position: 'top',
               labels: {
-                boxWidth: 12,
-                boxHeight: 12,
-                borderRadius: 2,
+                boxWidth: 16,
+                boxHeight: 16,
+                borderRadius: 4,
                 useBorderRadius: true,
-                font: { size: 11.5, weight: 600 },
-                padding: 10,
+                font: { size: 13.5, weight: 600 },
+                padding: 14,
               },
             },
             tooltip: {
@@ -330,14 +330,13 @@ export function IPCharts({
                   return [
                     `─────────────────────────────`,
                     `รวมทั้งสิ้น: ${ds.total} รายการ`,
-                    `คลิกที่แท่งกราฟเพื่อดูรายการทั้งหมด`,
                   ];
                 },
               },
             },
             datalabels: {
               color: CHART_PASTEL_PALETTE.datalabels.dark,
-              font: { weight: 'bold', size: 10 },
+              font: { weight: 'bold', size: 13 },
               formatter: (v: number) => (v > 0 ? `${v}` : ''),
             },
           },
@@ -366,21 +365,28 @@ export function IPCharts({
         }
       });
 
-      const typeData = [
-        { label: 'อนุสิทธิบัตร', count: pettyCount, color: '#93C5FD', border: '#3B82F6', items: pettyItems },
-        { label: 'สิทธิบัตรการประดิษฐ์', count: patentCount, color: '#DDD6FE', border: '#8B5CF6', items: patentItems },
-        { label: 'ลิขสิทธิ์ / อื่นๆ', count: copyrightCount, color: '#86EFAC', border: '#22C55E', items: copyrightItems },
-      ].filter((t) => t.count > 0 || validIpData.length === 0);
+      // 2. IP Breakdown Donut (Matches the left chart mode: Types or Stages to prevent color confusion)
+      const donutData = isTypeMode
+        ? [
+            { label: 'สิทธิบัตรการประดิษฐ์', count: patentCount, color: '#DDD6FE', border: '#8B5CF6', items: patentItems },
+            { label: 'อนุสิทธิบัตร', count: pettyCount, color: '#93C5FD', border: '#3B82F6', items: pettyItems },
+            { label: 'ลิขสิทธิ์ / อื่นๆ', count: copyrightCount, color: '#86EFAC', border: '#22C55E', items: copyrightItems },
+          ].filter((t) => t.count > 0 || validIpData.length === 0)
+        : [
+            { label: 'ได้รับความคุ้มครองแล้ว', count: validIpData.filter((i) => i._pipelineStage === 'granted').length, color: '#86EFAC', border: '#22C55E', items: validIpData.filter((i) => i._pipelineStage === 'granted') },
+            { label: 'ยื่นคำขอแล้ว', count: validIpData.filter((i) => i._pipelineStage === 'pending').length, color: '#93C5FD', border: '#3B82F6', items: validIpData.filter((i) => i._pipelineStage === 'pending') },
+            { label: 'เตรียมความพร้อมยื่นจด', count: validIpData.filter((i) => i._pipelineStage !== 'granted' && i._pipelineStage !== 'pending').length, color: '#FDE68A', border: '#F59E0B', items: validIpData.filter((i) => i._pipelineStage !== 'granted' && i._pipelineStage !== 'pending') },
+          ].filter((t) => t.count > 0 || validIpData.length === 0);
 
       createChart('c_ip_types_breakdown', {
         type: 'doughnut',
         data: {
-          labels: typeData.map((t) => t.label),
+          labels: donutData.map((t) => t.label),
           datasets: [
             {
-              data: typeData.map((t) => t.count),
-              backgroundColor: typeData.map((t) => t.color),
-              borderColor: typeData.map((t) => t.border),
+              data: donutData.map((t) => t.count),
+              backgroundColor: donutData.map((t) => t.color),
+              borderColor: donutData.map((t) => t.border),
               borderWidth: 1.5,
             },
           ],
@@ -395,12 +401,12 @@ export function IPCharts({
           onClick: (event: any, elements: any[], chart: any) => {
             const hit = getClickedChartElement(event, elements, chart, 'nearest');
             if (hit) {
-              const td = typeData[hit.index];
+              const td = donutData[hit.index];
               if (td && td.items.length > 0) {
-                if (onSelectType) onSelectType(td.label);
+                if (isTypeMode && onSelectType) onSelectType(td.label);
                 setDrillDown({
                   isOpen: true,
-                  title: `ประเภททรัพย์สินทางปัญญา: ${td.label}`,
+                  title: isTypeMode ? `ประเภททรัพย์สินทางปัญญา: ${td.label}` : `สถานะความคุ้มครอง: ${td.label}`,
                   subtitle: `รวม ${td.count} รายการ (${validIpData.length > 0 ? ((td.count / validIpData.length) * 100).toFixed(1) : 0}%) • คลิกรายการเพื่อดูรายละเอียด`,
                   accentColor: td.border,
                   items: td.items,
@@ -409,11 +415,21 @@ export function IPCharts({
             }
           },
           plugins: {
-            legend: { position: 'bottom' },
+            legend: {
+              position: 'bottom',
+              labels: {
+                boxWidth: 16,
+                boxHeight: 16,
+                borderRadius: 4,
+                useBorderRadius: true,
+                font: { size: 13.5, weight: 600 },
+                padding: 12,
+              },
+            },
             tooltip: {
               callbacks: {
                 label: (context: any) => {
-                  const td = typeData[context.dataIndex];
+                  const td = donutData[context.dataIndex];
                   if (!td) return '';
                   const pct = validIpData.length > 0 ? ((td.count / validIpData.length) * 100).toFixed(1) : '0';
                   return `${td.label}: ${td.count} รายการ (${pct}%)`;
@@ -422,7 +438,7 @@ export function IPCharts({
             },
             datalabels: {
               color: CHART_PASTEL_PALETTE.datalabels.dark,
-              font: { weight: 'bold', size: 11 },
+              font: { weight: 'bold', size: 13 },
               formatter: (v: number) => {
                 const total = validIpData.length;
                 if (total === 0 || v === 0) return '';
@@ -503,9 +519,10 @@ export function IPCharts({
               beginAtZero: true,
               grace: '18%',
               grid: { color: CHART_PASTEL_PALETTE.gridLines },
-              title: { display: true, text: 'จำนวนรายการ' },
+              title: { display: true, text: 'จำนวนรายการ (รายการ)', font: { size: 13.5, weight: 700 } },
+              ticks: { precision: 0, font: { size: 13, weight: 600 } },
             },
-            y: { grid: { display: false } },
+            y: { grid: { display: false }, ticks: { font: { size: 13.5, weight: 600 } } },
           },
           plugins: {
             legend: { display: false },
@@ -513,7 +530,7 @@ export function IPCharts({
               anchor: 'end',
               align: 'right',
               color: CHART_PASTEL_PALETTE.datalabels.dark,
-              font: { weight: 'bold', size: 11 },
+              font: { weight: 'bold', size: 13 },
               formatter: (v: number) => `${v} รายการ`,
             },
           },
@@ -570,8 +587,13 @@ export function IPCharts({
             }
           },
           scales: {
-            y: { beginAtZero: true, grid: { color: CHART_PASTEL_PALETTE.gridLines }, title: { display: true, text: 'รายการ' } },
-            x: { grid: { display: false } },
+            y: {
+              beginAtZero: true,
+              grid: { color: CHART_PASTEL_PALETTE.gridLines },
+              title: { display: true, text: 'จำนวนรายการ (รายการ)', font: { size: 13.5, weight: 700 } },
+              ticks: { precision: 0, font: { size: 13, weight: 600 } },
+            },
+            x: { grid: { display: false }, ticks: { font: { size: 13.5, weight: 600 } } },
           },
           plugins: {
             legend: { display: false },
@@ -579,7 +601,7 @@ export function IPCharts({
               anchor: 'end',
               align: 'top',
               color: CHART_PASTEL_PALETTE.datalabels.dark,
-              font: { weight: 'bold', size: 11 },
+              font: { weight: 'bold', size: 13 },
               formatter: (v: number) => `${v} รายการ`,
             },
           },
@@ -602,8 +624,8 @@ export function IPCharts({
             {
               label: 'จำนวนผลงาน (รายการ)',
               data: top10.map((inv) => inv.count),
-              backgroundColor: CHART_PASTEL_PALETTE.missions.ip.fill,
-              borderColor: CHART_PASTEL_PALETTE.missions.ip.border,
+              backgroundColor: top10.map((inv) => getDepartmentColor(inv.dept)),
+              borderColor: top10.map((inv) => getDepartmentColor(inv.dept)),
               borderWidth: 1.5,
               borderRadius: 6,
             },
@@ -655,7 +677,7 @@ export function IPCharts({
               anchor: 'end',
               align: 'right',
               color: CHART_PASTEL_PALETTE.datalabels.dark,
-              font: { weight: 'bold', size: 11 },
+              font: { weight: 'bold', size: 13 },
               formatter: (v: number) => `${v} รายการ`,
             },
           },
@@ -664,12 +686,12 @@ export function IPCharts({
               beginAtZero: true,
               grace: '18%',
               grid: { color: CHART_PASTEL_PALETTE.gridLines },
-              title: { display: true, text: 'จำนวนผลงาน (รายการ)' },
-              ticks: { precision: 0 },
+              title: { display: true, text: 'จำนวนผลงาน (รายการ)', font: { size: 13.5, weight: 700 } },
+              ticks: { precision: 0, font: { size: 13, weight: 600 } },
             },
             y: {
               grid: { display: false },
-              ticks: { font: { size: 12 }, color: '#334155' },
+              ticks: { font: { size: 13.5, weight: 600 }, color: '#334155' },
             },
           },
         },
@@ -719,7 +741,7 @@ export function IPCharts({
               anchor: 'end',
               align: 'right',
               color: CHART_PASTEL_PALETTE.datalabels.dark,
-              font: { weight: 'bold', size: 11 },
+              font: { weight: 'bold', size: 13 },
               formatter: (v: number) => `${v} รายการ`,
             },
           },
@@ -728,9 +750,10 @@ export function IPCharts({
               beginAtZero: true,
               grace: '15%',
               grid: { color: CHART_PASTEL_PALETTE.gridLines },
-              ticks: { precision: 0 },
+              title: { display: true, text: 'จำนวนผลงาน (รายการ)', font: { size: 13.5, weight: 700 } },
+              ticks: { precision: 0, font: { size: 13, weight: 600 } },
             },
-            y: { grid: { display: false } },
+            y: { grid: { display: false }, ticks: { font: { size: 13.5, weight: 600 } } },
           },
         },
       });
@@ -817,16 +840,16 @@ export function IPCharts({
             <div className="chart-grid">
               <div className="chart-card">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <h3 style={{ margin: 0, fontSize: '14.5px', fontWeight: 700, color: '#1e293b' }}>
+                  <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#1e293b' }}>
                     <FaBuilding style={{ color: '#8b5cf6', marginRight: '6px' }} /> การกระจายตัวตาม 7 สังกัด ({deptStackMode === 'type' ? 'แยกตามประเภท' : 'แยกตามสถานะ'})
                   </h3>
                   <div
                     style={{
                       display: 'inline-flex',
                       backgroundColor: '#f1f5f9',
-                      padding: '2px',
-                      borderRadius: '8px',
-                      fontSize: '11px',
+                      padding: '3px 4px',
+                      borderRadius: '10px',
+                      fontSize: '13px',
                       fontWeight: 600,
                     }}
                   >
@@ -834,14 +857,15 @@ export function IPCharts({
                       type="button"
                       onClick={() => setDeptStackMode('type')}
                       style={{
-                        padding: '3px 8px',
-                        borderRadius: '6px',
+                        padding: '6px 14px',
+                        borderRadius: '8px',
                         border: 'none',
                         backgroundColor: deptStackMode === 'type' ? '#ffffff' : 'transparent',
                         color: deptStackMode === 'type' ? '#6d28d9' : '#64748b',
-                        fontWeight: deptStackMode === 'type' ? 700 : 500,
+                        fontWeight: deptStackMode === 'type' ? 700 : 600,
                         cursor: 'pointer',
-                        boxShadow: deptStackMode === 'type' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                        boxShadow: deptStackMode === 'type' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                        fontSize: '13px',
                       }}
                     >
                       แยกตามประเภท
@@ -850,38 +874,32 @@ export function IPCharts({
                       type="button"
                       onClick={() => setDeptStackMode('stage')}
                       style={{
-                        padding: '3px 8px',
-                        borderRadius: '6px',
+                        padding: '6px 14px',
+                        borderRadius: '8px',
                         border: 'none',
                         backgroundColor: deptStackMode === 'stage' ? '#ffffff' : 'transparent',
                         color: deptStackMode === 'stage' ? '#6d28d9' : '#64748b',
-                        fontWeight: deptStackMode === 'stage' ? 700 : 500,
+                        fontWeight: deptStackMode === 'stage' ? 700 : 600,
                         cursor: 'pointer',
-                        boxShadow: deptStackMode === 'stage' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                        boxShadow: deptStackMode === 'stage' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                        fontSize: '13px',
                       }}
                     >
                       แยกตามสถานะ
                     </button>
                   </div>
                 </div>
-                <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
-                  {deptStackMode === 'type'
-                    ? 'สัดส่วนสิทธิบัตรการประดิษฐ์ อนุสิทธิบัตร และลิขสิทธิ์ ในแต่ละภาควิชา • คลิกที่แท่งเพื่อดูรายการ'
-                    : 'สัดส่วนตามสถานะความคุ้มครอง (ได้รับความคุ้มครอง, ยื่นคำขอแล้ว, เตรียมยื่น) • คลิกที่แท่งเพื่อดูรายการ'}
-                </p>
-                <div className="chart-wrapper">
+                <div className="chart-wrapper" style={{ height: '380px', cursor: 'pointer' }}>
                   <canvas id="c_ip_dept_stacked" />
                 </div>
               </div>
 
               <div className="chart-card">
-                <h3 style={{ margin: '0 0 4px 0', fontSize: '14.5px', fontWeight: 700, color: '#1e293b' }}>
-                  <FaCertificate style={{ color: '#8b5cf6', marginRight: '6px' }} /> สัดส่วนประเภททรัพย์สินทางปัญญา
+                <h3 style={{ margin: '0 0 10px 0', fontSize: '15px', fontWeight: 700, color: '#1e293b' }}>
+                  <FaCertificate style={{ color: '#8b5cf6', marginRight: '6px' }} />{' '}
+                  {deptStackMode === 'type' ? 'สัดส่วนประเภททรัพย์สินทางปัญญา' : 'สัดส่วนตามสถานะความคุ้มครอง'}
                 </h3>
-                <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
-                  สัดส่วนระหว่างอนุสิทธิบัตร สิทธิบัตรการประดิษฐ์ และลิขสิทธิ์ / อื่นๆ • คลิกที่ชิ้นกราฟเพื่อดูรายการ
-                </p>
-                <div className="chart-wrapper">
+                <div className="chart-wrapper" style={{ height: '380px', cursor: 'pointer' }}>
                   <canvas id="c_ip_types_breakdown" />
                 </div>
               </div>
@@ -910,25 +928,19 @@ export function IPCharts({
           ) : (
             <div className="chart-grid">
               <div className="chart-card">
-                <h3 style={{ margin: '0 0 4px 0', fontSize: '14.5px', fontWeight: 700, color: '#1e293b' }}>
+                <h3 style={{ margin: '0 0 10px 0', fontSize: '15px', fontWeight: 700, color: '#1e293b' }}>
                   <FaShieldAlt style={{ color: '#8b5cf6', marginRight: '6px' }} /> สถานะการยื่นคำขอและการคุ้มครอง (3 ระดับ)
                 </h3>
-                <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
-                  จำนวนรายการตามสถานะปัจจุบัน (ได้รับความคุ้มครองแล้ว, ยื่นคำขอแล้ว, เตรียมความพร้อมยื่นจด) • คลิกที่แท่งกราฟเพื่อดูรายการ
-                </p>
-                <div className="chart-wrapper">
+                <div className="chart-wrapper" style={{ height: '360px', cursor: 'pointer' }}>
                   <canvas id="c_ip_stage_snapshot" />
                 </div>
               </div>
 
               <div className="chart-card">
-                <h3 style={{ margin: '0 0 4px 0', fontSize: '14.5px', fontWeight: 700, color: '#1e293b' }}>
+                <h3 style={{ margin: '0 0 10px 0', fontSize: '15px', fontWeight: 700, color: '#1e293b' }}>
                   <FaCalendarAlt style={{ color: '#8b5cf6', marginRight: '6px' }} /> แนวโน้มการสร้างสรรค์ผลงานตามปีงบประมาณ
                 </h3>
-                <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
-                  จำนวนรายการทรัพย์สินทางปัญญาที่เกิดขึ้นในแต่ละปีงบประมาณ • คลิกที่แท่งกราฟเพื่อดูรายการ
-                </p>
-                <div className="chart-wrapper">
+                <div className="chart-wrapper" style={{ height: '360px', cursor: 'pointer' }}>
                   <canvas id="c_ip_fy_trend" />
                 </div>
               </div>
@@ -959,25 +971,19 @@ export function IPCharts({
               {/* Row 1: Charts (Top 10 Inventors & Tech Clusters) */}
               <div className="chart-grid">
                 <div className="chart-card">
-                  <h3 style={{ margin: '0 0 4px 0', fontSize: '14.5px', fontWeight: 700, color: '#1e293b' }}>
+                  <h3 style={{ margin: '0 0 10px 0', fontSize: '15px', fontWeight: 700, color: '#1e293b' }}>
                     <FaUserTie style={{ color: '#8b5cf6', marginRight: '6px' }} /> 10 อันดับอาจารย์และนักประดิษฐ์ที่มีผลงานสูงสุด
                   </h3>
-                  <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
-                    นักประดิษฐ์ผู้สร้างสรรค์ทรัพย์สินทางปัญญาสูงสุดของคณะฯ (รายการ) • คลิกที่แท่งกราฟเพื่อดูผลงาน
-                  </p>
-                  <div className="chart-wrapper">
+                  <div className="chart-wrapper" style={{ height: '400px', cursor: 'pointer' }}>
                     <canvas id="c_ip_faculty_top10" />
                   </div>
                 </div>
 
                 <div className="chart-card">
-                  <h3 style={{ margin: '0 0 4px 0', fontSize: '14.5px', fontWeight: 700, color: '#1e293b' }}>
+                  <h3 style={{ margin: '0 0 10px 0', fontSize: '15px', fontWeight: 700, color: '#1e293b' }}>
                     <FaLightbulb style={{ color: '#8b5cf6', marginRight: '6px' }} /> กลุ่มเทคโนโลยีและนวัตกรรม
                   </h3>
-                  <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
-                    การจัดกลุ่มคลัสเตอร์เทคโนโลยีจากชื่อผลงานการประดิษฐ์จริง • คลิกที่แท่งกราฟเพื่อดูผลงาน
-                  </p>
-                  <div className="chart-wrapper">
+                  <div className="chart-wrapper" style={{ height: '400px', cursor: 'pointer' }}>
                     <canvas id="c_ip_clusters" />
                   </div>
                 </div>

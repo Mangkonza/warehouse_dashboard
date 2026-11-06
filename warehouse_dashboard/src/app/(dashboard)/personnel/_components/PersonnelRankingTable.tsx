@@ -170,12 +170,13 @@ export function PersonnelRankingTable({ metrics }: PersonnelRankingTableProps) {
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '6px',
-                fontSize: '12.5px',
+                gap: '8px',
+                fontSize: '13px',
+                fontWeight: 600,
                 color: '#334155',
                 cursor: 'pointer',
                 backgroundColor: '#ffffff',
-                padding: '6px 12px',
+                padding: '7px 14px',
                 borderRadius: '8px',
                 border: '1px solid #cbd5e1',
               }}
@@ -187,7 +188,7 @@ export function PersonnelRankingTable({ metrics }: PersonnelRankingTableProps) {
                   setShowActiveOnly(e.target.checked);
                   setCurrentPage(1);
                 }}
-                style={{ accentColor: '#00A651', cursor: 'pointer' }}
+                style={{ accentColor: '#0f766e', cursor: 'pointer', width: '16px', height: '16px' }}
               />
               <span>เฉพาะผู้มีผลงาน ({metrics.filter((m) => m.counts.total > 0).length} คน)</span>
             </label>
@@ -200,10 +201,10 @@ export function PersonnelRankingTable({ metrics }: PersonnelRankingTableProps) {
             display: 'flex',
             alignItems: 'center',
             flexWrap: 'wrap',
-            gap: '10px',
+            gap: '12px',
           }}
         >
-          <div style={{ flex: '1 1 240px', minWidth: '220px' }}>
+          <div style={{ flex: '1 1 260px', minWidth: '240px' }}>
             <SearchInput
               value={searchTerm}
               onChange={(val) => {
@@ -215,8 +216,8 @@ export function PersonnelRankingTable({ metrics }: PersonnelRankingTableProps) {
           </div>
 
           {/* Sort Selector */}
-          <div style={{ minWidth: '180px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '12px', color: '#64748b', whiteSpace: 'nowrap' }}>
+          <div style={{ minWidth: '200px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b', whiteSpace: 'nowrap' }}>
               <FaSortAmountDown style={{ marginRight: '4px' }} />
               เรียงตาม:
             </span>
@@ -228,14 +229,15 @@ export function PersonnelRankingTable({ metrics }: PersonnelRankingTableProps) {
               }}
               style={{
                 width: '100%',
-                padding: '8px 10px',
+                padding: '8px 12px',
                 borderRadius: '8px',
                 border: '1px solid #cbd5e1',
-                fontSize: '12.5px',
+                fontSize: '13px',
                 color: '#1e293b',
                 backgroundColor: '#ffffff',
                 outline: 'none',
                 fontWeight: 600,
+                cursor: 'pointer',
               }}
             >
               <option value="total">ผลงานรวม 5 ด้าน</option>
@@ -250,9 +252,9 @@ export function PersonnelRankingTable({ metrics }: PersonnelRankingTableProps) {
         </div>
 
         {/* Mission Filter Tabs */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           {[
-            { id: 'all', label: 'ผลงานทั้งหมด', color: '#00A651' },
+            { id: 'all', label: 'ผลงานทั้งหมด', color: '#0f766e' },
             { id: 'research', label: 'โครงการวิจัย', icon: <FaFlask />, color: '#00A651' },
             { id: 'publications', label: 'ผลงานตีพิมพ์', icon: <FaBook />, color: '#e11d48' },
             { id: 'ip', label: 'ทรัพย์สินทางปัญญา', icon: <FaCertificate />, color: '#7c3aed' },
@@ -269,22 +271,22 @@ export function PersonnelRankingTable({ metrics }: PersonnelRankingTableProps) {
                   setCurrentPage(1);
                 }}
                 style={{
-                  padding: '5px 12px',
+                  padding: '7px 16px',
                   borderRadius: '9999px',
-                  border: isSel ? `1px solid ${tab.color}` : '1px solid #e2e8f0',
+                  border: isSel ? `1px solid ${tab.color}` : '1px solid #cbd5e1',
                   backgroundColor: isSel ? tab.color : '#ffffff',
-                  color: isSel ? '#ffffff' : '#475569',
-                  fontSize: '12px',
-                  fontWeight: isSel ? 700 : 500,
+                  color: isSel ? '#ffffff' : '#334155',
+                  fontSize: '13px',
+                  fontWeight: isSel ? 700 : 600,
                   cursor: 'pointer',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  boxShadow: isSel ? `0 2px 5px ${tab.color}35` : 'none',
+                  boxShadow: isSel ? `0 2px 6px ${tab.color}35` : 'none',
                   transition: 'all 0.15s ease',
                 }}
               >
-                {tab.icon && <span style={{ fontSize: '11px' }}>{tab.icon}</span>}
+                {tab.icon && <span style={{ fontSize: '13px' }}>{tab.icon}</span>}
                 <span>{tab.label}</span>
               </button>
             );
@@ -308,7 +310,7 @@ export function PersonnelRankingTable({ metrics }: PersonnelRankingTableProps) {
                 backgroundColor: '#f1f5f9',
                 color: '#475569',
                 borderBottom: '2px solid #e2e8f0',
-                fontSize: '12px',
+                fontSize: '13px',
                 fontWeight: 700,
                 textTransform: 'uppercase',
                 letterSpacing: '0.03em',
@@ -805,26 +807,29 @@ export function PersonnelRankingTable({ metrics }: PersonnelRankingTableProps) {
                           router.push(`/personnel/${item.id}`);
                         }}
                         style={{
-                          padding: '6px 12px',
-                          borderRadius: '9999px',
+                          padding: '7px 14px',
+                          borderRadius: '8px',
                           border: '1px solid #cbd5e1',
                           backgroundColor: '#ffffff',
-                          color: '#00A651',
-                          fontSize: '12px',
+                          color: '#0f766e',
+                          fontSize: '13px',
                           fontWeight: 600,
                           cursor: 'pointer',
                           display: 'inline-flex',
                           alignItems: 'center',
-                          gap: '5px',
+                          gap: '6px',
                           transition: 'all 0.15s ease',
+                          boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#00A651';
+                          e.currentTarget.style.backgroundColor = '#0f766e';
                           e.currentTarget.style.color = '#ffffff';
+                          e.currentTarget.style.borderColor = '#0f766e';
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.backgroundColor = '#ffffff';
-                          e.currentTarget.style.color = '#00A651';
+                          e.currentTarget.style.color = '#0f766e';
+                          e.currentTarget.style.borderColor = '#cbd5e1';
                         }}
                       >
                         <span>ดูผลงาน</span>
@@ -842,7 +847,7 @@ export function PersonnelRankingTable({ metrics }: PersonnelRankingTableProps) {
       {/* 3. Pagination Footer */}
       <div
         style={{
-          padding: '14px 20px',
+          padding: '16px 20px',
           backgroundColor: '#f8fafc',
           borderTop: '1px solid #e2e8f0',
           display: 'flex',
@@ -850,7 +855,7 @@ export function PersonnelRankingTable({ metrics }: PersonnelRankingTableProps) {
           justifyContent: 'space-between',
           flexWrap: 'wrap',
           gap: '12px',
-          fontSize: '13px',
+          fontSize: '13.5px',
           color: '#64748b',
         }}
       >
@@ -860,26 +865,26 @@ export function PersonnelRankingTable({ metrics }: PersonnelRankingTableProps) {
           <strong>{filteredMetrics.length}</strong> ท่าน
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <button
             type="button"
             disabled={currentPage === 1}
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             style={{
-              padding: '6px 12px',
-              borderRadius: '9999px',
+              padding: '7px 16px',
+              borderRadius: '8px',
               border: '1px solid #cbd5e1',
               backgroundColor: '#ffffff',
               color: currentPage === 1 ? '#cbd5e1' : '#334155',
               cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-              fontSize: '12.5px',
-              fontWeight: 500,
+              fontSize: '13px',
+              fontWeight: 600,
             }}
           >
             ก่อนหน้า
           </button>
 
-          <span style={{ padding: '0 8px', fontWeight: 600, color: '#1e293b' }}>
+          <span style={{ padding: '0 10px', fontWeight: 700, color: '#0f172a', fontSize: '13.5px' }}>
             {currentPage} / {totalPages}
           </span>
 
@@ -888,14 +893,14 @@ export function PersonnelRankingTable({ metrics }: PersonnelRankingTableProps) {
             disabled={currentPage >= totalPages}
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             style={{
-              padding: '6px 12px',
-              borderRadius: '9999px',
+              padding: '7px 16px',
+              borderRadius: '8px',
               border: '1px solid #cbd5e1',
               backgroundColor: '#ffffff',
               color: currentPage >= totalPages ? '#cbd5e1' : '#334155',
               cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer',
-              fontSize: '12.5px',
-              fontWeight: 500,
+              fontSize: '13px',
+              fontWeight: 600,
             }}
           >
             ถัดไป

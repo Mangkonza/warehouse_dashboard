@@ -155,6 +155,7 @@ export function StrategicCommandPanel({
 
     Chart.register(ChartDataLabels);
     Chart.defaults.font.family = "'Kanit', sans-serif";
+    Chart.defaults.font.size = 13.5;
 
     const canvas = document.getElementById('c_overview_isee_matrix') as HTMLCanvasElement;
     if (canvas) {
@@ -235,8 +236,12 @@ export function StrategicCommandPanel({
               title: {
                 display: true,
                 text: 'จำนวนผลงานที่ขับเคลื่อน (รายการ)',
-                font: { size: 11, family: "'Kanit', sans-serif" },
-                color: '#64748b',
+                font: { size: 13.5, weight: 700, family: "'Kanit', sans-serif" },
+                color: '#0F172A',
+              },
+              ticks: {
+                font: { size: 12.5, weight: 600, family: "'Kanit', sans-serif" },
+                color: '#334155',
               },
             },
             y: {
@@ -244,8 +249,8 @@ export function StrategicCommandPanel({
               grid: { display: false },
               ticks: {
                 autoSkip: false,
-                font: { size: 11.5, weight: 500, family: "'Kanit', sans-serif" },
-                color: '#334155',
+                font: { size: 13, weight: 600, family: "'Kanit', sans-serif" },
+                color: '#0F172A',
               },
             },
           },
@@ -253,17 +258,18 @@ export function StrategicCommandPanel({
             legend: {
               position: 'bottom',
               labels: {
-                boxWidth: 10,
-                boxHeight: 10,
-                borderRadius: 2,
+                boxWidth: 14,
+                boxHeight: 14,
+                borderRadius: 4,
                 useBorderRadius: true,
-                font: { size: 11, family: "'Kanit', sans-serif" },
-                color: '#475569',
+                font: { size: 13.5, weight: 600, family: "'Kanit', sans-serif" },
+                color: '#0F172A',
+                padding: 12,
               },
             },
             datalabels: {
-              color: CHART_PASTEL_PALETTE.datalabels.dark,
-              font: { weight: 'bold', size: 9.5, family: "'Kanit', sans-serif" },
+              color: '#0F172A',
+              font: { weight: 'bold', size: 12.5, family: "'Kanit', sans-serif" },
               formatter: (v: number) => (v > 10 ? `${v}` : ''),
             },
           },
@@ -314,10 +320,7 @@ export function StrategicCommandPanel({
             รวม {totalAllItems} ผลงาน
           </span>
         </div>
-        <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
-          การกระจายตัวของทั้ง 5 พันธกิจใน 4 เสาหลักยุทธศาสตร์
-        </p>
-        <div style={{ height: '240px', position: 'relative' }}>
+        <div style={{ height: '350px', position: 'relative', marginTop: '12px' }}>
           <canvas id="c_overview_isee_matrix" />
         </div>
       </div>
@@ -333,34 +336,31 @@ export function StrategicCommandPanel({
           border: '1px solid #e2e8f0',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
           <FaAward style={{ color: '#7c3aed', fontSize: '16px' }} />
-          <h3 style={{ margin: 0, fontSize: '14.5px', fontWeight: 700, color: '#0f172a' }}>
+          <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
             การขับเคลื่อนตามค่านิยมองค์กร (IAM)
           </h3>
         </div>
-        <p style={{ margin: '0 0 14px 0', fontSize: '12px', color: '#64748b' }}>
-          การแสดงออกของค่านิยมผ่านผลงานจริงทั้งคณะ
-        </p>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '4px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '4px' }}>
           {/* I - Integrity */}
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12.5px', fontWeight: 600, marginBottom: '5px' }}>
-              <span style={{ color: '#059669' }}>I - ความถูกต้องและจริยธรรม</span>
-              <span style={{ fontSize: '11px', fontWeight: 700, color: '#047857', backgroundColor: '#ecfdf5', border: '1px solid #a7f3d0', padding: '1px 6px', borderRadius: '4px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>
+              <span style={{ color: '#059669', fontWeight: 700 }}>I - ความถูกต้องและจริยธรรม</span>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#047857', backgroundColor: '#ecfdf5', border: '1px solid #a7f3d0', padding: '2px 8px', borderRadius: '6px' }}>
                 {iamOverview.iCount} ผลงาน ({iamOverview.iPct}%)
               </span>
             </div>
-            <div style={{ height: '7px', borderRadius: '999px', backgroundColor: '#e2e8f0', overflow: 'hidden' }}>
+            <div style={{ height: '8px', borderRadius: '999px', backgroundColor: '#e2e8f0', overflow: 'hidden' }}>
               <div style={{ width: `${iamOverview.iPct}%`, height: '100%', backgroundColor: '#86efac', borderRadius: '999px' }} />
             </div>
             {/* Micro-focus Chips replacing verbose text */}
-            <div style={{ display: 'flex', gap: '5px', marginTop: '6px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '10.5px', fontWeight: 600, color: '#047857', backgroundColor: '#ecfdf5', border: '1px solid #d1fae5', padding: '1px 6px', borderRadius: '4px' }}>
+            <div style={{ display: 'flex', gap: '6px', marginTop: '8px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '11.5px', fontWeight: 600, color: '#047857', backgroundColor: '#ecfdf5', border: '1px solid #d1fae5', padding: '2px 8px', borderRadius: '6px' }}>
                 จริยธรรมวิจัย
               </span>
-              <span style={{ fontSize: '10.5px', fontWeight: 600, color: '#047857', backgroundColor: '#ecfdf5', border: '1px solid #d1fae5', padding: '1px 6px', borderRadius: '4px' }}>
+              <span style={{ fontSize: '11.5px', fontWeight: 600, color: '#047857', backgroundColor: '#ecfdf5', border: '1px solid #d1fae5', padding: '2px 8px', borderRadius: '6px' }}>
                 คุ้มครองสิทธิ์ IP
               </span>
             </div>
@@ -368,21 +368,21 @@ export function StrategicCommandPanel({
 
           {/* A - Agility */}
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12.5px', fontWeight: 600, marginBottom: '5px' }}>
-              <span style={{ color: '#0284c7' }}>A - ความคล่องตัวและการบริการ</span>
-              <span style={{ fontSize: '11px', fontWeight: 700, color: '#0369a1', backgroundColor: '#f0f9ff', border: '1px solid #bae6fd', padding: '1px 6px', borderRadius: '4px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>
+              <span style={{ color: '#0284c7', fontWeight: 700 }}>A - ความคล่องตัวและการบริการ</span>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#0369a1', backgroundColor: '#f0f9ff', border: '1px solid #bae6fd', padding: '2px 8px', borderRadius: '6px' }}>
                 {iamOverview.aCount} ผลงาน ({iamOverview.aPct}%)
               </span>
             </div>
-            <div style={{ height: '7px', borderRadius: '999px', backgroundColor: '#e2e8f0', overflow: 'hidden' }}>
+            <div style={{ height: '8px', borderRadius: '999px', backgroundColor: '#e2e8f0', overflow: 'hidden' }}>
               <div style={{ width: `${iamOverview.aPct}%`, height: '100%', backgroundColor: '#93c5fd', borderRadius: '999px' }} />
             </div>
             {/* Micro-focus Chips replacing verbose text */}
-            <div style={{ display: 'flex', gap: '5px', marginTop: '6px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '10.5px', fontWeight: 600, color: '#0369a1', backgroundColor: '#f0f9ff', border: '1px solid #e0f2fe', padding: '1px 6px', borderRadius: '4px' }}>
+            <div style={{ display: 'flex', gap: '6px', marginTop: '8px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '11.5px', fontWeight: 600, color: '#0369a1', backgroundColor: '#f0f9ff', border: '1px solid #e0f2fe', padding: '2px 8px', borderRadius: '6px' }}>
                 บริการวิชาการ {validService.length} ครั้ง
               </span>
-              <span style={{ fontSize: '10.5px', fontWeight: 600, color: '#0369a1', backgroundColor: '#f0f9ff', border: '1px solid #e0f2fe', padding: '1px 6px', borderRadius: '4px' }}>
+              <span style={{ fontSize: '11.5px', fontWeight: 600, color: '#0369a1', backgroundColor: '#f0f9ff', border: '1px solid #e0f2fe', padding: '2px 8px', borderRadius: '6px' }}>
                 อนุสิทธิบัตรคล่องตัว
               </span>
             </div>
@@ -390,21 +390,21 @@ export function StrategicCommandPanel({
 
           {/* M - Mastery */}
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12.5px', fontWeight: 600, marginBottom: '5px' }}>
-              <span style={{ color: '#7c3aed' }}>M - ความเป็นมืออาชีพ</span>
-              <span style={{ fontSize: '11px', fontWeight: 700, color: '#6d28d9', backgroundColor: '#f5f3ff', border: '1px solid #ddd6fe', padding: '1px 6px', borderRadius: '4px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>
+              <span style={{ color: '#7c3aed', fontWeight: 700 }}>M - ความเป็นมืออาชีพ</span>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#6d28d9', backgroundColor: '#f5f3ff', border: '1px solid #ddd6fe', padding: '2px 8px', borderRadius: '6px' }}>
                 {iamOverview.mCount} ผลงาน ({iamOverview.mPct}%)
               </span>
             </div>
-            <div style={{ height: '7px', borderRadius: '999px', backgroundColor: '#e2e8f0', overflow: 'hidden' }}>
+            <div style={{ height: '8px', borderRadius: '999px', backgroundColor: '#e2e8f0', overflow: 'hidden' }}>
               <div style={{ width: `${iamOverview.mPct}%`, height: '100%', backgroundColor: '#ddd6fe', borderRadius: '999px' }} />
             </div>
             {/* Micro-focus Chips replacing verbose text */}
-            <div style={{ display: 'flex', gap: '5px', marginTop: '6px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '10.5px', fontWeight: 600, color: '#6d28d9', backgroundColor: '#f5f3ff', border: '1px solid #ede9fe', padding: '1px 6px', borderRadius: '4px' }}>
+            <div style={{ display: 'flex', gap: '6px', marginTop: '8px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '11.5px', fontWeight: 600, color: '#6d28d9', backgroundColor: '#f5f3ff', border: '1px solid #ede9fe', padding: '2px 8px', borderRadius: '6px' }}>
                 ทุนวิจัยขนาดใหญ่
               </span>
-              <span style={{ fontSize: '10.5px', fontWeight: 600, color: '#6d28d9', backgroundColor: '#f5f3ff', border: '1px solid #ede9fe', padding: '1px 6px', borderRadius: '4px' }}>
+              <span style={{ fontSize: '11.5px', fontWeight: 600, color: '#6d28d9', backgroundColor: '#f5f3ff', border: '1px solid #ede9fe', padding: '2px 8px', borderRadius: '6px' }}>
                 บทความ Q1/Q2 ({validPub.length} เรื่อง)
               </span>
             </div>
@@ -414,15 +414,12 @@ export function StrategicCommandPanel({
 
       {/* Box 3: Top UN SDGs Impact (40%) */}
       <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
           <FaGlobeAmericas style={{ color: '#0284c7', fontSize: '16px' }} />
-          <h3 style={{ margin: 0, fontSize: '14.5px', fontWeight: 700, color: '#0f172a' }}>
+          <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
             5 อันดับเป้าหมายความยั่งยืนสูงสุด (SDGs)
           </h3>
         </div>
-        <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
-          เป้าหมายการพัฒนาที่ยั่งยืนที่มีโครงการและผลงานขับเคลื่อนสูงสุด
-        </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {topSdgs.map((sdg) => {
@@ -433,11 +430,11 @@ export function StrategicCommandPanel({
                 style={{
                   display: 'flex',
                   flexDirection: 'column',
-                  padding: '8px 12px',
+                  padding: '10px 14px',
                   borderRadius: '10px',
                   backgroundColor: '#f8fafc',
                   border: '1px solid #f1f5f9',
-                  gap: '5px',
+                  gap: '6px',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -447,30 +444,30 @@ export function StrategicCommandPanel({
                         display: 'inline-flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        width: '26px',
-                        height: '26px',
+                        width: '28px',
+                        height: '28px',
                         borderRadius: '6px',
                         backgroundColor: sdg.color,
                         color: '#ffffff',
-                        fontSize: '11px',
+                        fontSize: '12px',
                         fontWeight: 800,
                         flexShrink: 0,
                       }}
                     >
                       {sdg.num}
                     </span>
-                    <span style={{ fontSize: '12px', fontWeight: 600, color: '#1e293b' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: '#1e293b' }}>
                       {sdg.name}
                     </span>
                   </div>
                   <span
                     style={{
-                      fontSize: '11px',
+                      fontSize: '12px',
                       fontWeight: 700,
-                      color: '#475569',
+                      color: '#334155',
                       backgroundColor: '#ffffff',
-                      padding: '2px 8px',
-                      borderRadius: '5px',
+                      padding: '3px 10px',
+                      borderRadius: '6px',
                       border: '1px solid #e2e8f0',
                       whiteSpace: 'nowrap',
                     }}
@@ -483,7 +480,7 @@ export function StrategicCommandPanel({
                 <div
                   style={{
                     width: '100%',
-                    height: '5px',
+                    height: '6px',
                     borderRadius: '999px',
                     backgroundColor: '#e2e8f0',
                     overflow: 'hidden',

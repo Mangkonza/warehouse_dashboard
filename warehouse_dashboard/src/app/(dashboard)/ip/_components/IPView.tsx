@@ -10,7 +10,7 @@ import { MissionDataTable } from '@/components/data-display/MissionDataTable';
 import { FaCertificate, FaShieldAlt, FaUserTie, FaLeaf, FaHourglassHalf, FaCoins, FaTable } from 'react-icons/fa';
 import { DashboardTabFilterBar } from '@/components/ui/DashboardTabFilterBar';
 import { UndatedNotice } from '@/components/ui/UndatedNotice';
-import { MissionKpiCard } from '@/components/data-display/MissionKpiCard';
+import { ExecutiveKpiDeck } from '@/components/data-display/ExecutiveKpiDeck';
 import { MissionYoYControls } from '@/components/data-display/MissionYoYControls';
 import { dashboardPageSubtitleStyle, dashboardPageTitleStyle, dashboardTheme } from '@/lib/dashboardTheme';
 import { usePerspectiveTab } from '@/hooks/usePerspectiveTab';
@@ -88,6 +88,8 @@ export function IPView() {
 
   const protectedPct = validIpData.length > 0 ? ((protectedCount / validIpData.length) * 100).toFixed(1) : '0';
   const inPrepPct = validIpData.length > 0 ? ((inPrepCount / validIpData.length) * 100).toFixed(1) : '0';
+  const uniqueDepts = new Set(validIpData.map((d: any) => d.department_clean || d.department).filter(Boolean));
+  const maxSupportCeiling = Math.max(420000, validIpData.length * 20000);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -162,54 +164,57 @@ export function IPView() {
         <>
           {activePerspective === 'types_dept' && (
             <>
-              {/* ZONE 2: Executive Bento KPI Cards in Lavender Violet Palette */}
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-                  gap: '12px',
+              {/* ZONE 2: Executive Blueprint KPI Deck */}
+              <ExecutiveKpiDeck
+                mission="ip"
+                blueprintCard={{
+                  label: 'ทรัพย์สินทางปัญญาทั้งหมด',
+                  value: validIpData.length,
+                  unit: 'รายการ',
+                  splitRatio: validIpData.length > 0 ? pettyPatentCount / validIpData.length : 0.952,
+                  primaryLegend: {
+                    label: 'อนุสิทธิบัตร',
+                    value: `${pettyPatentCount} รายการ`,
+                    percent: `${validIpData.length > 0 ? ((pettyPatentCount / validIpData.length) * 100).toFixed(1) : '95.2'}%`,
+                    color: '#a78bfa',
+                  },
+                  secondaryLegend: {
+                    label: 'สิทธิบัตรการประดิษฐ์',
+                    value: `${patentCount} รายการ`,
+                    percent: `${validIpData.length > 0 ? ((patentCount / validIpData.length) * 100).toFixed(1) : '4.8'}%`,
+                    color: '#ddd6fe',
+                  },
                 }}
-              >
-                <MissionKpiCard
-                  mission="ip"
-                  variant="pastel"
-                  label="ทรัพย์สินทางปัญญาทั้งหมด"
-                  value={validIpData.length}
-                  unit="รายการ"
-                  subtext={`อนุสิทธิบัตร ${pettyPatentCount} (95.2%) • สิทธิบัตรการประดิษฐ์ ${patentCount} (4.8%)`}
-                  icon={<FaCertificate style={{ fontSize: '16px' }} />}
-                />
-
-                <MissionKpiCard
-                  mission="ip"
-                  variant="pastel"
-                  label="ได้รับความคุ้มครองแล้ว"
-                  value={protectedCount}
-                  unit="รายการ"
-                  subtext={`คิดเป็น ${protectedPct}% ของผลงานทั้งหมด • รอพิจารณาคำขอ ${pendingCount} รายการ`}
-                  icon={<FaShieldAlt style={{ fontSize: '16px' }} />}
-                />
-
-                <MissionKpiCard
-                  mission="ip"
-                  variant="pastel"
-                  label="อยู่ระหว่างเตรียมยื่นจด"
-                  value={inPrepCount}
-                  unit="รายการ"
-                  subtext={`คิดเป็น ${inPrepPct}% (คอขวดเร่งด่วน) • รอยื่นเอกสารรับเลขคำขอ`}
-                  icon={<FaHourglassHalf style={{ fontSize: '16px' }} />}
-                />
-
-                <MissionKpiCard
-                  mission="ip"
-                  variant="pastel"
-                  label="งบสนับสนุนที่คณะจ่ายจริง"
-                  value={totalSupportAmount.toLocaleString('th-TH')}
-                  unit="บาท"
-                  subtext="สนับสนุนแล้ว 12 รายการ (@20,000 บ.) • รอพิจารณา 9 รายการ"
-                  icon={<FaCoins style={{ fontSize: '16px' }} />}
-                />
-              </div>
+                gearCard={{
+                  label: 'ผลงานทรัพย์สินทางปัญญารวม',
+                  value: validIpData.length,
+                  unit: 'รายการ',
+                  gearValue: uniqueDepts.size,
+                  gearLabel: 'สังกัด',
+                }}
+                tallyCard={{
+                  label: 'ได้รับความคุ้มครองแล้ว',
+                  chip: `${protectedPct}%`,
+                  value: protectedCount,
+                  unit: `จาก ${validIpData.length} รายการ`,
+                  percent: parseFloat(protectedPct) || 0,
+                  totalCount: validIpData.length,
+                  activeCount: protectedCount,
+                }}
+                rulerCard={{
+                  label: 'งบสนับสนุนสะสมที่จัดสรรจริง',
+                  value: totalSupportAmount.toLocaleString('th-TH'),
+                  unit: 'บาท',
+                  current: totalSupportAmount,
+                  max: maxSupportCeiling,
+                  marks: [
+                    { label: '0', positionPercent: 2 },
+                    { label: `${Math.round(maxSupportCeiling / 3000)}k`, positionPercent: 33 },
+                    { label: `${Math.round((maxSupportCeiling * 2) / 3000)}k`, positionPercent: 66 },
+                    { label: `เพดาน ${(maxSupportCeiling / 1000).toLocaleString('th-TH')} บ.`, positionPercent: 96 },
+                  ],
+                }}
+              />
 
               {/* ZONE 2.5: Year-over-Year (YoY) Comparison */}
               <MissionYoYControls
@@ -217,8 +222,8 @@ export function IPView() {
                 missionTitle="งานทรัพย์สินทางปัญญา"
                 allItemsRaw={validIpData}
                 activeDepartment={deptFilter}
-                primaryMetricLabel="จำนวนคำขอ/จดทะเบียน (รายการ)"
-                secondaryMetricLabel="งบสนับสนุน (ล้านบาท)"
+                primaryMetricLabel="จำนวนคำขอและจดทะเบียน"
+                secondaryMetricLabel="เงินสนับสนุนทรัพย์สินทางปัญญา"
                 hasBudgetMetric={true}
                 defaultBaseYear="2567"
                 defaultTargetYear="2568"

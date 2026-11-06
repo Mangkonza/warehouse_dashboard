@@ -180,6 +180,11 @@ export function ServiceCharts({
       roleGroups[r].items.push(item);
     });
 
+    Chart.register(ChartDataLabels);
+    Chart.defaults.font.family = "'Kanit', sans-serif";
+    Chart.defaults.font.size = 13.5;
+    Chart.defaults.color = '#0f172a';
+
     const createChart = (id: string, config: any) => {
       const canvas = document.getElementById(id) as HTMLCanvasElement;
       if (canvas) {
@@ -253,9 +258,12 @@ export function ServiceCharts({
             legend: {
               position: 'top',
               labels: {
-                boxWidth: 12,
-                font: { size: 11 },
-                padding: 10,
+                boxWidth: 16,
+                boxHeight: 16,
+                borderRadius: 4,
+                useBorderRadius: true,
+                font: { size: 13.5, weight: 600 },
+                padding: 14,
                 sort: (a: any, b: any) => {
                   const aIsLine = a.text.includes('บุคลากร');
                   const bIsLine = b.text.includes('บุคลากร');
@@ -284,7 +292,7 @@ export function ServiceCharts({
                 ctx.dataset.yAxisID === 'y1' ? false : Number(ctx.dataset.data[ctx.dataIndex]) > 0,
               anchor: 'end',
               align: 'top',
-              offset: (ctx: any) => (ctx.dataset.yAxisID === 'y1' ? 7 : 1),
+              offset: (ctx: any) => (ctx.dataset.yAxisID === 'y1' ? 7 : 2),
               color: (ctx: any) =>
                 ctx.dataset.yAxisID === 'y1' ? '#0F766E' : CHART_PASTEL_PALETTE.datalabels.dark,
               backgroundColor: (ctx: any) =>
@@ -292,7 +300,7 @@ export function ServiceCharts({
               borderRadius: 3,
               padding: (ctx: any) => (ctx.dataset.yAxisID === 'y1' ? 3 : 0),
               clamp: true,
-              font: { weight: 'bold', size: 10 },
+              font: { weight: 'bold', size: 13 },
               formatter: (v: number) => `${v}`,
             },
           },
@@ -300,9 +308,9 @@ export function ServiceCharts({
             y: {
               beginAtZero: true,
               grace: '20%',
-              ticks: { stepSize: 1 },
+              ticks: { stepSize: 1, font: { size: 13, weight: 600 } },
               grid: { color: CHART_PASTEL_PALETTE.gridLines },
-              title: { display: true, text: 'จำนวนครั้ง' },
+              title: { display: true, text: 'จำนวนครั้งที่ให้บริการ (ครั้ง)', font: { size: 13.5, weight: 700 } },
             },
             y1: {
               type: 'linear',
@@ -310,9 +318,10 @@ export function ServiceCharts({
               beginAtZero: true,
               grace: '20%',
               grid: { drawOnChartArea: false },
-              title: { display: true, text: 'บุคลากร (ท่าน)' },
+              title: { display: true, text: 'บุคลากร (ท่าน)', font: { size: 13.5, weight: 700 } },
+              ticks: { font: { size: 13, weight: 600 } },
             },
-            x: { grid: { display: false } },
+            x: { grid: { display: false }, ticks: { font: { size: 13.5, weight: 600 } } },
           },
         },
       });
@@ -377,7 +386,7 @@ export function ServiceCharts({
               anchor: 'end',
               align: 'right',
               color: CHART_PASTEL_PALETTE.datalabels.dark,
-              font: { weight: 'bold', size: 12 },
+              font: { weight: 'bold', size: 13 },
               formatter: (v: number) => `${v} งาน`,
             },
             tooltip: {
@@ -403,12 +412,12 @@ export function ServiceCharts({
               beginAtZero: true,
               grace: '14%',
               grid: { color: CHART_PASTEL_PALETTE.gridLines },
-              title: { display: true, text: 'จำนวนงาน (งาน)', font: { size: 12, weight: 600 } },
-              ticks: { precision: 0 },
+              title: { display: true, text: 'จำนวนงาน (งาน)', font: { size: 13.5, weight: 700 } },
+              ticks: { precision: 0, font: { size: 13, weight: 600 } },
             },
             y: {
               grid: { display: false },
-              ticks: { font: { size: 12.5, weight: 500 }, color: '#334155' },
+              ticks: { font: { size: 13.5, weight: 600 }, color: '#334155' },
             },
           },
         },
@@ -495,12 +504,12 @@ export function ServiceCharts({
             legend: {
               position: 'top',
               labels: {
-                boxWidth: 14,
-                boxHeight: 14,
-                borderRadius: 3,
+                boxWidth: 16,
+                boxHeight: 16,
+                borderRadius: 4,
                 useBorderRadius: true,
-                font: { size: 12, weight: 600 },
-                padding: 12,
+                font: { size: 13.5, weight: 600 },
+                padding: 14,
               },
             },
             tooltip: {
@@ -527,7 +536,6 @@ export function ServiceCharts({
                   return [
                     `─────────────────────────────`,
                     `ภาระงานเฉลี่ย: ${avg} งาน/ท่าน`,
-                    `คลิกที่กราฟเพื่อดูรายชื่อโครงการและบุคลากร`,
                   ];
                 },
               },
@@ -542,7 +550,7 @@ export function ServiceCharts({
               backgroundColor: (ctx: any) =>
                 isCombo && ctx.dataset.yAxisID === 'y1' ? 'rgba(255, 255, 255, 0.9)' : 'transparent',
               borderRadius: 3,
-              font: { weight: 'bold', size: 10.5 },
+              font: { weight: 'bold', size: 12.5 },
               formatter: (v: number) => `${v}`,
             },
           },
@@ -551,12 +559,12 @@ export function ServiceCharts({
               type: 'linear',
               beginAtZero: true,
               grace: '15%',
-              ticks: { stepSize: 10 },
+              ticks: { stepSize: 10, font: { size: 13, weight: 600 } },
               grid: { color: CHART_PASTEL_PALETTE.gridLines },
               title: {
                 display: true,
                 text: isCombo ? 'จำนวนงานบริการ (กิจกรรม)' : 'จำนวน (กิจกรรม / ท่าน)',
-                font: { size: 11.5, weight: 600 },
+                font: { size: 13.5, weight: 700 },
               },
             },
             y1: isCombo
@@ -565,12 +573,12 @@ export function ServiceCharts({
                   position: 'right',
                   beginAtZero: true,
                   grace: '15%',
-                  ticks: { stepSize: 5 },
+                  ticks: { stepSize: 5, font: { size: 13, weight: 600 } },
                   grid: { drawOnChartArea: false },
-                  title: { display: true, text: 'บุคลากร (ท่าน)', font: { size: 11.5, weight: 600 } },
+                  title: { display: true, text: 'บุคลากร (ท่าน)', font: { size: 13.5, weight: 700 } },
                 }
               : { display: false },
-            x: { grid: { display: false } },
+            x: { grid: { display: false }, ticks: { font: { size: 13.5, weight: 600 } } },
           },
         },
       });
@@ -627,7 +635,7 @@ export function ServiceCharts({
               anchor: 'end',
               align: 'right',
               color: CHART_PASTEL_PALETTE.datalabels.dark,
-              font: { weight: 'bold', size: 11 },
+              font: { weight: 'bold', size: 13 },
               formatter: (v: number | null) => (v === null ? '—' : `${v} งาน/ท่าน`),
             },
           },
@@ -635,9 +643,10 @@ export function ServiceCharts({
             x: {
               beginAtZero: true,
               grid: { color: CHART_PASTEL_PALETTE.gridLines },
-              title: { display: true, text: 'เฉลี่ยงานต่อบุคลากรที่พบในบันทึก (งาน/ท่าน)' },
+              title: { display: true, text: 'เฉลี่ยงานต่อบุคลากรที่พบในบันทึก (งาน/ท่าน)', font: { size: 13.5, weight: 700 } },
+              ticks: { font: { size: 13, weight: 600 } },
             },
-            y: { grid: { display: false } },
+            y: { grid: { display: false }, ticks: { font: { size: 13.5, weight: 600 } } },
           },
         },
       });
@@ -657,8 +666,8 @@ export function ServiceCharts({
             {
               label: 'จำนวนงานบริการ (งาน)',
               data: top10Faculty.map((f) => f.count),
-              backgroundColor: CHART_PASTEL_PALETTE.missions.service.fill,
-              borderColor: CHART_PASTEL_PALETTE.missions.service.border,
+              backgroundColor: top10Faculty.map((f) => getDepartmentColor(f.dept)),
+              borderColor: top10Faculty.map((f) => getDepartmentColor(f.dept)),
               borderWidth: 1.5,
               borderRadius: 6,
             },
@@ -681,7 +690,7 @@ export function ServiceCharts({
                   isOpen: true,
                   title: `ผู้ให้บริการวิชาการ: ${f.name}`,
                   subtitle: `สังกัด ${f.dept} • รวม ${f.count} งาน • เครือข่ายภายนอก ${f.targets.size} แห่ง${f.hours > 0 ? ` • ชั่วโมงสะสม ${f.hours.toLocaleString('th-TH')} ชม.` : ''}`,
-                  accentColor: CHART_PASTEL_PALETTE.missions.service.border,
+                  accentColor: getDepartmentColor(f.dept),
                   items: f.items,
                 });
               }
@@ -712,7 +721,7 @@ export function ServiceCharts({
               anchor: 'end',
               align: 'right',
               color: CHART_PASTEL_PALETTE.datalabels.dark,
-              font: { weight: 'bold', size: 11 },
+              font: { weight: 'bold', size: 13 },
               formatter: (v: number) => `${v} งาน`,
             },
           },
@@ -721,12 +730,12 @@ export function ServiceCharts({
               beginAtZero: true,
               grace: '18%',
               grid: { color: CHART_PASTEL_PALETTE.gridLines },
-              title: { display: true, text: 'จำนวนงาน (งาน)' },
-              ticks: { precision: 0 },
+              title: { display: true, text: 'จำนวนงาน (งาน)', font: { size: 13.5, weight: 700 } },
+              ticks: { precision: 0, font: { size: 13, weight: 600 } },
             },
             y: {
               grid: { display: false },
-              ticks: { font: { size: 12 }, color: '#334155' },
+              ticks: { font: { size: 13.5, weight: 600 }, color: '#334155' },
             },
           },
         },
@@ -750,10 +759,20 @@ export function ServiceCharts({
           maintainAspectRatio: false,
           cutout: '65%',
           plugins: {
-            legend: { position: 'bottom' },
+            legend: {
+              position: 'bottom',
+              labels: {
+                boxWidth: 16,
+                boxHeight: 16,
+                borderRadius: 4,
+                useBorderRadius: true,
+                font: { size: 13.5, weight: 600 },
+                padding: 12,
+              },
+            },
             datalabels: {
               color: CHART_PASTEL_PALETTE.datalabels.dark,
-              font: { weight: 'bold', size: 11 },
+              font: { weight: 'bold', size: 13 },
               formatter: (v: number, ctx: any) => {
                 const pct = workloadTiers[ctx.dataIndex].pct;
                 return v > 2 ? `${pct}%` : '';
@@ -856,13 +875,10 @@ export function ServiceCharts({
             <>
               <div className="chart-grid">
                 <div className="chart-card chart-full">
-                  <h3 style={{ margin: '0 0 4px 0', fontSize: '14.5px', fontWeight: 700, color: '#1e293b' }}>
+                  <h3 style={{ margin: '0 0 10px 0', fontSize: '15px', fontWeight: 700, color: '#1e293b' }}>
                     <FaChartLine style={{ color: '#f59e0b', marginRight: '6px' }} /> จำนวนครั้งและบุคลากรที่ให้บริการรายเดือน
                   </h3>
-                  <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
-                    แท่ง = จำนวนครั้ง • เส้น = บุคลากรที่มีส่วนร่วม (ท่าน) • คลิกที่กราฟเพื่อดูรายการ
-                  </p>
-                  <div className="chart-wrapper" style={{ height: '320px', cursor: 'pointer' }}>
+                  <div className="chart-wrapper" style={{ height: '390px', cursor: 'pointer' }}>
                     <canvas id="c_sv_timeline" />
                   </div>
                 </div>
@@ -870,13 +886,10 @@ export function ServiceCharts({
 
               <div className="chart-grid">
                 <div className="chart-card chart-full">
-                  <h3 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: 700, color: '#1e293b' }}>
+                  <h3 style={{ margin: '0 0 10px 0', fontSize: '15px', fontWeight: 700, color: '#1e293b' }}>
                     <FaChartBar style={{ color: '#0284c7', marginRight: '6px' }} /> จำนวนงานบริการวิชาการจำแนกตามลักษณะบทบาทหน้าที่
                   </h3>
-                  <p style={{ margin: '0 0 14px 0', fontSize: '12px', color: '#64748b' }}>
-                    จัดอันดับตามจำนวนงานจากมากไปน้อย • จำแนกตามบทบาท เช่น คณะกรรมการ วิทยากร ผู้ทรงคุณวุฒิ ที่ปรึกษา • คลิกที่แท่งกราฟเพื่อดูรายชื่อโครงการและบุคลากร
-                  </p>
-                  <div className="chart-wrapper" style={{ height: '390px', cursor: 'pointer' }}>
+                  <div className="chart-wrapper" style={{ height: '420px', cursor: 'pointer' }}>
                     <canvas id="c_sv_roles" />
                   </div>
                 </div>
@@ -898,7 +911,7 @@ export function ServiceCharts({
                 padding: '40px 20px',
                 textAlign: 'center',
                 color: '#64748b',
-                fontSize: '13px',
+                fontSize: '13.5px',
               }}
             >
               ไม่พบข้อมูลบริการวิชาการรายสังกัดในช่วงเวลาที่เลือก
@@ -915,9 +928,9 @@ export function ServiceCharts({
                       style={{
                         display: 'inline-flex',
                         backgroundColor: '#f1f5f9',
-                        padding: '2px',
-                        borderRadius: '8px',
-                        fontSize: '11px',
+                        padding: '3px 4px',
+                        borderRadius: '10px',
+                        fontSize: '13px',
                         fontWeight: 600,
                       }}
                     >
@@ -925,40 +938,39 @@ export function ServiceCharts({
                         type="button"
                         onClick={() => setDeptChartMode('grouped')}
                         style={{
-                          padding: '3px 8px',
-                          borderRadius: '6px',
+                          padding: '6px 14px',
+                          borderRadius: '8px',
                           border: 'none',
                           backgroundColor: deptChartMode === 'grouped' ? '#ffffff' : 'transparent',
                           color: deptChartMode === 'grouped' ? '#f59e0b' : '#64748b',
-                          fontWeight: deptChartMode === 'grouped' ? 700 : 500,
+                          fontWeight: deptChartMode === 'grouped' ? 700 : 600,
                           cursor: 'pointer',
-                          boxShadow: deptChartMode === 'grouped' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                          boxShadow: deptChartMode === 'grouped' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                          fontSize: '13px',
                         }}
                       >
-                        แยกแท่งคู่เคียง (Grouped)
+                        แยกแท่งคู่
                       </button>
                       <button
                         type="button"
                         onClick={() => setDeptChartMode('combo')}
                         style={{
-                          padding: '3px 8px',
-                          borderRadius: '6px',
+                          padding: '6px 14px',
+                          borderRadius: '8px',
                           border: 'none',
                           backgroundColor: deptChartMode === 'combo' ? '#ffffff' : 'transparent',
                           color: deptChartMode === 'combo' ? '#f59e0b' : '#64748b',
-                          fontWeight: deptChartMode === 'combo' ? 700 : 500,
+                          fontWeight: deptChartMode === 'combo' ? 700 : 600,
                           cursor: 'pointer',
-                          boxShadow: deptChartMode === 'combo' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                          boxShadow: deptChartMode === 'combo' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                          fontSize: '13px',
                         }}
                       >
-                        แท่ง + เส้นแนวโน้ม (Combo)
+                        แท่ง + เส้นแนวโน้ม
                       </button>
                     </div>
                   </div>
-                  <p style={{ margin: '-2px 0 12px 0', fontSize: '12px', color: '#64748b' }}>
-                    เปรียบเทียบจำนวนงานบริการ (สีเหลืองอำพัน) และบุคลากรที่ให้บริการ (สีชมพู) รายสังกัด • เรียงตามจำนวนกิจกรรมจากมากไปน้อย • คลิกที่แท่งกราฟเพื่อดูรายการ
-                  </p>
-                  <div className="chart-wrapper" style={{ height: '350px', cursor: 'pointer' }}>
+                  <div className="chart-wrapper" style={{ height: '400px', cursor: 'pointer' }}>
                     <canvas id="c_sv_dept_combined" />
                   </div>
                 </div>
@@ -966,13 +978,10 @@ export function ServiceCharts({
 
               <div className="chart-grid">
                 <div className="chart-card chart-full">
-                  <h3 style={{ margin: '0 0 4px 0', fontSize: '14.5px', fontWeight: 700, color: '#1e293b' }}>
+                  <h3 style={{ margin: '0 0 10px 0', fontSize: '15px', fontWeight: 700, color: '#1e293b' }}>
                     <FaBuilding style={{ color: '#f59e0b', marginRight: '6px' }} /> ภาระงานเฉลี่ยต่อบุคลากรที่พบในบันทึก (งาน/ท่าน)
                   </h3>
-                  <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
-                    คำนวณจากกิจกรรม ÷ ผู้ให้บริการที่ระบุชื่อในบันทึกของแต่ละสังกัด • แสดง “—” เมื่อไม่พบผู้ให้บริการ
-                  </p>
-                  <div className="chart-wrapper">
+                  <div className="chart-wrapper" style={{ height: '380px', cursor: 'pointer' }}>
                     <canvas id="c_sv_dept_avg" />
                   </div>
                 </div>
@@ -994,7 +1003,7 @@ export function ServiceCharts({
                 padding: '40px 20px',
                 textAlign: 'center',
                 color: '#64748b',
-                fontSize: '13px',
+                fontSize: '13.5px',
               }}
             >
               ไม่พบข้อมูลผู้ให้บริการวิชาการในช่วงเวลาที่เลือก
@@ -1005,26 +1014,20 @@ export function ServiceCharts({
               <div className="chart-grid" style={{ marginBottom: 0 }}>
                 {/* 1. Bar Chart: Top 10 Service Faculty */}
                 <div className="chart-card">
-                  <h3 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: 700, color: '#1e293b' }}>
+                  <h3 style={{ margin: '0 0 10px 0', fontSize: '15px', fontWeight: 700, color: '#1e293b' }}>
                     <FaUserTie style={{ color: '#f59e0b', marginRight: '6px' }} /> 10 อันดับผู้ให้บริการสูงสุด
                   </h3>
-                  <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
-                    บุคลากรที่ออกให้บริการวิชาการสูงสุด (งาน) • คลิกที่แท่งกราฟเพื่อดูโครงการ
-                  </p>
-                  <div className="chart-wrapper" style={{ height: '300px', cursor: 'pointer' }}>
+                  <div className="chart-wrapper" style={{ height: '380px', cursor: 'pointer' }}>
                     <canvas id="c_sv_faculty_top10" />
                   </div>
                 </div>
 
                 {/* 2. Donut Chart: Workload Tier Distribution */}
                 <div className="chart-card">
-                  <h3 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: 700, color: '#1e293b' }}>
+                  <h3 style={{ margin: '0 0 10px 0', fontSize: '15px', fontWeight: 700, color: '#1e293b' }}>
                     <FaUsers style={{ color: '#0284c7', marginRight: '6px' }} /> การกระจายภาระงานบุคลากร
                   </h3>
-                  <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
-                    สัดส่วนผู้ให้บริการที่พบในบันทึก ({topServiceFaculty.length} ท่าน) จำแนกตามความถี่
-                  </p>
-                  <div className="chart-wrapper" style={{ height: '300px' }}>
+                  <div className="chart-wrapper" style={{ height: '380px' }}>
                     <canvas id="c_sv_workload_tier" />
                   </div>
                 </div>

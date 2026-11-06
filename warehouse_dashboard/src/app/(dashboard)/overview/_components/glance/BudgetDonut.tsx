@@ -61,10 +61,10 @@ export function BudgetDonut({ segments }: { segments: BudgetSegment[] }) {
               justifyContent: 'center',
             }}
           >
-            <span style={{ fontSize: '32px', fontWeight: 700, color: '#0f172a', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
+            <span style={{ fontSize: '34px', fontWeight: 800, color: '#0f172a', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
               {totalLabel.num}
             </span>
-            <span style={{ fontSize: '13px', color: '#64748b', marginTop: '4px' }}>{totalLabel.unit}</span>
+            <span style={{ fontSize: '13.5px', fontWeight: 600, color: '#64748b', marginTop: '4px' }}>{totalLabel.unit}</span>
           </div>
         </div>
       </div>
@@ -74,13 +74,13 @@ export function BudgetDonut({ segments }: { segments: BudgetSegment[] }) {
           const share = total > 0 ? Math.round((s.value / total) * 100) : 0;
           const money = formatMoney(s.value);
           return (
-            <li key={s.key} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px' }}>
-              <span style={{ width: 12, height: 12, borderRadius: 4, backgroundColor: s.color, flexShrink: 0 }} />
-              <span style={{ flex: 1, color: '#334155', minWidth: 0 }}>{s.label}</span>
+            <li key={s.key} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13.5px' }}>
+              <span style={{ width: 14, height: 14, borderRadius: 4, backgroundColor: s.color, flexShrink: 0 }} />
+              <span style={{ flex: 1, color: '#334155', fontWeight: 600, minWidth: 0 }}>{s.label}</span>
               <span style={{ color: '#64748b', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
-                {money.num} {money.unit === 'ล้านบาท' ? 'ล.' : money.unit}
+                {money.num} {money.unit}
               </span>
-              <strong style={{ width: '42px', textAlign: 'right', color: '#0f172a', fontVariantNumeric: 'tabular-nums' }}>
+              <strong style={{ width: '46px', textAlign: 'right', color: '#0f172a', fontVariantNumeric: 'tabular-nums' }}>
                 {share}%
               </strong>
             </li>

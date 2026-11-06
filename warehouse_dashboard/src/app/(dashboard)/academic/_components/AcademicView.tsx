@@ -10,7 +10,7 @@ import { MissionDataTable } from '@/components/data-display/MissionDataTable';
 import { FaCoins, FaHandshake, FaLeaf, FaChartLine, FaBuilding, FaTable } from 'react-icons/fa';
 import { DashboardTabFilterBar } from '@/components/ui/DashboardTabFilterBar';
 import { UndatedNotice } from '@/components/ui/UndatedNotice';
-import { MissionKpiCard } from '@/components/data-display/MissionKpiCard';
+import { ExecutiveKpiDeck } from '@/components/data-display/ExecutiveKpiDeck';
 import { MissionYoYControls } from '@/components/data-display/MissionYoYControls';
 import { dashboardPageSubtitleStyle, dashboardPageTitleStyle, dashboardTheme } from '@/lib/dashboardTheme';
 import { FaGraduationCap, FaHandHoldingUsd, FaTrophy, FaUserTie } from 'react-icons/fa';
@@ -103,6 +103,8 @@ export function AcademicView() {
   const topDeptBudgetM = (topDeptBudget / 1000000).toFixed(2);
   const avgMillions = (avgProjectBudget / 1000000).toFixed(2);
   const maxMillions = (maxProjectBudget / 1000000).toFixed(2);
+  const majorProjectsCount = validData.filter((d) => (Number(d.budget) || 0) >= 1000000).length;
+  const majorProjectsPct = validData.length > 0 ? Math.round((majorProjectsCount / validData.length) * 100) : 0;
 
   const MONTHS = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
 
@@ -111,7 +113,7 @@ export function AcademicView() {
       <div>
         <h1 style={dashboardPageTitleStyle}>โครงการพัฒนาวิชาการ</h1>
         <p style={dashboardPageSubtitleStyle}>
-          ภาพรวมงบประมาณ ผู้ว่าจ้าง และผลผลิตโครงการพัฒนาวิชาการของคณะวิศวกรรมศาสตร์
+          ภาพรวมงบประมาณ ผู้ว่าจ้าง และผลผลิตโครงการพัฒนาวิชาการ
         </p>
       </div>
 
@@ -179,62 +181,65 @@ export function AcademicView() {
         <>
           {activePerspective === 'timeline_alloc' && (
             <>
-              {/* ZONE 2: Executive Bento KPI Grid in Emerald Palette */}
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-                  gap: '12px',
+              {/* ZONE 2: Executive Blueprint KPI Deck */}
+              <ExecutiveKpiDeck
+                mission="academic"
+                blueprintCard={{
+                  label: 'งบประมาณโครงการรวม',
+                  value: budgetMillions,
+                  unit: 'ล้านบาท',
+                  splitRatio: totalBudgetAll > 0 ? totalAllocated15 / totalBudgetAll : 0.15,
+                  primaryLegend: {
+                    label: 'รายได้จัดสรร (15%)',
+                    value: `${allocMillions} ลบ.`,
+                    percent: '15.0%',
+                    color: '#38bdf8',
+                  },
+                  secondaryLegend: {
+                    label: 'งบดำเนินงาน (85%)',
+                    value: `${remMillions} ลบ.`,
+                    percent: '85.0%',
+                    color: '#bae6fd',
+                  },
                 }}
-              >
-                <MissionKpiCard
-                  mission="academic"
-                  variant="pastel"
-                  label="งบประมาณโครงการรวม"
-                  value={budgetMillions}
-                  unit="ล้านบาท"
-                  subtext={`ทั้งหมด ${validData.length} โครงการ • ดำเนินการสูงสุด ${topDeptBudgetM} ลบ.`}
-                  icon={<FaCoins style={{ fontSize: '16px' }} />}
-                />
-
-                <MissionKpiCard
-                  mission="academic"
-                  variant="pastel"
-                  label="รายได้จัดสรรสุทธิ (15%)"
-                  value={allocMillions}
-                  unit="ล้านบาท"
-                  subtext={`คณะ ${facMillions} ลบ. • สังกัด ${depMillions} ลบ. • มหาวิทยาลัย ${kuMillions} ลบ.`}
-                  icon={<FaHandHoldingUsd style={{ fontSize: '16px' }} />}
-                />
-
-                <MissionKpiCard
-                  mission="academic"
-                  variant="pastel"
-                  label="มูลค่าเฉลี่ยต่อโครงการ"
-                  value={avgMillions}
-                  unit="ล้านบาท"
-                  subtext={`สูงสุด ${maxMillions} ลบ. • ระบุผู้ว่าจ้างแล้ว ${specifiedClientsCount} หน่วยงาน`}
-                  icon={<FaTrophy style={{ fontSize: '16px' }} />}
-                />
-
-                <MissionKpiCard
-                  mission="academic"
-                  variant="pastel"
-                  label="หัวหน้าโครงการ"
-                  value={uniqueHeads.size}
-                  unit="ท่าน"
-                  subtext={`งบดำเนินงาน 85% • ${remMillions} ล้านบาท`}
-                  icon={<FaUserTie style={{ fontSize: '16px' }} />}
-                />
-              </div>
+                gearCard={{
+                  label: 'โครงการพัฒนาวิชาการทั้งหมด',
+                  value: validData.length,
+                  unit: 'โครงการ',
+                  gearValue: uniqueDepts.size,
+                  gearLabel: 'สังกัด',
+                }}
+                tallyCard={{
+                  label: 'โครงการขนาดใหญ่ (งบ 1+ ลบ.)',
+                  chip: `${majorProjectsPct}%`,
+                  value: majorProjectsCount,
+                  unit: `จาก ${validData.length} โครงการ`,
+                  percent: majorProjectsPct,
+                  totalCount: validData.length,
+                  activeCount: majorProjectsCount,
+                }}
+                rulerCard={{
+                  label: 'มูลค่าเฉลี่ยต่อโครงการ',
+                  value: avgMillions,
+                  unit: 'ล้านบาท',
+                  current: parseFloat(avgMillions) || 0,
+                  max: parseFloat(maxMillions) || 10,
+                  marks: [
+                    { label: '0', positionPercent: 2 },
+                    { label: ((parseFloat(maxMillions) || 10) / 3).toFixed(1), positionPercent: 33 },
+                    { label: (((parseFloat(maxMillions) || 10) * 2) / 3).toFixed(1), positionPercent: 66 },
+                    { label: `สูงสุด ${(parseFloat(maxMillions) || 10).toFixed(2)}`, positionPercent: 96 },
+                  ],
+                }}
+              />
 
               <MissionYoYControls
                 missionKey="academic"
                 missionTitle="โครงการพัฒนาวิชาการ"
                 allItemsRaw={validData}
                 activeDepartment={selectedDept}
-                primaryMetricLabel="จำนวนโครงการ (โครงการ)"
-                secondaryMetricLabel="งบประมาณโครงการ (ล้านบาท)"
+                primaryMetricLabel="จำนวนโครงการ"
+                secondaryMetricLabel="งบประมาณวิชาการ"
                 hasBudgetMetric={true}
                 defaultBaseYear="2567"
                 defaultTargetYear="2568"

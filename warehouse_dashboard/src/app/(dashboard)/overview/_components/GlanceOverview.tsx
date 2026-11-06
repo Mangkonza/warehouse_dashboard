@@ -34,7 +34,7 @@ const COLUMNS: HeatmapColumn[] = [
   { key: 'academic', label: 'วิชาการ', icon: FaGraduationCap, accent: MISSION_THEMES.academic.card.icon },
   { key: 'publications', label: 'ตีพิมพ์', icon: FaBook, accent: MISSION_THEMES.publications.card.icon },
   { key: 'service', label: 'บริการ', icon: FaHandshake, accent: MISSION_THEMES.service.card.icon },
-  { key: 'ip', label: 'IP', icon: FaCertificate, accent: MISSION_THEMES.ip.card.icon },
+  { key: 'ip', label: 'ทรัพย์สินฯ', icon: FaCertificate, accent: MISSION_THEMES.ip.card.icon },
 ];
 
 function currentFiscalYearBE(now: Date): number {
@@ -110,7 +110,7 @@ export function GlanceOverview({
         unit: 'เรื่อง',
         route: '/publications',
         monthly: monthlyCounts(publications, (p) => [p.month_year || p.pub_date || p.date, p.month]),
-        highlight: { label: 'Q1–Q4', value: `${qCount} เรื่อง (TCI: ${tciCount})` },
+        highlight: { label: 'นานาชาติ', value: `${qCount} เรื่อง · ระดับชาติ ${tciCount} เรื่อง` },
       },
       {
         key: 'service',
@@ -132,7 +132,7 @@ export function GlanceOverview({
         unit: 'รายการ',
         route: '/ip',
         monthly: monthlyCounts(ip, (i) => [i.filing_date || i.date]),
-        highlight: { label: 'คุ้มครองแล้ว', value: `${protectedIp} รายตาราง` },
+        highlight: { label: 'คุ้มครองแล้ว', value: `${protectedIp} รายการ` },
       },
     ];
   }, [research, academic, publications, service, ip]);
@@ -177,10 +177,8 @@ export function GlanceOverview({
     return Object.values(rows).sort((a, b) => total(b) - total(a) || b.budget - a.budget);
   }, [research, academic, publications, service, ip]);
 
-  const { topSdgs, isee, iam } = useMemo(() => {
+  const { topSdgs } = useMemo(() => {
     const sdgCounts: Record<number, number> = {};
-    const iseeCounts: Record<string, number> = { I: 0, S: 0, E1: 0, E2: 0 };
-    const iamCounts: Record<string, number> = { I: 0, A: 0, M: 0 };
     const groups: [any[], string][] = [
       [research, 'research'],
       [academic, 'academic'],
@@ -191,8 +189,6 @@ export function GlanceOverview({
     groups.forEach(([items, category]) => {
       items.forEach((it) => {
         const res = resolveItemStrategicAlignment(it, category);
-        iseeCounts[res.isee] += 1;
-        iamCounts[res.iam] += 1;
         if (res.sdgNumber >= 1 && res.sdgNumber <= 17) {
           sdgCounts[res.sdgNumber] = (sdgCounts[res.sdgNumber] || 0) + 1;
         }
@@ -202,7 +198,7 @@ export function GlanceOverview({
       .map(([num, count]) => ({ num: Number(num), count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 5);
-    return { topSdgs: top, isee: iseeCounts, iam: iamCounts };
+    return { topSdgs: top };
   }, [research, academic, publications, service, ip]);
 
   return (
@@ -210,17 +206,17 @@ export function GlanceOverview({
       {/* 1. KPI Pulse Row (เป้าหมายปีงบประมาณ หรือสัดส่วนผลงานต่อเป้าคณะ) */}
       <KpiPulseRow kpis={kpis} fiscalYearProgress={fiscalYearProgress} isFiltered={isFiltered} />
 
-      {/* 3. 5-Mission Pulse Tiles (พร้อม YoY Delta ▲▼ และคุณภาพตีพิมพ์) */}
+      {/* 2. 5-Mission Pulse Tiles */}
       <MissionPulseTiles missions={missions} currentFiscalMonth={currentFiscalMonth} />
 
-      {/* 4. Total Budget & Department Heatmap */}
+      {/* 3. Total Budget & Department Heatmap */}
       <div className="glance-split" style={{ display: 'grid', gap: '16px', alignItems: 'stretch' }}>
         <BudgetDonut segments={budgetSegments} />
         <DepartmentHeatmap columns={COLUMNS} rows={heatmapRows} selected={selectedDept} onSelect={onSelectDept} />
       </div>
 
-      {/* 5. Strategic Alignment (SDGs & ISEE & IAM) */}
-      <StrategicStrip topSdgs={topSdgs} isee={isee} iam={iam} />
+      {/* 4. Strategic SDGs */}
+      <StrategicStrip topSdgs={topSdgs} />
     </div>
   );
 }
