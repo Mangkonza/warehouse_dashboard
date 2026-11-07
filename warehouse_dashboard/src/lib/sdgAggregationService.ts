@@ -69,8 +69,13 @@ export interface SdgKpiSummary {
   highestGrowingSdgNumber: number | null;
   highestGrowingSdgNameTh: string;
   highestGrowingDeltaLabel: string;
+  highestGrowingFrom?: number | null;
+  highestGrowingTo?: number | null;
+  highestGrowingPercent?: number | null;
 
   coveredSdgCount: number; // e.g. 15 / 17
+  coveredSdgNumbers?: number[];
+  yearlyTotals?: Record<number, number | null>;
 }
 
 export interface SdgAggregationResult {
@@ -330,15 +335,45 @@ export function aggregateSdgsData(
   // Highest growing SDG
   let highGrowSdg: number | null = null;
   let highGrowPct = -9999;
+  let highGrowFrom: number | null = null;
+  let highGrowTo: number | null = null;
   for (let s = 1; s <= 17; s++) {
     const delta = sdgGrowthTarget[s];
     if (delta.type === 'up' && delta.percent !== null && delta.percent > highGrowPct) {
       highGrowPct = delta.percent;
       highGrowSdg = s;
+      highGrowFrom = prevYearHasData ? filterRecords(prevYear, s).length : null;
+      highGrowTo = sdgCountsTarget[s];
     }
   }
 
-  const coveredSdgCount = Object.values(sdgCountsTarget).filter((c) => c > 0).length;
+  // If no 'up' growing SDG, fallback to any with highest percentage > 0
+  if (!highGrowSdg) {
+    for (let s = 1; s <= 17; s++) {
+      const delta = sdgGrowthTarget[s];
+      if (delta.percent !== null && delta.percent > highGrowPct && delta.percent > 0) {
+        highGrowPct = delta.percent;
+        highGrowSdg = s;
+        highGrowFrom = prevYearHasData ? filterRecords(prevYear, s).length : null;
+        highGrowTo = sdgCountsTarget[s];
+      }
+    }
+  }
+
+  const coveredSdgNumbers = Object.keys(sdgCountsTarget)
+    .map(Number)
+    .filter((s) => sdgCountsTarget[s] > 0);
+  const coveredSdgCount = coveredSdgNumbers.length;
+
+  const yearlyTotals: Record<number, number | null> = {};
+  comparisonYears.forEach((y) => {
+    const yBe = toBeYear(y);
+    if (!yearsWithData.includes(y)) {
+      yearlyTotals[yBe] = null;
+    } else {
+      yearlyTotals[yBe] = new Set(filterRecords(y, params.selectedSdg).map((r) => r.id)).size;
+    }
+  });
 
   const kpis: SdgKpiSummary = {
     distinctProjectsCount: targetDistinctCount,
@@ -356,7 +391,12 @@ export function aggregateSdgsData(
     highestGrowingSdgNumber: highGrowSdg,
     highestGrowingSdgNameTh: highGrowSdg ? SDG_DEFINITIONS[highGrowSdg]?.nameTh || '' : '–',
     highestGrowingDeltaLabel: highGrowSdg ? sdgGrowthTarget[highGrowSdg].label : '–',
+    highestGrowingFrom: highGrowFrom,
+    highestGrowingTo: highGrowTo,
+    highestGrowingPercent: highGrowPct > -9999 ? highGrowPct : null,
     coveredSdgCount,
+    coveredSdgNumbers,
+    yearlyTotals,
   };
 
   // 3. Monthly Bar Chart (Always include all 12 months ม.ค. - ธ.ค.)

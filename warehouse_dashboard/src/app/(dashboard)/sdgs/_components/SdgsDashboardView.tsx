@@ -5,6 +5,7 @@ import { useDashboardTabFilter } from '@/hooks/useDashboardTabFilter';
 import { DashboardTabFilterBar } from '@/components/ui/DashboardTabFilterBar';
 import { SdgIcon } from '@/components/ui/SdgIcon';
 import { SdgNumberBadge } from '@/components/ui/SdgCard';
+import { SdgSummaryKpiDeck } from './SdgSummaryKpiDeck';
 import type { SdgAggregationResult, SdgTileData } from '@/lib/sdgAggregationService';
 import { extractRecordDate, toBeYear, toCeYear, THAI_MONTHS } from '@/lib/sdgDateUtils';
 import { getSdgTextColor, SDG_DEFINITIONS, getSdgInfo } from '@/lib/sdg';
@@ -579,102 +580,13 @@ export function SdgsDashboardView({
       {data && (
         <>
           {/* ========================================================================= */}
-          {/* 2. Four KPI Cards with Prototype Top Gradient Line */}
+          {/* 2. Four KPI Cards (SdgSummaryKpiDeck) */}
           {/* ========================================================================= */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* KPI 1 */}
-            <div className="rounded-2xl bg-white border border-slate-200/90 shadow-[0_4px_16px_rgba(0,0,0,0.04)] p-4 relative overflow-hidden flex flex-col justify-between">
-              <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-blue-600 via-rose-500 to-[#DD1367]" />
-              <span className="text-xs font-semibold text-slate-500">
-                โครงการ ({data.targetYearBe})
-              </span>
-              <div className="my-2.5 flex items-baseline gap-2">
-                <span className="text-[32px] font-extrabold text-slate-900 tracking-tight leading-none">
-                  {data.kpis.distinctProjectsCount}
-                </span>
-                <span className="text-xs text-slate-500 font-medium">โครงการ</span>
-              </div>
-              <div className="text-[11.5px] text-slate-500 leading-relaxed">
-                <div className="flex items-center gap-1.5">
-                  {renderBadge(
-                    data.kpis.distinctProjectsDeltaLabel,
-                    data.kpis.distinctProjectsDeltaType
-                  )}
-                  <span>เทียบปี {data.targetYearBe - 1}</span>
-                </div>
-                <div className="mt-1 text-slate-400 font-normal">
-                  {data.kpis.yearBreakdownText}
-                </div>
-              </div>
-            </div>
-
-            {/* KPI 2 */}
-            <div className="rounded-2xl bg-white border border-slate-200/90 shadow-[0_4px_16px_rgba(0,0,0,0.04)] p-4 relative overflow-hidden flex flex-col justify-between">
-              <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-blue-600 via-rose-500 to-[#DD1367]" />
-              <span className="text-xs font-semibold text-slate-500">
-                SDG ที่มีจำนวนโครงการสูงสุด
-              </span>
-              <div className="my-2.5">
-                <span className="text-[32px] font-extrabold text-slate-900 tracking-tight leading-none">
-                  SDG {data.kpis.topSdgNumber}
-                </span>
-              </div>
-              <div className="text-[11.5px] text-slate-600 truncate leading-relaxed">
-                <span className="font-semibold text-slate-800">
-                  {data.kpis.topSdgNameTh}
-                </span>
-                <span className="block text-slate-400">
-                  {data.kpis.topSdgCount} โครงการ
-                </span>
-              </div>
-            </div>
-
-            {/* KPI 3 */}
-            <div className="rounded-2xl bg-white border border-slate-200/90 shadow-[0_4px_16px_rgba(0,0,0,0.04)] p-4 relative overflow-hidden flex flex-col justify-between">
-              <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-blue-600 via-rose-500 to-[#DD1367]" />
-              <span className="text-xs font-semibold text-slate-500">
-                SDG ที่เติบโตสูงสุดเทียบปี {data.targetYearBe - 1}
-              </span>
-              <div className="my-2.5">
-                <span className="text-[32px] font-extrabold text-slate-900 tracking-tight leading-none">
-                  {data.kpis.highestGrowingSdgNumber
-                    ? `SDG ${data.kpis.highestGrowingSdgNumber}`
-                    : '–'}
-                </span>
-              </div>
-              <div className="text-[11.5px] text-slate-600 truncate leading-relaxed">
-                {data.kpis.highestGrowingSdgNumber ? (
-                  <>
-                    <span className="font-semibold text-slate-800">
-                      {data.kpis.highestGrowingSdgNameTh}
-                    </span>
-                    <span className="block mt-0.5">
-                      {renderBadge(data.kpis.highestGrowingDeltaLabel, 'up')}
-                    </span>
-                  </>
-                ) : (
-                  <span className="text-slate-400">ไม่มีข้อมูลเทียบอัตราเติบโต</span>
-                )}
-              </div>
-            </div>
-
-            {/* KPI 4 */}
-            <div className="rounded-2xl bg-white border border-slate-200/90 shadow-[0_4px_16px_rgba(0,0,0,0.04)] p-4 relative overflow-hidden flex flex-col justify-between">
-              <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-blue-600 via-rose-500 to-[#DD1367]" />
-              <span className="text-xs font-semibold text-slate-500">
-                ความครอบคลุมเป้าหมาย
-              </span>
-              <div className="my-2.5 flex items-baseline gap-1">
-                <span className="text-[32px] font-extrabold text-slate-900 tracking-tight leading-none">
-                  {data.kpis.coveredSdgCount}
-                </span>
-                <span className="text-xl font-bold text-slate-400">/ 17</span>
-              </div>
-              <div className="text-[11.5px] text-slate-500 leading-relaxed">
-                เป้าหมาย SDGs ที่มีโครงการในช่วงเวลานี้
-              </div>
-            </div>
-          </div>
+          <SdgSummaryKpiDeck
+            data={data}
+            selectedSdg={selectedSdg}
+            onSelectSdg={toggleSdgSelection}
+          />
 
           {/* ========================================================================= */}
           {/* 3. Section 1: 17 SDG Tiles (Matching Prototype 1:1) */}
