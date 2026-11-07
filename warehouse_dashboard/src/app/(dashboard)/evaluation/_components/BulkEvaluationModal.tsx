@@ -32,8 +32,6 @@ export const BulkEvaluationModal: React.FC<BulkEvaluationModalProps> = ({
   const [isConfirming, setIsConfirming] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  if (!isOpen) return null;
-
   // For publications: check if all selected items share the same level ('นานาชาติ' or 'ชาติ')
   const sameLevel = React.useMemo(() => {
     if (category !== 'publications' || selectedRecords.length === 0) return '';
@@ -44,6 +42,8 @@ export const BulkEvaluationModal: React.FC<BulkEvaluationModalProps> = ({
     );
     return allSame ? firstLevel : '';
   }, [category, selectedRecords]);
+
+  if (!isOpen) return null;
 
   const handleOpenConfirm = () => {
     setIsConfirming(true);

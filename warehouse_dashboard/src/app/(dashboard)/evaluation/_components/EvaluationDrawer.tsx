@@ -100,6 +100,11 @@ export const EvaluationDrawer: React.FC<EvaluationDrawerProps> = ({
     return false;
   }, [evaluation, draftValue]);
 
+  const hybrid = React.useMemo(() => {
+    if (!record) return null;
+    return resolveHybridSDG(record, category);
+  }, [record, category]);
+
   if (!record) return null;
 
   const handleRequestClose = () => {
@@ -129,11 +134,6 @@ export const EvaluationDrawer: React.FC<EvaluationDrawerProps> = ({
   ).replace(/[\r\n]+/g, ' ').trim();
 
   const evaluated = isEvaluated(category, evaluation);
-
-  const hybrid = React.useMemo(() => {
-    if (!record) return null;
-    return resolveHybridSDG(record, category);
-  }, [record, category]);
 
   // Custom Header Slot
   const headerSlot = (
