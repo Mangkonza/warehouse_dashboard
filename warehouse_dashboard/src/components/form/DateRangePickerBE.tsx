@@ -50,15 +50,23 @@ export function DateRangePickerBE({
   }, [value.start, value.end]);
 
   const handleStartChange = (_date: Date | undefined, dateStr: string) => {
+    let nextEnd = value.end;
+    if (dateStr && nextEnd && dateStr > nextEnd) {
+      nextEnd = null;
+    }
     onChange({
       start: dateStr || null,
-      end: value.end,
+      end: nextEnd,
     });
   };
 
   const handleEndChange = (_date: Date | undefined, dateStr: string) => {
+    let nextStart = value.start;
+    if (dateStr && nextStart && dateStr < nextStart) {
+      nextStart = null;
+    }
     onChange({
-      start: value.start,
+      start: nextStart,
       end: dateStr || null,
     });
   };
@@ -69,6 +77,7 @@ export function DateRangePickerBE({
         <div className="flex-1 min-w-0">
           <DatePicker
             value={value.start || ''}
+            maxDate={value.end || undefined}
             onChange={handleStartChange}
             placeholder={startPlaceholder}
             disabled={disabled}
@@ -82,6 +91,7 @@ export function DateRangePickerBE({
         <div className="flex-1 min-w-0">
           <DatePicker
             value={value.end || ''}
+            minDate={value.start || undefined}
             onChange={handleEndChange}
             placeholder={endPlaceholder}
             disabled={disabled}

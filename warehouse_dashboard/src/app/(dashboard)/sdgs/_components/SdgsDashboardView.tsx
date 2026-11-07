@@ -5,13 +5,15 @@ import { useDashboardTabFilter } from '@/hooks/useDashboardTabFilter';
 import { DashboardTabFilterBar } from '@/components/ui/DashboardTabFilterBar';
 import { SdgIcon } from '@/components/ui/SdgIcon';
 import { SdgNumberBadge } from '@/components/ui/SdgCard';
-import { SdgAggregationResult, SdgTileData } from '@/lib/sdgAggregationService';
+import type { SdgAggregationResult, SdgTileData } from '@/lib/sdgAggregationService';
+import { extractRecordDate, toBeYear, toCeYear, THAI_MONTHS } from '@/lib/sdgDateUtils';
 import { getSdgTextColor, SDG_DEFINITIONS, getSdgInfo } from '@/lib/sdg';
 import { cn } from '@/lib/utils';
 import { FaFilter, FaUndoAlt, FaInfoCircle, FaCheck } from 'react-icons/fa';
 import { DrillDownProjectDrawer } from '@/components/data-display/DrillDownProjectDrawer';
 import { CategoryKey } from '@/types/dataManagement';
 import { getCachedCategoryData, getCachedEvaluations } from '@/lib/dataService';
+import { resolveHybridSDG, isTestRecord } from '@/lib/sdgEngine';
 
 const MONTH_NAMES = [
   'ม.ค.',
@@ -64,6 +66,8 @@ export function SdgsDashboardView({
   const [drawerItems, setDrawerItems] = useState<any[]>([]);
   const [drawerLoading, setDrawerLoading] = useState(false);
   const [drawerSdg, setDrawerSdg] = useState<number | null>(null);
+  const [drawerTitle, setDrawerTitle] = useState<string>('');
+  const [drawerSubtitle, setDrawerSubtitle] = useState<string>('');
 
   // Sync filters
   const currentFiscalYear = tabFilter.fiscalYear || '2569';
@@ -143,6 +147,11 @@ export function SdgsDashboardView({
     setDrawerOpen(true);
     setDrawerSdg(sdgNum);
     setSelectedSdg(sdgNum);
+    const sdgName = SDG_DEFINITIONS[sdgNum]?.nameTh || '';
+    const yearText = currentFiscalYear === 'all' ? 'ทุกปีงบประมาณ' : `ปีงบประมาณ ${currentFiscalYear}`;
+    const deptText = tabFilter.department && tabFilter.department !== 'all' ? ` • สังกัด: ${tabFilter.department}` : '';
+    setDrawerTitle(`โครงการที่สอดคล้องกับ SDG ${sdgNum}${sdgName ? ` (${sdgName})` : ''}`);
+    setDrawerSubtitle(`${yearText}${deptText} • ชุดข้อมูล: ${CATEGORY_TABS.find((t) => t.id === activeCategory)?.label || 'ทุกชุดข้อมูล'}`);
     try {
       let allItems: any[] = [];
 
@@ -181,36 +190,55 @@ export function SdgsDashboardView({
       }
 
       const cachedEvals = getCachedEvaluations();
-      const extractSdgs = (item: any) => {
-        const cat = (item._category || activeCategory || '').toLowerCase();
-        const recId = String(item.id || item._id || item.name || '').trim();
-        const ev = item.evaluation || cachedEvals[`${cat}_${recId}`] || (item._id ? cachedEvals[`${cat}_${String(item._id).trim()}`] : null);
-        return (
-          ev?.sdg_ids ||
-          item.sdg_ids ||
-          ev?.sdgs ||
-          item.sdgs ||
-          (item.sdg_code ? [item.sdg_code] : null)
-        );
-      };
+      const enrichedItems = allItems
+        .filter((it: any) => !isTestRecord(it))
+        .map((item: any) => {
+          const cat = (item._category || activeCategory || 'research').toLowerCase();
+          const hybrid = resolveHybridSDG(item, cat, cachedEvals);
+          return {
+            ...item,
+            _category: cat,
+            _isVerified: hybrid.isVerified,
+            _hybridStatus: hybrid.statusLabel,
+            _hybridStatusText: hybrid.statusTextTh,
+            _sdgIds: hybrid.sdgIds,
+          };
+        });
+
+      const targetYearCe = currentFiscalYear !== 'all' ? toCeYear(parseInt(String(currentFiscalYear), 10)) : null;
 
       const matchSdg = (item: any) => {
-        const sdgs: any = extractSdgs(item);
-        if (!sdgs) return false;
-        if (Array.isArray(sdgs)) {
-          return sdgs.some((s) => {
-            const n = typeof s === 'number' ? s : Number(String(s).replace(/\D/g, ''));
-            return n === sdgNum;
-          });
+        if (!sdgNum) return true;
+        const matchesSdg = Array.isArray(item._sdgIds) && item._sdgIds.includes(sdgNum);
+        if (!matchesSdg) return false;
+
+        // Department check if filtered on dashboard
+        if (tabFilter.department && tabFilter.department !== 'all') {
+          const dept = String(item.department || '').toLowerCase();
+          if (!dept.includes(tabFilter.department.toLowerCase())) return false;
         }
-        const nums = String(sdgs).match(/\d+/g);
-        return nums ? nums.some((n) => Number(n) === sdgNum) : false;
+
+        // Fiscal year check matching the active card
+        if (targetYearCe !== null) {
+          const cat = (item._category || activeCategory || '').toLowerCase();
+          const d = extractRecordDate(item, cat);
+          const recYear = d ? d.year : 2025;
+          if (recYear !== targetYearCe) return false;
+        }
+
+        return true;
       };
 
-      let filtered = allItems.filter(matchSdg);
+      let filtered = enrichedItems.filter(matchSdg);
 
-      // Fallback: If embeddedItems was heavily filtered (e.g. by fiscal year), but user wants to view the SDG projects,
-      // load all items for this category so matching projects are never hidden from the drawer
+      // If strict year filter resulted in 0 but items exist for this SDG, show all for this SDG
+      if (filtered.length === 0 && targetYearCe !== null) {
+        filtered = enrichedItems.filter((item: any) => {
+          if (!sdgNum) return true;
+          return Array.isArray(item._sdgIds) && item._sdgIds.includes(sdgNum);
+        });
+      }
+
       if (filtered.length === 0 && embeddedItems && embeddedItems.length > 0) {
         const fallbackItems: any[] = [];
         const cats = activeCategory === 'all' ? ['research', 'academic', 'publications', 'ip', 'service'] : [activeCategory];
@@ -220,7 +248,21 @@ export function SdgsDashboardView({
             local.forEach((it: any) => fallbackItems.push({ ...it, _category: cat }));
           }
         }
-        const fallbackFiltered = fallbackItems.filter(matchSdg);
+        const fallbackEnriched = fallbackItems
+          .filter((it: any) => !isTestRecord(it))
+          .map((item: any) => {
+            const cat = (item._category || activeCategory || 'research').toLowerCase();
+            const hybrid = resolveHybridSDG(item, cat, cachedEvals);
+            return {
+              ...item,
+              _category: cat,
+              _isVerified: hybrid.isVerified,
+              _hybridStatus: hybrid.statusLabel,
+              _hybridStatusText: hybrid.statusTextTh,
+              _sdgIds: hybrid.sdgIds,
+            };
+          });
+        const fallbackFiltered = fallbackEnriched.filter(matchSdg);
         if (fallbackFiltered.length > 0) {
           filtered = fallbackFiltered;
         }
@@ -235,17 +277,100 @@ export function SdgsDashboardView({
     }
   };
 
+  const handleOpenBarDrawer = async (monthIndex: number, yearCe: number, sdgNum?: number | null) => {
+    setDrawerLoading(true);
+    setDrawerOpen(true);
+    setDrawerSdg(sdgNum || null);
+    const yearBe = toBeYear(yearCe);
+    const monthName = THAI_MONTHS[monthIndex];
+    const sdgLabel = sdgNum
+      ? ` • SDG ${sdgNum} (${SDG_DEFINITIONS[sdgNum]?.nameTh || ''})`
+      : ' • ทุกเป้าหมาย SDGs';
+    setDrawerTitle(`โครงการประจำเดือน ${monthName} ปี ${yearBe}${sdgLabel}`);
+    setDrawerSubtitle(`ชุดข้อมูล: ${CATEGORY_TABS.find((t) => t.id === activeCategory)?.label || 'ทุกชุดข้อมูล'}`);
+
+    try {
+      let allItems: any[] = [];
+      if (embeddedItems && embeddedItems.length > 0) {
+        allItems = embeddedItems.map((item: any) => ({
+          ...item,
+          _category: item._category || activeCategory,
+        }));
+      } else {
+        const categories =
+          activeCategory === 'all'
+            ? ['research', 'academic', 'publications', 'ip', 'service']
+            : [activeCategory];
+
+        for (const cat of categories) {
+          const localItems = getCachedCategoryData(cat);
+          if (localItems && localItems.length > 0) {
+            localItems.forEach((item: any) => {
+              allItems.push({ ...item, _category: cat });
+            });
+          } else {
+            try {
+              const res = await fetch(`/api/data/${cat}`);
+              if (res.ok) {
+                const json = await res.json();
+                const list = Array.isArray(json) ? json : json.data || json.items || [];
+                list.forEach((item: any) => {
+                  allItems.push({ ...item, _category: cat });
+                });
+              }
+            } catch (err) {
+              console.warn(`Failed to fetch items for ${cat}:`, err);
+            }
+          }
+        }
+      }
+
+      const cachedEvals = getCachedEvaluations();
+      const enrichedItems = allItems
+        .filter((it: any) => !isTestRecord(it))
+        .map((item: any) => {
+          const cat = (item._category || activeCategory || 'research').toLowerCase();
+          const hybrid = resolveHybridSDG(item, cat, cachedEvals);
+          return {
+            ...item,
+            _category: cat,
+            _isVerified: hybrid.isVerified,
+            _hybridStatus: hybrid.statusLabel,
+            _hybridStatusText: hybrid.statusTextTh,
+            _sdgIds: hybrid.sdgIds,
+          };
+        });
+
+      const filtered = enrichedItems.filter((item) => {
+        const cat = (item._category || activeCategory || '').toLowerCase();
+        const d = extractRecordDate(item, cat);
+        const recYear = d ? d.year : 2025;
+        const recMonth = d ? d.month : 0;
+        if (recYear !== yearCe || recMonth !== monthIndex) return false;
+        if (!sdgNum) return true;
+        return Array.isArray(item._sdgIds) && item._sdgIds.includes(sdgNum);
+      });
+
+      setDrawerItems(filtered);
+    } catch (e) {
+      console.error('Error fetching bar drawer items:', e);
+      setDrawerItems([]);
+    } finally {
+      setDrawerLoading(false);
+    }
+  };
+
   const renderBadge = (
     deltaLabel: string,
     deltaType: 'up' | 'down' | 'neutral' | 'new',
     isDarkBg = false
   ) => {
-    if (deltaLabel === '–') {
+    if (deltaLabel === '–' || !deltaLabel) {
       return (
         <span
           className={cn(
-            'inline-block text-[12px] font-medium px-2 py-0.5 rounded-full',
-            isDarkBg ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
+            'inline-flex items-center justify-center text-[11px] font-semibold px-2 py-0.5 rounded-full select-none',
+            isDarkBg ? 'bg-black/35 text-white' : 'bg-slate-100 text-slate-400'
           )}
         >
           –
@@ -256,10 +381,10 @@ export function SdgsDashboardView({
       return (
         <span
           className={cn(
-            'inline-block text-[12px] font-medium px-2 py-0.5 rounded-full',
+            'inline-flex items-center justify-center text-[11px] font-bold px-2.5 py-0.5 rounded-full border select-none',
             isDarkBg
-              ? 'bg-blue-500/30 text-white'
-              : 'bg-blue-50 text-blue-700'
+              ? 'bg-white/20 text-white border-white/30 shadow-xs'
+              : 'bg-blue-50 text-blue-700 border-blue-200'
           )}
         >
           ใหม่
@@ -267,31 +392,50 @@ export function SdgsDashboardView({
       );
     }
     if (deltaType === 'up') {
+      const cleanNum = deltaLabel.replace(/[+▲%]/g, '').trim();
       return (
         <span
-          className="inline-block text-[12px] font-medium px-2 py-0.5 rounded-full bg-[#dcfce7] text-[#15803d]"
+          className={cn(
+            'inline-flex items-center justify-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full border leading-tight select-none',
+            isDarkBg
+              ? 'bg-white/20 text-white border-white/30 shadow-xs'
+              : 'bg-[#dcfce7] border-[#bbf7d0]'
+          )}
         >
-          {deltaLabel}
+          <span className={cn('text-[10px] leading-none', isDarkBg ? 'text-white' : 'text-[#15803d]')}>▲</span>
+          <span className={isDarkBg ? 'text-white' : 'text-slate-900'}>{cleanNum}%</span>
         </span>
       );
     }
     if (deltaType === 'down') {
+      const cleanNum = deltaLabel.replace(/[-▼%]/g, '').trim();
       return (
         <span
-          className="inline-block text-[12px] font-medium px-2 py-0.5 rounded-full bg-[#fee2e2] text-[#b91c1c]"
+          className={cn(
+            'inline-flex items-center justify-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full border leading-tight select-none',
+            isDarkBg
+              ? 'bg-white/20 text-white border-white/30 shadow-xs'
+              : 'bg-[#fee2e2] border-[#fecaca]'
+          )}
         >
-          {deltaLabel}
+          <span className={cn('text-[10px] leading-none', isDarkBg ? 'text-white' : 'text-[#dc2626]')}>▼</span>
+          <span className={isDarkBg ? 'text-white' : 'text-slate-900'}>{cleanNum}%</span>
         </span>
       );
     }
+    // Neutral or 0%
+    const cleanNeutral = deltaLabel.replace(/[+%\-]/g, '').trim();
+    const neutralText = cleanNeutral && cleanNeutral !== '0' ? `-${cleanNeutral}%` : '- 0%';
     return (
       <span
         className={cn(
-          'inline-block text-[12px] font-medium px-2 py-0.5 rounded-full',
-          isDarkBg ? 'bg-white/90 text-slate-700' : 'bg-slate-100 text-slate-600'
+          'inline-flex items-center justify-center text-[11px] font-bold px-2 py-0.5 rounded-full border select-none',
+          isDarkBg
+            ? 'bg-white/20 text-white border-white/30 shadow-xs'
+            : 'bg-slate-100 text-slate-800 border-slate-200'
         )}
       >
-        {deltaLabel}
+        {neutralText}
       </span>
     );
   };
@@ -787,113 +931,113 @@ export function SdgsDashboardView({
                   </div>
                 </div>
 
-                {/* Monthly SVG Bar Chart (Enlarged & Bold) */}
+                {/* Monthly Bar Chart (Full Width & Perfectly Aligned) */}
                 <div className="overflow-x-auto pb-2">
-                  <div className="min-w-[740px] h-[310px] relative">
+                  <div className="min-w-[760px] w-full pt-4">
                     {(() => {
                       const months = data.monthlyBars;
                       const allCounts = months.flatMap((m) =>
                         m.years.map((y) => (y.hasData ? y.count : 0))
                       );
                       const rawMax = Math.max(...allCounts, 1);
-                      const maxVal = Math.ceil(rawMax * 1.25) || 5;
-
-                      const chartHeight = 250;
-                      const chartWidth = 760;
-                      const leftMargin = 38;
-                      const topMargin = 16;
-                      const innerWidth = chartWidth - leftMargin - 15;
-                      const groupWidth = innerWidth / months.length;
-                      const barWidth = Math.min(26, (groupWidth * 0.75) / 3);
+                      const maxVal = Math.ceil(rawMax * 1.35) || 5;
 
                       return (
-                        <svg
-                          viewBox={`0 0 ${chartWidth} ${chartHeight + 40}`}
-                          className="w-full h-full"
-                          role="img"
-                          aria-label="กราฟแท่งเปรียบเทียบรายเดือน"
-                        >
-                          {/* Grid lines */}
-                          {[0, 0.25, 0.5, 0.75, 1].map((pct, idx) => {
-                            const val = Math.round(maxVal * pct);
-                            const y = topMargin + chartHeight - chartHeight * pct;
-                            return (
-                              <g key={`grid-${idx}`}>
-                                <line
-                                  x1={leftMargin}
-                                  x2={chartWidth - 10}
-                                  y1={y}
-                                  y2={y}
-                                  stroke="#e2e8f0"
-                                  strokeDasharray={pct === 0 ? '' : '3 3'}
-                                />
-                                <text
-                                  x={leftMargin - 6}
-                                  y={y + 4}
-                                  textAnchor="end"
-                                  className="text-[11px] fill-slate-400 font-mono font-medium"
+                        <>
+                          {/* Chart Bars Area with Gridlines */}
+                          <div className="relative h-[260px] sm:h-[300px]">
+                            {/* Horizontal background grid lines across 100% width */}
+                            <div className="absolute inset-0 flex flex-col justify-between pointer-events-none pb-[1px]">
+                              {[1, 0.75, 0.5, 0.25].map((pct, idx) => {
+                                const val = Math.round(maxVal * pct);
+                                return (
+                                  <div key={idx} className="relative w-full flex items-center">
+                                    <span className="w-8 shrink-0 text-right pr-2 text-[11px] font-mono font-medium text-slate-400 select-none">
+                                      {val}
+                                    </span>
+                                    <div className="flex-1 border-b border-slate-200 border-dashed" />
+                                  </div>
+                                );
+                              })}
+                              {/* Baseline 0 Line at the exact bottom */}
+                              <div className="relative w-full flex items-end">
+                                <span className="w-8 shrink-0 text-right pr-2 text-[11px] font-mono font-medium text-slate-400 select-none leading-none pb-0.5">
+                                  0
+                                </span>
+                                <div className="flex-1 border-b border-slate-300" />
+                              </div>
+                            </div>
+
+                            {/* Bars container: spans full remaining width with pl-8 and rests directly on baseline 0 */}
+                            <div className="relative h-full pl-8 grid grid-flow-col auto-cols-fr gap-2 sm:gap-3 pb-[1px]">
+                              {months.map((m) => (
+                                <div
+                                  key={m.monthIndex}
+                                  className="h-full flex items-end justify-center gap-1 sm:gap-1.5 md:gap-2 z-10 px-0.5"
                                 >
-                                  {val}
-                                </text>
-                              </g>
-                            );
-                          })}
+                                  {m.years.map((y, yIdx) => {
+                                    if (!y.hasData) return null;
+                                    const heightPct = (y.count / maxVal) * 100;
+                                    return (
+                                      <div
+                                        key={y.year}
+                                        className="flex flex-col items-center justify-end cursor-pointer group"
+                                        style={{ height: '100%' }}
+                                        onClick={() => handleOpenBarDrawer(m.monthIndex, y.year, selectedSdg)}
+                                      >
+                                        {/* Big bold number above the bar */}
+                                        {y.count > 0 && (
+                                          <span
+                                            className="text-base sm:text-lg font-black leading-none select-none mb-1 text-slate-800 transition-transform group-hover:scale-110"
+                                            style={{
+                                              color:
+                                                yIdx === 2
+                                                  ? activeColor
+                                                  : yIdx === 1
+                                                  ? '#475569'
+                                                  : '#64748b',
+                                            }}
+                                          >
+                                            {y.count}
+                                          </span>
+                                        )}
+                                        {/* The Bar */}
+                                        <div
+                                          style={{
+                                            height: `${Math.max(y.count > 0 ? 4 : 0, heightPct)}%`,
+                                            backgroundColor: barColors[yIdx],
+                                          }}
+                                          className="w-3.5 sm:w-5 md:w-6 rounded-t-md transition-all duration-200 group-hover:brightness-90 shadow-xs relative"
+                                        >
+                                          {/* Tooltip on hover */}
+                                          <div className="absolute -top-9 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-800 text-white text-[11px] font-bold px-2.5 py-1 rounded shadow-lg pointer-events-none whitespace-nowrap z-30">
+                                            {m.monthName} {y.yearBe}: {y.count} โครงการ (คลิกเพื่อดูรายการ)
+                                          </div>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
 
-                          {/* Bars */}
-                          {months.map((m, mIdx) => {
-                            const groupX = leftMargin + mIdx * groupWidth;
-                            const centerX = groupX + groupWidth / 2;
-                            const barsStartX = centerX - (barWidth * 3 + 4) / 2;
-
-                            return (
-                              <g key={m.monthIndex}>
-                                {m.years.map((y, yIdx) => {
-                                  if (!y.hasData) return null;
-                                  const barHeight = (y.count / maxVal) * chartHeight;
-                                  const barX = barsStartX + yIdx * (barWidth + 2);
-                                  const barY = topMargin + chartHeight - barHeight;
-
-                                  return (
-                                    <rect
-                                      key={y.year}
-                                      x={barX}
-                                      y={barY}
-                                      width={barWidth}
-                                      height={Math.max(2, barHeight)}
-                                      rx={3}
-                                      fill={barColors[yIdx]}
-                                      className="transition-all hover:opacity-85"
-                                    >
-                                      <title>
-                                        {m.monthName} {y.yearBe}: {y.count} โครงการ
-                                      </title>
-                                    </rect>
-                                  );
-                                })}
-
-                                <text
-                                  x={centerX}
-                                  y={topMargin + chartHeight + 20}
-                                  textAnchor="middle"
-                                  className="text-[12px] font-bold fill-slate-700"
-                                >
+                          {/* Month Names & Badges Row: 100% matched columns with pl-8 */}
+                          <div className="pl-8 grid grid-flow-col auto-cols-fr gap-2 sm:gap-3 text-center pt-3">
+                            {months.map((m) => (
+                              <div key={`col-${m.monthIndex}`} className="flex flex-col items-center gap-1.5 min-w-0">
+                                <span className="text-[12.5px] sm:text-[13.5px] font-bold text-slate-800 select-none">
                                   {m.monthName}
-                                </text>
-                              </g>
-                            );
-                          })}
-                        </svg>
+                                </span>
+                                <div className="flex justify-center w-full">
+                                  {renderBadge(m.deltaLabel, m.deltaType)}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </>
                       );
                     })()}
-                  </div>
-
-                  {/* Monthly deltas row */}
-                  <div className="min-w-[740px] grid grid-flow-col auto-cols-fr gap-1 pt-2 border-t border-slate-100 text-center">
-                    {data.monthlyBars.map((m) => (
-                      <div key={`delta-${m.monthIndex}`} className="py-1">
-                        {renderBadge(m.deltaLabel, m.deltaType)}
-                      </div>
-                    ))}
                   </div>
                 </div>
               </div>
@@ -914,16 +1058,16 @@ export function SdgsDashboardView({
             </div>
 
             <div className="overflow-x-auto pb-2">
-              <div className="min-w-[800px] space-y-1">
+              <div className="min-w-[840px] space-y-1">
                 {/* Month headers */}
-                <div className="grid grid-cols-[260px_repeat(12,1fr)] gap-1.5 pb-2 border-b border-slate-200 text-center">
-                  <div className="text-xs font-bold text-slate-700 text-left pl-2">
+                <div className="grid grid-cols-[360px_repeat(12,minmax(34px,1fr))] gap-1.5 pb-2 border-b border-slate-200 text-center">
+                  <div className="text-xs font-semibold text-slate-700 text-left pl-2">
                     เป้าหมาย SDGs
                   </div>
                   {MONTH_NAMES.map((mon) => (
                     <div
                       key={mon}
-                      className="text-xs font-bold text-slate-700 py-1"
+                      className="text-xs font-semibold text-slate-700 py-1"
                     >
                       {mon}
                     </div>
@@ -940,7 +1084,7 @@ export function SdgsDashboardView({
                       key={row.sdgNumber}
                       onClick={() => toggleSdgSelection(row.sdgNumber)}
                       className={cn(
-                        'grid grid-cols-[260px_repeat(12,1fr)] gap-1.5 items-center rounded-xl py-1 px-1.5 transition-all cursor-pointer select-none',
+                        'grid grid-cols-[360px_repeat(12,minmax(34px,1fr))] gap-1.5 items-center rounded-xl py-1 px-1.5 transition-all cursor-pointer select-none',
                         isSelected
                           ? 'shadow-xs'
                           : 'hover:bg-slate-50'
@@ -954,12 +1098,12 @@ export function SdgsDashboardView({
                           : undefined
                       }
                     >
-                      <div className="flex items-center gap-2.5 truncate pr-2">
+                      <div className="flex items-center gap-2.5 pr-2 min-w-0">
                         <SdgNumberBadge goalNumber={row.sdgNumber} className="w-8 h-8 rounded-lg text-xs font-bold shrink-0" />
                         <span
                           className={cn(
-                            'text-[13.5px] truncate',
-                            isSelected ? 'font-bold text-slate-900' : 'font-semibold text-slate-800'
+                            'text-[13px] whitespace-nowrap',
+                            isSelected ? 'font-medium text-slate-900' : 'font-normal text-slate-700'
                           )}
                           title={`${row.code}: ${row.nameTh}`}
                         >
@@ -1024,8 +1168,8 @@ export function SdgsDashboardView({
       <DrillDownProjectDrawer
         isOpen={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        title={`รายการทั้งหมดที่สอดคล้องกับ SDG ${drawerSdg || selectedSdg || ''}`}
-        subtitle={`ชุดข้อมูล: ${CATEGORY_TABS.find((t) => t.id === activeCategory)?.label || 'ทุกชุดข้อมูล'}`}
+        title={drawerTitle || `รายการทั้งหมดที่สอดคล้องกับ SDG ${drawerSdg || selectedSdg || ''}`}
+        subtitle={drawerSubtitle || `ชุดข้อมูล: ${CATEGORY_TABS.find((t) => t.id === activeCategory)?.label || 'ทุกชุดข้อมูล'}`}
         accentColor={(drawerSdg || selectedSdg) ? SDG_DEFINITIONS[drawerSdg || selectedSdg!]?.color : '#00A651'}
         categoryKey={(activeCategory === 'all' ? 'research' : activeCategory) as CategoryKey}
         items={drawerItems}

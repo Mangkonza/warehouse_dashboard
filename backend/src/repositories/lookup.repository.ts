@@ -24,7 +24,7 @@ export class LookupRepository {
 
   static async getPersonnel() {
     return prisma.personnel.findMany({
-      orderBy: { nameTh: 'asc' },
+      orderBy: [{ firstName: 'asc' }, { lastName: 'asc' }, { id: 'asc' }],
       include: {
         department: true,
       },

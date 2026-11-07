@@ -32,6 +32,8 @@ export * from './service-type-badge';
 export * from './ip-type-badge';
 export * from './publication-type-badge';
 export * from './trl-badge';
+export * from './JournalTierBadge';
+export * from './MissionBadge';
 
 export * from './Alert';
 export * from './StatusBadge';
@@ -45,3 +47,5 @@ export * from './SplitPaneTransition';
 export * from './FilterPopover';
 export * from './StrategicFilterSelect';
 export * from './StrategyBadges';
+export * from './StrategyBadge';
+export * from './TablePagination';

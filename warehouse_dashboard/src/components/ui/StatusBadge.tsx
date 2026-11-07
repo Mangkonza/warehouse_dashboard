@@ -42,7 +42,7 @@ const STATUS_CONFIG: Record<
     icon: <FaBan className="text-[0.6875rem] text-slate-400 shrink-0" />,
   },
   fixed: {
-    defaultLabel: 'แก้ไขแล้ว ✓',
+    defaultLabel: 'แก้ไขแล้ว ',
     classes: 'bg-emerald-100 text-emerald-800 border-emerald-300',
     icon: <FaCheckCircle className="text-[0.6875rem] text-emerald-600 shrink-0" />,
   },

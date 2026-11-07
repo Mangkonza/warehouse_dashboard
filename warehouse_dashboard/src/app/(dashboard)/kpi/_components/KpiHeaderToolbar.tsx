@@ -77,26 +77,11 @@ export function KpiHeaderToolbar({
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
           <h1 style={{ fontSize: '18.5px', fontWeight: 800, color: '#0f172a', margin: 0 }}>
-            รายงานผลการดำเนินงานตามตัวชี้วัดยุทธศาสตร์ ประจำปีงบประมาณ พ.ศ. 2569
+            รายงานผลการดำเนินงานตามตัวชี้วัดยุทธศาสตร์
           </h1>
-          <span
-            style={{
-              backgroundColor: '#e8f5e9',
-              color: '#007a3e',
-              padding: '3px 10px',
-              borderRadius: '16px',
-              fontSize: '12px',
-              fontWeight: 700,
-            }}
-          >
-            {timeFilter && timeFilter.mode !== 'all'
-              ? getTimeFilterLabel(timeFilter)
-              : 'ต.ค. 2568 - ก.ย. 2569'}
-          </span>
+          
         </div>
-        <div style={{ fontSize: '12.5px', color: '#64748b', marginTop: '4px' }}>
-          มหาวิทยาลัยเกษตรศาสตร์ วิทยาเขตกำแพงแสน • คณะวิศวกรรมศาสตร์ กำแพงแสน (หน่วยวิจัยและนวัตกรรม / งานแผนและประกันคุณภาพ)
-        </div>
+        
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>

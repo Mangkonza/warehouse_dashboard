@@ -3,3 +3,5 @@ export * from './AcademicFormFields';
 export * from './ServiceFormFields';
 export * from './PublicationFormFields';
 export * from './IpFormFields';
+export * from './KpiFormFields';
+export * from './PersonnelFormFields';

@@ -6,6 +6,7 @@ import { usePersonnelData } from '../../_hooks/usePersonnelData';
 import { useTimeFilter, TimeFilterBar } from '@/features/time-filter';
 import { DepartmentBadge, PublicationTypeBadge, IPTypeBadge, ServiceTypeBadge } from '@/components/ui';
 import { autoDetectJournalRanking, JOURNAL_TIER_STYLES } from '@/config/journalRankingConfig';
+import { JournalTierBadge } from '@/components/ui/JournalTierBadge';
 import {
   FaArrowLeft,
   FaFlask,
@@ -670,19 +671,7 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
                               {p.journal || '-'}
                             </td>
                             <td style={{ padding: '10px 12px', textAlign: 'center' }}>
-                              <span
-                                style={{
-                                  backgroundColor: tierStyle.bg,
-                                  color: tierStyle.text,
-                                  border: `1px solid ${tierStyle.border}`,
-                                  padding: '2px 8px',
-                                  borderRadius: '6px',
-                                  fontSize: '11px',
-                                  fontWeight: 700,
-                                }}
-                              >
-                                {tier}
-                              </span>
+                              <JournalTierBadge value={tier} />
                             </td>
                             <td style={{ padding: '10px 12px', textAlign: 'center', color: '#64748b' }}>
                               {p.fiscal_year_be || p.month_year || p.month || '-'}

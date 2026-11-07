@@ -110,7 +110,15 @@ export class ProjectRepository {
           startDate: parseSafeDate(data.startDate || data.start_date),
           endDate: parseSafeDate(data.endDate || data.end_date),
           fiscalYear: parseSafeInt(data.fiscalYear ?? data.fiscal_year ?? data.fiscal_year_be),
+          trlStart: parseSafeInt(data.trlStart ?? data.trl_start),
+          trlEnd: parseSafeInt(data.trlEnd ?? data.trl_end),
           trlOutputs: parseSafeJsonOrString(data.trlOutputs ?? data.trl_outputs),
+          teachingCourses: parseSafeJsonOrString(data.teachingCourses ?? data.teaching_courses),
+          appliedCourses: parseSafeJsonOrString(data.appliedCourses ?? data.applied_courses),
+          academicService: data.academicService ?? data.academic_service ?? null,
+          crossDisciplinary: data.crossDisciplinary ?? data.cross_disciplinary ?? null,
+          integration: data.integration || null,
+          remarks: data.remarks || null,
         },
       });
 
@@ -194,6 +202,24 @@ export class ProjectRepository {
             : {}),
           ...(data.trlOutputs !== undefined || data.trl_outputs !== undefined
             ? { trlOutputs: parseSafeJsonOrString(data.trlOutputs ?? data.trl_outputs) }
+            : {}),
+          ...(data.trlStart !== undefined || data.trl_start !== undefined
+            ? { trlStart: parseSafeInt(data.trlStart ?? data.trl_start) }
+            : {}),
+          ...(data.trlEnd !== undefined || data.trl_end !== undefined
+            ? { trlEnd: parseSafeInt(data.trlEnd ?? data.trl_end) }
+            : {}),
+          ...(data.teachingCourses !== undefined || data.teaching_courses !== undefined
+            ? { teachingCourses: parseSafeJsonOrString(data.teachingCourses ?? data.teaching_courses) }
+            : {}),
+          ...(data.appliedCourses !== undefined || data.applied_courses !== undefined
+            ? { appliedCourses: parseSafeJsonOrString(data.appliedCourses ?? data.applied_courses) }
+            : {}),
+          ...(data.academicService !== undefined || data.academic_service !== undefined
+            ? { academicService: data.academicService ?? data.academic_service }
+            : {}),
+          ...(data.crossDisciplinary !== undefined || data.cross_disciplinary !== undefined
+            ? { crossDisciplinary: data.crossDisciplinary ?? data.cross_disciplinary }
             : {}),
         },
       });
@@ -312,6 +338,23 @@ export class ProjectRepository {
         endDate: parseSafeDate(data.endDate ?? data.end_date),
         integrationStartDate: parseSafeDate(data.integrationStartDate ?? data.integration_start_date),
         integrationEndDate: parseSafeDate(data.integrationEndDate ?? data.integration_end_date),
+        recordNumber: data.recordNumber ?? data.record_number ?? data.registration_code ?? null,
+        coMembersInternal: parseSafeInt(data.coMembersInternal ?? data.co_members_internal),
+        coMembersExternal: parseSafeInt(data.coMembersExternal ?? data.co_members_external),
+        allocOverhead: parseSafeNumber(data.allocOverhead ?? data.alloc_overhead, 0),
+        allocFaculty: parseSafeNumber(data.allocFaculty ?? data.alloc_faculty, 0),
+        allocDept: parseSafeNumber(data.allocDept ?? data.alloc_dept, 0),
+        allocKu: parseSafeNumber(data.allocKu ?? data.alloc_ku, 0),
+        allocRemaining: parseSafeNumber(data.allocRemaining ?? data.alloc_remaining, 0),
+        serviceReceiverType: data.serviceReceiverType ?? data.service_receiver_type ?? null,
+        researchIntegration: data.researchIntegration ?? data.research_integration ?? null,
+        patentIntegration: data.patentIntegration ?? data.patent_integration ?? null,
+        projectTypeCategory: data.projectTypeCategory ?? data.project_type_category ?? (Array.isArray(data.project_type_categories) ? data.project_type_categories[0] : null) ?? null,
+        projectSubTypes: parseSafeJsonOrString(data.projectSubTypes ?? data.project_sub_types),
+        researchProjects: parseSafeJsonOrString(data.researchProjects ?? data.research_projects),
+        characteristics: parseSafeStringOrArray(data.characteristics ?? data.project_nature),
+        status: data.status || 'ดำเนินการ',
+        remarks: data.remarks || null,
       },
     });
 
@@ -337,6 +380,29 @@ export class ProjectRepository {
         ...(data.endDate !== undefined || data.end_date !== undefined ? { endDate: parseSafeDate(data.endDate ?? data.end_date) } : {}),
         ...(data.integrationStartDate !== undefined || data.integration_start_date !== undefined ? { integrationStartDate: parseSafeDate(data.integrationStartDate ?? data.integration_start_date) } : {}),
         ...(data.integrationEndDate !== undefined || data.integration_end_date !== undefined ? { integrationEndDate: parseSafeDate(data.integrationEndDate ?? data.integration_end_date) } : {}),
+        ...(data.recordNumber !== undefined || data.record_number !== undefined || data.registration_code !== undefined ? { recordNumber: data.recordNumber ?? data.record_number ?? data.registration_code } : {}),
+        ...(data.coMembersInternal !== undefined || data.co_members_internal !== undefined ? { coMembersInternal: parseSafeInt(data.coMembersInternal ?? data.co_members_internal) } : {}),
+        ...(data.coMembersExternal !== undefined || data.co_members_external !== undefined ? { coMembersExternal: parseSafeInt(data.coMembersExternal ?? data.co_members_external) } : {}),
+        ...(data.allocOverhead !== undefined || data.alloc_overhead !== undefined ? { allocOverhead: parseSafeNumber(data.allocOverhead ?? data.alloc_overhead, 0) } : {}),
+        ...(data.allocFaculty !== undefined || data.alloc_faculty !== undefined ? { allocFaculty: parseSafeNumber(data.allocFaculty ?? data.alloc_faculty, 0) } : {}),
+        ...(data.allocDept !== undefined || data.alloc_dept !== undefined ? { allocDept: parseSafeNumber(data.allocDept ?? data.alloc_dept, 0) } : {}),
+        ...(data.allocKu !== undefined || data.alloc_ku !== undefined ? { allocKu: parseSafeNumber(data.allocKu ?? data.alloc_ku, 0) } : {}),
+        ...(data.allocRemaining !== undefined || data.alloc_remaining !== undefined ? { allocRemaining: parseSafeNumber(data.allocRemaining ?? data.alloc_remaining, 0) } : {}),
+        ...(data.serviceReceiverType !== undefined || data.service_receiver_type !== undefined ? { serviceReceiverType: data.serviceReceiverType ?? data.service_receiver_type } : {}),
+        ...(data.researchIntegration !== undefined || data.research_integration !== undefined ? { researchIntegration: data.researchIntegration ?? data.research_integration } : {}),
+        ...(data.patentIntegration !== undefined || data.patent_integration !== undefined ? { patentIntegration: data.patentIntegration ?? data.patent_integration } : {}),
+        ...(data.projectTypeCategory !== undefined || data.project_type_category !== undefined || data.project_type_categories !== undefined
+          ? { projectTypeCategory: data.projectTypeCategory ?? data.project_type_category ?? (Array.isArray(data.project_type_categories) ? data.project_type_categories[0] : null) }
+          : {}),
+        ...(data.projectSubTypes !== undefined || data.project_sub_types !== undefined
+          ? { projectSubTypes: parseSafeJsonOrString(data.projectSubTypes ?? data.project_sub_types) }
+          : {}),
+        ...(data.researchProjects !== undefined || data.research_projects !== undefined
+          ? { researchProjects: parseSafeJsonOrString(data.researchProjects ?? data.research_projects) }
+          : {}),
+        ...(data.characteristics !== undefined || data.project_nature !== undefined ? { characteristics: parseSafeStringOrArray(data.characteristics ?? data.project_nature) } : {}),
+        ...(data.status !== undefined ? { status: data.status } : {}),
+        ...(data.remarks !== undefined ? { remarks: data.remarks } : {}),
       },
       include: { department: true },
     });
@@ -448,6 +514,12 @@ export class ProjectRepository {
           fiscalYearBe: parseSafeInt(data.fiscalYearBe ?? data.fiscal_year_be),
           month: data.month || null,
           monthYear: data.monthYear || data.month_year || null,
+          quartile: data.quartile || null,
+          coAuthorsDomestic: data.co_authors_domestic || data.coAuthorsDomestic || null,
+          coAuthorsForeign: data.co_authors_foreign || data.coAuthorsForeign || null,
+          hasInternationalCoauthor: Boolean(data.has_international_coauthor ?? data.hasInternationalCoauthor ?? data.has_foreign_coauthor ?? data.hasForeignCoauthor),
+          hasDomesticCoauthor: Boolean(data.has_domestic_coauthor ?? data.hasDomesticCoauthor),
+          hasForeignCoauthor: Boolean(data.has_foreign_coauthor ?? data.hasForeignCoauthor ?? data.has_international_coauthor ?? data.hasInternationalCoauthor),
           status: data.status || 'ตีพิมพ์',
           remarks: data.remarks || null,
         },
@@ -501,6 +573,15 @@ export class ProjectRepository {
           ...(data.fiscalYearBe !== undefined || data.fiscal_year_be !== undefined ? { fiscalYearBe: parseSafeInt(data.fiscalYearBe ?? data.fiscal_year_be) } : {}),
           ...(data.month !== undefined ? { month: data.month } : {}),
           ...(data.monthYear !== undefined || data.month_year !== undefined ? { monthYear: data.monthYear || data.month_year } : {}),
+          ...(data.has_international_coauthor !== undefined || data.hasInternationalCoauthor !== undefined || data.has_foreign_coauthor !== undefined || data.hasForeignCoauthor !== undefined
+            ? { hasInternationalCoauthor: Boolean(data.has_international_coauthor ?? data.hasInternationalCoauthor ?? data.has_foreign_coauthor ?? data.hasForeignCoauthor) }
+            : {}),
+          ...(data.has_domestic_coauthor !== undefined || data.hasDomesticCoauthor !== undefined
+            ? { hasDomesticCoauthor: Boolean(data.has_domestic_coauthor ?? data.hasDomesticCoauthor) }
+            : {}),
+          ...(data.has_foreign_coauthor !== undefined || data.hasForeignCoauthor !== undefined
+            ? { hasForeignCoauthor: Boolean(data.has_foreign_coauthor ?? data.hasForeignCoauthor) }
+            : {}),
           ...(data.status !== undefined ? { status: data.status } : {}),
           ...(data.remarks !== undefined ? { remarks: data.remarks } : {}),
         },

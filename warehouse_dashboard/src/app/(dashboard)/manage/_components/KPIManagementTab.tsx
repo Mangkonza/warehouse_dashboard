@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { FilterPopover, ActiveFilterChips, ConfirmActionModal } from '@/components/ui';
+import { FilterPopover, ActiveFilterChips, ConfirmActionModal, TablePagination, StrategyBadge } from '@/components/ui';
 import {
   KPIItem,
   KPICategory,
@@ -819,45 +819,17 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({
 
                         {/* ยุทธศาสตร์ / แผนงาน */}
                         <td style={{ padding: '11px 10px', verticalAlign: 'top' }}>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                             {pillar || kpi.strategyCode ? (
-                              <span
-                                style={{
-                                  display: 'inline-block',
-                                  width: 'fit-content',
-                                  padding: '2px 7px',
-                                  borderRadius: '4px',
-                                  backgroundColor: pillar?.color.bg || '#ecfdf5',
-                                  border: `1px solid ${pillar?.color.border || '#a7f3d0'}`,
-                                  color: pillar?.color.text || '#047857',
-                                  fontSize: '11.5px',
-                                  fontWeight: 700,
-                                }}
-                              >
-                                ยุทธศาสตร์ที่ {pillar?.code || kpi.strategyCode}
-                              </span>
+                              <StrategyBadge value={pillar?.code || kpi.strategyCode} />
                             ) : (
-                              <span
-                                style={{
-                                  display: 'inline-block',
-                                  width: 'fit-content',
-                                  padding: '2px 7px',
-                                  borderRadius: '4px',
-                                  backgroundColor: catStyle.bg,
-                                  border: `1px solid ${catStyle.border}`,
-                                  color: catStyle.color,
-                                  fontSize: '11px',
-                                  fontWeight: 600,
-                                }}
-                              >
-                                {CATEGORY_LABELS[kpi.category] || kpi.category}
-                              </span>
+                              <StrategyBadge value={CATEGORY_LABELS[kpi.category] || kpi.category} showPrefix={false} />
                             )}
                             {kpi.planCode && (
                               <KpiHoverTooltip
                                 badge={`ยุทธศาสตร์ที่ ${pillar?.code || kpi.strategyCode || '-'}`}
                                 fullText={kpi.planName || kpi.planCode}
-                                style={{ fontSize: '11.5px', color: '#475569', fontWeight: 600 }}
+                                style={{ fontSize: '11.5px', color: '#475569', fontWeight: 600, paddingLeft: '4px' }}
                               >
                                 {kpi.planCode}
                               </KpiHoverTooltip>
@@ -883,7 +855,7 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({
                             <KpiHoverTooltip
                               badge={kpi.code}
                               fullText={kpi.title}
-                              subText="คลิกที่ชื่อเพื่อดูตัวชี้วัดย่อย คำอธิบาย หลักฐาน และหมายเหตุ"
+                              subText="คลิกที่ชื่อเพื่อดูตัวชี้วัดย่อย คำอธิบาย หลักฐาน "
                               onClick={() =>
                                 setExpandedKpis((prev) => ({ ...prev, [kpi.id]: !prev[kpi.id] }))
                               }
@@ -1424,93 +1396,20 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({
         </div>
 
         {/* Footer: Pagination */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: '12px 20px',
-            borderTop: '1px solid #e2e8f0',
-            borderBottomLeftRadius: '12px',
-            borderBottomRightRadius: '12px',
-            backgroundColor: '#ffffff',
-            fontSize: '13px',
-            color: '#64748b',
-            flexWrap: 'wrap',
-            gap: '12px',
+        <TablePagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={filteredKPIs.length}
+          pageSize={itemsPerPage}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(newSize) => {
+            setItemsPerPage(newSize);
+            setCurrentPage(1);
           }}
-        >
-          <div>
-            แสดง {filteredKPIs.length > 0 ? startIndex + 1 : 0} ถึง{' '}
-            {Math.min(startIndex + itemsPerPage, filteredKPIs.length)} จากทั้งหมด{' '}
-            <strong style={{ color: '#1e293b' }}>{filteredKPIs.length}</strong> ตัวชี้วัด
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span>แสดง:</span>
-              <select
-                value={itemsPerPage}
-                onChange={(e) => {
-                  setItemsPerPage(Number(e.target.value));
-                  setCurrentPage(1);
-                }}
-                style={{
-                  height: '32px',
-                  padding: '0 8px',
-                  borderRadius: '6px',
-                  border: '1px solid #cbd5e1',
-                  backgroundColor: '#ffffff',
-                  fontSize: '12px',
-                  outline: 'none',
-                  cursor: 'pointer',
-                }}
-              >
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-              </select>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span>
-                หน้า {currentPage} จาก {totalPages}
-              </span>
-              <button
-                disabled={currentPage <= 1}
-                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                style={{
-                  padding: '4px 8px',
-                  borderRadius: '6px',
-                  border: '1px solid #cbd5e1',
-                  backgroundColor: currentPage <= 1 ? '#f8fafc' : '#ffffff',
-                  color: currentPage <= 1 ? '#cbd5e1' : '#334155',
-                  cursor: currentPage <= 1 ? 'not-allowed' : 'pointer',
-                  fontSize: '11px',
-                }}
-                title="หน้าก่อนหน้า"
-              >
-                <FaChevronLeft />
-              </button>
-              <button
-                disabled={currentPage >= totalPages}
-                onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-                style={{
-                  padding: '4px 8px',
-                  borderRadius: '6px',
-                  border: '1px solid #cbd5e1',
-                  backgroundColor: currentPage >= totalPages ? '#f8fafc' : '#ffffff',
-                  color: currentPage >= totalPages ? '#cbd5e1' : '#334155',
-                  cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer',
-                  fontSize: '11px',
-                }}
-                title="หน้าถัดไป"
-              >
-                <FaChevronRight />
-              </button>
-            </div>
-          </div>
-        </div>
+          pageSizeOptions={[10, 20, 50, 100]}
+          unitLabel="ตัวชี้วัด"
+          style={{ borderBottomLeftRadius: '12px', borderBottomRightRadius: '12px' }}
+        />
       </div>
 
       {/* Modal กรอกผลรายงานตัวชี้วัดตามรอบการรายงานผล + จัดการโครงการที่ผูกกับตัวชี้วัด (ยุบรวมเข้าด้วยกัน) */}
@@ -1555,6 +1454,8 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({
         kpiId={editingStrategicKpiId}
         onSaved={() => {
           refreshList();
+          setCurrentPage(1);
+          setSearchQuery('');
           setIsStrategicKpiModalOpen(false);
           setEditingStrategicKpiId(undefined);
         }}

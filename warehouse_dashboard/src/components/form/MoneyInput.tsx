@@ -15,6 +15,7 @@ export interface MoneyInputProps {
   name?: string;
   min?: number;
   max?: number;
+  required?: boolean;
 }
 
 export function formatTwoDecimals(num: number | null | undefined): string {
@@ -37,6 +38,7 @@ export function MoneyInput({
   name,
   min = 0,
   max,
+  required = false,
 }: MoneyInputProps) {
   const [isFocused, setIsFocused] = React.useState(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
@@ -147,6 +149,8 @@ export function MoneyInput({
     }
   };
 
+  const isReady = value !== null && value !== undefined && value !== '' && !isNaN(Number(value)) && Number(value) >= 0;
+
   return (
     <div className={cn('flex items-center gap-2.5 w-full', className)}>
       <input
@@ -162,14 +166,19 @@ export function MoneyInput({
         placeholder={placeholder}
         disabled={disabled}
         className={cn(
-          'flex-1 h-10 px-3 text-sm text-right tabular-nums font-medium rounded-lg border border-slate-300 bg-white shadow-2xs transition-colors',
-          'focus:outline-none focus:ring-2 focus:ring-[#00A651]/20 focus:border-[#00A651]',
+          'flex-1 min-w-0 h-10 px-3 text-sm text-right tabular-nums font-normal text-slate-800 rounded-lg border bg-white shadow-2xs transition-colors',
+          'focus:outline-none focus:ring-2',
+          required
+            ? isReady
+              ? 'border-emerald-500 focus:border-emerald-600 focus:ring-emerald-500/20 bg-emerald-50/10'
+              : 'border-rose-400 focus:border-rose-500 focus:ring-rose-400/20 bg-rose-50/10'
+            : 'border-slate-300 focus:border-[#00A651] focus:ring-[#00A651]/20',
           disabled && 'opacity-50 cursor-not-allowed bg-slate-50 text-slate-400',
           inputClassName
         )}
       />
       {currencyLabel && (
-        <span className="shrink-0 text-sm font-semibold text-slate-600 select-none w-7 text-left">
+        <span className="shrink-0 text-sm font-normal text-slate-600 select-none w-7 text-left">
           {currencyLabel}
         </span>
       )}

@@ -488,7 +488,13 @@ export const ImportBulkMenu: React.FC<ImportBulkMenuProps> = ({
                 </label>
                 <DatePicker
                   value={bulkStartDate}
-                  onChange={(_, dateStr) => setBulkStartDate(dateStr)}
+                  maxDate={bulkEndDate || undefined}
+                  onChange={(_, dateStr) => {
+                    setBulkStartDate(dateStr);
+                    if (dateStr && bulkEndDate && dateStr > bulkEndDate) {
+                      setBulkEndDate('');
+                    }
+                  }}
                   placeholder="เลือกวันเริ่มต้น"
                 />
               </div>
@@ -498,7 +504,13 @@ export const ImportBulkMenu: React.FC<ImportBulkMenuProps> = ({
                 </label>
                 <DatePicker
                   value={bulkEndDate}
-                  onChange={(_, dateStr) => setBulkEndDate(dateStr)}
+                  minDate={bulkStartDate || undefined}
+                  onChange={(_, dateStr) => {
+                    setBulkEndDate(dateStr);
+                    if (dateStr && bulkStartDate && dateStr < bulkStartDate) {
+                      setBulkStartDate('');
+                    }
+                  }}
                   placeholder="เลือกวันสิ้นสุด"
                 />
               </div>

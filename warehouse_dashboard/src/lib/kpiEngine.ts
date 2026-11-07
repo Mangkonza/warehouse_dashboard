@@ -972,7 +972,7 @@ export const fetchKPIsFromBackend = async (): Promise<KPIItem[]> => {
     });
     if (res.ok) {
       const json = await res.json();
-      if (json && Array.isArray(json.data)) {
+      if (json && Array.isArray(json.data) && json.data.length > 0) {
         const localKpis = getStoredKPIs();
         const localMap = new Map(localKpis.map((k) => [k.id, k]));
         const enriched = json.data.map((item: KPIItem) => {
@@ -1043,22 +1043,20 @@ export const syncRoundReportToBackend = async (
 };
 
 export const getStoredKPIs = (): KPIItem[] => {
-  if (typeof window === 'undefined') return [];
+  const defaults = DEFAULT_KPIS.map(enrichKPIItem);
+  if (typeof window === 'undefined') return defaults;
   try {
-    const isDbSynced = localStorage.getItem(KPI_DB_SYNCED_KEY) === 'true';
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw !== null) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) {
-        if (isDbSynced || parsed.length > 0) {
-          return parsed.map(enrichKPIItem);
-        }
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed.map(enrichKPIItem);
       }
     }
   } catch (err) {
     console.warn('Failed to load KPIs from localStorage:', err);
   }
-  return [];
+  return defaults;
 };
 
 export const getKPIById = (id: string): KPIItem | null => {
@@ -1094,7 +1092,7 @@ export const addKPI = (kpi: Omit<KPIItem, 'id'>): KPIItem => {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   });
-  const updated = [...current, newItem];
+  const updated = [newItem, ...current];
   saveStoredKPIs(updated);
   if (typeof window !== 'undefined') {
     fetch('/api/v1/kpi', {

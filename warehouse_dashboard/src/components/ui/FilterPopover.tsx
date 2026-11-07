@@ -23,6 +23,12 @@ import { getStoredKPIs, getStoredStrategies } from '@/lib/kpiEngine';
 export type EvalFramework = 'all' | 'i_am' | 'i_see';
 export type ImageStatus = 'all' | 'has_image' | 'no_image';
 export type Completeness = 'all' | 'complete' | 'incomplete';
+export type PersonnelMissingField =
+  | 'all'
+  | 'no_image'
+  | 'no_email'
+  | 'no_position'
+  | 'incomplete';
 
 export interface FilterState {
   departments: string[];
@@ -34,9 +40,11 @@ export interface FilterState {
   role?: string;
   imageStatus?: ImageStatus;
   completeness?: Completeness;
+  missingField?: PersonnelMissingField;
   subFilter?: string;
   sdgs?: string[];
   framework?: EvalFramework;
+  evaluationStatus?: 'all' | 'evaluated' | 'auto_detected' | 'unevaluated';
   kpiStrategy?: string;
   kpiCalcType?: string;
   kpiStatus?: string;
@@ -75,6 +83,7 @@ type FlyoutTab =
   | 'journals'
   | 'personnel_role'
   | 'personnel_status'
+  | 'personnel_missing'
   | 'kpi_strategy'
   | 'kpi_calc_type'
   | 'kpi_status'
@@ -208,12 +217,25 @@ const JOURNALS_OPTIONS: BlockSelectOption[] = [
   { label: 'TCI 3', value: 'TCI 3' },
 ];
 
-const ROLES_LIST = [
+export const ACADEMIC_POSITIONS_LIST = [
   { val: '', label: 'ทั้งหมด' },
-  { val: 'อาจารย์', label: 'อาจารย์' },
-  { val: 'นักวิจัย', label: 'นักวิจัย' },
-  { val: 'เจ้าหน้าที่', label: 'เจ้าหน้าที่' },
-  { val: 'ผู้บริหาร', label: 'ผู้บริหาร' },
+  { val: 'professor', label: 'ศาสตราจารย์' },
+  { val: 'assoc_prof', label: 'รองศาสตราจารย์' },
+  { val: 'asst_prof', label: 'ผู้ช่วยศาสตราจารย์' },
+  { val: 'lecturer', label: 'อาจารย์' },
+  { val: 'executive', label: 'ผู้บริหาร / หัวหน้าภาค' },
+  { val: 'staff', label: 'บุคลากร / เจ้าหน้าที่' },
+  { val: 'external', label: 'ผู้ทรงคุณวุฒิ / ผู้แทนภายนอก' },
+];
+
+export const ROLES_LIST = ACADEMIC_POSITIONS_LIST;
+
+export const PERSONNEL_MISSING_OPTIONS = [
+  { val: 'all', label: 'ทั้งหมด (แสดงทุกคน)' },
+  { val: 'no_image', label: 'ไม่มีรูปภาพประจำตัว' },
+  { val: 'no_email', label: 'ไม่มีอีเมล KU' },
+  { val: 'no_position', label: 'ไม่มีตำแหน่งทางวิชาการ' },
+  { val: 'incomplete', label: 'ข้อมูลไม่ครบถ้วน (ขาดอย่างใดอย่างหนึ่ง)' },
 ];
 
 export const KPI_STRATEGY_MAP: Record<string, string> = {
@@ -376,6 +398,7 @@ export function FilterPopover({
     role: filters.role || '',
     imageStatus: filters.imageStatus || 'all',
     completeness: filters.completeness || 'all',
+    missingField: filters.missingField || 'all',
     subFilter: filters.subFilter || '',
     sdgs: filters.sdgs || [],
     framework: filters.framework || 'all',
@@ -461,9 +484,12 @@ export function FilterPopover({
     return { total: kpis.length, counts, groups };
   }, [category, isOpen, kpiSyncTick]);
 
-  // Sync draft whenever popover opens or prop filters change
+  // Track whether popover was previously open to sync draft only on open transitions
+  const prevIsOpenRef = useRef(false);
+
+  // Sync draft whenever popover opens
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !prevIsOpenRef.current) {
       setDraft({
         departments: filters.departments || [],
         deptCustomText: filters.deptCustomText || '',
@@ -474,6 +500,7 @@ export function FilterPopover({
         role: filters.role || '',
         imageStatus: filters.imageStatus || 'all',
         completeness: filters.completeness || 'all',
+        missingField: filters.missingField || 'all',
         subFilter: filters.subFilter || '',
         sdgs: filters.sdgs || [],
         framework: filters.framework || 'all',
@@ -484,6 +511,7 @@ export function FilterPopover({
       setActiveFlyout(null);
       setDeptSearch('');
     }
+    prevIsOpenRef.current = isOpen;
   }, [isOpen, filters]);
 
   // Click outside listener
@@ -568,6 +596,7 @@ export function FilterPopover({
     if (filters.role) count++;
     if (filters.imageStatus && filters.imageStatus !== 'all') count++;
     if (filters.completeness && filters.completeness !== 'all') count++;
+    if (filters.missingField && filters.missingField !== 'all') count++;
     if (filters.subFilter) count++;
     if (filters.sdgs && filters.sdgs.length > 0) count++;
     if (filters.framework && filters.framework !== 'all') count++;
@@ -660,9 +689,11 @@ export function FilterPopover({
       role: '',
       imageStatus: 'all',
       completeness: 'all',
+      missingField: 'all',
       subFilter: '',
       sdgs: [],
       framework: 'all',
+      evaluationStatus: 'all',
       kpiStrategy: 'all',
       kpiCalcType: 'all',
       kpiStatus: 'all',
@@ -833,13 +864,16 @@ export function FilterPopover({
                 background: 'none',
                 border: 'none',
                 color: '#64748b',
-                fontSize: '16px',
+                fontSize: '18px',
                 cursor: 'pointer',
-                padding: '2px 6px',
-                lineHeight: 1,
+                padding: '4px',
+                borderRadius: '6px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
             >
-              ✕
+              <FaTimes />
             </button>
           </div>
 
@@ -1009,8 +1043,8 @@ export function FilterPopover({
               <FaChevronRight style={{ color: '#94a3b8', fontSize: '11px', flexShrink: 0 }} />
             </button>
 
-            {/* 2. ช่วงเวลา — hidden when the shared bar owns detailed time */}
-            {!hideTimeRange && (
+            {/* 2. ช่วงเวลา — hidden when the shared bar owns detailed time or for personnel */}
+            {!hideTimeRange && category !== 'personnel' && (
             <button
               type="button"
               onClick={() => toggleFlyout('dates')}
@@ -1096,6 +1130,7 @@ export function FilterPopover({
             )}
 
             {/* 4. การประเมิน (SDGs / Framework / Journals) */}
+            {category !== 'personnel' && (
             <button
               type="button"
               onClick={() => toggleFlyout('evaluation')}
@@ -1143,6 +1178,7 @@ export function FilterPopover({
               </span>
               <FaChevronRight style={{ color: '#94a3b8', fontSize: '11px', flexShrink: 0 }} />
             </button>
+            )}
 
             {/* 5. Publications: กลุ่มวารสาร / คุณภาพ */}
             {category === 'publications' && (
@@ -1164,7 +1200,7 @@ export function FilterPopover({
                 }}
               >
                 <span style={{ flex: 1, fontSize: '13.5px', color: '#1f2937', fontWeight: 400 }}>
-                  ระดับคุณภาพวารสาร (Q / TCI)
+                  ระดับคุณภาพวารสาร
                 </span>
                 <span
                   style={{
@@ -1186,7 +1222,7 @@ export function FilterPopover({
               </button>
             )}
 
-            {/* 6. Personnel: ตำแหน่ง */}
+            {/* 6. Personnel: ตำแหน่งทางวิชาการ */}
             {category === 'personnel' && (
               <button
                 type="button"
@@ -1206,7 +1242,7 @@ export function FilterPopover({
                 }}
               >
                 <span style={{ flex: 1, fontSize: '13.5px', color: '#1f2937', fontWeight: 400 }}>
-                  บทบาท / ตำแหน่ง
+                  ตำแหน่งทางวิชาการ
                 </span>
                 <span
                   style={{
@@ -1220,7 +1256,47 @@ export function FilterPopover({
                     fontWeight: 400,
                   }}
                 >
-                  {ROLES_LIST.find((r) => r.val === draft.role)?.label || 'ทั้งหมด'}
+                  {ACADEMIC_POSITIONS_LIST.find((r) => r.val === draft.role)?.label || 'ทั้งหมด'}
+                </span>
+                <FaChevronRight style={{ color: '#94a3b8', fontSize: '11px', flexShrink: 0 }} />
+              </button>
+            )}
+
+            {/* 7. Personnel: ช่องข้อมูลที่ว่างอยู่ */}
+            {category === 'personnel' && (
+              <button
+                type="button"
+                onClick={() => toggleFlyout('personnel_missing')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  width: '100%',
+                  padding: '12px 18px',
+                  border: 'none',
+                  borderBottom: '1px solid #f1f5f9',
+                  backgroundColor: activeFlyout === 'personnel_missing' ? '#f0fbf5' : '#ffffff',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.15s',
+                }}
+              >
+                <span style={{ flex: 1, fontSize: '13.5px', color: '#1f2937', fontWeight: 400 }}>
+                  ช่องข้อมูลที่ว่างอยู่
+                </span>
+                <span
+                  style={{
+                    fontStyle: 'normal',
+                    fontSize: '12.5px',
+                    maxWidth: '50%',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    color: draft.missingField && draft.missingField !== 'all' ? '#00A651' : '#6b7280',
+                    fontWeight: 400,
+                  }}
+                >
+                  {PERSONNEL_MISSING_OPTIONS.find((o) => o.val === (draft.missingField || 'all'))?.label || 'ทั้งหมด'}
                 </span>
                 <FaChevronRight style={{ color: '#94a3b8', fontSize: '11px', flexShrink: 0 }} />
               </button>
@@ -1273,15 +1349,27 @@ export function FilterPopover({
                   border: 'none',
                   backgroundColor: '#00A651',
                   borderRadius: '8px',
-                  padding: '6px 16px',
+                  padding: '7px 18px',
                   color: '#ffffff',
                   fontSize: '12.5px',
-                  fontWeight: 400,
+                  fontWeight: 600,
                   cursor: 'pointer',
-                  boxShadow: '0 1px 3px rgba(0, 166, 81, 0.25)',
+                  boxShadow: '0 2px 6px rgba(0, 166, 81, 0.25)',
+                  transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                  transform: 'translateY(0)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#0f172a';
+                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(15, 23, 42, 0.35)';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#00A651';
+                  e.currentTarget.style.boxShadow = '0 2px 6px rgba(0, 166, 81, 0.25)';
+                  e.currentTarget.style.transform = 'translateY(0)';
                 }}
               >
-                <span style={{ fontWeight: 400 }}>ใช้งานตัวกรอง</span>
+                <span>ใช้งานตัวกรอง</span>
               </button>
             </div>
           </div>
@@ -1331,8 +1419,9 @@ export function FilterPopover({
                   {activeFlyout === 'dates' && 'ช่วงเวลา'}
                   {activeFlyout === 'budget' && (numericConfig?.section || 'งบประมาณ')}
                   {activeFlyout === 'evaluation' && 'การประเมิน (SDGs / กรอบการประเมิน)'}
-                  {activeFlyout === 'journals' && 'ระดับคุณภาพวารสาร (Q / TCI)'}
-                  {activeFlyout === 'personnel_role' && 'บทบาท / ตำแหน่ง'}
+                  {activeFlyout === 'journals' && 'ระดับคุณภาพวารสาร'}
+                  {activeFlyout === 'personnel_role' && 'ตำแหน่งทางวิชาการ'}
+                  {activeFlyout === 'personnel_missing' && 'ช่องข้อมูลที่ว่างอยู่'}
                   {activeFlyout === 'kpi_strategy' && 'หมวดยุทธศาสตร์และประเภทงาน'}
                   {activeFlyout === 'kpi_calc_type' && 'วิธีการประเมิน'}
                   {activeFlyout === 'kpi_status' && 'สถานะความสำเร็จ'}
@@ -1556,9 +1645,7 @@ export function FilterPopover({
                 {/* ========================================================= */}
                 {activeFlyout === 'dates' && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    <div style={{ fontSize: '12.5px', color: '#64748b', fontWeight: 400 }}>
-                      เลือกช่วงวันที่เริ่มต้นและสิ้นสุด (ปฏิทิน พ.ศ.)
-                    </div>
+                    
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '14px' }}>
                       <div>
@@ -1567,7 +1654,16 @@ export function FilterPopover({
                         </label>
                         <DatePicker
                           value={draft.dateFrom || ''}
-                          onChange={(_d, dateStr) => setDraft((prev) => ({ ...prev, dateFrom: dateStr }))}
+                          maxDate={draft.dateTo || undefined}
+                          onChange={(_d, dateStr) => {
+                            setDraft((prev) => {
+                              const next = { ...prev, dateFrom: dateStr };
+                              if (dateStr && next.dateTo && dateStr > next.dateTo) {
+                                next.dateTo = '';
+                              }
+                              return next;
+                            });
+                          }}
                           placeholder="ตั้งแต่วันที่ (พ.ศ.)"
                         />
                       </div>
@@ -1578,7 +1674,16 @@ export function FilterPopover({
                         </label>
                         <DatePicker
                           value={draft.dateTo || ''}
-                          onChange={(_d, dateStr) => setDraft((prev) => ({ ...prev, dateTo: dateStr }))}
+                          minDate={draft.dateFrom || undefined}
+                          onChange={(_d, dateStr) => {
+                            setDraft((prev) => {
+                              const next = { ...prev, dateTo: dateStr };
+                              if (dateStr && next.dateFrom && dateStr < next.dateFrom) {
+                                next.dateFrom = '';
+                              }
+                              return next;
+                            });
+                          }}
                           placeholder="ถึงวันที่ (พ.ศ.)"
                         />
                       </div>
@@ -1857,8 +1962,8 @@ export function FilterPopover({
                           style={{
                             padding: '7px 18px',
                             borderRadius: '8px',
-                            border: draft.framework === 'i_am' ? '1px solid #7c2d12' : '1px solid #cbd5e1',
-                            backgroundColor: draft.framework === 'i_am' ? '#7c2d12' : '#ffffff',
+                            border: draft.framework === 'i_am' ? '1px solid #641515' : '1px solid #cbd5e1',
+                            backgroundColor: draft.framework === 'i_am' ? '#831D1D' : '#ffffff',
                             color: draft.framework === 'i_am' ? '#ffffff' : '#334155',
                             fontSize: '12.5px',
                             fontWeight: 400,
@@ -1878,8 +1983,8 @@ export function FilterPopover({
                           style={{
                             padding: '7px 18px',
                             borderRadius: '8px',
-                            border: draft.framework === 'i_see' ? '1px solid #064e3b' : '1px solid #cbd5e1',
-                            backgroundColor: draft.framework === 'i_see' ? '#064e3b' : '#ffffff',
+                            border: draft.framework === 'i_see' ? '1px solid #641515' : '1px solid #cbd5e1',
+                            backgroundColor: draft.framework === 'i_see' ? '#831D1D' : '#ffffff',
                             color: draft.framework === 'i_see' ? '#ffffff' : '#334155',
                             fontSize: '12.5px',
                             fontWeight: 400,
@@ -1894,7 +1999,7 @@ export function FilterPopover({
                 )}
 
                 {/* ========================================================= */}
-                {/* 5. ระดับคุณภาพวารสาร (Q / TCI) */}
+                {/* 5. ระดับคุณภาพวารสาร */}
                 {/* ========================================================= */}
                 {activeFlyout === 'journals' && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -1913,19 +2018,20 @@ export function FilterPopover({
                             style={{
                               padding: '7px 16px',
                               borderRadius: '8px',
-                              border: isSelected ? '1px solid #00A651' : '1px solid #cbd5e1',
-                              backgroundColor: isSelected ? '#f0fdf4' : '#ffffff',
-                              color: isSelected ? '#00A651' : '#334155',
+                              border: isSelected ? '1px solid #481E0A' : '1px solid #cbd5e1',
+                              backgroundColor: isSelected ? '#622A0F' : '#ffffff',
+                              color: isSelected ? '#ffffff' : '#334155',
                               fontSize: '12.5px',
                               fontWeight: 400,
                               cursor: 'pointer',
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: '6px',
+                              justifyContent: 'center',
+                              minWidth: '52px',
+                              transition: 'all 0.15s ease',
                             }}
                           >
-                            <span style={{ fontWeight: 400 }}>{opt.label}</span>
-                            {isSelected && <FaCheck style={{ fontSize: '10px' }} />}
+                            <span>{opt.label}</span>
                           </button>
                         );
                       })}
@@ -1934,14 +2040,14 @@ export function FilterPopover({
                 )}
 
                 {/* ========================================================= */}
-                {/* 6. Personnel Role */}
+                {/* 6. Personnel Role (ตำแหน่งทางวิชาการ) */}
                 {/* ========================================================= */}
                 {activeFlyout === 'personnel_role' && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <div style={{ fontSize: '12.5px', color: '#64748b', marginBottom: '4px', fontWeight: 400 }}>
-                      เลือกตำแหน่งหรือบทบาท
+                      เลือกตำแหน่งทางวิชาการ
                     </div>
-                    {ROLES_LIST.map((r) => {
+                    {ACADEMIC_POSITIONS_LIST.map((r) => {
                       const isSelected = draft.role === r.val;
                       return (
                         <button
@@ -1964,6 +2070,42 @@ export function FilterPopover({
                           }}
                         >
                           <span style={{ fontWeight: 400 }}>{r.label}</span>
+                          {isSelected && <FaCheck style={{ fontSize: '11px' }} />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* ========================================================= */}
+                {/* Personnel Missing Fields (ช่องข้อมูลที่ว่างอยู่) */}
+                {/* ========================================================= */}
+                {activeFlyout === 'personnel_missing' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    
+                    {PERSONNEL_MISSING_OPTIONS.map((opt) => {
+                      const isSelected = (draft.missingField || 'all') === opt.val;
+                      return (
+                        <button
+                          key={opt.val}
+                          type="button"
+                          onClick={() => setDraft((prev) => ({ ...prev, missingField: opt.val as PersonnelMissingField }))}
+                          style={{
+                            padding: '8px 12px',
+                            borderRadius: '8px',
+                            border: isSelected ? '1px solid #00A651' : '1px solid #e2e8f0',
+                            backgroundColor: isSelected ? '#f0fdf4' : '#ffffff',
+                            color: isSelected ? '#00A651' : '#334155',
+                            fontSize: '13px',
+                            fontWeight: 400,
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                          }}
+                        >
+                          <span style={{ fontWeight: 400 }}>{opt.label}</span>
                           {isSelected && <FaCheck style={{ fontSize: '11px' }} />}
                         </button>
                       );
@@ -2243,11 +2385,21 @@ export function ActiveFilterChips({
     });
   }
 
-  // 5. Role
+  // 5. Academic Position (ตำแหน่งทางวิชาการ)
   if (filters.role) {
+    const rObj = ACADEMIC_POSITIONS_LIST.find((r) => r.val === filters.role);
     chips.push({
-      label: `บทบาท: ${filters.role}`,
+      label: `ตำแหน่ง: ${rObj ? rObj.label : filters.role}`,
       onRemove: () => onRemove('role'),
+    });
+  }
+
+  // Missing Fields (ช่องข้อมูลที่ว่างอยู่)
+  if (filters.missingField && filters.missingField !== 'all') {
+    const mObj = PERSONNEL_MISSING_OPTIONS.find((m) => m.val === filters.missingField);
+    chips.push({
+      label: `ช่องข้อมูล: ${mObj ? mObj.label : filters.missingField}`,
+      onRemove: () => onRemove('missingField'),
     });
   }
 

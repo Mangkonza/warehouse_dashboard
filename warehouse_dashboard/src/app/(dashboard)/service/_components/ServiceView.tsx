@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useDashboardTabFilter, useTimeFilter } from '@/features/time-filter';
 import { useServiceData } from '../_hooks/useServiceData';
 import { ServiceCharts, ServicePerspective } from './ServiceCharts';
@@ -40,6 +40,7 @@ export function ServiceView() {
 
   const {
     validData,
+    allItems,
     undatedCount,
     filteredData,
     uniquePersons,
@@ -94,6 +95,32 @@ export function ServiceView() {
   const directPct = validData.length > 0 ? ((directServiceCount / validData.length) * 100).toFixed(1) : '0';
   const serviceSplitRatio = validData.length > 0 ? expertCount / validData.length : 0.5;
 
+  const serviceSegments = useMemo(() => {
+    return [
+      {
+        label: 'วิชาการ/วิชาชีพ',
+        value: directServiceCount,
+        displayValue: `${directServiceCount} ครั้ง`,
+        unit: 'ครั้ง',
+        percent: parseFloat(directPct) || 0,
+        color: '#fde68a',
+      },
+      {
+        label: 'ผู้ทรงคุณวุฒิ/ประเมิน',
+        value: expertCount,
+        displayValue: `${expertCount} ครั้ง`,
+        unit: 'ครั้ง',
+        percent: parseFloat(expertPct) || 0,
+        color: '#f59e0b',
+      },
+    ].sort((a, b) => (Number(b.value) || 0) - (Number(a.value) || 0));
+  }, [directServiceCount, expertCount, directPct, expertPct]);
+
+  const totalServiceHours = validData.reduce((sum: number, d: any) => {
+    const h = parseFloat(d.hours_spent ?? d.hoursSpent ?? d.hours ?? 0);
+    return sum + (!isNaN(h) && h > 0 ? h : 0);
+  }, 0);
+
   const FACULTY_STAFF_BASELINE = 82; // บุคลากรสายวิชาการประจำ 7 ภาควิชา
   const participationPct = Math.min(100, Math.round((uniquePersons.size / FACULTY_STAFF_BASELINE) * 100));
 
@@ -122,7 +149,7 @@ export function ServiceView() {
           tabs={[
             { key: 'timeline_type', label: 'แนวโน้มและประเภทงานบริการ', icon: <FaChartLine style={{ fontSize: '13px' }} /> },
             { key: 'department', label: 'การให้บริการรายสังกัด', icon: <FaBuilding style={{ fontSize: '13px' }} /> },
-            { key: 'faculty', label: 'อาจารย์และผู้ให้บริการสูงสุด', icon: <FaUserTie style={{ fontSize: '13px' }} /> },
+            { key: 'faculty', label: 'บุคลากรผู้ให้ผู้บริการสูงสุด', icon: <FaUserTie style={{ fontSize: '13px' }} /> },
             { key: 'sdg', label: 'ความสอดคล้องเชิงยุทธศาสตร์ (SDGs)', icon: <FaLeaf style={{ fontSize: '13px' }} /> },
             { key: 'table', label: 'รายการงานบริการวิชาการ', icon: <FaTable style={{ fontSize: '13px' }} /> },
           ]}
@@ -184,27 +211,16 @@ export function ServiceView() {
                   label: 'งานบริการวิชาการทั้งหมด',
                   value: validData.length,
                   unit: 'ครั้ง',
-                  splitRatio: serviceSplitRatio,
-                  primaryLegend: {
-                    label: 'ผู้ทรงคุณวุฒิ/ประเมิน',
-                    value: `${expertCount} ครั้ง`,
-                    percent: `${expertPct}%`,
-                    color: '#f59e0b',
-                  },
-                  secondaryLegend: {
-                    label: 'วิชาการ/วิชาชีพ',
-                    value: `${directServiceCount} ครั้ง`,
-                    percent: `${directPct}%`,
-                    color: '#fde68a',
-                  },
+                  segments: serviceSegments,
                 }}
                 gearCard={{
-                  label: 'หน่วยงานร่วมดำเนินการ',
-                  value: 10,
-                  unit: 'หน่วยงาน',
-                  gearValue: 7,
-                  gearLabel: 'ภาควิชา',
+                  label: 'จำนวนชั่วโมงที่ให้บริการทั้งหมด',
+                  value: totalServiceHours.toLocaleString(),
+                  unit: 'ชั่วโมง',
+                  gearValue: uniqueDepts.size,
+                  gearLabel: 'สังกัด',
                 }}
+                items={validData}
                 tallyCard={{
                   label: 'บุคลากรผู้ให้บริการวิชาการ',
                   chip: `${participationPct}% มีส่วนร่วม`,
@@ -228,25 +244,14 @@ export function ServiceView() {
                   ],
                 }}
               />
-
-              {/* ZONE 2.5: Year-over-Year (YoY) Comparison */}
-              <MissionYoYControls
-                missionKey="service"
-                missionTitle="งานบริการวิชาการ"
-                allItemsRaw={validData}
-                activeDepartment={selectedDept}
-                primaryMetricLabel="จำนวนโครงการบริการวิชาการ"
-                secondaryMetricLabel="ชั่วโมงให้บริการ"
-                hasBudgetMetric={false}
-                defaultBaseYear="2567"
-                defaultTargetYear="2568"
-              />
             </>
           )}
 
           {/* ZONE 3: 4 Dimension Tabs Charts */}
           <ServiceCharts
             validData={validData}
+            allItems={allItems || validData}
+            currentFiscalYear={tabFilter.fiscalYear || 'all'}
             activePerspective={activePerspective}
             onChangePerspective={setActivePerspective}
             hideSelector={true}

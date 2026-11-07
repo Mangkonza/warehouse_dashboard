@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useDashboardTabFilter, useTimeFilter } from '@/features/time-filter';
 import { useAcademicData } from '../_hooks/useAcademicData';
 import { AcademicCharts, AcademicPerspective } from './AcademicCharts';
@@ -35,6 +35,7 @@ export function AcademicView() {
 
   const {
     validData,
+    allItems,
     undatedCount,
     displayData,
     totalBudgetAll,
@@ -105,6 +106,27 @@ export function AcademicView() {
   const maxMillions = (maxProjectBudget / 1000000).toFixed(2);
   const majorProjectsCount = validData.filter((d) => (Number(d.budget) || 0) >= 1000000).length;
   const majorProjectsPct = validData.length > 0 ? Math.round((majorProjectsCount / validData.length) * 100) : 0;
+
+  const academicSegments = useMemo(() => {
+    return [
+      {
+        label: 'รายได้จัดสรร (15%)',
+        value: allocMillions,
+        displayValue: `${allocMillions} ลบ.`,
+        unit: 'ล้านบาท',
+        percent: 15.0,
+        color: '#38bdf8',
+      },
+      {
+        label: 'งบดำเนินงาน (85%)',
+        value: remMillions,
+        displayValue: `${remMillions} ลบ.`,
+        unit: 'ล้านบาท',
+        percent: 85.0,
+        color: '#bae6fd',
+      },
+    ];
+  }, [allocMillions, remMillions]);
 
   const MONTHS = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
 
@@ -188,19 +210,7 @@ export function AcademicView() {
                   label: 'งบประมาณโครงการรวม',
                   value: budgetMillions,
                   unit: 'ล้านบาท',
-                  splitRatio: totalBudgetAll > 0 ? totalAllocated15 / totalBudgetAll : 0.15,
-                  primaryLegend: {
-                    label: 'รายได้จัดสรร (15%)',
-                    value: `${allocMillions} ลบ.`,
-                    percent: '15.0%',
-                    color: '#38bdf8',
-                  },
-                  secondaryLegend: {
-                    label: 'งบดำเนินงาน (85%)',
-                    value: `${remMillions} ลบ.`,
-                    percent: '85.0%',
-                    color: '#bae6fd',
-                  },
+                  segments: academicSegments,
                 }}
                 gearCard={{
                   label: 'โครงการพัฒนาวิชาการทั้งหมด',
@@ -209,6 +219,7 @@ export function AcademicView() {
                   gearValue: uniqueDepts.size,
                   gearLabel: 'สังกัด',
                 }}
+                items={validData}
                 tallyCard={{
                   label: 'โครงการขนาดใหญ่ (งบ 1+ ลบ.)',
                   chip: `${majorProjectsPct}%`,
@@ -232,23 +243,13 @@ export function AcademicView() {
                   ],
                 }}
               />
-
-              <MissionYoYControls
-                missionKey="academic"
-                missionTitle="โครงการพัฒนาวิชาการ"
-                allItemsRaw={validData}
-                activeDepartment={selectedDept}
-                primaryMetricLabel="จำนวนโครงการ"
-                secondaryMetricLabel="งบประมาณวิชาการ"
-                hasBudgetMetric={true}
-                defaultBaseYear="2567"
-                defaultTargetYear="2568"
-              />
             </>
           )}
 
           <AcademicCharts
             validData={displayData}
+            allItems={allItems || validData}
+            currentFiscalYear={timeFilter?.mode === 'fiscal' && timeFilter.fiscalYear !== 'all' ? timeFilter.fiscalYear : undefined}
             totalAllocFaculty={totalAllocFaculty}
             totalAllocDept={totalAllocDept}
             totalAllocKu={totalAllocKu}

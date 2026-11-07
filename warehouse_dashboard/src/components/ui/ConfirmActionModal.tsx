@@ -151,7 +151,7 @@ export const ConfirmActionModal: React.FC<ConfirmActionModalProps> = ({
             }}
             title="ปิด"
           >
-            <FaTimes style={{ fontSize: '14px' }} />
+            <FaTimes style={{ fontSize: '18px' }} />
           </button>
         </div>
 

@@ -218,9 +218,7 @@ export const ProjectExtensionModal: React.FC<ProjectExtensionModalProps> = ({
               <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#0f172a', margin: 0 }}>
                 บันทึกขอขยายระยะเวลาโครงการ
               </h2>
-              <p style={{ fontSize: '12.5px', color: '#64748b', margin: '2px 0 0 0' }}>
-                ตามระเบียบมหาวิทยาลัยเกษตรศาสตร์ และ สวพ.มก. (KURDI)
-              </p>
+              
             </div>
           </div>
 

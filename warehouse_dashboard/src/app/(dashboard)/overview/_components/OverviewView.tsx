@@ -1,17 +1,16 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useDashboardTabFilter, useTimeFilter } from '@/features/time-filter';
 import { useOverviewData } from '../_hooks/useOverviewData';
 import { GlanceOverview } from './GlanceOverview';
 import { buildKpiScorecard, getFiscalYearProgress } from '../_services/kpiScorecard';
-import { DepartmentMatrixAndPulse } from './DepartmentMatrixAndPulse';
 import { DashboardTabFilterBar } from '@/components/ui/DashboardTabFilterBar';
 import { UndatedNotice } from '@/components/ui/UndatedNotice';
 import { dashboardPageSubtitleStyle, dashboardPageTitleStyle, dashboardTheme } from '@/lib/dashboardTheme';
 import { itemMatchesStrategicFilter } from '@/lib/pastelTheme';
 import { itemMatchesFiscalYear, resolveItemFiscalYear } from '@/types/timeFilter';
-import { FaSyncAlt, FaDownload, FaCheckCircle, FaChevronDown } from 'react-icons/fa';
+import { FaSyncAlt, FaDownload, FaCheckCircle } from 'react-icons/fa';
 
 export function OverviewView() {
   const {
@@ -28,7 +27,6 @@ export function OverviewView() {
     lastUpdated,
     isRefreshing,
     snapshotToast,
-    departmentStats,
     validResearch,
     validAcademic,
     validPub,
@@ -117,8 +115,6 @@ export function OverviewView() {
         label: 'ข้อมูลสำรอง (JSON) · เชื่อมต่อฐานข้อมูลไม่ได้',
         title: 'API ไม่ตอบสนอง ระบบจึงใช้ไฟล์ข้อมูลสำรองในเครื่อง ตัวเลขอาจไม่เป็นปัจจุบัน',
       };
-
-  const [showDetails, setShowDetails] = useState(false);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
@@ -280,46 +276,6 @@ export function OverviewView() {
         selectedDept={selectedDept}
         onSelectDept={() => {}}
       />
-
-      {/* ZONE 3: Deep-dive panels, collapsed so the overview stays scannable */}
-      <button
-        type="button"
-        onClick={() => setShowDetails((v) => !v)}
-        aria-expanded={showDetails}
-        className="glance-details-toggle"
-        style={{
-          alignSelf: 'center',
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '8px',
-          padding: '10px 24px',
-          borderRadius: '999px',
-          border: '1px solid #cbd5e1',
-          backgroundColor: '#ffffff',
-          color: '#334155',
-          fontSize: '14px',
-          fontWeight: 600,
-          cursor: 'pointer',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-          transition: 'all 0.15s ease',
-        }}
-      >
-        {showDetails ? 'ซ่อนการวิเคราะห์เชิงลึก' : 'ดูการวิเคราะห์เชิงลึก'}
-        <FaChevronDown
-          style={{ fontSize: '11px', transform: showDetails ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }}
-        />
-      </button>
-
-      {showDetails && (
-        <DepartmentMatrixAndPulse
-          departmentStats={departmentStats}
-          validResearch={filteredResearch}
-          validAcademic={filteredAcademic}
-          validPub={filteredPub}
-          validService={filteredService}
-          validIP={filteredIP}
-        />
-      )}
     </div>
   );
 }

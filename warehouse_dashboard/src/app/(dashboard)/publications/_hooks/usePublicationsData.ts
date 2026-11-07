@@ -50,13 +50,13 @@ export function usePublicationsData(timeFilter?: TimeFilterState) {
   const [strategicFilter, setStrategicFilter] = useState('all');
 
   const [dataList, setDataList] = useState<PublicationItem[]>(() => {
-    return (getCachedCategoryData('publications') as PublicationItem[]) || (pubData as PublicationItem[]);
+    return (getCachedCategoryData('publications') as PublicationItem[]) || [];
   });
 
   const refreshData = async () => {
     try {
       const fresh = await fetchCategoryData('publications');
-      if (Array.isArray(fresh) && fresh.length > 0) {
+      if (Array.isArray(fresh)) {
         setDataList(fresh);
       }
     } catch (e) {
@@ -79,7 +79,7 @@ export function usePublicationsData(timeFilter?: TimeFilterState) {
       .filter((item) => !timeFilter || itemMatchesTimeFilter(item, timeFilter, 'publications'))
       .map((item) => ({
         ...item,
-        _detectedTier: item.journal_tier || autoDetectJournalRanking(item.journal || '', item.level || ''),
+        _detectedTier: item.journal_tier || autoDetectJournalRanking(item.journal || '', `${item.level || ''} ${item.remarks || ''}`),
       }));
   }, [dataList, timeFilter]);
 
@@ -233,6 +233,7 @@ export function usePublicationsData(timeFilter?: TimeFilterState) {
 
   return {
     validData,
+    allItems: dataList,
     undatedCount,
     filteredData,
     q1Count,

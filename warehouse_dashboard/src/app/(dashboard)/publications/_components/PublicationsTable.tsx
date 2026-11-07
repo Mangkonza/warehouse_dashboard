@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { FaTable, FaCalendarAlt, FaDownload, FaQuoteRight } from 'react-icons/fa';
-import { SearchInput, DepartmentBadge, RecordDetailDrawer, LevelBadge, PublicationTypeBadge, StrategyBadges } from '@/components/ui';
+import { SearchInput, DepartmentBadge, RecordDetailDrawer, LevelBadge, PublicationTypeBadge, StrategyBadges, JournalTierBadge } from '@/components/ui';
 import { JOURNAL_TIER_STYLES } from '@/config/journalRankingConfig';
 import { PublicationItem } from '../_hooks/usePublicationsData';
 
@@ -227,20 +227,7 @@ export function PublicationsTable({
                           <PublicationTypeBadge value={item.type || item.status} />
                         </td>
                         <td style={{ textAlign: 'center', padding: '10px 8px' }}>
-                          <span
-                            style={{
-                              display: 'inline-block',
-                              fontSize: '11px',
-                              fontWeight: 700,
-                              padding: '2px 8px',
-                              borderRadius: '6px',
-                              backgroundColor: tierStyle.bg,
-                              color: tierStyle.text,
-                              border: `1px solid ${tierStyle.border}`,
-                            }}
-                          >
-                            {tier}
-                          </span>
+                          <JournalTierBadge value={tier} />
                         </td>
                         <td style={{ textAlign: 'right', fontWeight: 600, color: '#0f172a', padding: '10px 8px' }}>
                           {Number(item.budget || 0) > 0 ? `${Number(item.budget).toLocaleString('th-TH')} ฿` : '-'}

@@ -161,7 +161,13 @@ export const ImportBulkMenu: React.FC<ImportBulkMenuProps> = ({
                 <label className="block text-xs font-semibold text-slate-700 mb-1">วันที่เริ่มต้นดำเนินการ</label>
                 <DatePicker
                   value={batchStartDate}
-                  onChange={(_, dateStr) => setBatchStartDate(dateStr)}
+                  maxDate={batchEndDate || undefined}
+                  onChange={(_, dateStr) => {
+                    setBatchStartDate(dateStr);
+                    if (dateStr && batchEndDate && dateStr > batchEndDate) {
+                      setBatchEndDate('');
+                    }
+                  }}
                   placeholder="เลือกวันที่เริ่มต้น (พ.ศ.)..."
                 />
               </div>
@@ -170,7 +176,13 @@ export const ImportBulkMenu: React.FC<ImportBulkMenuProps> = ({
                 <label className="block text-xs font-semibold text-slate-700 mb-1">วันที่สิ้นสุดดำเนินการ</label>
                 <DatePicker
                   value={batchEndDate}
-                  onChange={(_, dateStr) => setBatchEndDate(dateStr)}
+                  minDate={batchStartDate || undefined}
+                  onChange={(_, dateStr) => {
+                    setBatchEndDate(dateStr);
+                    if (dateStr && batchStartDate && dateStr < batchStartDate) {
+                      setBatchStartDate('');
+                    }
+                  }}
                   placeholder="เลือกวันที่สิ้นสุด (พ.ศ.)..."
                 />
               </div>

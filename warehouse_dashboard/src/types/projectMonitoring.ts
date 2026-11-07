@@ -65,5 +65,6 @@ export interface ProjectTimelineInfo {
   progress_percent: number;           // ความก้าวหน้าประมาณการ (%)
   status: ProjectStatus;              // สถานะโครงการ
   is_overdue: boolean;                // เลยกำหนดสัญญาหรือไม่
+  is_expiring_soon?: boolean;         // ใกล้ครบกำหนดสัญญาหรือไม่ (เหลือน้อยกว่า 1 เดือน / <= 30 วัน)
   extensions: ProjectExtensionRecord[];// ประวัติการขอขยายเวลา
 }

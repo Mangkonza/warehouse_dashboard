@@ -36,7 +36,7 @@ export function IPTable({
     const headers = [
       'ลำดับ',
       'ชื่อผลงานการประดิษฐ์',
-      'ผู้ประดิษฐ์หลัก',
+      'ผู้สร้างผลงานหลัก',
       'สังกัด',
       'ประเภท',
       'เลขที่คำขอ',
@@ -154,7 +154,7 @@ export function IPTable({
           )}
 
           <SearchInput
-            placeholder="ค้นหาชื่อเรื่อง / ผู้ประดิษฐ์ / เลขคำขอ..."
+            placeholder="ค้นหาชื่อเรื่อง / ผู้สร้างผลงาน / เลขคำขอ..."
             value={searchTerm}
             onChange={onSearchChange}
             width="230px"
@@ -192,7 +192,7 @@ export function IPTable({
             <tr>
               <th style={{ width: '45px', textAlign: 'center' }}>#</th>
               <th style={{ minWidth: '220px' }}>ชื่อผลงานการประดิษฐ์</th>
-              <th>ผู้ประดิษฐ์หลัก</th>
+              <th>ผู้สร้างผลงานหลัก</th>
               <th style={{ width: '130px', textAlign: 'left' }}>สังกัด</th>
               <th style={{ textAlign: 'center', width: '110px' }}>ประเภท</th>
               <th style={{ minWidth: '150px' }}>เลขที่คำขอ / เลขทะเบียน</th>

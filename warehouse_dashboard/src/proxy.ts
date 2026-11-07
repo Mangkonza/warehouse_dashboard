@@ -99,7 +99,6 @@ const PROTECTED_PREFIXES = [
   '/ip',
   '/kpi',
   '/personnel',
-  '/studio',
   '/evaluation',
   '/monitoring',
   '/manage',

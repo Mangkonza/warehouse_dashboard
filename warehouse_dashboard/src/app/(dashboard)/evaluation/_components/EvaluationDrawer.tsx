@@ -5,6 +5,7 @@ import { CategoryKey } from '@/types/dataManagement';
 import { EvaluationValue, isEvaluated } from '@/types/evaluation';
 import { EvaluationFields } from '@/components/evaluation/EvaluationFields';
 import { DepartmentBadge } from '@/components/ui/department-badge';
+import { MissionBadge } from '@/components/ui/MissionBadge';
 import { LevelBadge } from '@/components/ui/evaluation-tag';
 import { ServiceTypeBadge } from '@/components/ui/service-type-badge';
 import { IPTypeBadge } from '@/components/ui/ip-type-badge';
@@ -12,6 +13,7 @@ import { PublicationTypeBadge } from '@/components/ui/publication-type-badge';
 import { formatDateBE } from '@/components/ui/RecordDetailDrawer';
 import { Drawer } from '@/components/ui/Drawer';
 import { Button } from '@/components/ui/button';
+import { resolveHybridSDG } from '@/lib/sdgEngine';
 import { FaTimes, FaChevronLeft, FaChevronRight, FaExclamationCircle } from 'react-icons/fa';
 
 export interface EvaluationDrawerProps {
@@ -128,6 +130,11 @@ export const EvaluationDrawer: React.FC<EvaluationDrawerProps> = ({
 
   const evaluated = isEvaluated(category, evaluation);
 
+  const hybrid = React.useMemo(() => {
+    if (!record) return null;
+    return resolveHybridSDG(record, category);
+  }, [record, category]);
+
   // Custom Header Slot
   const headerSlot = (
     <div className="border-b border-slate-200 bg-white px-5 py-4 shrink-0">
@@ -177,7 +184,7 @@ export const EvaluationDrawer: React.FC<EvaluationDrawerProps> = ({
             title="ปิดหน้าต่าง"
             className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors ml-1 cursor-pointer"
           >
-            <FaTimes className="text-base" />
+            <FaTimes className="text-[18px]" />
           </button>
         </div>
       </div>
@@ -248,6 +255,7 @@ export const EvaluationDrawer: React.FC<EvaluationDrawerProps> = ({
               <h4 className="text-xs font-bold text-slate-700 tracking-wide">
                 ข้อมูลรายการ
               </h4>
+              <MissionBadge category={category} />
             </div>
 
             <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80 text-xs space-y-2">
@@ -359,7 +367,7 @@ export const EvaluationDrawer: React.FC<EvaluationDrawerProps> = ({
                 )}
                 {record.creator && (
                   <div>
-                    <span className="text-slate-400 font-medium mr-1.5">ผู้ประดิษฐ์:</span>
+                    <span className="text-slate-400 font-medium mr-1.5">ผู้สร้างผลงาน:</span>
                     <span className="font-semibold text-slate-800">{record.creator}</span>
                   </div>
                 )}
@@ -382,6 +390,31 @@ export const EvaluationDrawer: React.FC<EvaluationDrawerProps> = ({
               การประเมิน
             </h4>
           </div>
+
+          {(!evaluation?.sdg_ids || evaluation.sdg_ids.length === 0) && hybrid && hybrid.sdgIds.length > 0 && (
+            <div className="mb-4 p-3 bg-amber-50 rounded-xl border border-amber-200 flex items-center justify-between gap-3 text-xs">
+              <div className="flex flex-col gap-0.5">
+                <span className="font-bold text-amber-900">
+                  ระบบจำแนกอัตโนมัติ (SDG Auto-Detected):
+                </span>
+                <span className="text-amber-800">
+                  {hybrid.sdgIds.map((id) => `SDG ${id}`).join(', ')}
+                  {hybrid.matchedKeywords && hybrid.matchedKeywords.length > 0 && (
+                    <span className="text-[11px] text-amber-600 block mt-0.5">
+                      คำสำคัญที่พบ: {hybrid.matchedKeywords.slice(0, 3).join(', ')}
+                    </span>
+                  )}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDraftValue((prev) => ({ ...prev, sdg_ids: [...hybrid.sdgIds] }))}
+                className="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-amber-600 hover:bg-amber-700 text-white shrink-0 cursor-pointer shadow-xs transition-colors"
+              >
+                ใช้ค่าแนะนำนี้
+              </button>
+            </div>
+          )}
 
           <EvaluationFields
             category={category}

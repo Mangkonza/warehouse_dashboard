@@ -24,7 +24,6 @@ import rawAcademic from '@/data/academic.json';
 import rawPublications from '@/data/publications.json';
 import rawServices from '@/data/services.json';
 import rawIP from '@/data/ip.json';
-import rawPersonnel from '@/data/personnel.json';
 
 export const CATEGORY_NAMES: Record<KPICategory | 'all', string> = {
   all: 'ทุกประเภทงาน',
@@ -56,7 +55,7 @@ export function useKpiData(timeFilter?: TimeFilterState) {
     publications: getCachedCategoryData('publications') || rawPublications,
     service: getCachedCategoryData('service') || rawServices,
     ip: getCachedCategoryData('ip') || rawIP,
-    personnel: getCachedCategoryData('personnel') || rawPersonnel,
+    personnel: getCachedCategoryData('personnel') || [],
   }));
 
   const loadLiveData = async () => {
@@ -99,7 +98,7 @@ export function useKpiData(timeFilter?: TimeFilterState) {
         personnel:
           perData && perData.length > 0
             ? perData
-            : getCachedCategoryData('personnel') || rawPersonnel,
+            : getCachedCategoryData('personnel') || [],
       };
 
       setDatasets(newDatasets);
@@ -135,7 +134,7 @@ export function useKpiData(timeFilter?: TimeFilterState) {
         publications: getCachedCategoryData('publications') || rawPublications,
         service: getCachedCategoryData('service') || rawServices,
         ip: getCachedCategoryData('ip') || rawIP,
-        personnel: getCachedCategoryData('personnel') || rawPersonnel,
+        personnel: getCachedCategoryData('personnel') || [],
       });
     };
 
@@ -239,7 +238,7 @@ export function useKpiData(timeFilter?: TimeFilterState) {
   }, [computedKPIs, selectedStrategy, selectedCategory, selectedStatus, searchQuery]);
 
   return {
-    filteredKPIs,
+    filteredKPIs, computedKPIs,
     reportingRounds,
     overallStats,
     selectedStrategy,

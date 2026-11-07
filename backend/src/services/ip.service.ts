@@ -35,6 +35,8 @@ function formatIpRecord(item: any) {
     support_amount: Number(item.supportAmount || 0),
     status: item.status || 'ยื่นคำขอแล้ว',
     fiscal_year: item.fiscalYear || '',
+    owner: item.owner || 'มหาวิทยาลัยเกษตรศาสตร์',
+    right_holder: item.rightHolder || 'มหาวิทยาลัยเกษตรศาสตร์',
     remarks: item.remarks || '',
     createdAt: item.createdAt,
     updatedAt: item.updatedAt,
@@ -79,8 +81,63 @@ export class IpService {
     if (!item) return null;
     return formatIpRecord(item);
   }
+  static validateIp(body: any, isUpdate = false) {
+    const type = String(body.type || '').trim();
+
+    if (type === 'อนุสิทธิบัตร') {
+      const reg = body.registration_number !== undefined ? body.registration_number : body.registrationNumber;
+      if (!isUpdate || reg !== undefined) {
+        if (!reg || !String(reg).trim()) {
+          const err: any = new Error('กรุณาระบุเลขที่อนุสิทธิบัตร (registration_number)');
+          err.status = 400;
+          err.field = 'registration_number';
+          throw err;
+        }
+      }
+    }
+
+    const reg = body.registration_number !== undefined ? body.registration_number : body.registrationNumber;
+    if (reg && String(reg).trim().length > 20) {
+      const err: any = new Error('เลขทะเบียนทรัพย์สินทางปัญญาต้องมีความยาวไม่เกิน 20 ตัวอักษร (registration_number <= 20 chars)');
+      err.status = 400;
+      err.field = 'registration_number';
+      throw err;
+    }
+
+    const start = body.protection_start !== undefined ? body.protection_start : body.protectionStart;
+    const end = body.protection_end !== undefined ? body.protection_end : body.protectionEnd;
+
+    if (!isUpdate || start !== undefined) {
+      if (!start || !String(start).trim()) {
+        const err: any = new Error('กรุณาระบุวันที่เริ่มต้นความคุ้มครอง / วันที่ออกหนังสือรับรอง (protection_start)');
+        err.status = 400;
+        err.field = 'protection_start';
+        throw err;
+      }
+    }
+
+    if (type !== 'ลิขสิทธิ์') {
+      if (!isUpdate || end !== undefined) {
+        if (!end || !String(end).trim()) {
+          const err: any = new Error('กรุณาระบุวันหมดอายุความคุ้มครอง (protection_end)');
+          err.status = 400;
+          err.field = 'protection_end';
+          throw err;
+        }
+      }
+      if (start && end && String(end) < String(start)) {
+        const err: any = new Error('วันหมดอายุความคุ้มครองต้องไม่เกิดขึ้นก่อนวันที่เริ่มต้นความคุ้มครอง (protection_end >= protection_start)');
+        err.status = 400;
+        err.field = 'protection_end';
+        throw err;
+      }
+    }
+  }
+
+
 
   static async create(body: any) {
+    this.validateIp(body, false);
     const title = String(body.title || body.name || '').trim();
     if (!title) {
       const err: any = new Error('กรุณากรอกชื่อเรื่อง / ชื่อผลงาน');
@@ -193,6 +250,7 @@ export class IpService {
   }
 
   static async update(identifier: string | number, body: any) {
+    this.validateIp(body, true);
     let existing;
     const numId = extractNumericId(identifier);
     if (numId !== null) {

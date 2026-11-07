@@ -95,7 +95,7 @@ export const BulkEvaluationModal: React.FC<BulkEvaluationModalProps> = ({
               title="ปิดหน้าต่าง"
               className="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center transition-colors cursor-pointer"
             >
-              <FaTimes />
+              <FaTimes className="text-[18px]" />
             </button>
           </div>
 

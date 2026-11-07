@@ -1,15 +1,21 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { FaTimes, FaSearch, FaFolderOpen, FaCoins } from 'react-icons/fa';
 import { FilterPopover, FilterState } from '@/components/ui/FilterPopover';
 import {
   itemMatchesDepartmentMulti,
   itemMatchesDateRange,
   itemMatchesNumericRanges,
+  itemMatchesEvaluation,
 } from '@/lib/filterMatching';
+import { getCachedEvaluations } from '@/lib/dataService';
+import { SDG_DEFINITIONS } from '@/lib/sdg';
 import { DepartmentBadge } from '@/components/ui/department-badge';
 import { PublicationTypeBadge } from '@/components/ui/publication-type-badge';
+import { JournalTierBadge } from '@/components/ui/JournalTierBadge';
+import { MissionBadge } from '@/components/ui/MissionBadge';
 import { LevelBadge } from '@/components/ui/evaluation-tag';
 import { ServiceTypeBadge } from '@/components/ui/service-type-badge';
 import { IPTypeBadge } from '@/components/ui/ip-type-badge';
@@ -53,6 +59,7 @@ const DEFAULT_DRAWER_FILTERS: FilterState = {
   framework: 'all',
   imageStatus: 'all',
   completeness: 'all',
+  evaluationStatus: 'all',
 };
 
 export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
@@ -69,8 +76,13 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
   const [filterState, setFilterState] = useState<FilterState>(DEFAULT_DRAWER_FILTERS);
 
   // Smooth slide-in and slide-out animation lifecycle
+  const [mounted, setMounted] = useState(false);
   const [isRendered, setIsRendered] = useState(isOpen);
   const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -91,13 +103,24 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
     }
   }, [isOpen]);
 
-  // Lock background scroll when drawer is open
+  // Lock background scroll when drawer is open and eliminate horizontal scrollbar track
   useEffect(() => {
     if (isOpen) {
-      const originalOverflow = document.documentElement.style.overflow;
+      const origHtmlOverflow = document.documentElement.style.overflow;
+      const origHtmlOverflowX = document.documentElement.style.overflowX;
+      const origBodyOverflow = document.body.style.overflow;
+      const origBodyOverflowX = document.body.style.overflowX;
+
       document.documentElement.style.overflow = 'hidden';
+      document.documentElement.style.overflowX = 'hidden';
+      document.body.style.overflow = 'hidden';
+      document.body.style.overflowX = 'hidden';
+
       return () => {
-        document.documentElement.style.overflow = originalOverflow;
+        document.documentElement.style.overflow = origHtmlOverflow;
+        document.documentElement.style.overflowX = origHtmlOverflowX;
+        document.body.style.overflow = origBodyOverflow;
+        document.body.style.overflowX = origBodyOverflowX;
       };
     }
   }, [isOpen]);
@@ -168,6 +191,19 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
     };
   }, [items]);
 
+  const cachedEvaluations = useMemo(() => getCachedEvaluations(), []);
+
+  const resolveItemCategory = (item: any): CategoryKey => {
+    if (item?._category && CATEGORIES_CONFIG[item._category as CategoryKey]) {
+      return item._category as CategoryKey;
+    }
+    if (item?.journal !== undefined || item?.owner !== undefined) return 'publications';
+    if (item?.creator !== undefined || item?.req_no !== undefined || item?.application_number !== undefined) return 'ip';
+    if (item?.service_type !== undefined || item?.hours_spent !== undefined || item?.person !== undefined) return 'service';
+    if (item?.record_number !== undefined || item?.alloc_faculty !== undefined || item?.client !== undefined) return 'academic';
+    return categoryKey === 'all' ? 'research' : categoryKey;
+  };
+
   const filteredItems = useMemo(() => {
     let list = items || [];
 
@@ -203,44 +239,62 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
       );
     }
 
-    // 5. Evaluation framework filter (I AM / I SEE) from FilterPopover
-    if (filterState.framework && filterState.framework !== 'all') {
-      const target = filterState.framework === 'i_am' ? 'i_am' : 'i_see';
+    // 5. Evaluation criteria (SDGs, Framework, Journals, SDG Evaluation Status)
+    const hasEvalFilters =
+      (filterState.sdgs && filterState.sdgs.length > 0) ||
+      (filterState.framework && filterState.framework !== 'all') ||
+      (filterState.journals && filterState.journals.length > 0) ||
+      (filterState.evaluationStatus && filterState.evaluationStatus !== 'all');
+
+    if (hasEvalFilters) {
       list = list.filter((it) => {
-        const iType = String(it.i_type || it.evaluation?.i_type || '').toLowerCase();
-        return iType.includes(target);
+        const cat = resolveItemCategory(it);
+        return itemMatchesEvaluation(
+          it,
+          cat,
+          cachedEvaluations,
+          filterState.sdgs,
+          filterState.framework,
+          filterState.journals,
+          filterState.evaluationStatus
+        );
       });
     }
 
-    // 6. Search term query
+    // 6. Image status filter
+    if (filterState.imageStatus && filterState.imageStatus !== 'all') {
+      list = list.filter((it) => {
+        const hasImg = Boolean(it.image_url || it.image || it.photo_url || it.profile_image);
+        return filterState.imageStatus === 'has_image' ? hasImg : !hasImg;
+      });
+    }
+
+    // 7. Search term query (Smart multi-token search across all fields)
     if (!searchTerm.trim()) return list;
-    const q = searchTerm.toLowerCase().trim();
+    const tokens = searchTerm.toLowerCase().trim().split(/\s+/).filter(Boolean);
+
     return list.filter((it) => {
-      const name = String(it.name || it.title || it.topic_title || '').toLowerCase();
-      const person = String(it.head || it.owner || it.person || it.creator || '').toLowerCase();
-      const dept = String(it.department || '').toLowerCase();
-      const id = String(it.id || it.record_number || it.req_no || '').toLowerCase();
-      const extra = String(it.fund_source || it.client || it.journal || it.location || '').toLowerCase();
-      return name.includes(q) || person.includes(q) || dept.includes(q) || id.includes(q) || extra.includes(q);
+      const cat = resolveItemCategory(it);
+      const name = String(it.name || it.title || it.topic_title || it.project_name || it.work_title || it.projectTitle || '');
+      const person = String(it.head || it.owner || it.person || it.creator || it.author || it.authors || it.researcher || it.lead || it.inventor || '');
+      const dept = String(it.department || (Array.isArray(it.departments) ? it.departments.join(' ') : it.departments) || it.faculty || '');
+      const id = String(it.id || it._id || it.record_number || it.req_no || it.code || it.project_code || it.application_number || '');
+      const extra = String(it.fund_source || it.client || it.journal || it.location || it.source_title || it.publisher || it.agency || '');
+      const year = String(it.fiscal_year || it.fiscal_year_be || it.year || '');
+      const types = String(it.service_type || it.ip_type || it.project_nature || it.type || '');
+
+      const sdgIds: number[] = it._sdgIds || it.sdg_ids || it.evaluation?.sdg_ids || [];
+      const sdgNames = sdgIds.map((n) => `sdg ${n} sdg${n} ${SDG_DEFINITIONS[n]?.nameTh || ''}`).join(' ');
+
+      const corpus = `${name} ${person} ${dept} ${id} ${extra} ${year} ${types} ${sdgNames} ${cat}`.toLowerCase();
+
+      return tokens.every((tok) => corpus.includes(tok));
     });
-  }, [items, searchTerm, selectedFundSource, filterState]);
+  }, [items, searchTerm, selectedFundSource, filterState, cachedEvaluations]);
 
   const totalBudget = useMemo(() => {
     return filteredItems.reduce((sum, it) => sum + extractItemBudget(it), 0);
   }, [filteredItems]);
-
-  if (!isRendered) return null;
-
-  const resolveItemCategory = (item: any): CategoryKey => {
-    if (item?._category && CATEGORIES_CONFIG[item._category as CategoryKey]) {
-      return item._category as CategoryKey;
-    }
-    if (item?.journal !== undefined || item?.owner !== undefined) return 'publications';
-    if (item?.creator !== undefined || item?.req_no !== undefined || item?.application_number !== undefined) return 'ip';
-    if (item?.service_type !== undefined || item?.hours_spent !== undefined || item?.person !== undefined) return 'service';
-    if (item?.record_number !== undefined || item?.alloc_faculty !== undefined || item?.client !== undefined) return 'academic';
-    return categoryKey === 'all' ? 'research' : categoryKey;
-  };
 
   const cleanText = (val: any): string => {
     if (val === undefined || val === null) return '';
@@ -249,18 +303,29 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
     return str;
   };
 
-  return (
-    <>
+  if (!isRendered || !mounted) return null;
+
+  const content = (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        width: '100vw',
+        height: '100vh',
+        overflow: 'hidden',
+        zIndex: 9990,
+        pointerEvents: isVisible ? 'auto' : 'none',
+      }}
+    >
       {/* Backdrop with fade in/out animation */}
       <div
         style={{
-          position: 'fixed',
+          position: 'absolute',
           inset: 0,
           backgroundColor: 'rgba(15, 23, 42, 0.48)',
           backdropFilter: 'blur(3px)',
           zIndex: 9990,
           opacity: isVisible ? 1 : 0,
-          pointerEvents: isVisible ? 'auto' : 'none',
           transition: 'opacity 0.28s ease',
         }}
         onClick={onClose}
@@ -273,10 +338,11 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
         aria-modal="true"
         aria-label={title}
         style={{
-          position: 'fixed',
+          position: 'absolute',
           top: 0,
           right: 0,
           bottom: 0,
+          height: '100%',
           width: '100%',
           maxWidth: '680px',
           backgroundColor: '#ffffff',
@@ -607,7 +673,7 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
                   item.owner !== undefined
                     ? 'เจ้าของผลงาน'
                     : item.creator !== undefined
-                    ? 'ผู้ประดิษฐ์'
+                    ? 'ผู้สร้างผลงาน'
                     : item.person !== undefined
                     ? 'ผู้ดำเนินการ'
                     : 'หัวหน้าโครงการ';
@@ -773,35 +839,9 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
                         color: '#64748b',
                       }}
                     >
-                      {catConfig && (
-                        <span
-                          style={{
-                            padding: '1px 7px',
-                            borderRadius: '6px',
-                            fontSize: '11px',
-                            fontWeight: 600,
-                            backgroundColor: `${catConfig.color}14`,
-                            color: catConfig.color,
-                            border: `1px solid ${catConfig.color}35`,
-                          }}
-                        >
-                          {catConfig.title}
-                        </span>
-                      )}
-                      {tierStyle && detectedTier && (
-                        <span
-                          style={{
-                            padding: '1px 7px',
-                            borderRadius: '6px',
-                            fontSize: '11px',
-                            fontWeight: 700,
-                            backgroundColor: tierStyle.bg,
-                            color: tierStyle.text,
-                            border: `1px solid ${tierStyle.border}`,
-                          }}
-                        >
-                          {detectedTier}
-                        </span>
+                      <MissionBadge category={cat} />
+                      {detectedTier && (
+                        <JournalTierBadge value={detectedTier} />
                       )}
                       {deptVal && <DepartmentBadge value={deptVal} />}
                       {personName && (
@@ -809,6 +849,41 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
                           {personLabel}: <strong style={{ fontWeight: 500, color: '#0f172a' }}>{personName}</strong>
                         </span>
                       )}
+                      {(item._isVerified || item._hybridStatus === 'verified' || item._hybridStatus === 'Verified') ? (
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            padding: '2px 8px',
+                            borderRadius: '999px',
+                            backgroundColor: '#ecfdf5',
+                            color: '#059669',
+                            border: '1px solid #a7f3d0',
+                          }}
+                          title="ข้อมูลผ่านการประเมินยืนยันโดยผู้ประเมินแล้ว"
+                        >
+                          ผ่านการประเมินแล้ว
+                        </span>
+                      ) : (item._hybridStatus === 'auto_detected' || item._hybridStatus === 'Auto-Detected' || item._sdgIds?.length > 0) ? (
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            padding: '2px 8px',
+                            borderRadius: '999px',
+                            backgroundColor: '#fffbeb',
+                            color: '#d97706',
+                            border: '1px solid #fde68a',
+                          }}
+                          title="ระบบจำแนกอัตโนมัติจากชื่อโครงการ/สังกัด"
+                        >
+                          จำแนกอัตโนมัติ
+                        </span>
+                      ) : null}
                     </div>
 
                     {/* แถวล่าง: ข้อมูลสำคัญเฉพาะหมวดหมู่ (แหล่งทุน / ผู้ว่าจ้าง / วารสาร / ระยะเวลาสัญญา) */}
@@ -887,6 +962,8 @@ export const DrillDownProjectDrawer: React.FC<DrillDownProjectDrawerProps> = ({
           </button>
         </div>
       </div>
-    </>
+    </div>
   );
+
+  return createPortal(content, document.body);
 };

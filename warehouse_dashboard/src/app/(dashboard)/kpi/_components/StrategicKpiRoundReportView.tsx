@@ -22,12 +22,12 @@ import {
 } from '@/lib/kpiEngine';
 import { getCachedCategoryData } from '@/lib/dataService';
 import { isTestRecord } from '@/lib/sdgEngine';
+import { StrategyBadge } from '@/components/ui';
 import rawResearch from '@/data/research.json';
 import rawAcademic from '@/data/academic.json';
 import rawPublications from '@/data/publications.json';
 import rawServices from '@/data/services.json';
 import rawIP from '@/data/ip.json';
-import rawPersonnel from '@/data/personnel.json';
 import {
   FaSave,
   FaCheckCircle,
@@ -66,7 +66,7 @@ const DATASET_LABELS: Record<string, string> = {
   publications: 'ผลงานตีพิมพ์ทางวิชาการ',
   service: 'งานบริการวิชาการ',
   ip: 'งานทรัพย์สินทางปัญญา',
-  personnel: 'บุคลากรและอาจารย์',
+  personnel: 'คณาจารย์และบุคลากร',
 };
 
 export function StrategicKpiRoundReportView({
@@ -107,7 +107,7 @@ export function StrategicKpiRoundReportView({
       publications: getCachedCategoryData('publications') || (rawPublications as any[]),
       service: getCachedCategoryData('service') || (rawServices as any[]),
       ip: getCachedCategoryData('ip') || (rawIP as any[]),
-      personnel: getCachedCategoryData('personnel') || (rawPersonnel as any[]),
+      personnel: getCachedCategoryData('personnel') || [],
     }),
     []
   );
@@ -575,11 +575,16 @@ export function StrategicKpiRoundReportView({
             }}
           >
             <div>
-              <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>
+              <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600, marginBottom: '4px' }}>
                 ยุทธศาสตร์ / แผนงาน
               </div>
-              <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#0f172a', marginTop: '2px' }}>
-                ยุทธศาสตร์ {kpi.strategyCode || '-'}: {kpi.planCode || '-'}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <StrategyBadge value={kpi.strategyCode} />
+                {kpi.planCode && (
+                  <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#0f172a' }}>
+                    {kpi.planCode}
+                  </span>
+                )}
               </div>
             </div>
 

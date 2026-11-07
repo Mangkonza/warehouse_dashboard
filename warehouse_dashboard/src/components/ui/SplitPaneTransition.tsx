@@ -56,6 +56,7 @@ export const SplitPaneTransition: React.FC<SplitPaneTransitionProps> = ({
       {shouldRenderDetail && (
         <aside
           role="complementary"
+          data-phase={phase}
           aria-label={detailLabel}
           inert={isDetailInert ? true : undefined}
           style={isTransitioning ? { willChange: 'width, transform' } : undefined}

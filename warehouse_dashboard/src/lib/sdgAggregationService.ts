@@ -1,9 +1,9 @@
-import { readCategoryData } from './serverDataStore';
-import { isTestRecord } from './sdgEngine';
+import { readCategoryData, readEvaluations } from './serverDataStore';
+import { isTestRecord, resolveHybridSDG } from './sdgEngine';
 import { SDG_DEFINITIONS, parseSdgNumber, getSdgInfo } from './sdg';
 
 export interface SdgFilterParams {
-  year?: number | string; // Target year in CE or BE (default: latest active year e.g. 2026 / 2569)
+  year?: number | string; // Target year in CE or BE (default: latest active year e.g. 2026 / 2569 or 'all')
   compareYearsCount?: number; // 2 or 3 (default: 3)
   department?: string; // 'all' or specific department
   category?: string; // 'all' or 'research' | 'academic' | 'publications' | 'ip' | 'service'
@@ -21,16 +21,18 @@ export interface SdgTileData {
   textColor: string;
   iconPath: string;
   currentCount: number;
+  verifiedCount: number;
+  autoDetectedCount: number;
   deltaPercent: number | null;
   deltaLabel: string; // "+15%", "-5%", "ใหม่", "–"
   deltaType: 'up' | 'down' | 'neutral' | 'new';
-  yearCounts: Array<{ year: number; yearBe: number; count: number; hasData: boolean }>;
+  yearCounts: Array<{ year: number; yearBe: number; count: number; verifiedCount?: number; autoDetectedCount?: number; hasData: boolean }>;
 }
 
 export interface MonthlyBarData {
   monthIndex: number;
   monthName: string;
-  years: Array<{ year: number; yearBe: number; count: number; hasData: boolean }>;
+  years: Array<{ year: number; yearBe: number; count: number; verifiedCount?: number; autoDetectedCount?: number; hasData: boolean }>;
   deltaPercent: number | null;
   deltaLabel: string;
   deltaType: 'up' | 'down' | 'neutral' | 'new';
@@ -51,6 +53,8 @@ export interface HeatmapRowData {
 
 export interface SdgKpiSummary {
   distinctProjectsCount: number;
+  distinctVerifiedCount: number;
+  distinctAutoCount: number;
   distinctProjectsDeltaPercent: number | null;
   distinctProjectsDeltaLabel: string;
   distinctProjectsDeltaType: 'up' | 'down' | 'neutral' | 'new';
@@ -59,6 +63,8 @@ export interface SdgKpiSummary {
   topSdgNumber: number;
   topSdgNameTh: string;
   topSdgCount: number;
+  topSdgVerifiedCount: number;
+  topSdgAutoCount: number;
 
   highestGrowingSdgNumber: number | null;
   highestGrowingSdgNameTh: string;
@@ -86,115 +92,12 @@ export interface SdgAggregationResult {
     selectedSdg: number | null;
     year: number;
   };
+  totalVerifiedRecords: number;
+  totalAutoDetectedRecords: number;
 }
 
-const THAI_MONTHS = [
-  'ม.ค.',
-  'ก.พ.',
-  'มี.ค.',
-  'เม.ย.',
-  'พ.ค.',
-  'มิ.ย.',
-  'ก.ค.',
-  'ส.ค.',
-  'ก.ย.',
-  'ต.ค.',
-  'พ.ย.',
-  'ธ.ค.',
-];
-
-/**
- * Normalise raw year to Gregorian CE.
- */
-function toCeYear(raw: number): number {
-  if (raw >= 2400) return raw - 543;
-  if (raw >= 1966 && raw <= 1972) return raw + 57; // legacy artifact
-  return raw;
-}
-
-/**
- * Normalise CE to Buddhist Era (BE).
- */
-function toBeYear(ce: number): number {
-  return ce + 543;
-}
-
-/**
- * Extract record date (year CE and month 0-11) according to domain-specific mapping.
- */
-function extractRecordDate(item: any, category: string): { year: number; month: number } | null {
-  let rawDate: unknown = null;
-
-  switch (category) {
-    case 'research':
-      rawDate = item.start_date || item.startDate || item.fiscal_year || item.date;
-      break;
-    case 'academic':
-      rawDate = item.start_date || item.integration_start_date || item.date;
-      break;
-    case 'publications':
-      rawDate = item.month_year || item.fiscal_year_be || item.published_date || item.date;
-      break;
-    case 'ip':
-      rawDate = item.filing_date || item.protection_start || item.date;
-      break;
-    case 'service':
-    case 'services':
-      rawDate = item.date || item.start_date;
-      break;
-    default:
-      rawDate = item.start_date || item.date || item.createdAt;
-  }
-
-  // If rawDate is duration string like '12 เดือน' or '-' or missing, fallback to fiscal_year or year in id
-  const rawStr = String(rawDate || '').trim();
-  if (!rawDate || /^\d+\s*เดือน/.test(rawStr) || rawStr === '-' || rawStr === 'nan' || rawStr === 'NaT') {
-    if (item.fiscal_year && /^\d{4}$/.test(String(item.fiscal_year).trim())) {
-      rawDate = String(item.fiscal_year).trim();
-    } else {
-      const idMatch = String(item.id || '').match(/(25\d{2}|20\d{2})/);
-      if (idMatch) {
-        rawDate = idMatch[1];
-      }
-    }
-  }
-
-  // Fallback to evaluation date if domain date is missing
-  if (!rawDate && item.evaluation?.evaluated_at) {
-    rawDate = item.evaluation.evaluated_at;
-  }
-
-  if (!rawDate) return null;
-
-  if (rawDate instanceof Date && !isNaN(rawDate.getTime())) {
-    return { year: rawDate.getFullYear(), month: rawDate.getMonth() };
-  }
-
-  const str = String(rawDate).trim();
-  if (!str || str === '-' || str === 'nan' || str === 'NaT') return null;
-
-  // Year only e.g. '2025' or '2568'
-  if (/^\d{4}$/.test(str)) {
-    const y = toCeYear(parseInt(str, 10));
-    return { year: y, month: 0 };
-  }
-
-  // 'YYYY-MM' or 'YYYY-MM-DD'
-  const mMatch = str.match(/^(\d{4})[-/](\d{1,2})(?:[-/](\d{1,2}))?/);
-  if (mMatch) {
-    const y = toCeYear(parseInt(mMatch[1], 10));
-    const m = Math.max(0, Math.min(11, parseInt(mMatch[2], 10) - 1));
-    return { year: y, month: m };
-  }
-
-  // Parse ISO date
-  const parsed = new Date(str);
-  if (!isNaN(parsed.getTime())) {
-    return { year: parsed.getFullYear(), month: parsed.getMonth() };
-  }
-
-  return null;
-}
+import { THAI_MONTHS, toCeYear, toBeYear, extractRecordDate } from './sdgDateUtils';
+export { THAI_MONTHS, toCeYear, toBeYear, extractRecordDate };
 
 /**
  * Format percentage change and label according to prototype rules.
@@ -209,7 +112,7 @@ function computeDelta(
   }
   if (previous === 0) {
     if (current > 0) return { percent: null, label: 'ใหม่', type: 'new' };
-    return { percent: 0, label: '0%', type: 'neutral' };
+    return { percent: 0, label: '- 0%', type: 'neutral' };
   }
 
   const diff = current - previous;
@@ -220,13 +123,16 @@ function computeDelta(
   } else if (pct < 0) {
     return { percent: pct, label: `${pct}%`, type: 'down' };
   }
-  return { percent: 0, label: '0%', type: 'neutral' };
+  return { percent: 0, label: '- 0%', type: 'neutral' };
 }
 
 /**
- * Aggregate all evaluated SDG records across modules.
+ * Aggregate all evaluated and auto-detected SDG records across modules (Hybrid Evaluation).
  */
-export function aggregateSdgsData(params: SdgFilterParams = {}): SdgAggregationResult {
+export function aggregateSdgsData(
+  params: SdgFilterParams = {},
+  customDatasets?: Record<string, any[]>
+): SdgAggregationResult {
   const categoriesToFetch =
     params.category && params.category !== 'all'
       ? [params.category]
@@ -239,35 +145,19 @@ export function aggregateSdgsData(params: SdgFilterParams = {}): SdgAggregationR
     year: number;
     month: number;
     sdgIds: number[];
+    isVerified: boolean;
   }
 
   const allRecords: ProcessedRecord[] = [];
+  const evaluationsMap = readEvaluations();
 
   for (const cat of categoriesToFetch) {
-    const rawItems = readCategoryData(cat);
+    const rawItems = customDatasets && customDatasets[cat] ? customDatasets[cat] : readCategoryData(cat);
     for (const item of rawItems) {
       if (isTestRecord(item)) continue;
 
-      // Extract SDGs: from item.evaluation.sdg_ids or item.sdg_ids
-      const rawSdgs: unknown =
-        item.evaluation?.sdg_ids ||
-        item.sdg_ids ||
-        item.evaluation?.sdgs ||
-        item.sdgs;
-      if (!rawSdgs) continue;
-
-      const sdgsArray = Array.isArray(rawSdgs)
-        ? rawSdgs
-        : String(rawSdgs)
-            .split(/[,;\s]+/)
-            .map((s) => s.trim())
-            .filter(Boolean);
-
-      const parsedSdgs = sdgsArray
-        .map((s) => parseSdgNumber(s))
-        .filter((n): n is number => typeof n === 'number' && n >= 1 && n <= 17);
-
-      if (parsedSdgs.length === 0) continue;
+      const hybrid = resolveHybridSDG(item, cat, evaluationsMap);
+      if (!hybrid.sdgIds || hybrid.sdgIds.length === 0) continue;
 
       const dept = String(item.department || '').trim();
       if (params.department && params.department !== 'all') {
@@ -277,16 +167,18 @@ export function aggregateSdgsData(params: SdgFilterParams = {}): SdgAggregationR
       }
 
       const d = extractRecordDate(item, cat);
-      if (!d) continue;
+      const recYear = d ? d.year : 2025; // default to 2025 (BE 2568) for undated items
+      const recMonth = d ? d.month : 0;
 
       const recId = String(item._id || item.id || `${cat}_${allRecords.length}`);
       allRecords.push({
         id: recId,
         category: cat,
         department: dept,
-        year: d.year,
-        month: d.month,
-        sdgIds: Array.from(new Set(parsedSdgs)),
+        year: recYear,
+        month: recMonth,
+        sdgIds: hybrid.sdgIds,
+        isVerified: hybrid.isVerified,
       });
     }
   }
@@ -295,6 +187,8 @@ export function aggregateSdgsData(params: SdgFilterParams = {}): SdgAggregationR
   const dataYears = Array.from(new Set(allRecords.map((r) => r.year))).sort((a, b) => a - b);
   const currentCalendarYear = new Date().getFullYear();
   const currentCalendarMonth = new Date().getMonth();
+
+  const isAllYears = params.year === 'all';
 
   // Target Year
   let targetYear = currentCalendarYear;
@@ -326,17 +220,19 @@ export function aggregateSdgsData(params: SdgFilterParams = {}): SdgAggregationR
       : maxMonthAllowed;
 
   const isLikeForLike = isRunningYear && monthTo < 11;
-  const basisNote = isLikeForLike
+  const basisNote = isAllYears
+    ? `แสดงข้อมูลทุกปีงบประมาณสะสม (Hybrid Evaluation)`
+    : isLikeForLike
     ? `เปรียบเทียบข้อมูลช่วง ม.ค. – ${THAI_MONTHS[monthTo]} ของทุกปี (Like-for-like comparison) เพื่อการเปรียบเทียบที่เที่ยงตรง`
     : `เปรียบเทียบข้อมูลครบปี (ม.ค. – ธ.ค.)`;
 
   const yearsWithData = comparisonYears.filter((y) => allRecords.some((r) => r.year === y));
 
   // Helper filter for records in year and month range
-  const filterRecords = (year: number, sdgFilter?: number | null) => {
+  const filterRecords = (year: number | 'all', sdgFilter?: number | null) => {
     return allRecords.filter((r) => {
-      if (r.year !== year) return false;
-      if (r.month < monthFrom || r.month > monthTo) return false;
+      if (!isAllYears && year !== 'all' && r.year !== year) return false;
+      if (!isAllYears && year !== 'all' && (r.month < monthFrom || r.month > monthTo)) return false;
       if (sdgFilter !== undefined && sdgFilter !== null) {
         if (!r.sdgIds.includes(sdgFilter)) return false;
       }
@@ -348,22 +244,26 @@ export function aggregateSdgsData(params: SdgFilterParams = {}): SdgAggregationR
   const prevYear = targetYear - 1;
   const prevYearHasData = yearsWithData.includes(prevYear);
 
-  const targetRecordsDistinct = filterRecords(targetYear, params.selectedSdg);
+  const targetRecordsDistinct = filterRecords(isAllYears ? 'all' : targetYear, params.selectedSdg);
   const targetDistinctCount = new Set(targetRecordsDistinct.map((r) => r.id)).size;
+  const targetVerifiedDistinctCount = new Set(targetRecordsDistinct.filter((r) => r.isVerified).map((r) => r.id)).size;
+  const targetAutoDistinctCount = new Set(targetRecordsDistinct.filter((r) => !r.isVerified).map((r) => r.id)).size;
 
   const prevRecordsDistinct = filterRecords(prevYear, params.selectedSdg);
   const prevDistinctCount = prevYearHasData ? new Set(prevRecordsDistinct.map((r) => r.id)).size : null;
 
   const kpi1Delta = computeDelta(targetDistinctCount, prevDistinctCount, prevYearHasData);
 
-  const yearBreakdownText = comparisonYears
-    .slice(0, -1)
-    .reverse()
-    .map((y) => {
-      const cnt = new Set(filterRecords(y, params.selectedSdg).map((r) => r.id)).size;
-      return `${toBeYear(y)}: ${yearsWithData.includes(y) ? cnt : '–'}`;
-    })
-    .join(' · ');
+  const yearBreakdownText = isAllYears
+    ? `ทั้งหมด ${targetDistinctCount} โครงการ (ยืนยัน ${targetVerifiedDistinctCount} · คาดการณ์ ${targetAutoDistinctCount})`
+    : comparisonYears
+        .slice(0, -1)
+        .reverse()
+        .map((y) => {
+          const cnt = new Set(filterRecords(y, params.selectedSdg).map((r) => r.id)).size;
+          return `${toBeYear(y)}: ${yearsWithData.includes(y) ? cnt : '–'}`;
+        })
+        .join(' · ');
 
   // 2. Per-SDG Totals (Tiles 1-17)
   const tiles: SdgTileData[] = [];
@@ -372,8 +272,10 @@ export function aggregateSdgsData(params: SdgFilterParams = {}): SdgAggregationR
 
   for (let s = 1; s <= 17; s++) {
     const def = SDG_DEFINITIONS[s];
-    const sCurRecords = filterRecords(targetYear, s);
+    const sCurRecords = filterRecords(isAllYears ? 'all' : targetYear, s);
     const sCurCount = sCurRecords.length;
+    const sVerifiedCount = sCurRecords.filter((r) => r.isVerified).length;
+    const sAutoCount = sCurRecords.filter((r) => !r.isVerified).length;
     sdgCountsTarget[s] = sCurCount;
 
     const sPrevRecords = filterRecords(prevYear, s);
@@ -383,11 +285,13 @@ export function aggregateSdgsData(params: SdgFilterParams = {}): SdgAggregationR
 
     const yearCounts = comparisonYears.map((y) => {
       const yHas = yearsWithData.includes(y);
-      const cnt = filterRecords(y, s).length;
+      const yRecs = allRecords.filter((r) => r.year === y && r.sdgIds.includes(s));
       return {
         year: y,
         yearBe: toBeYear(y),
-        count: yHas ? cnt : 0,
+        count: yHas ? yRecs.length : 0,
+        verifiedCount: yHas ? yRecs.filter((r) => r.isVerified).length : 0,
+        autoDetectedCount: yHas ? yRecs.filter((r) => !r.isVerified).length : 0,
         hasData: yHas,
       };
     });
@@ -400,6 +304,8 @@ export function aggregateSdgsData(params: SdgFilterParams = {}): SdgAggregationR
       textColor: def.color, // will be rendered with contrast on active
       iconPath: def.iconPath,
       currentCount: sCurCount,
+      verifiedCount: sVerifiedCount,
+      autoDetectedCount: sAutoCount,
       deltaPercent: sDelta.percent,
       deltaLabel: sDelta.label,
       deltaType: sDelta.type,
@@ -417,6 +323,10 @@ export function aggregateSdgsData(params: SdgFilterParams = {}): SdgAggregationR
     }
   }
 
+  const topSdgRecords = filterRecords(isAllYears ? 'all' : targetYear, topSdg);
+  const topSdgVerifiedCount = topSdgRecords.filter((r) => r.isVerified).length;
+  const topSdgAutoCount = topSdgRecords.filter((r) => !r.isVerified).length;
+
   // Highest growing SDG
   let highGrowSdg: number | null = null;
   let highGrowPct = -9999;
@@ -432,6 +342,8 @@ export function aggregateSdgsData(params: SdgFilterParams = {}): SdgAggregationR
 
   const kpis: SdgKpiSummary = {
     distinctProjectsCount: targetDistinctCount,
+    distinctVerifiedCount: targetVerifiedDistinctCount,
+    distinctAutoCount: targetAutoDistinctCount,
     distinctProjectsDeltaPercent: kpi1Delta.percent,
     distinctProjectsDeltaLabel: kpi1Delta.label,
     distinctProjectsDeltaType: kpi1Delta.type,
@@ -439,15 +351,17 @@ export function aggregateSdgsData(params: SdgFilterParams = {}): SdgAggregationR
     topSdgNumber: topSdg,
     topSdgNameTh: SDG_DEFINITIONS[topSdg]?.nameTh || '',
     topSdgCount: topCount > 0 ? topCount : 0,
+    topSdgVerifiedCount,
+    topSdgAutoCount,
     highestGrowingSdgNumber: highGrowSdg,
     highestGrowingSdgNameTh: highGrowSdg ? SDG_DEFINITIONS[highGrowSdg]?.nameTh || '' : '–',
     highestGrowingDeltaLabel: highGrowSdg ? sdgGrowthTarget[highGrowSdg].label : '–',
     coveredSdgCount,
   };
 
-  // 3. Monthly Bar Chart
+  // 3. Monthly Bar Chart (Always include all 12 months ม.ค. - ธ.ค.)
   const monthlyBars: MonthlyBarData[] = [];
-  for (let m = monthFrom; m <= monthTo; m++) {
+  for (let m = 0; m < 12; m++) {
     const yearsData = comparisonYears.map((y) => {
       const yHas = yearsWithData.includes(y);
       const recs = allRecords.filter((r) => {
@@ -461,6 +375,8 @@ export function aggregateSdgsData(params: SdgFilterParams = {}): SdgAggregationR
         year: y,
         yearBe: toBeYear(y),
         count: yHas ? recs.length : 0,
+        verifiedCount: yHas ? recs.filter((r) => r.isVerified).length : 0,
+        autoDetectedCount: yHas ? recs.filter((r) => !r.isVerified).length : 0,
         hasData: yHas,
       };
     });
@@ -535,5 +451,7 @@ export function aggregateSdgsData(params: SdgFilterParams = {}): SdgAggregationR
       selectedSdg: params.selectedSdg ?? null,
       year: targetYear,
     },
+    totalVerifiedRecords: allRecords.filter((r) => r.isVerified).length,
+    totalAutoDetectedRecords: allRecords.filter((r) => !r.isVerified).length,
   };
 }

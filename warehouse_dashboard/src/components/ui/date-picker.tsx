@@ -66,8 +66,8 @@ export interface DatePickerProps {
   name?: string;
   required?: boolean;
   clearable?: boolean;
-  minDate?: Date;
-  maxDate?: Date;
+  minDate?: Date | string | null;
+  maxDate?: Date | string | null;
 }
 
 export function DatePicker({
@@ -86,7 +86,23 @@ export function DatePicker({
   const [open, setOpen] = React.useState(false);
   const selectedDate = React.useMemo(() => parseDate(value), [value]);
 
+  const parsedMinDate = React.useMemo(() => {
+    const d = parseDate(minDate);
+    if (!d) return undefined;
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
+  }, [minDate]);
+
+  const parsedMaxDate = React.useMemo(() => {
+    const d = parseDate(maxDate);
+    if (!d) return undefined;
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
+  }, [maxDate]);
+
   const handleSelect = (date: Date | undefined) => {
+    if (date) {
+      if (parsedMinDate && date < parsedMinDate) return;
+      if (parsedMaxDate && date > parsedMaxDate) return;
+    }
     setOpen(false);
     if (onChange) {
       onChange(date, formatDateToIso(date));
@@ -111,8 +127,13 @@ export function DatePicker({
               variant="outline"
               type="button"
               className={cn(
-                'w-full justify-start text-left font-normal bg-background border-input hover:bg-accent/40 h-9 px-3 text-sm rounded-lg',
-                !selectedDate && 'text-muted-foreground'
+                'w-full justify-start text-left font-normal bg-background border hover:bg-accent/40 h-9 px-3 text-sm rounded-lg transition-colors',
+                !selectedDate && 'text-muted-foreground',
+                required
+                  ? selectedDate
+                    ? 'border-emerald-500 hover:border-emerald-600 bg-emerald-50/10'
+                    : 'border-rose-400 hover:border-rose-500 bg-rose-50/10'
+                  : 'border-input'
               )}
             >
               <span className="flex-1 truncate">
@@ -147,11 +168,11 @@ export function DatePicker({
             mode="single"
             selected={selectedDate}
             onSelect={handleSelect}
-            defaultMonth={selectedDate || new Date()}
+            defaultMonth={selectedDate || (parsedMinDate && (!parsedMaxDate || parsedMinDate <= parsedMaxDate) ? parsedMinDate : parsedMaxDate) || new Date()}
             captionLayout="dropdown"
             disabled={(date) => {
-              if (minDate && date < minDate) return true;
-              if (maxDate && date > maxDate) return true;
+              if (parsedMinDate && date < parsedMinDate) return true;
+              if (parsedMaxDate && date > parsedMaxDate) return true;
               return false;
             }}
           />

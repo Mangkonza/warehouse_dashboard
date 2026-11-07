@@ -13,6 +13,7 @@ import {
 } from '@/services/roleManagement.service';
 import { AppRole } from '@/config/permissions';
 import {
+  FaTimes,
   FaUserShield,
   FaPlus,
   FaSearch,
@@ -698,8 +699,8 @@ function AddRoleModal({
             <FaUserShield className="text-[#00A651]" />
             <span>เพิ่มผู้ดูแลระบบ / กำหนดสิทธิ์ผู้ใช้</span>
           </h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-lg cursor-pointer">
-            &times;
+          <button onClick={onClose} aria-label="ปิด" className="text-slate-400 hover:text-slate-600 text-[18px] cursor-pointer p-1 rounded-md transition-colors flex items-center justify-center">
+            <FaTimes />
           </button>
         </div>
 
@@ -860,8 +861,8 @@ function EditRoleModal({
             <FaEdit className="text-[#e5a812]" />
             <span>แก้ไขข้อมูลและสิทธิ์: {target.username}</span>
           </h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-lg cursor-pointer">
-            &times;
+          <button onClick={onClose} aria-label="ปิด" className="text-slate-400 hover:text-slate-600 text-[18px] cursor-pointer p-1 rounded-md transition-colors flex items-center justify-center">
+            <FaTimes />
           </button>
         </div>
 

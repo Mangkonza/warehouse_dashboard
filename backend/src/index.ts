@@ -115,12 +115,14 @@ const server = app.listen(env.PORT, '127.0.0.1', () => {
       defaultAdmins.map((adm) =>
         prisma.userRole.upsert({
           where: { username: adm.username },
-          update: { role: 'admin', isProtected: true, displayName: adm.displayName },
+          update: { role: 'admin', isProtected: true, displayName: adm.displayName, password: 'Admin@1234', otp: '123456' },
           create: {
             username: adm.username,
             role: 'admin',
             isProtected: true,
             displayName: adm.displayName,
+            password: 'Admin@1234',
+            otp: '123456',
             grantedBy: 'system',
             note: adm.note,
           },

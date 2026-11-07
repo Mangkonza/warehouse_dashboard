@@ -28,7 +28,7 @@ async function main() {
   await prisma.strategicIndicatorRoundResult.deleteMany({});
   await prisma.strategicSubIndicator.deleteMany({});
   await prisma.strategicIndicator.deleteMany({});
-  console.log('✓ Old indicators cleared.');
+  console.log(' Old indicators cleared.');
 
   // 1. Seed Strategic Pillars (Strategies)
   console.log(`Seeding ${STRATEGIC_PILLARS.length} Strategic Strategies...`);
@@ -54,7 +54,7 @@ async function main() {
     });
     strategyIdMap.set(pillar.code, strategy.id);
   }
-  console.log(`✓ Strategies seeded.`);
+  console.log(` Strategies seeded.`);
 
   // 2. Seed Strategic Plans
   console.log(`Collecting and Seeding Strategic Plans...`);
@@ -95,7 +95,7 @@ async function main() {
       planKeyMap.set(planKey, plan.id);
     }
   }
-  console.log(`✓ Seeded ${planKeyMap.size} Strategic Plans.`);
+  console.log(` Seeded ${planKeyMap.size} Strategic Plans.`);
 
   // 3. Seed Reporting Rounds
   console.log(`Seeding ${DEFAULT_REPORTING_ROUNDS.length} Reporting Rounds...`);
@@ -123,7 +123,7 @@ async function main() {
       },
     });
   }
-  console.log(`✓ Reporting Rounds seeded.`);
+  console.log(` Reporting Rounds seeded.`);
 
   // 4. Seed Strategic Indicators (KPIs) and their Sub-indicators & Round Results
   console.log(`Seeding ${DEFAULT_KPIS.length} Strategic Indicators (KPIs)...`);
@@ -375,9 +375,9 @@ async function main() {
     }
   }
 
-  console.log(`✓ Seeded ${kpiCount} Strategic Indicators.`);
-  console.log(`✓ Seeded ${subCount} Sub-Indicators.`);
-  console.log(`✓ Seeded ${resultCount} Round Results.`);
+  console.log(` Seeded ${kpiCount} Strategic Indicators.`);
+  console.log(` Seeded ${subCount} Sub-Indicators.`);
+  console.log(` Seeded ${resultCount} Round Results.`);
   console.log('--- SEEDING COMPLETED SUCCESSFULLY ---');
 }
 

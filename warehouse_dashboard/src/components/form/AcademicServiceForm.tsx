@@ -22,11 +22,13 @@ export interface AcademicServiceFormProps {
   onChange: (key: string, val: any) => void;
   setFormData: React.Dispatch<React.SetStateAction<Record<string, any>>>;
   isEdit?: boolean;
+  errors?: Record<string, string>;
 }
 
 export function AcademicServiceForm({
   formData,
   onChange,
+  errors = {},
 }: AcademicServiceFormProps) {
   const dateRangeValue: DateRangeBEValue = React.useMemo(() => {
     const s = formData.start_date || (formData.date ? String(formData.date).substring(0, 10) : null);
@@ -53,8 +55,10 @@ export function AcademicServiceForm({
           </h4>
         </div>
 
-        <FormField label="ชื่องานบริการวิชาการ" required>
+        <FormField label="ชื่องานบริการวิชาการ" required fieldKey="name" error={errors.name || errors.topic_title}>
           <textarea
+            id="field-name"
+            name="name"
             rows={2}
             value={formData.name || formData.topic_title || ''}
             onChange={(e) => {
@@ -64,12 +68,13 @@ export function AcademicServiceForm({
             }}
             placeholder="กรอกชื่องานบริการวิชาการ..."
             className="w-full p-2.5 text-sm rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-[#00A651]/20 focus:border-[#00A651] transition-colors"
-            required
           />
         </FormField>
 
-        <FormField label="กลุ่มเป้าหมาย / ผู้เข้าร่วม">
+        <FormField label="กลุ่มเป้าหมาย / ผู้เข้าร่วม" required fieldKey="target_group" error={errors.target_group}>
           <input
+            id="field-target_group"
+            name="target_group"
             type="text"
             value={formData.target_group || ''}
             onChange={(e) => onChange('target_group', e.target.value)}
@@ -78,8 +83,8 @@ export function AcademicServiceForm({
           />
         </FormField>
 
-        <FormField label="ประเภทงานบริการวิชาการ" required>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+        <FormField label="ประเภทงานบริการวิชาการ" required fieldKey="service_type" error={errors.service_type || errors.service_category}>
+          <div id="field-service_type" data-field="service_type" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
             {ACADEMIC_SERVICE_TYPES.map((t) => {
               const isSelected =
                 formData.service_type === t.label ||
@@ -121,40 +126,44 @@ export function AcademicServiceForm({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField label="ผู้ให้บริการ / ผู้รับผิดชอบ" required>
-            <PersonPicker
-              value={
-                formData.person
-                  ? {
-                      person_id: formData.person_id || null,
-                      name: formData.person,
-                      department: formData.department,
-                      prefix: formData.prefix,
-                    }
-                  : null
-              }
-              onChange={(p) => {
-                if (p) {
-                  onChange('person', p.name);
-                  onChange('person_id', p.person_id ?? null);
-                  if (p.prefix) onChange('prefix', p.prefix);
-                  if (p.department) onChange('department', p.department);
-                } else {
-                  onChange('person', '');
-                  onChange('person_id', null);
+          <FormField label="ผู้ให้บริการ / ผู้รับผิดชอบ" required fieldKey="person" error={errors.person || errors.head}>
+            <div id="field-person" data-field="person">
+              <PersonPicker
+                value={
+                  formData.person
+                    ? {
+                        person_id: formData.person_id || null,
+                        name: formData.person,
+                        department: formData.department,
+                        prefix: formData.prefix,
+                      }
+                    : null
                 }
-              }}
-              defaultDepartment={formData.department || ''}
-              placeholder="ค้นหาหรือระบุชื่อผู้ให้บริการวิชาการ..."
-            />
+                onChange={(p) => {
+                  if (p) {
+                    onChange('person', p.name);
+                    onChange('person_id', p.person_id ?? null);
+                    if (p.prefix) onChange('prefix', p.prefix);
+                    if (p.department) onChange('department', p.department);
+                  } else {
+                    onChange('person', '');
+                    onChange('person_id', null);
+                  }
+                }}
+                defaultDepartment={formData.department || ''}
+                placeholder="ค้นหาหรือระบุชื่อผู้ให้บริการวิชาการ..."
+              />
+            </div>
           </FormField>
 
-          <FormField label="สังกัด" required>
-            <DepartmentSelect
-              value={formData.department || ''}
-              onChange={(dept) => onChange('department', dept)}
-              placeholder="-- เลือกสังกัด --"
-            />
+          <FormField label="สังกัด" required fieldKey="department" error={errors.department}>
+            <div id="field-department" data-field="department">
+              <DepartmentSelect
+                value={formData.department || ''}
+                onChange={(dept) => onChange('department', dept)}
+                placeholder="-- เลือกสังกัด --"
+              />
+            </div>
           </FormField>
         </div>
       </section>
@@ -170,34 +179,40 @@ export function AcademicServiceForm({
           </h4>
         </div>
 
-        <FormField label="วันเดือนปีที่จัดกิจกรรม (ช่วงเวลา พ.ศ.)">
-          <DateRangePickerBE
-            value={dateRangeValue}
-            onChange={handleDateRangeChange}
-            startPlaceholder="วันที่เริ่มต้น (พ.ศ.)"
-            endPlaceholder="วันที่สิ้นสุด (พ.ศ.)"
-          />
+        <FormField label="วันเดือนปีที่จัดกิจกรรม (ช่วงเวลา พ.ศ.)" required fieldKey="duration" error={errors.duration || errors.start_date || errors.end_date}>
+          <div id="field-duration" data-field="duration">
+            <DateRangePickerBE
+              value={dateRangeValue}
+              onChange={handleDateRangeChange}
+              startPlaceholder="วันที่เริ่มต้น (พ.ศ.)"
+              endPlaceholder="วันที่สิ้นสุด (พ.ศ.)"
+            />
+          </div>
         </FormField>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField label="จำนวนชั่วโมง">
-            <NumberUnitInput
-              value={formData.hours_spent !== undefined && formData.hours_spent !== '' ? Number(formData.hours_spent) : null}
-              onChange={(num) => onChange('hours_spent', num)}
-              unit="ชั่วโมง"
-              placeholder="0"
-              allowDecimals={true}
-            />
+          <FormField label="จำนวนชั่วโมง" required fieldKey="hours_spent" error={errors.hours_spent}>
+            <div id="field-hours_spent" data-field="hours_spent">
+              <NumberUnitInput
+                value={formData.hours_spent !== undefined && formData.hours_spent !== '' ? Number(formData.hours_spent) : null}
+                onChange={(num) => onChange('hours_spent', num)}
+                unit="ชั่วโมง"
+                placeholder="0"
+                allowDecimals={true}
+              />
+            </div>
           </FormField>
 
-          <FormField label="จำนวนคนเข้าร่วม">
-            <NumberUnitInput
-              value={formData.attendees_count !== undefined && formData.attendees_count !== '' ? Number(formData.attendees_count) : null}
-              onChange={(num) => onChange('attendees_count', num)}
-              unit="คน"
-              placeholder="0"
-              allowDecimals={false}
-            />
+          <FormField label="จำนวนคนเข้าร่วม" required fieldKey="attendees_count" error={errors.attendees_count}>
+            <div id="field-attendees_count" data-field="attendees_count">
+              <NumberUnitInput
+                value={formData.attendees_count !== undefined && formData.attendees_count !== '' ? Number(formData.attendees_count) : null}
+                onChange={(num) => onChange('attendees_count', num)}
+                unit="คน"
+                placeholder="0"
+                allowDecimals={false}
+              />
+            </div>
           </FormField>
         </div>
       </section>

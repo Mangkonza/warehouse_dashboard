@@ -225,7 +225,7 @@ export function detectHeaderRowUniversal(rows: any[][]): number {
     'หัวหน้า',
     'ผู้รับผิดชอบ',
     'เจ้าของ',
-    'ผู้ประดิษฐ์',
+    'ผู้สร้างผลงาน',
     'อาจารย์',
     'หน่วยงาน',
     'ภาควิชา',
@@ -330,7 +330,7 @@ export function mapColumnsUniversal(
         combined.includes('หัวหน้า') ||
         combined.includes('ผู้รับผิดชอบ') ||
         combined.includes('เจ้าของผลงาน') ||
-        combined.includes('ผู้ประดิษฐ์') ||
+        combined.includes('ผู้สร้างผลงาน') ||
         combined.includes('ผู้ประพันธ์') ||
         combined.includes('ผู้แต่ง') ||
         combined.includes('ชื่อ - นามสกุล') ||
@@ -343,7 +343,7 @@ export function mapColumnsUniversal(
     }
 
     // Co-authors / Contributors / Co-researchers / Co-inventors
-    if (combined.includes('ผู้ร่วม') || combined.includes('ผู้แต่งร่วม') || combined.includes('ผู้ประดิษฐ์ร่วม')) {
+    if (combined.includes('ผู้ร่วม') || combined.includes('ผู้แต่งร่วม') || combined.includes('ผู้สร้างผลงานร่วม')) {
       if (category === 'publications' && mapping.co_authors === undefined) mapping.co_authors = colIdx;
       if (category === 'service' && mapping.contributors === undefined) mapping.contributors = colIdx;
       if (category === 'research' && mapping.co_researchers === undefined) mapping.co_researchers = colIdx;
@@ -611,7 +611,7 @@ export function validateRowUniversal(
     academic: 'หัวหน้าโครงการ',
     service: 'หัวหน้าโครงการ',
     publications: 'ชื่อผู้แต่งหลัก',
-    ip: 'ผู้ประดิษฐ์หลัก',
+    ip: 'ผู้สร้างผลงานหลัก',
     personnel: 'ชื่อ - นามสกุล',
     kpi: 'ผู้รับผิดชอบ',
     monitoring: 'หัวหน้าโครงการ',
@@ -1365,6 +1365,36 @@ export function buildCategoryPayload(row: ImportRow): Record<string, any> {
           req_no: row.data.req_no,
           work_category: row.data.work_category,
           filing_date: row.data.filing_date,
+        }
+      : {}),
+    ...(row.category === 'personnel'
+      ? {
+          title_th: row.data.title_th || '',
+          first_name: row.data.first_name || (row.data.name ? row.data.name.split(' ')[0] : ''),
+          last_name: row.data.last_name || (row.data.name ? row.data.name.split(' ').slice(1).join(' ') : ''),
+          name: row.data.name || `${row.data.first_name || ''} ${row.data.last_name || ''}`.trim(),
+          department_code: row.data.department_code || '',
+          academic_position: row.data.academic_position || row.data.position || '',
+          position: row.data.academic_position || row.data.position || '',
+          email: row.data.email || '',
+          image_url: row.data.image_url || '',
+        }
+      : {}),
+    ...(row.category === 'kpi'
+      ? {
+          code: row.data.code || 'KPI',
+          title: row.data.name || row.data.title || '',
+          name: row.data.name || row.data.title || '',
+          description: row.data.description || '',
+          strategyId: row.data.strategyId || null,
+          planId: row.data.planId || null,
+          unit: row.data.unit || 'ผลงาน',
+          targetValue: row.data.targetValue ?? row.data.budget ?? 0,
+          targetLabel: row.data.targetLabel || '',
+          departmentTarget: row.data.departmentTarget || '',
+          responsibleUnit: row.data.responsibleUnit || row.data.department_code || '',
+          department_code: row.data.responsibleUnit || row.data.department_code || '',
+          reporters: row.data.reporters || (row.data.head_name ? [row.data.head_name] : []),
         }
       : {}),
   };

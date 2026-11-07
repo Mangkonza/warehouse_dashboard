@@ -4,6 +4,8 @@ import { SDG_COLORS, SDG_SHORT_NAMES, cardStyle, sectionTitleStyle } from './gla
 export interface SdgCount {
   num: number;
   count: number;
+  verifiedCount?: number;
+  autoDetectedCount?: number;
 }
 
 export interface StrategicStripProps {
@@ -41,10 +43,10 @@ export function StrategicStrip({ topSdgs }: StrategicStripProps) {
             }}
           >
             <span style={{ fontSize: '13px', fontWeight: 700, opacity: 0.95 }}>SDG {s.num}</span>
-            <span style={{ fontSize: '30px', fontWeight: 800, lineHeight: 1.1, marginTop: 'auto', fontVariantNumeric: 'tabular-nums' }}>
+            <span style={{ fontSize: '28px', fontWeight: 800, lineHeight: 1.1, marginTop: 'auto', fontVariantNumeric: 'tabular-nums' }}>
               {s.count}
             </span>
-            <span style={{ fontSize: '12.5px', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <span style={{ fontSize: '12px', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {SDG_SHORT_NAMES[s.num]}
             </span>
           </div>

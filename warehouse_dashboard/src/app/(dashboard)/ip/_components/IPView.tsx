@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useDashboardTabFilter, useTimeFilter } from '@/features/time-filter';
 import { useIPData } from '../_hooks/useIPData';
 import { IPCharts, IPPerspective } from './IPCharts';
@@ -34,6 +34,7 @@ export function IPView() {
 
   const {
     validIpData,
+    allItems,
     undatedCount,
     filteredIpData,
     patentCount,
@@ -91,6 +92,72 @@ export function IPView() {
   const uniqueDepts = new Set(validIpData.map((d: any) => d.department_clean || d.department).filter(Boolean));
   const maxSupportCeiling = Math.max(420000, validIpData.length * 20000);
 
+  // Unique creators across all validIpData items
+  const uniqueCreators = useMemo(() => {
+    const set = new Set<string>();
+    validIpData.forEach((item: any) => {
+      if (Array.isArray(item.inventors)) {
+        item.inventors.forEach((inv: any) => {
+          const n = typeof inv === 'string' ? inv : inv?.name;
+          let clean = String(n || '').replace(/\s+/g, ' ').trim();
+          clean = clean.replace(/^(ศ\.|รศ\.|ผศ\.|อ\.|ดร\.)\s+/g, '$1');
+          if (clean && clean !== '-' && clean !== 'nan' && clean !== 'NaT') {
+            set.add(clean);
+          }
+        });
+      }
+      const raw = String(item.creator || '').trim();
+      if (raw && raw !== '-' && raw !== 'nan' && raw !== 'NaT') {
+        const parts = raw.split(/[,;\n]/);
+        parts.forEach((p) => {
+          let clean = p.replace(/\s+/g, ' ').trim();
+          clean = clean.replace(/^(ศ\.|รศ\.|ผศ\.|อ\.|ดร\.)\s+/g, '$1');
+          if (clean && clean !== '-' && clean !== 'nan' && clean !== 'NaT') {
+            set.add(clean);
+          }
+        });
+      }
+    });
+    return set;
+  }, [validIpData]);
+
+  // IP Types breakdown segments for Card 1
+  const ipSegments = useMemo(() => {
+    const counts: Record<string, number> = {};
+    validIpData.forEach((item: any) => {
+      const rawType = String(item.type || item.category || '').trim();
+      let norm = 'อื่นๆ';
+      if (rawType.includes('อนุสิทธิบัตร')) norm = 'อนุสิทธิบัตร';
+      else if (rawType.includes('สิทธิบัตรการประดิษฐ์') || rawType === 'สิทธิบัตร') norm = 'สิทธิบัตรการประดิษฐ์';
+      else if (rawType.includes('สิทธิบัตรการออกแบบ') || rawType.includes('ออกแบบ')) norm = 'สิทธิบัตรการออกแบบ';
+      else if (rawType.includes('ลิขสิทธิ์')) norm = 'ลิขสิทธิ์';
+      else if (rawType.includes('เครื่องหมายการค้า')) norm = 'เครื่องหมายการค้า';
+      else if (rawType) norm = rawType;
+      counts[norm] = (counts[norm] || 0) + 1;
+    });
+
+    const total = validIpData.length || 1;
+    const colorMap: Record<string, string> = {
+      'อนุสิทธิบัตร': '#a78bfa',
+      'สิทธิบัตรการประดิษฐ์': '#c4b5fd',
+      'สิทธิบัตรการออกแบบ': '#ddd6fe',
+      'ลิขสิทธิ์': '#e9d5ff',
+      'เครื่องหมายการค้า': '#f3e8ff',
+      'อื่นๆ': '#cbd5e1',
+    };
+
+    return Object.entries(counts)
+      .map(([name, count]) => ({
+        label: name,
+        value: count,
+        displayValue: `${count} รายการ`,
+        unit: 'รายการ',
+        percent: Number(((count / total) * 100).toFixed(1)),
+        color: colorMap[name] || '#a78bfa',
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [validIpData]);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       <div>
@@ -109,7 +176,7 @@ export function IPView() {
           tabs={[
             { key: 'types_dept', label: 'ประเภททรัพย์สินทางปัญญาและสังกัด', icon: <FaCertificate style={{ fontSize: '13px' }} /> },
             { key: 'protection_status', label: 'สถานะการยื่นและคุ้มครอง', icon: <FaShieldAlt style={{ fontSize: '13px' }} /> },
-            { key: 'faculty', label: 'อาจารย์และนักประดิษฐ์สูงสุด', icon: <FaUserTie style={{ fontSize: '13px' }} /> },
+            { key: 'faculty', label: 'ผู้สร้างผลงานและนวัตกรรม', icon: <FaUserTie style={{ fontSize: '13px' }} /> },
             { key: 'sdg', label: 'ความสอดคล้องเชิงยุทธศาสตร์ (SDGs)', icon: <FaLeaf style={{ fontSize: '13px' }} /> },
             { key: 'table', label: 'รายการงานทรัพย์สินทางปัญญา', icon: <FaTable style={{ fontSize: '13px' }} /> },
           ]}
@@ -171,27 +238,16 @@ export function IPView() {
                   label: 'ทรัพย์สินทางปัญญาทั้งหมด',
                   value: validIpData.length,
                   unit: 'รายการ',
-                  splitRatio: validIpData.length > 0 ? pettyPatentCount / validIpData.length : 0.952,
-                  primaryLegend: {
-                    label: 'อนุสิทธิบัตร',
-                    value: `${pettyPatentCount} รายการ`,
-                    percent: `${validIpData.length > 0 ? ((pettyPatentCount / validIpData.length) * 100).toFixed(1) : '95.2'}%`,
-                    color: '#a78bfa',
-                  },
-                  secondaryLegend: {
-                    label: 'สิทธิบัตรการประดิษฐ์',
-                    value: `${patentCount} รายการ`,
-                    percent: `${validIpData.length > 0 ? ((patentCount / validIpData.length) * 100).toFixed(1) : '4.8'}%`,
-                    color: '#ddd6fe',
-                  },
+                  segments: ipSegments,
                 }}
                 gearCard={{
-                  label: 'ผลงานทรัพย์สินทางปัญญารวม',
-                  value: validIpData.length,
-                  unit: 'รายการ',
+                  label: 'จำนวนผู้สร้างผลงานทั้งหมด',
+                  value: uniqueCreators.size,
+                  unit: 'ท่าน',
                   gearValue: uniqueDepts.size,
                   gearLabel: 'สังกัด',
                 }}
+                items={validIpData}
                 tallyCard={{
                   label: 'ได้รับความคุ้มครองแล้ว',
                   chip: `${protectedPct}%`,
@@ -215,25 +271,14 @@ export function IPView() {
                   ],
                 }}
               />
-
-              {/* ZONE 2.5: Year-over-Year (YoY) Comparison */}
-              <MissionYoYControls
-                missionKey="ip"
-                missionTitle="งานทรัพย์สินทางปัญญา"
-                allItemsRaw={validIpData}
-                activeDepartment={deptFilter}
-                primaryMetricLabel="จำนวนคำขอและจดทะเบียน"
-                secondaryMetricLabel="เงินสนับสนุนทรัพย์สินทางปัญญา"
-                hasBudgetMetric={true}
-                defaultBaseYear="2567"
-                defaultTargetYear="2568"
-              />
             </>
           )}
 
           {/* ZONE 3: 4 Dimension Tabs Charts */}
           <IPCharts
             validIpData={filteredIpData}
+            allItems={allItems || validIpData}
+            currentFiscalYear={tabFilter.fiscalYear || 'all'}
             activePerspective={activePerspective}
             onChangePerspective={setActivePerspective}
             hideSelector={true}

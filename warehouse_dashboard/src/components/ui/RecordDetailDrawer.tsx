@@ -1,9 +1,11 @@
 'use client';
+import { formatPersonName } from '@/lib/formatPersonName';
 
 import React, { useEffect, useRef } from 'react';
 import { CategoryConfig, CategoryKey } from '@/types/dataManagement';
 import { CATEGORIES_CONFIG } from '@/config/dataManagementConfig';
 import { DepartmentBadge } from '@/components/ui/department-badge';
+import { MissionBadge } from '@/components/ui/MissionBadge';
 import { ServiceTypeBadge } from '@/components/ui/service-type-badge';
 import { IPTypeBadge } from '@/components/ui/ip-type-badge';
 import { PublicationTypeBadge } from '@/components/ui/publication-type-badge';
@@ -33,6 +35,11 @@ export function formatDateBE(val?: any): string {
   }
   const str = String(val).trim();
   if (!str) return '-';
+
+  // Thai month names or strings without numbers should not be parsed as dates!
+  if (!/\d/.test(str)) {
+    return str;
+  }
 
   // YYYY-MM-DD or YYYY-MM-DD HH:mm:ss
   const isoMatch = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
@@ -225,9 +232,11 @@ export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
   if (!displayItem) return null;
 
   // Title of the record
-  const recordTitle = String(
-    displayItem.name || displayItem.title || displayItem.topic_title || displayItem.id || 'รายละเอียด'
-  ).replace(/[\r\n]+/g, ' ').trim();
+  const recordTitle = categoryKey === 'personnel'
+    ? formatPersonName(displayItem, { includePrefix: true })
+    : String(
+        displayItem.name || displayItem.title || displayItem.topic_title || displayItem.id || 'รายละเอียด'
+      ).replace(/[\r\n]+/g, ' ').trim();
 
   // Helper to render field value (normal font weight for all field values; bold only on section headers)
   const renderFieldValue = (field: any) => {
@@ -239,6 +248,28 @@ export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
 
     if (rawVal === undefined || rawVal === null || rawVal === '' || rawVal === 'nan' || rawVal === 'NaT') {
       return <span className="text-slate-800 font-normal text-[13.5px]">-</span>;
+    }
+
+        if (field.key === 'title_th') {
+      const valStr = String(rawVal ?? '').trim();
+      if (!valStr || valStr === '-' || valStr === 'nan') {
+        return <span className="text-slate-800 font-normal text-[13.5px]">-</span>;
+      }
+      return (
+        <div className="pt-0.5">
+          <span
+            className="inline-flex items-center justify-center min-w-[56px] px-3 py-[3px] border border-transparent rounded-full text-[12.5px] font-normal whitespace-nowrap select-none cursor-default shadow-xs text-center"
+            style={{
+              backgroundColor: '#e2e8f0',
+              color: '#000000',
+              fontWeight: 400,
+            }}
+            title={valStr}
+          >
+            {valStr}
+          </span>
+        </div>
+      );
     }
 
     if (field.key === 'level') {
@@ -585,18 +616,43 @@ export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
             title="ปิดหน้าต่าง"
             className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors ml-1 cursor-pointer"
           >
-            <FaTimes className="text-base" />
+            <FaTimes className="text-[18px]" />
           </button>
         </div>
       </div>
 
-      {/* Record Title: truncated to two lines */}
-      <h3
-        className="text-[15px] font-bold text-slate-900 leading-snug line-clamp-2"
-        title={recordTitle}
-      >
-        {recordTitle}
-      </h3>
+      {/* Record Title / Personnel Avatar: replace duplicate title with circular photo for personnel */}
+      {categoryKey === 'personnel' ? (
+        <div className="flex justify-center pt-3 pb-3">
+          <div className="w-[200px] h-[200px] rounded-full overflow-hidden bg-slate-100 border-4 border-slate-100 shadow-md flex items-center justify-center">
+            <img
+              src={(displayItem?.image_url || displayItem?.imageUrl) ? encodeURI(displayItem?.image_url || displayItem?.imageUrl) : '/default-avatar.png'}
+              alt={formatPersonName(displayItem, { includePrefix: true }) || 'รูปภาพประจำตัว'}
+              className="w-full h-full object-cover object-top"
+              onError={(e) => {
+                const target = e.currentTarget;
+                if (target.src !== '/default-avatar.png' && !target.src.endsWith('/default-avatar.png')) {
+                  target.src = '/default-avatar.png';
+                }
+              }}
+            />
+          </div>
+        </div>
+      ) : (
+        <div>
+          {categoryKey && categoryKey !== 'personnel' && (
+            <div className="mb-2">
+              <MissionBadge category={categoryKey} />
+            </div>
+          )}
+          <h3
+            className="text-[15px] font-bold text-slate-900 leading-snug line-clamp-2"
+            title={recordTitle}
+          >
+            {recordTitle}
+          </h3>
+        </div>
+      )}
     </div>
   );
 

@@ -13,7 +13,7 @@ import { IPTypeBadge } from '@/components/ui/ip-type-badge';
 import { PublicationTypeBadge } from '@/components/ui/publication-type-badge';
 import { EvaluationTag, EvaluationTags, LevelBadge, SdgTagList } from '@/components/ui/evaluation-tag';
 import { formatDateBE } from '@/components/ui/RecordDetailDrawer';
-import { FilterPopover, EvalFramework } from '@/components/ui';
+import { FilterPopover, EvalFramework, TablePagination } from '@/components/ui';
 import {
   itemMatchesDepartmentMulti,
   itemMatchesDateRange,
@@ -21,6 +21,7 @@ import {
 } from '@/lib/filterMatching';
 import { EvaluationDrawer } from './EvaluationDrawer';
 import { BulkEvaluationModal } from './BulkEvaluationModal';
+import { resolveHybridSDG } from '@/lib/sdgEngine';
 import {
   getCachedCategoryData,
   fetchCategoryData,
@@ -98,7 +99,7 @@ export const EvaluationView: React.FC = () => {
 
   // Toolbar filters
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'unevaluated' | 'evaluated' | 'all'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'evaluated' | 'auto_detected' | 'unevaluated'>('all');
   const [selectedDept, setSelectedDept] = useState('');
   const [selectedDeptCustom, setSelectedDeptCustom] = useState('');
   const [selectedDateFrom, setSelectedDateFrom] = useState('');
@@ -208,7 +209,7 @@ export const EvaluationView: React.FC = () => {
     }
   }, [searchParams, datasets]);
 
-  // Reactive Category Counts based on statusFilter ('unevaluated' | 'evaluated' | 'all')
+  // Reactive Category Counts based on statusFilter ('all' | 'evaluated' | 'auto_detected' | 'unevaluated')
   const categoryTabCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     EVAL_CATEGORIES.forEach((cat) => {
@@ -221,6 +222,19 @@ export const EvaluationView: React.FC = () => {
           const key = getRecordEvalKey(cat, item);
           if (isEvaluated(cat, evalMap[key])) {
             count += 1;
+          }
+        });
+        counts[cat] = count;
+      } else if (statusFilter === 'auto_detected') {
+        let count = 0;
+        list.forEach((item) => {
+          const key = getRecordEvalKey(cat, item);
+          const isEv = isEvaluated(cat, evalMap[key]);
+          if (!isEv) {
+            const hybrid = resolveHybridSDG(item, cat, evalMap);
+            if (hybrid.sdgIds.length > 0) {
+              count += 1;
+            }
           }
         });
         counts[cat] = count;
@@ -258,14 +272,20 @@ export const EvaluationView: React.FC = () => {
   const categoryProgress = useMemo(() => {
     const total = currentCategoryList.length;
     let evaluated = 0;
+    let autoDetected = 0;
     currentCategoryList.forEach((item) => {
       const key = getRecordEvalKey(activeCategory, item);
       if (isEvaluated(activeCategory, evalMap[key])) {
         evaluated += 1;
+      } else {
+        const hybrid = resolveHybridSDG(item, activeCategory, evalMap);
+        if (hybrid.sdgIds.length > 0) {
+          autoDetected += 1;
+        }
       }
     });
     const percent = total > 0 ? Math.round((evaluated / total) * 100) : 0;
-    return { evaluated, total, percent };
+    return { evaluated, autoDetected, total, percent };
   }, [currentCategoryList, activeCategory, evalMap]);
 
   // Filtered dataset
@@ -274,10 +294,13 @@ export const EvaluationView: React.FC = () => {
       const key = getRecordEvalKey(activeCategory, item);
       const ev = evalMap[key];
       const evaluated = isEvaluated(activeCategory, ev);
+      const hybrid = resolveHybridSDG(item, activeCategory, evalMap);
+      const isAuto = !evaluated && hybrid.sdgIds.length > 0;
 
       // 1. Status Filter
-      if (statusFilter === 'unevaluated' && evaluated) return false;
       if (statusFilter === 'evaluated' && !evaluated) return false;
+      if (statusFilter === 'auto_detected' && !isAuto) return false;
+      if (statusFilter === 'unevaluated' && evaluated) return false;
 
       // 2. Department Filter
       if (selectedDept || selectedDeptCustom) {
@@ -524,7 +547,7 @@ export const EvaluationView: React.FC = () => {
       } else if (activeCategory === 'ip') {
         row['เรื่อง'] = item.name || '-';
         row['ประเภททรัพย์สินทางปัญญา'] = item.type || '-';
-        row['ผู้ประดิษฐ์'] = item.creator || '-';
+        row['ผู้สร้างผลงาน'] = item.creator || '-';
         row['สังกัด'] = item.department || '-';
       }
 
@@ -760,6 +783,7 @@ export const EvaluationView: React.FC = () => {
                   subFilter: selectedSubFilter,
                   sdgs: selectedSdgs,
                   framework: selectedFramework,
+                  evaluationStatus: statusFilter,
                 }}
                 onApply={(newFilters) => {
                   setSelectedDept(newFilters.departments.join(','));
@@ -773,12 +797,15 @@ export const EvaluationView: React.FC = () => {
                   setSelectedSubFilter(newFilters.subFilter || '');
                   setSelectedSdgs(newFilters.sdgs || []);
                   setSelectedFramework(newFilters.framework || 'all');
+                  if (newFilters.evaluationStatus) {
+                    setStatusFilter(newFilters.evaluationStatus);
+                  }
                   setCurrentPage(1);
                 }}
                 onReset={handleResetFilters}
               />
 
-              {/* Status Toggle Control (ยังไม่ประเมิน / ประเมินแล้ว / ทั้งหมด) */}
+              {/* Status Toggle Control (ยังไม่ประเมิน / ประเมินแล้ว / จำแนกอัตโนมัติ / ทั้งหมด) */}
               <div
                 style={{
                   display: 'inline-flex',
@@ -795,7 +822,7 @@ export const EvaluationView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => {
-                    setStatusFilter('unevaluated');
+                    setStatusFilter('all');
                     setCurrentPage(1);
                   }}
                   style={{
@@ -805,13 +832,13 @@ export const EvaluationView: React.FC = () => {
                     fontSize: '12px',
                     fontWeight: 400,
                     cursor: 'pointer',
-                    backgroundColor: statusFilter === 'unevaluated' ? '#ffffff' : 'transparent',
-                    color: statusFilter === 'unevaluated' ? '#0f172a' : '#64748b',
-                    boxShadow: statusFilter === 'unevaluated' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                    backgroundColor: statusFilter === 'all' ? '#ffffff' : 'transparent',
+                    color: statusFilter === 'all' ? '#0f172a' : '#64748b',
+                    boxShadow: statusFilter === 'all' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
                     transition: 'all 0.15s',
                   }}
                 >
-                  ยังไม่ประเมิน
+                  ทั้งหมด
                 </button>
 
                 <button
@@ -839,7 +866,7 @@ export const EvaluationView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => {
-                    setStatusFilter('all');
+                    setStatusFilter('auto_detected');
                     setCurrentPage(1);
                   }}
                   style={{
@@ -849,13 +876,35 @@ export const EvaluationView: React.FC = () => {
                     fontSize: '12px',
                     fontWeight: 400,
                     cursor: 'pointer',
-                    backgroundColor: statusFilter === 'all' ? '#ffffff' : 'transparent',
-                    color: statusFilter === 'all' ? '#0f172a' : '#64748b',
-                    boxShadow: statusFilter === 'all' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                    backgroundColor: statusFilter === 'auto_detected' ? '#ffffff' : 'transparent',
+                    color: statusFilter === 'auto_detected' ? '#0f172a' : '#64748b',
+                    boxShadow: statusFilter === 'auto_detected' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
                     transition: 'all 0.15s',
                   }}
                 >
-                  ทั้งหมด
+                  จำแนกอัตโนมัติ
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStatusFilter('unevaluated');
+                    setCurrentPage(1);
+                  }}
+                  style={{
+                    padding: '5px 11px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    fontSize: '12px',
+                    fontWeight: 400,
+                    cursor: 'pointer',
+                    backgroundColor: statusFilter === 'unevaluated' ? '#ffffff' : 'transparent',
+                    color: statusFilter === 'unevaluated' ? '#0f172a' : '#64748b',
+                    boxShadow: statusFilter === 'unevaluated' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  ยังไม่ประเมิน
                 </button>
               </div>
             </div>
@@ -1010,27 +1059,27 @@ export const EvaluationView: React.FC = () => {
             <thead>
               <tr
                 style={{
-                  backgroundColor: '#f8fafc',
-                  borderBottom: '1px solid #e2e8f0',
-                  color: '#475569',
+                  backgroundColor: '#00A651',
+                  borderBottom: '2px solid #00A651',
+                  color: '#ffffff',
                   fontWeight: 600,
-                  fontSize: '12px',
+                  fontSize: '13px',
                 }}
               >
-                <th style={{ width: '55px', padding: '12px 8px', textAlign: 'center' }}>
+                <th style={{ width: '55px', padding: '12px 8px', textAlign: 'center', color: '#ffffff', backgroundColor: '#00A651', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>
                   ลำดับที่
                 </th>
 
                 {/* Category Columns */}
                 {activeCategory === 'research' && (
                   <>
-                    <th style={{ minWidth: '240px', padding: '12px 12px' }}>
+                    <th style={{ minWidth: '240px', padding: '12px 12px', color: '#ffffff', backgroundColor: '#00A651', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>
                       ชื่อโครงการ
                     </th>
-                    <th style={{ width: '150px', padding: '12px 10px' }}>
+                    <th style={{ width: '150px', padding: '12px 10px', color: '#ffffff', backgroundColor: '#00A651', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>
                       หัวหน้าโครงการ
                     </th>
-                    <th style={{ width: '120px', padding: '12px 10px' }}>
+                    <th style={{ width: '120px', padding: '12px 10px', color: '#ffffff', backgroundColor: '#00A651', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>
                       สังกัด
                     </th>
                   </>
@@ -1038,13 +1087,13 @@ export const EvaluationView: React.FC = () => {
 
                 {activeCategory === 'academic' && (
                   <>
-                    <th style={{ minWidth: '240px', padding: '12px 12px' }}>
+                    <th style={{ minWidth: '240px', padding: '12px 12px', color: '#ffffff', backgroundColor: '#00A651', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>
                       ชื่อโครงการ
                     </th>
-                    <th style={{ width: '160px', padding: '12px 10px' }}>
+                    <th style={{ width: '160px', padding: '12px 10px', color: '#ffffff', backgroundColor: '#00A651', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>
                       หัวหน้าโครงการ
                     </th>
-                    <th style={{ width: '120px', padding: '12px 10px' }}>
+                    <th style={{ width: '120px', padding: '12px 10px', color: '#ffffff', backgroundColor: '#00A651', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>
                       สังกัด
                     </th>
                   </>
@@ -1052,19 +1101,19 @@ export const EvaluationView: React.FC = () => {
 
                 {activeCategory === 'publications' && (
                   <>
-                    <th style={{ minWidth: '220px', padding: '12px 12px' }}>
+                    <th style={{ minWidth: '220px', padding: '12px 12px', color: '#ffffff', backgroundColor: '#00A651', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>
                       ชื่อผลงานทางวิชาการ
                     </th>
-                    <th style={{ width: '110px', padding: '12px 10px', textAlign: 'center' }}>
+                    <th style={{ width: '110px', padding: '12px 10px', textAlign: 'center', color: '#ffffff', backgroundColor: '#00A651', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>
                       ชนิดของผลงาน
                     </th>
-                    <th style={{ width: '90px', padding: '12px 8px', textAlign: 'center' }}>
+                    <th style={{ width: '90px', padding: '12px 8px', textAlign: 'center', color: '#ffffff', backgroundColor: '#00A651', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>
                       ระดับ
                     </th>
-                    <th style={{ width: '150px', padding: '12px 10px' }}>
+                    <th style={{ width: '150px', padding: '12px 10px', color: '#ffffff', backgroundColor: '#00A651', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>
                       เจ้าของผลงาน
                     </th>
-                    <th style={{ width: '120px', padding: '12px 10px' }}>
+                    <th style={{ width: '120px', padding: '12px 10px', color: '#ffffff', backgroundColor: '#00A651', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>
                       สังกัด
                     </th>
                   </>
@@ -1072,19 +1121,19 @@ export const EvaluationView: React.FC = () => {
 
                 {activeCategory === 'service' && (
                   <>
-                    <th style={{ width: '95px', padding: '12px 8px', textAlign: 'center' }}>
+                    <th style={{ width: '95px', padding: '12px 8px', textAlign: 'center', color: '#ffffff', backgroundColor: '#00A651', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>
                       วัน/เดือน/ปี
                     </th>
-                    <th style={{ minWidth: '220px', padding: '12px 12px' }}>
+                    <th style={{ minWidth: '220px', padding: '12px 12px', color: '#ffffff', backgroundColor: '#00A651', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>
                       เรื่อง
                     </th>
-                    <th style={{ width: '110px', padding: '12px 10px', textAlign: 'center' }}>
+                    <th style={{ width: '110px', padding: '12px 10px', textAlign: 'center', color: '#ffffff', backgroundColor: '#00A651', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>
                       ประเภท
                     </th>
-                    <th style={{ width: '150px', padding: '12px 10px' }}>
+                    <th style={{ width: '150px', padding: '12px 10px', color: '#ffffff', backgroundColor: '#00A651', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>
                       ผู้ให้บริการ
                     </th>
-                    <th style={{ width: '120px', padding: '12px 10px' }}>
+                    <th style={{ width: '120px', padding: '12px 10px', color: '#ffffff', backgroundColor: '#00A651', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>
                       สังกัด
                     </th>
                   </>
@@ -1092,34 +1141,34 @@ export const EvaluationView: React.FC = () => {
 
                 {activeCategory === 'ip' && (
                   <>
-                    <th style={{ minWidth: '240px', padding: '12px 12px' }}>
+                    <th style={{ minWidth: '240px', padding: '12px 12px', color: '#ffffff', backgroundColor: '#00A651', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>
                       เรื่อง
                     </th>
-                    <th style={{ width: '140px', padding: '12px 10px', textAlign: 'center' }}>
+                    <th style={{ width: '140px', padding: '12px 10px', textAlign: 'center', color: '#ffffff', backgroundColor: '#00A651', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>
                       ประเภททรัพย์สินทางปัญญา
                     </th>
-                    <th style={{ width: '150px', padding: '12px 10px' }}>
-                      ผู้ประดิษฐ์
+                    <th style={{ width: '150px', padding: '12px 10px', color: '#ffffff', backgroundColor: '#00A651', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>
+                      ผู้สร้างผลงาน
                     </th>
-                    <th style={{ width: '120px', padding: '12px 10px' }}>
+                    <th style={{ width: '120px', padding: '12px 10px', color: '#ffffff', backgroundColor: '#00A651', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>
                       สังกัด
                     </th>
                   </>
                 )}
 
                 {/* Common Evaluation Columns */}
-                <th style={{ minWidth: '150px', padding: '12px 10px' }}>
+                <th style={{ minWidth: '150px', padding: '12px 10px', color: '#ffffff', backgroundColor: '#00A651', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>
                   SDGs
                 </th>
-                <th style={{ width: '90px', padding: '12px 10px', textAlign: 'center' }}>
+                <th style={{ width: '90px', padding: '12px 10px', textAlign: 'center', color: '#ffffff', backgroundColor: '#00A651', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>
                   I am / I see
                 </th>
                 {activeCategory === 'publications' && (
-                  <th style={{ width: '90px', padding: '12px 10px', textAlign: 'center' }}>
+                  <th style={{ width: '90px', padding: '12px 10px', textAlign: 'center', color: '#ffffff', backgroundColor: '#00A651', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>
                     Q / TCI
                   </th>
                 )}
-                <th style={{ width: '100px', padding: '12px 10px', textAlign: 'center' }}>
+                <th style={{ width: '100px', padding: '12px 10px', textAlign: 'center', color: '#ffffff', backgroundColor: '#00A651', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>
                   สถานะ
                 </th>
               </tr>
@@ -1146,6 +1195,8 @@ export const EvaluationView: React.FC = () => {
                   const key = getRecordEvalKey(activeCategory, item);
                   const ev = evalMap[key];
                   const evaluated = isEvaluated(activeCategory, ev);
+                  const hybrid = resolveHybridSDG(item, activeCategory, evalMap);
+                  const isAuto = !evaluated && hybrid.sdgIds && hybrid.sdgIds.length > 0;
                   const actualRowNo = startIndex + rowIdx + 1;
 
                   return (
@@ -1274,6 +1325,27 @@ export const EvaluationView: React.FC = () => {
                             sdgIds={ev.sdg_ids}
                             maxSdgs={3}
                           />
+                        ) : isAuto ? (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                            <SdgTagList
+                              sdgIds={hybrid.sdgIds}
+                              maxSdgs={3}
+                            />
+                            <span
+                              style={{
+                                fontSize: '10px',
+                                fontWeight: 700,
+                                padding: '1px 5px',
+                                borderRadius: '4px',
+                                backgroundColor: '#fef3c7',
+                                color: '#b45309',
+                                border: '1px solid #fde68a',
+                              }}
+                              title="SDG ที่จำแนกอัตโนมัติจากชื่อโครงการ/สังกัด"
+                            >
+                              Auto
+                            </span>
+                          </div>
                         ) : (
                           <span className="text-slate-300">-</span>
                         )}
@@ -1319,10 +1391,12 @@ export const EvaluationView: React.FC = () => {
                           className={`inline-block px-2.5 py-0.5 rounded-full text-[11.5px] font-bold ${
                             evaluated
                               ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              : isAuto
+                              ? 'bg-amber-50 text-amber-700 border border-amber-200'
                               : 'bg-slate-100 text-slate-500 border border-slate-200'
                           }`}
                         >
-                          {evaluated ? 'ประเมินแล้ว' : 'ยังไม่ประเมิน'}
+                          {evaluated ? 'ประเมินแล้ว' : isAuto ? 'จำแนกอัตโนมัติ' : 'ยังไม่ประเมิน'}
                         </span>
                       </td>
                     </tr>
@@ -1334,111 +1408,19 @@ export const EvaluationView: React.FC = () => {
         </div>
 
         {/* 4. Pagination Footer */}
-        <div
-          style={{
-            padding: '12px 20px',
-            backgroundColor: '#ffffff',
-            borderTop: '1px solid #e2e8f0',
-            display: 'flex',
-            flexWrap: 'wrap',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: '12px',
-            fontSize: '13px',
-            color: '#64748b',
+        <TablePagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          pageSize={itemsPerPage}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(newSize) => {
+            setItemsPerPage(newSize);
+            setCurrentPage(1);
           }}
-        >
-          <div>
-            แสดง{' '}
-            <span style={{ fontWeight: 600, color: '#1e293b' }}>
-              {totalItems === 0 ? 0 : startIndex + 1}
-            </span>{' '}
-            -{' '}
-            <span style={{ fontWeight: 600, color: '#1e293b' }}>
-              {Math.min(startIndex + itemsPerPage, totalItems)}
-            </span>{' '}
-            จากทั้งหมด{' '}
-            <span style={{ fontWeight: 600, color: '#1e293b' }}>
-              {totalItems.toLocaleString()}
-            </span>{' '}
-            รายการ
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>รายการต่อหน้า:</span>
-              <select
-                value={itemsPerPage}
-                onChange={(e) => {
-                  setItemsPerPage(Number(e.target.value));
-                  setCurrentPage(1);
-                }}
-                style={{
-                  border: '1px solid #cbd5e1',
-                  borderRadius: '6px',
-                  padding: '4px 8px',
-                  fontSize: '12px',
-                  backgroundColor: '#ffffff',
-                  color: '#1e293b',
-                  cursor: 'pointer',
-                }}
-              >
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
-              </select>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <button
-                type="button"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage <= 1}
-                title="ก่อนหน้า"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '6px',
-                  border: '1px solid #cbd5e1',
-                  backgroundColor: '#ffffff',
-                  color: currentPage <= 1 ? '#cbd5e1' : '#475569',
-                  cursor: currentPage <= 1 ? 'not-allowed' : 'pointer',
-                }}
-              >
-                <FaChevronLeft style={{ fontSize: '11px' }} />
-              </button>
-
-              <span style={{ fontSize: '12px', fontWeight: 600, color: '#334155', padding: '0 4px' }}>
-                {currentPage} / {totalPages}
-              </span>
-
-              <button
-                type="button"
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage >= totalPages}
-                title="ถัดไป"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '6px',
-                  border: '1px solid #cbd5e1',
-                  backgroundColor: '#ffffff',
-                  color: currentPage >= totalPages ? '#cbd5e1' : '#475569',
-                  cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer',
-                }}
-              >
-                <FaChevronRight style={{ fontSize: '11px' }} />
-              </button>
-            </div>
-          </div>
-        </div>
+          pageSizeOptions={[10, 20, 50, 100]}
+          unitLabel="รายการ"
+        />
       </div>
 
       {/* Right Evaluation Drawer */}

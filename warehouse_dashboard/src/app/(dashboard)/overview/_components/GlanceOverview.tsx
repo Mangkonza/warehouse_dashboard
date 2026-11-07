@@ -30,11 +30,11 @@ interface GlanceOverviewProps {
 }
 
 const COLUMNS: HeatmapColumn[] = [
-  { key: 'research', label: 'วิจัย', icon: FaFlask, accent: MISSION_THEMES.research.card.icon },
-  { key: 'academic', label: 'วิชาการ', icon: FaGraduationCap, accent: MISSION_THEMES.academic.card.icon },
-  { key: 'publications', label: 'ตีพิมพ์', icon: FaBook, accent: MISSION_THEMES.publications.card.icon },
-  { key: 'service', label: 'บริการ', icon: FaHandshake, accent: MISSION_THEMES.service.card.icon },
-  { key: 'ip', label: 'ทรัพย์สินฯ', icon: FaCertificate, accent: MISSION_THEMES.ip.card.icon },
+  { key: 'research', label: 'โครงการวิจัย', icon: FaFlask, accent: MISSION_THEMES.research.card.icon },
+  { key: 'academic', label: 'โครงการพัฒนาวิชาการ', icon: FaGraduationCap, accent: MISSION_THEMES.academic.card.icon },
+  { key: 'publications', label: 'ผลงานตีพิมพ์ทางวิชาการ', icon: FaBook, accent: MISSION_THEMES.publications.card.icon },
+  { key: 'service', label: 'งานบริการวิชาการ', icon: FaHandshake, accent: MISSION_THEMES.service.card.icon },
+  { key: 'ip', label: 'งานทรัพย์สินทางปัญญา', icon: FaCertificate, accent: MISSION_THEMES.ip.card.icon },
 ];
 
 function currentFiscalYearBE(now: Date): number {
@@ -178,7 +178,8 @@ export function GlanceOverview({
   }, [research, academic, publications, service, ip]);
 
   const { topSdgs } = useMemo(() => {
-    const sdgCounts: Record<number, number> = {};
+    const sdgCounts: Record<number, { count: number; verifiedCount: number; autoDetectedCount: number }> = {};
+    const seenPerSdg = new Map<number, Set<string>>();
     const groups: [any[], string][] = [
       [research, 'research'],
       [academic, 'academic'],
@@ -186,18 +187,46 @@ export function GlanceOverview({
       [service, 'service'],
       [ip, 'ip'],
     ];
+
     groups.forEach(([items, category]) => {
-      items.forEach((it) => {
+      items.forEach((it, idx) => {
+        const itemId = String(it.id || it._id || it.name || `${category}_${idx}`);
         const res = resolveItemStrategicAlignment(it, category);
-        if (res.sdgNumber >= 1 && res.sdgNumber <= 17) {
-          sdgCounts[res.sdgNumber] = (sdgCounts[res.sdgNumber] || 0) + 1;
-        }
+        const sdgList = res.sdgIds && res.sdgIds.length > 0
+          ? res.sdgIds
+          : (res.sdgNumber >= 1 && res.sdgNumber <= 17 ? [res.sdgNumber] : []);
+
+        sdgList.forEach((num) => {
+          if (num >= 1 && num <= 17) {
+            if (!seenPerSdg.has(num)) seenPerSdg.set(num, new Set());
+            const set = seenPerSdg.get(num)!;
+            if (!set.has(itemId)) {
+              set.add(itemId);
+              if (!sdgCounts[num]) {
+                sdgCounts[num] = { count: 0, verifiedCount: 0, autoDetectedCount: 0 };
+              }
+              sdgCounts[num].count += 1;
+              if (res.isVerified) {
+                sdgCounts[num].verifiedCount += 1;
+              } else {
+                sdgCounts[num].autoDetectedCount += 1;
+              }
+            }
+          }
+        });
       });
     });
+
     const top = Object.entries(sdgCounts)
-      .map(([num, count]) => ({ num: Number(num), count }))
+      .map(([num, data]) => ({
+        num: Number(num),
+        count: data.count,
+        verifiedCount: data.verifiedCount,
+        autoDetectedCount: data.autoDetectedCount,
+      }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 5);
+
     return { topSdgs: top };
   }, [research, academic, publications, service, ip]);
 

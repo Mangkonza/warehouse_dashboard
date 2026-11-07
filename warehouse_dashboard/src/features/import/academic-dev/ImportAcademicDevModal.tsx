@@ -519,7 +519,7 @@ export const ImportAcademicDevModal: React.FC<ImportAcademicDevModalProps> = ({
               className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors disabled:opacity-30"
               title="ปิดหน้าต่าง"
             >
-              <FaTimes className="text-base" />
+              <FaTimes className="text-[18px]" />
             </button>
           </div>
 

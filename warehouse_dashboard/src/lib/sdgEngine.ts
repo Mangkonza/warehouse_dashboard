@@ -140,6 +140,132 @@ export function resolvePrimarySDG(item: any): SDGItem | null {
   return detected.length > 0 ? detected[0].sdg : SDGS_DATA[9];
 }
 
+export interface HybridSdgResult {
+  sdgIds: number[];
+  primarySdg: number;
+  isVerified: boolean;
+  statusLabel: 'Verified' | 'Auto-Detected';
+  statusTextTh: 'ผ่านการประเมินแล้ว' | 'ระบบจำแนกอัตโนมัติ (รอตรวจสอบ)';
+  matchedKeywords: string[];
+  confidencePercent: number;
+}
+
+/**
+ * Hybrid SDG Resolver:
+ * 1. ตรวจสอบผลประเมินจริงจากผู้ประเมิน (evaluation.sdg_ids / item.sdg_ids) เป็นลำดับแรกเสมอ
+ * 2. หากยังไม่มีผลประเมิน จึงใช้ SDG Auto-Detection Engine วิเคราะห์ข้อมูลแทน
+ */
+export function resolveHybridSDG(
+  item: any,
+  category?: string,
+  evaluationsMap?: Record<string, any>
+): HybridSdgResult {
+  if (!item) {
+    return {
+      sdgIds: [9],
+      primarySdg: 9,
+      isVerified: false,
+      statusLabel: 'Auto-Detected',
+      statusTextTh: 'ระบบจำแนกอัตโนมัติ (รอตรวจสอบ)',
+      matchedKeywords: ['บริบทเริ่มต้น'],
+      confidencePercent: 50,
+    };
+  }
+
+  // 1. ตรวจสอบผลประเมินจริงจากผู้ประเมิน
+  let verifiedSdgs: number[] = [];
+
+  const recId = String(item.id || item._id || item.name || '').trim();
+  const catKey = (category || item._category || '').toLowerCase();
+  const ev =
+    item.evaluation ||
+    (evaluationsMap && catKey ? evaluationsMap[`${catKey}_${recId}`] || evaluationsMap[recId] : null);
+
+  const rawSdgs =
+    ev?.sdg_ids ||
+    item.sdg_ids ||
+    ev?.sdgs ||
+    item.sdgs;
+
+  if (rawSdgs) {
+    const arr = Array.isArray(rawSdgs)
+      ? rawSdgs
+      : String(rawSdgs).split(/[,;\s]+/).map((s) => s.trim()).filter(Boolean);
+    verifiedSdgs = arr
+      .map((n: any) => (typeof n === 'number' ? n : Number(String(n).replace(/\D/g, ''))))
+      .filter((n: number) => !isNaN(n) && n >= 1 && n <= 17);
+  } else if (item.sdg_code && item.sdg_code !== '-' && item.sdg_code !== 'nan') {
+    const num = Number(String(item.sdg_code).replace(/\D/g, ''));
+    if (!isNaN(num) && num >= 1 && num <= 17) {
+      verifiedSdgs = [num];
+    }
+  }
+
+  verifiedSdgs = Array.from(new Set(verifiedSdgs));
+
+  if (verifiedSdgs.length > 0) {
+    return {
+      sdgIds: verifiedSdgs,
+      primarySdg: verifiedSdgs[0],
+      isVerified: true,
+      statusLabel: 'Verified',
+      statusTextTh: 'ผ่านการประเมินแล้ว',
+      matchedKeywords: ['ผลการประเมินยืนยัน'],
+      confidencePercent: 100,
+    };
+  }
+
+  // 2. หากยังไม่ผ่านการประเมิน ใช้ Auto-Detection วิเคราะห์จากข้อมูลในฐานข้อมูล
+  const title = item.name || item.title || item.topic_title || '';
+  const dept = Array.isArray(item.departments)
+    ? item.departments.join(' ')
+    : item.department || '';
+  const extra = [
+    item.journal,
+    item.target_group,
+    item.service_type,
+    item.project_type_category,
+    Array.isArray(item.characteristics) ? item.characteristics.join(' ') : item.characteristics,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  const detected = detectSDGsFromText(title, dept, extra);
+
+  if (detected.length > 0) {
+    const topMatches = detected.slice(0, 2);
+    const sdgIds = Array.from(new Set(topMatches.map((m) => m.sdg.number)));
+    const matchedKeywords = Array.from(new Set(detected.flatMap((m) => m.matchedKeywords)));
+    return {
+      sdgIds,
+      primarySdg: detected[0].sdg.number,
+      isVerified: false,
+      statusLabel: 'Auto-Detected',
+      statusTextTh: 'ระบบจำแนกอัตโนมัติ (รอตรวจสอบ)',
+      matchedKeywords,
+      confidencePercent: detected[0].confidencePercent,
+    };
+  }
+
+  // Fallback ตามบริบทสังกัด
+  let fallbackNum = 9;
+  const deptLower = dept.toLowerCase();
+  if (deptLower.includes('ชลประทาน') || deptLower.includes('ire')) fallbackNum = 6;
+  else if (deptLower.includes('เกษตร') || deptLower.includes('อาหาร') || deptLower.includes('ae') || deptLower.includes('fe')) fallbackNum = 2;
+  else if (deptLower.includes('พลังงาน') || deptLower.includes('eeec')) fallbackNum = 7;
+  else if (deptLower.includes('โยธา') || deptLower.includes('ce')) fallbackNum = 11;
+
+  return {
+    sdgIds: [fallbackNum],
+    primarySdg: fallbackNum,
+    isVerified: false,
+    statusLabel: 'Auto-Detected',
+    statusTextTh: 'ระบบจำแนกอัตโนมัติ (รอตรวจสอบ)',
+    matchedKeywords: ['บริบทภาควิชา'],
+    confidencePercent: 55,
+  };
+}
+
 /**
  * คำนวณงบประมาณของรายการข้อมูลตามโครงสร้างของแต่ละพันธกิจ
  */
@@ -161,6 +287,8 @@ export interface AggregatedSDGEntry {
   sdg: SDGItem;
   cluster: SDGStrategicCluster;
   count: number;
+  verifiedCount?: number;
+  autoDetectedCount?: number;
   budget: number;
   percentOfCount: number;
   percentOfBudget: number;
@@ -189,6 +317,8 @@ export interface AggregatedGreenMetricEntry {
 
 export interface SDGAnalyticsSummary {
   totalItems: number;
+  totalVerified?: number;
+  totalAuto?: number;
   totalBudget: number;
   coveredCount: number;
   all17: AggregatedSDGEntry[];
@@ -199,37 +329,54 @@ export interface SDGAnalyticsSummary {
 }
 
 /**
- * คำนวณสรุปผล SDG แบบครบวงจร (รายข้อ 1-17, Top Active SDGs, 4 คลัสเตอร์วิศวกรรม, และ 6 หมวด UI GreenMetric)
+ * คำนวณสรุปผล SDG แบบครบวงจร (Hybrid: ประเมินจริง + Auto-Detect)
  */
 export function aggregateSDGMetrics(items: any[]): SDGAnalyticsSummary {
   const validItems = (items || []).filter((item) => !isTestRecord(item));
 
-  const mapByNum: Record<number, { count: number; budget: number; items: any[] }> = {};
+  const mapByNum: Record<number, { count: number; verifiedCount: number; autoDetectedCount: number; budget: number; items: any[] }> = {};
   for (let i = 1; i <= 17; i++) {
-    mapByNum[i] = { count: 0, budget: 0, items: [] };
+    mapByNum[i] = { count: 0, verifiedCount: 0, autoDetectedCount: 0, budget: 0, items: [] };
   }
 
   let totalCount = 0;
   let totalBudget = 0;
+  let totalVerified = 0;
+  let totalAuto = 0;
 
   validItems.forEach((item) => {
-    const primary = resolvePrimarySDG(item);
-    if (!primary) return;
-    const num = primary.number;
+    const hybrid = resolveHybridSDG(item);
     const b = extractItemBudget(item);
-    mapByNum[num].count += 1;
-    mapByNum[num].budget += b;
-    mapByNum[num].items.push(item);
+    hybrid.sdgIds.forEach((num) => {
+      if (!mapByNum[num]) return;
+      mapByNum[num].count += 1;
+      if (hybrid.isVerified) {
+        mapByNum[num].verifiedCount += 1;
+      } else {
+        mapByNum[num].autoDetectedCount += 1;
+      }
+      mapByNum[num].budget += b;
+      mapByNum[num].items.push({
+        ...item,
+        _isVerified: hybrid.isVerified,
+        _hybridStatus: hybrid.statusLabel,
+        _hybridStatusText: hybrid.statusTextTh,
+      });
+    });
     totalCount += 1;
     totalBudget += b;
+    if (hybrid.isVerified) totalVerified += 1;
+    else totalAuto += 1;
   });
 
   const all17: AggregatedSDGEntry[] = Object.values(SDGS_DATA).map((sdg) => {
-    const bucket = mapByNum[sdg.number] || { count: 0, budget: 0, items: [] };
+    const bucket = mapByNum[sdg.number] || { count: 0, verifiedCount: 0, autoDetectedCount: 0, budget: 0, items: [] };
     return {
       sdg,
       cluster: getClusterForSDG(sdg.number),
       count: bucket.count,
+      verifiedCount: bucket.verifiedCount,
+      autoDetectedCount: bucket.autoDetectedCount,
       budget: bucket.budget,
       percentOfCount: totalCount > 0 ? (bucket.count / totalCount) * 100 : 0,
       percentOfBudget: totalBudget > 0 ? (bucket.budget / totalBudget) * 100 : 0,
@@ -283,6 +430,8 @@ export function aggregateSDGMetrics(items: any[]): SDGAnalyticsSummary {
 
   return {
     totalItems: totalCount,
+    totalVerified,
+    totalAuto,
     totalBudget,
     coveredCount: activeSDGs.length,
     all17,

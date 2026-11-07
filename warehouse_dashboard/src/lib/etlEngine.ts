@@ -1,3 +1,4 @@
+import { formatPersonName, splitFullName } from './formatPersonName';
 import * as XLSX from 'xlsx';
 import { CATEGORIES_CONFIG, DEPARTMENTS } from '../config/dataManagementConfig';
 import { CategoryKey, ColumnDef, ParsedRowResult, SheetParseResult, ValidationIssue } from '../types/dataManagement';
@@ -27,7 +28,7 @@ const COLUMN_ALIASES: Record<string, string[]> = {
   head: ['หัวหน้าโครงการวิจัย', 'หัวหน้าโครงการ', 'หัวหน้า', 'pi', 'project_leader', 'head'],
   person: ['ชื่อ - นามสกุล', 'ชื่อ-นามสกุล', 'ชื่อ - สกุล', 'ผู้รับผิดชอบ', 'ผู้จัด', 'person', 'responsible'],
   owner: ['เจ้าของผลงาน', 'เจ้าของสิทธิ', 'เจ้าของลิขสิทธิ์', 'ผู้แต่ง', 'ผู้ประพันธ์', 'owner', 'author'],
-  creator: ['ผู้ประดิษฐ์', 'ผู้สร้างสรรค์', 'creator', 'inventor'],
+  creator: ['ผู้สร้างผลงาน', 'ผู้สร้างสรรค์', 'creator', 'inventor'],
   department: ['หน่วยงานรับผิดชอบ', 'หน่วยงานดำเนินการ', 'สังกัดภาควิชา/สาขาวิชา', 'ภาควิชา/ศูนย์ฯ', 'ภาควิชา', 'สังกัด', 'หน่วยงาน', 'department', 'dept'],
   budget_internal: ['งบประมาณภายใน', 'งบประมาณ ภายใน', 'งบภายใน', 'internal_budget', 'ทุนภายใน'],
   budget_external: ['งบประมาณภายนอก', 'งบประมาณ ภายนอก', 'งบภายนอก', 'external_budget', 'ทุนภายนอก'],
@@ -57,9 +58,11 @@ const COLUMN_ALIASES: Record<string, string[]> = {
   trl: ['ระดับ trl', 'ระดับtrl', 'trl_level', 'trl'],
   project_nature: ['ลักษณะโครงการ', 'project_nature'],
   characteristics: ['ลักษณะงาน', 'characteristics'],
-  inventors: ['ผู้ประดิษฐ์ร่วม', 'inventors'],
+  inventors: ['ผู้สร้างผลงานร่วม', 'inventors'],
   fiscal_year_be: ['ปีงบประมาณ', 'ปี พ.ศ.', 'fiscal_year', 'fiscal_year_be'],
   req_no: ['เลขที่คำขอ', 'เลขที่สิทธิบัตร', 'req_no', 'patent_no'],
+  first_name: ['ชื่อจริง', 'ชื่อ', 'first_name', 'firstname', 'first name'],
+  last_name: ['นามสกุล', 'สกุล', 'last_name', 'lastname', 'last name'],
   title_th: ['คำนำหน้านาม', 'คำนำหน้า', 'title', 'prefix'],
   position: ['ตำแหน่งวิชาการ', 'ตำแหน่ง', 'position', 'role'],
   email: ['อีเมล', 'e-mail', 'email'],
@@ -311,6 +314,33 @@ export function transformAndValidateRow(
   } else if (categoryKey === 'academic') {
     if (data.budget !== undefined) {
       data.budget = parseBudget(data.budget);
+    }
+  }
+
+  // 2.1 จัดการชื่อ-นามสกุล บุคลากร (รองรับทั้งแยกคอลัมน์ และคอลัมน์ชื่อเดิม)
+  if (categoryKey === 'personnel') {
+    if (data.first_name || data.last_name) {
+      data.first_name = cleanText(data.first_name);
+      data.last_name = cleanText(data.last_name);
+      data.name = formatPersonName({
+        prefix: data.title_th,
+        first_name: data.first_name,
+        last_name: data.last_name,
+      });
+    } else if (data.name) {
+      const splitRes = splitFullName(data.name);
+      data.first_name = splitRes.firstName;
+      data.last_name = splitRes.lastName;
+      if (!data.title_th && splitRes.prefix) {
+        data.title_th = splitRes.prefix;
+      }
+      if (splitRes.needsReview) {
+        issues.push({
+          field: 'name',
+          level: 'warning',
+          message: 'ชื่อ-นามสกุล อาจมีหลายวรรค โปรดตรวจสอบ: ' + (splitRes.reason || ''),
+        });
+      }
     }
   }
 
@@ -672,6 +702,33 @@ export function parseExcelFile(
 export function downloadExcelTemplate(categoryKey: CategoryKey) {
   const config = CATEGORIES_CONFIG[categoryKey];
   
+  if (categoryKey === 'personnel') {
+    const headers = ['คำนำหน้า', 'ชื่อ', 'นามสกุล', 'ตำแหน่งทางวิชาการ', 'สังกัด', 'อีเมล KU'];
+    const sampleData = [
+      {
+        'คำนำหน้า': 'ผศ.ดร.',
+        'ชื่อ': 'สมชาย',
+        'นามสกุล': 'ใจดี',
+        'ตำแหน่งทางวิชาการ': 'ผู้ช่วยศาสตราจารย์',
+        'สังกัด': 'ภาควิชาวิศวกรรมคอมพิวเตอร์',
+        'อีเมล KU': 'somchai.j@ku.th',
+      },
+    ];
+    const ws = XLSX.utils.json_to_sheet(sampleData, { header: headers });
+    ws['!cols'] = [
+      { wch: 15 },
+      { wch: 20 },
+      { wch: 20 },
+      { wch: 25 },
+      { wch: 30 },
+      { wch: 25 },
+    ];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, config.title.substring(0, 31));
+    XLSX.writeFile(wb, `Template_${config.key}_${config.title}.xlsx`);
+    return;
+  }
+
   // 1. กำหนดคอลัมน์ที่ไม่ใช่ auto-calculated
   const activeCols = config.columns.filter((c) => c.editable !== false);
   const headers = activeCols.map((c) => c.label.replace('\n', ' '));
@@ -704,6 +761,29 @@ export function downloadExcelTemplate(categoryKey: CategoryKey) {
  */
 export function exportTableToExcel(data: any[], categoryKey: CategoryKey, fileName?: string) {
   const config = CATEGORIES_CONFIG[categoryKey];
+
+  if (categoryKey === 'personnel') {
+    const exportRows = data.map((row) => {
+      const split = (row.first_name || row.last_name)
+        ? { first_name: row.first_name || '', last_name: row.last_name || '' }
+        : splitFullName(row.name || row.name_th || '', row.title_th);
+      return {
+        'คำนำหน้า': row.title_th || row.prefix || '-',
+        'ชื่อ': split.first_name || '-',
+        'นามสกุล': split.last_name || '-',
+        'ตำแหน่งทางวิชาการ': row.position || '-',
+        'สังกัด': row.department || '-',
+        'อีเมล KU': row.email || '-',
+      };
+    });
+    const ws = XLSX.utils.json_to_sheet(exportRows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, config.title.substring(0, 31));
+    const outName = fileName || `Export_${config.key}_${new Date().toISOString().substring(0, 10)}.xlsx`;
+    XLSX.writeFile(wb, outName);
+    return;
+  }
+
   const activeCols = config.columns;
 
   const exportRows = data.map((row) => {

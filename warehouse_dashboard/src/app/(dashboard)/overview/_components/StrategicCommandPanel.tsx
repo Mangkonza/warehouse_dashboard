@@ -106,24 +106,51 @@ export function StrategicCommandPanel({
       17: { name: 'ความร่วมมือเพื่อการพัฒนาที่ยั่งยืน', color: '#19486a' },
     };
 
-    const counts: Record<number, number> = {};
+    const counts: Record<number, { count: number; verifiedCount: number; autoDetectedCount: number }> = {};
+    const seenPerSdg = new Map<number, Set<string>>();
     const allItems = [...validResearch, ...validAcademic, ...validPub, ...validService, ...validIP];
-    allItems.forEach((item) => {
+    allItems.forEach((item, idx) => {
+      const itemId = String(item.id || item._id || item.name || `item_${idx}`);
       const res = resolveItemStrategicAlignment(item);
-      const num = res.sdgNumber;
-      if (num >= 1 && num <= 17) {
-        counts[num] = (counts[num] || 0) + 1;
-      }
+      const sdgList = res.sdgIds && res.sdgIds.length > 0
+        ? res.sdgIds
+        : (res.sdgNumber >= 1 && res.sdgNumber <= 17 ? [res.sdgNumber] : []);
+
+      sdgList.forEach((num) => {
+        if (num >= 1 && num <= 17) {
+          if (!seenPerSdg.has(num)) seenPerSdg.set(num, new Set());
+          const set = seenPerSdg.get(num)!;
+          if (!set.has(itemId)) {
+            set.add(itemId);
+            if (!counts[num]) {
+              counts[num] = { count: 0, verifiedCount: 0, autoDetectedCount: 0 };
+            }
+            counts[num].count += 1;
+            if (res.isVerified) {
+              counts[num].verifiedCount += 1;
+            } else {
+              counts[num].autoDetectedCount += 1;
+            }
+          }
+        }
+      });
     });
 
     const sorted = Object.entries(counts)
-      .map(([k, v]) => ({ num: Number(k), count: v }))
+      .map(([k, v]) => ({
+        num: Number(k),
+        count: v.count,
+        verifiedCount: v.verifiedCount,
+        autoDetectedCount: v.autoDetectedCount,
+      }))
       .sort((a, b) => b.count - a.count);
 
     return sorted.slice(0, 5).map((s) => ({
       num: s.num,
       name: SDG_NAMES[s.num]?.name || `SDG ${s.num}`,
       count: s.count,
+      verifiedCount: s.verifiedCount,
+      autoDetectedCount: s.autoDetectedCount,
       color: SDG_NAMES[s.num]?.color || '#0ea5e9',
     }));
   }, [validResearch, validAcademic, validPub, validService, validIP]);

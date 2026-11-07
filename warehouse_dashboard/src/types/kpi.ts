@@ -110,7 +110,7 @@ export interface KPISubIndicator {
   valueSource?: KPISubValueSource; // ที่มาของค่า: กรอกเอง / นับจากรายการที่ผูก / รวมยอดจากรายการที่ผูก
   linkedDatasetKey?: string;     // ชุดข้อมูลที่ผูก (research, academic, publications, service, ip, personnel)
   linkedSumField?: string;       // ฟิลด์ตัวเลขกรณีรวมยอดจากรายการที่ผูก
-  reporters?: string[];          // ผู้รายงาน (เลือกหลายคนจากบุคลากรและอาจารย์)
+  reporters?: string[];          // ผู้รายงาน (เลือกหลายคนจากคณาจารย์และบุคลากร)
   reporter?: string;             // ผู้รายงาน (ข้อความสรุปสำหรับแสดงผลย้อนหลัง)
   target?: string | number;      // ค่าเป้าหมายย่อย (ถ้ามี)
   actual6M?: string | number;    // ผลรอบ 6 เดือน (รองรับข้อมูลเดิม)
@@ -168,7 +168,7 @@ export interface KPIItem {
   evidence?: string;
   remarks?: string;
   reporter?: string;
-  reporters?: string[];          // ผู้รายงาน (เลือกหลายคนจากข้อมูลบุคลากรและอาจารย์)
+  reporters?: string[];          // ผู้รายงาน (เลือกหลายคนจากข้อมูลคณาจารย์และบุคลากร)
   subIndicators?: KPISubIndicator[];
 
   strategicGoal?: string;

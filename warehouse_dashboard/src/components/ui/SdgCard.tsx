@@ -26,16 +26,18 @@ export const SdgNumberBadge: React.FC<SdgNumberBadgeProps> = ({
   return (
     <span
       className={cn(
-        'w-7 h-7 rounded-lg flex items-center justify-center font-extrabold text-[12.5px] shrink-0 transition-transform duration-100 shadow-2xs',
+        'w-7 h-7 rounded-lg inline-flex items-center justify-center font-bold text-[13px] shrink-0 transition-transform duration-100 shadow-2xs select-none',
         selected ? 'bg-white shadow-sm' : '',
         className
       )}
       style={{
         backgroundColor: selected ? '#ffffff' : bgColor,
         color: selected ? bgColor : textColor,
+        lineHeight: 1,
+        textAlign: 'center',
       }}
     >
-      {goalNumber}
+      <span style={{ transform: 'translateY(-0.5px)' }}>{goalNumber}</span>
     </span>
   );
 };
@@ -89,12 +91,12 @@ export const SdgCard: React.FC<SdgCardProps> = ({
       <SdgNumberBadge goalNumber={goalNumber} selected={selected} />
 
       {/* Thai Title (number removed to prevent duplication with icon) */}
-      <div className="flex flex-col min-w-0 leading-tight">
+      <div className="flex flex-col justify-center min-w-0 leading-tight">
         <span
-          className="text-[12.5px] font-medium truncate"
+          className="text-[12.5px] truncate"
           style={{
             color: selected ? textColor : '#0f172a',
-            fontWeight: selected ? 700 : 500,
+            fontWeight: 600,
           }}
           title={nameTh}
         >

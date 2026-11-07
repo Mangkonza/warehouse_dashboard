@@ -18,13 +18,140 @@ import {
 } from 'react-icons/fa';
 import { IPItem } from '../_hooks/useIPData';
 import { getDepartment, getDepartmentColor } from '@/lib/departments';
+import { resolvePersonAvatar } from '@/lib/personnelService';
 import { getClickedChartElement } from '@/lib/chartTooltipHelper';
 import { StrategicAlignmentMatrix } from '@/components/data-display';
 import { DrillDownProjectDrawer, DepartmentBadge } from '@/components/ui';
 import { CHART_PASTEL_PALETTE } from '@/lib/pastelTheme';
+import '../../research/_components/research-redesign.css';
+
+const UCOL: Record<string, string> = {
+  AE: '#65B98A',
+  CPE: '#5B9BD5',
+  IRRE: '#4FA9A0',
+  IRE: '#4FA9A0',
+  FE: '#E88762',
+  IE: '#9B78D0',
+  ME: '#777ED0',
+  CE: '#D96B8A',
+  EEEC: '#91B95B',
+  TDWCB: '#D5A04F',
+  NAMC: '#BB68BC',
+  OFS: '#E9A88F',
+  OTH: '#64748b',
+};
+
+const ALL_IP_DEPTS = ['AE', 'ME', 'FE', 'CE', 'IRRE', 'CPE', 'IE'];
+
+function getIPFiscalYear(item: IPItem): string {
+  if (item._fiscalYear && /^25\d{2}$/.test(String(item._fiscalYear))) {
+    return String(item._fiscalYear);
+  }
+  const rawDate = String(item.filing_date || item.protection_start || item.date || '').trim();
+  const isoMatch = rawDate.match(/^(\d{4})-(\d{1,2})/);
+  if (isoMatch) {
+    let y = parseInt(isoMatch[1], 10);
+    const m = parseInt(isoMatch[2], 10);
+    if (y >= 1960 && y <= 1980) y += 600;
+    else if (y >= 2000 && y < 2500) y += 543;
+    if (y >= 2500 && y <= 2600) {
+      return m >= 10 ? String(y + 1) : String(y);
+    }
+  }
+  return item._fiscalYear || '2568';
+}
+
+function itemMatchesIPDept(item: IPItem, code: string): boolean {
+  const parts: string[] = [String(item.department || '')];
+  if (Array.isArray(item.departments)) {
+    parts.push(...item.departments.map(String));
+  } else if (item.departments) {
+    parts.push(String(item.departments));
+  }
+  if (Array.isArray(item.inventors)) {
+    item.inventors.forEach((inv: any) => {
+      if (typeof inv === 'object' && inv !== null) {
+        if (inv.department) parts.push(String(inv.department));
+        if (inv.name) parts.push(String(inv.name));
+      } else if (inv) {
+        parts.push(String(inv));
+      }
+    });
+  } else if (item.inventors) {
+    parts.push(String(item.inventors));
+  }
+  const allDeptStrings = parts.join(' ');
+  return (
+    allDeptStrings.includes(code) ||
+    (code === 'AE' && allDeptStrings.includes('เกษตร')) ||
+    (code === 'ME' && allDeptStrings.includes('เครื่องกล')) ||
+    (code === 'FE' && allDeptStrings.includes('อาหาร')) ||
+    (code === 'CE' && allDeptStrings.includes('โยธา')) ||
+    ((code === 'IRRE' || code === 'IRE') && (allDeptStrings.includes('ชลประทาน') || allDeptStrings.includes('IRE'))) ||
+    (code === 'CPE' && allDeptStrings.includes('คอมพิวเตอร์')) ||
+    (code === 'IE' && allDeptStrings.includes('อุตสาหการ'))
+  );
+}
+
+function getIPTypeKey(item: IPItem): 'patent' | 'petty' | 'copyright' {
+  const t = String(item.type || '').trim();
+  if (t.includes('อนุสิทธิบัตร')) return 'petty';
+  if (t.includes('ลิขสิทธิ์')) return 'copyright';
+  return 'patent';
+}
+
+function getDeltaInfo(cur: number, prev: number) {
+  if (cur === 0 && prev === 0) return { label: '–', cls: 'flat' };
+  if (prev === 0 && cur > 0) return { label: 'ใหม่', cls: 'new' };
+  if (cur === 0 && prev > 0) return { label: '▼ 100%', cls: 'dn' };
+  const diff = cur - prev;
+  if (Math.abs(diff) < 1e-6) return { label: 'เท่าเดิม', cls: 'same' };
+  const pct = Math.round((Math.abs(diff) / Math.abs(prev)) * 100);
+  return {
+    label: `${diff > 0 ? '▲' : '▼'} ${pct}%`,
+    cls: diff > 0 ? 'up' : 'dn',
+  };
+}
+
+function describeArc(cx: number, cy: number, rOuter: number, rInner: number, startAngle: number, endAngle: number): string {
+  const span = Math.min(359.99, Math.max(0.01, endAngle - startAngle));
+  const eAngle = startAngle + span;
+  const rad = (deg: number) => ((deg - 90) * Math.PI) / 180;
+  const x1 = cx + rOuter * Math.cos(rad(startAngle));
+  const y1 = cy + rOuter * Math.sin(rad(startAngle));
+  const x2 = cx + rOuter * Math.cos(rad(eAngle));
+  const y2 = cy + rOuter * Math.sin(rad(eAngle));
+  const x3 = cx + rInner * Math.cos(rad(eAngle));
+  const y3 = cy + rInner * Math.sin(rad(eAngle));
+  const x4 = cx + rInner * Math.cos(rad(startAngle));
+  const y4 = cy + rInner * Math.sin(rad(startAngle));
+  const largeArc = span > 180 ? 1 : 0;
+  return [
+    `M ${x1} ${y1}`,
+    `A ${rOuter} ${rOuter} 0 ${largeArc} 1 ${x2} ${y2}`,
+    `L ${x3} ${y3}`,
+    `A ${rInner} ${rInner} 0 ${largeArc} 0 ${x4} ${y4}`,
+    'Z',
+  ].join(' ');
+}
+
+function buildSmoothPath(pts: { x: number; y: number }[]): string {
+  if (pts.length === 0) return '';
+  if (pts.length === 1) return `M ${pts[0].x} ${pts[0].y}`;
+  let d = `M ${pts[0].x} ${pts[0].y}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i];
+    const p1 = pts[i + 1];
+    const cx = (p0.x + p1.x) / 2;
+    d += ` C ${cx} ${p0.y}, ${cx} ${p1.y}, ${p1.x} ${p1.y}`;
+  }
+  return d;
+}
 
 interface IPChartsProps {
   validIpData: IPItem[];
+  allItems?: IPItem[];
+  currentFiscalYear?: string;
   onSelectDept?: (deptCode: string) => void;
   onSelectType?: (typeName: string) => void;
   activePerspective?: IPPerspective;
@@ -36,6 +163,8 @@ export type IPPerspective = 'types_dept' | 'protection_status' | 'faculty' | 'sd
 
 export function IPCharts({
   validIpData,
+  allItems,
+  currentFiscalYear = 'all',
   onSelectDept,
   onSelectType,
   activePerspective: propPerspective,
@@ -49,6 +178,291 @@ export function IPCharts({
   const [strategyMetric, setStrategyMetric] = useState<'count' | 'budget'>('count');
   const [deptStackMode, setDeptStackMode] = useState<'type' | 'stage'>('type');
   const chartInstances = useRef<Chart[]>([]);
+
+  const sourcePool = useMemo(() => (allItems && allItems.length > 0 ? allItems : validIpData), [allItems, validIpData]);
+
+  const availableYears = useMemo(() => {
+    const ys = new Set<string>(['2570', '2569', '2568', '2567']);
+    sourcePool.forEach((it) => {
+      const y = getIPFiscalYear(it);
+      if (y && /^25\d{2}$/.test(y)) ys.add(y);
+    });
+    return Array.from(ys).sort((a, b) => Number(b) - Number(a));
+  }, [sourcePool]);
+
+  // ── Chart 1: การกระจายตัวตาม 7 สังกัด (แยกตามประเภท) states ──
+  const [ip1Year, setIp1Year] = useState<string>('all');
+  const [ip1Mode, setIp1Mode] = useState<'single' | 'yoy'>('single');
+  const [ip1CmpYear, setIp1CmpYear] = useState<string>('2567');
+  const [ip1Layout, setIp1Layout] = useState<'grouped' | 'stacked'>('stacked');
+  const [ip1HoverIdx, setIp1HoverIdx] = useState<number | null>(null);
+
+  // ── Chart 2: สัดส่วนประเภททรัพย์สินทางปัญญา states ──
+  const [ip2Year, setIp2Year] = useState<string>('all');
+  const [ip2Mode, setIp2Mode] = useState<'single' | 'yoy'>('single');
+  const [ip2CmpYear, setIp2CmpYear] = useState<string>('2567');
+  const [ip2HoverIdx, setIp2HoverIdx] = useState<number | null>(null);
+
+  // ── Chart 3: สถานะการยื่นคำขอและการคุ้มครอง (3 ระดับ) states ──
+  const [ip3Year, setIp3Year] = useState<string>('all');
+  const [ip3Mode, setIp3Mode] = useState<'single' | 'yoy'>('single');
+  const [ip3CmpYear, setIp3CmpYear] = useState<string>('2567');
+  const [ip3Layout, setIp3Layout] = useState<'grouped' | 'stacked'>('stacked');
+  const [ip3Metric, setIp3Metric] = useState<'count' | 'support'>('count');
+  const [ip3HoverIdx, setIp3HoverIdx] = useState<number | null>(null);
+
+  // ── Chart 4: แนวโน้มการสร้างสรรค์ผลงานตามปีงบประมาณ states ──
+  const [ip4Mode, setIp4Mode] = useState<'single' | 'yoy'>('single');
+  const [ip4BreakBy, setIp4BreakBy] = useState<'type' | 'dept'>('type');
+  const [ip4Layout, setIp4Layout] = useState<'grouped' | 'stacked'>('stacked');
+  const [ip4ShowLine, setIp4ShowLine] = useState<boolean>(true);
+  const [ip4HoverIdx, setIp4HoverIdx] = useState<number | null>(null);
+
+  // ── Chart 5 & 6: ผู้สร้างผลงานและนวัตกรรม states ──
+  const [ip5Year, setIp5Year] = useState<string>('all');
+  const [ip5Mode, setIp5Mode] = useState<'single' | 'yoy'>('single');
+  const [ip5CmpYear, setIp5CmpYear] = useState<string>('2567');
+  const [ip5Layout, setIp5Layout] = useState<'grouped' | 'stacked'>('stacked');
+  const [ip5HoverIdx, setIp5HoverIdx] = useState<number | null>(null);
+
+  // Floating dark tooltip state
+  const [tip, setTip] = useState<{
+    show: boolean;
+    x: number;
+    y: number;
+    title: string;
+    color: string;
+    val: string;
+    sub: string;
+  }>({
+    show: false,
+    x: 0,
+    y: 0,
+    title: '',
+    color: '#8b5cf6',
+    val: '',
+    sub: '',
+  });
+
+  useEffect(() => {
+    if (currentFiscalYear && currentFiscalYear !== 'all') {
+      setIp1Year(currentFiscalYear);
+      setIp2Year(currentFiscalYear);
+      setIp3Year(currentFiscalYear);
+      setIp5Year(currentFiscalYear);
+      const prev = String(Number(currentFiscalYear) - 1);
+      setIp1CmpYear(prev);
+      setIp2CmpYear(prev);
+      setIp3CmpYear(prev);
+      setIp5CmpYear(prev);
+    } else {
+      setIp1Year('all');
+      setIp2Year('all');
+      setIp3Year('all');
+      setIp5Year('all');
+    }
+  }, [currentFiscalYear]);
+
+  // ── Data Memo 1: 7 Departments Distribution ──
+  const ip1DeptData = useMemo(() => {
+    const filterByYear = (yr: string) =>
+      yr === 'all' ? validIpData : sourcePool.filter((it) => getIPFiscalYear(it) === yr);
+
+    const curPool = filterByYear(ip1Year);
+    const cmpYr = ip1Year === 'all' ? '2567' : ip1CmpYear;
+    const prevPool = filterByYear(cmpYr);
+
+    const rows = ALL_IP_DEPTS.map((code) => {
+      const dInfo = getDepartment(code);
+      const cItems = curPool.filter((it) => itemMatchesIPDept(it, code));
+      const pItems = prevPool.filter((it) => itemMatchesIPDept(it, code));
+
+      const countSegments = (list: IPItem[]) => {
+        let patent = 0;
+        let petty = 0;
+        let copyright = 0;
+        let granted = 0;
+        let pending = 0;
+        let prep = 0;
+        list.forEach((it) => {
+          const tk = getIPTypeKey(it);
+          if (tk === 'petty') petty++;
+          else if (tk === 'copyright') copyright++;
+          else patent++;
+
+          if (it._pipelineStage === 'granted') granted++;
+          else if (it._pipelineStage === 'pending') pending++;
+          else prep++;
+        });
+        return { patent, petty, copyright, granted, pending, prep };
+      };
+
+      const cSeg = countSegments(cItems);
+      const pSeg = countSegments(pItems);
+
+      return {
+        code,
+        name: dInfo.name !== '-' ? dInfo.name : code,
+        color: UCOL[code] || UCOL.OTH,
+        total: cItems.length,
+        prevTotal: pItems.length,
+        ...cSeg,
+        prevSeg: pSeg,
+        items: cItems,
+        prevItems: pItems,
+      };
+    });
+
+    return { rows, cmpYr };
+  }, [validIpData, sourcePool, ip1Year, ip1CmpYear]);
+
+  // ── Data Memo 2: IP Types / Stage Donut ──
+  const ip2DonutData = useMemo(() => {
+    const filterByYear = (yr: string) =>
+      yr === 'all' ? validIpData : sourcePool.filter((it) => getIPFiscalYear(it) === yr);
+
+    const curPool = filterByYear(ip2Year);
+    const cmpYr = ip2Year === 'all' ? '2567' : ip2CmpYear;
+    const prevPool = filterByYear(cmpYr);
+
+    const isType = deptStackMode === 'type';
+
+    const buildSlices = (pool: IPItem[]) => {
+      if (isType) {
+        const petty = pool.filter((it) => getIPTypeKey(it) === 'petty');
+        const patent = pool.filter((it) => getIPTypeKey(it) === 'patent');
+        const copy = pool.filter((it) => getIPTypeKey(it) === 'copyright');
+        return [
+          { key: 'petty', label: 'อนุสิทธิบัตร', color: '#8b5cf6', items: petty, count: petty.length },
+          { key: 'patent', label: 'สิทธิบัตรการประดิษฐ์', color: '#3b82f6', items: patent, count: patent.length },
+          { key: 'copyright', label: 'ลิขสิทธิ์ / อื่นๆ', color: '#10b981', items: copy, count: copy.length },
+        ];
+      }
+      const granted = pool.filter((it) => it._pipelineStage === 'granted');
+      const pending = pool.filter((it) => it._pipelineStage === 'pending');
+      const prep = pool.filter((it) => it._pipelineStage !== 'granted' && it._pipelineStage !== 'pending');
+      return [
+        { key: 'granted', label: 'ได้รับความคุ้มครองแล้ว', color: '#10b981', items: granted, count: granted.length },
+        { key: 'pending', label: 'ยื่นคำขอแล้ว', color: '#3b82f6', items: pending, count: pending.length },
+        { key: 'prep', label: 'เตรียมความพร้อมยื่นจด', color: '#f59e0b', items: prep, count: prep.length },
+      ];
+    };
+
+    const curSlices = buildSlices(curPool);
+    const prevSlices = buildSlices(prevPool);
+    const totalCur = curPool.length;
+    const totalPrev = prevPool.length;
+
+    const merged = curSlices.map((s, i) => {
+      const pCount = prevSlices[i]?.count || 0;
+      return {
+        ...s,
+        prevCount: pCount,
+        pct: totalCur > 0 ? Math.round((s.count / totalCur) * 100) : 0,
+        prevPct: totalPrev > 0 ? Math.round((pCount / totalPrev) * 100) : 0,
+      };
+    });
+
+    return { slices: merged, totalCur, totalPrev, cmpYr };
+  }, [validIpData, sourcePool, ip2Year, ip2CmpYear, deptStackMode]);
+
+  // ── Data Memo 3: 3-Level Protection Status ──
+  const ip3StatusData = useMemo(() => {
+    const filterByYear = (yr: string) =>
+      yr === 'all' ? validIpData : sourcePool.filter((it) => getIPFiscalYear(it) === yr);
+
+    const curPool = filterByYear(ip3Year);
+    const cmpYr = ip3Year === 'all' ? '2567' : ip3CmpYear;
+    const prevPool = filterByYear(cmpYr);
+
+    const stages = [
+      {
+        key: 'granted',
+        label: 'ได้รับความคุ้มครองแล้ว',
+        color: '#10b981',
+        match: (it: IPItem) => it._pipelineStage === 'granted',
+      },
+      {
+        key: 'pending',
+        label: 'ยื่นคำขอแล้ว',
+        color: '#3b82f6',
+        match: (it: IPItem) => it._pipelineStage === 'pending',
+      },
+      {
+        key: 'prep',
+        label: 'เตรียมความพร้อมยื่นจด',
+        color: '#f59e0b',
+        match: (it: IPItem) => it._pipelineStage !== 'granted' && it._pipelineStage !== 'pending',
+      },
+    ];
+
+    const getVal = (list: IPItem[]) =>
+      ip3Metric === 'support'
+        ? list.reduce((s, x) => s + (Number(x.support_amount) || 0), 0)
+        : list.length;
+
+    const rows = stages.map((st) => {
+      const cList = curPool.filter(st.match);
+      const pList = prevPool.filter(st.match);
+      const cPetty = cList.filter((x) => getIPTypeKey(x) === 'petty');
+      const cPatent = cList.filter((x) => getIPTypeKey(x) === 'patent');
+      const cCopy = cList.filter((x) => getIPTypeKey(x) === 'copyright');
+
+      return {
+        ...st,
+        curVal: getVal(cList),
+        prevVal: getVal(pList),
+        pettyVal: getVal(cPetty),
+        patentVal: getVal(cPatent),
+        copyVal: getVal(cCopy),
+        count: cList.length,
+        supportSum: cList.reduce((s, x) => s + (Number(x.support_amount) || 0), 0),
+        items: cList,
+      };
+    });
+
+    return { rows, cmpYr };
+  }, [validIpData, sourcePool, ip3Year, ip3CmpYear, ip3Metric]);
+
+  // ── Data Memo 4: Fiscal Year Trend ──
+  const ip4TrendData = useMemo(() => {
+    const years = ['2567', '2568', '2569', '2570'];
+    const rows = years.map((yr, idx) => {
+      const items = sourcePool.filter((it) => getIPFiscalYear(it) === yr);
+      const prevYr = idx > 0 ? years[idx - 1] : null;
+      const prevItems = prevYr ? sourcePool.filter((it) => getIPFiscalYear(it) === prevYr) : [];
+
+      const petty = items.filter((x) => getIPTypeKey(x) === 'petty').length;
+      const patent = items.filter((x) => getIPTypeKey(x) === 'patent').length;
+      const copy = items.filter((x) => getIPTypeKey(x) === 'copyright').length;
+
+      const deptCounts = ALL_IP_DEPTS.map((code) => ({
+        code,
+        color: UCOL[code] || UCOL.OTH,
+        count: items.filter((it) => itemMatchesIPDept(it, code)).length,
+      })).filter((d) => d.count > 0);
+
+      const supportSum = items.reduce((s, x) => s + (Number(x.support_amount) || 0), 0);
+      const prevSupportSum = prevItems.reduce((s, x) => s + (Number(x.support_amount) || 0), 0);
+
+      return {
+        year: yr,
+        label: `ปีงบ ${yr}`,
+        total: items.length,
+        prevTotal: prevItems.length,
+        hasPrev: idx > 0,
+        petty,
+        patent,
+        copy,
+        deptCounts,
+        supportSum,
+        prevSupportSum,
+        items,
+      };
+    });
+
+    return rows;
+  }, [sourcePool]);
   const [drillDown, setDrillDown] = useState<{
     isOpen: boolean;
     title: string;
@@ -63,44 +477,123 @@ export function IPCharts({
     items: [],
   });
 
-  // Calculate top inventors
-  const topInventors = useMemo(() => {
-    const map: Record<string, { creator: string; person_id?: number | string; dept: string; count: number; support: number; items: IPItem[] }> = {};
-    validIpData.forEach((item) => {
-      const cName = String(item.creator || '').trim();
-      if (!cName || cName === '-' || cName === 'nan') return;
+  // Calculate top inventors & tech clusters (interactive by ip5Year / ip5CmpYear)
+  const ipFacultyData = useMemo(() => {
+    const filterByYear = (yr: string) =>
+      yr === 'all' ? validIpData : sourcePool.filter((it) => getIPFiscalYear(it) === yr);
 
-      const pId = item.person_id;
-      const key = pId ? `id_${pId}` : cName;
-      if (!map[key]) {
-        map[key] = {
-          creator: cName,
-          person_id: pId,
-          dept: item.department || '-',
-          count: 0,
-          support: 0,
-          items: [],
+    const curPool = filterByYear(ip5Year);
+    const cmpYr = ip5Year === 'all' ? '2567' : ip5CmpYear;
+    const prevPool = filterByYear(cmpYr);
+
+    const buildPeople = (items: IPItem[]) => {
+      const map: Record<
+        string,
+        {
+          key: string;
+          creator: string;
+          person_id?: number | string;
+          dept: string;
+          deptCode: string;
+          count: number;
+          petty: number;
+          patent: number;
+          copy: number;
+          support: number;
+          items: IPItem[];
+          pettyItems: IPItem[];
+          patentItems: IPItem[];
+          copyItems: IPItem[];
+        }
+      > = {};
+
+      items.forEach((item) => {
+        const cName = String(item.creator || '').trim();
+        if (!cName || cName === '-' || cName === 'nan') return;
+        const pId = item.person_id;
+        const key = pId ? `id_${pId}` : cName;
+        if (!map[key]) {
+          const d = getDepartment(item.department);
+          const deptCode = d.code && d.code !== '-' ? (d.code === 'IRE' ? 'IRRE' : d.code) : 'OTH';
+          map[key] = {
+            key,
+            creator: cName,
+            person_id: pId,
+            dept: item.department || '-',
+            deptCode,
+            count: 0,
+            petty: 0,
+            patent: 0,
+            copy: 0,
+            support: 0,
+            items: [],
+            pettyItems: [],
+            patentItems: [],
+            copyItems: [],
+          };
+        }
+        const tk = getIPTypeKey(item);
+        map[key].count++;
+        if (tk === 'petty') {
+          map[key].petty++;
+          map[key].pettyItems.push(item);
+        } else if (tk === 'copyright') {
+          map[key].copy++;
+          map[key].copyItems.push(item);
+        } else {
+          map[key].patent++;
+          map[key].patentItems.push(item);
+        }
+        map[key].support += Number(item.support_amount) || 0;
+        map[key].items.push(item);
+      });
+      return map;
+    };
+
+    const curMap = buildPeople(curPool);
+    const prevMap = buildPeople(prevPool);
+
+    const allInventors = Object.values(curMap)
+      .map((p) => {
+        const prev = prevMap[p.key] || Object.values(prevMap).find((x) => x.creator === p.creator);
+        return {
+          ...p,
+          prevCount: prev ? prev.count : 0,
+          color: UCOL[p.deptCode] || UCOL.OTH,
         };
-      }
-      map[key].count++;
-      map[key].support += Number(item.support_amount) || 0;
-      map[key].items.push(item);
-    });
+      })
+      .sort((a, b) => b.count - a.count || b.support - a.support);
 
-    return Object.values(map).sort((a, b) => b.count - a.count || b.support - a.support);
-  }, [validIpData]);
+    const CLUSTER_COLORS = ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#14b8a6'];
+    const cSet = new Set<string>();
+    curPool.forEach((it) => cSet.add(it._techCluster || 'นวัตกรรมวิศวกรรมอื่นๆ'));
+    prevPool.forEach((it) => cSet.add(it._techCluster || 'นวัตกรรมวิศวกรรมอื่นๆ'));
 
-  // Technology cluster groups
-  const techClusters = useMemo(() => {
-    const groups: Record<string, { cluster: string; count: number; items: IPItem[] }> = {};
-    validIpData.forEach((item) => {
-      const c = item._techCluster || 'นวัตกรรมวิศวกรรมอื่นๆ';
-      if (!groups[c]) groups[c] = { cluster: c, count: 0, items: [] };
-      groups[c].count++;
-      groups[c].items.push(item);
-    });
-    return Object.values(groups).sort((a, b) => b.count - a.count);
-  }, [validIpData]);
+    const clusters = Array.from(cSet)
+      .map((cluster, idx) => {
+        const cItems = curPool.filter((it) => (it._techCluster || 'นวัตกรรมวิศวกรรมอื่นๆ') === cluster);
+        const pItems = prevPool.filter((it) => (it._techCluster || 'นวัตกรรมวิศวกรรมอื่นๆ') === cluster);
+        return {
+          cluster,
+          color: CLUSTER_COLORS[idx % CLUSTER_COLORS.length],
+          count: cItems.length,
+          prevCount: pItems.length,
+          support: cItems.reduce((s, x) => s + (Number(x.support_amount) || 0), 0),
+          items: cItems,
+        };
+      })
+      .filter((c) => c.count > 0 || c.prevCount > 0)
+      .sort((a, b) => b.count - a.count);
+
+    return {
+      allInventors,
+      top10: allInventors.slice(0, 10),
+      clusters,
+      cmpYr,
+    };
+  }, [validIpData, sourcePool, ip5Year, ip5CmpYear]);
+
+  const topInventors = ipFacultyData.allInventors;
 
   useEffect(() => {
     chartInstances.current.forEach((c) => c.destroy());
@@ -118,646 +611,6 @@ export function IPCharts({
         chartInstances.current.push(newChart);
       }
     };
-
-    if (activePerspective === 'types_dept') {
-      // 1. 7-Department Stacked Bar Chart with Type or Stage Stack
-      const ALL_DEPTS = ['AE', 'ME', 'FE', 'CE', 'IRRE', 'CPE', 'IE'];
-      const deptStats: Record<string, {
-        code: string;
-        name: string;
-        total: number;
-        patents: number;
-        pettyPatents: number;
-        copyrights: number;
-        granted: number;
-        pending: number;
-        inPrep: number;
-        items: IPItem[];
-      }> = {};
-
-      ALL_DEPTS.forEach((code) => {
-        deptStats[code] = {
-          code,
-          name: getDepartment(code).name,
-          total: 0,
-          patents: 0,
-          pettyPatents: 0,
-          copyrights: 0,
-          granted: 0,
-          pending: 0,
-          inPrep: 0,
-          items: [],
-        };
-      });
-
-      validIpData.forEach((item) => {
-        const parts: string[] = [String(item.department || '')];
-        if (Array.isArray(item.departments)) {
-          parts.push(...item.departments.map(String));
-        } else if (item.departments) {
-          parts.push(String(item.departments));
-        }
-
-        if (Array.isArray(item.inventors)) {
-          item.inventors.forEach((inv: any) => {
-            if (typeof inv === 'object' && inv !== null) {
-              if (inv.department) parts.push(String(inv.department));
-              if (inv.name) parts.push(String(inv.name));
-            } else if (inv) {
-              parts.push(String(inv));
-            }
-          });
-        } else if (item.inventors) {
-          parts.push(String(item.inventors));
-        }
-
-        const allDeptStrings = parts.join(' ');
-        const t = String(item.type || '').trim();
-        const isPetty = t.includes('อนุสิทธิบัตร');
-        const isCopy = t.includes('ลิขสิทธิ์');
-        const isPatent = !isPetty && !isCopy;
-
-        ALL_DEPTS.forEach((code) => {
-          if (
-            allDeptStrings.includes(code) ||
-            (code === 'AE' && allDeptStrings.includes('เกษตร')) ||
-            (code === 'ME' && allDeptStrings.includes('เครื่องกล')) ||
-            (code === 'FE' && allDeptStrings.includes('อาหาร')) ||
-            (code === 'CE' && allDeptStrings.includes('โยธา')) ||
-            ((code === 'IRRE' || code === 'IRE') && allDeptStrings.includes('ชลประทาน')) ||
-            (code === 'CPE' && allDeptStrings.includes('คอมพิวเตอร์')) ||
-            (code === 'IE' && allDeptStrings.includes('อุตสาหการ'))
-          ) {
-            const ds = deptStats[code];
-            ds.total++;
-            ds.items.push(item);
-            if (isPatent) ds.patents++;
-            else if (isPetty) ds.pettyPatents++;
-            else ds.copyrights++;
-
-            if (item._pipelineStage === 'granted') ds.granted++;
-            else if (item._pipelineStage === 'pending') ds.pending++;
-            else ds.inPrep++;
-          }
-        });
-      });
-
-      const isTypeMode = deptStackMode === 'type';
-
-      createChart('c_ip_dept_stacked', {
-        type: 'bar',
-        data: {
-          labels: ALL_DEPTS,
-          datasets: isTypeMode
-            ? [
-                {
-                  label: 'สิทธิบัตรการประดิษฐ์',
-                  data: ALL_DEPTS.map((c) => deptStats[c].patents),
-                  backgroundColor: '#DDD6FE', // Soft Lavender Violet
-                  borderColor: '#8B5CF6',
-                  borderWidth: 1.5,
-                  borderRadius: 4,
-                  stack: 'stack1',
-                },
-                {
-                  label: 'อนุสิทธิบัตร',
-                  data: ALL_DEPTS.map((c) => deptStats[c].pettyPatents),
-                  backgroundColor: '#93C5FD', // Soft Sky Blue
-                  borderColor: '#3B82F6',
-                  borderWidth: 1.5,
-                  borderRadius: 4,
-                  stack: 'stack1',
-                },
-                {
-                  label: 'ลิขสิทธิ์ / อื่นๆ',
-                  data: ALL_DEPTS.map((c) => deptStats[c].copyrights),
-                  backgroundColor: '#86EFAC', // Soft Mint Emerald
-                  borderColor: '#22C55E',
-                  borderWidth: 1.5,
-                  borderRadius: 4,
-                  stack: 'stack1',
-                },
-              ]
-            : [
-                {
-                  label: 'ได้รับความคุ้มครองแล้ว',
-                  data: ALL_DEPTS.map((c) => deptStats[c].granted),
-                  backgroundColor: '#86EFAC', // Soft Mint Emerald
-                  borderColor: '#22C55E',
-                  borderWidth: 1.5,
-                  borderRadius: 4,
-                  stack: 'stack1',
-                },
-                {
-                  label: 'ยื่นคำขอแล้ว',
-                  data: ALL_DEPTS.map((c) => deptStats[c].pending),
-                  backgroundColor: '#93C5FD', // Soft Sky Blue
-                  borderColor: '#3B82F6',
-                  borderWidth: 1.5,
-                  borderRadius: 4,
-                  stack: 'stack1',
-                },
-                {
-                  label: 'เตรียมความพร้อมยื่นจด',
-                  data: ALL_DEPTS.map((c) => deptStats[c].inPrep),
-                  backgroundColor: '#FDE68A', // Soft Amber Peach
-                  borderColor: '#F59E0B',
-                  borderWidth: 1.5,
-                  borderRadius: 4,
-                  stack: 'stack1',
-                },
-              ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          onHover: (event: any, chartElement: any[]) => {
-            if (event.native?.target) event.native.target.style.cursor = chartElement.length > 0 ? 'pointer' : 'default';
-          },
-          onClick: (event: any, elements: any[], chart: any) => {
-            const hit = getClickedChartElement(event, elements, chart, 'nearest');
-            if (hit) {
-              const code = ALL_DEPTS[hit.index];
-              const ds = deptStats[code];
-              if (ds && ds.items.length > 0) {
-                if (onSelectDept) onSelectDept(code);
-                setDrillDown({
-                  isOpen: true,
-                  title: `ทรัพย์สินทางปัญญา: สังกัด ${ds.name} (${code})`,
-                  subtitle: `รวม ${ds.items.length} รายการ (สิทธิบัตร: ${ds.patents}, อนุสิทธิบัตร: ${ds.pettyPatents}, ลิขสิทธิ์: ${ds.copyrights}) • คลิกรายการเพื่อดูรายละเอียด`,
-                  accentColor: getDepartmentColor(code),
-                  items: ds.items,
-                });
-              }
-            }
-          },
-          scales: {
-            x: { stacked: true, grid: { display: false }, ticks: { font: { size: 13.5, weight: 600 } } },
-            y: {
-              stacked: true,
-              beginAtZero: true,
-              grace: '10%',
-              grid: { color: CHART_PASTEL_PALETTE.gridLines },
-              title: { display: true, text: 'จำนวนรายการ (รายการ)', font: { size: 13.5, weight: 700 } },
-              ticks: { precision: 0, font: { size: 13, weight: 600 } },
-            },
-          },
-          plugins: {
-            legend: {
-              position: 'top',
-              labels: {
-                boxWidth: 16,
-                boxHeight: 16,
-                borderRadius: 4,
-                useBorderRadius: true,
-                font: { size: 13.5, weight: 600 },
-                padding: 14,
-              },
-            },
-            tooltip: {
-              callbacks: {
-                title: (items: any[]) => {
-                  const idx = items[0]?.dataIndex ?? -1;
-                  const code = ALL_DEPTS[idx];
-                  const ds = deptStats[code];
-                  return ds ? `สังกัด: ${ds.name} (${code})` : '';
-                },
-                afterBody: (items: any[]) => {
-                  const idx = items[0]?.dataIndex ?? -1;
-                  const code = ALL_DEPTS[idx];
-                  const ds = deptStats[code];
-                  if (!ds) return [];
-                  return [
-                    `─────────────────────────────`,
-                    `รวมทั้งสิ้น: ${ds.total} รายการ`,
-                  ];
-                },
-              },
-            },
-            datalabels: {
-              color: CHART_PASTEL_PALETTE.datalabels.dark,
-              font: { weight: 'bold', size: 13 },
-              formatter: (v: number) => (v > 0 ? `${v}` : ''),
-            },
-          },
-        },
-      });
-
-      // 2. IP Types Breakdown (Donut)
-      let pettyCount = 0;
-      let patentCount = 0;
-      let copyrightCount = 0;
-      const pettyItems: IPItem[] = [];
-      const patentItems: IPItem[] = [];
-      const copyrightItems: IPItem[] = [];
-
-      validIpData.forEach((item) => {
-        const t = String(item.type || '').trim();
-        if (t.includes('อนุสิทธิบัตร')) {
-          pettyCount++;
-          pettyItems.push(item);
-        } else if (t.includes('สิทธิบัตร')) {
-          patentCount++;
-          patentItems.push(item);
-        } else {
-          copyrightCount++;
-          copyrightItems.push(item);
-        }
-      });
-
-      // 2. IP Breakdown Donut (Matches the left chart mode: Types or Stages to prevent color confusion)
-      const donutData = isTypeMode
-        ? [
-            { label: 'สิทธิบัตรการประดิษฐ์', count: patentCount, color: '#DDD6FE', border: '#8B5CF6', items: patentItems },
-            { label: 'อนุสิทธิบัตร', count: pettyCount, color: '#93C5FD', border: '#3B82F6', items: pettyItems },
-            { label: 'ลิขสิทธิ์ / อื่นๆ', count: copyrightCount, color: '#86EFAC', border: '#22C55E', items: copyrightItems },
-          ].filter((t) => t.count > 0 || validIpData.length === 0)
-        : [
-            { label: 'ได้รับความคุ้มครองแล้ว', count: validIpData.filter((i) => i._pipelineStage === 'granted').length, color: '#86EFAC', border: '#22C55E', items: validIpData.filter((i) => i._pipelineStage === 'granted') },
-            { label: 'ยื่นคำขอแล้ว', count: validIpData.filter((i) => i._pipelineStage === 'pending').length, color: '#93C5FD', border: '#3B82F6', items: validIpData.filter((i) => i._pipelineStage === 'pending') },
-            { label: 'เตรียมความพร้อมยื่นจด', count: validIpData.filter((i) => i._pipelineStage !== 'granted' && i._pipelineStage !== 'pending').length, color: '#FDE68A', border: '#F59E0B', items: validIpData.filter((i) => i._pipelineStage !== 'granted' && i._pipelineStage !== 'pending') },
-          ].filter((t) => t.count > 0 || validIpData.length === 0);
-
-      createChart('c_ip_types_breakdown', {
-        type: 'doughnut',
-        data: {
-          labels: donutData.map((t) => t.label),
-          datasets: [
-            {
-              data: donutData.map((t) => t.count),
-              backgroundColor: donutData.map((t) => t.color),
-              borderColor: donutData.map((t) => t.border),
-              borderWidth: 1.5,
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          cutout: '62%',
-          onHover: (event: any, chartElement: any[]) => {
-            if (event.native?.target) event.native.target.style.cursor = chartElement.length > 0 ? 'pointer' : 'default';
-          },
-          onClick: (event: any, elements: any[], chart: any) => {
-            const hit = getClickedChartElement(event, elements, chart, 'nearest');
-            if (hit) {
-              const td = donutData[hit.index];
-              if (td && td.items.length > 0) {
-                if (isTypeMode && onSelectType) onSelectType(td.label);
-                setDrillDown({
-                  isOpen: true,
-                  title: isTypeMode ? `ประเภททรัพย์สินทางปัญญา: ${td.label}` : `สถานะความคุ้มครอง: ${td.label}`,
-                  subtitle: `รวม ${td.count} รายการ (${validIpData.length > 0 ? ((td.count / validIpData.length) * 100).toFixed(1) : 0}%) • คลิกรายการเพื่อดูรายละเอียด`,
-                  accentColor: td.border,
-                  items: td.items,
-                });
-              }
-            }
-          },
-          plugins: {
-            legend: {
-              position: 'bottom',
-              labels: {
-                boxWidth: 16,
-                boxHeight: 16,
-                borderRadius: 4,
-                useBorderRadius: true,
-                font: { size: 13.5, weight: 600 },
-                padding: 12,
-              },
-            },
-            tooltip: {
-              callbacks: {
-                label: (context: any) => {
-                  const td = donutData[context.dataIndex];
-                  if (!td) return '';
-                  const pct = validIpData.length > 0 ? ((td.count / validIpData.length) * 100).toFixed(1) : '0';
-                  return `${td.label}: ${td.count} รายการ (${pct}%)`;
-                },
-              },
-            },
-            datalabels: {
-              color: CHART_PASTEL_PALETTE.datalabels.dark,
-              font: { weight: 'bold', size: 13 },
-              formatter: (v: number) => {
-                const total = validIpData.length;
-                if (total === 0 || v === 0) return '';
-                const pct = ((v / total) * 100).toFixed(1);
-                return `${v} (${pct}%)`;
-              },
-            },
-          },
-        },
-      });
-    }
-
-    if (activePerspective === 'protection_status') {
-      // 1. Snapshot count by current stage
-      const stageGroups = [
-        {
-          key: 'granted',
-          label: 'ได้รับความคุ้มครองแล้ว',
-          color: '#86EFAC',
-          border: '#22C55E',
-          items: validIpData.filter((i) => i._pipelineStage === 'granted'),
-        },
-        {
-          key: 'pending',
-          label: 'ยื่นคำขอแล้ว',
-          color: '#93C5FD',
-          border: '#3B82F6',
-          items: validIpData.filter((i) => i._pipelineStage === 'pending'),
-        },
-        {
-          key: 'prep',
-          label: 'เตรียมความพร้อมยื่นจด',
-          color: '#FDE68A',
-          border: '#F59E0B',
-          items: validIpData.filter((i) => i._pipelineStage !== 'granted' && i._pipelineStage !== 'pending'),
-        },
-      ];
-
-      createChart('c_ip_stage_snapshot', {
-        type: 'bar',
-        data: {
-          labels: stageGroups.map((stage) => stage.label),
-          datasets: [
-            {
-              label: 'จำนวนรายการตามสถานะปัจจุบัน',
-              data: stageGroups.map((stage) => stage.items.length),
-              backgroundColor: stageGroups.map((stage) => stage.color),
-              borderColor: stageGroups.map((stage) => stage.border),
-              borderWidth: 1.5,
-              borderRadius: 8,
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          indexAxis: 'y',
-          onHover: (event: any, chartElement: any[]) => {
-            if (event.native?.target) event.native.target.style.cursor = chartElement.length > 0 ? 'pointer' : 'default';
-          },
-          onClick: (event: any, elements: any[], chart: any) => {
-            const hit = getClickedChartElement(event, elements, chart, 'y');
-            if (hit) {
-              const stage = stageGroups[hit.index];
-              if (stage && stage.items.length > 0) {
-                setDrillDown({
-                  isOpen: true,
-                  title: `ทรัพย์สินทางปัญญา: ${stage.label}`,
-                  subtitle: `สถานะปัจจุบัน ${stage.items.length} รายการ • คลิกรายการเพื่อดูรายละเอียด`,
-                  accentColor: stage.border,
-                  items: stage.items,
-                });
-              }
-            }
-          },
-          scales: {
-            x: {
-              beginAtZero: true,
-              grace: '18%',
-              grid: { color: CHART_PASTEL_PALETTE.gridLines },
-              title: { display: true, text: 'จำนวนรายการ (รายการ)', font: { size: 13.5, weight: 700 } },
-              ticks: { precision: 0, font: { size: 13, weight: 600 } },
-            },
-            y: { grid: { display: false }, ticks: { font: { size: 13.5, weight: 600 } } },
-          },
-          plugins: {
-            legend: { display: false },
-            datalabels: {
-              anchor: 'end',
-              align: 'right',
-              color: CHART_PASTEL_PALETTE.datalabels.dark,
-              font: { weight: 'bold', size: 13 },
-              formatter: (v: number) => `${v} รายการ`,
-            },
-          },
-        },
-      });
-
-      // 2. Fiscal Year trend
-      const fyCounts: Record<string, number> = { '2568': 0, '2569': 0, '2570': 0 };
-      const fyItems: Record<string, IPItem[]> = { '2568': [], '2569': [], '2570': [] };
-      validIpData.forEach((d) => {
-        const y = d._fiscalYear || '2568';
-        if (fyCounts[y] !== undefined) {
-          fyCounts[y]++;
-          fyItems[y].push(d);
-        }
-      });
-
-      createChart('c_ip_fy_trend', {
-        type: 'bar',
-        data: {
-          labels: ['ปีงบ 2568', 'ปีงบ 2569', 'ปีงบ 2570'],
-          datasets: [
-            {
-              label: 'จำนวนทรัพย์สินทางปัญญา',
-              data: [fyCounts['2568'], fyCounts['2569'], fyCounts['2570']],
-              backgroundColor: ['#DDD6FE', '#C7D2FE', '#A5B4FC'],
-              borderColor: '#8B5CF6',
-              borderWidth: 1.5,
-              borderRadius: 6,
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          onHover: (event: any, chartElement: any[]) => {
-            if (event.native?.target) event.native.target.style.cursor = chartElement.length > 0 ? 'pointer' : 'default';
-          },
-          onClick: (event: any, elements: any[], chart: any) => {
-            const hit = getClickedChartElement(event, elements, chart, 'nearest');
-            if (hit) {
-              const years = ['2568', '2569', '2570'];
-              const y = years[hit.index];
-              const items = fyItems[y] || [];
-              if (items.length > 0) {
-                setDrillDown({
-                  isOpen: true,
-                  title: `ทรัพย์สินทางปัญญา: ปีงบประมาณ ${y}`,
-                  subtitle: `รวม ${items.length} รายการ • คลิกรายการเพื่อดูรายละเอียด`,
-                  accentColor: '#8B5CF6',
-                  items,
-                });
-              }
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              grid: { color: CHART_PASTEL_PALETTE.gridLines },
-              title: { display: true, text: 'จำนวนรายการ (รายการ)', font: { size: 13.5, weight: 700 } },
-              ticks: { precision: 0, font: { size: 13, weight: 600 } },
-            },
-            x: { grid: { display: false }, ticks: { font: { size: 13.5, weight: 600 } } },
-          },
-          plugins: {
-            legend: { display: false },
-            datalabels: {
-              anchor: 'end',
-              align: 'top',
-              color: CHART_PASTEL_PALETTE.datalabels.dark,
-              font: { weight: 'bold', size: 13 },
-              formatter: (v: number) => `${v} รายการ`,
-            },
-          },
-        },
-      });
-    }
-
-    if (activePerspective === 'faculty') {
-      const top10 = topInventors.slice(0, 10);
-
-      // 1. Top 10 Inventors Horizontal Bar Chart
-      createChart('c_ip_faculty_top10', {
-        type: 'bar',
-        data: {
-          labels: top10.map((inv) => {
-            const clean = inv.creator.replace(/\r?\n/g, ' ').replace(/\s+/g, ' ');
-            return clean.length > 22 ? clean.substring(0, 20) + '...' : clean;
-          }),
-          datasets: [
-            {
-              label: 'จำนวนผลงาน (รายการ)',
-              data: top10.map((inv) => inv.count),
-              backgroundColor: top10.map((inv) => getDepartmentColor(inv.dept)),
-              borderColor: top10.map((inv) => getDepartmentColor(inv.dept)),
-              borderWidth: 1.5,
-              borderRadius: 6,
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          indexAxis: 'y',
-          onHover: (event: any, chartElement: any[]) => {
-            if (event.native?.target) event.native.target.style.cursor = chartElement.length > 0 ? 'pointer' : 'default';
-          },
-          onClick: (event: any, elements: any[], chart: any) => {
-            const hit = getClickedChartElement(event, elements, chart, 'y');
-            if (hit) {
-              const inv = top10[hit.index];
-              if (inv && inv.items.length > 0) {
-                setDrillDown({
-                  isOpen: true,
-                  title: `นักประดิษฐ์: ${inv.creator}`,
-                  subtitle: `สังกัด ${inv.dept} • รวม ${inv.count} ผลงาน${inv.support > 0 ? ` • เงินสนับสนุน ${inv.support.toLocaleString('th-TH')} บาท` : ''}`,
-                  accentColor: getDepartmentColor(inv.dept),
-                  items: inv.items,
-                });
-              }
-            }
-          },
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                title: (items: any[]) => {
-                  const idx = items[0]?.dataIndex ?? -1;
-                  const inv = top10[idx];
-                  return inv ? `นักประดิษฐ์: ${inv.creator} (${inv.dept})` : '';
-                },
-                label: (context: any) => {
-                  const inv = top10[context.dataIndex];
-                  if (!inv) return '';
-                  return [
-                    `จำนวนผลงาน: ${inv.count} รายการ`,
-                    inv.support > 0 ? `เงินสนับสนุน: ${inv.support.toLocaleString('th-TH')} บาท` : '',
-                    `คลิกที่แท่งกราฟเพื่อดูรายการผลงานทั้งหมด`,
-                  ].filter(Boolean);
-                },
-              },
-            },
-            datalabels: {
-              anchor: 'end',
-              align: 'right',
-              color: CHART_PASTEL_PALETTE.datalabels.dark,
-              font: { weight: 'bold', size: 13 },
-              formatter: (v: number) => `${v} รายการ`,
-            },
-          },
-          scales: {
-            x: {
-              beginAtZero: true,
-              grace: '18%',
-              grid: { color: CHART_PASTEL_PALETTE.gridLines },
-              title: { display: true, text: 'จำนวนผลงาน (รายการ)', font: { size: 13.5, weight: 700 } },
-              ticks: { precision: 0, font: { size: 13, weight: 600 } },
-            },
-            y: {
-              grid: { display: false },
-              ticks: { font: { size: 13.5, weight: 600 }, color: '#334155' },
-            },
-          },
-        },
-      });
-
-      // 2. Tech Clusters Horizontal Bar
-      createChart('c_ip_clusters', {
-        type: 'bar',
-        data: {
-          labels: techClusters.map((c) => c.cluster),
-          datasets: [
-            {
-              label: 'จำนวนผลงาน',
-              data: techClusters.map((c) => c.count),
-              backgroundColor: CHART_PASTEL_PALETTE.series.slice(0, 5),
-              borderColor: ['#3B82F6', '#22C55E', '#F59E0B', '#8B5CF6', '#F43F5E'],
-              borderWidth: 1.5,
-              borderRadius: 6,
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          indexAxis: 'y',
-          onHover: (event: any, chartElement: any[]) => {
-            if (event.native?.target) event.native.target.style.cursor = chartElement.length > 0 ? 'pointer' : 'default';
-          },
-          onClick: (event: any, elements: any[], chart: any) => {
-            const hit = getClickedChartElement(event, elements, chart, 'y');
-            if (hit) {
-              const c = techClusters[hit.index];
-              if (c && c.items.length > 0) {
-                setDrillDown({
-                  isOpen: true,
-                  title: `กลุ่มเทคโนโลยี: ${c.cluster}`,
-                  subtitle: `รวม ${c.count} ผลงานทรัพย์สินทางปัญญา • คลิกรายการเพื่อดูรายละเอียด`,
-                  accentColor: '#8B5CF6',
-                  items: c.items,
-                });
-              }
-            }
-          },
-          plugins: {
-            legend: { display: false },
-            datalabels: {
-              anchor: 'end',
-              align: 'right',
-              color: CHART_PASTEL_PALETTE.datalabels.dark,
-              font: { weight: 'bold', size: 13 },
-              formatter: (v: number) => `${v} รายการ`,
-            },
-          },
-          scales: {
-            x: {
-              beginAtZero: true,
-              grace: '15%',
-              grid: { color: CHART_PASTEL_PALETTE.gridLines },
-              title: { display: true, text: 'จำนวนผลงาน (รายการ)', font: { size: 13.5, weight: 700 } },
-              ticks: { precision: 0, font: { size: 13, weight: 600 } },
-            },
-            y: { grid: { display: false }, ticks: { font: { size: 13.5, weight: 600 } } },
-          },
-        },
-      });
-    }
 
     if (activePerspective === 'sdg') {
       // ISEE & IAM breakdown
@@ -815,267 +668,2304 @@ export function IPCharts({
     return () => {
       chartInstances.current.forEach((c) => c.destroy());
     };
-  }, [validIpData, activePerspective, strategyMetric, techClusters, deptStackMode, topInventors, onSelectDept, onSelectType]);
+  }, [validIpData, activePerspective, strategyMetric]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '16px' }}>
       {/* DIMENSION 1: Department Distribution & IP Types Breakdown */}
       {activePerspective === 'types_dept' && (
-        <>
-          {validIpData.length === 0 ? (
-            <div
-              style={{
-                backgroundColor: '#ffffff',
-                borderRadius: '16px',
-                border: '1px solid #e2e8f0',
-                padding: '32px',
-                textAlign: 'center',
-                color: '#64748b',
-                fontSize: '13.5px',
-              }}
-            >
-              ไม่พบข้อมูลทรัพย์สินทางปัญญาตามตัวกรองที่เลือก
-            </div>
-          ) : (
-            <div className="chart-grid">
-              <div className="chart-card">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#1e293b' }}>
-                    <FaBuilding style={{ color: '#8b5cf6', marginRight: '6px' }} /> การกระจายตัวตาม 7 สังกัด ({deptStackMode === 'type' ? 'แยกตามประเภท' : 'แยกตามสถานะ'})
-                  </h3>
-                  <div
-                    style={{
-                      display: 'inline-flex',
-                      backgroundColor: '#f1f5f9',
-                      padding: '3px 4px',
-                      borderRadius: '10px',
-                      fontSize: '13px',
-                      fontWeight: 600,
+        <div className="rr-container" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* CHART 1: การกระจายตัวตาม 7 สังกัด (แยกตามประเภท) */}
+          <div className="rr-card">
+            <div className="rr-head">
+              <h2 className="rr-title-h2">
+                <FaBuilding style={{ color: '#8b5cf6', marginRight: '8px' }} />
+                การกระจายตัวตาม 7 สังกัด ({deptStackMode === 'type' ? 'แยกตามประเภท' : 'แยกตามสถานะ'})
+              </h2>
+              <div className="rr-ctrls">
+                <div className="rr-sel">
+                  <span>ปี</span>
+                  <select
+                    value={ip1Year}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setIp1Year(v);
+                      if (v !== 'all') setIp1CmpYear(String(Number(v) - 1));
                     }}
                   >
+                    <option value="all">ทั้งหมด</option>
+                    {availableYears.map((y) => (
+                      <option key={y} value={y}>
+                        {y}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="rr-seg-ctl">
+                  <button
+                    type="button"
+                    className={ip1Mode === 'single' ? 'on' : ''}
+                    onClick={() => setIp1Mode('single')}
+                  >
+                    ภาพรวม
+                  </button>
+                  <button
+                    type="button"
+                    className={ip1Mode === 'yoy' ? 'on' : ''}
+                    onClick={() => setIp1Mode('yoy')}
+                  >
+                    เปรียบเทียบข้ามปี
+                  </button>
+                </div>
+
+                {ip1Mode === 'yoy' ? (
+                  <div className="rr-sel">
+                    <span>เทียบกับปี</span>
+                    <select value={ip1CmpYear} onChange={(e) => setIp1CmpYear(e.target.value)}>
+                      {availableYears
+                        .filter((y) => y !== ip1Year)
+                        .map((y) => (
+                          <option key={y} value={y}>
+                            {y}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                ) : (
+                  <div className="rr-seg-ctl">
                     <button
                       type="button"
-                      onClick={() => setDeptStackMode('type')}
-                      style={{
-                        padding: '6px 14px',
-                        borderRadius: '8px',
-                        border: 'none',
-                        backgroundColor: deptStackMode === 'type' ? '#ffffff' : 'transparent',
-                        color: deptStackMode === 'type' ? '#6d28d9' : '#64748b',
-                        fontWeight: deptStackMode === 'type' ? 700 : 600,
-                        cursor: 'pointer',
-                        boxShadow: deptStackMode === 'type' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-                        fontSize: '13px',
-                      }}
+                      className={ip1Layout === 'grouped' ? 'on' : ''}
+                      onClick={() => setIp1Layout('grouped')}
                     >
-                      แยกตามประเภท
+                      แยกแท่ง
                     </button>
                     <button
                       type="button"
-                      onClick={() => setDeptStackMode('stage')}
-                      style={{
-                        padding: '6px 14px',
-                        borderRadius: '8px',
-                        border: 'none',
-                        backgroundColor: deptStackMode === 'stage' ? '#ffffff' : 'transparent',
-                        color: deptStackMode === 'stage' ? '#6d28d9' : '#64748b',
-                        fontWeight: deptStackMode === 'stage' ? 700 : 600,
-                        cursor: 'pointer',
-                        boxShadow: deptStackMode === 'stage' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-                        fontSize: '13px',
-                      }}
+                      className={ip1Layout === 'stacked' ? 'on' : ''}
+                      onClick={() => setIp1Layout('stacked')}
                     >
-                      แยกตามสถานะ
+                      แท่งซ้อน
                     </button>
                   </div>
-                </div>
-                <div className="chart-wrapper" style={{ height: '380px', cursor: 'pointer' }}>
-                  <canvas id="c_ip_dept_stacked" />
-                </div>
-              </div>
+                )}
 
-              <div className="chart-card">
-                <h3 style={{ margin: '0 0 10px 0', fontSize: '15px', fontWeight: 700, color: '#1e293b' }}>
-                  <FaCertificate style={{ color: '#8b5cf6', marginRight: '6px' }} />{' '}
-                  {deptStackMode === 'type' ? 'สัดส่วนประเภททรัพย์สินทางปัญญา' : 'สัดส่วนตามสถานะความคุ้มครอง'}
-                </h3>
-                <div className="chart-wrapper" style={{ height: '380px', cursor: 'pointer' }}>
-                  <canvas id="c_ip_types_breakdown" />
+                <div className="rr-seg-ctl">
+                  <button
+                    type="button"
+                    className={deptStackMode === 'type' ? 'on' : ''}
+                    onClick={() => setDeptStackMode('type')}
+                  >
+                    แยกตามประเภท
+                  </button>
+                  <button
+                    type="button"
+                    className={deptStackMode === 'stage' ? 'on' : ''}
+                    onClick={() => setDeptStackMode('stage')}
+                  >
+                    แยกตามสถานะ
+                  </button>
                 </div>
               </div>
             </div>
-          )}
-        </>
+
+            <div className="rr-legend">
+              {deptStackMode === 'type' ? (
+                <>
+                  <span className="rr-pill" style={{ cursor: 'default' }}>
+                    <span className="rr-sw" style={{ backgroundColor: '#8b5cf6' }} />
+                    อนุสิทธิบัตร
+                  </span>
+                  <span className="rr-pill" style={{ cursor: 'default' }}>
+                    <span className="rr-sw" style={{ backgroundColor: '#3b82f6' }} />
+                    สิทธิบัตรการประดิษฐ์
+                  </span>
+                  <span className="rr-pill" style={{ cursor: 'default' }}>
+                    <span className="rr-sw" style={{ backgroundColor: '#10b981' }} />
+                    ลิขสิทธิ์ / อื่นๆ
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="rr-pill" style={{ cursor: 'default' }}>
+                    <span className="rr-sw" style={{ backgroundColor: '#10b981' }} />
+                    ได้รับความคุ้มครองแล้ว
+                  </span>
+                  <span className="rr-pill" style={{ cursor: 'default' }}>
+                    <span className="rr-sw" style={{ backgroundColor: '#3b82f6' }} />
+                    ยื่นคำขอแล้ว
+                  </span>
+                  <span className="rr-pill" style={{ cursor: 'default' }}>
+                    <span className="rr-sw" style={{ backgroundColor: '#f59e0b' }} />
+                    เตรียมความพร้อมยื่นจด
+                  </span>
+                </>
+              )}
+              {ip1Mode === 'yoy' && (
+                <span className="rr-pill" style={{ cursor: 'default' }}>
+                  <span className="rr-sw" style={{ backgroundColor: '#cbd5e1' }} />
+                  ปี {ip1DeptData.cmpYr}
+                </span>
+              )}
+            </div>
+
+            <div className="rr-scroller">
+              {(() => {
+                const rows = ip1DeptData.rows;
+                const isYoy = ip1Mode === 'yoy';
+                const W = 1120;
+                const H = isYoy ? 390 : 340;
+                const padL = 64;
+                const padR = 40;
+                const padT = 30;
+                const plotB = 260;
+                const plotW = W - padL - padR;
+                const plotH = plotB - padT;
+                const colW = plotW / rows.length;
+
+                const maxValRaw = Math.max(
+                  4,
+                  ...rows.map((r) => r.total),
+                  ...(isYoy ? rows.map((r) => r.prevTotal) : [0])
+                );
+                const maxVal = Math.ceil(maxValRaw * 1.2);
+                const yTicks = [0, Math.round(maxVal / 3), Math.round((maxVal * 2) / 3), maxVal];
+
+                return (
+                  <svg className="rr-plot" viewBox={`0 0 ${W} ${H}`}>
+                    {yTicks.map((t, idx) => {
+                      const y = plotB - (t / maxVal) * plotH;
+                      return (
+                        <g key={`ip1-grid-${idx}`}>
+                          <line x1={padL} y1={y} x2={W - padR} y2={y} stroke="#f1f5f9" strokeWidth={1} />
+                          <text x={padL - 10} y={y + 4} textAnchor="end" fontSize="11" fontWeight="600" fill="#64748b">
+                            {t}
+                          </text>
+                        </g>
+                      );
+                    })}
+
+                    <text
+                      x={18}
+                      y={padT + plotH / 2}
+                      transform={`rotate(-90, 18, ${padT + plotH / 2})`}
+                      textAnchor="middle"
+                      fontSize="11.5"
+                      fontWeight="700"
+                      fill="#475569"
+                    >
+                      จำนวนรายการ (รายการ)
+                    </text>
+
+                    {rows.map((r, i) => {
+                      const cx = padL + i * colW + colW / 2;
+                      const isHov = ip1HoverIdx === i;
+                      const segs =
+                        deptStackMode === 'type'
+                          ? [
+                              { label: 'อนุสิทธิบัตร', val: r.petty, color: '#8b5cf6' },
+                              { label: 'สิทธิบัตรการประดิษฐ์', val: r.patent, color: '#3b82f6' },
+                              { label: 'ลิขสิทธิ์ / อื่นๆ', val: r.copyright, color: '#10b981' },
+                            ]
+                          : [
+                              { label: 'ได้รับความคุ้มครองแล้ว', val: r.granted, color: '#10b981' },
+                              { label: 'ยื่นคำขอแล้ว', val: r.pending, color: '#3b82f6' },
+                              { label: 'เตรียมความพร้อมยื่นจด', val: r.prep, color: '#f59e0b' },
+                            ];
+
+                      return (
+                        <g
+                          key={`ip1-col-${r.code}`}
+                          style={{ cursor: r.items.length > 0 ? 'pointer' : 'default' }}
+                          onMouseEnter={(e) => {
+                            setIp1HoverIdx(i);
+                            setTip({
+                              show: true,
+                              x: e.clientX,
+                              y: e.clientY,
+                              title: `${r.name} (${r.code})`,
+                              color: r.color,
+                              val: `${r.total} รายการ`,
+                              sub:
+                                deptStackMode === 'type'
+                                  ? `อนุสิทธิบัตร ${r.petty} • สิทธิบัตร ${r.patent} • ลิขสิทธิ์ ${r.copyright}`
+                                  : `คุ้มครองแล้ว ${r.granted} • ยื่นคำขอ ${r.pending} • เตรียมยื่น ${r.prep}`,
+                            });
+                          }}
+                          onMouseMove={(e) => setTip((prev) => ({ ...prev, x: e.clientX, y: e.clientY }))}
+                          onMouseLeave={() => {
+                            setIp1HoverIdx(null);
+                            setTip((prev) => ({ ...prev, show: false }));
+                          }}
+                          onClick={() => {
+                            if (r.items.length > 0) {
+                              setDrillDown({
+                                isOpen: true,
+                                title: `ทรัพย์สินทางปัญญา: สังกัด ${r.name} (${r.code})`,
+                                subtitle: `รวม ${r.total} รายการ (อนุสิทธิบัตร ${r.petty}, สิทธิบัตร ${r.patent}, ลิขสิทธิ์ ${r.copyright})`,
+                                accentColor: r.color,
+                                items: r.items,
+                              });
+                            }
+                          }}
+                        >
+                          <rect
+                            x={padL + i * colW + 8}
+                            y={padT - 8}
+                            width={colW - 16}
+                            height={plotH + 14}
+                            rx={10}
+                            fill="#0f172a"
+                            opacity={isHov ? 0.045 : 0}
+                          />
+
+                          {isYoy ? (
+                            (() => {
+                              const bw = 26;
+                              const gap = 6;
+                              const hP = (r.prevTotal / maxVal) * plotH;
+                              const hC = (r.total / maxVal) * plotH;
+                              return (
+                                <>
+                                  {r.prevTotal > 0 && (
+                                    <>
+                                      <rect
+                                        className="rr-rise"
+                                        x={cx - bw - gap / 2}
+                                        y={plotB - hP}
+                                        width={bw}
+                                        height={hP}
+                                        rx={6}
+                                        fill="#cbd5e1"
+                                      />
+                                      <text
+                                        x={cx - bw / 2 - gap / 2}
+                                        y={plotB - hP - 6}
+                                        textAnchor="middle"
+                                        fontSize="11"
+                                        fontWeight="700"
+                                        fill="#64748b"
+                                      >
+                                        {r.prevTotal}
+                                      </text>
+                                    </>
+                                  )}
+                                  {r.total > 0 && (
+                                    <>
+                                      <rect
+                                        className="rr-rise"
+                                        x={cx + gap / 2}
+                                        y={plotB - hC}
+                                        width={bw}
+                                        height={hC}
+                                        rx={6}
+                                        fill={r.color}
+                                        style={{
+                                          filter: isHov ? `drop-shadow(0 4px 10px ${r.color}66)` : 'none',
+                                        }}
+                                      />
+                                      <text
+                                        x={cx + bw / 2 + gap / 2}
+                                        y={plotB - hC - 6}
+                                        textAnchor="middle"
+                                        fontSize="12"
+                                        fontWeight="800"
+                                        fill="#0f172a"
+                                      >
+                                        {r.total}
+                                      </text>
+                                    </>
+                                  )}
+                                </>
+                              );
+                            })()
+                          ) : ip1Layout === 'grouped' ? (
+                            (() => {
+                              const activeSegs = segs.filter((s) => s.val > 0);
+                              const bw = 20;
+                              const gap = 4;
+                              const totalW = activeSegs.length * bw + Math.max(0, activeSegs.length - 1) * gap;
+                              const startX = cx - totalW / 2;
+                              return (
+                                <>
+                                  {activeSegs.map((s, sIdx) => {
+                                    const h = (s.val / maxVal) * plotH;
+                                    const x = startX + sIdx * (bw + gap);
+                                    return (
+                                      <g
+                                        key={`seg-g-${sIdx}`}
+                                        onMouseEnter={(e) => {
+                                          e.stopPropagation();
+                                          setIp1HoverIdx(i);
+                                          setTip({
+                                            show: true,
+                                            x: e.clientX,
+                                            y: e.clientY,
+                                            title: `${s.label} · ${r.name} (${r.code})`,
+                                            color: s.color,
+                                            val: `${s.val} รายการ`,
+                                            sub: `${r.total > 0 ? Math.round((s.val / r.total) * 100) : 0}% ของสังกัดนี้ (${r.total} รายการ)`,
+                                          });
+                                        }}
+                                      >
+                                        <rect
+                                          className="rr-rise"
+                                          x={x}
+                                          y={plotB - h}
+                                          width={bw}
+                                          height={h}
+                                          rx={5}
+                                          fill={s.color}
+                                        />
+                                        <text
+                                          x={x + bw / 2}
+                                          y={plotB - h - 5}
+                                          textAnchor="middle"
+                                          fontSize="11"
+                                          fontWeight="700"
+                                          fill="#0f172a"
+                                        >
+                                          {s.val}
+                                        </text>
+                                      </g>
+                                    );
+                                  })}
+                                </>
+                              );
+                            })()
+                          ) : (
+                            (() => {
+                              const bw = 42;
+                              let curY = plotB;
+                              return (
+                                <>
+                                  {segs.map((s, sIdx) => {
+                                    if (s.val <= 0) return null;
+                                    const h = (s.val / maxVal) * plotH;
+                                    curY -= h;
+                                    const hAdj = Math.max(2, h - 1);
+                                    return (
+                                      <g
+                                        key={`seg-s-${sIdx}`}
+                                        onMouseEnter={(e) => {
+                                          e.stopPropagation();
+                                          setIp1HoverIdx(i);
+                                          setTip({
+                                            show: true,
+                                            x: e.clientX,
+                                            y: e.clientY,
+                                            title: `${s.label} · ${r.name} (${r.code})`,
+                                            color: s.color,
+                                            val: `${s.val} รายการ`,
+                                            sub: `${r.total > 0 ? Math.round((s.val / r.total) * 100) : 0}% ของสังกัดนี้ (${r.total} รายการ)`,
+                                          });
+                                        }}
+                                      >
+                                        <rect
+                                          className="rr-rise"
+                                          x={cx - bw / 2}
+                                          y={curY}
+                                          width={bw}
+                                          height={hAdj}
+                                          rx={6}
+                                          fill={s.color}
+                                          style={{
+                                            filter: isHov ? `drop-shadow(0 4px 10px ${s.color}55)` : 'none',
+                                          }}
+                                        />
+                                        {hAdj >= 15 && (
+                                          <text
+                                            x={cx}
+                                            y={curY + hAdj / 2 + 4}
+                                            textAnchor="middle"
+                                            fontSize="11"
+                                            fontWeight="700"
+                                            fill="#ffffff"
+                                            style={{ pointerEvents: 'none' }}
+                                          >
+                                            {s.val}
+                                          </text>
+                                        )}
+                                      </g>
+                                    );
+                                  })}
+                                  {r.total > 0 && (
+                                    <text
+                                      x={cx}
+                                      y={curY - 7}
+                                      textAnchor="middle"
+                                      fontSize="12"
+                                      fontWeight="800"
+                                      fill="#0f172a"
+                                    >
+                                      {r.total}
+                                    </text>
+                                  )}
+                                </>
+                              );
+                            })()
+                          )}
+
+                          {/* Official Department Color Badge on X axis */}
+                          <rect x={cx - 24} y={plotB + 10} width={48} height={22} rx={6} fill={r.color} />
+                          <text x={cx} y={plotB + 25} textAnchor="middle" fontSize="11.5" fontWeight="800" fill="#ffffff">
+                            {r.code}
+                          </text>
+
+                          {isYoy && (
+                            (() => {
+                              const d = getDeltaInfo(r.total, r.prevTotal);
+                              const fillMap: Record<string, string> = {
+                                up: '#dcfce7',
+                                dn: '#fee2e2',
+                                new: '#dbeafe',
+                                same: '#e2e8f0',
+                                flat: '#f1f5f9',
+                              };
+                              const txtMap: Record<string, string> = {
+                                up: '#15803d',
+                                dn: '#b91c1c',
+                                new: '#1d4ed8',
+                                same: '#334155',
+                                flat: '#94a3b8',
+                              };
+                              return (
+                                <>
+                                  <rect
+                                    x={cx - 28}
+                                    y={plotB + 42}
+                                    width={56}
+                                    height={20}
+                                    rx={10}
+                                    fill={fillMap[d.cls]}
+                                  />
+                                  <text
+                                    x={cx}
+                                    y={plotB + 56}
+                                    textAnchor="middle"
+                                    fontSize="10"
+                                    fontWeight="700"
+                                    fill={txtMap[d.cls]}
+                                  >
+                                    {d.label}
+                                  </text>
+                                </>
+                              );
+                            })()
+                          )}
+                        </g>
+                      );
+                    })}
+                  </svg>
+                );
+              })()}
+            </div>
+          </div>
+
+          {/* CHART 2: สัดส่วนประเภททรัพย์สินทางปัญญา */}
+          <div className="rr-card">
+            <div className="rr-head">
+              <h2 className="rr-title-h2">
+                <FaCertificate style={{ color: '#8b5cf6', marginRight: '8px' }} />
+                {deptStackMode === 'type' ? 'สัดส่วนประเภททรัพย์สินทางปัญญา' : 'สัดส่วนตามสถานะความคุ้มครอง'}
+              </h2>
+              <div className="rr-ctrls">
+                <div className="rr-sel">
+                  <span>ปี</span>
+                  <select
+                    value={ip2Year}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setIp2Year(v);
+                      if (v !== 'all') setIp2CmpYear(String(Number(v) - 1));
+                    }}
+                  >
+                    <option value="all">ทั้งหมด</option>
+                    {availableYears.map((y) => (
+                      <option key={y} value={y}>
+                        {y}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="rr-seg-ctl">
+                  <button
+                    type="button"
+                    className={ip2Mode === 'single' ? 'on' : ''}
+                    onClick={() => setIp2Mode('single')}
+                  >
+                    ภาพรวม
+                  </button>
+                  <button
+                    type="button"
+                    className={ip2Mode === 'yoy' ? 'on' : ''}
+                    onClick={() => setIp2Mode('yoy')}
+                  >
+                    เปรียบเทียบข้ามปี
+                  </button>
+                </div>
+
+                {ip2Mode === 'yoy' && (
+                  <div className="rr-sel">
+                    <span>เทียบกับปี</span>
+                    <select value={ip2CmpYear} onChange={(e) => setIp2CmpYear(e.target.value)}>
+                      {availableYears
+                        .filter((y) => y !== ip2Year)
+                        .map((y) => (
+                          <option key={y} value={y}>
+                            {y}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="rr-dn">
+              {(() => {
+                const { slices, totalCur, totalPrev, cmpYr } = ip2DonutData;
+                const isYoy = ip2Mode === 'yoy';
+                const cx = 120;
+                const cy = 120;
+                let curAngle = 0;
+                let prevAngle = 0;
+
+                return (
+                  <>
+                    <div className="rr-dn-s">
+                      <svg viewBox="0 0 240 240" width="240" height="240">
+                        {totalCur === 0 ? (
+                          <circle cx={cx} cy={cy} r={88} fill="none" stroke="#e2e8f0" strokeWidth={24} />
+                        ) : (
+                          slices.map((s, idx) => {
+                            if (s.count <= 0) return null;
+                            const span = (s.count / totalCur) * 360;
+                            const start = curAngle;
+                            const end = curAngle + span;
+                            curAngle = end;
+                            const isHov = ip2HoverIdx === idx;
+                            return (
+                              <path
+                                key={`dn-cur-${s.key}`}
+                                d={describeArc(cx, cy, isHov ? 102 : 96, isYoy ? 68 : 60, start, end - 0.8)}
+                                fill={s.color}
+                                style={{
+                                  cursor: 'pointer',
+                                  transition: 'all 0.2s ease',
+                                  filter: isHov ? `drop-shadow(0 4px 10px ${s.color}66)` : 'none',
+                                }}
+                                onMouseEnter={(e) => {
+                                  setIp2HoverIdx(idx);
+                                  setTip({
+                                    show: true,
+                                    x: e.clientX,
+                                    y: e.clientY,
+                                    title: s.label,
+                                    color: s.color,
+                                    val: `${s.count} รายการ (${s.pct}%)`,
+                                    sub: isYoy
+                                      ? `ปี ${cmpYr}: ${s.prevCount} รายการ (${s.prevPct}%)`
+                                      : 'คลิกเพื่อดูรายการทรัพย์สินทางปัญญา',
+                                  });
+                                }}
+                                onMouseMove={(e) => setTip((prev) => ({ ...prev, x: e.clientX, y: e.clientY }))}
+                                onMouseLeave={() => {
+                                  setIp2HoverIdx(null);
+                                  setTip((prev) => ({ ...prev, show: false }));
+                                }}
+                                onClick={() => {
+                                  if (s.items.length > 0) {
+                                    setDrillDown({
+                                      isOpen: true,
+                                      title: `${deptStackMode === 'type' ? 'ประเภท' : 'สถานะ'}: ${s.label}`,
+                                      subtitle: `รวม ${s.count} รายการ (${s.pct}%)`,
+                                      accentColor: s.color,
+                                      items: s.items,
+                                    });
+                                  }
+                                }}
+                              />
+                            );
+                          })
+                        )}
+
+                        {isYoy &&
+                          totalPrev > 0 &&
+                          slices.map((s) => {
+                            if (s.prevCount <= 0) return null;
+                            const span = (s.prevCount / totalPrev) * 360;
+                            const start = prevAngle;
+                            const end = prevAngle + span;
+                            prevAngle = end;
+                            return (
+                              <path
+                                key={`dn-prev-${s.key}`}
+                                d={describeArc(cx, cy, 62, 44, start, end - 0.8)}
+                                fill={s.color}
+                                opacity={0.45}
+                              />
+                            );
+                          })}
+
+                        <text x={cx} y={cy - 4} textAnchor="middle" fontSize="24" fontWeight="800" fill="#0f172a">
+                          {totalCur}
+                        </text>
+                        <text x={cx} y={cy + 15} textAnchor="middle" fontSize="11.5" fontWeight="600" fill="#64748b">
+                          {isYoy ? `รายการ (เทียบ ${totalPrev})` : 'รายการทั้งหมด'}
+                        </text>
+                      </svg>
+                    </div>
+
+                    <div className="rr-dl">
+                      {slices.map((s, idx) => {
+                        const d = getDeltaInfo(s.count, s.prevCount);
+                        return (
+                          <div
+                            key={`dl-row-${s.key}`}
+                            className={`rr-dl-r ${isYoy ? 'cmp' : ''}`}
+                            onMouseEnter={(e) => {
+                              setIp2HoverIdx(idx);
+                              setTip({
+                                show: true,
+                                x: e.clientX,
+                                y: e.clientY,
+                                title: s.label,
+                                color: s.color,
+                                val: `${s.count} รายการ (${s.pct}%)`,
+                                sub: isYoy
+                                  ? `ปี ${cmpYr}: ${s.prevCount} รายการ (${s.prevPct}%)`
+                                  : 'คลิกเพื่อดูรายการทั้งหมด',
+                              });
+                            }}
+                            onMouseMove={(e) => setTip((prev) => ({ ...prev, x: e.clientX, y: e.clientY }))}
+                            onMouseLeave={() => {
+                              setIp2HoverIdx(null);
+                              setTip((prev) => ({ ...prev, show: false }));
+                            }}
+                            onClick={() => {
+                              if (s.items.length > 0) {
+                                setDrillDown({
+                                  isOpen: true,
+                                  title: `${deptStackMode === 'type' ? 'ประเภท' : 'สถานะ'}: ${s.label}`,
+                                  subtitle: `รวม ${s.count} รายการ (${s.pct}%)`,
+                                  accentColor: s.color,
+                                  items: s.items,
+                                });
+                              }
+                            }}
+                          >
+                            <span className="rr-d" style={{ backgroundColor: s.color }} />
+                            <div className="rr-n">
+                              <b>{s.label}</b>
+                              <small>
+                                {isYoy
+                                  ? `ปีปัจจุบัน ${s.count} รายการ • ปี ${cmpYr}: ${s.prevCount} รายการ`
+                                  : `จำนวน ${s.count} รายการ`}
+                              </small>
+                            </div>
+                            <div className="rr-v">{s.count} รายการ</div>
+                            {isYoy ? (
+                              <div className={`rr-d-chip ${d.cls}`}>{d.label}</div>
+                            ) : (
+                              <div className="rr-p">{s.pct}%</div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+          </div>
+        </div>
       )}
 
       {/* DIMENSION 2: Application Tracking & Timeline */}
       {activePerspective === 'protection_status' && (
-        <>
-          {validIpData.length === 0 ? (
-            <div
-              style={{
-                backgroundColor: '#ffffff',
-                borderRadius: '16px',
-                border: '1px solid #e2e8f0',
-                padding: '32px',
-                textAlign: 'center',
-                color: '#64748b',
-                fontSize: '13.5px',
-              }}
-            >
-              ไม่พบข้อมูลทรัพย์สินทางปัญญาตามตัวกรองที่เลือก
-            </div>
-          ) : (
-            <div className="chart-grid">
-              <div className="chart-card">
-                <h3 style={{ margin: '0 0 10px 0', fontSize: '15px', fontWeight: 700, color: '#1e293b' }}>
-                  <FaShieldAlt style={{ color: '#8b5cf6', marginRight: '6px' }} /> สถานะการยื่นคำขอและการคุ้มครอง (3 ระดับ)
-                </h3>
-                <div className="chart-wrapper" style={{ height: '360px', cursor: 'pointer' }}>
-                  <canvas id="c_ip_stage_snapshot" />
+        <div className="rr-container" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* CHART 3: สถานะการยื่นคำขอและการคุ้มครอง (3 ระดับ) */}
+          <div className="rr-card">
+            <div className="rr-head">
+              <h2 className="rr-title-h2">
+                <FaShieldAlt style={{ color: '#8b5cf6', marginRight: '8px' }} />
+                สถานะการยื่นคำขอและการคุ้มครอง (3 ระดับ)
+              </h2>
+              <div className="rr-ctrls">
+                <div className="rr-sel">
+                  <span>ปี</span>
+                  <select
+                    value={ip3Year}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setIp3Year(v);
+                      if (v !== 'all') setIp3CmpYear(String(Number(v) - 1));
+                    }}
+                  >
+                    <option value="all">ทั้งหมด</option>
+                    {availableYears.map((y) => (
+                      <option key={y} value={y}>
+                        {y}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-              </div>
 
-              <div className="chart-card">
-                <h3 style={{ margin: '0 0 10px 0', fontSize: '15px', fontWeight: 700, color: '#1e293b' }}>
-                  <FaCalendarAlt style={{ color: '#8b5cf6', marginRight: '6px' }} /> แนวโน้มการสร้างสรรค์ผลงานตามปีงบประมาณ
-                </h3>
-                <div className="chart-wrapper" style={{ height: '360px', cursor: 'pointer' }}>
-                  <canvas id="c_ip_fy_trend" />
+                <div className="rr-seg-ctl">
+                  <button
+                    type="button"
+                    className={ip3Mode === 'single' ? 'on' : ''}
+                    onClick={() => setIp3Mode('single')}
+                  >
+                    ภาพรวม
+                  </button>
+                  <button
+                    type="button"
+                    className={ip3Mode === 'yoy' ? 'on' : ''}
+                    onClick={() => setIp3Mode('yoy')}
+                  >
+                    เปรียบเทียบข้ามปี
+                  </button>
+                </div>
+
+                {ip3Mode === 'yoy' ? (
+                  <div className="rr-sel">
+                    <span>เทียบกับปี</span>
+                    <select value={ip3CmpYear} onChange={(e) => setIp3CmpYear(e.target.value)}>
+                      {availableYears
+                        .filter((y) => y !== ip3Year)
+                        .map((y) => (
+                          <option key={y} value={y}>
+                            {y}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                ) : (
+                  <div className="rr-seg-ctl">
+                    <button
+                      type="button"
+                      className={ip3Layout === 'grouped' ? 'on' : ''}
+                      onClick={() => setIp3Layout('grouped')}
+                    >
+                      แยกแท่ง
+                    </button>
+                    <button
+                      type="button"
+                      className={ip3Layout === 'stacked' ? 'on' : ''}
+                      onClick={() => setIp3Layout('stacked')}
+                    >
+                      แท่งซ้อน
+                    </button>
+                  </div>
+                )}
+
+                <div className="rr-seg-ctl">
+                  <button
+                    type="button"
+                    className={ip3Metric === 'count' ? 'on' : ''}
+                    onClick={() => setIp3Metric('count')}
+                  >
+                    จำนวนรายการ
+                  </button>
+                  <button
+                    type="button"
+                    className={ip3Metric === 'support' ? 'on' : ''}
+                    onClick={() => setIp3Metric('support')}
+                  >
+                    งบสนับสนุน (บาท)
+                  </button>
                 </div>
               </div>
             </div>
-          )}
-        </>
+
+            <div className="rr-legend">
+              <span className="rr-pill" style={{ cursor: 'default' }}>
+                <span className="rr-sw" style={{ backgroundColor: '#8b5cf6' }} />
+                อนุสิทธิบัตร
+              </span>
+              <span className="rr-pill" style={{ cursor: 'default' }}>
+                <span className="rr-sw" style={{ backgroundColor: '#3b82f6' }} />
+                สิทธิบัตรการประดิษฐ์
+              </span>
+              <span className="rr-pill" style={{ cursor: 'default' }}>
+                <span className="rr-sw" style={{ backgroundColor: '#10b981' }} />
+                ลิขสิทธิ์ / อื่นๆ
+              </span>
+            </div>
+
+            <div className="rr-scroller">
+              {(() => {
+                const rows = ip3StatusData.rows;
+                const isYoy = ip3Mode === 'yoy';
+                const W = 1120;
+                const H = isYoy ? 375 : 325;
+                const padL = 74;
+                const padR = 44;
+                const padT = 30;
+                const plotB = 245;
+                const plotW = W - padL - padR;
+                const plotH = plotB - padT;
+                const colW = plotW / rows.length;
+
+                const maxValRaw = Math.max(
+                  4,
+                  ...rows.map((r) => r.curVal),
+                  ...(isYoy ? rows.map((r) => r.prevVal) : [0])
+                );
+                const maxVal = Math.ceil(maxValRaw * 1.2);
+                const yTicks = [0, Math.round(maxVal / 3), Math.round((maxVal * 2) / 3), maxVal];
+                const unitTxt = ip3Metric === 'support' ? 'บาท' : 'รายการ';
+
+                return (
+                  <svg className="rr-plot" viewBox={`0 0 ${W} ${H}`}>
+                    {yTicks.map((t, idx) => {
+                      const y = plotB - (t / maxVal) * plotH;
+                      return (
+                        <g key={`ip3-grid-${idx}`}>
+                          <line x1={padL} y1={y} x2={W - padR} y2={y} stroke="#f1f5f9" strokeWidth={1} />
+                          <text x={padL - 10} y={y + 4} textAnchor="end" fontSize="11" fontWeight="600" fill="#64748b">
+                            {t.toLocaleString()}
+                          </text>
+                        </g>
+                      );
+                    })}
+
+                    {rows.map((r, i) => {
+                      const cx = padL + i * colW + colW / 2;
+                      const isHov = ip3HoverIdx === i;
+                      const segs = [
+                        { label: 'อนุสิทธิบัตร', val: r.pettyVal, color: '#8b5cf6' },
+                        { label: 'สิทธิบัตรการประดิษฐ์', val: r.patentVal, color: '#3b82f6' },
+                        { label: 'ลิขสิทธิ์ / อื่นๆ', val: r.copyVal, color: '#10b981' },
+                      ];
+
+                      return (
+                        <g
+                          key={`ip3-col-${r.key}`}
+                          style={{ cursor: r.items.length > 0 ? 'pointer' : 'default' }}
+                          onMouseEnter={(e) => {
+                            setIp3HoverIdx(i);
+                            setTip({
+                              show: true,
+                              x: e.clientX,
+                              y: e.clientY,
+                              title: r.label,
+                              color: r.color,
+                              val: `${r.curVal.toLocaleString()} ${unitTxt}`,
+                              sub: `รวม ${r.count} รายการ • งบสนับสนุน ${r.supportSum.toLocaleString()} บาท`,
+                            });
+                          }}
+                          onMouseMove={(e) => setTip((prev) => ({ ...prev, x: e.clientX, y: e.clientY }))}
+                          onMouseLeave={() => {
+                            setIp3HoverIdx(null);
+                            setTip((prev) => ({ ...prev, show: false }));
+                          }}
+                          onClick={() => {
+                            if (r.items.length > 0) {
+                              setDrillDown({
+                                isOpen: true,
+                                title: `สถานะ: ${r.label}`,
+                                subtitle: `รวม ${r.count} รายการ • งบสนับสนุน ${r.supportSum.toLocaleString()} บาท`,
+                                accentColor: r.color,
+                                items: r.items,
+                              });
+                            }
+                          }}
+                        >
+                          <rect
+                            x={padL + i * colW + 18}
+                            y={padT - 8}
+                            width={colW - 36}
+                            height={plotH + 14}
+                            rx={10}
+                            fill="#0f172a"
+                            opacity={isHov ? 0.045 : 0}
+                          />
+
+                          {isYoy ? (
+                            (() => {
+                              const bw = 36;
+                              const gap = 8;
+                              const hP = (r.prevVal / maxVal) * plotH;
+                              const hC = (r.curVal / maxVal) * plotH;
+                              return (
+                                <>
+                                  {r.prevVal > 0 && (
+                                    <>
+                                      <rect
+                                        className="rr-rise"
+                                        x={cx - bw - gap / 2}
+                                        y={plotB - hP}
+                                        width={bw}
+                                        height={hP}
+                                        rx={6}
+                                        fill="#cbd5e1"
+                                      />
+                                      <text
+                                        x={cx - bw / 2 - gap / 2}
+                                        y={plotB - hP - 6}
+                                        textAnchor="middle"
+                                        fontSize="11.5"
+                                        fontWeight="700"
+                                        fill="#64748b"
+                                      >
+                                        {r.prevVal.toLocaleString()}
+                                      </text>
+                                    </>
+                                  )}
+                                  {r.curVal > 0 && (
+                                    <>
+                                      <rect
+                                        className="rr-rise"
+                                        x={cx + gap / 2}
+                                        y={plotB - hC}
+                                        width={bw}
+                                        height={hC}
+                                        rx={6}
+                                        fill={r.color}
+                                        style={{
+                                          filter: isHov ? `drop-shadow(0 4px 10px ${r.color}66)` : 'none',
+                                        }}
+                                      />
+                                      <text
+                                        x={cx + bw / 2 + gap / 2}
+                                        y={plotB - hC - 6}
+                                        textAnchor="middle"
+                                        fontSize="12"
+                                        fontWeight="800"
+                                        fill="#0f172a"
+                                      >
+                                        {r.curVal.toLocaleString()}
+                                      </text>
+                                    </>
+                                  )}
+                                </>
+                              );
+                            })()
+                          ) : ip3Layout === 'grouped' ? (
+                            (() => {
+                              const activeSegs = segs.filter((s) => s.val > 0);
+                              const bw = 28;
+                              const gap = 6;
+                              const totalW = activeSegs.length * bw + Math.max(0, activeSegs.length - 1) * gap;
+                              const startX = cx - totalW / 2;
+                              return (
+                                <>
+                                  {activeSegs.map((s, sIdx) => {
+                                    const h = (s.val / maxVal) * plotH;
+                                    const x = startX + sIdx * (bw + gap);
+                                    return (
+                                      <g
+                                        key={`ip3-g-${sIdx}`}
+                                        onMouseEnter={(e) => {
+                                          e.stopPropagation();
+                                          setIp3HoverIdx(i);
+                                          setTip({
+                                            show: true,
+                                            x: e.clientX,
+                                            y: e.clientY,
+                                            title: `${s.label} · ${r.label}`,
+                                            color: s.color,
+                                            val: `${s.val.toLocaleString()} ${unitTxt}`,
+                                            sub: `${r.curVal > 0 ? Math.round((s.val / r.curVal) * 100) : 0}% ของสถานะนี้`,
+                                          });
+                                        }}
+                                      >
+                                        <rect
+                                          className="rr-rise"
+                                          x={x}
+                                          y={plotB - h}
+                                          width={bw}
+                                          height={h}
+                                          rx={6}
+                                          fill={s.color}
+                                        />
+                                        <text
+                                          x={x + bw / 2}
+                                          y={plotB - h - 5}
+                                          textAnchor="middle"
+                                          fontSize="11"
+                                          fontWeight="700"
+                                          fill="#0f172a"
+                                        >
+                                          {s.val.toLocaleString()}
+                                        </text>
+                                      </g>
+                                    );
+                                  })}
+                                </>
+                              );
+                            })()
+                          ) : (
+                            (() => {
+                              const bw = 54;
+                              let curY = plotB;
+                              return (
+                                <>
+                                  {segs.map((s, sIdx) => {
+                                    if (s.val <= 0) return null;
+                                    const h = (s.val / maxVal) * plotH;
+                                    curY -= h;
+                                    const hAdj = Math.max(2, h - 1);
+                                    return (
+                                      <g
+                                        key={`ip3-s-${sIdx}`}
+                                        onMouseEnter={(e) => {
+                                          e.stopPropagation();
+                                          setIp3HoverIdx(i);
+                                          setTip({
+                                            show: true,
+                                            x: e.clientX,
+                                            y: e.clientY,
+                                            title: `${s.label} · ${r.label}`,
+                                            color: s.color,
+                                            val: `${s.val.toLocaleString()} ${unitTxt}`,
+                                            sub: `${r.curVal > 0 ? Math.round((s.val / r.curVal) * 100) : 0}% ของสถานะนี้`,
+                                          });
+                                        }}
+                                      >
+                                        <rect
+                                          className="rr-rise"
+                                          x={cx - bw / 2}
+                                          y={curY}
+                                          width={bw}
+                                          height={hAdj}
+                                          rx={7}
+                                          fill={s.color}
+                                        />
+                                        {hAdj >= 15 && (
+                                          <text
+                                            x={cx}
+                                            y={curY + hAdj / 2 + 4}
+                                            textAnchor="middle"
+                                            fontSize="11.5"
+                                            fontWeight="700"
+                                            fill="#ffffff"
+                                            style={{ pointerEvents: 'none' }}
+                                          >
+                                            {s.val.toLocaleString()}
+                                          </text>
+                                        )}
+                                      </g>
+                                    );
+                                  })}
+                                  {r.curVal > 0 && (
+                                    <text
+                                      x={cx}
+                                      y={curY - 7}
+                                      textAnchor="middle"
+                                      fontSize="12.5"
+                                      fontWeight="800"
+                                      fill="#0f172a"
+                                    >
+                                      {r.curVal.toLocaleString()}
+                                    </text>
+                                  )}
+                                </>
+                              );
+                            })()
+                          )}
+
+                          <text
+                            x={cx}
+                            y={plotB + 22}
+                            textAnchor="middle"
+                            fontSize="12"
+                            fontWeight={isHov ? '800' : '700'}
+                            fill="#334155"
+                          >
+                            {r.label}
+                          </text>
+
+                          {isYoy && (
+                            (() => {
+                              const d = getDeltaInfo(r.curVal, r.prevVal);
+                              const fillMap: Record<string, string> = {
+                                up: '#dcfce7',
+                                dn: '#fee2e2',
+                                new: '#dbeafe',
+                                same: '#e2e8f0',
+                                flat: '#f1f5f9',
+                              };
+                              const txtMap: Record<string, string> = {
+                                up: '#15803d',
+                                dn: '#b91c1c',
+                                new: '#1d4ed8',
+                                same: '#334155',
+                                flat: '#94a3b8',
+                              };
+                              return (
+                                <>
+                                  <rect
+                                    x={cx - 28}
+                                    y={plotB + 36}
+                                    width={56}
+                                    height={20}
+                                    rx={10}
+                                    fill={fillMap[d.cls]}
+                                  />
+                                  <text
+                                    x={cx}
+                                    y={plotB + 50}
+                                    textAnchor="middle"
+                                    fontSize="10"
+                                    fontWeight="700"
+                                    fill={txtMap[d.cls]}
+                                  >
+                                    {d.label}
+                                  </text>
+                                </>
+                              );
+                            })()
+                          )}
+                        </g>
+                      );
+                    })}
+                  </svg>
+                );
+              })()}
+            </div>
+          </div>
+
+          {/* CHART 4: แนวโน้มการสร้างสรรค์ผลงานตามปีงบประมาณ */}
+          <div className="rr-card">
+            <div className="rr-head">
+              <h2 className="rr-title-h2">
+                <FaCalendarAlt style={{ color: '#8b5cf6', marginRight: '8px' }} />
+                แนวโน้มการสร้างสรรค์ผลงานตามปีงบประมาณ
+              </h2>
+              <div className="rr-ctrls">
+                <div className="rr-seg-ctl">
+                  <button
+                    type="button"
+                    className={ip4Mode === 'single' ? 'on' : ''}
+                    onClick={() => setIp4Mode('single')}
+                  >
+                    ภาพรวม
+                  </button>
+                  <button
+                    type="button"
+                    className={ip4Mode === 'yoy' ? 'on' : ''}
+                    onClick={() => setIp4Mode('yoy')}
+                  >
+                    เปรียบเทียบข้ามปี
+                  </button>
+                </div>
+
+                <div className="rr-seg-ctl">
+                  <button
+                    type="button"
+                    className={ip4BreakBy === 'type' ? 'on' : ''}
+                    onClick={() => setIp4BreakBy('type')}
+                  >
+                    แยกตามประเภท
+                  </button>
+                  <button
+                    type="button"
+                    className={ip4BreakBy === 'dept' ? 'on' : ''}
+                    onClick={() => setIp4BreakBy('dept')}
+                  >
+                    แยกตามสังกัด
+                  </button>
+                </div>
+
+                {ip4Mode === 'single' && (
+                  <div className="rr-seg-ctl">
+                    <button
+                      type="button"
+                      className={ip4Layout === 'grouped' ? 'on' : ''}
+                      onClick={() => setIp4Layout('grouped')}
+                    >
+                      แยกแท่ง
+                    </button>
+                    <button
+                      type="button"
+                      className={ip4Layout === 'stacked' ? 'on' : ''}
+                      onClick={() => setIp4Layout('stacked')}
+                    >
+                      แท่งซ้อน
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="rr-legend">
+              {ip4BreakBy === 'type' ? (
+                <>
+                  <span className="rr-pill" style={{ cursor: 'default' }}>
+                    <span className="rr-sw" style={{ backgroundColor: '#8b5cf6' }} />
+                    อนุสิทธิบัตร
+                  </span>
+                  <span className="rr-pill" style={{ cursor: 'default' }}>
+                    <span className="rr-sw" style={{ backgroundColor: '#3b82f6' }} />
+                    สิทธิบัตรการประดิษฐ์
+                  </span>
+                  <span className="rr-pill" style={{ cursor: 'default' }}>
+                    <span className="rr-sw" style={{ backgroundColor: '#10b981' }} />
+                    ลิขสิทธิ์ / อื่นๆ
+                  </span>
+                </>
+              ) : (
+                ALL_IP_DEPTS.map((c) => (
+                  <span key={`ip4-leg-${c}`} className="rr-pill" style={{ cursor: 'default' }}>
+                    <span className="rr-sw" style={{ backgroundColor: UCOL[c] }} />
+                    {c}
+                  </span>
+                ))
+              )}
+              <button
+                type="button"
+                className={`rr-pill ${!ip4ShowLine ? 'off' : ''}`}
+                onClick={() => setIp4ShowLine((p) => !p)}
+              >
+                <span className="rr-sw line" style={{ backgroundColor: '#f59e0b' }} />
+                งบสนับสนุนรวม (พันบาท)
+              </button>
+            </div>
+
+            <div className="rr-scroller">
+              {(() => {
+                const rows = ip4TrendData;
+                const isYoy = ip4Mode === 'yoy';
+                const W = 1120;
+                const H = isYoy ? 395 : 345;
+                const padL = 68;
+                const padR = 68;
+                const padT = 30;
+                const plotB = 255;
+                const plotW = W - padL - padR;
+                const plotH = plotB - padT;
+                const colW = plotW / rows.length;
+
+                const maxCountRaw = Math.max(4, ...rows.map((r) => r.total));
+                const maxCount = Math.ceil(maxCountRaw * 1.25);
+                const maxSupRaw = Math.max(20, ...rows.map((r) => r.supportSum / 1000));
+                const maxSup = Math.ceil(maxSupRaw * 1.25);
+
+                const yTicks = [0, Math.round(maxCount / 3), Math.round((maxCount * 2) / 3), maxCount];
+                const yRightTicks = [0, Math.round(maxSup / 3), Math.round((maxSup * 2) / 3), maxSup];
+
+                const linePts = rows.map((r, i) => ({
+                  x: padL + i * colW + colW / 2,
+                  y: plotB - (r.supportSum / 1000 / maxSup) * plotH,
+                  val: Number((r.supportSum / 1000).toFixed(1)),
+                }));
+
+                return (
+                  <svg className="rr-plot" viewBox={`0 0 ${W} ${H}`}>
+                    {yTicks.map((t, idx) => {
+                      const y = plotB - (t / maxCount) * plotH;
+                      return (
+                        <g key={`ip4-grid-${idx}`}>
+                          <line x1={padL} y1={y} x2={W - padR} y2={y} stroke="#f1f5f9" strokeWidth={1} />
+                          <text x={padL - 10} y={y + 4} textAnchor="end" fontSize="11" fontWeight="600" fill="#64748b">
+                            {t}
+                          </text>
+                        </g>
+                      );
+                    })}
+                    {yRightTicks.map((t, idx) => {
+                      const y = plotB - (t / maxSup) * plotH;
+                      return (
+                        <text
+                          key={`ip4-rgrid-${idx}`}
+                          x={W - padR + 10}
+                          y={y + 4}
+                          textAnchor="start"
+                          fontSize="11"
+                          fontWeight="700"
+                          fill="#d97706"
+                        >
+                          {t}k
+                        </text>
+                      );
+                    })}
+
+                    {rows.map((r, i) => {
+                      const cx = padL + i * colW + colW / 2;
+                      const isHov = ip4HoverIdx === i;
+                      const segs =
+                        ip4BreakBy === 'type'
+                          ? [
+                              { label: 'อนุสิทธิบัตร', val: r.petty, color: '#8b5cf6' },
+                              { label: 'สิทธิบัตร', val: r.patent, color: '#3b82f6' },
+                              { label: 'ลิขสิทธิ์', val: r.copy, color: '#10b981' },
+                            ]
+                          : r.deptCounts.map((dc) => ({
+                              label: dc.code,
+                              val: dc.count,
+                              color: dc.color,
+                            }));
+
+                      return (
+                        <g
+                          key={`ip4-col-${r.year}`}
+                          style={{ cursor: r.items.length > 0 ? 'pointer' : 'default' }}
+                          onMouseEnter={(e) => {
+                            setIp4HoverIdx(i);
+                            setTip({
+                              show: true,
+                              x: e.clientX,
+                              y: e.clientY,
+                              title: r.label,
+                              color: '#8b5cf6',
+                              val: `${r.total} รายการ • งบ ${r.supportSum.toLocaleString()} บาท`,
+                              sub: `อนุสิทธิบัตร ${r.petty} • สิทธิบัตร ${r.patent} • ลิขสิทธิ์ ${r.copy}`,
+                            });
+                          }}
+                          onMouseMove={(e) => setTip((prev) => ({ ...prev, x: e.clientX, y: e.clientY }))}
+                          onMouseLeave={() => {
+                            setIp4HoverIdx(null);
+                            setTip((prev) => ({ ...prev, show: false }));
+                          }}
+                          onClick={() => {
+                            if (r.items.length > 0) {
+                              setDrillDown({
+                                isOpen: true,
+                                title: `ทรัพย์สินทางปัญญา: ${r.label}`,
+                                subtitle: `รวม ${r.total} รายการ • งบสนับสนุน ${r.supportSum.toLocaleString()} บาท`,
+                                accentColor: '#8b5cf6',
+                                items: r.items,
+                              });
+                            }
+                          }}
+                        >
+                          <rect
+                            x={padL + i * colW + 18}
+                            y={padT - 8}
+                            width={colW - 36}
+                            height={plotH + 14}
+                            rx={10}
+                            fill="#0f172a"
+                            opacity={isHov ? 0.045 : 0}
+                          />
+
+                          {isYoy ? (
+                            (() => {
+                              const bw = 34;
+                              const gap = 8;
+                              const hP = (r.prevTotal / maxCount) * plotH;
+                              const hC = (r.total / maxCount) * plotH;
+                              return (
+                                <>
+                                  {r.hasPrev && r.prevTotal > 0 && (
+                                    <>
+                                      <rect
+                                        className="rr-rise"
+                                        x={cx - bw - gap / 2}
+                                        y={plotB - hP}
+                                        width={bw}
+                                        height={hP}
+                                        rx={6}
+                                        fill="#cbd5e1"
+                                      />
+                                      <text
+                                        x={cx - bw / 2 - gap / 2}
+                                        y={plotB - hP - 6}
+                                        textAnchor="middle"
+                                        fontSize="11"
+                                        fontWeight="700"
+                                        fill="#64748b"
+                                      >
+                                        {r.prevTotal}
+                                      </text>
+                                    </>
+                                  )}
+                                  {r.total > 0 && (
+                                    <>
+                                      <rect
+                                        className="rr-rise"
+                                        x={r.hasPrev ? cx + gap / 2 : cx - bw / 2}
+                                        y={plotB - hC}
+                                        width={bw}
+                                        height={hC}
+                                        rx={6}
+                                        fill="#8b5cf6"
+                                        style={{
+                                          filter: isHov ? 'drop-shadow(0 4px 10px rgba(139,92,246,0.35))' : 'none',
+                                        }}
+                                      />
+                                      <text
+                                        x={r.hasPrev ? cx + bw / 2 + gap / 2 : cx}
+                                        y={plotB - hC - 6}
+                                        textAnchor="middle"
+                                        fontSize="12"
+                                        fontWeight="800"
+                                        fill="#0f172a"
+                                      >
+                                        {r.total}
+                                      </text>
+                                    </>
+                                  )}
+                                </>
+                              );
+                            })()
+                          ) : ip4Layout === 'grouped' ? (
+                            (() => {
+                              const activeSegs = segs.filter((s) => s.val > 0);
+                              const bw = Math.min(26, 90 / Math.max(1, activeSegs.length));
+                              const gap = 4;
+                              const totalW = activeSegs.length * bw + Math.max(0, activeSegs.length - 1) * gap;
+                              const startX = cx - totalW / 2;
+                              return (
+                                <>
+                                  {activeSegs.map((s, sIdx) => {
+                                    const h = (s.val / maxCount) * plotH;
+                                    const x = startX + sIdx * (bw + gap);
+                                    return (
+                                      <g key={`ip4-g-${sIdx}`}>
+                                        <rect
+                                          className="rr-rise"
+                                          x={x}
+                                          y={plotB - h}
+                                          width={bw}
+                                          height={h}
+                                          rx={5}
+                                          fill={s.color}
+                                        />
+                                        <text
+                                          x={x + bw / 2}
+                                          y={plotB - h - 5}
+                                          textAnchor="middle"
+                                          fontSize="10.5"
+                                          fontWeight="700"
+                                          fill="#0f172a"
+                                        >
+                                          {s.val}
+                                        </text>
+                                      </g>
+                                    );
+                                  })}
+                                </>
+                              );
+                            })()
+                          ) : (
+                            (() => {
+                              const bw = 48;
+                              let curY = plotB;
+                              return (
+                                <>
+                                  {segs.map((s, sIdx) => {
+                                    if (s.val <= 0) return null;
+                                    const h = (s.val / maxCount) * plotH;
+                                    curY -= h;
+                                    const hAdj = Math.max(2, h - 1);
+                                    return (
+                                      <g
+                                        key={`ip4-s-${sIdx}`}
+                                        onMouseEnter={(e) => {
+                                          e.stopPropagation();
+                                          setIp4HoverIdx(i);
+                                          setTip({
+                                            show: true,
+                                            x: e.clientX,
+                                            y: e.clientY,
+                                            title: `${s.label} · ${r.label}`,
+                                            color: s.color,
+                                            val: `${s.val} รายการ`,
+                                            sub: `${r.total > 0 ? Math.round((s.val / r.total) * 100) : 0}% ของปีนี้ (${r.total} รายการ)`,
+                                          });
+                                        }}
+                                      >
+                                        <rect
+                                          className="rr-rise"
+                                          x={cx - bw / 2}
+                                          y={curY}
+                                          width={bw}
+                                          height={hAdj}
+                                          rx={6}
+                                          fill={s.color}
+                                        />
+                                        {hAdj >= 15 && (
+                                          <text
+                                            x={cx}
+                                            y={curY + hAdj / 2 + 4}
+                                            textAnchor="middle"
+                                            fontSize="11"
+                                            fontWeight="700"
+                                            fill="#ffffff"
+                                            style={{ pointerEvents: 'none' }}
+                                          >
+                                            {s.val}
+                                          </text>
+                                        )}
+                                      </g>
+                                    );
+                                  })}
+                                  {r.total > 0 && (
+                                    <text
+                                      x={cx}
+                                      y={curY - 7}
+                                      textAnchor="middle"
+                                      fontSize="12"
+                                      fontWeight="800"
+                                      fill="#0f172a"
+                                    >
+                                      {r.total}
+                                    </text>
+                                  )}
+                                </>
+                              );
+                            })()
+                          )}
+
+                          <text
+                            x={cx}
+                            y={plotB + 22}
+                            textAnchor="middle"
+                            fontSize="12"
+                            fontWeight="700"
+                            fill="#334155"
+                          >
+                            {r.label}
+                          </text>
+
+                          {isYoy && (
+                            (() => {
+                              const d1 = r.hasPrev ? getDeltaInfo(r.total, r.prevTotal) : { label: 'ปีฐาน', cls: 'same' };
+                              const d2 = r.hasPrev
+                                ? getDeltaInfo(r.supportSum, r.prevSupportSum)
+                                : { label: 'ปีฐาน', cls: 'same' };
+                              const fillMap: Record<string, string> = {
+                                up: '#dcfce7',
+                                dn: '#fee2e2',
+                                new: '#dbeafe',
+                                same: '#e2e8f0',
+                                flat: '#f1f5f9',
+                              };
+                              const txtMap: Record<string, string> = {
+                                up: '#15803d',
+                                dn: '#b91c1c',
+                                new: '#1d4ed8',
+                                same: '#334155',
+                                flat: '#94a3b8',
+                              };
+                              return (
+                                <>
+                                  <rect
+                                    x={cx - 28}
+                                    y={plotB + 36}
+                                    width={56}
+                                    height={20}
+                                    rx={10}
+                                    fill={fillMap[d1.cls]}
+                                  />
+                                  <text
+                                    x={cx}
+                                    y={plotB + 50}
+                                    textAnchor="middle"
+                                    fontSize="10"
+                                    fontWeight="700"
+                                    fill={txtMap[d1.cls]}
+                                  >
+                                    {d1.label}
+                                  </text>
+                                  <rect
+                                    x={cx - 28}
+                                    y={plotB + 62}
+                                    width={56}
+                                    height={20}
+                                    rx={10}
+                                    fill={fillMap[d2.cls]}
+                                  />
+                                  <text
+                                    x={cx}
+                                    y={plotB + 76}
+                                    textAnchor="middle"
+                                    fontSize="10"
+                                    fontWeight="700"
+                                    fill={txtMap[d2.cls]}
+                                  >
+                                    {d2.label}
+                                  </text>
+                                </>
+                              );
+                            })()
+                          )}
+                        </g>
+                      );
+                    })}
+
+                    {isYoy && (
+                      <>
+                        <text x={padL - 8} y={plotB + 50} textAnchor="end" fontSize="11" fontWeight="700" fill="#64748b">
+                          ผลงาน
+                        </text>
+                        <text x={padL - 8} y={plotB + 76} textAnchor="end" fontSize="11" fontWeight="700" fill="#64748b">
+                          งบสนับสนุน
+                        </text>
+                      </>
+                    )}
+
+                    {ip4ShowLine && (
+                      <>
+                        <path
+                          d={buildSmoothPath(linePts)}
+                          fill="none"
+                          stroke="#f59e0b"
+                          strokeWidth={2.5}
+                          style={{ pointerEvents: 'none' }}
+                        />
+                        {linePts.map((pt, i) =>
+                          pt.val > 0 ? (
+                            <g key={`ip4-lpt-${i}`} style={{ pointerEvents: 'none' }}>
+                              <circle cx={pt.x} cy={pt.y} r={4.5} fill="#ffffff" stroke="#f59e0b" strokeWidth={2.5} />
+                              <rect
+                                x={pt.x - 20}
+                                y={pt.y - 24}
+                                width={40}
+                                height={17}
+                                rx={8.5}
+                                fill="#ffffff"
+                                stroke="#f59e0b"
+                                strokeWidth={1.2}
+                              />
+                              <text
+                                x={pt.x}
+                                y={pt.y - 12.5}
+                                textAnchor="middle"
+                                fontSize="10"
+                                fontWeight="700"
+                                fill="#b45309"
+                              >
+                                {pt.val}k
+                              </text>
+                            </g>
+                          ) : null
+                        )}
+                      </>
+                    )}
+                  </svg>
+                );
+              })()}
+            </div>
+          </div>
+        </div>
       )}
 
       {/* DIMENSION 3: Faculty & Tech Clusters */}
       {activePerspective === 'faculty' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {topInventors.length === 0 ? (
-            <div
-              style={{
-                backgroundColor: '#ffffff',
-                borderRadius: '16px',
-                border: '1px solid #e2e8f0',
-                padding: '32px',
-                textAlign: 'center',
-                color: '#64748b',
-                fontSize: '13.5px',
-              }}
-            >
-              ไม่พบข้อมูลนักประดิษฐ์ตามตัวกรองที่เลือก
+        <div className="rr-container" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* CHART 5: 10 อันดับอาจารย์และนักประดิษฐ์ที่มีผลงานสูงสุด */}
+          <div className="rr-card">
+            <div className="rr-head">
+              <h2 className="rr-title-h2">
+                <FaUserTie style={{ color: '#8b5cf6', marginRight: '8px' }} />
+                10 อันดับอาจารย์และนักประดิษฐ์ที่มีผลงานสูงสุด
+              </h2>
+              <div className="rr-ctrls">
+                <div className="rr-sel">
+                  <span>ปี</span>
+                  <select
+                    value={ip5Year}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setIp5Year(v);
+                      if (v !== 'all') setIp5CmpYear(String(Number(v) - 1));
+                    }}
+                  >
+                    <option value="all">ทั้งหมด</option>
+                    {availableYears.map((y) => (
+                      <option key={y} value={y}>
+                        {y}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="rr-seg-ctl">
+                  <button
+                    type="button"
+                    className={ip5Mode === 'single' ? 'on' : ''}
+                    onClick={() => setIp5Mode('single')}
+                  >
+                    ภาพรวม
+                  </button>
+                  <button
+                    type="button"
+                    className={ip5Mode === 'yoy' ? 'on' : ''}
+                    onClick={() => setIp5Mode('yoy')}
+                  >
+                    เปรียบเทียบข้ามปี
+                  </button>
+                </div>
+
+                {ip5Mode === 'yoy' ? (
+                  <div className="rr-sel">
+                    <span>เทียบกับปี</span>
+                    <select value={ip5CmpYear} onChange={(e) => setIp5CmpYear(e.target.value)}>
+                      {availableYears
+                        .filter((y) => y !== ip5Year)
+                        .map((y) => (
+                          <option key={y} value={y}>
+                            {y}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                ) : (
+                  <div className="rr-seg-ctl">
+                    <button
+                      type="button"
+                      className={ip5Layout === 'grouped' ? 'on' : ''}
+                      onClick={() => setIp5Layout('grouped')}
+                    >
+                      แยกแท่ง
+                    </button>
+                    <button
+                      type="button"
+                      className={ip5Layout === 'stacked' ? 'on' : ''}
+                      onClick={() => setIp5Layout('stacked')}
+                    >
+                      แท่งซ้อน
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
-          ) : (
-            <>
-              {/* Row 1: Charts (Top 10 Inventors & Tech Clusters) */}
-              <div className="chart-grid">
-                <div className="chart-card">
-                  <h3 style={{ margin: '0 0 10px 0', fontSize: '15px', fontWeight: 700, color: '#1e293b' }}>
-                    <FaUserTie style={{ color: '#8b5cf6', marginRight: '6px' }} /> 10 อันดับอาจารย์และนักประดิษฐ์ที่มีผลงานสูงสุด
-                  </h3>
-                  <div className="chart-wrapper" style={{ height: '400px', cursor: 'pointer' }}>
-                    <canvas id="c_ip_faculty_top10" />
-                  </div>
-                </div>
 
-                <div className="chart-card">
-                  <h3 style={{ margin: '0 0 10px 0', fontSize: '15px', fontWeight: 700, color: '#1e293b' }}>
-                    <FaLightbulb style={{ color: '#8b5cf6', marginRight: '6px' }} /> กลุ่มเทคโนโลยีและนวัตกรรม
-                  </h3>
-                  <div className="chart-wrapper" style={{ height: '400px', cursor: 'pointer' }}>
-                    <canvas id="c_ip_clusters" />
-                  </div>
-                </div>
-              </div>
+            <div className="rr-legend">
+              <span className="rr-pill" style={{ cursor: 'default' }}>
+                <span className="rr-sw" style={{ backgroundColor: '#8b5cf6' }} />
+                อนุสิทธิบัตร
+              </span>
+              <span className="rr-pill" style={{ cursor: 'default' }}>
+                <span className="rr-sw" style={{ backgroundColor: '#3b82f6' }} />
+                สิทธิบัตรการประดิษฐ์
+              </span>
+              <span className="rr-pill" style={{ cursor: 'default' }}>
+                <span className="rr-sw" style={{ backgroundColor: '#10b981' }} />
+                ลิขสิทธิ์ / อื่นๆ
+              </span>
+              {ip5Mode === 'yoy' && (
+                <span className="rr-pill" style={{ cursor: 'default' }}>
+                  <span className="rr-sw" style={{ backgroundColor: '#cbd5e1' }} />
+                  ปี {ipFacultyData.cmpYr}
+                </span>
+              )}
+            </div>
 
-              {/* Row 2: Detailed Top Inventors Table */}
-              <div
-                style={{
-                  backgroundColor: '#ffffff',
-                  borderRadius: '16px',
-                  border: '1px solid #e2e8f0',
-                  padding: '20px',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-                }}
-              >
-                <div style={{ marginBottom: '14px' }}>
-                  <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
-                    ตารางทำเนียบ 10 อันดับนักประดิษฐ์
-                  </h3>
-                  <p style={{ margin: '3px 0 0 0', fontSize: '12px', color: '#64748b' }}>
-                    รายละเอียดรายชื่อ สังกัด จำนวนผลงาน และงบสนับสนุน พร้อมลิงก์ไปยังประวัติบุคลากร
-                  </p>
-                </div>
+            <div className="rr-scroller">
+              {(() => {
+                const rows = ipFacultyData.top10;
+                if (rows.length === 0) {
+                  return (
+                    <div style={{ padding: '32px', textAlign: 'center', color: '#64748b', fontSize: '13.5px' }}>
+                      ไม่พบข้อมูลนักประดิษฐ์ตามตัวกรองที่เลือก
+                    </div>
+                  );
+                }
+                const isYoy = ip5Mode === 'yoy';
+                const W = 1120;
+                const H = isYoy ? 410 : 355;
+                const padL = 64;
+                const padR = 40;
+                const padT = 30;
+                const plotB = 260;
+                const plotW = W - padL - padR;
+                const plotH = plotB - padT;
+                const n = Math.max(1, rows.length);
+                const colW = plotW / n;
 
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px' }}>
-                    <thead>
-                      <tr style={{ backgroundColor: '#f8fafc', color: '#475569', borderBottom: '2px solid #e2e8f0' }}>
-                        <th style={{ padding: '8px 10px', textAlign: 'center', width: '40px' }}>#</th>
-                        <th style={{ padding: '8px 10px', textAlign: 'left' }}>นักประดิษฐ์</th>
-                        <th style={{ padding: '8px 10px', textAlign: 'left' }}>สังกัด</th>
-                        <th style={{ padding: '8px 10px', textAlign: 'center' }}>ผลงาน</th>
-                        <th style={{ padding: '8px 10px', textAlign: 'right' }}>เงินสนับสนุน</th>
-                        <th style={{ padding: '8px 10px', textAlign: 'center', width: '70px' }}>แฟ้ม</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {topInventors.slice(0, 10).map((inv, idx) => (
-                        <tr
-                          key={`top-inv-${inv.person_id || inv.creator || idx}`}
-                          style={{ borderBottom: '1px solid #f1f5f9' }}
+                const maxCountRaw = Math.max(
+                  4,
+                  ...rows.map((r) => r.count),
+                  ...(isYoy ? rows.map((r) => r.prevCount) : [0])
+                );
+                const maxCount = Math.ceil(maxCountRaw * 1.2);
+                const yTicks = [0, Math.round(maxCount / 3), Math.round((maxCount * 2) / 3), maxCount];
+
+                return (
+                  <svg className="rr-plot" viewBox={`0 0 ${W} ${H}`}>
+                    {yTicks.map((t, idx) => {
+                      const y = plotB - (t / maxCount) * plotH;
+                      return (
+                        <g key={`ip5-grid-${idx}`}>
+                          <line x1={padL} y1={y} x2={W - padR} y2={y} stroke="#f1f5f9" strokeWidth={1} />
+                          <text x={padL - 10} y={y + 4} textAnchor="end" fontSize="11" fontWeight="600" fill="#64748b">
+                            {t}
+                          </text>
+                        </g>
+                      );
+                    })}
+
+                    {rows.map((r, i) => {
+                      const cx = padL + i * colW + colW / 2;
+                      const isHov = ip5HoverIdx === i;
+                      const shortName = r.creator.length > 16 ? r.creator.slice(0, 15) + '…' : r.creator;
+                      const segs = [
+                        { label: 'อนุสิทธิบัตร', val: r.petty, color: '#8b5cf6', items: r.pettyItems },
+                        { label: 'สิทธิบัตรการประดิษฐ์', val: r.patent, color: '#3b82f6', items: r.patentItems },
+                        { label: 'ลิขสิทธิ์ / อื่นๆ', val: r.copy, color: '#10b981', items: r.copyItems },
+                      ];
+
+                      return (
+                        <g
+                          key={`ip5-col-${r.key}-${i}`}
+                          style={{ cursor: 'pointer' }}
+                          onMouseEnter={(e) => {
+                            setIp5HoverIdx(i);
+                            setTip({
+                              show: true,
+                              x: e.clientX,
+                              y: e.clientY,
+                              title: `${r.creator} (${r.deptCode})`,
+                              color: r.color,
+                              val: `${r.count} ผลงาน • งบ ${r.support.toLocaleString()} บาท`,
+                              sub: `อนุสิทธิบัตร ${r.petty} • สิทธิบัตร ${r.patent} • ลิขสิทธิ์ ${r.copy}`,
+                            });
+                          }}
+                          onMouseMove={(e) => setTip((prev) => ({ ...prev, x: e.clientX, y: e.clientY }))}
+                          onMouseLeave={() => {
+                            setIp5HoverIdx(null);
+                            setTip((prev) => ({ ...prev, show: false }));
+                          }}
+                          onClick={() => {
+                            setDrillDown({
+                              isOpen: true,
+                              title: `นักประดิษฐ์: ${r.creator}`,
+                              subtitle: `สังกัด ${r.dept} • รวม ${r.count} ผลงาน`,
+                              accentColor: r.color,
+                              items: r.items,
+                            });
+                          }}
                         >
-                          <td style={{ padding: '8px 10px', textAlign: 'center', fontWeight: 700, color: idx < 3 ? '#7c3aed' : '#64748b' }}>
-                            {idx + 1}
-                          </td>
-                          <td style={{ padding: '8px 10px', fontWeight: 600, color: '#0f172a' }}>
-                            {inv.creator}
-                          </td>
-                          <td style={{ padding: '8px 10px' }}>
-                            <DepartmentBadge value={inv.dept} />
-                          </td>
-                          <td style={{ padding: '8px 10px', textAlign: 'center', fontWeight: 700 }}>
-                            <span style={{ padding: '2px 8px', borderRadius: '6px', backgroundColor: '#f5f3ff', color: '#6d28d9' }}>
-                              {inv.count} รายการ
-                            </span>
-                          </td>
-                          <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 600, color: inv.support > 0 ? '#047857' : '#94a3b8' }}>
-                            {inv.support > 0 ? `${inv.support.toLocaleString('th-TH')} ฿` : '-'}
-                          </td>
-                          <td style={{ padding: '8px 10px', textAlign: 'center' }}>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                if (inv.person_id) router.push(`/personnel/${inv.person_id}`);
-                                else router.push(`/personnel?q=${encodeURIComponent(inv.creator)}`);
-                              }}
-                              style={{
-                                padding: '4px 8px',
-                                borderRadius: '6px',
-                                border: '1px solid #cbd5e1',
-                                backgroundColor: '#ffffff',
-                                color: '#6d28d9',
-                                fontSize: '11px',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                              }}
-                            >
-                              <span>ดู</span>
-                              <FaChevronRight style={{ fontSize: '8px' }} />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </>
-          )}
+                          <rect
+                            x={padL + i * colW + 5}
+                            y={padT - 8}
+                            width={colW - 10}
+                            height={plotH + 14}
+                            rx={10}
+                            fill="#0f172a"
+                            opacity={isHov ? 0.045 : 0}
+                          />
+
+                          {isYoy ? (
+                            (() => {
+                              const bw = 22;
+                              const gap = 5;
+                              const hP = (r.prevCount / maxCount) * plotH;
+                              const hC = (r.count / maxCount) * plotH;
+                              return (
+                                <>
+                                  {r.prevCount > 0 && (
+                                    <>
+                                      <rect
+                                        className="rr-rise"
+                                        x={cx - bw - gap / 2}
+                                        y={plotB - hP}
+                                        width={bw}
+                                        height={hP}
+                                        rx={5}
+                                        fill="#cbd5e1"
+                                      />
+                                      <text
+                                        x={cx - bw / 2 - gap / 2}
+                                        y={plotB - hP - 5}
+                                        textAnchor="middle"
+                                        fontSize="10.5"
+                                        fontWeight="700"
+                                        fill="#64748b"
+                                      >
+                                        {r.prevCount}
+                                      </text>
+                                    </>
+                                  )}
+                                  {r.count > 0 && (
+                                    <>
+                                      <rect
+                                        className="rr-rise"
+                                        x={cx + gap / 2}
+                                        y={plotB - hC}
+                                        width={bw}
+                                        height={hC}
+                                        rx={5}
+                                        fill={r.color}
+                                      />
+                                      <text
+                                        x={cx + bw / 2 + gap / 2}
+                                        y={plotB - hC - 5}
+                                        textAnchor="middle"
+                                        fontSize="11.5"
+                                        fontWeight="800"
+                                        fill="#0f172a"
+                                      >
+                                        {r.count}
+                                      </text>
+                                    </>
+                                  )}
+                                </>
+                              );
+                            })()
+                          ) : ip5Layout === 'grouped' ? (
+                            (() => {
+                              const activeSegs = segs.filter((s) => s.val > 0);
+                              const bw = 20;
+                              const gap = 4;
+                              const totalW = activeSegs.length * bw + Math.max(0, activeSegs.length - 1) * gap;
+                              const startX = cx - totalW / 2;
+                              return (
+                                <>
+                                  {activeSegs.map((s, sIdx) => {
+                                    const h = (s.val / maxCount) * plotH;
+                                    const x = startX + sIdx * (bw + gap);
+                                    return (
+                                      <g key={`ip5-g-${sIdx}`}>
+                                        <rect
+                                          className="rr-rise"
+                                          x={x}
+                                          y={plotB - h}
+                                          width={bw}
+                                          height={h}
+                                          rx={4}
+                                          fill={s.color}
+                                        />
+                                        <text
+                                          x={x + bw / 2}
+                                          y={plotB - h - 5}
+                                          textAnchor="middle"
+                                          fontSize="10.5"
+                                          fontWeight="700"
+                                          fill="#0f172a"
+                                        >
+                                          {s.val}
+                                        </text>
+                                      </g>
+                                    );
+                                  })}
+                                </>
+                              );
+                            })()
+                          ) : (
+                            (() => {
+                              const bw = 36;
+                              let curY = plotB;
+                              return (
+                                <>
+                                  {segs.map((s, sIdx) => {
+                                    if (s.val <= 0) return null;
+                                    const h = (s.val / maxCount) * plotH;
+                                    curY -= h;
+                                    const hAdj = Math.max(2, h - 1);
+                                    return (
+                                      <g
+                                        key={`ip5-s-${sIdx}`}
+                                        onMouseEnter={(e) => {
+                                          e.stopPropagation();
+                                          setIp5HoverIdx(i);
+                                          setTip({
+                                            show: true,
+                                            x: e.clientX,
+                                            y: e.clientY,
+                                            title: `${s.label} · ${r.creator}`,
+                                            color: s.color,
+                                            val: `${s.val} รายการ`,
+                                            sub: `${r.count > 0 ? Math.round((s.val / r.count) * 100) : 0}% ของผลงานทั้งหมด (${r.count} รายการ)`,
+                                          });
+                                        }}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setDrillDown({
+                                            isOpen: true,
+                                            title: `${s.label}: ${r.creator}`,
+                                            subtitle: `รวม ${s.items.length} รายการ`,
+                                            accentColor: s.color,
+                                            items: s.items,
+                                          });
+                                        }}
+                                      >
+                                        <rect
+                                          className="rr-rise"
+                                          x={cx - bw / 2}
+                                          y={curY}
+                                          width={bw}
+                                          height={hAdj}
+                                          rx={6}
+                                          fill={s.color}
+                                        />
+                                        {hAdj >= 15 && (
+                                          <text
+                                            x={cx}
+                                            y={curY + hAdj / 2 + 4}
+                                            textAnchor="middle"
+                                            fontSize="11"
+                                            fontWeight="700"
+                                            fill="#ffffff"
+                                            style={{ pointerEvents: 'none' }}
+                                          >
+                                            {s.val}
+                                          </text>
+                                        )}
+                                      </g>
+                                    );
+                                  })}
+                                  {r.count > 0 && (
+                                    <text
+                                      x={cx}
+                                      y={curY - 7}
+                                      textAnchor="middle"
+                                      fontSize="12"
+                                      fontWeight="800"
+                                      fill="#0f172a"
+                                    >
+                                      {r.count}
+                                    </text>
+                                  )}
+                                </>
+                              );
+                            })()
+                          )}
+
+                          <rect x={cx - 22} y={plotB + 8} width={44} height={18} rx={5} fill={r.color} />
+                          <text x={cx} y={plotB + 21} textAnchor="middle" fontSize="10.5" fontWeight="800" fill="#ffffff">
+                            {r.deptCode}
+                          </text>
+                          <text x={cx} y={plotB + 40} textAnchor="middle" fontSize="11" fontWeight="700" fill="#334155">
+                            {shortName}
+                          </text>
+
+                          {isYoy && (
+                            (() => {
+                              const d = getDeltaInfo(r.count, r.prevCount);
+                              const fillMap: Record<string, string> = {
+                                up: '#dcfce7',
+                                dn: '#fee2e2',
+                                new: '#dbeafe',
+                                same: '#e2e8f0',
+                                flat: '#f1f5f9',
+                              };
+                              const txtMap: Record<string, string> = {
+                                up: '#15803d',
+                                dn: '#b91c1c',
+                                new: '#1d4ed8',
+                                same: '#334155',
+                                flat: '#94a3b8',
+                              };
+                              return (
+                                <>
+                                  <rect x={cx - 26} y={plotB + 50} width={52} height={20} rx={10} fill={fillMap[d.cls]} />
+                                  <text x={cx} y={plotB + 64} textAnchor="middle" fontSize="10" fontWeight="700" fill={txtMap[d.cls]}>
+                                    {d.label}
+                                  </text>
+                                </>
+                              );
+                            })()
+                          )}
+                        </g>
+                      );
+                    })}
+                  </svg>
+                );
+              })()}
+            </div>
+          </div>
+
+          {/* CHART 6: กลุ่มเทคโนโลยีและนวัตกรรม (.rr-rows) */}
+          <div className="rr-card">
+            <div className="rr-head">
+              <h2 className="rr-title-h2">
+                <FaLightbulb style={{ color: '#8b5cf6', marginRight: '8px' }} />
+                กลุ่มเทคโนโลยีและนวัตกรรม
+              </h2>
+            </div>
+
+            <div className="rr-rows">
+              {(() => {
+                const rows = ipFacultyData.clusters;
+                const isYoy = ip5Mode === 'yoy';
+                const maxVal = Math.max(
+                  1,
+                  ...rows.map((r) => r.count),
+                  ...(isYoy ? rows.map((r) => r.prevCount) : [0])
+                );
+
+                return rows.map((r, idx) => {
+                  const pct = Math.min(100, (r.count / maxVal) * 100);
+                  const prevPct = Math.min(100, (r.prevCount / maxVal) * 100);
+                  const delta = getDeltaInfo(r.count, r.prevCount);
+                  return (
+                    <div
+                      key={`cluster-row-${idx}`}
+                      className={`rr-row ${isYoy ? 'cmp' : ''}`}
+                      onMouseEnter={(e) =>
+                        setTip({
+                          show: true,
+                          x: e.clientX,
+                          y: e.clientY,
+                          title: r.cluster,
+                          color: r.color,
+                          val: `${r.count} รายการ`,
+                          sub: `งบสนับสนุนรวม ${r.support.toLocaleString()} บาท`,
+                        })
+                      }
+                      onMouseMove={(e) => setTip((prev) => ({ ...prev, x: e.clientX, y: e.clientY }))}
+                      onMouseLeave={() => setTip((prev) => ({ ...prev, show: false }))}
+                      onClick={() => {
+                        if (r.items.length > 0) {
+                          setDrillDown({
+                            isOpen: true,
+                            title: `กลุ่มเทคโนโลยี: ${r.cluster}`,
+                            subtitle: `รวม ${r.count} ผลงานทรัพย์สินทางปัญญา`,
+                            accentColor: r.color,
+                            items: r.items,
+                          });
+                        }
+                      }}
+                    >
+                      <div className="rr-rk">{idx + 1}</div>
+                      <div className="rr-un">
+                        <span className="rr-sw" style={{ backgroundColor: r.color }} />
+                        <div className="rr-ut">
+                          <b>{r.cluster}</b>
+                          <small>งบสนับสนุน {r.support.toLocaleString()} บาท</small>
+                        </div>
+                      </div>
+                      <div className="rr-tr">
+                        {isYoy && r.prevCount > 0 && <div className="rr-bar ghost" style={{ width: `${prevPct}%` }} />}
+                        <div className="rr-bar" style={{ width: `${pct}%`, backgroundColor: r.color }} />
+                      </div>
+                      <div className="rr-vl">
+                        <b>{r.count} รายการ</b>
+                        <small>{isYoy ? `ปี ${ipFacultyData.cmpYr}: ${r.prevCount} รายการ` : 'คลิกเพื่อดูรายการ'}</small>
+                      </div>
+                      {isYoy && <div className={`rr-d ${delta.cls}`}>{delta.label}</div>}
+                    </div>
+                  );
+                });
+              })()}
+            </div>
+          </div>
+
+          {/* Detailed Top Inventors Table with Circular Avatar */}
+          <div
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '16px',
+              border: '1px solid #e2e8f0',
+              padding: '20px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+            }}
+          >
+            <div style={{ marginBottom: '14px' }}>
+              <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
+                ตารางทำเนียบ 10 อันดับนักประดิษฐ์
+              </h3>
+              <p style={{ margin: '3px 0 0 0', fontSize: '12px', color: '#64748b' }}>
+                รายละเอียดรายชื่อ สังกัด จำนวนผลงาน และงบสนับสนุน พร้อมลิงก์ไปยังประวัติบุคลากร
+              </p>
+            </div>
+
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px' }}>
+                <thead>
+                  <tr style={{ backgroundColor: '#f8fafc', color: '#475569', borderBottom: '2px solid #e2e8f0' }}>
+                    <th style={{ padding: '8px 10px', textAlign: 'center', width: '40px' }}>#</th>
+                    <th style={{ padding: '8px 10px', textAlign: 'center', width: '64px' }}>รูปภาพประจำตัว</th>
+                    <th style={{ padding: '8px 10px', textAlign: 'left' }}>นักประดิษฐ์</th>
+                    <th style={{ padding: '8px 10px', textAlign: 'left' }}>สังกัด</th>
+                    <th style={{ padding: '8px 10px', textAlign: 'center' }}>ผลงาน</th>
+                    <th style={{ padding: '8px 10px', textAlign: 'right' }}>เงินสนับสนุน</th>
+                    <th style={{ padding: '8px 10px', textAlign: 'center', width: '70px' }}>แฟ้ม</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {topInventors.slice(0, 10).map((inv, idx) => (
+                    <tr
+                      key={`top-inv-${inv.person_id || inv.creator || idx}`}
+                      style={{ borderBottom: '1px solid #f1f5f9', cursor: 'pointer' }}
+                      onClick={() => {
+                        setDrillDown({
+                          isOpen: true,
+                          title: `นักประดิษฐ์: ${inv.creator}`,
+                          subtitle: `สังกัด ${inv.dept} • รวม ${inv.count} ผลงาน`,
+                          accentColor: '#8b5cf6',
+                          items: inv.items,
+                        });
+                      }}
+                    >
+                      <td style={{ padding: '8px 10px', textAlign: 'center', fontWeight: 700, color: idx < 3 ? '#7c3aed' : '#64748b' }}>
+                        {idx + 1}
+                      </td>
+                      <td style={{ padding: '8px 10px', textAlign: 'center' }}>
+                        <div
+                          style={{
+                            width: '34px',
+                            height: '34px',
+                            borderRadius: '50%',
+                            overflow: 'hidden',
+                            backgroundColor: '#99b8db',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            margin: '0 auto',
+                            border: '1.5px solid #e2e8f0',
+                            flexShrink: 0,
+                          }}
+                        >
+                          <img
+                            src={resolvePersonAvatar(inv.person_id, inv.creator)}
+                            alt={inv.creator}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }}
+                            onError={(e) => {
+                              const target = e.currentTarget;
+                              if (target.src !== '/default-avatar.png' && !target.src.endsWith('/default-avatar.png')) {
+                                target.src = '/default-avatar.png';
+                              }
+                            }}
+                          />
+                        </div>
+                      </td>
+                      <td style={{ padding: '8px 10px', fontWeight: 600, color: '#0f172a' }}>
+                        {inv.creator}
+                      </td>
+                      <td style={{ padding: '8px 10px' }}>
+                        <DepartmentBadge value={inv.dept} />
+                      </td>
+                      <td style={{ padding: '8px 10px', textAlign: 'center', fontWeight: 700 }}>
+                        <span style={{ padding: '2px 8px', borderRadius: '6px', backgroundColor: '#f5f3ff', color: '#6d28d9' }}>
+                          {inv.count} รายการ
+                        </span>
+                      </td>
+                      <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 600, color: inv.support > 0 ? '#047857' : '#94a3b8' }}>
+                        {inv.support > 0 ? `${inv.support.toLocaleString('th-TH')} ฿` : '-'}
+                      </td>
+                      <td style={{ padding: '8px 10px', textAlign: 'center' }}>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (inv.person_id) router.push(`/personnel/${inv.person_id}`);
+                            else router.push(`/personnel?q=${encodeURIComponent(inv.creator)}`);
+                          }}
+                          style={{
+                            padding: '4px 8px',
+                            borderRadius: '6px',
+                            border: '1px solid #cbd5e1',
+                            backgroundColor: '#ffffff',
+                            color: '#6d28d9',
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          <span>ดู</span>
+                          <FaChevronRight style={{ fontSize: '8px' }} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       )}
 
@@ -1146,6 +3036,23 @@ export function IPCharts({
               <canvas id="c_ip_isee_iam" />
             </div>
           </div>
+        </div>
+      )}
+
+      {tip.show && (
+        <div
+          className="rr-tip show"
+          style={{
+            left: `${Math.min(typeof window !== 'undefined' ? window.innerWidth - 270 : 1000, tip.x + 14)}px`,
+            top: `${Math.max(12, tip.y - 76)}px`,
+          }}
+        >
+          <div className="rr-tt">
+            <span className="rr-d" style={{ backgroundColor: tip.color }} />
+            <span>{tip.title}</span>
+          </div>
+          <div className="rr-tv">{tip.val}</div>
+          <div className="rr-ts">{tip.sub}</div>
         </div>
       )}
 

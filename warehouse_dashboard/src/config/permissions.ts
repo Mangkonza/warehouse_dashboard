@@ -10,7 +10,6 @@ export type AppResource =
   | 'ip'
   | 'kpi'
   | 'personnel'
-  | 'studio'
   | 'evaluation'
   | 'monitoring'
   | 'manage'
@@ -31,7 +30,6 @@ export const RESOURCE_REQUIRED_ROLE: Record<AppResource, AppRole> = {
   ip: 'user',
   kpi: 'admin',
   personnel: 'user',
-  studio: 'admin',
   evaluation: 'admin',
   monitoring: 'admin',
   manage: 'admin',

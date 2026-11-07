@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useDashboardTabFilter, useTimeFilter } from '@/features/time-filter';
 import { usePublicationsData } from '../_hooks/usePublicationsData';
 import { PublicationsCharts, PubPerspective } from './PublicationsCharts';
@@ -42,6 +42,7 @@ export function PublicationsView() {
 
   const {
     validData,
+    allItems,
     undatedCount,
     filteredData,
     q1Count,
@@ -109,6 +110,37 @@ export function PublicationsView() {
   const topTierPct = validData.length > 0 ? ((topTierCount / validData.length) * 100).toFixed(1) : '0';
   const hasTierData = topTierCount > 0;
 
+  // Multi-tier segments breakdown for Card 1 (Q1-Q4, TCI, Other separated)
+  const pubSegments = useMemo(() => {
+    const total = validData.length || 1;
+    const tiers = [
+      { key: 'Q1', label: 'Q1', count: q1Count, color: '#9f1239' },
+      { key: 'Q2', label: 'Q2', count: q2Count, color: '#e11d48' },
+      { key: 'Q3', label: 'Q3', count: q3Count, color: '#fb7185' },
+      { key: 'Q4', label: 'Q4', count: q4Count, color: '#fecdd3' },
+      { key: 'TCI', label: 'TCI', count: tciCount, color: '#4338ca' },
+    ];
+    if (confCount > 0) {
+      tiers.push({ key: 'conf', label: 'ประชุมวิชาการ', count: confCount, color: '#818cf8' });
+    }
+    if (otherCount > 0) {
+      tiers.push({ key: 'other', label: 'อื่นๆ', count: otherCount, color: '#cbd5e1' });
+    }
+
+    return tiers
+      .filter((t) => t.count > 0)
+      .map((t) => ({
+        key: t.key,
+        label: t.label,
+        value: t.count,
+        displayValue: `${t.count} เรื่อง`,
+        unit: 'เรื่อง',
+        percent: Number(((t.count / total) * 100).toFixed(1)),
+        color: t.color,
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [validData.length, q1Count, q2Count, q3Count, q4Count, tciCount, confCount, otherCount]);
+
   const pubBudgetValue = (totalSupportBudget / 1000000).toFixed(2);
   const pubBudgetUnit = 'ล้านบาท';
   const pubBudgetCurrent = totalSupportBudget / 1000000;
@@ -131,7 +163,7 @@ export function PublicationsView() {
           colorTheme="rose"
           tabs={[
             { key: 'timeline', label: 'แนวโน้มการตีพิมพ์รายเดือนและงบสนับสนุน', icon: <FaChartLine style={{ fontSize: '13px' }} /> },
-            { key: 'quartile_tci', label: 'ระดับ Q TCI', icon: <FaAward style={{ fontSize: '13px' }} /> },
+            { key: 'quartile_tci', label: 'ระดับฐานข้อมูล', icon: <FaAward style={{ fontSize: '13px' }} /> },
             { key: 'department', label: 'การผลิตผลงานรายสังกัด', icon: <FaBuilding style={{ fontSize: '13px' }} /> },
             { key: 'faculty', label: 'อาจารย์และนักวิจัยตีพิมพ์สูงสุด', icon: <FaUserTie style={{ fontSize: '13px' }} /> },
             { key: 'journals', label: 'วารสารและแหล่งตีพิมพ์ยอดนิยม', icon: <FaBookOpen style={{ fontSize: '13px' }} /> },
@@ -196,19 +228,7 @@ export function PublicationsView() {
                   label: 'ผลงานตีพิมพ์ทางวิชาการรวม',
                   value: validData.length,
                   unit: 'เรื่อง',
-                  splitRatio: validData.length > 0 ? intlAllCount / validData.length : 0.7,
-                  primaryLegend: {
-                    label: 'นานาชาติ (Q1-Q4)',
-                    value: `${intlAllCount} เรื่อง`,
-                    percent: `${intlPct}%`,
-                    color: '#fb7185',
-                  },
-                  secondaryLegend: {
-                    label: 'ระดับชาติ (TCI)',
-                    value: `${tciCount} เรื่อง`,
-                    percent: `${tciPct}%`,
-                    color: '#fda4af',
-                  },
+                  segments: pubSegments,
                 }}
                 gearCard={{
                   label: 'ผลงานที่ตีพิมพ์สำเร็จแล้ว',
@@ -217,6 +237,7 @@ export function PublicationsView() {
                   gearValue: uniqueDepts.size,
                   gearLabel: 'สังกัด',
                 }}
+                items={validData}
                 tallyCard={{
                   label: hasTierData ? 'ผลงานกลุ่มควอร์ไทล์สูง (Q1 - Q2)' : 'ผลงานตีพิมพ์สำเร็จ (Published)',
                   chip: `${hasTierData ? topTierPct : (validData.length > 0 ? Math.round((publishedCount / validData.length) * 100) : 0)}%`,
@@ -240,25 +261,14 @@ export function PublicationsView() {
                   ],
                 }}
               />
-
-              {/* ZONE 2.5: Year-over-Year (YoY) Comparison */}
-              <MissionYoYControls
-                missionKey="publications"
-                missionTitle="ผลงานตีพิมพ์ทางวิชาการ"
-                allItemsRaw={validData}
-                activeDepartment={selectedDept}
-                primaryMetricLabel="จำนวนผลงานตีพิมพ์"
-                secondaryMetricLabel="เงินสนับสนุนการตีพิมพ์"
-                hasBudgetMetric={true}
-                defaultBaseYear="2567"
-                defaultTargetYear="2568"
-              />
             </>
           )}
 
           {/* ZONE 3: 5 Dimension Tabs Charts */}
           <PublicationsCharts
             validData={filteredData}
+            allItems={allItems || validData}
+            currentFiscalYear={timeFilter?.mode === 'fiscal' && timeFilter.fiscalYear !== 'all' ? timeFilter.fiscalYear : undefined}
             activePerspective={activePerspective}
             onChangePerspective={setActivePerspective}
             hideSelector={true}

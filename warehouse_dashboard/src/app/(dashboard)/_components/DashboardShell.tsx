@@ -18,7 +18,6 @@ import {
   FaCertificate,
   FaBullseye,
   FaLeaf,
-  FaChartLine,
   FaClock,
   FaClipboardCheck,
   FaDatabase,
@@ -102,7 +101,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     return <PageLoader message="กำลังตรวจสอบสิทธิ์การเข้าใช้งาน..." />;
   }
 
-  if (!user && pathname !== '/login') {
+  if (!isAuthenticated && pathname !== '/login') {
     return <PageLoader message="กำลังนำคุณไปยังหน้าเข้าสู่ระบบ..." />;
   }
 
@@ -143,19 +142,13 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const categoryDefinitions: CategoryDefinition[] = [
     {
       id: 'overview_strategy',
-      label: 'ภาพรวมและยุทธศาสตร์',
+      label: 'ภาพรวมระบบ',
       items: [
         {
           id: 'overview',
           label: 'แดชบอร์ด ภาพรวม',
           path: '/overview',
           icon: <FaThLarge />,
-        },
-        {
-          id: 'kpi',
-          label: 'ตัวชี้วัดตามแผนยุทธศาสตร์',
-          path: '/kpi',
-          icon: <FaBullseye />,
         },
       ],
     },
@@ -202,15 +195,15 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       items: [
         {
           id: 'personnel',
-          label: 'บุคลากรและอาจารย์',
+          label: 'คณาจารย์และบุคลากร',
           path: '/personnel',
           icon: <FaUserTie />,
         },
         {
-          id: 'studio',
-          label: 'วิเคราะห์ข้อมูลเชิงลึก',
-          path: '/studio',
-          icon: <FaChartLine />,
+          id: 'kpi',
+          label: 'ตัวชี้วัดตามแผนยุทธศาสตร์',
+          path: '/kpi',
+          icon: <FaBullseye />,
         },
       ],
     },
@@ -405,7 +398,12 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           setIsSidebarHovered(false);
           setIsForceCollapsed(false);
         }}
-        onNavigate={(path) => router.push(path)}
+        onNavigate={(path) => {
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('ku:perspective-tab-reset', { detail: { path } }));
+          }
+          router.push(path);
+        }}
         userSlot={userSlot}
       />
 

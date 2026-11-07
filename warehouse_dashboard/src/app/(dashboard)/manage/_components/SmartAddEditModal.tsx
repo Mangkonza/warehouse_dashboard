@@ -1,6 +1,7 @@
 'use client';
+import { formatPersonName, splitFullName } from '@/lib/formatPersonName';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { CategoryConfig, PersonnelRecord } from '@/types/dataManagement';
 import { SmartAutocomplete } from './SmartAutocomplete';
 import {
@@ -15,6 +16,7 @@ import {
   FaUserTie,
   FaUpload,
   FaTrashAlt,
+  FaTimes,
 } from 'react-icons/fa';
 import { MultiMemberSelector } from './MultiMemberSelector';
 import { SDGTagSelector } from './SDGTagSelector';
@@ -79,12 +81,25 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
 }) => {
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [errorMsg, setErrorMsg] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const formScrollRef = useRef<HTMLFormElement | null>(null);
 
   const isEdit = Boolean(initialData);
 
   useEffect(() => {
     if (initialData) {
-      setFormData({ ...initialData });
+      const copy = { ...initialData };
+      if (config.key === 'personnel') {
+        if ((!copy.first_name || !String(copy.first_name).trim()) && (!copy.last_name || !String(copy.last_name).trim()) && (copy.name || copy.name_th)) {
+          const split = splitFullName(copy.name || copy.name_th || '', copy.title_th);
+          copy.first_name = split.first_name;
+          copy.last_name = split.last_name;
+          if (!copy.title_th && split.title_th) {
+            copy.title_th = split.title_th;
+          }
+        }
+      }
+      setFormData(copy);
     } else {
       // Default empty values based on schema
       const initial: Record<string, any> = {};
@@ -96,11 +111,19 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
       setFormData(initial);
     }
     setErrorMsg('');
+    setFieldErrors({});
   }, [initialData, config, isOpen]);
 
   if (!isOpen) return null;
 
   const handleFieldChange = (key: string, val: any) => {
+    // Clear error for this field immediately on typing/changing (alert disappears as soon as typing begins)
+    setFieldErrors((prev) => {
+      if (!prev[key]) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
     setFormData((prev) => ({
       ...prev,
       [key]: val,
@@ -122,188 +145,425 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
     });
   };
 
+  const focusAndSetError = (field: string, msg: string, customSelector?: string) => {
+    setErrorMsg('');
+    setFieldErrors({ [field]: msg });
+    const sel = customSelector || `#field-${field}, [name="${field}"], [data-field="${field}"]`;
+    const el = document.querySelector<HTMLElement>(sel);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (formScrollRef.current) {
+        const containerRect = formScrollRef.current.getBoundingClientRect();
+        const elRect = el.getBoundingClientRect();
+        const relativeTop = elRect.top - containerRect.top + formScrollRef.current.scrollTop - 40;
+        formScrollRef.current.scrollTo({ top: Math.max(0, relativeTop), behavior: 'smooth' });
+      }
+      const focusable = el.matches('input, textarea, select, button')
+        ? el
+        : el.querySelector<HTMLElement>('input, textarea, select, button');
+      if (focusable) {
+        setTimeout(() => focusable.focus(), 150);
+      }
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
 
     if (config.key === 'academic') {
+      const recNo = formData.record_number || formData.req_no;
+      if (!recNo || !String(recNo).trim()) {
+        focusAndSetError('record_number', 'กรุณาระบุเลขที่คำขอ / เลขระเบียน', '#field-academic-record_number');
+        return;
+      }
       if (!formData.name || !String(formData.name).trim()) {
-        setErrorMsg('กรุณากรอก "ชื่อโครงการพัฒนาวิชาการ"');
+        focusAndSetError('name', 'กรุณาระบุชื่อโครงการพัฒนาวิชาการ', '#field-academic-name');
+        return;
+      }
+      if (!formData.client || !String(formData.client).trim()) {
+        focusAndSetError('client', 'กรุณาระบุผู้ขอรับบริการ / ว่าจ้าง', '#field-academic-client');
+        return;
+      }
+      const chars = Array.isArray(formData.characteristics)
+        ? formData.characteristics
+        : typeof formData.characteristics === 'string' && formData.characteristics
+        ? formData.characteristics.split(',').map((s: string) => s.trim()).filter(Boolean)
+        : [];
+      if (chars.length === 0) {
+        focusAndSetError('characteristics', 'กรุณาเลือกลักษณะโครงการอย่างน้อย 1 รายการ', '#field-academic-characteristics');
         return;
       }
       if (!formData.head || !String(formData.head).trim()) {
-        setErrorMsg('กรุณากรอก "หัวหน้าโครงการ"');
+        focusAndSetError('head', 'กรุณาระบุหัวหน้าโครงการ', '#field-academic-head');
+        return;
+      }
+      if (!formData.department || !String(formData.department).trim()) {
+        focusAndSetError('department', 'กรุณาระบุสังกัดที่ดำเนินการ', '#field-academic-department');
+        return;
+      }
+      if (formData.co_members_internal === undefined || formData.co_members_internal === null || String(formData.co_members_internal).trim() === '') {
+        focusAndSetError('co_members_internal', 'กรุณาระบุจำนวนผู้ร่วมโครงการ (ภายใน)', '#field-academic-co_members_internal');
+        return;
+      }
+      if (formData.co_members_external === undefined || formData.co_members_external === null || String(formData.co_members_external).trim() === '') {
+        focusAndSetError('co_members_external', 'กรุณาระบุจำนวนผู้ร่วมโครงการ (ภายนอก)', '#field-academic-co_members_external');
+        return;
+      }
+      if (formData.budget === undefined || formData.budget === null || String(formData.budget).trim() === '') {
+        focusAndSetError('budget', 'กรุณาระบุงบประมาณรวมทั้งหมด', '#section-academic-budget');
         return;
       }
       if (!formData.start_date) {
-        setErrorMsg('กรุณาระบุ "วันที่เริ่มต้นดำเนินการ"');
+        focusAndSetError('start_date', 'กรุณาระบุวันที่เริ่มต้นดำเนินการ', '#field-academic-start-date');
         return;
       }
       if (!formData.end_date) {
-        setErrorMsg('กรุณาระบุ "วันที่สิ้นสุดดำเนินการ"');
+        focusAndSetError('end_date', 'กรุณาระบุวันที่สิ้นสุดดำเนินการ', '#field-academic-end-date');
         return;
       }
       if (formData.start_date && formData.end_date && formData.end_date < formData.start_date) {
-        setErrorMsg('"วันที่สิ้นสุดดำเนินการ" ต้องไม่เกิดขึ้นก่อน "วันที่เริ่มต้นดำเนินการ"');
+        focusAndSetError('end_date', '"วันที่สิ้นสุดดำเนินการ" ต้องไม่เกิดขึ้นก่อน "วันที่เริ่มต้นดำเนินการ"', '#field-academic-end-date');
         return;
       }
+
+      // Project type category check (research service / consulting / training service, etc.)
+      const projCats = Array.isArray(formData.project_type_categories)
+        ? formData.project_type_categories
+        : Array.isArray(formData.project_type_category)
+        ? formData.project_type_category
+        : typeof formData.project_type_category === 'string' && formData.project_type_category
+        ? formData.project_type_category.split(',').map((s: string) => s.trim()).filter(Boolean)
+        : [];
+      if (projCats.length === 0) {
+        focusAndSetError('project_type_category', 'กรุณาเลือกประเภทโครงการพัฒนาวิชาการอย่างน้อย 1 ประเภท', '#field-academic-project-types');
+        return;
+      }
+
+      // Conditional Integration Date check
+      const hasIntegration = Boolean(
+        (Array.isArray(formData.research_projects) && formData.research_projects.length > 0) ||
+        (formData.patent_integration && String(formData.patent_integration).trim()) ||
+        formData.has_integration
+      );
+      if (hasIntegration) {
+        if (!formData.integration_start_date) {
+          focusAndSetError('integration_start_date', 'กรุณาระบุวันที่เริ่มต้นนำไปบูรณาการ', '#field-academic-integration_start_date');
+          return;
+        }
+        if (!formData.integration_end_date) {
+          focusAndSetError('integration_end_date', 'กรุณาระบุวันที่สิ้นสุดนำไปบูรณาการ', '#field-academic-integration_end_date');
+          return;
+        }
+      }
+
       if (
         formData.integration_start_date &&
         formData.integration_end_date &&
         formData.integration_end_date < formData.integration_start_date
       ) {
-        setErrorMsg('"วันที่สิ้นสุดนำไปบูรณาการ" ต้องไม่เกิดขึ้นก่อน "วันที่เริ่มต้นนำไปบูรณาการ"');
+        focusAndSetError('integration_end_date', '"วันที่สิ้นสุดนำไปบูรณาการ" ต้องไม่เกิดขึ้นก่อน "วันที่เริ่มต้นนำไปบูรณาการ"', '#field-academic-integration_end_date');
         return;
       }
     } else if (config.key === 'research') {
       if (!formData.id || !String(formData.id).trim()) {
-        setErrorMsg('กรุณากรอก "รหัสโครงการวิจัย"');
+        focusAndSetError('id', 'กรุณากรอก "รหัสโครงการวิจัย"', '#field-id');
+        return;
+      }
+      const fy = formData.fiscal_year_be ?? formData.fiscal_year;
+      if (fy === undefined || fy === null || String(fy).trim() === '') {
+        focusAndSetError('fiscal_year_be', 'กรุณาระบุ "ปีงบประมาณ (พ.ศ.)"', '#field-fiscal_year_be');
         return;
       }
       if (!formData.name || !String(formData.name).trim()) {
-        setErrorMsg('กรุณากรอก "ชื่อโครงการวิจัย (ภาษาไทย)"');
-        return;
-      }
-      if (!formData.head || !String(formData.head).trim()) {
-        setErrorMsg('กรุณากรอก "หัวหน้าโครงการวิจัย"');
-        return;
-      }
-      if (!formData.department || !String(formData.department).trim()) {
-        setErrorMsg('กรุณาระบุ "สังกัดที่รับผิดชอบ"');
+        focusAndSetError('name', 'กรุณากรอก "ชื่อโครงการวิจัย (ภาษาไทย)"', '#field-name');
         return;
       }
       if (!formData.fund_source || !String(formData.fund_source).trim()) {
-        setErrorMsg('กรุณากรอกหรือเลือก "แหล่งทุนวิจัย"');
+        focusAndSetError('fund_source', 'กรุณากรอกหรือเลือก "แหล่งทุนวิจัย"', '#field-fund_source');
+        return;
+      }
+      if (!formData.fund_type || !String(formData.fund_type).trim()) {
+        focusAndSetError('fund_type', 'กรุณาเลือกประเภททุนวิจัย (ทุนภายใน หรือ ทุนภายนอก)', '#field-fund_type');
+        return;
+      }
+      if (!formData.start_date) {
+        focusAndSetError('duration', 'กรุณาระบุเดือน/ปี เริ่มต้นโครงการวิจัย', '#field-duration');
+        return;
+      }
+      if (!formData.end_date) {
+        focusAndSetError('duration', 'กรุณาระบุเดือน/ปี สิ้นสุดโครงการวิจัย', '#field-duration');
         return;
       }
       if (formData.start_date && formData.end_date && formData.end_date < formData.start_date) {
-        setErrorMsg('"เดือน/ปี สิ้นสุด" ต้องไม่เกิดขึ้นก่อน "เดือน/ปี เริ่มต้น"');
+        focusAndSetError('duration', '"เดือน/ปี สิ้นสุด" ต้องไม่เกิดขึ้นก่อน "เดือน/ปี เริ่มต้น"', '#field-duration');
+        return;
+      }
+      if (!formData.head || !String(formData.head).trim()) {
+        focusAndSetError('head', 'กรุณากรอก "หัวหน้าโครงการวิจัย"', '#field-head');
+        return;
+      }
+      if (!formData.department || !String(formData.department).trim()) {
+        focusAndSetError('department', 'กรุณาระบุ "สังกัดที่รับผิดชอบ"', '#field-department');
+        return;
+      }
+      const pNature = Array.isArray(formData.project_nature)
+        ? formData.project_nature
+        : typeof formData.project_nature === 'string' && formData.project_nature
+        ? formData.project_nature.split(',').map((s: string) => s.trim()).filter(Boolean)
+        : [];
+      if (pNature.length === 0) {
+        focusAndSetError('project_nature', 'กรุณาเลือกลักษณะโครงการวิจัยอย่างน้อย 1 ประเภท', '#field-project_nature');
+        return;
+      }
+      if (formData.budget_internal === undefined || formData.budget_internal === null || String(formData.budget_internal).trim() === '') {
+        focusAndSetError('budget_internal', 'กรุณาระบุงบประมาณภายใน (สามารถระบุเป็น 0 ได้)', '#field-budget_internal');
+        return;
+      }
+      if (formData.budget_external === undefined || formData.budget_external === null || String(formData.budget_external).trim() === '') {
+        focusAndSetError('budget_external', 'กรุณาระบุงบประมาณภายนอก (สามารถระบุเป็น 0 ได้)', '#field-budget_external');
+        return;
+      }
+      const bInt = Number(formData.budget_internal) || 0;
+      const bExt = Number(formData.budget_external) || 0;
+      const bTot = bInt + bExt;
+      if (bTot <= 0) {
+        focusAndSetError('budget', 'งบประมาณรวมต้องมากกว่า 0 บาท', '#field-budget');
         return;
       }
     } else if (config.key === 'service') {
       const topicName = formData.name || formData.topic_title;
       if (!topicName || !String(topicName).trim()) {
-        setErrorMsg('กรุณากรอก "เรื่อง / ชื่องานบริการวิชาการ"');
+        focusAndSetError('name', 'กรุณากรอก "เรื่อง / ชื่องานบริการวิชาการ"', '#field-name');
+        return;
+      }
+      if (!formData.target_group || !String(formData.target_group).trim()) {
+        focusAndSetError('target_group', 'กรุณากรอก "กลุ่มเป้าหมาย / ผู้เข้าร่วม"', '#field-target_group');
         return;
       }
       const sType = formData.service_type || formData.service_category;
       if (!sType || !String(sType).trim()) {
-        setErrorMsg('กรุณาเลือก "ประเภทงานบริการวิชาการ" (1 ใน 6 ประเภท)');
+        focusAndSetError('service_type', 'กรุณาเลือก "ประเภทงานบริการวิชาการ" (1 ใน 6 ประเภท)', '#field-service_type');
         return;
       }
       const personName = formData.person;
       if (!personName || !String(personName).trim()) {
-        setErrorMsg('กรุณากรอก "ชื่อ - นามสกุล" ผู้ให้บริการ / ผู้รับผิดชอบ');
+        focusAndSetError('person', 'กรุณากรอก "ชื่อ - นามสกุล" ผู้ให้บริการ / ผู้รับผิดชอบ', '#field-person');
         return;
       }
       if (!formData.department || !String(formData.department).trim()) {
-        setErrorMsg('กรุณาระบุ "สังกัด"');
+        focusAndSetError('department', 'กรุณาระบุ "สังกัด"', '#field-department');
+        return;
+      }
+      if (!formData.start_date) {
+        focusAndSetError('duration', 'กรุณาระบุวันที่เริ่มต้นจัดกิจกรรม', '#field-duration');
+        return;
+      }
+      if (!formData.end_date) {
+        focusAndSetError('duration', 'กรุณาระบุวันที่สิ้นสุดจัดกิจกรรม', '#field-duration');
         return;
       }
       if (formData.start_date && formData.end_date && formData.end_date < formData.start_date) {
-        setErrorMsg('"วันที่สิ้นสุด" ต้องไม่เกิดขึ้นก่อน "วันที่เริ่มต้น"');
+        focusAndSetError('duration', '"วันที่สิ้นสุด" ต้องไม่เกิดขึ้นก่อน "วันที่เริ่มต้น"', '#field-duration');
+        return;
+      }
+      const hours = Number(formData.hours_spent);
+      if (formData.hours_spent === undefined || formData.hours_spent === null || String(formData.hours_spent).trim() === '' || isNaN(hours) || hours <= 0) {
+        focusAndSetError('hours_spent', 'กรุณาระบุจำนวนชั่วโมงเป็นตัวเลขที่มากกว่า 0', '#field-hours_spent');
+        return;
+      }
+      const attendees = Number(formData.attendees_count);
+      if (formData.attendees_count === undefined || formData.attendees_count === null || String(formData.attendees_count).trim() === '' || isNaN(attendees) || attendees <= 0) {
+        focusAndSetError('attendees_count', 'กรุณาระบุจำนวนคนเข้าร่วมเป็นตัวเลขที่มากกว่า 0', '#field-attendees_count');
         return;
       }
     } else if (config.key === 'publications') {
       if (!formData.name || !String(formData.name).trim()) {
-        setErrorMsg('กรุณากรอกชื่อผลงานทางวิชาการ');
+        focusAndSetError('name', 'กรุณากรอกชื่อผลงานทางวิชาการ', '#field-name');
         return;
       }
       if (!formData.type || !String(formData.type).trim()) {
-        setErrorMsg('กรุณาเลือกชนิดของผลงาน');
+        focusAndSetError('type', 'กรุณาเลือกชนิดของผลงาน', '#field-type');
         return;
       }
       if (!formData.level || !String(formData.level).trim()) {
-        setErrorMsg('กรุณาเลือกระดับ');
+        focusAndSetError('level', 'กรุณาเลือกระดับ', '#field-level');
+        return;
+      }
+      if (formData.budget === undefined || formData.budget === null || String(formData.budget).trim() === '') {
+        focusAndSetError('budget', 'กรุณาระบุจำนวนเงินสนับสนุน (สามารถระบุเป็น 0 ได้)', '#field-budget');
+        return;
+      }
+      const numBudget = parseFloat(formData.budget);
+      if (isNaN(numBudget) || numBudget < 0) {
+        focusAndSetError('budget', 'จำนวนเงินสนับสนุนต้องเป็นตัวเลขที่ไม่ติดลบ', '#field-budget');
+        return;
+      }
+      const my = formData.month_year || formData.month;
+      if (!my || !String(my).trim()) {
+        focusAndSetError('month_year', 'กรุณาระบุเดือน/ปี (พ.ศ.)', '#field-month_year');
         return;
       }
       if (!formData.owner || !String(formData.owner).trim()) {
-        setErrorMsg('กรุณาระบุเจ้าของผลงาน');
+        focusAndSetError('owner', 'กรุณาระบุเจ้าของผลงาน', '#field-owner');
         return;
       }
       if (!formData.department || !String(formData.department).trim()) {
-        setErrorMsg('กรุณาระบุสังกัด');
+        focusAndSetError('department', 'กรุณาระบุสังกัด', '#field-department');
         return;
       }
-      if (formData.budget !== undefined && formData.budget !== null && formData.budget !== '') {
-        const num = parseFloat(formData.budget);
-        if (isNaN(num) || num < 0) {
-          setErrorMsg('จำนวนเงินสนับสนุนต้องเป็นตัวเลขที่ไม่ติดลบ');
+
+      // Co-authors flags (domestic/foreign)
+      const hasForeign = Boolean(
+        formData.has_foreign_coauthor ??
+        formData.has_international_coauthor ??
+        (Array.isArray(formData.co_authors_foreign) && formData.co_authors_foreign.length > 0)
+      );
+      const hasDomestic = Boolean(
+        formData.has_domestic_coauthor ??
+        (Array.isArray(formData.co_authors_domestic) && formData.co_authors_domestic.length > 0)
+      );
+      if (!hasForeign && !hasDomestic) {
+        focusAndSetError('co_authors', 'กรุณาระบุข้อมูลผู้แต่งร่วม (มีผู้ร่วมต่างชาติ หรือ มีผู้ร่วมภายในประเทศ อย่างน้อย 1 รายการ)', '#field-co_authors');
+        return;
+      }
+
+      if (formData.type !== 'เตรียมความพร้อมจดอนุสิทธิบัตร') {
+        if (!formData.journal || !String(formData.journal).trim()) {
+          focusAndSetError('journal', 'กรุณากรอกรายละเอียดวารสาร/การประชุม', '#field-journal');
+          return;
+        }
+        if (!formData.volume || !String(formData.volume).trim()) {
+          focusAndSetError('volume', 'กรุณาระบุ Volume (เล่มที่)', '#field-volume');
+          return;
+        }
+        if (!formData.issue || !String(formData.issue).trim()) {
+          focusAndSetError('issue', 'กรุณาระบุ Issue (ฉบับที่)', '#field-issue');
+          return;
+        }
+        const pStart = String(formData.page_start || '').trim();
+        const pEnd = String(formData.page_end || '').trim();
+        if (!pStart) {
+          focusAndSetError('page_start', 'กรุณาระบุหน้าเริ่มต้น (Page start)', '#field-page_start');
+          return;
+        }
+        if (!pEnd) {
+          focusAndSetError('page_end', 'กรุณาระบุหน้าสิ้นสุด (Page end)', '#field-page_end');
+          return;
+        }
+        const numStart = parseInt(pStart, 10);
+        const numEnd = parseInt(pEnd, 10);
+        if (isNaN(numStart) || isNaN(numEnd) || numEnd < numStart) {
+          focusAndSetError('page_end', 'หน้าสิ้นสุด (Page end) ต้องมากกว่าหรือเท่ากับหน้าเริ่มต้น (Page start)', '#field-page_end');
           return;
         }
       }
-      if (formData.type !== 'เตรียมความพร้อมจดอนุสิทธิบัตร') {
-        const pStart = String(formData.page_start || '').trim();
-        const pEnd = String(formData.page_end || '').trim();
-        if (pStart && pEnd) {
-          const numStart = parseInt(pStart, 10);
-          const numEnd = parseInt(pEnd, 10);
-          if (!isNaN(numStart) && !isNaN(numEnd) && numEnd < numStart) {
-            setErrorMsg('หน้าสิ้นสุดต้องมากกว่าหรือเท่ากับหน้าเริ่มต้น');
-            return;
-          }
-        }
-      }
     } else if (config.key === 'personnel') {
-      if (!formData.name || !String(formData.name).trim()) {
-        setErrorMsg('กรุณากรอก "ชื่อ-นามสกุล"');
+      if (!formData.first_name || !String(formData.first_name).trim()) {
+        focusAndSetError('first_name', 'กรุณากรอก "ชื่อ"');
+        return;
+      }
+      if (!formData.last_name || !String(formData.last_name).trim()) {
+        focusAndSetError('last_name', 'กรุณากรอก "นามสกุล"');
         return;
       }
       if (!formData.department || !String(formData.department).trim()) {
-        setErrorMsg('กรุณาระบุ "สังกัด"');
+        focusAndSetError('department', 'กรุณาระบุ "สังกัด"');
         return;
       }
     } else if (config.key === 'ip') {
       const title = formData.title || formData.name;
       if (!title || !String(title).trim()) {
-        setErrorMsg('กรุณากรอก "ชื่อเรื่อง / ชื่อผลงาน"');
+        focusAndSetError('title', 'กรุณากรอก "ชื่อเรื่อง / ชื่อผลงาน"', '#field-title');
         return;
       }
       const type = formData.type;
       if (!type || !String(type).trim()) {
-        setErrorMsg('กรุณาเลือก "ประเภททรัพย์สินทางปัญญา" (อนุสิทธิบัตร, สิทธิบัตร หรือ ลิขสิทธิ์)');
+        focusAndSetError('type', 'กรุณาเลือก "ประเภททรัพย์สินทางปัญญา" (อนุสิทธิบัตร, สิทธิบัตร หรือ ลิขสิทธิ์)', '#field-type');
         return;
       }
       const inventors = formData.inventors;
       const creator = formData.creator;
       const hasInventors = (Array.isArray(inventors) && inventors.length > 0) || (creator && String(creator).trim());
       if (!hasInventors) {
-        setErrorMsg(type === 'ลิขสิทธิ์' ? 'กรุณาระบุ "ผู้สร้างสรรค์" อย่างน้อย 1 ท่าน' : 'กรุณาระบุ "ผู้ประดิษฐ์" อย่างน้อย 1 ท่าน');
+        focusAndSetError('inventors', type === 'ลิขสิทธิ์' ? 'กรุณาระบุ "ผู้สร้างสรรค์" อย่างน้อย 1 ท่าน' : 'กรุณาระบุ "ผู้สร้างผลงาน" อย่างน้อย 1 ท่าน', '#field-inventors');
         return;
       }
       if (type === 'ลิขสิทธิ์') {
         if (!formData.work_category || !String(formData.work_category).trim()) {
-          setErrorMsg('กรุณาเลือก "ประเภทงาน" สำหรับลิขสิทธิ์');
+          focusAndSetError('work_category', 'กรุณาเลือก "ประเภทงาน" สำหรับลิขสิทธิ์', '#field-work_category');
           return;
         }
         if (formData.application_number && !/^\d{1,10}$/.test(String(formData.application_number))) {
-          setErrorMsg('"คำขอแจ้งข้อมูลเลขที่" ต้องเป็นตัวเลข 1-10 หลัก');
+          focusAndSetError('application_number', '"คำขอแจ้งข้อมูลเลขที่" ต้องเป็นตัวเลข 1-10 หลัก', '#field-application_number');
           return;
         }
       } else {
         if (formData.application_number && String(formData.application_number).length !== 10) {
-          setErrorMsg('"เลขที่คำขอ" ต้องมี 10 หลัก');
+          focusAndSetError('application_number', '"เลขที่คำขอ" ต้องมี 10 หลัก', '#field-application_number');
           return;
         }
       }
-      if (formData.protection_start && formData.protection_end && formData.protection_end < formData.protection_start) {
-        setErrorMsg('"วันที่สิ้นสุด" ต้องไม่เกิดขึ้นก่อน "วันที่เริ่มต้น"');
+
+      // Petty patent number required
+      const regNo = formData.registration_number || formData.reg_no || formData.reg_info;
+      if (type === 'อนุสิทธิบัตร') {
+        if (!regNo || !String(regNo).trim()) {
+          focusAndSetError('registration_number', 'กรุณาระบุ "เลขที่อนุสิทธิบัตร"', '#field-registration_number');
+          return;
+        }
+      }
+
+      // Issue date (start of protection) required
+      if (!formData.protection_start || !String(formData.protection_start).trim()) {
+        focusAndSetError('protection_start', type === 'ลิขสิทธิ์' ? 'กรุณาระบุ "วันที่ออกหนังสือรับรอง"' : 'กรุณาระบุ "วันที่ออกให้ (เริ่มต้นความคุ้มครอง)"', '#field-protection_start');
         return;
       }
+
+      // Expiry date (end of protection) required for patents / petty patents, and must be >= protection_start
+      if (type !== 'ลิขสิทธิ์') {
+        if (!formData.protection_end || !String(formData.protection_end).trim()) {
+          focusAndSetError('protection_end', 'กรุณาระบุ "วันหมดอายุ (ระยะเวลาคุ้มครองสิ้นสุด)"', '#field-protection_end');
+          return;
+        }
+        if (formData.protection_start && formData.protection_end && formData.protection_end < formData.protection_start) {
+          focusAndSetError('protection_end', '"วันหมดอายุ" ต้องไม่เกิดขึ้นก่อน "วันที่เริ่มต้นความคุ้มครอง"', '#field-protection_end');
+          return;
+        }
+      }
     } else {
-      // ตรวจสอบ required fields
+      // ตรวจสอบ required fields สำหรับตัวชี้วัด (KPI) และหมวดอื่นๆ
       for (const col of config.columns) {
         if (col.required) {
           const val = formData[col.key];
-          if (!val || String(val).trim() === '') {
-            setErrorMsg(`กรุณากรอกข้อมูล "${col.label}"`);
+          if (val === undefined || val === null || String(val).trim() === '') {
+            focusAndSetError(col.key, `กรุณากรอกข้อมูล "${col.label.replace('\n', ' ')}"`, `#field-${col.key}`);
             return;
           }
         }
       }
     }
 
-    onSave(formData);
+    let finalData = { ...formData };
+    if (config.key === 'personnel') {
+      const prefix = (finalData.title_th || '').trim();
+      const first = (finalData.first_name || '').trim();
+      const last = (finalData.last_name || '').trim();
+      finalData.first_name = first;
+      finalData.last_name = last;
+      finalData.title_th = prefix;
+      // Dual-write: also update the legacy full-name column with the result of formatPersonName(person) (prefix + first + space + last) so legacy readers never see empty data.
+      // TODO: remove once legacy full-name column is dropped
+      const legacyFullName = formatPersonName({
+        title_th: prefix,
+        first_name: first,
+        last_name: last,
+      });
+      finalData.name = legacyFullName;
+      finalData.name_th = legacyFullName;
+    }
+
+    onSave(finalData);
     onClose();
   };
 
@@ -369,47 +629,36 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
           </div>
           <button
             onClick={onClose}
+            aria-label="ปิดหน้าต่าง"
             style={{
               background: 'none',
               border: 'none',
               color: '#ffffff',
-              fontSize: '20px',
+              fontSize: '18px',
               cursor: 'pointer',
               padding: '4px',
-              opacity: 0.8,
+              borderRadius: '6px',
+              opacity: 0.9,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
-            &times;
+            <FaTimes />
           </button>
         </div>
 
         {/* Modal Body Form */}
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', flex: 1, overflowY: 'auto' }}>
+        <form noValidate ref={formScrollRef} onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', flex: 1, overflowY: 'auto' }}>
           <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {errorMsg && (
-              <div
-                style={{
-                  padding: '10px 14px',
-                  backgroundColor: '#fee2e2',
-                  border: '1px solid #fecaca',
-                  borderRadius: '8px',
-                  color: '#dc2626',
-                  fontSize: '13px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                }}
-              >
-                <FaExclamationCircle />
-                <span>{errorMsg}</span>
-              </div>
-            )}
+
 
             {config.key === 'academic' ? (
               <AcademicFormFields
                 formData={formData}
                 onChange={handleFieldChange}
                 setFormData={setFormData}
+                errors={fieldErrors}
               />
             ) : config.key === 'research' ? (
               <ResearchFormFields
@@ -417,6 +666,7 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
                 onChange={handleFieldChange}
                 setFormData={setFormData}
                 isEdit={isEdit}
+                errors={fieldErrors}
               />
             ) : config.key === 'service' ? (
               <ServiceFormFields
@@ -424,6 +674,7 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
                 onChange={handleFieldChange}
                 setFormData={setFormData}
                 isEdit={isEdit}
+                errors={fieldErrors}
               />
             ) : config.key === 'publications' ? (
               <PublicationFormFields
@@ -431,6 +682,7 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
                 onChange={handleFieldChange}
                 setFormData={setFormData}
                 isEdit={isEdit}
+                errors={fieldErrors}
               />
             ) : config.key === 'personnel' ? (
               <PersonnelForm
@@ -438,6 +690,7 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
                 onChange={handleFieldChange}
                 setFormData={setFormData}
                 isEdit={isEdit}
+                errors={fieldErrors}
               />
             ) : config.key === 'ip' ? (
               <IpFormFields
@@ -445,18 +698,20 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
                 onChange={handleFieldChange}
                 setFormData={setFormData}
                 isEdit={isEdit}
+                errors={fieldErrors}
               />
             ) : (
               editableCols.map((col) => {
               const val = formData[col.key] !== undefined ? formData[col.key] : '';
 
               return (
-                <div key={col.key} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div key={col.key} id={`field-${col.key}`} data-field={col.key} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <label style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>
                     {col.key === 'image_url' ? 'รูปภาพประจำตัว' : col.label.replace('\n', ' ')}
                     {col.required && <span style={{ color: '#ef4444', marginLeft: '4px' }}>*</span>}
                   </label>
 
+                  <div className="relative">
                   {/* Field Renderer based on schema */}
                   {col.type === 'avatar' ? (
                     <div
@@ -648,15 +903,52 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
                         fontFamily: 'inherit',
                       }}
                     />
-                  ) : col.type === 'date' ? (
-                    <DatePicker
-                      value={val || ''}
-                      onChange={(_, dateStr) => handleFieldChange(col.key, dateStr)}
-                      placeholder="วัน/เดือน/ปี (พ.ศ.)"
-                      className="w-full"
-                    />
+                  ) : col.type === 'date' ? (() => {
+                    let minDate: string | undefined;
+                    let maxDate: string | undefined;
 
-                  ) : col.type === 'members' ? (
+                    if (col.key === 'start_date' || col.key === 'startDate') {
+                      maxDate = formData.end_date || formData.endDate || undefined;
+                    } else if (col.key === 'end_date' || col.key === 'endDate') {
+                      minDate = formData.start_date || formData.startDate || undefined;
+                    } else if (col.key === 'protection_start') {
+                      maxDate = formData.protection_end || undefined;
+                    } else if (col.key === 'protection_end') {
+                      minDate = formData.protection_start || undefined;
+                    } else if (col.key === 'integration_start_date') {
+                      maxDate = formData.integration_end_date || undefined;
+                    } else if (col.key === 'integration_end_date') {
+                      minDate = formData.integration_start_date || undefined;
+                    }
+
+                    return (
+                      <DatePicker
+                        value={val || ''}
+                        minDate={minDate}
+                        maxDate={maxDate}
+                        onChange={(_, dateStr) => {
+                          handleFieldChange(col.key, dateStr);
+                          if (dateStr) {
+                            if ((col.key === 'start_date' || col.key === 'startDate') && maxDate && dateStr > maxDate) {
+                              handleFieldChange(col.key === 'start_date' ? 'end_date' : 'endDate', '');
+                            } else if ((col.key === 'end_date' || col.key === 'endDate') && minDate && dateStr < minDate) {
+                              handleFieldChange(col.key === 'end_date' ? 'start_date' : 'startDate', '');
+                            } else if (col.key === 'protection_start' && maxDate && dateStr > maxDate) {
+                              handleFieldChange('protection_end', '');
+                            } else if (col.key === 'protection_end' && minDate && dateStr < minDate) {
+                              handleFieldChange('protection_start', '');
+                            } else if (col.key === 'integration_start_date' && maxDate && dateStr > maxDate) {
+                              handleFieldChange('integration_end_date', '');
+                            } else if (col.key === 'integration_end_date' && minDate && dateStr < minDate) {
+                              handleFieldChange('integration_start_date', '');
+                            }
+                          }
+                        }}
+                        placeholder="วัน/เดือน/ปี (พ.ศ.)"
+                        className="w-full"
+                      />
+                    );
+                  })() : col.type === 'members' ? (
                     <MultiMemberSelector
                       members={
                         Array.isArray(val)
@@ -692,17 +984,29 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
                       value={val}
                       onChange={(e) => handleFieldChange(col.key, e.target.value)}
                       placeholder={col.placeholder}
-                      required={col.required}
                       style={{
                         padding: '10px 12px',
                         borderRadius: '8px',
-                        border: '1px solid #cbd5e1',
+                        border: fieldErrors[col.key] ? '1.5px solid #f43f5e' : '1px solid #cbd5e1',
                         fontSize: '14px',
                         outline: 'none',
                         fontFamily: 'inherit',
                       }}
                     />
                   )}
+
+                  {fieldErrors[col.key] && (
+                    <div className="absolute top-[calc(100%+6px)] left-0 z-40 pointer-events-none animate-in fade-in-50 zoom-in-95 duration-150">
+                      <div className="relative inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-rose-300 shadow-xl shadow-rose-950/10 text-xs font-medium text-slate-800 pointer-events-auto whitespace-nowrap">
+                        <span className="absolute -top-1.5 left-4 size-2.5 bg-white border-t border-l border-rose-300 rotate-45 transform" />
+                        <div className="size-4 rounded-full bg-rose-500 text-white flex items-center justify-center shrink-0 font-bold text-[10px]">
+                          !
+                        </div>
+                        <span className="text-rose-700 font-normal">{fieldErrors[col.key]}</span>
+                      </div>
+                    </div>
+                  )}
+                  </div>
                 </div>
               );
             }))}

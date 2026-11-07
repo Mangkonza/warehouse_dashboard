@@ -8,6 +8,8 @@ import {
   ServiceFormFields,
   PublicationFormFields,
   IpFormFields,
+  KpiFormFields,
+  PersonnelFormFields,
 } from '@/components/form/domain-forms';
 import { ImportDetailHeader } from './ImportDetailHeader';
 import { ImportIssueAlert } from './ImportIssueAlert';
@@ -57,6 +59,10 @@ export const ImportDetailPane: React.FC<ImportDetailPaneProps> = ({
       ...row.data,
       fund_source: row.data.fund_source || row.data.client || '',
       client: row.data.client || row.data.fund_source || '',
+      title: row.data.title || row.data.name || '',
+      name: row.data.name || row.data.title || '',
+      targetValue: row.data.targetValue ?? row.data.budget ?? 0,
+      responsibleUnit: row.data.responsibleUnit || row.data.department_code || '',
     }),
     [row.data]
   );
@@ -69,10 +75,22 @@ export const ImportDetailPane: React.FC<ImportDetailPaneProps> = ({
         updates.client = value;
       } else if (field === 'client') {
         updates.fund_source = value;
+      } else if (field === 'name') {
+        updates.title = value;
+      } else if (field === 'title') {
+        updates.name = value;
+      } else if (field === 'targetValue') {
+        updates.budget = typeof value === 'number' ? value : parseFloat(value) || 0;
+      } else if (field === 'budget' && row.category === 'kpi') {
+        updates.targetValue = typeof value === 'number' ? value : parseFloat(value) || 0;
+      } else if (field === 'responsibleUnit') {
+        updates.department_code = value;
+      } else if (field === 'department_code' && row.category === 'kpi') {
+        updates.responsibleUnit = value;
       }
       onUpdateRowData(row.rowId, updates);
     },
-    [isReadOnly, onUpdateRowData, row.rowId]
+    [isReadOnly, onUpdateRowData, row.rowId, row.category]
   );
 
   const handleSetFormData: React.Dispatch<React.SetStateAction<Record<string, any>>> = useCallback(
@@ -179,11 +197,33 @@ export const ImportDetailPane: React.FC<ImportDetailPaneProps> = ({
           />
         )}
 
+        {row.category === 'kpi' && (
+          <KpiFormFields
+            formData={domainFormData}
+            onChange={handleFieldChange}
+            setFormData={handleSetFormData}
+            errors={fieldErrors}
+            readOnly={isReadOnly}
+          />
+        )}
+
+        {row.category === 'personnel' && (
+          <PersonnelFormFields
+            formData={domainFormData}
+            onChange={handleFieldChange}
+            setFormData={handleSetFormData}
+            errors={fieldErrors}
+            readOnly={isReadOnly}
+          />
+        )}
+
         {row.category !== 'research' &&
           row.category !== 'academic' &&
           row.category !== 'service' &&
           row.category !== 'publications' &&
-          row.category !== 'ip' && (
+          row.category !== 'ip' &&
+          row.category !== 'kpi' &&
+          row.category !== 'personnel' && (
             <ResearchFormFields
               formData={domainFormData}
               onChange={handleFieldChange}

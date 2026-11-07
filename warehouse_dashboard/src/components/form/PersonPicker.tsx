@@ -1,4 +1,5 @@
 'use client';
+import { formatPersonName } from '@/lib/formatPersonName';
 
 import * as React from 'react';
 import { Search, UserPlus, X, ChevronDown, Check, AlertTriangle } from 'lucide-react';
@@ -66,6 +67,7 @@ export function PersonPicker({
   readOnly = false,
   className,
   defaultDepartment = '',
+  required = false,
 }: PersonPickerProps) {
   const [open, setOpen] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState('');
@@ -391,7 +393,8 @@ export function PersonPicker({
               role="button"
               tabIndex={disabled || readOnly ? -1 : 0}
               className={cn(
-                'w-full justify-between font-normal bg-background border border-input rounded-lg px-3 text-sm min-h-[40px] h-10 flex items-center gap-2 shadow-2xs transition-all outline-none select-none',
+                'w-full justify-between font-normal bg-background border rounded-lg px-3 text-sm min-h-[40px] h-10 flex items-center gap-2 shadow-2xs transition-all outline-none select-none',
+                required ? ((multiple ? multipleParsedValues.length > 0 : !!singleParsedValue) ? 'border-emerald-500 hover:border-emerald-600 bg-emerald-50/10' : 'border-rose-400 hover:border-rose-500 bg-rose-50/10') : 'border-input',
                 disabled
                   ? 'bg-slate-100 text-slate-400 cursor-not-allowed border-slate-200'
                   : readOnly
@@ -454,7 +457,7 @@ export function PersonPicker({
 
             <div className="flex items-center justify-between">
               <span className="text-xs text-slate-500 font-medium">
-                {isAddingNew ? 'ระบุรายชื่อใหม่ที่ไม่พบในระบบ' : 'รายชื่ออาจารย์และบุคลากร'}
+                {isAddingNew ? 'ระบุรายชื่อใหม่ที่ไม่พบในระบบ' : 'รายชื่อคณาจารย์และบุคลากร'}
               </span>
               <button
                 type="button"
@@ -589,9 +592,7 @@ export function PersonPicker({
                             <div className="w-[52px] min-w-[52px] max-w-[52px] shrink-0" aria-hidden="true" />
                           )}
                         </div>
-                        <span className="text-sm font-normal text-slate-800 truncate min-w-0 flex-1" title={p.name}>
-                          {p.name}
-                        </span>
+                        <span className="text-sm font-normal text-slate-800 truncate min-w-0 flex-1" title={formatPersonName(p, { includePrefix: true })}>{formatPersonName(p, { includePrefix: true })}</span>
                       </div>
 
                       {isSelected && (

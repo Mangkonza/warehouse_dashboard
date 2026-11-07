@@ -25,9 +25,9 @@ describe('Perspective tab utilities', () => {
       expect(resolvePerspectiveTab('?mission=publications', null, missionTabs, 'all', 'mission')).toBe('publications');
     });
 
-    it('resolves tab from storage when URL has no valid tab', () => {
-      expect(resolvePerspectiveTab<Tab>('', 'faculty', validTabs, 'overview')).toBe('faculty');
-      expect(resolvePerspectiveTab<Tab>('?unrelated=1', 'table', validTabs, 'overview')).toBe('table');
+    it('always returns defaultTab when URL has no valid tab (lands on first menu)', () => {
+      expect(resolvePerspectiveTab<Tab>('', 'faculty', validTabs, 'overview')).toBe('overview');
+      expect(resolvePerspectiveTab<Tab>('?unrelated=1', 'table', validTabs, 'overview')).toBe('overview');
     });
 
     it('ignores invalid tabs from URL and storage', () => {

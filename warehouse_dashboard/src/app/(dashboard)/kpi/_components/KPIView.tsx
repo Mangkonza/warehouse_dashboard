@@ -12,7 +12,7 @@ import { KpiStrategicTableView } from './KpiStrategicTableView';
 export function KPIView() {
   const { timeFilter, setTimeFilter, resetTimeFilter } = useTimeFilter();
   const {
-    filteredKPIs,
+    filteredKPIs, computedKPIs,
     reportingRounds,
     overallStats,
     selectedStrategy,
@@ -54,7 +54,7 @@ export function KPIView() {
       />
 
       <KpiSummaryCards
-        stats={overallStats}
+        stats={overallStats} items={computedKPIs} selectedStrategy={selectedStrategy} onSelectStrategy={setSelectedStrategy}
         selectedStatus={selectedStatus}
         onSelectStatus={setSelectedStatus}
       />

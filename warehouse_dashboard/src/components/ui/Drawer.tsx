@@ -155,7 +155,7 @@ export const Drawer: React.FC<DrawerProps> = ({
               className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
               aria-label="ปิดแผง"
             >
-              <FaTimes className="text-sm" />
+              <FaTimes className="text-[18px]" />
             </button>
           </div>
         )}

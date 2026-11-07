@@ -47,8 +47,8 @@ const THEME_CLASSES: Record<TabColorTheme, { active: string; hover: string }> = 
   },
   amber: {
     active:
-      'bg-gradient-to-r from-[#d97706] via-[#b45309] to-[#92400e] text-white shadow-[0_4px_12px_rgba(217,119,6,0.3)]',
-    hover: 'hover:text-[#d97706]',
+      'bg-[linear-gradient(150deg,#92400e_0%,#b45309_55%,#d97706_100%)] text-white shadow-[0_4px_16px_rgba(180,83,9,0.38)] border border-amber-500/40',
+    hover: 'hover:text-[#b45309]',
   },
   teal: {
     active:
@@ -103,17 +103,17 @@ export const TopSegmentedTabs = <T extends string = CategoryKey>({
           <LiquidButton
             key={String(tab.key)}
             onClick={() => onSelectCategory(tab.key)}
-            variant={isActive ? 'active' : 'tab'}
+            variant="default"
             size="tab"
             className={cn(
-              'cursor-pointer select-none transition-all duration-300 h-11 px-5 py-2',
+              'cursor-pointer select-none transition-all duration-300 h-11 px-5 py-2 outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 focus-visible:border-transparent active:outline-none active:ring-0 border',
               isActive
                 ? cn(
                     'rounded-full text-white scale-[1.02] [&>div:nth-child(-n+2)]:hidden',
                     theme.active
                   )
                 : cn(
-                    'bg-white/70 hover:bg-white text-slate-700 hover:scale-[1.02] border border-slate-200/70 shadow-[0_2px_8px_rgba(0,0,0,0.03),inset_0_1px_1px_rgba(255,255,255,0.9)] backdrop-blur-md',
+                    'bg-white/70 hover:bg-white text-slate-700 hover:scale-[1.02] border-slate-200/70 shadow-[0_2px_8px_rgba(0,0,0,0.03),inset_0_1px_1px_rgba(255,255,255,0.9)] backdrop-blur-md',
                     theme.hover
                   )
             )}

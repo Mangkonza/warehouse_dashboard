@@ -102,9 +102,7 @@ export const ChangeStatusModal: React.FC<ChangeStatusModalProps> = ({
               <h2 style={{ fontSize: '17.5px', fontWeight: 800, color: '#0f172a', margin: 0 }}>
                 จัดการและเปลี่ยนแปลงสถานะโครงการ
               </h2>
-              <p style={{ fontSize: '12px', color: '#64748b', margin: '2px 0 0 0' }}>
-                เลือกดำเนินการขยายเวลาสัญญา, ปิดโครงการ หรือขอยกเลิกโครงการ
-              </p>
+              
             </div>
           </div>
 

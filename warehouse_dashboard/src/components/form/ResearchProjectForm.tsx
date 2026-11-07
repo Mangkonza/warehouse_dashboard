@@ -29,6 +29,7 @@ export interface ResearchProjectFormProps {
   onChange: (key: string, val: any) => void;
   setFormData: React.Dispatch<React.SetStateAction<Record<string, any>>>;
   isEdit?: boolean;
+  errors?: Record<string, string>;
 }
 
 const COLLABORATION_OPTIONS = [
@@ -49,6 +50,7 @@ export function ResearchProjectForm({
   formData,
   onChange,
   isEdit = false,
+  errors = {},
 }: ResearchProjectFormProps) {
   // Funding sources list with custom creatable options
   const fundingOptions = React.useMemo(() => {
@@ -70,8 +72,8 @@ export function ResearchProjectForm({
     if (!currentCode) return null;
     const exists = researchData.some((r) => {
       const existingCode = (r.id || '').replace(/\r?\n/g, ' ').trim();
-      const existingKey = (r._id || '').trim();
-      const currentKey = (formData._id || '').trim();
+      const existingKey = ((r as any)._id || (r as any).id || '').trim();
+      const currentKey = (formData._id || formData.id || '').trim();
       if (isEdit && (existingCode === currentCode || existingKey === currentKey)) {
         return false;
       }
@@ -113,9 +115,12 @@ export function ResearchProjectForm({
             <FormField
               label="รหัสโครงการวิจัย"
               required
-              error={duplicateCodeWarning}
+              fieldKey="id"
+              error={errors.id || duplicateCodeWarning}
             >
               <input
+                id="field-id"
+                name="id"
                 type="text"
                 value={formData.id || ''}
                 onChange={handleCodeChange}
@@ -130,13 +135,16 @@ export function ResearchProjectForm({
           </div>
 
           <div className="sm:col-span-4">
-            <FormField label="ปีงบประมาณ (พ.ศ.)">
+            <FormField label="ปีงบประมาณ (พ.ศ.)" required fieldKey="fiscal_year_be" error={errors.fiscal_year_be || errors.fiscal_year}>
               <input
+                id="field-fiscal_year_be"
+                name="fiscal_year_be"
                 type="number"
                 value={formData.fiscal_year_be || ''}
                 onChange={(e) => {
                   const val = e.target.value === '' ? '' : parseInt(e.target.value, 10);
                   onChange('fiscal_year_be', val);
+                  onChange('fiscal_year', val);
                 }}
                 placeholder="2568"
                 className="w-full h-10 px-3 text-sm rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-[#00A651]/20 focus:border-[#00A651] transition-colors"
@@ -145,8 +153,10 @@ export function ResearchProjectForm({
           </div>
         </div>
 
-        <FormField label="ชื่อโครงการวิจัย (ภาษาไทย)" required>
+        <FormField label="ชื่อโครงการวิจัย (ภาษาไทย)" required fieldKey="name" error={errors.name}>
           <textarea
+            id="field-name"
+            name="name"
             rows={2}
             value={formData.name || ''}
             onChange={(e) => onChange('name', e.target.value)}
@@ -167,26 +177,28 @@ export function ResearchProjectForm({
 
         <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
           <div className="sm:col-span-8">
-            <FormField label="แหล่งทุนวิจัย" required>
-              <CreatableCombobox
-                options={fundingOptions}
-                value={formData.fund_source || ''}
-                onChange={(val) => {
-                  onChange('fund_source', val);
-                  const match = fundingSourcesData.find((f) => f.name === val);
-                  if (match && !formData.fund_type) {
-                    onChange('fund_type', match.type);
-                  }
-                }}
-                placeholder="ค้นหา หรือพิมพ์ชื่อแหล่งทุนวิจัย..."
-                createPlaceholder="เพิ่มแหล่งทุนใหม่..."
-              />
+            <FormField label="แหล่งทุนวิจัย" required fieldKey="fund_source" error={errors.fund_source}>
+              <div id="field-fund_source" data-field="fund_source">
+                <CreatableCombobox
+                  options={fundingOptions}
+                  value={formData.fund_source || ''}
+                  onChange={(val) => {
+                    onChange('fund_source', val);
+                    const match = fundingSourcesData.find((f) => f.name === val);
+                    if (match && !formData.fund_type) {
+                      onChange('fund_type', match.type);
+                    }
+                  }}
+                  placeholder="ค้นหา หรือพิมพ์ชื่อแหล่งทุนวิจัย..."
+                  createPlaceholder="เพิ่มแหล่งทุนใหม่..."
+                />
+              </div>
             </FormField>
           </div>
 
           <div className="sm:col-span-4">
-            <FormField label="ประเภททุนวิจัย">
-              <div className="grid grid-cols-2 gap-2">
+            <FormField label="ประเภททุนวิจัย" required fieldKey="fund_type" error={errors.fund_type}>
+              <div id="field-fund_type" data-field="fund_type" className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => onChange('fund_type', 'ภายใน')}
@@ -216,14 +228,16 @@ export function ResearchProjectForm({
           </div>
         </div>
 
-        <FormField label="ระยะเวลาดำเนินโครงการ">
-          <MonthYearRangePicker
-            value={dateRangeValue}
-            onChange={({ start, end }) => {
-              onChange('start_date', start);
-              onChange('end_date', end);
-            }}
-          />
+        <FormField label="ระยะเวลาดำเนินโครงการ" required fieldKey="duration" error={errors.duration || errors.start_date || errors.end_date}>
+          <div id="field-duration" data-field="duration">
+            <MonthYearRangePicker
+              value={dateRangeValue}
+              onChange={({ start, end }) => {
+                onChange('start_date', start);
+                onChange('end_date', end);
+              }}
+            />
+          </div>
         </FormField>
       </section>
 
@@ -239,39 +253,43 @@ export function ResearchProjectForm({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField label="หัวหน้าโครงการวิจัย" required>
-            <PersonPicker
-              value={
-                formData.head
-                  ? {
-                      person_id: formData.head_id || null,
-                      name: formData.head,
-                      department: formData.department,
-                    }
-                  : null
-              }
-              onChange={(person) => {
-                if (person) {
-                  onChange('head', person.name);
-                  onChange('head_id', person.person_id ?? null);
-                  if (person.department) {
-                    onChange('department', person.department);
-                  }
-                } else {
-                  onChange('head', '');
-                  onChange('head_id', null);
+          <FormField label="หัวหน้าโครงการวิจัย" required fieldKey="head" error={errors.head}>
+            <div id="field-head" data-field="head">
+              <PersonPicker
+                value={
+                  formData.head
+                    ? {
+                        person_id: formData.head_id || null,
+                        name: formData.head,
+                        department: formData.department,
+                      }
+                    : null
                 }
-              }}
-              placeholder="ค้นหาชื่อ-สกุลหัวหน้าโครงการ..."
-            />
+                onChange={(person) => {
+                  if (person) {
+                    onChange('head', person.name);
+                    onChange('head_id', person.person_id ?? null);
+                    if (person.department) {
+                      onChange('department', person.department);
+                    }
+                  } else {
+                    onChange('head', '');
+                    onChange('head_id', null);
+                  }
+                }}
+                placeholder="ค้นหาชื่อ-สกุลหัวหน้าโครงการ..."
+              />
+            </div>
           </FormField>
 
-          <FormField label="สังกัดที่รับผิดชอบ" required>
-            <DepartmentSelect
-              value={formData.department || ''}
-              onChange={(val) => onChange('department', val)}
-              placeholder="-- เลือกสังกัด --"
-            />
+          <FormField label="สังกัดที่รับผิดชอบ" required fieldKey="department" error={errors.department}>
+            <div id="field-department" data-field="department">
+              <DepartmentSelect
+                value={formData.department || ''}
+                onChange={(val) => onChange('department', val)}
+                placeholder="-- เลือกสังกัด --"
+              />
+            </div>
           </FormField>
         </div>
 
@@ -341,47 +359,62 @@ export function ResearchProjectForm({
           />
         </FormField>
 
-        <FormField label="ลักษณะโครงการวิจัย">
-          <CheckboxGroupWithOther
-            options={PROJECT_NATURE_OPTIONS}
-            value={
-              Array.isArray(formData.project_nature)
-                ? formData.project_nature
-                : typeof formData.project_nature === 'string' && formData.project_nature.trim()
-                ? formData.project_nature.split(',').map((s: string) => s.trim()).filter(Boolean)
-                : []
-            }
-            onChange={(vals) => onChange('project_nature', vals)}
-            otherOptionLabel="ลักษณะอื่นๆ (โปรดระบุ)"
-            orientation="grid"
-          />
+        <FormField label="ลักษณะโครงการวิจัย" required fieldKey="project_nature" error={errors.project_nature}>
+          <div id="field-project_nature" data-field="project_nature">
+            <CheckboxGroupWithOther
+              options={PROJECT_NATURE_OPTIONS}
+              value={
+                Array.isArray(formData.project_nature)
+                  ? formData.project_nature
+                  : typeof formData.project_nature === 'string' && formData.project_nature.trim()
+                  ? formData.project_nature.split(',').map((s: string) => s.trim()).filter(Boolean)
+                  : []
+              }
+              onChange={(vals) => onChange('project_nature', vals)}
+              otherOptionLabel="ลักษณะอื่นๆ (โปรดระบุ)"
+              orientation="grid"
+            />
+          </div>
         </FormField>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
-          <FormField label="งบประมาณภายใน">
-            <MoneyInput
-              value={formData.budget_internal}
-              onChange={(num) => onChange('budget_internal', num ?? 0)}
-              placeholder="0.00"
-            />
+          <FormField label="งบประมาณภายใน" required fieldKey="budget_internal" error={errors.budget_internal}>
+            <div id="field-budget_internal" data-field="budget_internal">
+              <MoneyInput
+                value={formData.budget_internal}
+                onChange={(num) => onChange('budget_internal', num ?? 0)}
+                placeholder="0.00"
+              />
+            </div>
           </FormField>
 
-          <FormField label="งบประมาณภายนอก">
-            <MoneyInput
-              value={formData.budget_external}
-              onChange={(num) => onChange('budget_external', num ?? 0)}
-              placeholder="0.00"
-            />
+          <FormField label="งบประมาณภายนอก" required fieldKey="budget_external" error={errors.budget_external}>
+            <div id="field-budget_external" data-field="budget_external">
+              <MoneyInput
+                value={formData.budget_external}
+                onChange={(num) => onChange('budget_external', num ?? 0)}
+                placeholder="0.00"
+              />
+            </div>
           </FormField>
 
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[13px] font-semibold text-slate-700 select-none">
-              งบประมาณรวม (คำนวณอัตโนมัติ)
+          <div className="flex flex-col gap-1.5" id="field-budget" data-field="budget">
+            <label className="text-[13px] font-semibold text-slate-700 select-none flex items-center gap-1">
+              <span>งบประมาณรวม (คำนวณอัตโนมัติ)</span>
+              <span className="text-rose-500 font-bold text-sm leading-none ml-0.5" title="จำเป็นต้องระบุ">*</span>
             </label>
-            <div className="h-10 px-3 flex items-center justify-between rounded-lg border border-emerald-200 bg-emerald-50/60 font-mono font-semibold text-emerald-800 text-sm">
+            <div className={cn(
+              "h-10 px-3 flex items-center justify-between rounded-lg border font-mono font-semibold text-sm transition-colors",
+              errors.budget
+                ? "border-rose-400 bg-rose-50/50 text-rose-800 ring-1 ring-rose-400"
+                : "border-emerald-200 bg-emerald-50/60 text-emerald-800"
+            )}>
               <span>{budgetTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
               <span className="text-xs font-medium text-emerald-700">บาท</span>
             </div>
+            {errors.budget && (
+              <p className="text-xs text-rose-500 font-medium">{errors.budget}</p>
+            )}
           </div>
         </div>
       </section>

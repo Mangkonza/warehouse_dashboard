@@ -57,7 +57,17 @@ export function ReportingRoundsSettingsView() {
   ) => {
     setErrorMsg('');
     setRounds((prev) =>
-      prev.map((r, i) => (i === idx ? { ...r, [field]: value } : r))
+      prev.map((r, i) => {
+        if (i !== idx) return r;
+        const updated = { ...r, [field]: value };
+        if (field === 'startDate' && value && updated.endDate && value > updated.endDate) {
+          updated.endDate = '';
+        }
+        if (field === 'endDate' && value && updated.startDate && value < updated.startDate) {
+          updated.startDate = '';
+        }
+        return updated;
+      })
     );
   };
 
@@ -321,6 +331,7 @@ export function ReportingRoundsSettingsView() {
                     <td style={{ padding: '12px' }}>
                       <DatePicker
                         value={r.startDate}
+                        maxDate={r.endDate || undefined}
                         onChange={(_d, iso) => handleUpdateField(idx, 'startDate', iso)}
                         placeholder="เลือกวันเริ่มต้น..."
                       />
@@ -329,6 +340,7 @@ export function ReportingRoundsSettingsView() {
                     <td style={{ padding: '12px' }}>
                       <DatePicker
                         value={r.endDate}
+                        minDate={r.startDate || undefined}
                         onChange={(_d, iso) => handleUpdateField(idx, 'endDate', iso)}
                         placeholder="เลือกวันสิ้นสุด..."
                       />
@@ -337,6 +349,7 @@ export function ReportingRoundsSettingsView() {
                     <td style={{ padding: '12px' }}>
                       <DatePicker
                         value={r.dueDate || ''}
+                        minDate={r.startDate || undefined}
                         onChange={(_d, iso) => handleUpdateField(idx, 'dueDate', iso)}
                         placeholder="เลือกวันกำหนดส่ง..."
                       />

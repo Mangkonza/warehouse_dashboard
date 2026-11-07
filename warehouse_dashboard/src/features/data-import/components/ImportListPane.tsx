@@ -75,7 +75,7 @@ export const ImportListPane: React.FC<ImportListPaneProps> = ({
       <div
         ref={listContainerRef}
         role="list"
-        className="flex-1 min-h-0 overflow-y-auto divide-y divide-slate-100"
+        className="flex-1 min-h-0 overflow-y-auto p-3 space-y-2.5 bg-slate-50/40"
       >
         {visibleRows.length === 0 ? (
           <EmptyState

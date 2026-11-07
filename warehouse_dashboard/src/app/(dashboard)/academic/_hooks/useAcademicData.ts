@@ -39,20 +39,20 @@ export function useAcademicData(timeFilter?: TimeFilterState) {
   const [strategicFilter, setStrategicFilter] = useState('all');
 
   const [dataList, setDataList] = useState<AcademicItem[]>(() => {
-    return (getCachedCategoryData('academic') as AcademicItem[]) || (academicData as AcademicItem[]);
+    return (getCachedCategoryData('academic') as AcademicItem[]) || [];
   });
 
   useEffect(() => {
     let isMounted = true;
     fetchCategoryData('academic').then((fresh) => {
-      if (isMounted && Array.isArray(fresh) && fresh.length > 0) {
+      if (isMounted && Array.isArray(fresh)) {
         setDataList(fresh as AcademicItem[]);
       }
     });
 
     const handleUpdate = () => {
       const fresh = getCachedCategoryData('academic') as AcademicItem[];
-      if (fresh && fresh.length > 0) setDataList(fresh);
+      if (Array.isArray(fresh)) setDataList(fresh);
     };
     window.addEventListener('ku_data_updated', handleUpdate);
     return () => {
@@ -227,6 +227,7 @@ export function useAcademicData(timeFilter?: TimeFilterState) {
 
   return {
     validData,
+    allItems: dataList,
     undatedCount,
     displayData,
     totalBudgetAll,

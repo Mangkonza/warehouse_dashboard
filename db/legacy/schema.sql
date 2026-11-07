@@ -244,12 +244,12 @@ CREATE INDEX IF NOT EXISTS idx_ip_dept ON core.intellectual_properties(departmen
 CREATE INDEX IF NOT EXISTS idx_ip_app_no ON core.intellectual_properties(application_no);
 CREATE INDEX IF NOT EXISTS idx_ip_reg_no ON core.intellectual_properties(registration_no);
 
--- ตารางที่ 13: ผู้ประดิษฐ์ทรัพย์สินทางปัญญา
+-- ตารางที่ 13: ผู้สร้างผลงานทรัพย์สินทางปัญญา
 CREATE TABLE IF NOT EXISTS core.ip_inventors (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     ip_id UUID NOT NULL REFERENCES core.intellectual_properties(id) ON DELETE CASCADE,
     person_id UUID NOT NULL REFERENCES core.persons(id) ON DELETE CASCADE,
-    inventor_role VARCHAR(50) DEFAULT 'ผู้ประดิษฐ์', -- 'ผู้ประดิษฐ์หลัก', 'ผู้ร่วมประดิษฐ์'
+    inventor_role VARCHAR(50) DEFAULT 'ผู้สร้างผลงาน', -- 'ผู้สร้างผลงานหลัก', 'ผู้ร่วมประดิษฐ์'
     contribution_percent NUMERIC(5,2),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     CONSTRAINT uq_ip_inventor UNIQUE (ip_id, person_id)
@@ -607,7 +607,7 @@ CREATE INDEX IF NOT EXISTS idx_br_pub_researcher ON analytics.bridge_publication
 CREATE TABLE IF NOT EXISTS analytics.bridge_ip_inventors (
     fact_id INTEGER NOT NULL REFERENCES analytics.fact_intellectual_properties(fact_id) ON DELETE CASCADE,
     researcher_key INTEGER NOT NULL REFERENCES analytics.dim_researcher(researcher_key) ON DELETE CASCADE,
-    inventor_role VARCHAR(50) DEFAULT 'ผู้ประดิษฐ์', -- 'ผู้ประดิษฐ์หลัก', 'ผู้ร่วมประดิษฐ์'
+    inventor_role VARCHAR(50) DEFAULT 'ผู้สร้างผลงาน', -- 'ผู้สร้างผลงานหลัก', 'ผู้ร่วมประดิษฐ์'
     contribution_percent NUMERIC(5,2),
     PRIMARY KEY (fact_id, researcher_key)
 );

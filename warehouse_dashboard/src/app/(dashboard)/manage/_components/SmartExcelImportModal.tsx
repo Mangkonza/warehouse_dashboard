@@ -21,6 +21,7 @@ import {
   FaListUl,
   FaChevronDown,
   FaChevronUp,
+  FaTimes,
 } from 'react-icons/fa';
 
 interface SmartExcelImportModalProps {
@@ -140,7 +141,7 @@ export const SmartExcelImportModal: React.FC<SmartExcelImportModalProps> = ({
       return newSheets;
     });
 
-    setInlineNotice(`✓ ปรับปรุงข้อมูลแถวที่ ${currentSheet.rows[targetIdx]?.rowNumber || targetIdx + 1} เรียบร้อยแล้ว`);
+    setInlineNotice(` ปรับปรุงข้อมูลแถวที่ ${currentSheet.rows[targetIdx]?.rowNumber || targetIdx + 1} เรียบร้อยแล้ว`);
     setTimeout(() => {
       setInlineNotice(null);
     }, 4000);
@@ -310,7 +311,7 @@ export const SmartExcelImportModal: React.FC<SmartExcelImportModalProps> = ({
               background: 'none',
               border: 'none',
               color: '#ffffff',
-              fontSize: '24px',
+              fontSize: '18px',
               cursor: 'pointer',
               opacity: 0.85,
               padding: '4px 8px',
@@ -318,7 +319,7 @@ export const SmartExcelImportModal: React.FC<SmartExcelImportModalProps> = ({
             }}
             title="ปิดหน้าต่าง"
           >
-            &times;
+            <FaTimes />
           </button>
         </div>
 

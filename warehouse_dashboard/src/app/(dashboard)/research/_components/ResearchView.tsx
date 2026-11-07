@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useDashboardTabFilter, useTimeFilter } from '@/features/time-filter';
 import { useResearchData } from '../_hooks/useResearchData';
 import { ResearchCharts, ResearchPerspective } from './ResearchCharts';
+import { ResearchBudgetFundingOverview } from './ResearchBudgetFundingOverview';
+import { ResearchDepartmentComparison } from './ResearchDepartmentComparison';
 import { TopSegmentedTabs } from '@/components/ui/TopSegmentedTabs';
 import { StrategicAlignmentMatrix } from '@/components/data-display/StrategicAlignmentMatrix';
 import { MissionDataTable } from '@/components/data-display/MissionDataTable';
@@ -34,6 +36,7 @@ export function ResearchView() {
 
   const {
     validData,
+    allItems,
     undatedCount,
     filteredData,
     totalInternalBudget,
@@ -101,6 +104,27 @@ export function ResearchView() {
   ).length;
   const extProjectPct = validData.length > 0 ? Math.round((extProjectCount / validData.length) * 100) : 0;
 
+  const researchSegments = useMemo(() => {
+    return [
+      {
+        label: 'ทุนภายนอก',
+        value: extMillions,
+        displayValue: `${extMillions} ลบ.`,
+        unit: 'ล้านบาท',
+        percent: parseFloat(extPct) || 0,
+        color: '#38bdf8',
+      },
+      {
+        label: 'ทุนภายใน',
+        value: intMillions,
+        displayValue: `${intMillions} ลบ.`,
+        unit: 'ล้านบาท',
+        percent: parseFloat((100 - parseFloat(extPct)).toFixed(1)) || 0,
+        color: '#86efac',
+      },
+    ];
+  }, [extMillions, intMillions, extPct]);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       {/* Page header — matches the data-management tab */}
@@ -119,7 +143,7 @@ export function ResearchView() {
           colorTheme="emerald"
           tabs={[
             { key: 'overview', label: 'ภาพรวมงบประมาณและแหล่งทุน', icon: <FaCoins style={{ fontSize: '13px' }} /> },
-            { key: 'productivity', label: 'เปรียบเทียบผลผลิตรายสังกัด', icon: <FaBuilding style={{ fontSize: '13px' }} /> },
+            { key: 'productivity', label: 'เปรียบเทียบผลงานรายสังกัด', icon: <FaBuilding style={{ fontSize: '13px' }} /> },
             { key: 'faculty', label: 'อาจารย์และหัวหน้าโครงการวิจัย', icon: <FaUserTie style={{ fontSize: '13px' }} /> },
             { key: 'sdg', label: 'ความสอดคล้องเชิงยุทธศาสตร์ (SDGs)', icon: <FaLeaf style={{ fontSize: '13px' }} /> },
             { key: 'table', label: 'รายการโครงการวิจัย', icon: <FaTable style={{ fontSize: '13px' }} /> },
@@ -171,101 +195,76 @@ export function ResearchView() {
             title="โครงการวิจัย"
           />
         </div>
-      ) : (
+      ) : activePerspective === 'overview' ? (
         <>
-          {activePerspective === 'overview' && (
-            <>
-              {/* ZONE 2: Executive Blueprint KPI Deck */}
-              <ExecutiveKpiDeck
-                mission="research"
-                blueprintCard={{
-                  label: 'งบประมาณวิจัยรวม',
-                  value: budgetMillions,
-                  unit: 'ล้านบาท',
-                  splitRatio: totalBudgetAll > 0 ? totalExternalBudget / totalBudgetAll : 0.993,
-                  primaryLegend: {
-                    label: 'ทุนภายนอก',
-                    value: `${extMillions} ลบ.`,
-                    percent: `${extPct}%`,
-                    color: '#38bdf8',
-                  },
-                  secondaryLegend: {
-                    label: 'ทุนภายใน',
-                    value: `${intMillions} ลบ.`,
-                    percent: `${(100 - parseFloat(extPct)).toFixed(1)}%`,
-                    color: '#86efac',
-                  },
-                }}
-                gearCard={{
-                  label: 'โครงการวิจัยทั้งหมด',
-                  value: validData.length,
-                  unit: 'โครงการ',
-                  gearValue: uniqueDepts.size,
-                  gearLabel: 'สังกัด',
-                }}
-                tallyCard={{
-                  label: 'โครงการที่ได้ทุนภายนอก',
-                  chip: `${extProjectPct}%`,
-                  value: extProjectCount,
-                  unit: `จาก ${validData.length} โครงการ`,
-                  percent: extProjectPct,
-                  totalCount: validData.length,
-                  activeCount: extProjectCount,
-                }}
-                rulerCard={{
-                  label: 'งบเฉลี่ยต่อโครงการ',
-                  value: avgGrantMillions,
-                  unit: 'ล้านบาท',
-                  current: parseFloat(avgGrantMillions) || 0,
-                  max: parseFloat(maxProjectBudgetMillions) || 18,
-                  marks: [
-                    { label: '0', positionPercent: 2 },
-                    { label: ((parseFloat(maxProjectBudgetMillions) || 18) / 3).toFixed(0), positionPercent: 33 },
-                    { label: (((parseFloat(maxProjectBudgetMillions) || 18) * 2) / 3).toFixed(0), positionPercent: 66 },
-                    { label: `สูงสุด ${(parseFloat(maxProjectBudgetMillions) || 18).toFixed(2)}`, positionPercent: 96 },
-                  ],
-                }}
-              />
-
-              {/* ZONE 2.5: Year-over-Year (YoY) Comparison */}
-              <MissionYoYControls
-                missionKey="research"
-                missionTitle="โครงการวิจัย"
-                allItemsRaw={validData}
-                activeDepartment={selectedDept}
-                primaryMetricLabel="จำนวนโครงการ"
-                secondaryMetricLabel="งบประมาณวิจัย"
-                hasBudgetMetric={true}
-                defaultBaseYear="2567"
-                defaultTargetYear="2568"
-              />
-            </>
-          )}
-
-          {/* ZONE 3: Research Charts */}
-          <ResearchCharts
-            validData={filteredData}
-            selectedDept={selectedDept}
-            activePerspective={activePerspective}
-            onChangePerspective={setActivePerspective}
-            hideSelector={true}
-            onSelectDept={(dept) => {
-              const nextDept = dept === selectedDept ? 'all' : dept;
-              setSelectedDept(nextDept);
+          {/* ZONE 2: Executive Blueprint KPI Deck */}
+          <ExecutiveKpiDeck
+            mission="research"
+            blueprintCard={{
+              label: 'งบประมาณวิจัยรวม',
+              value: budgetMillions,
+              unit: 'ล้านบาท',
+              segments: researchSegments,
             }}
-            selectedFund={selectedFund}
-            onSelectFund={(fund) => {
-              const nextFund = fund === selectedFund ? 'all' : fund;
-              setSelectedFund(nextFund);
-              setTabFilter({
-                customFilters: {
-                  ...(tabFilter.customFilters || {}),
-                  selectedFund: nextFund,
-                },
-              });
+            gearCard={{
+              label: 'โครงการวิจัยทั้งหมด',
+              value: validData.length,
+              unit: 'โครงการ',
+              gearValue: uniqueDepts.size,
+              gearLabel: 'สังกัด',
+            }}
+            items={validData}
+            tallyCard={{
+              label: 'โครงการที่ได้ทุนภายนอก',
+              chip: `${extProjectPct}%`,
+              value: extProjectCount,
+              unit: `จาก ${validData.length} โครงการ`,
+              percent: extProjectPct,
+              totalCount: validData.length,
+              activeCount: extProjectCount,
+            }}
+            rulerCard={{
+              label: 'งบเฉลี่ยต่อโครงการ',
+              value: avgGrantMillions,
+              unit: 'ล้านบาท',
+              current: parseFloat(avgGrantMillions) || 0,
+              max: parseFloat(maxProjectBudgetMillions) || 18,
+              marks: [
+                { label: '0', positionPercent: 2 },
+                { label: ((parseFloat(maxProjectBudgetMillions) || 18) / 3).toFixed(0), positionPercent: 33 },
+                { label: (((parseFloat(maxProjectBudgetMillions) || 18) * 2) / 3).toFixed(0), positionPercent: 66 },
+                { label: `สูงสุด ${(parseFloat(maxProjectBudgetMillions) || 18).toFixed(2)}`, positionPercent: 96 },
+              ],
             }}
           />
+
+          {/* ZONE 3: Overview - Budget & Funding Sources (Redesign) */}
+          <ResearchBudgetFundingOverview
+            allItems={allItems || validData}
+            filteredItems={validData}
+            currentFiscalYear={timeFilter?.mode === 'fiscal' && timeFilter.fiscalYear !== 'all' ? timeFilter.fiscalYear : undefined}
+          />
         </>
+      ) : activePerspective === 'productivity' ? (
+        <div style={{ marginTop: '8px' }}>
+          {/* ZONE 3: Productivity - Department Comparison (Redesign) */}
+          <ResearchDepartmentComparison
+            allItems={allItems || validData}
+            filteredItems={validData}
+            currentFiscalYear={timeFilter?.mode === 'fiscal' && timeFilter.fiscalYear !== 'all' ? timeFilter.fiscalYear : undefined}
+          />
+        </div>
+      ) : (
+        /* ZONE 3: Other Perspectives (e.g. Faculty PI ranking) */
+        <ResearchCharts
+          validData={filteredData}
+          allItems={allItems || validData}
+          currentFiscalYear={timeFilter?.mode === 'fiscal' && timeFilter.fiscalYear !== 'all' ? timeFilter.fiscalYear : undefined}
+          selectedDept={selectedDept}
+          activePerspective={activePerspective}
+          onChangePerspective={setActivePerspective}
+          hideSelector={true}
+        />
       )}
     </div>
   );

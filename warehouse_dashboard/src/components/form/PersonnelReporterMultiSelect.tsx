@@ -16,7 +16,7 @@ export interface PersonnelReporterMultiSelectProps {
 export const PersonnelReporterMultiSelect: React.FC<PersonnelReporterMultiSelectProps> = ({
   value = [],
   onChange,
-  placeholder = '+ เลือกบุคลากรและอาจารย์',
+  placeholder = '+ เลือกคณาจารย์และบุคลากร',
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -58,7 +58,7 @@ export const PersonnelReporterMultiSelect: React.FC<PersonnelReporterMultiSelect
 
   return (
     <div ref={containerRef} style={{ position: 'relative', width: '100%' }}>
-      {/* แสดงชิปผู้รายงานที่เลือก + ปุ่มเปิดเลือกจากข้อมูลบุคลากรและอาจารย์ */}
+      {/* แสดงชิปผู้รายงานที่เลือก + ปุ่มเปิดเลือกจากข้อมูลคณาจารย์และบุคลากร */}
       <div
         style={{
           display: 'flex',
@@ -127,7 +127,7 @@ export const PersonnelReporterMultiSelect: React.FC<PersonnelReporterMultiSelect
         </button>
       </div>
 
-      {/* Popover ค้นหาจากฐานข้อมูลบุคลากรและอาจารย์ */}
+      {/* Popover ค้นหาจากฐานข้อมูลคณาจารย์และบุคลากร */}
       {isOpen && (
         <div
           style={{
@@ -144,7 +144,7 @@ export const PersonnelReporterMultiSelect: React.FC<PersonnelReporterMultiSelect
             overflow: 'hidden',
           }}
         >
-          {/* ช่องค้นหาบุคลากรและอาจารย์ */}
+          {/* ช่องค้นหาคณาจารย์และบุคลากร */}
           <div
             style={{
               display: 'flex',
@@ -194,7 +194,7 @@ export const PersonnelReporterMultiSelect: React.FC<PersonnelReporterMultiSelect
             </button>
           </div>
 
-          {/* รายชื่อบุคลากรและอาจารย์จากฐานข้อมูล */}
+          {/* รายชื่อคณาจารย์และบุคลากรจากฐานข้อมูล */}
           <div style={{ maxHeight: '240px', overflowY: 'auto', padding: '6px' }}>
             {personnelMatches.length === 0 ? (
               <div style={{ padding: '12px', textAlign: 'center', fontSize: '12px', color: '#94a3b8' }}>

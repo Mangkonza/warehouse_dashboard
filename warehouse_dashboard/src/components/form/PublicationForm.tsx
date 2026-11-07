@@ -107,8 +107,10 @@ export function PublicationForm({
           </h4>
         </div>
 
-        <FormField label="ชื่อผลงานทางวิชาการ" required error={errors.name}>
+        <FormField label="ชื่อผลงานทางวิชาการ" required fieldKey="name" error={errors.name}>
           <input
+            id="field-name"
+            name="name"
             type="text"
             value={formData.name || ''}
             onChange={(e) => onChange('name', e.target.value)}
@@ -123,66 +125,74 @@ export function PublicationForm({
         </FormField>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField label="ชนิดของผลงาน" required error={errors.type}>
-            <Select value={formData.type || ''} onValueChange={handleTypeChange}>
-              <SelectTrigger
-                className={cn(
-                  'w-full h-10 bg-white text-sm rounded-lg',
-                  errors.type ? 'border-red-400 ring-1 ring-red-400' : 'border-slate-300'
-                )}
-              >
-                <SelectValue placeholder="เลือกชนิดของผลงาน" />
-              </SelectTrigger>
-              <SelectContent>
-                {PUBLICATION_TYPES.map((t) => (
-                  <SelectItem key={t} value={t}>
-                    {t}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <FormField label="ชนิดของผลงาน" required fieldKey="type" error={errors.type}>
+            <div id="field-type" data-field="type">
+              <Select value={formData.type || ''} onValueChange={handleTypeChange}>
+                <SelectTrigger
+                  className={cn(
+                    'w-full h-10 bg-white text-sm rounded-lg',
+                    errors.type ? 'border-red-400 ring-1 ring-red-400' : 'border-slate-300'
+                  )}
+                >
+                  <SelectValue placeholder="เลือกชนิดของผลงาน" />
+                </SelectTrigger>
+                <SelectContent>
+                  {PUBLICATION_TYPES.map((t) => (
+                    <SelectItem key={t} value={t}>
+                      {t}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </FormField>
 
-          <FormField label="ระดับ" required error={errors.level}>
-            <Select
-              value={formData.level || ''}
-              onValueChange={(val) => onChange('level', val ?? '')}
-            >
-              <SelectTrigger
-                className={cn(
-                  'w-full h-10 bg-white text-sm rounded-lg',
-                  errors.level ? 'border-red-400 ring-1 ring-red-400' : 'border-slate-300'
-                )}
+          <FormField label="ระดับ" required fieldKey="level" error={errors.level}>
+            <div id="field-level" data-field="level">
+              <Select
+                value={formData.level || ''}
+                onValueChange={(val) => onChange('level', val ?? '')}
               >
-                <SelectValue placeholder="เลือกระดับ" />
-              </SelectTrigger>
-              <SelectContent>
-                {PUBLICATION_LEVELS.map((lvl) => (
-                  <SelectItem key={lvl} value={lvl}>
-                    {lvl}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                <SelectTrigger
+                  className={cn(
+                    'w-full h-10 bg-white text-sm rounded-lg',
+                    errors.level ? 'border-red-400 ring-1 ring-red-400' : 'border-slate-300'
+                  )}
+                >
+                  <SelectValue placeholder="เลือกระดับ" />
+                </SelectTrigger>
+                <SelectContent>
+                  {PUBLICATION_LEVELS.map((lvl) => (
+                    <SelectItem key={lvl} value={lvl}>
+                      {lvl}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </FormField>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField label="จำนวนเงินสนับสนุน" error={errors.budget}>
-            <MoneyInput
-              value={formData.budget !== undefined && formData.budget !== null ? Number(formData.budget) : 0}
-              onChange={(val) => onChange('budget', val ?? 0)}
-              className="w-full"
-              min={0}
-            />
+          <FormField label="จำนวนเงินสนับสนุน" required fieldKey="budget" error={errors.budget}>
+            <div id="field-budget" data-field="budget">
+              <MoneyInput
+                value={formData.budget !== undefined && formData.budget !== null ? Number(formData.budget) : 0}
+                onChange={(val) => onChange('budget', val ?? 0)}
+                className="w-full"
+                min={0}
+              />
+            </div>
           </FormField>
 
-          <FormField label="เดือน/ปี (พ.ศ.)" error={errors.month_year}>
-            <MonthYearPicker
-              value={formData.month_year || ''}
-              onChange={(val) => onChange('month_year', val || '')}
-              className="w-full"
-            />
+          <FormField label="เดือน/ปี (พ.ศ.)" required fieldKey="month_year" error={errors.month_year}>
+            <div id="field-month_year" data-field="month_year">
+              <MonthYearPicker
+                value={formData.month_year || ''}
+                onChange={(val) => onChange('month_year', val || '')}
+                className="w-full"
+              />
+            </div>
           </FormField>
         </div>
       </section>
@@ -199,46 +209,50 @@ export function PublicationForm({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField label="เจ้าของผลงาน" required error={errors.owner}>
-            <PersonPicker
-              value={
-                formData.owner
-                  ? {
-                      person_id: formData.person_id || formData.owner_id || null,
-                      name: formData.owner,
-                      department: formData.department,
-                    }
-                  : null
-              }
-              onChange={(person) => {
-                if (person) {
-                  onChange('owner', person.name);
-                  onChange('owner_id', person.person_id ?? null);
-                  onChange('person_id', person.person_id ?? null);
-                  if (person.department) {
-                    onChange('department', person.department);
-                  }
-                } else {
-                  onChange('owner', '');
-                  onChange('owner_id', null);
-                  onChange('person_id', null);
+          <FormField label="เจ้าของผลงาน" required fieldKey="owner" error={errors.owner}>
+            <div id="field-owner" data-field="owner">
+              <PersonPicker
+                value={
+                  formData.owner
+                    ? {
+                        person_id: formData.person_id || formData.owner_id || null,
+                        name: formData.owner,
+                        department: formData.department,
+                      }
+                    : null
                 }
-              }}
-              placeholder="ค้นหาหรือระบุชื่อเจ้าของผลงาน..."
-            />
+                onChange={(person) => {
+                  if (person) {
+                    onChange('owner', person.name);
+                    onChange('owner_id', person.person_id ?? null);
+                    onChange('person_id', person.person_id ?? null);
+                    if (person.department) {
+                      onChange('department', person.department);
+                    }
+                  } else {
+                    onChange('owner', '');
+                    onChange('owner_id', null);
+                    onChange('person_id', null);
+                  }
+                }}
+                placeholder="ค้นหาหรือระบุชื่อเจ้าของผลงาน..."
+              />
+            </div>
           </FormField>
 
-          <FormField label="สังกัด" required error={errors.department}>
-            <DepartmentSelect
-              value={formData.department || ''}
-              onChange={(val) => onChange('department', val)}
-              className="w-full"
-            />
+          <FormField label="สังกัด" required fieldKey="department" error={errors.department}>
+            <div id="field-department" data-field="department">
+              <DepartmentSelect
+                value={formData.department || ''}
+                onChange={(val) => onChange('department', val)}
+                className="w-full"
+              />
+            </div>
           </FormField>
         </div>
 
-        <FormField label="ผู้ร่วมวิจัย / ผู้แต่งร่วม">
-          <div className="flex flex-wrap gap-x-8 gap-y-2 pt-1">
+        <FormField label="ผู้ร่วมวิจัย / ผู้แต่งร่วม" required fieldKey="co_authors" error={errors.co_authors || errors.co_authors_flags}>
+          <div id="field-co_authors" data-field="co_authors" className="flex flex-wrap gap-x-8 gap-y-2 pt-1">
             <label className="inline-flex items-center gap-2.5 py-1 cursor-pointer select-none">
               <Checkbox
                 checked={hasForeignCoAuthor}
@@ -263,18 +277,20 @@ export function PublicationForm({
       </section>
 
       {/* ========================================================================= */}
-      {/* ส่วนที่ 3: รายละเอียดการตีพิมพ์และหมายเหตุ */}
+      {/* ส่วนที่ 3: รายละเอียดการตีพิมพ์ */}
       {/* ========================================================================= */}
       <section className="space-y-4">
         <div className="flex items-center gap-2 pb-2 border-b border-slate-200">
           <span className="w-1.5 h-4 bg-[#00A651] rounded-full shrink-0" />
           <h4 className="text-[14px] font-bold text-slate-800 tracking-wide">
-            รายละเอียดการตีพิมพ์และหมายเหตุ
+            รายละเอียดการตีพิมพ์
           </h4>
         </div>
 
-        <FormField label="รายละเอียดวารสาร/การประชุม" error={errors.journal}>
+        <FormField label="รายละเอียดวารสาร/การประชุม" required fieldKey="journal" error={errors.journal}>
           <input
+            id="field-journal"
+            name="journal"
             type="text"
             value={isPatentType ? 'อนุสิทธิบัตร' : formData.journal || ''}
             onChange={(e) => {
@@ -296,8 +312,10 @@ export function PublicationForm({
         {!isPatentType && (
           <div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <FormField label="Volume" error={errors.volume}>
+              <FormField label="Volume" required fieldKey="volume" error={errors.volume}>
                 <input
+                  id="field-volume"
+                  name="volume"
                   type="text"
                   value={formData.volume || ''}
                   onChange={(e) => onChange('volume', e.target.value)}
@@ -306,8 +324,10 @@ export function PublicationForm({
                 />
               </FormField>
 
-              <FormField label="Issue" error={errors.issue}>
+              <FormField label="Issue" required fieldKey="issue" error={errors.issue}>
                 <input
+                  id="field-issue"
+                  name="issue"
                   type="text"
                   value={formData.issue || ''}
                   onChange={(e) => onChange('issue', e.target.value)}
@@ -316,8 +336,10 @@ export function PublicationForm({
                 />
               </FormField>
 
-              <FormField label="Page start" error={errors.page_start}>
+              <FormField label="Page start" required fieldKey="page_start" error={errors.page_start}>
                 <input
+                  id="field-page_start"
+                  name="page_start"
                   type="text"
                   value={formData.page_start || ''}
                   onChange={(e) => onChange('page_start', e.target.value)}
@@ -326,8 +348,10 @@ export function PublicationForm({
                 />
               </FormField>
 
-              <FormField label="Page end" error={errors.page_end}>
+              <FormField label="Page end" required fieldKey="page_end" error={errors.page_end}>
                 <input
+                  id="field-page_end"
+                  name="page_end"
                   type="text"
                   value={formData.page_end || ''}
                   onChange={(e) => onChange('page_end', e.target.value)}
@@ -336,7 +360,7 @@ export function PublicationForm({
                 />
               </FormField>
             </div>
-            {errors.pages && <p className="text-xs text-red-500 mt-1">{errors.pages}</p>}
+            {errors.pages && <p className="text-xs text-rose-500 mt-1">{errors.pages}</p>}
           </div>
         )}
 

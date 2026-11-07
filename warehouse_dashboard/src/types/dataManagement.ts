@@ -94,6 +94,8 @@ export interface PersonnelRecord {
   _id?: string;
   id: number | string;
   name: string;
+  first_name?: string;
+  last_name?: string;
   clean_name: string;
   title_th: string;
   position: string;

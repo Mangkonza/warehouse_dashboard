@@ -49,6 +49,8 @@ model Personnel {
   departmentCode String?  @map("department_code") @db.VarChar(10)
   email          String?  @db.VarChar(255)
   imageUrl       String?  @map("image_url") @db.VarChar(500)
+  firstName      String?  @map("first_name") @db.VarChar(150)
+  lastName       String?  @map("last_name") @db.VarChar(150)
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 
@@ -89,7 +91,15 @@ model ResearchProject {
   startDate          DateTime? @map("start_date") @db.Date
   endDate            DateTime? @map("end_date") @db.Date
   fiscalYear         Int?      @map("fiscal_year")
+  trlStart           Int?      @map("trl_start")
+  trlEnd             Int?      @map("trl_end")
   trlOutputs         String?   @map("trl_outputs") @db.Text
+  teachingCourses    String?   @map("teaching_courses") @db.Text
+  appliedCourses     String?   @map("applied_courses") @db.Text
+  academicService    String?   @map("academic_service") @db.Text
+  crossDisciplinary  String?   @map("cross_disciplinary") @db.Text
+  integration        String?   @db.Text
+  remarks            String?   @db.Text
   createdAt          DateTime  @default(now()) @map("created_at")
   updatedAt          DateTime  @updatedAt @map("updated_at")
 
@@ -152,6 +162,23 @@ model AcademicDevProject {
   endDate              DateTime? @map("end_date") @db.Date
   integrationStartDate DateTime? @map("integration_start_date") @db.Date
   integrationEndDate   DateTime? @map("integration_end_date") @db.Date
+  recordNumber         String?   @map("record_number") @db.VarChar(100)
+  coMembersInternal    Int?      @default(0) @map("co_members_internal")
+  coMembersExternal    Int?      @default(0) @map("co_members_external")
+  allocOverhead        Decimal?  @default(0) @map("alloc_overhead") @db.Decimal(15, 2)
+  allocFaculty         Decimal?  @default(0) @map("alloc_faculty") @db.Decimal(15, 2)
+  allocDept            Decimal?  @default(0) @map("alloc_dept") @db.Decimal(15, 2)
+  allocKu              Decimal?  @default(0) @map("alloc_ku") @db.Decimal(15, 2)
+  allocRemaining       Decimal?  @default(0) @map("alloc_remaining") @db.Decimal(15, 2)
+  serviceReceiverType  String?   @map("service_receiver_type") @db.VarChar(50)
+  researchIntegration  String?   @map("research_integration") @db.Text
+  patentIntegration    String?   @map("patent_integration") @db.Text
+  projectTypeCategory  String?   @map("project_type_category") @db.VarChar(100)
+  projectSubTypes      String?   @map("project_sub_types") @db.Text
+  researchProjects     String?   @map("research_projects") @db.Text
+  characteristics      String?   @db.VarChar(255)
+  status               String?   @db.VarChar(50)
+  remarks              String?   @db.Text
   createdAt            DateTime  @default(now()) @map("created_at")
   updatedAt            DateTime  @updatedAt @map("updated_at")
 
@@ -186,6 +213,12 @@ model Publication {
   month                  String?  @db.VarChar(50)
   monthYear              String?  @map("month_year") @db.VarChar(50)
   status                 String?  @db.VarChar(50)
+  quartile               String?  @db.VarChar(10)
+  coAuthorsDomestic      String?  @map("co_authors_domestic") @db.Text
+  coAuthorsForeign       String?  @map("co_authors_foreign") @db.Text
+  hasInternationalCoauthor Boolean? @default(false) @map("has_international_coauthor")
+  hasDomesticCoauthor      Boolean? @default(false) @map("has_domestic_coauthor")
+  hasForeignCoauthor       Boolean? @default(false) @map("has_foreign_coauthor")
   remarks                String?  @db.Text
   createdAt              DateTime @default(now()) @map("created_at")
   updatedAt              DateTime @updatedAt @map("updated_at")
@@ -233,6 +266,7 @@ model AcademicService {
   startDate           DateTime? @map("start_date") @db.Date
   endDate             DateTime? @map("end_date") @db.Date
   fiscalYear          Int?      @map("fiscal_year")
+  remarks             String?   @db.Text
   createdAt           DateTime  @default(now()) @map("created_at")
   updatedAt           DateTime  @updatedAt @map("updated_at")
 
@@ -265,6 +299,8 @@ model IntellectualProperty {
   protectionStart    DateTime? @map("protection_start") @db.Date
   protectionEnd      DateTime? @map("protection_end") @db.Date
   supportAmount      Decimal   @default(0) @map("support_amount") @db.Decimal(15, 2)
+  owner              String?   @default("มหาวิทยาลัยเกษตรศาสตร์") @db.VarChar(255)
+  rightHolder        String?   @default("มหาวิทยาลัยเกษตรศาสตร์") @map("right_holder") @db.VarChar(255)
   status             String?   @db.VarChar(50)
   fiscalYear         Int?      @map("fiscal_year")
   remarks            String?   @db.Text
@@ -338,6 +374,8 @@ model UserRole {
   role        String   @db.VarChar(50)
   isProtected Boolean  @default(false) @map("is_protected")
   displayName String?  @map("display_name") @db.VarChar(255)
+  password    String?  @db.VarChar(255)
+  otp         String?  @db.VarChar(50)
   grantedBy   String?  @map("granted_by") @db.VarChar(100)
   grantedAt   DateTime @default(now()) @map("granted_at")
   note        String?  @db.Text

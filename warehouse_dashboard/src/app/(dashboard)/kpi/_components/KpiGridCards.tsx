@@ -15,7 +15,7 @@ import {
 import { KPIComputedResult, KPIReportingRoundConfig } from '@/types/kpi';
 import { ENGINEERING_DEPARTMENTS, getStrategicPillar } from '@/lib/kpiEngine';
 import { CATEGORY_NAMES } from '../_hooks/useKpiData';
-import { DepartmentBadge } from '@/components/ui';
+import { DepartmentBadge, StrategyBadge } from '@/components/ui';
 import { DrillDownProjectDrawer } from '@/components/data-display';
 import { getDepartment } from '@/lib/departments';
 import { CategoryKey } from '@/config/dataManagementConfig';
@@ -173,19 +173,7 @@ export function KpiGridCards({
                   </span>
 
                   {(pillar || kpi.strategyCode) && (
-                    <span
-                      style={{
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        color: pillar?.color.text || '#047857',
-                        backgroundColor: pillar?.color.bg || '#ecfdf5',
-                        border: `1px solid ${pillar?.color.border || '#a7f3d0'}`,
-                        padding: '2px 7px',
-                        borderRadius: '4px',
-                      }}
-                    >
-                      ยุทธศาสตร์ที่ {pillar?.code || kpi.strategyCode}
-                    </span>
+                    <StrategyBadge value={pillar?.code || kpi.strategyCode} />
                   )}
 
                   {kpi.planCode && (

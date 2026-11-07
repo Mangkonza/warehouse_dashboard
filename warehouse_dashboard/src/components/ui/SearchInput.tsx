@@ -47,11 +47,34 @@ export function SearchInput({
           outline: 'none',
           fontSize: '12.5px',
           width: typeof width === 'number' ? `${width}px` : width,
+          flex: 1,
           fontFamily: 'inherit',
           background: 'transparent',
           ...inputStyle,
         }}
       />
+      {value && (
+        <button
+          type="button"
+          onClick={() => onChange('')}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: '#94a3b8',
+            cursor: 'pointer',
+            padding: '0 2px',
+            fontSize: '14px',
+            lineHeight: 1,
+            marginLeft: '4px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+          title="ล้างการค้นหา"
+        >
+          &times;
+        </button>
+      )}
     </div>
   );
 }

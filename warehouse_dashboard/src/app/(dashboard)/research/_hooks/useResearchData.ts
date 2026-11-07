@@ -87,20 +87,20 @@ export function useResearchData(timeFilter?: TimeFilterState) {
   }, []);
 
   const [dataList, setDataList] = useState<ResearchItem[]>(() => {
-    return (getCachedCategoryData('research') as ResearchItem[]) || (researchData as ResearchItem[]);
+    return (getCachedCategoryData('research') as ResearchItem[]) || [];
   });
 
   useEffect(() => {
     let isMounted = true;
     fetchCategoryData('research').then((fresh) => {
-      if (isMounted && Array.isArray(fresh) && fresh.length > 0) {
+      if (isMounted && Array.isArray(fresh)) {
         setDataList(fresh as ResearchItem[]);
       }
     });
 
     const handleUpdate = () => {
       const fresh = getCachedCategoryData('research') as ResearchItem[];
-      if (fresh && fresh.length > 0) setDataList(fresh);
+      if (Array.isArray(fresh)) setDataList(fresh);
     };
     window.addEventListener('ku_data_updated', handleUpdate);
     return () => {
@@ -251,6 +251,7 @@ export function useResearchData(timeFilter?: TimeFilterState) {
 
   return {
     validData,
+    allItems: dataList,
     undatedCount,
     filteredData,
     totalInternalBudget,

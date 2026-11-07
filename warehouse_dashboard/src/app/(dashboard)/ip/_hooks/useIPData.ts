@@ -45,20 +45,20 @@ export function useIPData(timeFilter?: TimeFilterState) {
   const [strategicFilter, setStrategicFilter] = useState('all');
 
   const [dataList, setDataList] = useState<IPItem[]>(() => {
-    return (getCachedCategoryData('ip') as IPItem[]) || (ipData as IPItem[]);
+    return (getCachedCategoryData('ip') as IPItem[]) || [];
   });
 
   useEffect(() => {
     let isMounted = true;
     fetchCategoryData('ip').then((fresh) => {
-      if (isMounted && Array.isArray(fresh) && fresh.length > 0) {
+      if (isMounted && Array.isArray(fresh)) {
         setDataList(fresh as IPItem[]);
       }
     });
 
     const handleUpdate = () => {
       const fresh = getCachedCategoryData('ip') as IPItem[];
-      if (fresh && fresh.length > 0) setDataList(fresh);
+      if (Array.isArray(fresh)) setDataList(fresh);
     };
     window.addEventListener('ku_data_updated', handleUpdate);
     return () => {
@@ -67,20 +67,34 @@ export function useIPData(timeFilter?: TimeFilterState) {
     };
   }, []);
 
-  const validIpData = useMemo(() => {
+  const allValidIpData = useMemo(() => {
     return dataList
       .filter((item) => (item.name || item.title) && item.name !== 'NaT' && item.name !== 'เรื่อง' && !isTestRecord(item))
-      .filter((item) => !timeFilter || itemMatchesTimeFilter(item, timeFilter, 'ip'))
       .map((item) => {
         const stage = getIPPipelineStage(item);
         const title = item.title || item.name || '';
         const cluster = getIPTechnologyCluster(title);
 
         let fy = '2568';
-        const rawDate = item.filing_date || item.date || item.updatedAt || '';
-        if (rawDate.includes('2570') || rawDate.includes('2027')) fy = '2570';
-        else if (rawDate.includes('2569') || rawDate.includes('2026') || rawDate.includes('1969')) fy = '2569';
-        else if (rawDate.includes('2568') || rawDate.includes('2025') || rawDate.includes('1968') || rawDate.includes('2567')) fy = '2568';
+        const rawDate = String(item.filing_date || item.protection_start || item.date || '').trim();
+        const isoMatch = rawDate.match(/^(\d{4})-(\d{1,2})/);
+        if (isoMatch) {
+          let y = parseInt(isoMatch[1], 10);
+          const m = parseInt(isoMatch[2], 10);
+          if (y >= 1960 && y <= 1980) y += 600;
+          else if (y >= 2000 && y < 2500) y += 543;
+          if (y >= 2500 && y <= 2600) {
+            fy = m >= 10 ? String(y + 1) : String(y);
+          }
+        } else if (rawDate.includes('2570') || rawDate.includes('2027')) {
+          fy = '2570';
+        } else if (rawDate.includes('2569') || rawDate.includes('2026') || rawDate.includes('1969')) {
+          fy = '2569';
+        } else if (rawDate.includes('2567') || rawDate.includes('2024') || rawDate.includes('1967')) {
+          fy = '2567';
+        } else if (rawDate.includes('2568') || rawDate.includes('2025') || rawDate.includes('1968')) {
+          fy = '2568';
+        }
 
         return {
           ...item,
@@ -89,7 +103,11 @@ export function useIPData(timeFilter?: TimeFilterState) {
           _fiscalYear: fy,
         };
       });
-  }, [dataList, timeFilter]);
+  }, [dataList]);
+
+  const validIpData = useMemo(() => {
+    return allValidIpData.filter((item) => !timeFilter || itemMatchesTimeFilter(item, timeFilter, 'ip'));
+  }, [allValidIpData, timeFilter]);
 
   const undatedCount = useMemo(() => {
     if (!timeFilter || timeFilter.mode === 'all') return 0;
@@ -224,6 +242,7 @@ export function useIPData(timeFilter?: TimeFilterState) {
 
   return {
     validIpData,
+    allItems: allValidIpData,
     undatedCount,
     filteredIpData,
     availableDepts,

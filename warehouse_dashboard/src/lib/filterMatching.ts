@@ -1,5 +1,6 @@
 import { getDepartment } from '@/lib/departments';
 import { parseSdgNumber } from '@/types/evaluation';
+import { resolveHybridSDG } from '@/lib/sdgEngine';
 export function getRecordId(item: any): string {
   return String(item.id || item._id || item.name || '').trim();
 }
@@ -99,14 +100,17 @@ export function itemMatchesDateRange(
     item.end_date,
     item.date,
     item.projectDate,
+    item.month_year,
+    item.published_date,
     item.submission_date,
     item.filing_date,
     item.createdAt,
     item.created_at,
   ].filter(Boolean);
 
-  if (candidates.length === 0 && item.year) {
-    let y = parseInt(String(item.year).trim(), 10);
+  if (candidates.length === 0 && (item.year || item.fiscal_year || item.fiscal_year_be)) {
+    const rawY = item.fiscal_year_be || item.fiscal_year || item.year;
+    let y = parseInt(String(rawY).trim(), 10);
     if (!isNaN(y)) {
       if (y > 2400) y -= 543;
       candidates.push(`${y}-01-01`);
@@ -149,7 +153,7 @@ export function itemMatchesDateRange(
 }
 
 /**
- * Checks if an item matches evaluation criteria (SDGs, I AM / I SEE framework, and Q/TCI journals)
+ * Checks if an item matches evaluation criteria (SDGs, I AM / I SEE framework, Q/TCI journals, and evaluation status)
  */
 export function itemMatchesEvaluation(
   item: any,
@@ -157,19 +161,22 @@ export function itemMatchesEvaluation(
   evalMap?: Record<string, any>,
   selectedSdgs?: string[],
   selectedFramework?: string,
-  selectedJournals?: string[]
+  selectedJournals?: string[],
+  evaluationStatus?: 'all' | 'evaluated' | 'auto_detected' | 'unevaluated'
 ): boolean {
   const key = getRecordEvalKey(category, item);
   const ev = evalMap?.[key] || item.evaluation;
+  const hybrid = resolveHybridSDG(item, category, evalMap);
 
-  // Extract SDG numbers
-  const rawSdgs: any[] = [];
-  if (ev?.sdg_ids && Array.isArray(ev.sdg_ids)) rawSdgs.push(...ev.sdg_ids);
-  if (item.sdg_ids && Array.isArray(item.sdg_ids)) rawSdgs.push(...item.sdg_ids);
+  // Status Check ('all' | 'evaluated' | 'auto_detected' | 'unevaluated')
+  if (evaluationStatus && evaluationStatus !== 'all') {
+    if (evaluationStatus === 'evaluated' && !hybrid.isVerified) return false;
+    if (evaluationStatus === 'auto_detected' && (hybrid.isVerified || hybrid.sdgIds.length === 0)) return false;
+    if (evaluationStatus === 'unevaluated' && hybrid.isVerified) return false;
+  }
 
-  const itemSdgNums = Array.from(
-    new Set(rawSdgs.map((n) => parseSdgNumber(n)).filter((n): n is number => n !== null))
-  );
+  // Extract SDG numbers (using hybrid SDGs which supports verified + auto fallback)
+  const itemSdgNums = hybrid.sdgIds || [];
 
   // SDGs Check
   if (selectedSdgs && selectedSdgs.length > 0) {

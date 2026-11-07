@@ -4,7 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { CategoryKey } from '@/types/dataManagement';
 import { CATEGORIES_CONFIG } from '@/config/dataManagementConfig';
 import { DataTable } from '@/app/(dashboard)/manage/_components/DataTable';
-import { FilterPopover, FilterState, ActiveFilterChips, SearchInput } from '@/components/ui';
+import { FilterPopover, FilterState, ActiveFilterChips, SearchInput, TablePagination } from '@/components/ui';
 import {
   itemMatchesDepartmentMulti,
   itemMatchesDateRange,
@@ -397,101 +397,19 @@ export const MissionDataTable: React.FC<MissionDataTableProps> = ({
         )}
 
         {/* Footer: Pagination & Records summary */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: '12px 20px',
-            borderTop: '1px solid #e2e8f0',
-            backgroundColor: '#ffffff',
-            fontSize: '13px',
-            color: '#64748b',
-            flexWrap: 'wrap',
-            gap: '12px',
+        <TablePagination
+          currentPage={currentPage}
+          totalPages={totalPages || 1}
+          totalItems={filteredData.length}
+          pageSize={itemsPerPage}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(newSize) => {
+            setItemsPerPage(newSize);
+            setCurrentPage(1);
           }}
-        >
-          <div>
-            แสดง {filteredData.length > 0 ? startIndex + 1 : 0} ถึง{' '}
-            {Math.min(startIndex + itemsPerPage, filteredData.length)} จากทั้งหมด{' '}
-            <strong style={{ color: '#1e293b' }}>{filteredData.length}</strong> รายการ
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span>แสดง:</span>
-              <select
-                value={itemsPerPage}
-                onChange={(e) => {
-                  setItemsPerPage(Number(e.target.value));
-                  setCurrentPage(1);
-                }}
-                style={{
-                  padding: '3px 8px',
-                  borderRadius: '6px',
-                  border: '1px solid #cbd5e1',
-                  fontSize: '12px',
-                  color: '#334155',
-                  backgroundColor: '#ffffff',
-                  cursor: 'pointer',
-                  outline: 'none',
-                }}
-              >
-                <option value={10}>10</option>
-                <option value={25}>25</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
-              </select>
-            </div>
-
-            {/* Pagination Controls */}
-            <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-              <button
-                type="button"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                style={{
-                  padding: '5px 10px',
-                  borderRadius: '6px',
-                  border: '1px solid #cbd5e1',
-                  backgroundColor: currentPage === 1 ? '#f8fafc' : '#ffffff',
-                  color: currentPage === 1 ? '#cbd5e1' : '#334155',
-                  cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-                  fontSize: '12px',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                }}
-                title="หน้าก่อนหน้า"
-              >
-                <FaChevronLeft style={{ fontSize: '10px' }} />
-              </button>
-
-              <span style={{ fontSize: '12px', padding: '0 6px', color: '#475569' }}>
-                หน้า <strong>{currentPage}</strong> / {totalPages || 1}
-              </span>
-
-              <button
-                type="button"
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages || totalPages === 0}
-                style={{
-                  padding: '5px 10px',
-                  borderRadius: '6px',
-                  border: '1px solid #cbd5e1',
-                  backgroundColor: currentPage === totalPages || totalPages === 0 ? '#f8fafc' : '#ffffff',
-                  color: currentPage === totalPages || totalPages === 0 ? '#cbd5e1' : '#334155',
-                  cursor: currentPage === totalPages || totalPages === 0 ? 'not-allowed' : 'pointer',
-                  fontSize: '12px',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                }}
-                title="หน้าถัดไป"
-              >
-                <FaChevronRight style={{ fontSize: '10px' }} />
-              </button>
-            </div>
-          </div>
-        </div>
+          pageSizeOptions={[10, 25, 50, 100]}
+          unitLabel="รายการ"
+        />
       </div>
     </div>
   );

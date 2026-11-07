@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { calculateProjectTimeline, STATUS_LABELS } from '@/lib/projectMonitoringEngine';
 import { ProjectExtensionRecord, ProjectStatus, ProjectTimelineInfo } from '@/types/projectMonitoring';
 import { TopSegmentedTabs, TabItem } from '@/components/ui/TopSegmentedTabs';
-import { DepartmentBadge, RecordDetailDrawer, ConfirmActionModal } from '@/components/ui';
+import { DepartmentBadge, RecordDetailDrawer, ConfirmActionModal, TablePagination } from '@/components/ui';
 import { FilterPopover, FilterState } from '@/components/ui/FilterPopover';
 import {
   itemMatchesDepartmentMulti,
@@ -472,9 +472,9 @@ export default function ProjectMonitoringTab({}: ProjectMonitoringTabProps) {
     setConfirmModal({
       isOpen: true,
       title: 'ยืนยันการปิดโครงการ (ข้อมูลสำคัญ)',
-      message: `คุณต้องการบันทึกปิดโครงการ "${item.name}" ใช่หรือไม่?`,
+      message: `คุณต้องการปิดโครงการ "${item.name}" ใช่หรือไม่?`,
       detail:
-        'ข้อควรระวัง: การปิดโครงการจะบันทึกวันปิดโครงการจริง และเปลี่ยนสถานะโครงการเป็นปิดโครงการแล้ว กรุณาตรวจสอบให้แน่ใจว่าได้ดำเนินงานและส่งมอบรายงานเสร็จสิ้นแล้ว',
+        'ข้อควรระวัง: เมื่อยืนยัน ระบบจะบันทึกวันปิดโครงการจริงและเปลี่ยนสถานะเป็น ปิดโครงการแล้ว โปรดตรวจสอบว่าได้ดำเนินงานและส่งมอบรายงานเรียบร้อยแล้ว',
       confirmText: 'ยืนยันปิดโครงการ',
       cancelText: 'ยกเลิก',
       type: 'warning',
@@ -1093,43 +1093,43 @@ export default function ProjectMonitoringTab({}: ProjectMonitoringTabProps) {
             <thead>
               <tr
                 style={{
-                  backgroundColor: '#f8fafc',
-                  borderBottom: '1px solid #e2e8f0',
-                  color: '#475569',
-                  fontWeight: 400,
-                  fontSize: '12.5px',
+                  backgroundColor: '#00A651',
+                  borderBottom: '2px solid #00A651',
+                  color: '#ffffff',
+                  fontWeight: 600,
+                  fontSize: '13px',
                 }}
               >
-                <th style={{ width: '55px', padding: '12px 10px', textAlign: 'center', fontWeight: 400 }}>
+                <th style={{ width: '55px', padding: '12px 10px', textAlign: 'center', color: '#ffffff', backgroundColor: '#00A651', whiteSpace: 'nowrap', verticalAlign: 'middle', fontWeight: 600 }}>
                   ลำดับที่
                 </th>
 
-                <th style={{ minWidth: '260px', padding: '12px 12px', fontWeight: 400 }}>
+                <th style={{ minWidth: '260px', padding: '12px 12px', color: '#ffffff', backgroundColor: '#00A651', whiteSpace: 'nowrap', verticalAlign: 'middle', fontWeight: 600 }}>
                   ชื่อโครงการ
                 </th>
 
-                <th style={{ width: '160px', padding: '12px 10px', fontWeight: 400 }}>
+                <th style={{ width: '160px', padding: '12px 10px', color: '#ffffff', backgroundColor: '#00A651', whiteSpace: 'nowrap', verticalAlign: 'middle', fontWeight: 600 }}>
                   หัวหน้าโครงการ
                 </th>
 
                 {/* สังกัด แยกออกมาแสดงอีก column หลังหัวหน้าโครงการ */}
-                <th style={{ width: '110px', padding: '12px 10px', textAlign: 'center', fontWeight: 400 }}>
+                <th style={{ width: '110px', padding: '12px 10px', textAlign: 'center', color: '#ffffff', backgroundColor: '#00A651', whiteSpace: 'nowrap', verticalAlign: 'middle', fontWeight: 600 }}>
                   สังกัด
                 </th>
 
-                <th style={{ width: '140px', padding: '12px 10px', textAlign: 'center', fontWeight: 400 }}>
+                <th style={{ width: '140px', padding: '12px 10px', textAlign: 'center', color: '#ffffff', backgroundColor: '#00A651', whiteSpace: 'nowrap', verticalAlign: 'middle', fontWeight: 600 }}>
                   สถานะ
                 </th>
 
-                <th style={{ width: '130px', padding: '12px 10px', textAlign: 'center', fontWeight: 400 }}>
+                <th style={{ width: '130px', padding: '12px 10px', textAlign: 'center', color: '#ffffff', backgroundColor: '#00A651', whiteSpace: 'nowrap', verticalAlign: 'middle', fontWeight: 600 }}>
                   วันที่สิ้นสุด
                 </th>
 
-                <th style={{ width: '130px', padding: '12px 10px', textAlign: 'center', fontWeight: 400 }}>
+                <th style={{ width: '130px', padding: '12px 10px', textAlign: 'center', color: '#ffffff', backgroundColor: '#00A651', whiteSpace: 'nowrap', verticalAlign: 'middle', fontWeight: 600 }}>
                   การขยายเวลา
                 </th>
 
-                <th style={{ width: '150px', padding: '12px 10px', textAlign: 'center', fontWeight: 400 }}>
+                <th style={{ width: '150px', padding: '12px 10px', textAlign: 'center', color: '#ffffff', backgroundColor: '#00A651', whiteSpace: 'nowrap', verticalAlign: 'middle', fontWeight: 600 }}>
                   จัดการ
                 </th>
               </tr>
@@ -1316,114 +1316,38 @@ export default function ProjectMonitoringTab({}: ProjectMonitoringTabProps) {
         </div>
 
         {/* 5. Pagination Footer */}
-        <div
-          style={{
-            padding: '12px 20px',
-            backgroundColor: '#ffffff',
-            borderTop: '1px solid #e2e8f0',
-            display: 'flex',
-            flexWrap: 'wrap',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: '12px',
-            fontSize: '13px',
-            color: '#64748b',
-            borderRadius: '0 0 12px 12px',
+
+        <TablePagination
+
+          currentPage={currentPage}
+
+          totalPages={totalPages}
+
+          totalItems={totalItems}
+
+          pageSize={itemsPerPage}
+
+          onPageChange={setCurrentPage}
+
+          onPageSizeChange={(newSize) => {
+
+            setItemsPerPage(newSize);
+
+            setCurrentPage(1);
+
           }}
-        >
-          <div>
-            แสดง{' '}
-            <span style={{ fontWeight: 400, color: '#1e293b' }}>
-              {totalItems === 0 ? 0 : startIndex + 1}
-            </span>{' '}
-            -{' '}
-            <span style={{ fontWeight: 400, color: '#1e293b' }}>
-              {Math.min(startIndex + itemsPerPage, totalItems)}
-            </span>{' '}
-            จากทั้งหมด{' '}
-            <span style={{ fontWeight: 400, color: '#1e293b' }}>
-              {totalItems.toLocaleString()}
-            </span>{' '}
-            รายการ
-          </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontWeight: 400 }}>รายการต่อหน้า:</span>
-              <select
-                value={itemsPerPage}
-                onChange={(e) => {
-                  setItemsPerPage(Number(e.target.value));
-                  setCurrentPage(1);
-                }}
-                style={{
-                  border: '1px solid #cbd5e1',
-                  borderRadius: '6px',
-                  padding: '4px 8px',
-                  fontSize: '12px',
-                  backgroundColor: '#ffffff',
-                  color: '#1e293b',
-                  cursor: 'pointer',
-                  fontWeight: 400,
-                }}
-              >
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
-              </select>
-            </div>
+          pageSizeOptions={[10, 20, 50, 100]}
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <button
-                type="button"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage <= 1}
-                title="ก่อนหน้า"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '6px',
-                  border: '1px solid #cbd5e1',
-                  backgroundColor: '#ffffff',
-                  color: currentPage <= 1 ? '#cbd5e1' : '#475569',
-                  cursor: currentPage <= 1 ? 'not-allowed' : 'pointer',
-                }}
-              >
-                <FaChevronLeft style={{ fontSize: '11px' }} />
-              </button>
+          unitLabel="รายการ"
 
-              <span style={{ fontSize: '12px', fontWeight: 400, color: '#334155', padding: '0 4px' }}>
-                {currentPage} / {totalPages}
-              </span>
+          style={{ borderRadius: '0 0 12px 12px' }}
 
-              <button
-                type="button"
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage >= totalPages}
-                title="ถัดไป"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '6px',
-                  border: '1px solid #cbd5e1',
-                  backgroundColor: '#ffffff',
-                  color: currentPage >= totalPages ? '#cbd5e1' : '#475569',
-                  cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer',
-                }}
-              >
-                <FaChevronRight style={{ fontSize: '11px' }} />
-              </button>
-            </div>
-          </div>
-        </div>
+        />
+
       </div>
+
+
 
       {/* Record Detail Drawer (Read-Only) */}
       {selectedDetailTarget && (

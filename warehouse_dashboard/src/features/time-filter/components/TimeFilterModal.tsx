@@ -451,10 +451,14 @@ export const TimeFilterModal: React.FC<TimeFilterModalProps> = ({ isOpen, onClos
                         </span>
                         <DatePicker
                           value={start}
-                          onChange={(_d, dateStr) =>
-                            setDraft({ ...draft, mode: 'manual', manualType: 'range', manualStartDate: dateStr })
-                          }
-                          maxDate={parseDate(end)}
+                          onChange={(_d, dateStr) => {
+                            const next = { ...draft, mode: 'manual' as const, manualType: 'range' as const, manualStartDate: dateStr };
+                            if (dateStr && next.manualEndDate && dateStr > next.manualEndDate) {
+                              next.manualEndDate = '';
+                            }
+                            setDraft(next);
+                          }}
+                          maxDate={end || undefined}
                           placeholder="วัน/เดือน/ปี (พ.ศ.)"
                           className="w-full"
                         />
@@ -465,10 +469,14 @@ export const TimeFilterModal: React.FC<TimeFilterModalProps> = ({ isOpen, onClos
                         </span>
                         <DatePicker
                           value={end}
-                          onChange={(_d, dateStr) =>
-                            setDraft({ ...draft, mode: 'manual', manualType: 'range', manualEndDate: dateStr })
-                          }
-                          minDate={parseDate(start)}
+                          onChange={(_d, dateStr) => {
+                            const next = { ...draft, mode: 'manual' as const, manualType: 'range' as const, manualEndDate: dateStr };
+                            if (dateStr && next.manualStartDate && dateStr < next.manualStartDate) {
+                              next.manualStartDate = '';
+                            }
+                            setDraft(next);
+                          }}
+                          minDate={start || undefined}
                           placeholder="วัน/เดือน/ปี (พ.ศ.)"
                           className="w-full"
                         />

@@ -107,12 +107,14 @@ export const KNOWN_JOURNALS_INDEX: JournalIndexEntry[] = [
 ];
 
 export const JOURNAL_TIER_STYLES: Record<string, { bg: string; text: string; border: string; glow: string }> = {
-  'Q1': { bg: '#ecfdf5', text: '#059669', border: '#a7f3d0', glow: 'rgba(16, 185, 129, 0.25)' },
-  'Q2': { bg: '#eff6ff', text: '#2563eb', border: '#bfdbfe', glow: 'rgba(37, 99, 235, 0.25)' },
-  'Q3': { bg: '#fefce8', text: '#ca8a04', border: '#fef08a', glow: 'rgba(202, 138, 4, 0.25)' },
-  'Q4': { bg: '#fff7ed', text: '#ea580c', border: '#fed7aa', glow: 'rgba(234, 88, 12, 0.25)' },
-  'TCI 1': { bg: '#f5f3ff', text: '#7c3aed', border: '#ddd6fe', glow: 'rgba(124, 58, 237, 0.25)' },
-  'TCI 2': { bg: '#faf5ff', text: '#9333ea', border: '#e9d5ff', glow: 'rgba(147, 51, 234, 0.25)' },
+  'Q1': { bg: '#9f1239', text: '#ffffff', border: '#881337', glow: 'rgba(159, 18, 57, 0.35)' },
+  'Q2': { bg: '#e11d48', text: '#ffffff', border: '#be123c', glow: 'rgba(225, 29, 72, 0.35)' },
+  'Q3': { bg: '#fb7185', text: '#881337', border: '#f43f5e', glow: 'rgba(251, 113, 133, 0.35)' },
+  'Q4': { bg: '#fecdd3', text: '#9f1239', border: '#fda4af', glow: 'rgba(254, 205, 211, 0.35)' },
+  'TCI 1': { bg: '#4338ca', text: '#ffffff', border: '#3730a3', glow: 'rgba(67, 56, 202, 0.35)' },
+  'TCI 2': { bg: '#818cf8', text: '#1e1b4b', border: '#6366f1', glow: 'rgba(129, 140, 248, 0.35)' },
+  'TCI 3': { bg: '#c7d2fe', text: '#312e81', border: '#a5b4fc', glow: 'rgba(199, 210, 254, 0.35)' },
+  'TCI': { bg: '#4338ca', text: '#ffffff', border: '#3730a3', glow: 'rgba(67, 56, 202, 0.35)' },
   'International Conference': { bg: '#f0fdfa', text: '#0d9488', border: '#99f6e4', glow: 'rgba(13, 148, 136, 0.25)' },
   'National Conference': { bg: '#f8fafc', text: '#475569', border: '#e2e8f0', glow: 'rgba(71, 85, 105, 0.25)' },
 };

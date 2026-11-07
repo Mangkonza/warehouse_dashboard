@@ -1,4 +1,5 @@
-import { resolvePrimarySDG } from '@/lib/sdgEngine';
+import { resolvePrimarySDG, resolveHybridSDG } from '@/lib/sdgEngine';
+import { SDGS_DATA } from '@/config/sdgConfig';
 
 /**
  * Modern Pastel & Clean KU Design System Tokens & Utilities
@@ -354,6 +355,9 @@ export interface StrategicAlignmentResult {
   sdgNumber: number;
   sdgCode: string;
   sdgNameTh: string;
+  isVerified: boolean;
+  statusLabel: 'Verified' | 'Auto-Detected';
+  sdgIds: number[];
 }
 
 export function resolveItemStrategicAlignment(item: any, category?: string): StrategicAlignmentResult {
@@ -368,32 +372,16 @@ export function resolveItemStrategicAlignment(item: any, category?: string): Str
       sdgNumber: 9,
       sdgCode: 'SDG 9',
       sdgNameTh: 'อุตสาหกรรม นวัตกรรม และโครงสร้างพื้นฐาน',
+      isVerified: false,
+      statusLabel: 'Auto-Detected',
+      sdgIds: [9],
     };
   }
 
-  // 1. Resolve SDG (1 - 17)
-  let sdgNum = 9;
-  let sdgName = 'อุตสาหกรรม นวัตกรรม และโครงสร้างพื้นฐาน';
-  if (item.sdg_code) {
-    const n = Number(String(item.sdg_code).replace(/\D/g, ''));
-    if (n >= 1 && n <= 17) sdgNum = n;
-  } else if (Array.isArray(item.sdg_ids) && item.sdg_ids.length > 0) {
-    const n = Number(item.sdg_ids[0]);
-    if (n >= 1 && n <= 17) sdgNum = n;
-  } else if (Array.isArray(item.evaluation?.sdg_ids) && item.evaluation.sdg_ids.length > 0) {
-    const n = Number(item.evaluation.sdg_ids[0]);
-    if (n >= 1 && n <= 17) sdgNum = n;
-  } else {
-    try {
-      const primary = resolvePrimarySDG(item);
-      if (primary) {
-        sdgNum = primary.number;
-        sdgName = primary.nameTh;
-      }
-    } catch {
-      sdgNum = 9;
-    }
-  }
+  // 1. Resolve SDG (1 - 17) via Single-Source-of-Truth Hybrid Engine
+  const hybrid = resolveHybridSDG(item, category);
+  const sdgNum = hybrid.primarySdg;
+  const sdgName = SDGS_DATA[sdgNum]?.nameTh || 'อุตสาหกรรม นวัตกรรม และโครงสร้างพื้นฐาน';
 
   const text = `${item.name || ''} ${item.title || ''} ${item.topic_title || ''} ${item.department || ''} ${item.fund_source || ''} ${item.client || ''} ${item.target_group || ''} ${item.level || ''} ${item.journal || ''}`.toLowerCase();
 
@@ -488,6 +476,9 @@ export function resolveItemStrategicAlignment(item: any, category?: string): Str
     sdgNumber: sdgNum,
     sdgCode: `SDG ${sdgNum}`,
     sdgNameTh: sdgName,
+    isVerified: hybrid.isVerified,
+    statusLabel: hybrid.statusLabel,
+    sdgIds: hybrid.sdgIds,
   };
 }
 

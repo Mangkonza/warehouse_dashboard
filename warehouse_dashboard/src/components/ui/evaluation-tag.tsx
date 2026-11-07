@@ -9,8 +9,9 @@ import { getCachedEvaluations } from '@/lib/dataService';
 import { parseSdgNumber, formatSdgLabel, getSdgInfo } from '@/lib/sdg';
 import { SdgTag } from '@/components/ui/SdgTag';
 import { SdgTagList, SdgTagListProps } from '@/components/ui/SdgTagList';
+import { JournalTierBadge } from '@/components/ui/JournalTierBadge';
 
-export { SdgTag, SdgTagList, type SdgTagListProps };
+export { SdgTag, SdgTagList, JournalTierBadge, type SdgTagListProps };
 
 export type EvaluationTagKind = 'sdg' | 'ia' | 'iam' | 'journal' | 'level';
 
@@ -43,6 +44,17 @@ export const EvaluationTag: React.FC<EvaluationTagProps> = ({
         />
       );
     }
+  }
+
+  if (kind === 'journal') {
+    return (
+      <JournalTierBadge
+        value={label}
+        className={className}
+        style={style}
+        {...props}
+      />
+    );
   }
 
   const kindClasses = {

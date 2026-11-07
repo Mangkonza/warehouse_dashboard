@@ -54,6 +54,8 @@ export class LookupService {
         personId: p.personId,
         title: p.titleTh,
         name: p.nameTh,
+        firstName: p.firstName || '',
+        lastName: p.lastName || '',
         nameEn: p.nameEn,
         position: p.position,
         department: p.department?.nameTh || p.departmentCode,

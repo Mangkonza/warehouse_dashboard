@@ -61,7 +61,7 @@ export function PersonAddConfirmModal({
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <FaUserPlus style={{ color: '#ffffff', fontSize: '18px', flexShrink: 0 }} />
             <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600, color: '#ffffff', lineHeight: 1.2 }}>
-              เพิ่มรายชื่อเข้าข้อมูลบุคลากรและอาจารย์
+              เพิ่มรายชื่อเข้าข้อมูลคณาจารย์และบุคลากร
             </h3>
           </div>
           <button
@@ -88,14 +88,14 @@ export function PersonAddConfirmModal({
             }}
             title="ปิด"
           >
-            <FaTimes style={{ fontSize: '16px' }} />
+            <FaTimes style={{ fontSize: '18px' }} />
           </button>
         </div>
 
         {/* Body: One short sentence, normal weight, same font size as SmartAddEditModal */}
         <div style={{ padding: '24px' }}>
           <p style={{ margin: 0, fontSize: '13.5px', fontWeight: 400, color: '#334155', lineHeight: 1.6 }}>
-            ไม่พบรายชื่อ &quot;<strong style={{ fontWeight: 600, color: '#0f172a' }}>{displayName}</strong>&quot; ในข้อมูลบุคลากรและอาจารย์ ต้องการเพิ่มหรือไม่
+            ไม่พบรายชื่อ &quot;<strong style={{ fontWeight: 600, color: '#0f172a' }}>{displayName}</strong>&quot; ในข้อมูลคณาจารย์และบุคลากร ต้องการเพิ่มหรือไม่
           </p>
         </div>
 

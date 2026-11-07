@@ -656,10 +656,10 @@ tbody td{padding:11px 10px;border-bottom:1px solid #e2e8f0;max-width:260px;overf
    Import Excel Modal (.imp-root) Responsive Tokens, Split-Pane & Container Queries
    ========================================================================== */
 .imp-root {
-  --imp-list-w: clamp(44rem, 62vw, 60rem);
-  --imp-detail-w: clamp(26rem, 36vw, 38rem);
-  --imp-split-w: min(calc(var(--imp-list-w) + var(--imp-detail-w)), 97vw);
-  --imp-h: min(55rem, 92dvh);
+  --imp-list-w: clamp(48rem, 66vw, 68rem);
+  --imp-sidebar-w: clamp(20rem, 25vw, 23rem);
+  --imp-split-w: min(97vw, 94rem);
+  --imp-h: min(58rem, 93dvh);
   --imp-header-h: 3.5rem;
   --imp-footer-h: 4rem;
   --imp-row-h: 4.5rem;
@@ -671,7 +671,7 @@ tbody td{padding:11px 10px;border-bottom:1px solid #e2e8f0;max-width:260px;overf
   width: var(--imp-list-w);
   height: var(--imp-h);
   max-width: 97vw;
-  max-height: 92dvh;
+  max-height: 93dvh;
   border-radius: var(--imp-radius);
   transition: width 260ms var(--imp-ease-out);
   will-change: width;
@@ -713,49 +713,72 @@ tbody td{padding:11px 10px;border-bottom:1px solid #e2e8f0;max-width:260px;overf
   container-name: implist;
 }
 
-.imp-detail-wrap {
-  width: 0;
-  overflow: hidden;
-  border-left: 0 solid transparent;
-  background-color: #ffffff;
-  transition: width 260ms var(--imp-ease-out);
-  will-change: width;
-}
+@media (min-width: 64em) {
+  .imp-list-wrap {
+    width: 100%;
+    flex: 1 1 0%;
+    transition: width 260ms var(--imp-ease-out);
+  }
 
-.imp-detail-wrap[data-phase='opening'],
-.imp-detail-wrap[data-phase='split'] {
-  width: var(--imp-detail-w);
-  border-left: 1px solid #e2e8f0;
-}
+  .imp-split-container[data-phase='opening'] .imp-list-wrap,
+  .imp-split-container[data-phase='split'] .imp-list-wrap {
+    width: var(--imp-sidebar-w) !important;
+    max-width: var(--imp-sidebar-w) !important;
+    flex: none !important;
+    border-right: 1px solid #e2e8f0;
+  }
 
-.imp-detail-wrap[data-phase='closing'] {
-  width: 0;
-  border-left: 1px solid #e2e8f0;
-  transition: width 200ms var(--imp-ease-in);
-}
+  .imp-detail-wrap {
+    width: 0;
+    overflow: hidden;
+    background-color: #ffffff;
+    transition: opacity 260ms var(--imp-ease-out);
+  }
 
-.imp-detail-inner {
-  width: var(--imp-detail-w);
-  height: 100%;
-  opacity: 0;
-  transform: translateX(0.75rem);
-  transition:
-    opacity 180ms ease 90ms,
-    transform 180ms var(--imp-ease-out) 90ms;
-}
+  .imp-split-container[data-phase='opening'] .imp-detail-wrap,
+  .imp-split-container[data-phase='split'] .imp-detail-wrap,
+  .imp-detail-wrap[data-phase='opening'],
+  .imp-detail-wrap[data-phase='split'] {
+    flex: 1 1 0% !important;
+    min-width: 0 !important;
+    width: auto !important;
+    border-left: 1px solid #e2e8f0 !important;
+  }
 
-.imp-detail-wrap[data-phase='opening'] .imp-detail-inner,
-.imp-detail-wrap[data-phase='split'] .imp-detail-inner {
-  opacity: 1;
-  transform: translateX(0);
-}
+  .imp-split-container[data-phase='closing'] .imp-detail-wrap,
+  .imp-detail-wrap[data-phase='closing'] {
+    width: 0 !important;
+    opacity: 0 !important;
+    transition: width 200ms var(--imp-ease-in);
+  }
 
-.imp-detail-wrap[data-phase='closing'] .imp-detail-inner {
-  opacity: 0;
-  transform: translateX(0.5rem);
-  transition:
-    opacity 110ms ease 0ms,
-    transform 110ms var(--imp-ease-in) 0ms;
+  .imp-detail-inner {
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+    opacity: 0;
+    transform: translateX(0.75rem);
+    transition:
+      opacity 180ms ease 90ms,
+      transform 180ms var(--imp-ease-out) 90ms;
+  }
+
+  .imp-split-container[data-phase='opening'] .imp-detail-inner,
+  .imp-split-container[data-phase='split'] .imp-detail-inner,
+  .imp-detail-wrap[data-phase='opening'] .imp-detail-inner,
+  .imp-detail-wrap[data-phase='split'] .imp-detail-inner {
+    opacity: 1 !important;
+    transform: translateX(0) !important;
+  }
+
+  .imp-split-container[data-phase='closing'] .imp-detail-inner,
+  .imp-detail-wrap[data-phase='closing'] .imp-detail-inner {
+    opacity: 0 !important;
+    transform: translateX(0.5rem) !important;
+    transition:
+      opacity 110ms ease 0ms,
+      transform 110ms var(--imp-ease-in) 0ms;
+  }
 }
 
 .imp-detail-container {

@@ -1,26 +1,33 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   FaArrowLeft,
+  FaBook,
   FaBullseye,
   FaCalculator,
   FaCalendarCheck,
+  FaCertificate,
   FaCheck,
   FaChevronDown,
   FaChevronUp,
   FaCog,
   FaExclamationTriangle,
+  FaFlask,
   FaFolderOpen,
+  FaGraduationCap,
+  FaHandsHelping,
   FaInfoCircle,
   FaLayerGroup,
   FaListUl,
   FaPlus,
   FaSave,
   FaTrashAlt,
+  FaTimes,
   FaUndo,
   FaUserCheck,
+  FaUsers,
 } from 'react-icons/fa';
 import {
   KPIItem,
@@ -54,7 +61,6 @@ import {
   saveStoredReportingRounds,
   DEFAULT_REPORTING_ROUNDS,
   formatRoundDateRange,
-  formatIsoToThaiShort,
   hasKpiReportedResults,
   ENGINEERING_DEPARTMENTS,
 } from '@/lib/kpiEngine';
@@ -81,18 +87,18 @@ const CATEGORY_OPTIONS: { value: KPICategory; label: string }[] = [
   { value: 'publications', label: 'ผลงานตีพิมพ์ทางวิชาการ' },
   { value: 'service', label: 'งานบริการวิชาการ' },
   { value: 'ip', label: 'ทรัพย์สินทางปัญญาและเชิงพาณิชย์' },
-  { value: 'personnel', label: 'บุคลากรและอาจารย์' },
+  { value: 'personnel', label: 'คณาจารย์และบุคลากร' },
   { value: 'strategy', label: 'ยุทธศาสตร์และความร่วมมือ' },
 ];
 
 export const DATASET_CATEGORY_OPTIONS = [
-  { id: 'research', label: 'โครงการวิจัย', code: 'research', desc: 'โครงการวิจัยและนวัตกรรม' },
-  { id: 'academic', label: 'โครงการพัฒนาวิชาการ', code: 'academic', desc: 'โครงการ/หลักสูตรพัฒนาวิชาการ' },
-  { id: 'publications', label: 'ผลงานตีพิมพ์ทางวิชาการ', code: 'publications', desc: 'บทความวิชาการ/วารสาร Scopus/TCI' },
-  { id: 'service', label: 'งานบริการวิชาการ', code: 'service', desc: 'โครงการบริการวิชาการ/ฝึกอบรม' },
-  { id: 'ip', label: 'งานทรัพย์สินทางปัญญา', code: 'ip', desc: 'สิทธิบัตร/อนุสิทธิบัตร/ลิขสิทธิ์' },
-  { id: 'personnel', label: 'บุคลากรและอาจารย์', code: 'personnel', desc: 'ฐานข้อมูลบุคลากรและอาจารย์' },
-] as const;
+  { id: 'research', label: 'โครงการวิจัย', code: 'research', icon: FaFlask, color: '#00A651' },
+  { id: 'publications', label: 'ผลงานตีพิมพ์', code: 'publications', icon: FaBook, color: '#e11d48' },
+  { id: 'ip', label: 'ทรัพย์สินทางปัญญา', code: 'ip', icon: FaCertificate, color: '#7c3aed' },
+  { id: 'academic', label: 'พัฒนาวิชาการ', code: 'academic', icon: FaGraduationCap, color: '#0284c7' },
+  { id: 'service', label: 'บริการวิชาการ', code: 'service', icon: FaHandsHelping, color: '#d97706' },
+  { id: 'personnel', label: 'คณาจารย์และบุคลากร', code: 'personnel', icon: FaUsers, color: '#0f766e' },
+];
 
 const FORMULA_METHODS: { key: KPIFormulaMethod; label: string; desc: string; needsDenominator?: boolean }[] = [
   {
@@ -231,7 +237,40 @@ export function StrategicKpiFormView({
 
   // การแจ้งเตือนและการยืนยันเมื่อแก้ไขหน่วย สูตร หรือเป้า ของตัวชี้วัดที่มีผลรายงานแล้ว
   const [formError, setFormError] = useState<string>('');
+  const [kpiFieldErrors, setKpiFieldErrors] = useState<Record<string, string>>({});
   const [showSensitiveChangeConfirm, setShowSensitiveChangeConfirm] = useState<boolean>(false);
+  const kpiScrollRef = useRef<HTMLDivElement | null>(null);
+
+  const focusAndSetKpiError = (field: string, msg: string, customSelector?: string) => {
+    setFormError('');
+    setKpiFieldErrors({ [field]: msg });
+    const sel = customSelector || `#field-${field}, [name="${field}"], [data-field="${field}"]`;
+    const el = document.querySelector<HTMLElement>(sel);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (kpiScrollRef.current) {
+        const containerRect = kpiScrollRef.current.getBoundingClientRect();
+        const elRect = el.getBoundingClientRect();
+        const relativeTop = elRect.top - containerRect.top + kpiScrollRef.current.scrollTop - 40;
+        kpiScrollRef.current.scrollTo({ top: Math.max(0, relativeTop), behavior: 'smooth' });
+      }
+      const focusable = el.matches('input, textarea, select, button')
+        ? el
+        : el.querySelector<HTMLElement>('input, textarea, select, button');
+      if (focusable) {
+        setTimeout(() => focusable.focus(), 150);
+      }
+    }
+  };
+
+  const clearKpiFieldError = (field: string) => {
+    setKpiFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
 
   // โหลดข้อมูลเริ่มต้น
   useEffect(() => {
@@ -733,15 +772,19 @@ export function StrategicKpiFormView({
     setFormError('');
 
     if (!strategyId) {
-      setFormError('กรุณาเลือกหรือสร้าง "ยุทธศาสตร์"');
+      focusAndSetKpiError('strategyId', 'กรุณาเลือกหรือสร้าง "ยุทธศาสตร์"', '#kpi-strategy-select, [data-field="strategyId"]');
       return;
     }
     if (!planId) {
-      setFormError('กรุณาเลือกหรือสร้าง "แผนงาน" ภายใต้ยุทธศาสตร์ที่เลือก');
+      focusAndSetKpiError('planId', 'กรุณาเลือกหรือสร้าง "แผนงาน" ภายใต้ยุทธศาสตร์ที่เลือก', '#kpi-plan-select, [data-field="planId"]');
       return;
     }
-    if (!code.trim() || !title.trim()) {
-      setFormError('กรุณากรอก "รหัสตัวชี้วัด" และ "ชื่อตัวชี้วัด" ให้ครบถ้วน');
+    if (!code.trim()) {
+      focusAndSetKpiError('code', 'กรุณากรอก "รหัสตัวชี้วัด"', '#kpi-code-input, [data-field="code"]');
+      return;
+    }
+    if (!title.trim()) {
+      focusAndSetKpiError('title', 'กรุณากรอก "ชื่อตัวชี้วัด"', '#kpi-title-input, [data-field="title"]');
       return;
     }
 
@@ -790,22 +833,6 @@ export function StrategicKpiFormView({
           </div>
         </div>
       )}
-
-      {formError && (
-        <div
-          style={{
-            padding: '12px 18px',
-            borderRadius: '10px',
-            backgroundColor: '#fef2f2',
-            border: '1px solid #fecaca',
-            color: '#b91c1c',
-            fontSize: '13px',
-            fontWeight: 600,
-          }}
-        >
-          {formError}
-        </div>
-      )}
     </>
   );
 
@@ -823,13 +850,16 @@ export function StrategicKpiFormView({
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <FormField label="ยุทธศาสตร์" required>
+            <FormField label="ยุทธศาสตร์" required fieldKey="strategyId" error={kpiFieldErrors.strategyId}>
               <CreatableHierarchySelect
                 id="kpi-strategy-select"
                 entityLabel="ยุทธศาสตร์"
                 options={strategies}
                 valueId={strategyId}
-                onChange={(newId) => handleSelectStrategy(newId)}
+                onChange={(newId) => {
+                  clearKpiFieldError('strategyId');
+                  handleSelectStrategy(newId);
+                }}
                 onCreateNew={handleCreateStrategy}
                 onUpdate={handleUpdateStrategy}
                 onDelete={handleDeleteStrategy}
@@ -839,13 +869,16 @@ export function StrategicKpiFormView({
               />
             </FormField>
 
-            <FormField label="แผนงาน (ผูกกับยุทธศาสตร์ที่เลือก)" required>
+            <FormField label="แผนงาน (ผูกกับยุทธศาสตร์ที่เลือก)" required fieldKey="planId" error={kpiFieldErrors.planId}>
               <CreatableHierarchySelect
                 id="kpi-plan-select"
                 entityLabel="แผนงาน"
                 options={filteredPlans}
                 valueId={planId}
-                onChange={(newId, opt) => handleSelectPlan(newId, opt)}
+                onChange={(newId, opt) => {
+                  clearKpiFieldError('planId');
+                  handleSelectPlan(newId, opt);
+                }}
                 onCreateNew={handleCreatePlan}
                 onUpdate={handleUpdatePlan}
                 onDelete={handleDeletePlan}
@@ -857,9 +890,7 @@ export function StrategicKpiFormView({
             </FormField>
           </div>
 
-          <p className="text-xs text-slate-500">
-            เลือกจากรายการเดิม หรือกด “+ เพิ่มใหม่” เพื่อกรอกเลขและชื่อด้วยตนเอง
-          </p>
+          
         </section>
 
         {/* =================================================================== */}
@@ -875,12 +906,15 @@ export function StrategicKpiFormView({
 
           <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
             <div className="sm:col-span-4">
-              <FormField label="รหัสตัวชี้วัด" required>
+              <FormField label="รหัสตัวชี้วัด" required fieldKey="code" error={kpiFieldErrors.code}>
                 <input
                   id="kpi-code-input"
                   type="text"
                   value={code}
-                  onChange={(e) => setCode(e.target.value)}
+                  onChange={(e) => {
+                    clearKpiFieldError('code');
+                    setCode(e.target.value);
+                  }}
                   placeholder="เช่น 2.1-1 (5)"
                   className="w-full h-10 px-3 text-sm font-bold text-[#006838] bg-slate-50 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#00A651]/20 focus:border-[#00A651] transition-colors"
                 />
@@ -888,12 +922,15 @@ export function StrategicKpiFormView({
             </div>
 
             <div className="sm:col-span-8">
-              <FormField label="ชื่อตัวชี้วัดตามแผนยุทธศาสตร์" required>
+              <FormField label="ชื่อตัวชี้วัดตามแผนยุทธศาสตร์" required fieldKey="title" error={kpiFieldErrors.title}>
                 <input
                   id="kpi-title-input"
                   type="text"
                   value={title}
-                  onChange={(e) => setTitle(e.target.value)}
+                  onChange={(e) => {
+                    clearKpiFieldError('title');
+                    setTitle(e.target.value);
+                  }}
                   placeholder="ระบุชื่อตัวชี้วัดหลัก..."
                   className="w-full h-10 px-3 text-sm text-slate-900 bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#00A651]/20 focus:border-[#00A651] transition-colors"
                 />
@@ -901,7 +938,7 @@ export function StrategicKpiFormView({
             </div>
           </div>
 
-          <FormField label="คำอธิบายตัวชี้วัด / เกณฑ์การประเมิน">
+          <FormField label="คำอธิบายตัวชี้วัด">
             <textarea
               id="kpi-desc-input"
               rows={2}
@@ -1034,7 +1071,7 @@ export function StrategicKpiFormView({
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#00A651] bg-[#f0fbf5] hover:bg-[#e2f7eb] text-[#00A651] text-xs font-semibold transition-colors cursor-pointer"
             >
               <FaPlus className="text-[10px]" />
-              <span>+ เพิ่มตัวชี้วัดย่อย</span>
+              <span> เพิ่มตัวชี้วัดย่อย</span>
             </button>
           </div>
 
@@ -1051,7 +1088,7 @@ export function StrategicKpiFormView({
                 color: '#64748b',
               }}
             >
-              ยังไม่มีตัวชี้วัดย่อย คลิก <strong>&ldquo;+ เพิ่มตัวชี้วัดย่อย&rdquo;</strong> เพื่อกำหนดองค์ประกอบของสูตร (ตัวตั้ง / ตัวหาร / ส่วนของผลรวม)
+              ยังไม่มีตัวชี้วัดย่อย คลิก <strong>&ldquo;+ เพิ่มตัวชี้วัดย่อย&rdquo;</strong> เพื่อกำหนดองค์ประกอบของสูตร
             </div>
           ) : (
             <div
@@ -1395,7 +1432,7 @@ export function StrategicKpiFormView({
                                       <option value="publications">ผลงานตีพิมพ์</option>
                                       <option value="service">งานบริการวิชาการ</option>
                                       <option value="ip">ทรัพย์สินทางปัญญา</option>
-                                      <option value="personnel">บุคลากรและอาจารย์</option>
+                                      <option value="personnel">คณาจารย์และบุคลากร</option>
                                     </select>
                                   </div>
                                 )}
@@ -1434,9 +1471,9 @@ export function StrategicKpiFormView({
                                   />
                                 </div>
 
-                                {/* ผู้รายงานของตัวชี้วัดย่อย (เลือกได้หลายคนจากข้อมูลบุคลากรและอาจารย์) */}
+                                {/* ผู้รายงานของตัวชี้วัดย่อย (เลือกได้หลายคนจากข้อมูลคณาจารย์และบุคลากร) */}
                                 <div style={{ gridColumn: '1 / -1' }}>
-                                  <FormField label="ผู้รายงานตัวชี้วัดย่อยนี้ (เลือกหลายคนจากบุคลากรและอาจารย์ที่มีอยู่)">
+                                  <FormField label="ผู้รายงานตัวชี้วัดย่อยนี้ (เลือกหลายคนจากคณาจารย์และบุคลากรที่มีอยู่)">
                                     <PersonPicker
                                       multiple={true}
                                       values={subReporterList.filter((r) => r && r !== 'ฟ้า')}
@@ -1631,7 +1668,7 @@ export function StrategicKpiFormView({
                     cursor: 'pointer',
                   }}
                 >
-                  {r.name} {isSelected ? '✓' : ''}
+                  {r.name} {isSelected ? '' : ''}
                 </button>
               );
             })}
@@ -1686,15 +1723,20 @@ export function StrategicKpiFormView({
                           placeholder="เช่น รอบ 6 เดือน"
                           className="w-full h-8 px-2.5 text-xs font-semibold rounded-md border border-slate-300 bg-white text-slate-900 focus:outline-none focus:border-[#00A651]"
                         />
-                        <div className="text-[11px] text-slate-500 mt-0.5">
-                          ช่วง: {formatRoundDateRange(r, true)}
-                        </div>
+                        
                       </td>
                       <td style={{ padding: '8px 10px' }}>
                         <input
                           type="date"
                           value={r.startDate || ''}
-                          onChange={(e) => handleUpdateRoundConfig(r.id, { startDate: e.target.value })}
+                          max={r.endDate || undefined}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            handleUpdateRoundConfig(r.id, {
+                              startDate: val,
+                              ...(val && r.endDate && val > r.endDate ? { endDate: '' } : {}),
+                            });
+                          }}
                           className="w-full h-8 px-2 text-xs rounded-md border border-slate-300 bg-white text-slate-800 focus:outline-none focus:border-[#00A651]"
                         />
                       </td>
@@ -1702,7 +1744,14 @@ export function StrategicKpiFormView({
                         <input
                           type="date"
                           value={r.endDate || ''}
-                          onChange={(e) => handleUpdateRoundConfig(r.id, { endDate: e.target.value })}
+                          min={r.startDate || undefined}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            handleUpdateRoundConfig(r.id, {
+                              endDate: val,
+                              ...(val && r.startDate && val < r.startDate ? { startDate: '' } : {}),
+                            });
+                          }}
                           className="w-full h-8 px-2 text-xs rounded-md border border-slate-300 bg-white text-slate-800 focus:outline-none focus:border-[#00A651]"
                         />
                       </td>
@@ -1710,14 +1759,11 @@ export function StrategicKpiFormView({
                         <input
                           type="date"
                           value={r.dueDate || ''}
+                          min={r.startDate || undefined}
                           onChange={(e) => handleUpdateRoundConfig(r.id, { dueDate: e.target.value })}
                           className="w-full h-8 px-2 text-xs rounded-md border border-slate-300 bg-white text-slate-800 focus:outline-none focus:border-[#00A651]"
                         />
-                        {r.dueDate && (
-                          <div className="text-[10.5px] text-slate-500 mt-0.5">
-                            {formatIsoToThaiShort(r.dueDate, true)}
-                          </div>
-                        )}
+                        
                       </td>
                       <td style={{ padding: '8px 10px', textAlign: 'center' }}>
                         <button
@@ -1772,7 +1818,7 @@ export function StrategicKpiFormView({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* ภาพที่ 1: ผู้รายงานหลัก -> ใช้ PersonPicker multiple และตัดชื่อฟ้าออก */}
-            <FormField label="ผู้รายงานหลัก (เลือกจากบุคลากรและอาจารย์ได้หลายคน)">
+            <FormField label="ผู้รายงานหลัก (เลือกจากคณาจารย์และบุคลากรได้หลายคน)">
               <PersonPicker
                 multiple={true}
                 values={reporters.filter((r) => r && r !== 'ฟ้า')}
@@ -1791,7 +1837,7 @@ export function StrategicKpiFormView({
               <DepartmentSelect
                 value={responsibleUnit}
                 onChange={(val) => setResponsibleUnit(val)}
-                placeholder="-- เลือกสังกัด / หน่วยงานผู้รับผิดชอบ --"
+                placeholder="-- เลือกสังกัด --"
               />
             </FormField>
           </div>
@@ -1829,13 +1875,15 @@ export function StrategicKpiFormView({
               </div>
             </div>
 
-            {/* Multi-select Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+            {/* Multi-select Pills matching Personnel page style */}
+            <div className="flex items-center gap-2.5 flex-wrap pt-1">
               {DATASET_CATEGORY_OPTIONS.map((opt) => {
                 const isChecked = datasetKeys.includes(opt.id);
+                const IconComponent = opt.icon;
                 return (
-                  <div
+                  <button
                     key={opt.id}
+                    type="button"
                     onClick={() => {
                       setDatasetKeys((prev) => {
                         const next = prev.includes(opt.id)
@@ -1847,30 +1895,40 @@ export function StrategicKpiFormView({
                         return next;
                       });
                     }}
+                    style={{
+                      padding: '7px 16px',
+                      borderRadius: '9999px',
+                      border: isChecked ? `1px solid ${opt.color}` : '1px solid #cbd5e1',
+                      backgroundColor: isChecked ? opt.color : '#ffffff',
+                      color: isChecked ? '#ffffff' : '#334155',
+                      fontSize: '13px',
+                      fontWeight: isChecked ? 700 : 600,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      boxShadow: isChecked ? `0 2px 6px ${opt.color}35` : 'none',
+                      transition: 'all 0.15s ease',
+                    }}
                     className={cn(
-                      'flex items-center gap-3 p-3 rounded-lg border text-xs cursor-pointer transition-all select-none',
-                      isChecked
-                        ? 'bg-[#f0fbf5] border-[#00A651] text-[#006838] shadow-sm font-semibold ring-1 ring-[#00A651]/20'
-                        : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50/80 hover:border-slate-300'
+                      'select-none transition-all',
+                      !isChecked && 'hover:bg-slate-50 hover:border-slate-400'
                     )}
                   >
-                    <div
-                      className={cn(
-                        'w-4 h-4 rounded flex items-center justify-center shrink-0 border transition-colors',
-                        isChecked
-                          ? 'bg-[#00A651] border-[#00A651] text-white'
-                          : 'border-slate-300 bg-white'
-                      )}
-                    >
-                      {isChecked && <FaCheck className="text-[9px]" />}
-                    </div>
-                    <div className="flex flex-col min-w-0">
-                      <span className="truncate text-xs">{opt.label}</span>
-                      <span className="text-[11px] font-normal text-slate-500 truncate">
-                        {opt.desc}
+                    {IconComponent && (
+                      <span
+                        style={{
+                          fontSize: '13px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          color: isChecked ? '#ffffff' : '#334155',
+                        }}
+                      >
+                        <IconComponent />
                       </span>
-                    </div>
-                  </div>
+                    )}
+                    <span>{opt.label}</span>
+                  </button>
                 );
               })}
             </div>
@@ -1958,9 +2016,7 @@ export function StrategicKpiFormView({
                   ? `แก้ไขข้อมูล: ตัวชี้วัดตามแผนยุทธศาสตร์ (${existingKpi?.code || ''})`
                   : 'เพิ่มรายการใหม่: ตัวชี้วัดตามแผนยุทธศาสตร์'}
               </h3>
-              <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#dcfce7' }}>
-                กำหนดโครงสร้าง 4 ชั้น (ยุทธศาสตร์ → แผนงาน → ตัวชี้วัดหลัก → ตัวชี้วัดย่อย) ครั้งเดียว ใช้ได้ทุกรอบการรายงานผล
-              </p>
+              
             </div>
           </div>
           <button
@@ -1970,7 +2026,7 @@ export function StrategicKpiFormView({
               background: 'none',
               border: 'none',
               color: '#ffffff',
-              fontSize: '26px',
+              fontSize: '18px',
               cursor: 'pointer',
               padding: '4px',
               lineHeight: 1,
@@ -1978,12 +2034,13 @@ export function StrategicKpiFormView({
             }}
             title="ปิด"
           >
-            &times;
+            <FaTimes />
           </button>
         </div>
 
         {/* Modal Form Scrollable Body */}
         <form
+          noValidate
           onSubmit={handleSubmit}
           style={{
             display: 'flex',
@@ -1994,6 +2051,7 @@ export function StrategicKpiFormView({
           }}
         >
           <div
+            ref={kpiScrollRef}
             style={{
               flex: 1,
               overflowY: 'auto',

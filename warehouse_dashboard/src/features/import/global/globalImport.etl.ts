@@ -176,7 +176,7 @@ export function detectHeaderRowUniversal(rows: any[][]): number {
     'หัวหน้า',
     'ผู้รับผิดชอบ',
     'เจ้าของ',
-    'ผู้ประดิษฐ์',
+    'ผู้สร้างผลงาน',
     'อาจารย์',
     'หน่วยงาน',
     'ภาควิชา',
@@ -281,7 +281,7 @@ export function mapColumnsUniversal(
         combined.includes('หัวหน้า') ||
         combined.includes('ผู้รับผิดชอบ') ||
         combined.includes('เจ้าของผลงาน') ||
-        combined.includes('ผู้ประดิษฐ์') ||
+        combined.includes('ผู้สร้างผลงาน') ||
         combined.includes('ผู้ประพันธ์') ||
         combined.includes('ชื่อ - นามสกุล') ||
         combined.includes('อาจารย์')

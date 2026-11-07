@@ -1,20 +1,42 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { type MissionKey } from '@/lib/pastelTheme';
+import { FaTimes } from 'react-icons/fa';
+import { DepartmentBadge } from '@/components/ui/department-badge';
+import { getDepartment } from '@/lib/departments';
+
+export interface DepartmentBreakdownItem {
+  code: string;
+  name: string;
+  count: number;
+  percent: number;
+  color: string;
+}
+
+export interface BlueprintSegment {
+  key?: string;
+  label: string;
+  value: number | string;
+  displayValue?: string;
+  unit?: string;
+  percent: number;
+  color: string;
+}
 
 export interface BlueprintCardData {
   label: string;
   value: string | number;
   unit: string;
-  splitRatio: number; // 0 to 1
-  primaryLegend: {
+  splitRatio?: number; // 0 to 1 fallback
+  segments?: BlueprintSegment[];
+  primaryLegend?: {
     label: string;
     value: string;
     percent?: string;
     color?: string;
   };
-  secondaryLegend: {
+  secondaryLegend?: {
     label: string;
     value: string;
     percent?: string;
@@ -26,8 +48,12 @@ export interface GearCardData {
   label: string;
   value: string | number;
   unit: string;
-  gearValue: string | number;
-  gearLabel: string;
+  gearValue?: string | number;
+  gearLabel?: string;
+  departments?: DepartmentBreakdownItem[];
+  popoverTitle?: string;
+  popoverSubtitle?: string;
+  items?: any[];
 }
 
 export interface TallyCardData {
@@ -55,6 +81,7 @@ export interface ExecutiveKpiDeckProps {
   gearCard: GearCardData;
   tallyCard: TallyCardData;
   rulerCard: RulerCardData;
+  items?: any[];
   className?: string;
   style?: React.CSSProperties;
 }
@@ -292,13 +319,185 @@ export function ExecutiveKpiDeck({
   gearCard,
   tallyCard,
   rulerCard,
+  items,
   className = '',
   style,
 }: ExecutiveKpiDeckProps) {
   const tokens = MISSION_VISUAL_TOKENS[mission] || MISSION_VISUAL_TOKENS.research;
 
+  const [isGearPopoverOpen, setIsGearPopoverOpen] = useState(false);
+  const gearRef = useRef<HTMLDivElement>(null);
+
+  const [hoveredSegmentIdx, setHoveredSegmentIdx] = useState<number | null>(null);
+  const [isMoreCategoriesOpen, setIsMoreCategoriesOpen] = useState(false);
+  const moreCategoriesRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isMoreCategoriesOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (moreCategoriesRef.current && !moreCategoriesRef.current.contains(e.target as Node)) {
+        setIsMoreCategoriesOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isMoreCategoriesOpen]);
+
+  useEffect(() => {
+    if (!isGearPopoverOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (gearRef.current && !gearRef.current.contains(e.target as Node)) {
+        setIsGearPopoverOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isGearPopoverOpen]);
+
+  const departmentBreakdown: DepartmentBreakdownItem[] = useMemo(() => {
+    if (gearCard.departments && gearCard.departments.length > 0) {
+      return gearCard.departments;
+    }
+    const rawItems = gearCard.items || items || [];
+    if (!rawItems || rawItems.length === 0) return [];
+
+    const counts: Record<string, number> = {};
+    let total = 0;
+
+    rawItems.forEach((it: any) => {
+      const rawDept = String(
+        it.department ||
+        it.department_clean ||
+        it.departmentCode ||
+        it.dept ||
+        it.alloc_faculty ||
+        it.creator_dept ||
+        it.faculty ||
+        it.department_name ||
+        ''
+      ).trim();
+      if (!rawDept || rawDept === '-' || rawDept === 'nan' || rawDept === 'NaT') {
+        const dept = getDepartment('-');
+        counts[dept.code] = (counts[dept.code] || 0) + 1;
+        total++;
+        return;
+      }
+      const depts = rawDept.split(',').map((s) => s.trim()).filter(Boolean);
+      depts.forEach((d) => {
+        const dept = getDepartment(d);
+        counts[dept.code] = (counts[dept.code] || 0) + 1;
+        total++;
+      });
+    });
+
+    if (total === 0) return [];
+
+    return Object.entries(counts)
+      .map(([code, count]) => {
+        const dept = getDepartment(code);
+        const percent = (count / total) * 100;
+        return {
+          code,
+          name: code === 'OTH' ? 'อื่น ๆ' : dept.name,
+          count,
+          percent,
+          color: dept.color,
+        };
+      })
+      .sort((a, b) => b.count - a.count);
+  }, [gearCard.departments, gearCard.items, items]);
+
+  const gearValueDisplay =
+    gearCard.gearValue !== undefined && gearCard.gearValue !== null
+      ? gearCard.gearValue
+      : departmentBreakdown.length > 0
+      ? departmentBreakdown.length
+      : 0;
+
+  const defaultPopoverTitle = useMemo(() => {
+    if (gearCard.popoverTitle) return gearCard.popoverTitle;
+    switch (mission) {
+      case 'publications':
+        return 'สังกัดที่มีผลงาน';
+      case 'ip':
+        return 'สังกัดที่มีทรัพย์สินทางปัญญา';
+      case 'service':
+        return 'สังกัดที่มีงานบริการ';
+      case 'research':
+      case 'academic':
+      default:
+        return 'สังกัดที่มีโครงการ';
+    }
+  }, [gearCard.popoverTitle, mission]);
+
+  const defaultPopoverSubtitle = useMemo(() => {
+    if (gearCard.popoverSubtitle) return gearCard.popoverSubtitle;
+    switch (mission) {
+      case 'publications':
+        return 'สัดส่วนผลงานแยกตามสังกัด';
+      case 'ip':
+        return 'สัดส่วนทรัพย์สินทางปัญญาแยกตามสังกัด';
+      case 'service':
+        return 'สัดส่วนงานบริการแยกตามสังกัด';
+      case 'research':
+      case 'academic':
+      default:
+        return 'สัดส่วนโครงการแยกตามสังกัด';
+    }
+  }, [gearCard.popoverSubtitle, mission]);
+
+  // Multi-segment Blueprint Card data calculation (with backwards compatibility)
+  const cardSegments: BlueprintSegment[] = useMemo(() => {
+    if (blueprintCard.segments && blueprintCard.segments.length > 0) {
+      return blueprintCard.segments;
+    }
+    if (blueprintCard.primaryLegend && blueprintCard.secondaryLegend) {
+      const s1Pct = Math.max(0, Math.min(100, (blueprintCard.splitRatio ?? 0.5) * 100));
+      const s2Pct = Math.max(0, 100 - s1Pct);
+      return [
+        {
+          label: blueprintCard.primaryLegend.label,
+          value: typeof blueprintCard.primaryLegend.value === 'number' ? blueprintCard.primaryLegend.value : parseFloat(String(blueprintCard.primaryLegend.value)) || 0,
+          displayValue: String(blueprintCard.primaryLegend.value),
+          unit: blueprintCard.unit,
+          percent: blueprintCard.primaryLegend.percent ? parseFloat(blueprintCard.primaryLegend.percent) : s1Pct,
+          color: blueprintCard.primaryLegend.color || '#38bdf8',
+        },
+        {
+          label: blueprintCard.secondaryLegend.label,
+          value: typeof blueprintCard.secondaryLegend.value === 'number' ? blueprintCard.secondaryLegend.value : parseFloat(String(blueprintCard.secondaryLegend.value)) || 0,
+          displayValue: String(blueprintCard.secondaryLegend.value),
+          unit: blueprintCard.unit,
+          percent: blueprintCard.secondaryLegend.percent ? parseFloat(blueprintCard.secondaryLegend.percent) : s2Pct,
+          color: blueprintCard.secondaryLegend.color || '#86efac',
+        },
+      ];
+    }
+    return [];
+  }, [blueprintCard]);
+
+  const segmentPositions = useMemo(() => {
+    let current = 0;
+    return cardSegments.map((seg) => {
+      const start = current;
+      const width = seg.percent;
+      const center = start + width / 2;
+      current += width;
+      return { start, width, center };
+    });
+  }, [cardSegments]);
+
+  const activeSegment = hoveredSegmentIdx !== null ? cardSegments[hoveredSegmentIdx] : null;
+  const activePos = hoveredSegmentIdx !== null ? segmentPositions[hoveredSegmentIdx] : null;
+  const centerPct = activePos ? Math.max(22, Math.min(78, activePos.center)) : 50;
+  const arrowOffset = activePos ? Math.max(-42, Math.min(42, (activePos.center - centerPct) * 1.8)) : 0;
+
   // Split Bar calculations
-  const splitAWidth = Math.max(0, Math.min(100, blueprintCard.splitRatio * 100));
+  const splitAWidth = Math.max(0, Math.min(100, (blueprintCard.splitRatio ?? 0.5) * 100));
   const splitBWidth = Math.max(0, 100 - splitAWidth);
 
   // Tally Bars calculations (25 bars standard)
@@ -326,12 +525,13 @@ export function ExecutiveKpiDeck({
         ...style,
       }}
     >
-      {/* CARD 1: Blueprint Card (Hero Metric & Split Dimension - Engineering CAD Drafting) */}
+      {/* CARD 1: Blueprint Card (Hero Metric & Multi-segment Dimension - Engineering CAD Drafting) */}
       <div
         className="exec-card exec-c1"
         style={{
           position: 'relative',
-          overflow: 'hidden',
+          overflow: hoveredSegmentIdx !== null || isMoreCategoriesOpen ? 'visible' : 'hidden',
+          zIndex: hoveredSegmentIdx !== null || isMoreCategoriesOpen ? 45 : 1,
           minHeight: '215px',
           padding: '20px 22px',
           borderRadius: '24px',
@@ -352,6 +552,8 @@ export function ExecutiveKpiDeck({
           style={{
             position: 'absolute',
             inset: 0,
+            borderRadius: '24px',
+            overflow: 'hidden',
             pointerEvents: 'none',
             backgroundImage: `
               linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px),
@@ -380,10 +582,93 @@ export function ExecutiveKpiDeck({
         </div>
 
         <div style={{ position: 'relative', marginTop: 'auto', paddingTop: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          {/* Engineering CAD Split Bar with Dual End Caps */}
+          {/* Engineering CAD Split Bar with Dual End Caps & Hover Tooltip */}
           <div style={{ position: 'relative', height: '14px' }}>
+            {/* FLOATING HOVER TOOLTIP (matches requested UI with down arrow) */}
+            {hoveredSegmentIdx !== null && activeSegment && (
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: 'calc(100% + 12px)',
+                  left: `${centerPct}%`,
+                  transform: 'translateX(-50%)',
+                  background: '#ffffff',
+                  borderRadius: '16px',
+                  padding: '9px 14px',
+                  boxShadow: '0 14px 30px -4px rgba(0, 0, 0, 0.35), 0 4px 12px -2px rgba(0, 0, 0, 0.18)',
+                  minWidth: '175px',
+                  whiteSpace: 'nowrap',
+                  zIndex: 70,
+                  pointerEvents: 'none',
+                  animation: 'popoverFadeIn 0.15s ease-out',
+                }}
+              >
+                {/* Pointer arrow pointing down towards the segment */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: '-5px',
+                    left: `calc(50% + ${arrowOffset}px)`,
+                    transform: 'translateX(-50%) rotate(45deg)',
+                    width: '12px',
+                    height: '12px',
+                    background: '#ffffff',
+                  }}
+                />
+
+                {/* Row 1: Bullet + Category Name */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      width: '12px',
+                      height: '12px',
+                      borderRadius: '4px',
+                      border: `2px solid ${activeSegment.color}`,
+                      background: `${activeSegment.color}33`,
+                      flexShrink: 0,
+                    }}
+                  />
+                  <span style={{ fontSize: '13.5px', fontWeight: 700, color: '#1e293b', lineHeight: 1.2 }}>
+                    {activeSegment.label}
+                  </span>
+                </div>
+
+                {/* Row 2: Big count + Unit + Percentage Chip */}
+                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '12px', marginTop: '5px' }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+                    <span style={{ fontSize: '22px', fontWeight: 800, color: '#0f172a', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
+                      {typeof activeSegment.value === 'number' && Number.isInteger(activeSegment.value)
+                        ? activeSegment.value.toLocaleString()
+                        : activeSegment.displayValue || activeSegment.value}
+                    </span>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}>
+                      {activeSegment.unit || blueprintCard.unit}
+                    </span>
+                  </div>
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      padding: '2px 8px',
+                      borderRadius: '999px',
+                      fontSize: '12.5px',
+                      fontWeight: 700,
+                      background: `${activeSegment.color}25`,
+                      color: activeSegment.color,
+                      fontVariantNumeric: 'tabular-nums',
+                    }}
+                  >
+                    {activeSegment.percent.toFixed(1)}%
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Left and right CAD end caps */}
             <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '2px', background: 'rgba(255, 255, 255, 0.8)' }} />
             <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '2px', background: 'rgba(255, 255, 255, 0.8)' }} />
+            
+            {/* The segmented bar track */}
             <div
               style={{
                 position: 'absolute',
@@ -398,39 +683,192 @@ export function ExecutiveKpiDeck({
                 background: 'rgba(255, 255, 255, 0.18)',
               }}
             >
-              <div
-                style={{
-                  width: `${splitAWidth}%`,
-                  background: blueprintCard.primaryLegend.color || '#38bdf8',
-                  transition: 'width 0.8s cubic-bezier(0.2, 0.7, 0.2, 1)',
-                }}
-              />
-              <div
-                style={{
-                  width: `${splitBWidth}%`,
-                  minWidth: splitBWidth > 0 ? '4px' : '0px',
-                  background: blueprintCard.secondaryLegend.color || '#86efac',
-                }}
-              />
+              {cardSegments.map((seg, idx) => {
+                const isHovered = hoveredSegmentIdx === idx;
+                return (
+                  <div
+                    key={seg.key || seg.label || idx}
+                    onMouseEnter={() => setHoveredSegmentIdx(idx)}
+                    onMouseLeave={() => setHoveredSegmentIdx(null)}
+                    style={{
+                      width: `${Math.max(seg.percent, 1.5)}%`,
+                      minWidth: seg.percent > 0 ? '4px' : '0px',
+                      background: seg.color,
+                      cursor: 'pointer',
+                      position: 'relative',
+                      transition: 'width 0.6s ease, filter 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease',
+                      filter: isHovered ? 'brightness(1.3)' : 'none',
+                      boxShadow: isHovered ? '0 0 12px rgba(255, 255, 255, 0.95), inset 0 0 4px #ffffff' : 'none',
+                      transform: isHovered ? 'scaleY(1.2)' : 'none',
+                      zIndex: isHovered ? 5 : 1,
+                    }}
+                    title={`${seg.label}: ${seg.displayValue || seg.value} (${seg.percent.toFixed(1)}%)`}
+                  />
+                );
+              })}
             </div>
           </div>
 
           {/* Legends */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', color: '#e6fbee' }}>
-            <span style={{ width: '9px', height: '9px', borderRadius: '2.5px', flexShrink: 0, background: blueprintCard.primaryLegend.color || '#38bdf8' }} />
-            <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {blueprintCard.primaryLegend.label} <b style={{ fontWeight: 700, color: '#ffffff' }}>{blueprintCard.primaryLegend.value}</b>
-              {blueprintCard.primaryLegend.percent ? ` (${blueprintCard.primaryLegend.percent})` : ''}
-            </span>
-          </div>
+          {cardSegments.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', position: 'relative' }}>
+              {/* Row 1 */}
+              {cardSegments[0] && (
+                <div
+                  onMouseEnter={() => setHoveredSegmentIdx(0)}
+                  onMouseLeave={() => setHoveredSegmentIdx(null)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontSize: '12.5px',
+                    color: '#e6fbee',
+                    cursor: 'pointer',
+                    opacity: hoveredSegmentIdx === null || hoveredSegmentIdx === 0 ? 1 : 0.6,
+                    transition: 'opacity 0.15s',
+                  }}
+                >
+                  <span
+                    style={{
+                      width: '9px',
+                      height: '9px',
+                      borderRadius: '2.5px',
+                      flexShrink: 0,
+                      background: cardSegments[0].color,
+                      boxShadow: hoveredSegmentIdx === 0 ? '0 0 8px #ffffff' : 'none',
+                    }}
+                  />
+                  <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {cardSegments[0].label} <b style={{ fontWeight: 700, color: '#ffffff' }}>{cardSegments[0].displayValue || cardSegments[0].value}</b>
+                    {` (${cardSegments[0].percent.toFixed(1)}%)`}
+                  </span>
+                </div>
+              )}
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', color: '#e6fbee' }}>
-            <span style={{ width: '9px', height: '9px', borderRadius: '2.5px', flexShrink: 0, background: blueprintCard.secondaryLegend.color || '#86efac' }} />
-            <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {blueprintCard.secondaryLegend.label} <b style={{ fontWeight: 700, color: '#ffffff' }}>{blueprintCard.secondaryLegend.value}</b>
-              {blueprintCard.secondaryLegend.percent ? ` (${blueprintCard.secondaryLegend.percent})` : ''}
-            </span>
-          </div>
+              {/* Row 2 (with +N ประเภท button if more than 2 categories) */}
+              {cardSegments[1] && (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '8px',
+                    fontSize: '12.5px',
+                    color: '#e6fbee',
+                  }}
+                >
+                  <div
+                    onMouseEnter={() => setHoveredSegmentIdx(1)}
+                    onMouseLeave={() => setHoveredSegmentIdx(null)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      minWidth: 0,
+                      cursor: 'pointer',
+                      opacity: hoveredSegmentIdx === null || hoveredSegmentIdx === 1 ? 1 : 0.6,
+                      transition: 'opacity 0.15s',
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: '9px',
+                        height: '9px',
+                        borderRadius: '2.5px',
+                        flexShrink: 0,
+                        background: cardSegments[1].color,
+                        boxShadow: hoveredSegmentIdx === 1 ? '0 0 8px #ffffff' : 'none',
+                      }}
+                    />
+                    <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {cardSegments[1].label} <b style={{ fontWeight: 700, color: '#ffffff' }}>{cardSegments[1].displayValue || cardSegments[1].value}</b>
+                      {` (${cardSegments[1].percent.toFixed(1)}%)`}
+                    </span>
+                  </div>
+
+                  {cardSegments.length > 2 && (
+                    <div ref={moreCategoriesRef} style={{ position: 'relative', flexShrink: 0 }}>
+                      <button
+                        type="button"
+                        onClick={() => setIsMoreCategoriesOpen((prev) => !prev)}
+                        style={{
+                          background: isMoreCategoriesOpen ? 'rgba(255, 255, 255, 0.35)' : 'rgba(255, 255, 255, 0.18)',
+                          border: '1px solid rgba(255, 255, 255, 0.35)',
+                          color: '#ffffff',
+                          borderRadius: '999px',
+                          padding: '2px 9px',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          lineHeight: 1.2,
+                          transition: 'all 0.15s',
+                        }}
+                        title="ดูประเภททั้งหมด"
+                      >
+                        +{cardSegments.length - 2} ประเภท
+                      </button>
+
+                      {/* Dropdown list of remaining categories */}
+                      {isMoreCategoriesOpen && (
+                        <div
+                          onClick={(e) => e.stopPropagation()}
+                          style={{
+                            position: 'absolute',
+                            bottom: 'calc(100% + 8px)',
+                            right: 0,
+                            background: '#ffffff',
+                            borderRadius: '16px',
+                            padding: '12px 14px',
+                            boxShadow: '0 16px 36px -4px rgba(15, 23, 42, 0.3), 0 4px 12px -2px rgba(15, 23, 42, 0.15)',
+                            zIndex: 70,
+                            minWidth: '230px',
+                            color: '#1e293b',
+                            animation: 'popoverFadeIn 0.15s ease-out',
+                          }}
+                        >
+                          <div style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', marginBottom: '8px' }}>
+                            ประเภททั้งหมด ({cardSegments.length})
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '180px', overflowY: 'auto' }}>
+                            {cardSegments.map((seg, idx) => (
+                              <div
+                                key={seg.key || seg.label || idx}
+                                onMouseEnter={() => setHoveredSegmentIdx(idx)}
+                                onMouseLeave={() => setHoveredSegmentIdx(null)}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                  gap: '8px',
+                                  fontSize: '12px',
+                                  cursor: 'pointer',
+                                  padding: '4px 6px',
+                                  borderRadius: '6px',
+                                  background: hoveredSegmentIdx === idx ? '#f1f5f9' : 'transparent',
+                                  transition: 'background 0.15s',
+                                }}
+                              >
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
+                                  <span style={{ width: '8px', height: '8px', borderRadius: '2px', background: seg.color, flexShrink: 0 }} />
+                                  <span style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    {seg.label}
+                                  </span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                                  <span style={{ fontWeight: 700, color: '#0f172a' }}>{seg.displayValue || seg.value}</span>
+                                  <span style={{ color: '#64748b', fontSize: '11px' }}>({seg.percent.toFixed(1)}%)</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -439,7 +877,8 @@ export function ExecutiveKpiDeck({
         className="exec-card exec-c2"
         style={{
           position: 'relative',
-          overflow: 'hidden',
+          overflow: isGearPopoverOpen ? 'visible' : 'hidden',
+          zIndex: isGearPopoverOpen ? 50 : 1,
           minHeight: '215px',
           padding: '20px 22px',
           borderRadius: '24px',
@@ -449,7 +888,9 @@ export function ExecutiveKpiDeck({
           gap: '12px',
           background: `linear-gradient(165deg, #ffffff 0%, ${tokens.surface} 100%)`,
           border: `1px solid ${tokens.border}`,
-          boxShadow: '0 12px 28px -18px rgba(0, 0, 0, 0.12), inset 0 1px 0 #ffffff',
+          boxShadow: isGearPopoverOpen
+            ? '0 20px 36px -12px rgba(0, 0, 0, 0.16), inset 0 1px 0 #ffffff'
+            : '0 12px 28px -18px rgba(0, 0, 0, 0.12), inset 0 1px 0 #ffffff',
           transition: 'transform 0.25s ease, box-shadow 0.25s ease',
         }}
       >
@@ -472,8 +913,9 @@ export function ExecutiveKpiDeck({
           </div>
         </div>
 
-        {/* Mechanical Cog Box Badge with Calibrated Tachometer Dial Ring */}
+        {/* Mechanical Cog Box Badge with Calibrated Tachometer Dial Ring & Dropdown Popover */}
         <div
+          ref={gearRef}
           style={{
             position: 'relative',
             width: '98px',
@@ -482,58 +924,304 @@ export function ExecutiveKpiDeck({
             textAlign: 'center',
           }}
         >
-          {/* Radial amber glow */}
+          {/* Clickable trigger area */}
           <div
+            onClick={() => setIsGearPopoverOpen((prev) => !prev)}
             style={{
-              position: 'absolute',
-              left: '50%',
-              top: '44px',
-              width: '120px',
-              height: '120px',
-              transform: 'translate(-50%, -50%)',
-              borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(251, 191, 36, 0.38), rgba(251, 191, 36, 0) 68%)',
-              pointerEvents: 'none',
+              cursor: 'pointer',
+              userSelect: 'none',
+              borderRadius: '16px',
+              padding: '4px 2px',
+              transition: 'transform 0.18s ease',
             }}
-          />
-
-          {/* Calibrated dial ticks ring around the gear */}
-          <svg viewBox="0 0 100 100" style={{ position: 'absolute', left: '1px', top: '1px', width: '96px', height: '96px', pointerEvents: 'none' }}>
-            <circle cx="50" cy="50" r="47" fill="none" stroke="rgba(245, 158, 11, 0.35)" strokeWidth="1" strokeDasharray="3 5" />
-          </svg>
-
-          <svg viewBox="0 0 100 100" aria-hidden="true" style={{ position: 'relative', width: '86px', height: '86px', display: 'block', margin: '5px auto 0 auto', filter: 'drop-shadow(0 6px 10px rgba(180, 120, 0, 0.24))' }}>
-            <g className="gear-spin-anim" style={{ transformOrigin: '50px 50px' }}>
-              <path
-                fill={tokens.gearColor}
-                d="M41.68 13.95 L43.60 4.45 A46 46 0 0 1 56.40 4.45 L58.32 13.95 A37 37 0 0 1 66.80 17.03 L74.38 10.99 A46 46 0 0 1 84.18 19.22 L79.55 27.73 A37 37 0 0 1 84.06 35.54 L93.75 35.79 A46 46 0 0 1 95.97 48.39 L86.95 51.94 A37 37 0 0 1 85.38 60.82 L92.65 67.23 A46 46 0 0 1 86.25 78.32 L77.06 75.23 A37 37 0 0 1 70.15 81.03 L71.60 90.62 A46 46 0 0 1 59.56 94.99 L54.51 86.72 A37 37 0 0 1 45.49 86.72 L40.44 94.99 A46 46 0 0 1 28.40 90.62 L29.85 81.03 A37 37 0 0 1 22.94 75.23 L13.75 78.32 A46 46 0 0 1 7.35 67.23 L14.62 60.82 A37 37 0 0 1 13.05 51.94 L4.03 48.39 A46 46 0 0 1 6.25 35.79 L15.94 35.54 A37 37 0 0 1 20.45 27.73 L15.82 19.22 A46 46 0 0 1 25.62 10.99 L33.20 17.03 A37 37 0 0 1 41.68 13.95 Z"
-              />
-              <circle cx="50" cy="50" r="27" fill={tokens.gearInner} />
-            </g>
-          </svg>
-
-          <div
-            style={{
-              position: 'absolute',
-              left: 0,
-              right: 0,
-              top: '5px',
-              height: '86px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '34px',
-              fontWeight: 700,
-              color: tokens.gearText,
-              lineHeight: 1,
-            }}
+            title="คลิกเพื่อดูสัดส่วนแยกตามสังกัด"
           >
-            {gearCard.gearValue}
+            {/* Radial amber glow */}
+            <div
+              style={{
+                position: 'absolute',
+                left: '50%',
+                top: '44px',
+                width: '120px',
+                height: '120px',
+                transform: 'translate(-50%, -50%)',
+                borderRadius: '50%',
+                background: 'radial-gradient(circle, rgba(251, 191, 36, 0.38), rgba(251, 191, 36, 0) 68%)',
+                pointerEvents: 'none',
+              }}
+            />
+
+            {/* Calibrated dial ticks ring around the gear */}
+            <svg viewBox="0 0 100 100" style={{ position: 'absolute', left: '1px', top: '1px', width: '96px', height: '96px', pointerEvents: 'none' }}>
+              <circle cx="50" cy="50" r="47" fill="none" stroke="rgba(245, 158, 11, 0.35)" strokeWidth="1" strokeDasharray="3 5" />
+            </svg>
+
+            <svg viewBox="0 0 100 100" aria-hidden="true" style={{ position: 'relative', width: '86px', height: '86px', display: 'block', margin: '5px auto 0 auto', filter: 'drop-shadow(0 6px 10px rgba(180, 120, 0, 0.24))' }}>
+              <g className="gear-spin-anim" style={{ transformOrigin: '50px 50px' }}>
+                <path
+                  fill={tokens.gearColor}
+                  d="M41.68 13.95 L43.60 4.45 A46 46 0 0 1 56.40 4.45 L58.32 13.95 A37 37 0 0 1 66.80 17.03 L74.38 10.99 A46 46 0 0 1 84.18 19.22 L79.55 27.73 A37 37 0 0 1 84.06 35.54 L93.75 35.79 A46 46 0 0 1 95.97 48.39 L86.95 51.94 A37 37 0 0 1 85.38 60.82 L92.65 67.23 A46 46 0 0 1 86.25 78.32 L77.06 75.23 A37 37 0 0 1 70.15 81.03 L71.60 90.62 A46 46 0 0 1 59.56 94.99 L54.51 86.72 A37 37 0 0 1 45.49 86.72 L40.44 94.99 A46 46 0 0 1 28.40 90.62 L29.85 81.03 A37 37 0 0 1 22.94 75.23 L13.75 78.32 A46 46 0 0 1 7.35 67.23 L14.62 60.82 A37 37 0 0 1 13.05 51.94 L4.03 48.39 A46 46 0 0 1 6.25 35.79 L15.94 35.54 A37 37 0 0 1 20.45 27.73 L15.82 19.22 A46 46 0 0 1 25.62 10.99 L33.20 17.03 A37 37 0 0 1 41.68 13.95 Z"
+                />
+                <circle cx="50" cy="50" r="27" fill={tokens.gearInner} />
+              </g>
+            </svg>
+
+            <div
+              style={{
+                position: 'absolute',
+                left: 0,
+                right: 0,
+                top: '5px',
+                height: '86px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '34px',
+                fontWeight: 700,
+                color: tokens.gearText,
+                lineHeight: 1,
+              }}
+            >
+              {gearValueDisplay}
+            </div>
+
+            <div
+              style={{
+                position: 'relative',
+                marginTop: '2px',
+                fontSize: '15px',
+                fontWeight: 700,
+                color: tokens.gearText,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '4px',
+              }}
+            >
+              <span>{gearCard.gearLabel || 'สังกัด'}</span>
+              <span style={{ fontSize: '11px', lineHeight: 1 }}>{isGearPopoverOpen ? '▲' : '▼'}</span>
+            </div>
           </div>
 
-          <div style={{ position: 'relative', marginTop: '2px', fontSize: '15px', fontWeight: 700, color: tokens.gearText }}>
-            {gearCard.gearLabel}
-          </div>
+          {/* Interactive Popover Dropdown matching requested UI */}
+          {isGearPopoverOpen && (
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                position: 'absolute',
+                top: 'calc(100% + 14px)',
+                right: '-16px',
+                width: '360px',
+                background: '#ffffff',
+                borderRadius: '18px',
+                padding: '18px 20px',
+                boxShadow: '0 20px 42px -8px rgba(15, 23, 42, 0.22), 0 6px 18px -4px rgba(15, 23, 42, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.06)',
+                zIndex: 60,
+                textAlign: 'left',
+                animation: 'popoverFadeIn 0.18s ease-out',
+              }}
+            >
+              {/* Pointer triangle arrow pointing directly up to the gear */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '-7px',
+                  right: '58px',
+                  width: '14px',
+                  height: '14px',
+                  background: '#ffffff',
+                  transform: 'rotate(45deg)',
+                  borderTop: '1px solid rgba(0, 0, 0, 0.08)',
+                  borderLeft: '1px solid rgba(0, 0, 0, 0.08)',
+                }}
+              />
+
+              {/* Popover Header */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', position: 'relative' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
+                    {defaultPopoverTitle}
+                  </span>
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '2px 10px',
+                      borderRadius: '999px',
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      background: '#e0f2fe',
+                      color: '#0284c7',
+                      border: '1px solid #bae6fd',
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    {departmentBreakdown.length}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsGearPopoverOpen(false);
+                  }}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#94a3b8',
+                    cursor: 'pointer',
+                    padding: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: '6px',
+                  }}
+                  title="ปิด"
+                  aria-label="ปิด"
+                >
+                  <FaTimes size={18} />
+                </button>
+              </div>
+
+              {/* Multi-segment Department Progress Bar */}
+              <div
+                style={{
+                  display: 'flex',
+                  height: '9px',
+                  borderRadius: '999px',
+                  overflow: 'hidden',
+                  backgroundColor: '#f1f5f9',
+                  gap: '2px',
+                  marginBottom: '8px',
+                }}
+              >
+                {departmentBreakdown.map((dept, idx) => (
+                  <div
+                    key={dept.code || idx}
+                    style={{
+                      width: `${Math.max(dept.percent, 1.5)}%`,
+                      backgroundColor: dept.color || '#0284c7',
+                      transition: 'width 0.4s ease',
+                    }}
+                    title={`${dept.name}: ${dept.count} (${dept.percent.toFixed(1)}%)`}
+                  />
+                ))}
+              </div>
+
+              {/* Subtitle */}
+              <div style={{ fontSize: '12.5px', color: '#64748b', marginBottom: '16px', fontWeight: 500 }}>
+                {defaultPopoverSubtitle}
+              </div>
+
+              {/* Department breakdown rows */}
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '14px',
+                  maxHeight: '340px',
+                  overflowY: 'auto',
+                  paddingRight: departmentBreakdown.length > 5 ? '4px' : '0px',
+                }}
+              >
+                {departmentBreakdown.map((dept) => (
+                  <div
+                    key={dept.code}
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'auto 1fr auto',
+                      alignItems: 'center',
+                      columnGap: '12px',
+                    }}
+                  >
+                    {/* 1. Department Badge */}
+                    <div style={{ width: '56px', flexShrink: 0 }}>
+                      <DepartmentBadge
+                        value={dept.code}
+                        style={{
+                          display: 'inline-flex',
+                          width: '100%',
+                          justifyContent: 'center',
+                          fontSize: '12.5px',
+                          fontWeight: 700,
+                          padding: '3px 0',
+                          borderRadius: '10px',
+                        }}
+                      />
+                    </div>
+
+                    {/* 2. Department Name & mini progress bar */}
+                    <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                      <span
+                        style={{
+                          fontSize: '13.5px',
+                          fontWeight: 600,
+                          color: '#1e293b',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }}
+                        title={dept.name}
+                      >
+                        {dept.name}
+                      </span>
+                      <div
+                        style={{
+                          height: '5px',
+                          width: '100%',
+                          borderRadius: '999px',
+                          backgroundColor: '#e2e8f0',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        <div
+                          style={{
+                            height: '100%',
+                            width: `${Math.max(dept.percent, 2)}%`,
+                            backgroundColor: dept.color,
+                            borderRadius: '999px',
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* 3. Count & Percentage */}
+                    <div style={{ textAlign: 'right', flexShrink: 0, minWidth: '48px' }}>
+                      <div
+                        style={{
+                          fontSize: '19px',
+                          fontWeight: 700,
+                          color: '#1e293b',
+                          lineHeight: 1.1,
+                          fontVariantNumeric: 'tabular-nums',
+                        }}
+                      >
+                        {dept.count}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: '12px',
+                          color: '#64748b',
+                          fontWeight: 500,
+                          marginTop: '2px',
+                          fontVariantNumeric: 'tabular-nums',
+                        }}
+                      >
+                        {dept.percent.toFixed(1)}%
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {departmentBreakdown.length === 0 && (
+                  <div style={{ textAlign: 'center', padding: '16px 0', color: '#94a3b8', fontSize: '13px' }}>
+                    ไม่มีข้อมูลสังกัด
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

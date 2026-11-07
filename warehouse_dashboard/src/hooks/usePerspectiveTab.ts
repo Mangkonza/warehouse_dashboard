@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 
 /**
- * Pure helper to resolve the active tab from URL search and storage value.
+ * Pure helper to resolve the active tab from URL search and fallback to defaultTab.
+ * When navigating without an explicit tab parameter in the URL, it always returns defaultTab (เมนูแรกก่อนเสมอ).
  */
 export function resolvePerspectiveTab<T extends string>(
   urlSearch: string | undefined,
@@ -23,9 +24,6 @@ export function resolvePerspectiveTab<T extends string>(
       // Fallback
     }
   }
-  if (storageValue && validTabs.includes(storageValue as T)) {
-    return storageValue as T;
-  }
   return defaultTab;
 }
 
@@ -43,9 +41,9 @@ export function createTabUrl(currentHref: string, paramKey: string, nextTab: str
 }
 
 /**
- * Hook to manage perspective/sub-tab state with URL query param and sessionStorage persistence.
- * Ensures that when users navigate away (e.g. to personnel portfolio) and come back,
- * the exact tab they were viewing is preserved and restored.
+ * Hook to manage perspective/sub-tab state.
+ * Always lands on the default tab (เมนูแรกก่อนเสมอ) when navigating from the menu or sidebar.
+ * Only switches tabs when the user explicitly clicks a tab or provides an explicit ?tab= query parameter.
  */
 export function usePerspectiveTab<T extends string>(
   pageKey: string,
@@ -57,33 +55,16 @@ export function usePerspectiveTab<T extends string>(
 
   const resolve = useCallback((): T => {
     if (typeof window === 'undefined') return defaultTab;
-    const storageVal = (() => {
-      try {
-        return sessionStorage.getItem(storageKey);
-      } catch {
-        return null;
-      }
-    })();
-    return resolvePerspectiveTab(window.location.search, storageVal, validTabs, defaultTab, paramKey);
-  }, [defaultTab, paramKey, storageKey, validTabs]);
+    return resolvePerspectiveTab(window.location.search, null, validTabs, defaultTab, paramKey);
+  }, [defaultTab, paramKey, validTabs]);
 
   const [activeTab, setActiveTabState] = useState<T>(defaultTab);
 
-  // Synchronize on mount from URL / storage
+  // Synchronize on mount from URL
   useEffect(() => {
     const initial = resolve();
     if (initial !== activeTab) {
       setActiveTabState(initial);
-    }
-    try {
-      const currentUrl = new URL(window.location.href);
-      if (currentUrl.searchParams.get(paramKey) !== initial) {
-        currentUrl.searchParams.set(paramKey, initial);
-        window.history.replaceState(window.history.state, '', currentUrl.pathname + currentUrl.search);
-      }
-      sessionStorage.setItem(storageKey, initial);
-    } catch {
-      // Ignore storage/URL errors
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -93,7 +74,6 @@ export function usePerspectiveTab<T extends string>(
       setActiveTabState(nextTab);
       if (typeof window !== 'undefined') {
         try {
-          sessionStorage.setItem(storageKey, nextTab);
           const nextPath = createTabUrl(window.location.href, paramKey, nextTab);
           window.history.replaceState(window.history.state, '', nextPath);
         } catch (e) {
@@ -101,8 +81,36 @@ export function usePerspectiveTab<T extends string>(
         }
       }
     },
-    [pageKey, paramKey, storageKey]
+    [pageKey, paramKey]
   );
+
+  // Listen to menu navigation reset event (e.g. clicking sidebar menu items)
+  useEffect(() => {
+    const handleNavReset = (e: Event) => {
+      const customEvent = e as CustomEvent<{ path?: string }>;
+      const targetPath = customEvent.detail?.path;
+      // If clicking this page's route (or while on this page), reset to defaultTab (เมนูแรก)
+      if (
+        !targetPath ||
+        window.location.pathname === targetPath ||
+        window.location.pathname.startsWith(`${targetPath}/`) ||
+        targetPath.startsWith(window.location.pathname)
+      ) {
+        setActiveTabState(defaultTab);
+        try {
+          const currentUrl = new URL(window.location.href);
+          currentUrl.searchParams.delete(paramKey);
+          currentUrl.searchParams.delete('tab');
+          currentUrl.searchParams.delete('perspective');
+          window.history.replaceState(window.history.state, '', currentUrl.pathname);
+          sessionStorage.removeItem(storageKey);
+        } catch {}
+      }
+    };
+
+    window.addEventListener('ku:perspective-tab-reset', handleNavReset);
+    return () => window.removeEventListener('ku:perspective-tab-reset', handleNavReset);
+  }, [defaultTab, paramKey, storageKey]);
 
   // Listen to popstate (browser back/forward)
   useEffect(() => {

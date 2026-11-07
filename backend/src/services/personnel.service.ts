@@ -4,16 +4,27 @@ import { extractNumericId } from '../utils/sanitize.js';
 export function formatPersonnel(p: any) {
   if (!p) return null;
   const deptName = p.department?.nameTh || p.departmentCode || '';
+  const firstName = p.firstName || '';
+  const lastName = p.lastName || '';
+  const prefix = p.titleTh || '';
+  const fullConstructed = [firstName, lastName].filter(Boolean).join(' ');
+  const hasSeparateNames = Boolean(firstName || lastName);
+  const displayName = hasSeparateNames
+    ? (prefix ? `${prefix}${firstName}${lastName ? ' ' + lastName : ''}` : fullConstructed)
+    : p.nameTh;
+
   return {
     _id: p.personId || String(p.id),
     id: p.personId || String(p.id),
     dbId: p.id,
     person_id: p.personId || String(p.id),
-    name: p.nameTh,
-    name_th: p.nameTh,
+    name: displayName,
+    name_th: p.nameTh || displayName,
+    first_name: firstName,
+    last_name: lastName,
     name_en: p.nameEn || '',
-    clean_name: p.nameTh.replace(/^(ศ\.|รศ\.|ผศ\.|อ\.|ดร\.|นาย|นาง|นางสาว|\s+)+/gi, '').trim(),
-    title_th: p.titleTh || '',
+    clean_name: fullConstructed || p.nameTh.replace(/^(ศ\.|รศ\.|ผศ\.|อ\.|ดร\.|นาย|นาง|นางสาว|\s+)+/gi, '').trim(),
+    title_th: prefix,
     position: p.position || '',
     department: deptName,
     department_code: p.departmentCode || '',
@@ -59,6 +70,8 @@ export class PersonnelService {
       const q = search.trim();
       where.OR = [
         { nameTh: { contains: q, mode: 'insensitive' } },
+        { firstName: { contains: q, mode: 'insensitive' } },
+        { lastName: { contains: q, mode: 'insensitive' } },
         { nameEn: { contains: q, mode: 'insensitive' } },
         { email: { contains: q, mode: 'insensitive' } },
         { personId: { contains: q, mode: 'insensitive' } },
@@ -68,7 +81,7 @@ export class PersonnelService {
     const list = await prisma.personnel.findMany({
       where,
       include: { department: true },
-      orderBy: { id: 'asc' },
+      orderBy: [{ firstName: 'asc' }, { lastName: 'asc' }, { id: 'asc' }],
     });
 
     return list.map(formatPersonnel);
@@ -123,6 +136,7 @@ export class PersonnelService {
           { nameTh: { equals: clean, mode: 'insensitive' } },
           { nameTh: { equals: rawName, mode: 'insensitive' } },
           { nameTh: { contains: clean, mode: 'insensitive' } },
+          { firstName: { equals: clean, mode: 'insensitive' } },
         ],
       },
       include: { department: true },
@@ -131,22 +145,58 @@ export class PersonnelService {
     return formatPersonnel(matched);
   }
 
+  static async matchPerson(query: string, department?: string) {
+    const q = query.trim();
+    if (!q) return null;
+
+    const where: any = {
+      OR: [
+        { nameTh: { contains: q, mode: 'insensitive' } },
+        { firstName: { contains: q, mode: 'insensitive' } },
+        { lastName: { contains: q, mode: 'insensitive' } },
+      ],
+    };
+
+    if (department) {
+      where.departmentCode = department;
+    }
+
+    const matched = await prisma.personnel.findFirst({
+      where,
+      include: { department: true },
+    });
+
+    return formatPersonnel(matched);
+  }
+
   static async create(body: any) {
-    const name = String(body.name || body.nameTh || body.name_th || '').trim();
-    if (!name) {
+    const firstName = String(body.firstName || body.first_name || '').trim();
+    const lastName = String(body.lastName || body.last_name || '').trim();
+    let name = String(body.name || body.nameTh || body.name_th || '').trim();
+    const prefix = String(body.titleTh || body.title_th || '').trim();
+
+    if (!firstName && !name) {
       const err: any = new Error('กรุณาระบุชื่อบุคลากร');
       err.status = 400;
       throw err;
     }
 
-    const deptCode = await resolveDepartmentCode(body.departmentCode || body.department_code || body.department);
+    // Dual-write legacy full name: prefix + firstName + ' ' + lastName
+    // TODO: Remove dual-write to nameTh after legacy column is dropped
+    if (firstName) {
+      name = prefix ? `${prefix}${firstName}${lastName ? ' ' + lastName : ''}` : `${firstName}${lastName ? ' ' + lastName : ''}`.trim();
+    }
 
+    const deptCode = await resolveDepartmentCode(body.departmentCode || body.department_code || body.department);
     const imgVal = body.imageUrl !== undefined ? body.imageUrl : (body.image_url !== undefined ? body.image_url : null);
+
     const created = await prisma.personnel.create({
       data: {
         personId: body.personId || body.person_id || body.id || null,
-        titleTh: body.titleTh || body.title_th || null,
-        nameTh: name,
+        titleTh: prefix || null,
+        firstName: firstName || null,
+        lastName: lastName || null,
+        nameTh: name, // dual-write
         nameEn: body.nameEn || body.name_en || null,
         position: body.position || null,
         departmentCode: deptCode,
@@ -188,12 +238,33 @@ export class PersonnelService {
     const rawDept = body.departmentCode || body.department_code || body.department;
     const deptCode = rawDept !== undefined ? await resolveDepartmentCode(rawDept) : undefined;
 
+    const firstName = body.firstName !== undefined ? String(body.firstName).trim() : body.first_name !== undefined ? String(body.first_name).trim() : undefined;
+    const lastName = body.lastName !== undefined ? String(body.lastName).trim() : body.last_name !== undefined ? String(body.last_name).trim() : undefined;
+    const prefix = body.titleTh !== undefined ? String(body.titleTh).trim() : body.title_th !== undefined ? String(body.title_th).trim() : undefined;
+
+    // Dual-write legacy full name: prefix + firstName + ' ' + lastName
+    // TODO: Remove dual-write to nameTh after legacy column is dropped
+    let legacyNameUpdate: string | undefined = undefined;
+    if (firstName !== undefined || lastName !== undefined || prefix !== undefined) {
+      const existing = await prisma.personnel.findUnique({ where: { id: existingId } });
+      const f = firstName !== undefined ? firstName : (existing?.firstName || '');
+      const l = lastName !== undefined ? lastName : (existing?.lastName || '');
+      const pfx = prefix !== undefined ? prefix : (existing?.titleTh || '');
+      if (f || l) {
+        legacyNameUpdate = pfx ? `${pfx}${f}${l ? ' ' + l : ''}` : `${f}${l ? ' ' + l : ''}`.trim();
+      }
+    } else if (body.name || body.nameTh || body.name_th) {
+      legacyNameUpdate = String(body.name || body.nameTh || body.name_th).trim();
+    }
+
     const updated = await prisma.personnel.update({
       where: { id: existingId },
       data: {
-        ...(body.name || body.nameTh || body.name_th ? { nameTh: String(body.name || body.nameTh || body.name_th).trim() } : {}),
+        ...(firstName !== undefined ? { firstName } : {}),
+        ...(lastName !== undefined ? { lastName } : {}),
+        ...(legacyNameUpdate !== undefined ? { nameTh: legacyNameUpdate } : {}),
         ...(body.nameEn || body.name_en ? { nameEn: String(body.nameEn || body.name_en).trim() } : {}),
-        ...(body.titleTh || body.title_th ? { titleTh: String(body.titleTh || body.title_th).trim() } : {}),
+        ...(prefix !== undefined ? { titleTh: prefix || null } : {}),
         ...(body.position !== undefined ? { position: body.position } : {}),
         ...(deptCode !== undefined ? { departmentCode: deptCode } : {}),
         ...(body.email !== undefined ? { email: body.email } : {}),
@@ -221,6 +292,7 @@ export class PersonnelService {
         if (found) existingId = found.id;
       }
     }
+
     if (!existingId) {
       const err: any = new Error('ไม่พบข้อมูลบุคลากร');
       err.status = 404;

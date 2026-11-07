@@ -72,57 +72,7 @@ export function KpiFilterBar({
         border: '1px solid #e2e8f0',
       }}
     >
-      {/* แถวที่ 1: ปุ่มกรองตามยุทธศาสตร์ที่ดึงจากฐานข้อมูล */}
-      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-        <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#334155', marginRight: '4px' }}>
-          ยุทธศาสตร์ มก.กพส.:
-        </span>
-
-        <button
-          type="button"
-          onClick={() => onSelectStrategy('all')}
-          style={{
-            padding: '5px 12px',
-            borderRadius: '16px',
-            fontSize: '12px',
-            fontWeight: selectedStrategy === 'all' ? 700 : 500,
-            border: selectedStrategy === 'all' ? '1px solid #00A651' : '1px solid #e2e8f0',
-            backgroundColor: selectedStrategy === 'all' ? '#00A651' : '#ffffff',
-            color: selectedStrategy === 'all' ? '#ffffff' : '#475569',
-            cursor: 'pointer',
-            transition: 'all 0.15s ease',
-          }}
-        >
-          ทุกยุทธศาสตร์ ({firstCode} - {lastCode})
-        </button>
-
-        {strategies.map((strat) => {
-          const isSel = selectedStrategy === strat.code;
-          const color = strat.color || getStrategyColor(strat.code);
-          return (
-            <button
-              key={strat.id || strat.code}
-              type="button"
-              onClick={() => onSelectStrategy(strat.code)}
-              title={`ยุทธศาสตร์ที่ ${strat.code} : ${strat.name}`}
-              style={{
-                padding: '5px 12px',
-                borderRadius: '16px',
-                fontSize: '12px',
-                fontWeight: isSel ? 700 : 500,
-                border: isSel ? `1px solid ${color.text}` : `1px solid ${color.border}`,
-                backgroundColor: isSel ? color.text : color.bg,
-                color: isSel ? '#ffffff' : color.text,
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              ยุทธศาสตร์ที่ {strat.code}
-            </button>
-          );
-        })}
-      </div>
-
+      
       {/* แถวที่ 2: ค้นหา + ประเภทงาน + สถานะ */}
       <div
         style={{

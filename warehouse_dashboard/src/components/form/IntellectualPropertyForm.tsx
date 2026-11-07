@@ -210,7 +210,7 @@ export function IntellectualPropertyForm({
   };
 
   const handleRegNumberChange = (raw: string) => {
-    const clean = raw.slice(0, 50);
+    const clean = raw.slice(0, 20);
     onChange('registration_number', clean);
     onChange('reg_info', clean);
     onChange('reg_no', clean);
@@ -224,18 +224,18 @@ export function IntellectualPropertyForm({
   return (
     <div className="space-y-7 text-slate-800">
       {/* ========================================================================= */}
-      {/* ส่วนที่ 1: ข้อมูลพื้นฐานและผู้ประดิษฐ์ / ผู้สร้างสรรค์ */}
+      {/* ส่วนที่ 1: ข้อมูลพื้นฐานผู้สร้างสรรค์ */}
       {/* ========================================================================= */}
       <section className="space-y-4">
         <div className="flex items-center gap-2 pb-2 border-b border-slate-200">
           <span className="w-1.5 h-4 bg-[#00A651] rounded-full shrink-0" />
           <h4 className="text-[14px] font-bold text-slate-800 tracking-wide">
-            ข้อมูลพื้นฐานและผู้ประดิษฐ์ / ผู้สร้างสรรค์
+            ข้อมูลพื้นฐานผู้สร้างผลงาน
           </h4>
         </div>
 
-        <FormField label="ประเภททรัพย์สินทางปัญญา" required error={errors.type}>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+        <FormField label="ประเภททรัพย์สินทางปัญญา" required fieldKey="type" error={errors.type}>
+          <div id="field-type" data-field="type" className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
             {IP_TYPES.map((t) => {
               const isSelected = currentType === t.label;
               return (
@@ -267,9 +267,12 @@ export function IntellectualPropertyForm({
             <FormField
               label={isCopyright ? 'ชื่อผลงาน' : 'ชื่อผลงาน / ชื่อที่แสดงถึงการประดิษฐ์'}
               required
+              fieldKey="title"
               error={errors.name || errors.title}
             >
               <textarea
+                id="field-title"
+                name="title"
                 value={formData.name || formData.title || ''}
                 onChange={(e) => {
                   onChange('name', e.target.value);
@@ -293,8 +296,8 @@ export function IntellectualPropertyForm({
 
             {isCopyright && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <FormField label="ประเภทงาน" required error={errors.work_category}>
-                  <div className="relative">
+                <FormField label="ประเภทงาน" required fieldKey="work_category" error={errors.work_category}>
+                  <div id="field-work_category" data-field="work_category" className="relative">
                     {isCustomCategory ? (
                       <div className="relative flex items-center">
                         <input
@@ -363,31 +366,34 @@ export function IntellectualPropertyForm({
             )}
 
             <FormField
-              label={isCopyright ? 'ผู้สร้างสรรค์' : 'ผู้ประดิษฐ์'}
+              label={isCopyright ? 'ผู้สร้างสรรค์' : 'ผู้สร้างผลงาน'}
               required
+              fieldKey="inventors"
               error={errors.inventors || errors.creator}
             >
-              <PersonPicker
-                multiple={true}
-                values={selectedInventors}
-                onChangeMultiple={handleInventorsChange}
-                placeholder={
-                  isCopyright
-                    ? 'ค้นหาหรือระบุชื่อผู้สร้างสรรค์...'
-                    : 'ค้นหาหรือระบุชื่อผู้ประดิษฐ์...'
-                }
-              />
+              <div id="field-inventors" data-field="inventors">
+                <PersonPicker
+                  multiple={true}
+                  values={selectedInventors}
+                  onChangeMultiple={handleInventorsChange}
+                  placeholder={
+                    isCopyright
+                      ? 'ค้นหาหรือระบุชื่อผู้สร้างสรรค์...'
+                      : 'ค้นหาหรือระบุชื่อผู้สร้างผลงาน...'
+                  }
+                />
+              </div>
             </FormField>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormField label="สังกัด" error={errors.department}>
-                <div className="flex items-center gap-1.5 flex-wrap min-h-10 px-3 py-2 rounded-lg bg-slate-50 border border-slate-200">
+              <FormField label="สังกัด" fieldKey="department" error={errors.department}>
+                <div id="field-department" data-field="department" className="flex items-center gap-1.5 flex-wrap min-h-10 px-3 py-2 rounded-lg bg-slate-50 border border-slate-200">
                   {distinctAffiliations.length > 0 ? (
                     distinctAffiliations.map((dept, idx) => (
                       <DepartmentBadge key={idx} value={dept} />
                     ))
                   ) : (
-                    <span className="text-xs text-slate-400">ระบุสังกัดอัตโนมัติตามรายชื่อผู้ประดิษฐ์</span>
+                    <span className="text-xs text-slate-400">ระบุสังกัดอัตโนมัติตามรายชื่อผู้สร้างผลงาน</span>
                   )}
                 </div>
               </FormField>
@@ -498,12 +504,16 @@ export function IntellectualPropertyForm({
                     ? 'เลขที่อนุสิทธิบัตร'
                     : 'เลขที่สิทธิบัตร'
                 }
+                required={isPettyPatent}
+                fieldKey="registration_number"
                 error={errors.registration_number}
               >
                 <div className="relative">
                   <input
+                    id="field-registration_number"
+                    name="registration_number"
                     type="text"
-                    maxLength={50}
+                    maxLength={20}
                     value={
                       formData.registration_number ||
                       formData.reg_info ||
@@ -530,7 +540,7 @@ export function IntellectualPropertyForm({
                   />
                   <span className="absolute right-3 top-2.5 text-xs text-slate-400 font-mono select-none">
                     {(formData.registration_number || formData.reg_info || formData.reg_no || '').length}/
-                    {isCopyright ? 9 : 5}
+                    {isCopyright ? 9 : 20}
                   </span>
                 </div>
               </FormField>
@@ -541,35 +551,60 @@ export function IntellectualPropertyForm({
                     ? 'วันที่ออกหนังสือรับรอง'
                     : 'วันที่ออกให้ (เริ่มต้นความคุ้มครอง)'
                 }
+                required
+                fieldKey="protection_start"
                 error={errors.protection_start}
               >
-                <DatePicker
-                  value={formData.protection_start || ''}
-                  onChange={(_date, dateStr) => onChange('protection_start', dateStr)}
-                  placeholder={isCopyright ? 'เลือกวันที่ออกหนังสือรับรอง (พ.ศ.)' : 'เลือกวันที่เริ่มคุ้มครอง (พ.ศ.)'}
-                />
+                <div id="field-protection_start" data-field="protection_start">
+                  <DatePicker
+                    value={formData.protection_start || ''}
+                    maxDate={formData.protection_end || undefined}
+                    required
+                    onChange={(_date, dateStr) => {
+                      onChange('protection_start', dateStr);
+                      if (dateStr && formData.protection_end && dateStr > formData.protection_end) {
+                        onChange('protection_end', '');
+                      }
+                    }}
+                    placeholder={isCopyright ? 'เลือกวันที่ออกหนังสือรับรอง (พ.ศ.)' : 'เลือกวันที่เริ่มคุ้มครอง (พ.ศ.)'}
+                  />
+                </div>
               </FormField>
 
               {!isCopyright && (
-                <FormField label="วันหมดอายุ (ระยะเวลาคุ้มครองสิ้นสุด)" error={errors.protection_end}>
-                  <DatePicker
-                    value={formData.protection_end || ''}
-                    onChange={(_date, dateStr) => onChange('protection_end', dateStr)}
-                    placeholder="เลือกวันหมดอายุความคุ้มครอง (พ.ศ.)"
-                  />
+                <FormField
+                  label="วันหมดอายุ (ระยะเวลาคุ้มครองสิ้นสุด)"
+                  required
+                  fieldKey="protection_end"
+                  error={errors.protection_end}
+                >
+                  <div id="field-protection_end" data-field="protection_end">
+                    <DatePicker
+                      value={formData.protection_end || ''}
+                      minDate={formData.protection_start || undefined}
+                      required
+                      onChange={(_date, dateStr) => {
+                        onChange('protection_end', dateStr);
+                        if (dateStr && formData.protection_start && dateStr < formData.protection_start) {
+                          onChange('protection_start', '');
+                        }
+                      }}
+                      placeholder="เลือกวันหมดอายุความคุ้มครอง (พ.ศ.)"
+                    />
+                  </div>
                 </FormField>
               )}
             </div>
           </section>
 
           {/* ========================================================================= */}
-          {/* ส่วนที่ 4: การสนับสนุนและหมายเหตุ */}
+          {/* ส่วนที่ 4: การสนับสนุน */}
           {/* ========================================================================= */}
           <section className="space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-slate-200">
               <span className="w-1.5 h-4 bg-[#00A651] rounded-full shrink-0" />
               <h4 className="text-[14px] font-bold text-slate-800 tracking-wide">
-                การสนับสนุนและหมายเหตุ
+                การสนับสนุน
               </h4>
             </div>
 

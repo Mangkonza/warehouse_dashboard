@@ -24,6 +24,7 @@ import { CATEGORY_NAMES } from '../_hooks/useKpiData';
 import { StrategicKpiModal } from './StrategicKpiFormView';
 import { StrategicKpiRoundReportModal } from './StrategicKpiRoundReportView';
 import { KpiHoverTooltip } from './KpiHoverTooltip';
+import { StrategyBadge } from '@/components/ui';
 
 interface KpiStrategicTableViewProps {
   filteredKPIs: KPIComputedResult[];
@@ -470,21 +471,11 @@ export function KpiStrategicTableView({
                               }}
                             >
                               {kpi.planCode && (
-                                <span
-                                  style={{
-                                    display: 'inline-block',
-                                    padding: '2px 8px',
-                                    borderRadius: '4px',
-                                    backgroundColor: '#f0fdf4',
-                                    border: '1px solid #bbf7d0',
-                                    color: '#15803d',
-                                    fontSize: '11.5px',
-                                    fontWeight: 700,
-                                    marginBottom: '4px',
-                                  }}
-                                >
-                                  {kpi.planCode}
-                                </span>
+                                <StrategyBadge
+                                  value={kpi.planCode}
+                                  showPrefix={false}
+                                  style={{ marginBottom: '4px' }}
+                                />
                               )}
                               <KpiHoverTooltip
                                 badge={kpi.planCode || group.title}

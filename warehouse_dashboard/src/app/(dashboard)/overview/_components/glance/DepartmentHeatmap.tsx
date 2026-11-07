@@ -35,7 +35,7 @@ export function DepartmentHeatmap({ columns, rows, selected, onSelect }: Departm
     colMax[c.key] = Math.max(1, ...rows.map((r) => r.values[c.key] || 0));
   });
   const maxBudget = Math.max(1, ...rows.map((r) => r.budget));
-  const gridTemplate = `minmax(150px, 1.4fr) repeat(${columns.length}, minmax(48px, 1fr)) minmax(120px, 1.3fr)`;
+  const gridTemplate = `minmax(140px, 1.2fr) repeat(${columns.length}, minmax(84px, 1fr)) minmax(110px, 1fr)`;
 
   return (
     <section style={{ ...cardStyle, display: 'flex', flexDirection: 'column', gap: '14px' }} aria-label="ผลงานรายสังกัด">
@@ -56,7 +56,7 @@ export function DepartmentHeatmap({ columns, rows, selected, onSelect }: Departm
       </header>
 
       <div style={{ overflowX: 'auto' }}>
-        <div role="table" style={{ minWidth: 560, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <div role="table" style={{ minWidth: 680, display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <div
             role="row"
             style={{ display: 'grid', gridTemplateColumns: gridTemplate, gap: '4px', alignItems: 'end', paddingBottom: '4px' }}
@@ -69,7 +69,7 @@ export function DepartmentHeatmap({ columns, rows, selected, onSelect }: Departm
                   key={c.key}
                   role="columnheader"
                   title={c.label}
-                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', fontSize: '12.5px', fontWeight: 600, color: '#334155' }}
+                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '3px', fontSize: '11.5px', fontWeight: 600, color: '#334155', lineHeight: 1.25 }}
                 >
                   <Icon style={{ color: c.accent, fontSize: '15px' }} aria-hidden="true" />
                   {c.label}
