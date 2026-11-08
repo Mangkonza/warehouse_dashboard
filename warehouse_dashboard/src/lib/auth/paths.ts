@@ -10,7 +10,7 @@ import { AuthConfigError, isProduction, parseOrigin } from './env';
 const BASE_PATH_PATTERN = /^(\/[A-Za-z0-9._~-]+)+$/;
 
 export function getBasePath(): string {
-  const raw = (process.env.BASE_PATH ?? '').trim();
+  const raw = (process.env.BASE_PATH ?? process.env.NEXT_PUBLIC_BASE_PATH ?? '').trim();
   if (raw === '' || raw === '/') return '';
   if (!BASE_PATH_PATTERN.test(raw)) {
     throw new AuthConfigError('BASE_PATH must look like "/segment[/segment]" with no trailing slash');

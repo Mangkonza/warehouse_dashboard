@@ -81,9 +81,9 @@ app.use('/api/v1/kpi', kpiRouter);
 // Global Error Handler
 app.use(errorHandler);
 
-// Start server on 127.0.0.1 (Local / Proxy only)
-const server = app.listen(env.PORT, '127.0.0.1', () => {
-  console.log(`🚀 KU Warehouse Backend running on http://127.0.0.1:${env.PORT}`);
+// Start server on configured HOST (defaults to 0.0.0.0)
+const server = app.listen(env.PORT, env.HOST, () => {
+  console.log(`🚀 KU Warehouse Backend running on http://${env.HOST}:${env.PORT}`);
   console.log(`📡 Environment: ${env.NODE_ENV}`);
 
   // Seed mock admins if mock is enabled

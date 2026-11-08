@@ -16,7 +16,7 @@ RUN npx prisma generate
 COPY tsconfig.json ./
 COPY src ./src/
 
-RUN npm run build || true
+RUN npm run build
 RUN npm prune --omit=dev
 
 # Stage 2: Production runner
@@ -26,15 +26,13 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV PORT=8000
+ENV HOST=0.0.0.0
 
 # Create non-root user and uploads directory
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 expressjs && \
     mkdir -p /app/uploads && \
     chown -R expressjs:nodejs /app
-
-# Bind to 0.0.0.0 inside container so frontend on internal docker network can reach backend
-RUN echo "const net = require('net'); const orig = net.Server.prototype.listen; net.Server.prototype.listen = function(...args) { if (args[1] === '127.0.0.1') args[1] = '0.0.0.0'; return orig.apply(this, args); };" > /app/bind-all.cjs
 
 COPY --from=builder --chown=expressjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=expressjs:nodejs /app/dist ./dist
@@ -48,4 +46,4 @@ EXPOSE 8000
 HEALTHCHECK --interval=10s --timeout=5s --start-period=10s --retries=3 \
   CMD node -e "fetch('http://localhost:8000/api/v1/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
 
-CMD ["node", "-r", "./bind-all.cjs", "dist/index.js"]
+CMD ["node", "dist/index.js"]
