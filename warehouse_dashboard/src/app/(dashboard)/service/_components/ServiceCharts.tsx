@@ -22,6 +22,8 @@ import { StrategicAlignmentMatrix } from '@/components/data-display';
 import { DrillDownProjectDrawer, DepartmentBadge } from '@/components/ui';
 import { CHART_PASTEL_PALETTE } from '@/lib/pastelTheme';
 import '../../research/_components/research-redesign.css';
+import { YearSelectDropdown } from '@/components/ui/YearSelectDropdown';
+import { STANDARD_YEAR_OPTIONS, getDefaultCompareYear } from '@/lib/fiscalYears';
 
 const UCOL: Record<string, string> = {
   AE: '#65B98A',
@@ -159,16 +161,11 @@ export function ServiceCharts({
   const sourcePool = useMemo(() => (allItems && allItems.length > 0 ? allItems : validData), [allItems, validData]);
 
   const availableYears = useMemo(() => {
-    const ys = new Set<string>(['2569', '2568', '2567']);
-    sourcePool.forEach((it) => {
-      const y = getServiceFiscalYear(it);
-      if (y && /^25\d{2}$/.test(y)) ys.add(y);
-    });
-    return Array.from(ys).sort((a, b) => Number(b) - Number(a));
-  }, [sourcePool]);
+    return Array.from(STANDARD_YEAR_OPTIONS);
+  }, []);
 
   // ── Chart 1: จำนวนครั้งและบุคลากรที่ให้บริการรายเดือน states ──
-  const [m1Year, setM1Year] = useState<string>('2568');
+  const [m1Year, setM1Year] = useState<string>(STANDARD_YEAR_OPTIONS[0] || '2569');
   const [m1Mode, setM1Mode] = useState<'single' | 'yoy'>('single');
   const [m1CmpYear, setM1CmpYear] = useState<string>('2567');
   const [m1Layout, setM1Layout] = useState<'grouped' | 'stacked'>('stacked');
@@ -241,7 +238,7 @@ export function ServiceCharts({
       setM4CmpYear(prev);
       setM5CmpYear(prev);
     } else {
-      setM1Year('2568');
+      setM1Year(STANDARD_YEAR_OPTIONS[0] || '2569');
       setM2Year('all');
       setM3Year('all');
       setM4Year('all');
@@ -702,24 +699,16 @@ export function ServiceCharts({
                   : 'จำนวนครั้งและบุคลากรที่ให้บริการรายเดือน'}
               </h2>
               <div className="rr-ctrls">
-                <div className="rr-sel">
-                  <span>ปี</span>
-                  <select
-                    value={m1Year}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      setM1Year(v);
-                      if (v !== 'all') setM1CmpYear(String(Number(v) - 1));
-                    }}
-                  >
-                    <option value="all">ทั้งหมด</option>
-                    {availableYears.map((y) => (
-                      <option key={y} value={y}>
-                        {y}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <YearSelectDropdown
+                  label="ปี"
+                  value={m1Year}
+                  onChange={(v) => {
+                    setM1Year(v);
+                    if (v !== 'all') setM1CmpYear(getDefaultCompareYear(v, availableYears));
+                  }}
+                  includeAll={true}
+                  allPosition="top"
+                />
 
                 <div className="rr-seg-ctl">
                   <button
@@ -739,18 +728,13 @@ export function ServiceCharts({
                 </div>
 
                 {m1Mode === 'yoy' ? (
-                  <div className="rr-sel">
-                    <span>เทียบกับปี</span>
-                    <select value={m1CmpYear} onChange={(e) => setM1CmpYear(e.target.value)}>
-                      {availableYears
-                        .filter((y) => y !== m1Year)
-                        .map((y) => (
-                          <option key={y} value={y}>
-                            {y}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
+                  <YearSelectDropdown
+                    label="เทียบกับปี"
+                    value={m1CmpYear}
+                    onChange={(v) => setM1CmpYear(v)}
+                    excludeYear={m1Year}
+                    includeAll={false}
+                  />
                 ) : (
                   <div className="rr-seg-ctl">
                     <button
@@ -773,46 +757,58 @@ export function ServiceCharts({
             </div>
 
             <div className="rr-legend">
-              {m1Mode === 'yoy' && <span className="rr-legend-lbl">นับเฉพาะ:</span>}
+              {m1Mode === 'yoy' && <span className="rr-lbl">นับเฉพาะ:</span>}
               <button
                 type="button"
-                className={`rr-pill ${!m1ShowDirect ? 'off' : ''}`}
-                onClick={() => setM1ShowDirect((p) => !p)}
+                className="rr-pill"
+                style={{ '--c': '#f59e0b' } as React.CSSProperties}
+                aria-pressed={m1ShowDirect}
+                onClick={() => {
+                  if (m1ShowDirect && !m1ShowExpert) return;
+                  setM1ShowDirect(!m1ShowDirect);
+                }}
               >
-                <span className="rr-sw" style={{ backgroundColor: '#f59e0b' }} />
+                <i />
                 วิชาการ/วิชาชีพ
               </button>
               <button
                 type="button"
-                className={`rr-pill ${!m1ShowExpert ? 'off' : ''}`}
-                onClick={() => setM1ShowExpert((p) => !p)}
+                className="rr-pill"
+                style={{ '--c': '#0284c7' } as React.CSSProperties}
+                aria-pressed={m1ShowExpert}
+                onClick={() => {
+                  if (m1ShowExpert && !m1ShowDirect) return;
+                  setM1ShowExpert(!m1ShowExpert);
+                }}
               >
-                <span className="rr-sw" style={{ backgroundColor: '#0284c7' }} />
+                <i />
                 ผู้ทรงคุณวุฒิ/ประเมิน
               </button>
               {m1Mode === 'yoy' && (
                 <>
-                  <span className="rr-pill" style={{ cursor: 'default' }}>
-                    <span className="rr-sw" style={{ backgroundColor: '#f59e0b' }} />
+                  <span className="rr-pill st" style={{ '--c': '#f59e0b' } as React.CSSProperties}>
+                    <i />
                     ปี {m1Year === 'all' ? 'ปัจจุบัน' : m1Year}
                   </span>
-                  <span className="rr-pill" style={{ cursor: 'default' }}>
-                    <span className="rr-sw" style={{ backgroundColor: '#cbd5e1' }} />
+                  <span className="rr-pill st" style={{ '--c': '#cbd5e1' } as React.CSSProperties}>
+                    <i />
                     ปี {monthlyServiceData.cmpYr}
                   </span>
                 </>
               )}
               <button
                 type="button"
-                className={`rr-pill ${!m1ShowLine ? 'off' : ''}`}
-                onClick={() => setM1ShowLine((p) => !p)}
+                className="rr-pill"
+                style={{ '--c': '#e11d48' } as React.CSSProperties}
+                aria-pressed={m1ShowLine}
+                onClick={() => setM1ShowLine(!m1ShowLine)}
               >
-                <span className="rr-sw line" style={{ backgroundColor: '#e11d48' }} />
+                <i className="ln" />
                 บุคลากรที่ร่วมให้บริการ (ท่าน)
               </button>
               {m1Mode === 'yoy' && m1ShowLine && (
-                <span className="rr-pill" style={{ cursor: 'default' }}>
-                  <span className="rr-sw dash" style={{ borderColor: '#e11d48' }} />
+                <span className="rr-pill st" style={{ '--c': '#e11d48' } as React.CSSProperties}>
+                  <i className="ln ds" />
                   บุคลากร ปี {monthlyServiceData.cmpYr}
                 </span>
               )}
@@ -1400,24 +1396,16 @@ export function ServiceCharts({
                 จำนวนงานบริการวิชาการจำแนกตามลักษณะบทบาทหน้าที่
               </h2>
               <div className="rr-ctrls">
-                <div className="rr-sel">
-                  <span>ปี</span>
-                  <select
-                    value={m2Year}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      setM2Year(v);
-                      if (v !== 'all') setM2CmpYear(String(Number(v) - 1));
-                    }}
-                  >
-                    <option value="all">ทั้งหมด</option>
-                    {availableYears.map((y) => (
-                      <option key={y} value={y}>
-                        {y}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <YearSelectDropdown
+                  label="ปี"
+                  value={m2Year}
+                  onChange={(v) => {
+                    setM2Year(v);
+                    if (v !== 'all') setM2CmpYear(getDefaultCompareYear(v, availableYears));
+                  }}
+                  includeAll={true}
+                  allPosition="top"
+                />
 
                 <div className="rr-seg-ctl">
                   <button
@@ -1437,18 +1425,13 @@ export function ServiceCharts({
                 </div>
 
                 {m2Mode === 'yoy' ? (
-                  <div className="rr-sel">
-                    <span>เทียบกับปี</span>
-                    <select value={m2CmpYear} onChange={(e) => setM2CmpYear(e.target.value)}>
-                      {availableYears
-                        .filter((y) => y !== m2Year)
-                        .map((y) => (
-                          <option key={y} value={y}>
-                            {y}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
+                  <YearSelectDropdown
+                    label="เทียบกับปี"
+                    value={m2CmpYear}
+                    onChange={(v) => setM2CmpYear(v)}
+                    excludeYear={m2Year}
+                    includeAll={false}
+                  />
                 ) : (
                   <div className="rr-seg-ctl">
                     <button
@@ -1496,12 +1479,12 @@ export function ServiceCharts({
 
             {m2Mode === 'yoy' && (
               <div className="rr-legend">
-                <span className="rr-pill" style={{ cursor: 'default' }}>
-                  <span className="rr-sw" style={{ backgroundColor: '#0284c7' }} />
+                <span className="rr-pill st" style={{ '--c': '#0284c7' } as React.CSSProperties}>
+                  <i />
                   ปี {m2Year === 'all' ? 'ปัจจุบัน' : m2Year}
                 </span>
-                <span className="rr-pill" style={{ cursor: 'default' }}>
-                  <span className="rr-sw" style={{ backgroundColor: '#cbd5e1' }} />
+                <span className="rr-pill st" style={{ '--c': '#cbd5e1' } as React.CSSProperties}>
+                  <i />
                   ปี {roleChartData.cmpYr}
                 </span>
               </div>
@@ -1829,24 +1812,16 @@ export function ServiceCharts({
                 เปรียบเทียบจำนวนงานบริการและบุคลากรรายสังกัด
               </h2>
               <div className="rr-ctrls">
-                <div className="rr-sel">
-                  <span>ปี</span>
-                  <select
-                    value={m3Year}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      setM3Year(v);
-                      if (v !== 'all') setM3CmpYear(String(Number(v) - 1));
-                    }}
-                  >
-                    <option value="all">ทั้งหมด</option>
-                    {availableYears.map((y) => (
-                      <option key={y} value={y}>
-                        {y}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <YearSelectDropdown
+                  label="ปี"
+                  value={m3Year}
+                  onChange={(v) => {
+                    setM3Year(v);
+                    if (v !== 'all') setM3CmpYear(getDefaultCompareYear(v, availableYears));
+                  }}
+                  includeAll={true}
+                  allPosition="top"
+                />
 
                 <div className="rr-seg-ctl">
                   <button
@@ -1866,18 +1841,13 @@ export function ServiceCharts({
                 </div>
 
                 {m3Mode === 'yoy' ? (
-                  <div className="rr-sel">
-                    <span>เทียบกับปี</span>
-                    <select value={m3CmpYear} onChange={(e) => setM3CmpYear(e.target.value)}>
-                      {availableYears
-                        .filter((y) => y !== m3Year)
-                        .map((y) => (
-                          <option key={y} value={y}>
-                            {y}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
+                  <YearSelectDropdown
+                    label="เทียบกับปี"
+                    value={m3CmpYear}
+                    onChange={(v) => setM3CmpYear(v)}
+                    excludeYear={m3Year}
+                    includeAll={false}
+                  />
                 ) : (
                   <div className="rr-seg-ctl">
                     <button
@@ -1902,29 +1872,31 @@ export function ServiceCharts({
             <div className="rr-legend">
               {m3Layout === 'stacked' && m3Mode === 'single' ? (
                 <>
-                  <span className="rr-pill" style={{ cursor: 'default' }}>
-                    <span className="rr-sw" style={{ backgroundColor: '#f59e0b' }} />
+                  <span className="rr-pill st" style={{ '--c': '#f59e0b' } as React.CSSProperties}>
+                    <i />
                     วิชาการ/วิชาชีพ
                   </span>
-                  <span className="rr-pill" style={{ cursor: 'default' }}>
-                    <span className="rr-sw" style={{ backgroundColor: '#0284c7' }} />
+                  <span className="rr-pill st" style={{ '--c': '#0284c7' } as React.CSSProperties}>
+                    <i />
                     ผู้ทรงคุณวุฒิ/ประเมิน
                   </span>
                 </>
               ) : (
                 deptComparisonData.m3Rows.map((d) => (
-                  <span key={`leg-${d.code}`} className="rr-pill" style={{ cursor: 'default' }}>
-                    <span className="rr-sw" style={{ backgroundColor: d.color }} />
+                  <span key={`leg-${d.code}`} className="rr-pill st" style={{ '--c': d.color } as React.CSSProperties}>
+                    <i />
                     {d.code}
                   </span>
                 ))
               )}
               <button
                 type="button"
-                className={`rr-pill ${!m3ShowLine ? 'off' : ''}`}
+                className="rr-pill"
+                style={{ '--c': '#e11d48' } as React.CSSProperties}
+                aria-pressed={m3ShowLine}
                 onClick={() => setM3ShowLine((p) => !p)}
               >
-                <span className="rr-sw line" style={{ backgroundColor: '#e11d48' }} />
+                <i className="ln" />
                 บุคลากรที่พบในบันทึก (ท่าน)
               </button>
             </div>
@@ -2418,24 +2390,16 @@ export function ServiceCharts({
                 ภาระงานเฉลี่ยต่อบุคลากรที่พบในบันทึก (งาน/ท่าน)
               </h2>
               <div className="rr-ctrls">
-                <div className="rr-sel">
-                  <span>ปี</span>
-                  <select
-                    value={m4Year}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      setM4Year(v);
-                      if (v !== 'all') setM4CmpYear(String(Number(v) - 1));
-                    }}
-                  >
-                    <option value="all">ทั้งหมด</option>
-                    {availableYears.map((y) => (
-                      <option key={y} value={y}>
-                        {y}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <YearSelectDropdown
+                  label="ปี"
+                  value={m4Year}
+                  onChange={(v) => {
+                    setM4Year(v);
+                    if (v !== 'all') setM4CmpYear(getDefaultCompareYear(v, availableYears));
+                  }}
+                  includeAll={true}
+                  allPosition="top"
+                />
 
                 <div className="rr-seg-ctl">
                   <button
@@ -2455,18 +2419,13 @@ export function ServiceCharts({
                 </div>
 
                 {m4Mode === 'yoy' && (
-                  <div className="rr-sel">
-                    <span>เทียบกับปี</span>
-                    <select value={m4CmpYear} onChange={(e) => setM4CmpYear(e.target.value)}>
-                      {availableYears
-                        .filter((y) => y !== m4Year)
-                        .map((y) => (
-                          <option key={y} value={y}>
-                            {y}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
+                  <YearSelectDropdown
+                    label="เทียบกับปี"
+                    value={m4CmpYear}
+                    onChange={(v) => setM4CmpYear(v)}
+                    excludeYear={m4Year}
+                    includeAll={false}
+                  />
                 )}
 
                 <div className="rr-seg-ctl">
@@ -2605,24 +2564,16 @@ export function ServiceCharts({
                 10 อันดับบุคลากรผู้ให้บริการสูงสุด
               </h2>
               <div className="rr-ctrls">
-                <div className="rr-sel">
-                  <span>ปี</span>
-                  <select
-                    value={m5Year}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      setM5Year(v);
-                      if (v !== 'all') setM5CmpYear(String(Number(v) - 1));
-                    }}
-                  >
-                    <option value="all">ทั้งหมด</option>
-                    {availableYears.map((y) => (
-                      <option key={y} value={y}>
-                        {y}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <YearSelectDropdown
+                  label="ปี"
+                  value={m5Year}
+                  onChange={(v) => {
+                    setM5Year(v);
+                    if (v !== 'all') setM5CmpYear(getDefaultCompareYear(v, availableYears));
+                  }}
+                  includeAll={true}
+                  allPosition="top"
+                />
 
                 <div className="rr-seg-ctl">
                   <button
@@ -2642,18 +2593,13 @@ export function ServiceCharts({
                 </div>
 
                 {m5Mode === 'yoy' ? (
-                  <div className="rr-sel">
-                    <span>เทียบกับปี</span>
-                    <select value={m5CmpYear} onChange={(e) => setM5CmpYear(e.target.value)}>
-                      {availableYears
-                        .filter((y) => y !== m5Year)
-                        .map((y) => (
-                          <option key={y} value={y}>
-                            {y}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
+                  <YearSelectDropdown
+                    label="เทียบกับปี"
+                    value={m5CmpYear}
+                    onChange={(v) => setM5CmpYear(v)}
+                    excludeYear={m5Year}
+                    includeAll={false}
+                  />
                 ) : (
                   <div className="rr-seg-ctl">
                     <button
@@ -2676,17 +2622,17 @@ export function ServiceCharts({
             </div>
 
             <div className="rr-legend">
-              <span className="rr-pill" style={{ cursor: 'default' }}>
-                <span className="rr-sw" style={{ backgroundColor: '#f59e0b' }} />
+              <span className="rr-pill st" style={{ '--c': '#f59e0b' } as React.CSSProperties}>
+                <i />
                 วิชาการ/วิชาชีพ
               </span>
-              <span className="rr-pill" style={{ cursor: 'default' }}>
-                <span className="rr-sw" style={{ backgroundColor: '#0284c7' }} />
+              <span className="rr-pill st" style={{ '--c': '#0284c7' } as React.CSSProperties}>
+                <i />
                 ผู้ทรงคุณวุฒิ/ประเมิน
               </span>
               {m5Mode === 'yoy' && (
-                <span className="rr-pill" style={{ cursor: 'default' }}>
-                  <span className="rr-sw" style={{ backgroundColor: '#cbd5e1' }} />
+                <span className="rr-pill st" style={{ '--c': '#cbd5e1' } as React.CSSProperties}>
+                  <i />
                   ปี {facultyChartData.cmpYr}
                 </span>
               )}
@@ -3203,7 +3149,7 @@ export function ServiceCharts({
                         }
                       }}
                     >
-                      <span className="rr-sw" style={{ backgroundColor: t.color }} />
+                      <span className="w-3 h-3 rounded shrink-0 inline-block" style={{ backgroundColor: t.color, minWidth: '12px', minHeight: '12px' }} />
                       <div className="rr-dn-nm">
                         <b>{t.label}</b>
                         <small>รวม {t.items.length} กิจกรรมบริการวิชาการ</small>

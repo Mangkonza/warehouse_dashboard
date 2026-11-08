@@ -215,7 +215,7 @@ export function aggregateSdgsData(
   const targetYearBe = toBeYear(targetYear);
 
   // Month range logic
-  const isRunningYear = targetYear >= currentCalendarYear;
+  const isRunningYear = targetYear === currentCalendarYear;
   const maxMonthAllowed = isRunningYear ? currentCalendarMonth : 11;
 
   const monthFrom = params.monthFrom !== undefined ? Math.max(0, Math.min(11, params.monthFrom)) : 0;

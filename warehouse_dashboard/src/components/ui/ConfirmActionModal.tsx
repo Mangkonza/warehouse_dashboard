@@ -7,12 +7,13 @@ import { Spinner } from '@/components/ui/Spinner';
 export interface ConfirmActionModalProps {
   isOpen: boolean;
   title: string;
-  message: string;
+  message?: string;
   detail?: string;
   confirmText?: string;
   cancelText?: string;
   type?: 'danger' | 'warning' | 'success' | 'info';
   isLoading?: boolean;
+  compact?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -26,10 +27,98 @@ export const ConfirmActionModal: React.FC<ConfirmActionModalProps> = ({
   cancelText = 'ยกเลิก',
   type = 'warning',
   isLoading = false,
+  compact = false,
   onConfirm,
   onCancel,
 }) => {
   if (!isOpen) return null;
+
+  // Compact variant (e.g. "ต้องการปิดโดยไม่บันทึกหรือไม่" confirmation dialog)
+  if (compact || (!message && !detail)) {
+    return (
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.65)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 20000,
+          padding: '16px',
+          animation: 'fadeIn 0.2s ease',
+        }}
+        onClick={onCancel}
+      >
+        <div
+          style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '16px',
+            width: '100%',
+            maxWidth: '380px',
+            padding: '24px',
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.25)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '18px',
+            animation: 'slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a', lineHeight: 1.4 }}>
+            {title}
+          </h4>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px' }}>
+            <button
+              type="button"
+              onClick={onCancel}
+              disabled={isLoading}
+              style={{
+                padding: '7px 16px',
+                fontSize: '13px',
+                fontWeight: 600,
+                borderRadius: '8px',
+                border: '1px solid #cbd5e1',
+                color: '#334155',
+                backgroundColor: '#ffffff',
+                cursor: isLoading ? 'not-allowed' : 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f8fafc')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#ffffff')}
+            >
+              {cancelText}
+            </button>
+            <button
+              type="button"
+              onClick={onConfirm}
+              disabled={isLoading}
+              style={{
+                padding: '7px 20px',
+                fontSize: '13px',
+                fontWeight: 600,
+                borderRadius: '8px',
+                border: 'none',
+                backgroundColor: '#e11d48',
+                color: '#ffffff',
+                cursor: isLoading ? 'not-allowed' : 'pointer',
+                transition: 'all 0.15s ease',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#be123c')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#e11d48')}
+            >
+              {isLoading && <Spinner size="sm" />}
+              <span>{confirmText}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const getIcon = () => {
     switch (type) {

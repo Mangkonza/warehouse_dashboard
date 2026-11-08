@@ -2,26 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { SdgAggregationResult } from '@/lib/sdgAggregationService';
-
-export const SDG_INFO: Record<number, { nameTh: string; color: string }> = {
-  1: { nameTh: 'ขจัดความยากจน', color: '#E5243B' },
-  2: { nameTh: 'ขจัดความหิวโหย', color: '#DDA63A' },
-  3: { nameTh: 'สุขภาพและความเป็นอยู่ที่ดี', color: '#4C9F38' },
-  4: { nameTh: 'การศึกษาที่มีคุณภาพ', color: '#C5192D' },
-  5: { nameTh: 'ความเท่าเทียมทางเพศ', color: '#FF3A21' },
-  6: { nameTh: 'น้ำสะอาดและสุขาภิบาล', color: '#26BDE2' },
-  7: { nameTh: 'พลังงานสะอาดที่ทุกคนเข้าถึงได้', color: '#FCC30B' },
-  8: { nameTh: 'งานที่มีคุณค่าและเศรษฐกิจเติบโต', color: '#A21942' },
-  9: { nameTh: 'อุตสาหกรรม นวัตกรรม และโครงสร้างพื้นฐาน', color: '#FD6925' },
-  10: { nameTh: 'ลดความเหลื่อมล้ำ', color: '#DD1367' },
-  11: { nameTh: 'เมืองและชุมชนที่ยั่งยืน', color: '#FD9D24' },
-  12: { nameTh: 'การบริโภคและการผลิตที่รับผิดชอบ', color: '#BF8B2E' },
-  13: { nameTh: 'การรับมือการเปลี่ยนแปลงสภาพภูมิอากาศ', color: '#3F7E44' },
-  14: { nameTh: 'ทรัพยากรทางทะเล', color: '#0A97D9' },
-  15: { nameTh: 'ระบบนิเวศบนบก', color: '#56C02B' },
-  16: { nameTh: 'สันติภาพ ยุติธรรม และสถาบันเข้มแข็ง', color: '#00689D' },
-  17: { nameTh: 'หุ้นส่วนเพื่อการพัฒนา', color: '#19486A' },
-};
+import { SDG_DEFINITIONS } from '@/lib/sdg';
+import { SdgIcon } from '@/components/ui/SdgIcon';
 
 function inkColor(hex: string): string {
   const r = parseInt(hex.slice(1, 3), 16);
@@ -71,14 +53,15 @@ export function SdgSummaryKpiDeck({
   const curCount = data.kpis.distinctProjectsCount;
   const animatedCurCount = useAnimatedNumber(curCount);
 
-  // Yearly totals for SVG line
-  const totals = data.kpis.yearlyTotals || {
-    [curYear - 2]: null,
-    [prevYear]: data.kpis.distinctProjectsCount,
-    [curYear]: data.kpis.distinctProjectsCount,
+  // 3-year dynamic comparison window ending at curYear: [curYear - 2, prevYear, curYear]
+  const years = [curYear - 2, prevYear, curYear];
+  const totals: Record<number, number | null> = {
+    [curYear - 2]: data.kpis.yearlyTotals?.[curYear - 2] ?? null,
+    [prevYear]: data.kpis.yearlyTotals?.[prevYear] ?? null,
+    [curYear]: data.kpis.yearlyTotals?.[curYear] ?? curCount,
   };
 
-  const prevCount = totals[prevYear] !== undefined && totals[prevYear] !== null ? totals[prevYear] : null;
+  const prevCount = totals[prevYear];
 
   // Delta chip
   let chipEl: React.ReactNode = null;
@@ -96,27 +79,27 @@ export function SdgSummaryKpiDeck({
   }
 
   // Trend line points
-  const years = Object.keys(totals).map(Number).sort((a, b) => a - b);
   const maxVal = Math.max(...years.map((y) => totals[y] || 0), 1);
-  const X = [26, 120, 214];
-  const Y = (v: number) => 52 - (v / maxVal) * 38;
+  const X = [24, 120, 224];
+  const baseY = 32;
+  const Y = (v: number) => Math.round(26 - (v / maxVal) * 14);
 
   const pts: Array<[number, number]> = [];
   years.forEach((y, i) => {
     const v = totals[y];
-    if (v !== null && v !== undefined) pts.push([X[i] || 26 + i * 94, Y(v)]);
+    if (v !== null && v !== undefined) pts.push([X[i] || 24 + i * 100, Y(v)]);
   });
 
-  // Top SDG
+  // Top SDG (Card 2)
   const topSdgNum = data.kpis.topSdgNumber || 9;
   const topSdgCount = data.kpis.topSdgCount || 0;
   const animatedTopCount = useAnimatedNumber(topSdgCount);
-  const topInfo = SDG_INFO[topSdgNum] || { nameTh: data.kpis.topSdgNameTh, color: '#FD6925' };
+  const topDef = SDG_DEFINITIONS[topSdgNum] || { nameTh: data.kpis.topSdgNameTh, color: '#FD6925' };
   const topSharePct = curCount > 0 ? Math.round((topSdgCount / curCount) * 100) : 0;
 
-  // Growth SDG
+  // Growth SDG (Card 3)
   const growSdgNum = data.kpis.highestGrowingSdgNumber || 11;
-  const growInfo = SDG_INFO[growSdgNum] || { nameTh: data.kpis.highestGrowingSdgNameTh, color: '#FD9D24' };
+  const growDef = SDG_DEFINITIONS[growSdgNum] || { nameTh: data.kpis.highestGrowingSdgNameTh, color: '#FD9D24' };
   const growFrom = data.kpis.highestGrowingFrom ?? 2;
   const growTo = data.kpis.highestGrowingTo ?? 3;
   const growMax = Math.max(growFrom, growTo, 1);
@@ -128,6 +111,15 @@ export function SdgSummaryKpiDeck({
   const coveredCount = coveredSet.size;
   const animatedCoveredCount = useAnimatedNumber(coveredCount);
 
+  // Hover state for Card 4 Donut Wheel segments
+  const [hoveredSdg, setHoveredSdg] = useState<{
+    number: number;
+    nameTh: string;
+    color: string;
+    isCovered: boolean;
+  } | null>(null);
+  const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
+
   // 17-segment circle math
   const C = 90;
   const R = 70;
@@ -137,7 +129,6 @@ export function SdgSummaryKpiDeck({
   const step = (Math.PI * 2) / n;
 
   const segments: Array<{ i: number; isCovered: boolean; d: string; color: string; name: string }> = [];
-  const missingList: number[] = [];
 
   for (let i = 1; i <= n; i++) {
     const isCovered = coveredSet.has(i);
@@ -146,18 +137,14 @@ export function SdgSummaryKpiDeck({
     const p0 = [C + R * Math.cos(a0), C + R * Math.sin(a0)];
     const p1 = [C + R * Math.cos(a1), C + R * Math.sin(a1)];
     const dPath = `M ${p0[0]} ${p0[1]} A ${R} ${R} 0 0 1 ${p1[0]} ${p1[1]}`;
-    const info = SDG_INFO[i] || { nameTh: `SDG ${i}`, color: '#00A651' };
-
-    if (!isCovered) {
-      missingList.push(i);
-    }
+    const def = SDG_DEFINITIONS[i] || { nameTh: `SDG ${i}`, color: '#00A651' };
 
     segments.push({
       i,
       isCovered,
       d: dPath,
-      color: info.color,
-      name: info.nameTh,
+      color: def.color,
+      name: def.nameTh,
     });
   }
 
@@ -194,103 +181,103 @@ export function SdgSummaryKpiDeck({
         }
         .sdg-kpi-grid {
           display: grid;
-          gap: 16px;
+          gap: 14px;
           grid-template-columns: repeat(4, minmax(0, 1fr));
         }
         .sdg-kpi-card {
           position: relative;
           isolation: isolate;
           border: 1px solid var(--line);
-          border-radius: 26px;
-          padding: 20px 22px 18px;
+          border-radius: 20px;
+          padding: 13px 15px 12px;
           display: flex;
           flex-direction: column;
-          gap: 12px;
+          gap: 8px;
           min-width: 0;
+          height: 100%;
+          box-sizing: border-box;
           overflow: hidden;
           background: radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--ac) var(--tint), var(--card)) 0%, var(--card) 62%);
-          box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 22px 40px -26px color-mix(in srgb, var(--ac) 55%, transparent);
+          box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 18px 36px -24px color-mix(in srgb, var(--ac) 50%, transparent);
           transition: transform 0.2s ease, box-shadow 0.2s ease;
           animation: sdgCardIn 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) both;
         }
         .sdg-kpi-card:nth-child(2) { animation-delay: 0.07s; }
         .sdg-kpi-card:nth-child(3) { animation-delay: 0.14s; }
         .sdg-kpi-card:nth-child(4) { animation-delay: 0.21s; }
-        .sdg-kpi-card:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 30px 48px -24px color-mix(in srgb, var(--ac) 70%, transparent);
+        .sdg-kpi-card.interactive:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 24px 40px -20px color-mix(in srgb, var(--ac) 65%, transparent);
         }
-        .sdg-kpi-card::before {
-          content: "";
-          position: absolute;
-          left: 0;
-          right: 0;
-          top: 0;
-          height: 5px;
-          background: linear-gradient(90deg, var(--ac), color-mix(in srgb, var(--ac) 45%, #fff));
+        .sdg-kpi-card.wheel-card {
+          overflow: visible;
+          z-index: 20;
         }
-        .sdg-kpi-wm {
+        .sdg-kpi-card.wheel-card:hover,
+        .sdg-kpi-card.wheel-card:focus-within {
+          z-index: 50;
+        }
+        /* Top right faint watermark */
+        .sdg-kpi-wm-topright {
           position: absolute;
-          right: -8px;
-          bottom: -34px;
-          z-index: -1;
-          font-size: 150px;
+          right: 12px;
+          top: 0px;
+          z-index: 0;
+          font-size: 58px;
           font-weight: 800;
           line-height: 1;
           color: var(--ac);
-          opacity: 0.1;
+          opacity: 0.11;
           letter-spacing: -0.04em;
           pointer-events: none;
           user-select: none;
         }
         .sdg-kpi-lbl {
           margin: 0;
-          font-size: 13px;
-          font-weight: 600;
-          color: var(--muted);
+          font-size: 14px;
+          font-weight: 700;
+          color: var(--ink);
           line-height: 1.35;
-          min-height: 35px;
           display: flex;
-          align-items: flex-start;
-          gap: 8px;
-        }
-        .sdg-kpi-lbl i {
-          flex: none;
-          width: 8px;
-          height: 8px;
-          margin-top: 5px;
-          border-radius: 50%;
-          background: var(--ac);
-          box-shadow: 0 0 0 4px color-mix(in srgb, var(--ac) 22%, transparent);
+          align-items: center;
         }
         .sdg-kpi-big {
           display: flex;
-          align-items: baseline;
-          gap: 8px;
+          align-items: flex-end;
+          gap: 6px;
           line-height: 1;
         }
         .sdg-kpi-big b {
-          font-size: 46px;
+          font-size: 34px;
           font-weight: 800;
           letter-spacing: -0.03em;
           font-variant-numeric: tabular-nums;
+          line-height: 1;
           background: linear-gradient(135deg, var(--ink) 30%, var(--ac));
           -webkit-background-clip: text;
           background-clip: text;
           color: transparent;
         }
-        .sdg-kpi-big span {
-          font-size: 14px;
+        .sdg-kpi-big span:not(.chip) {
+          font-size: 13px;
           color: var(--muted);
           font-weight: 500;
+          line-height: 1;
+          padding-bottom: 2px;
+        }
+        .sdg-kpi-big .chip {
+          align-self: flex-end;
+          margin-left: 2px;
+          margin-bottom: 0;
         }
         .sdg-kpi-row {
           display: flex;
           flex-wrap: wrap;
           align-items: center;
-          gap: 6px 10px;
-          font-size: 13px;
+          gap: 6px;
+          font-size: 12.5px;
           color: var(--muted);
+          min-height: 24px;
         }
         .chip {
           display: inline-flex;
@@ -299,8 +286,9 @@ export function SdgSummaryKpiDeck({
           font-size: 12.5px;
           font-weight: 700;
           line-height: 1;
-          padding: 6px 11px;
+          padding: 4px 9px;
           border-radius: 999px;
+          white-space: nowrap;
         }
         .chip.up {
           background: var(--upbg);
@@ -313,45 +301,46 @@ export function SdgSummaryKpiDeck({
         .sdg-box {
           display: flex;
           align-items: center;
-          gap: 12px;
+          gap: 10px;
         }
         .sdg-badge-sq {
           flex: none;
-          width: 60px;
-          height: 60px;
-          border-radius: 16px;
+          width: 44px;
+          height: 44px;
+          border-radius: 12px;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
           line-height: 1;
           font-weight: 700;
-          box-shadow: 0 10px 18px -8px var(--ac), inset 0 -3px 0 rgba(0, 0, 0, 0.12);
+          box-shadow: 0 6px 14px -5px var(--ac), inset 0 -2px 0 rgba(0, 0, 0, 0.12);
         }
         .sdg-badge-sq small {
-          font-size: 9.5px;
+          font-size: 8px;
           font-weight: 600;
           letter-spacing: 0.08em;
           opacity: 0.9;
-          margin-bottom: 2px;
+          margin-bottom: 1px;
         }
         .sdg-badge-sq b {
-          font-size: 26px;
+          font-size: 19px;
         }
         .sdg-name {
-          font-size: 15px;
+          font-size: 13.5px;
           font-weight: 600;
-          line-height: 1.3;
+          line-height: 1.25;
           color: var(--ink);
         }
         .sdg-share-row {
           display: flex;
           align-items: center;
           gap: 10px;
+          margin-top: auto;
         }
         .sdg-track {
           flex: 1;
-          height: 10px;
+          height: 8px;
           border-radius: 999px;
           background: var(--soft);
           overflow: hidden;
@@ -365,34 +354,42 @@ export function SdgSummaryKpiDeck({
           animation: sdgGrow 0.9s 0.3s cubic-bezier(0.2, 0.7, 0.2, 1) both;
         }
         .sdg-share-row b {
-          font-size: 14px;
+          font-size: 13.5px;
           font-variant-numeric: tabular-nums;
           color: var(--ink);
         }
-        .sdg-foot {
+        .sdg-trend-svg {
+          display: block;
+          width: 100%;
+          height: 48px;
+          overflow: visible;
           margin-top: auto;
+        }
+        .sdg-trend-svg text {
+          font-family: inherit;
+          fill: var(--muted);
+          font-size: 11.5px;
+          font-weight: 500;
+        }
+        .sdg-trend-svg text.cur-year {
+          fill: var(--ink);
+          font-weight: 700;
+        }
+        .sdg-trend-svg text.v {
+          fill: var(--ink);
+          font-weight: 800;
           font-size: 12.5px;
-          color: var(--muted);
-          line-height: 1.5;
         }
-        .sdg-foot b {
-          color: var(--ink);
-          font-weight: 600;
+        .sdg-trend-svg text.nodata {
+          fill: var(--muted);
+          font-size: 11px;
+          font-weight: 500;
         }
-        .sdg-svg {
+        .sdg-ring-svg {
           display: block;
           width: 100%;
           height: auto;
           overflow: visible;
-        }
-        .sdg-svg text {
-          font-family: inherit;
-          fill: var(--muted);
-          font-size: 11px;
-        }
-        .sdg-svg text.v {
-          fill: var(--ink);
-          font-weight: 700;
         }
         .sdg-line {
           stroke-dasharray: 1;
@@ -401,26 +398,27 @@ export function SdgSummaryKpiDeck({
         }
         .sdg-cmp {
           display: grid;
-          gap: 8px;
+          gap: 6px;
+          margin-top: auto;
         }
         .sdg-cmp div {
           display: grid;
-          grid-template-columns: 44px 1fr 26px;
+          grid-template-columns: 40px 1fr 24px;
           align-items: center;
           gap: 8px;
-          font-size: 12px;
+          font-size: 11.5px;
           color: var(--muted);
         }
         .sdg-cmp .t {
-          height: 14px;
-          border-radius: 7px;
+          height: 10px;
+          border-radius: 5px;
           background: var(--soft);
           overflow: hidden;
         }
         .sdg-cmp .t i {
           display: block;
           height: 100%;
-          border-radius: 7px;
+          border-radius: 5px;
           background: var(--hatch);
           transform-origin: left;
           animation: sdgGrow 0.9s 0.3s cubic-bezier(0.2, 0.7, 0.2, 1) both;
@@ -435,10 +433,10 @@ export function SdgSummaryKpiDeck({
         }
         .ringwrap {
           position: relative;
-          width: min(168px, 100%);
-          margin: 0 auto;
+          width: min(128px, 100%);
+          margin: auto auto 0 auto;
         }
-        .ringwrap .mid {
+        .ringwrap .ring-mid {
           position: absolute;
           inset: 0;
           display: flex;
@@ -446,17 +444,36 @@ export function SdgSummaryKpiDeck({
           align-items: center;
           justify-content: center;
           line-height: 1;
+          pointer-events: none;
         }
-        .ringwrap .mid b {
-          font-size: 38px;
+        .ring-row {
+          display: flex;
+          align-items: baseline;
+          justify-content: center;
+          gap: 2px;
+          line-height: 1;
+        }
+        .ring-count {
+          font-size: 34px;
           font-weight: 800;
-          letter-spacing: -0.02em;
-          color: var(--ink);
+          letter-spacing: -0.03em;
+          font-variant-numeric: tabular-nums;
+          background: linear-gradient(135deg, var(--ink) 25%, #16a34a 65%, #22c55e 100%);
+          -webkit-background-clip: text;
+          background-clip: text;
+          color: transparent;
         }
-        .ringwrap .mid span {
-          font-size: 12px;
+        .ring-slash-denom {
+          font-size: 14px;
+          font-weight: 700;
           color: var(--muted);
-          margin-top: 4px;
+          opacity: 0.8;
+          margin-left: 2px;
+        }
+        .ring-label {
+          font-size: 10.5px;
+          color: var(--muted);
+          margin-top: 1px;
           font-weight: 500;
         }
         .sdg-seg {
@@ -464,34 +481,38 @@ export function SdgSummaryKpiDeck({
           transform-box: fill-box;
           transform-origin: center;
           cursor: pointer;
-          transition: filter 0.2s ease, stroke-width 0.2s ease;
+          transition: filter 0.18s ease, stroke-width 0.18s ease, opacity 0.18s ease;
         }
         .sdg-seg:hover {
-          filter: brightness(1.12) drop-shadow(0 2px 5px rgba(0, 0, 0, 0.25));
-          stroke-width: 22px;
+          filter: brightness(1.15) drop-shadow(0 3px 6px rgba(0, 0, 0, 0.35));
+          stroke-width: 24px;
+          opacity: 1 !important;
         }
-        .sdg-miss {
+        /* Tooltip styled with SdgIcon (size 86) matching image 3 */
+        .sdg-float-tooltip {
+          position: absolute;
+          transform: translate(-50%, -125%);
+          pointer-events: none;
+          z-index: 100;
           display: flex;
-          flex-wrap: wrap;
-          gap: 4px;
-          margin-top: 6px;
+          flex-direction: column;
+          align-items: center;
+          filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.35)) drop-shadow(0 4px 10px rgba(0, 0, 0, 0.15));
+          animation: tooltipFadeIn 0.15s cubic-bezier(0.2, 0.7, 0.2, 1);
         }
-        .sdg-miss i {
-          font-style: normal;
-          font-size: 11px;
-          font-weight: 700;
-          min-width: 24px;
-          text-align: center;
-          padding: 3px 6px;
-          border-radius: 7px;
-          background: var(--off);
-          color: var(--muted);
-          cursor: pointer;
-          transition: background-color 0.15s ease, color 0.15s ease;
+        .sdg-float-tooltip::after {
+          content: "";
+          position: absolute;
+          top: 100%;
+          left: 50%;
+          transform: translateX(-50%);
+          border-width: 7px;
+          border-style: solid;
+          border-color: var(--sdg-c, #ffffff) transparent transparent transparent;
         }
-        .sdg-miss i:hover {
-          background: #cbd5e1;
-          color: #0f172a;
+        @keyframes tooltipFadeIn {
+          from { opacity: 0; transform: translate(-50%, -115%) scale(0.9); }
+          to { opacity: 1; transform: translate(-50%, -125%) scale(1); }
         }
         @keyframes sdgCardIn {
           from { opacity: 0; transform: translateY(14px); }
@@ -518,7 +539,7 @@ export function SdgSummaryKpiDeck({
             grid-template-columns: minmax(0, 1fr);
           }
           .sdg-kpi-big b {
-            font-size: 40px;
+            font-size: 36px;
           }
         }
       `}</style>
@@ -530,49 +551,65 @@ export function SdgSummaryKpiDeck({
           {/* ========================================================================= */}
           <section className="sdg-kpi-card" role="listitem" style={{ ['--ac' as any]: '#6366f1' }}>
             <p className="sdg-kpi-lbl">
-              <i />
               โครงการที่เชื่อมโยงกับ SDGs · ปี {curYear}
             </p>
             <div className="sdg-kpi-big">
               <b>{animatedCurCount}</b>
               <span>โครงการ</span>
-            </div>
-            <div className="sdg-kpi-row">
               {chipEl}
-              {prevCount !== null ? (
-                <span>จาก {prevCount} โครงการ ในปี {prevYear}</span>
-              ) : (
-                <span>เปรียบเทียบย้อนหลัง 3 ปี</span>
-              )}
             </div>
 
-            {/* SVG Trendline */}
-            <svg viewBox="0 0 240 84" className="sdg-svg" role="img" aria-label="แนวโน้มจำนวนโครงการรายปี">
+            {/* SVG Trendline (Full-width compact matching Card 3) */}
+            <svg viewBox="0 0 240 48" className="sdg-trend-svg" role="img" aria-label="แนวโน้มจำนวนโครงการรายปี">
               <defs>
                 <linearGradient id="sdg-ga" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0" stopColor="#6366f1" stopOpacity="0.35" />
+                  <stop offset="0" stopColor="#6366f1" stopOpacity="0.32" />
                   <stop offset="1" stopColor="#6366f1" stopOpacity="0" />
                 </linearGradient>
               </defs>
 
               {pts.length > 1 && (
                 <path
-                  d={`M ${pts.map((p) => p.join(',')).join(' L ')} L ${pts[pts.length - 1][0]},60 L ${pts[0][0]},60 Z`}
+                  d={`M ${pts.map((p) => p.join(',')).join(' L ')} L ${pts[pts.length - 1][0]},${baseY} L ${pts[0][0]},${baseY} Z`}
                   fill="url(#sdg-ga)"
                 />
               )}
 
-              {totals[years[0]] == null && pts.length > 0 && (
-                <line
-                  x1={X[0]}
-                  y1={60}
-                  x2={pts[0][0]}
-                  y2={pts[0][1]}
-                  stroke="var(--hatch)"
-                  strokeWidth="2"
-                  strokeDasharray="3 4"
-                />
-              )}
+              {/* Dashed lines for missing historical points */}
+              {years.map((y, i) => {
+                if (i === 0) return null;
+                const prevVal = totals[years[i - 1]];
+                const curVal = totals[y];
+                if ((prevVal === null || prevVal === undefined) && curVal !== null && curVal !== undefined) {
+                  return (
+                    <line
+                      key={`dash-${y}`}
+                      x1={X[i - 1]}
+                      y1={baseY}
+                      x2={X[i]}
+                      y2={Y(curVal)}
+                      stroke="var(--hatch)"
+                      strokeWidth="1.5"
+                      strokeDasharray="3 3"
+                    />
+                  );
+                }
+                if ((prevVal === null || prevVal === undefined) && (curVal === null || curVal === undefined)) {
+                  return (
+                    <line
+                      key={`dash-base-${y}`}
+                      x1={X[i - 1]}
+                      y1={baseY}
+                      x2={X[i]}
+                      y2={baseY}
+                      stroke="var(--hatch)"
+                      strokeWidth="1.5"
+                      strokeDasharray="3 3"
+                    />
+                  );
+                }
+                return null;
+              })}
 
               {pts.length > 1 && (
                 <polyline
@@ -581,7 +618,7 @@ export function SdgSummaryKpiDeck({
                   points={pts.map((p) => p.join(',')).join(' ')}
                   fill="none"
                   stroke="#6366f1"
-                  strokeWidth="3"
+                  strokeWidth="2.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />
@@ -589,32 +626,32 @@ export function SdgSummaryKpiDeck({
 
               {years.map((y, i) => {
                 const v = totals[y];
-                const x = X[i] || 26 + i * 94;
+                const x = X[i] || 24 + i * 100;
+                const isCurrent = y === curYear;
                 if (v === null || v === undefined) {
                   return (
                     <g key={y}>
-                      <circle cx={x} cy={60} r={5} fill="var(--card)" stroke="var(--hatch)" strokeWidth="2" />
-                      <text x={x} y={48} textAnchor="middle">ไม่มีข้อมูล</text>
-                      <text x={x} y={78} textAnchor="middle">{y}</text>
+                      <circle cx={x} cy={baseY} r={3.5} fill="var(--card)" stroke="var(--hatch)" strokeWidth="1.75" />
+                      <text className="nodata" x={x} y={23} textAnchor="middle">ไม่มีข้อมูล</text>
+                      <text className={isCurrent ? 'cur-year' : ''} x={x} y={46} textAnchor="middle">{y}</text>
                     </g>
                   );
                 }
                 const yPos = Y(v);
-                const isCurrent = y === curYear;
                 return (
                   <g key={y}>
                     <circle
                       cx={x}
                       cy={yPos}
-                      r={isCurrent ? 6 : 4.5}
+                      r={isCurrent ? 4.5 : 3.5}
                       fill={isCurrent ? '#6366f1' : 'var(--card)'}
                       stroke="#6366f1"
-                      strokeWidth="2.5"
+                      strokeWidth="2"
                     />
-                    <text className="v" x={x} y={yPos - 12} textAnchor="middle">
+                    <text className="v" x={x} y={yPos - 5} textAnchor="middle">
                       {v}
                     </text>
-                    <text x={x} y={78} textAnchor="middle">
+                    <text className={isCurrent ? 'cur-year' : ''} x={x} y={46} textAnchor="middle">
                       {y}
                     </text>
                   </g>
@@ -624,34 +661,31 @@ export function SdgSummaryKpiDeck({
           </section>
 
           {/* ========================================================================= */}
-          {/* Card 2: SDG สูงสุด */}
+          {/* Card 2: SDG สูงสุด (เอาไว้ดูเฉย ๆ ไม่สามารถกดได้, เลขจางอยู่ขวาบน) */}
           {/* ========================================================================= */}
           <section
-            className="sdg-kpi-card cursor-pointer"
+            className="sdg-kpi-card"
             role="listitem"
-            style={{ ['--ac' as any]: topInfo.color }}
-            onClick={() => onSelectSdg && onSelectSdg(topSdgNum)}
-            title={`คลิกเพื่อกรอง SDG ${topSdgNum}`}
+            style={{ ['--ac' as any]: topDef.color }}
           >
-            <div className="sdg-kpi-wm" aria-hidden="true">
+            <div className="sdg-kpi-wm-topright" aria-hidden="true">
               {topSdgNum}
             </div>
             <p className="sdg-kpi-lbl">
-              <i />
               SDG ที่มีจำนวนโครงการสูงสุด
             </p>
             <div className="sdg-box">
               <div
                 className="sdg-badge-sq"
                 style={{
-                  background: topInfo.color,
-                  color: inkColor(topInfo.color),
+                  background: topDef.color,
+                  color: inkColor(topDef.color),
                 }}
               >
                 <small>SDG</small>
                 <b>{topSdgNum}</b>
               </div>
-              <div className="sdg-name">{topInfo.nameTh}</div>
+              <div className="sdg-name">{topDef.nameTh}</div>
             </div>
             <div className="sdg-kpi-big">
               <b>{animatedTopCount}</b>
@@ -663,38 +697,34 @@ export function SdgSummaryKpiDeck({
               </div>
               <b>{topSharePct}%</b>
             </div>
-            <div className="sdg-foot">ของโครงการทั้งหมด · 1 โครงการอาจเชื่อมได้หลาย SDG</div>
           </section>
 
           {/* ========================================================================= */}
-          {/* Card 3: SDG เติบโตสูงสุด */}
+          {/* Card 3: SDG เติบโตสูงสุด (เอาไว้ดูเฉย ๆ ไม่สามารถกดได้, เลขจางอยู่ขวาบน) */}
           {/* ========================================================================= */}
           <section
-            className="sdg-kpi-card cursor-pointer"
+            className="sdg-kpi-card"
             role="listitem"
-            style={{ ['--ac' as any]: growInfo.color }}
-            onClick={() => onSelectSdg && onSelectSdg(growSdgNum)}
-            title={`คลิกเพื่อกรอง SDG ${growSdgNum}`}
+            style={{ ['--ac' as any]: growDef.color }}
           >
-            <div className="sdg-kpi-wm" aria-hidden="true">
+            <div className="sdg-kpi-wm-topright" aria-hidden="true">
               {growSdgNum}
             </div>
             <p className="sdg-kpi-lbl">
-              <i />
               SDG ที่เติบโตสูงสุดเทียบปี {prevYear}
             </p>
             <div className="sdg-box">
               <div
                 className="sdg-badge-sq"
                 style={{
-                  background: growInfo.color,
-                  color: inkColor(growInfo.color),
+                  background: growDef.color,
+                  color: inkColor(growDef.color),
                 }}
               >
                 <small>SDG</small>
                 <b>{growSdgNum}</b>
               </div>
-              <div className="sdg-name">{growInfo.nameTh}</div>
+              <div className="sdg-name">{growDef.nameTh}</div>
             </div>
             <div className="sdg-kpi-big">
               <b>+{animatedGrowPct}%</b>
@@ -716,57 +746,86 @@ export function SdgSummaryKpiDeck({
                 <b>{growTo}</b>
               </div>
             </div>
-            <div className="sdg-foot">จำนวนโครงการ · เฉพาะ SDG ที่มีโครงการในปีก่อนหน้า</div>
           </section>
 
           {/* ========================================================================= */}
-          {/* Card 4: วงล้อ SDG 17 ช่อง */}
+          {/* Card 4: วงล้อ SDG 17 ช่อง (Tooltip สไตล์ภาพที่ 2 & 3, ตัดส่วนล่างออก) */}
           {/* ========================================================================= */}
-          <section className="sdg-kpi-card" role="listitem" style={{ ['--ac' as any]: '#16a34a' }}>
+          <section className="sdg-kpi-card wheel-card" role="listitem" style={{ ['--ac' as any]: '#16a34a' }}>
             <p className="sdg-kpi-lbl">
-              <i />
               ความครอบคลุมเป้าหมาย SDGs
             </p>
             <div className="ringwrap">
-              <svg viewBox="0 0 180 180" className="sdg-svg" role="img" aria-label="วงล้อความครอบคลุม SDGs">
+              <svg viewBox="0 0 180 180" className="sdg-ring-svg" role="img" aria-label="วงล้อความครอบคลุม SDGs">
                 {segments.map((seg) => (
                   <path
                     key={seg.i}
                     className="sdg-seg"
-                    style={{ animationDelay: `${seg.i * 0.04 + 0.2}s` }}
+                    style={{ animationDelay: `${seg.i * 0.03 + 0.15}s` }}
                     d={seg.d}
                     fill="none"
                     stroke={seg.isCovered ? seg.color : 'var(--off)'}
+                    opacity={seg.isCovered ? 1 : 0.5}
                     strokeWidth={SW}
                     strokeLinecap="butt"
+                    onMouseEnter={(e) => {
+                      setHoveredSdg({
+                        number: seg.i,
+                        nameTh: seg.name,
+                        color: seg.color,
+                        isCovered: seg.isCovered,
+                      });
+                      const rect = e.currentTarget.closest('.ringwrap')?.getBoundingClientRect();
+                      if (rect) {
+                        setTooltipPos({
+                          x: e.clientX - rect.left,
+                          y: e.clientY - rect.top,
+                        });
+                      }
+                    }}
+                    onMouseMove={(e) => {
+                      const rect = e.currentTarget.closest('.ringwrap')?.getBoundingClientRect();
+                      if (rect) {
+                        setTooltipPos({
+                          x: e.clientX - rect.left,
+                          y: e.clientY - rect.top,
+                        });
+                      }
+                    }}
+                    onMouseLeave={() => {
+                      setHoveredSdg(null);
+                      setTooltipPos(null);
+                    }}
                     onClick={() => onSelectSdg && onSelectSdg(seg.i)}
-                  >
-                    <title>
-                      {`SDG ${seg.i} · ${seg.name}${seg.isCovered ? '' : ' (ยังไม่มีโครงการ)'}`}
-                    </title>
-                  </path>
+                  />
                 ))}
               </svg>
-              <div className="mid">
-                <b>
-                  <span>{animatedCoveredCount}</span>
-                  <small style={{ fontSize: '18px', color: 'var(--muted)' }}> / 17</small>
-                </b>
-                <span>เป้าหมาย</span>
-              </div>
-            </div>
-            <div className="sdg-foot">
-              <b>ยังไม่มีโครงการ {missingList.length} เป้าหมาย</b>
-              <div className="sdg-miss">
-                {missingList.map((missNum) => (
-                  <i
-                    key={missNum}
-                    title={SDG_INFO[missNum]?.nameTh || `SDG ${missNum}`}
-                    onClick={() => onSelectSdg && onSelectSdg(missNum)}
+
+              {/* Floating Tooltip with SdgIcon (size 86) matching Image 3 */}
+              {hoveredSdg && tooltipPos && (
+                <div
+                  className="sdg-float-tooltip"
+                  style={{
+                    left: `${tooltipPos.x}px`,
+                    top: `${tooltipPos.y}px`,
+                    ['--sdg-c' as any]: hoveredSdg.color,
+                  }}
+                >
+                  <div
+                    className="w-[86px] h-[86px] rounded-2xl overflow-hidden flex items-center justify-center shadow-xl ring-2 ring-white/90 dark:ring-slate-700 bg-white"
+                    style={{ backgroundColor: hoveredSdg.color }}
                   >
-                    {missNum}
-                  </i>
-                ))}
+                    <SdgIcon n={hoveredSdg.number} size={86} />
+                  </div>
+                </div>
+              )}
+
+              <div className="ring-mid">
+                <div className="ring-row">
+                  <span className="ring-count">{animatedCoveredCount}</span>
+                  <span className="ring-slash-denom">/ 17</span>
+                </div>
+                <span className="ring-label">เป้าหมาย</span>
               </div>
             </div>
           </section>

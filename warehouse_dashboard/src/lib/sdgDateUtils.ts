@@ -59,8 +59,9 @@ export function extractRecordDate(item: any, category: string): { year: number; 
   // If rawDate is duration string like '12 เดือน' or '-' or missing, fallback to fiscal_year or year in id
   const rawStr = String(rawDate || '').trim();
   if (!rawDate || /^\d+\s*เดือน/.test(rawStr) || rawStr === '-' || rawStr === 'nan' || rawStr === 'NaT') {
-    if (item.fiscal_year && /^\d{4}$/.test(String(item.fiscal_year).trim())) {
-      rawDate = String(item.fiscal_year).trim();
+    const fyVal = item.fiscal_year || item.fiscal_year_be || item.fiscalYear || item.fiscalYearBe;
+    if (fyVal && /^\d{4}$/.test(String(fyVal).trim())) {
+      rawDate = String(fyVal).trim();
     } else {
       const idMatch = String(item.id || '').match(/(25\d{2}|20\d{2})/);
       if (idMatch) {

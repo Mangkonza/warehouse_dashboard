@@ -182,17 +182,10 @@ function getRelativeLuminance(hex: string): number {
 }
 
 /**
- * Determines text color (#ffffff vs #111111) for an SDG goal based on WCAG contrast ratio (>= 4.5:1).
+ * Determines text color for an SDG goal (consistently #ffffff as requested).
  */
-export function getSdgTextColor(n: number): string {
-  const def = SDG_DEFINITIONS[n];
-  if (!def) return '#ffffff';
-
-  const lum = getRelativeLuminance(def.color);
-  const contrastWhite = 1.05 / (lum + 0.05);
-
-  // If contrast against white is >= 4.5:1, use white; otherwise dark charcoal #111111
-  return contrastWhite >= 4.5 ? '#ffffff' : '#111111';
+export function getSdgTextColor(n?: number): string {
+  return '#ffffff';
 }
 
 /**

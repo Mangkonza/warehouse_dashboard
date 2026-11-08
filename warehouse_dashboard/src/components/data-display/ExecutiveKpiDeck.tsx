@@ -500,8 +500,8 @@ export function ExecutiveKpiDeck({
   const splitAWidth = Math.max(0, Math.min(100, (blueprintCard.splitRatio ?? 0.5) * 100));
   const splitBWidth = Math.max(0, 100 - splitAWidth);
 
-  // Tally Bars calculations (25 bars standard)
-  const TALLY_TOTAL = 25;
+  // Tally Bars calculations (24 bars matching progress-card.html)
+  const TALLY_TOTAL = 24;
   const tallyPercent =
     tallyCard.percent !== undefined
       ? tallyCard.percent
@@ -509,6 +509,12 @@ export function ExecutiveKpiDeck({
         ? ((Number(tallyCard.activeCount || tallyCard.value) || 0) / tallyCard.totalCount) * 100
         : 50;
   const activeTallyCount = Math.round((Math.max(0, Math.min(100, tallyPercent)) / 100) * TALLY_TOTAL);
+  const numericTallyPercent = Math.max(0, Math.min(100, Number(tallyPercent) || 0));
+  const pinPos = Math.max(6, Math.min(94, numericTallyPercent));
+  const displayTallyPercent =
+    Number(numericTallyPercent.toFixed(1)) % 1 === 0
+      ? `${Math.round(numericTallyPercent)}%`
+      : `${numericTallyPercent.toFixed(1)}%`;
 
   // Ruler pin position calculation
   const rulerRatio = rulerCard.max > 0 ? Math.max(0, Math.min(1, rulerCard.current / rulerCard.max)) : 0;
@@ -1244,27 +1250,10 @@ export function ExecutiveKpiDeck({
       >
         <EngineeringCornerTicks color={tokens.border} />
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', position: 'relative' }}>
-          <div>
-            <div style={{ fontSize: '15px', fontWeight: 600, color: tokens.textLabel }}>
-              {tallyCard.label}
-            </div>
+        <div style={{ position: 'relative' }}>
+          <div style={{ fontSize: '15px', fontWeight: 600, color: tokens.textLabel }}>
+            {tallyCard.label}
           </div>
-          <span
-            style={{
-              fontSize: '12.5px',
-              fontWeight: 700,
-              padding: '2px 9px',
-              borderRadius: '999px',
-              background: tokens.chipBg,
-              color: tokens.chipText,
-              border: `1px solid ${tokens.chipBorder}`,
-              whiteSpace: 'nowrap',
-              fontVariantNumeric: 'tabular-nums',
-            }}
-          >
-            {tallyCard.chip}
-          </span>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', columnGap: '8px', marginTop: '6px', position: 'relative' }}>
@@ -1276,15 +1265,56 @@ export function ExecutiveKpiDeck({
           </span>
         </div>
 
-        {/* Digital Segmented LED Oscilloscope Bar */}
-        <div style={{ position: 'relative', marginTop: 'auto' }}>
+        {/* Digital Segmented LED Bar with Progress Badge matching progress-card.html */}
+        <div style={{ position: 'relative', marginTop: 'auto', paddingTop: '32px' }}>
+          {/* Progress Badge Callout: style directly from progress-card.html */}
+          <div
+            style={{
+              position: 'absolute',
+              left: `${pinPos}%`,
+              top: '-6px',
+              transform: 'translateX(-50%)',
+              padding: '4px 13px',
+              fontSize: '15px',
+              fontWeight: 700,
+              lineHeight: 1.2,
+              color: '#ffffff',
+              background: '#1f2a44',
+              border: '2px solid #ffffff',
+              borderRadius: '999px',
+              boxShadow: '0 4px 10px rgba(31, 42, 68, 0.35)',
+              whiteSpace: 'nowrap',
+              fontVariantNumeric: 'tabular-nums',
+              transition: 'left 0.6s cubic-bezier(0.2, 0.7, 0.2, 1)',
+              pointerEvents: 'none',
+              zIndex: 2,
+            }}
+          >
+            {displayTallyPercent}
+            {/* Arrow pointer matching .progress-badge::after in progress-card.html */}
+            <div
+              style={{
+                content: '""',
+                position: 'absolute',
+                left: '50%',
+                bottom: '-6px',
+                width: '9px',
+                height: '9px',
+                background: '#1f2a44',
+                borderRight: '2px solid #ffffff',
+                borderBottom: '2px solid #ffffff',
+                transform: 'translateX(-50%) rotate(45deg)',
+              }}
+            />
+          </div>
+
           <div
             role="img"
             aria-label={tallyCard.label}
             style={{
               display: 'flex',
               gap: '3px',
-              height: '18px',
+              height: '20px',
             }}
           >
             {Array.from({ length: TALLY_TOTAL }).map((_, i) => (
@@ -1292,7 +1322,7 @@ export function ExecutiveKpiDeck({
                 key={i}
                 style={{
                   flex: 1,
-                  borderRadius: '2.5px',
+                  borderRadius: '4px',
                   background: i < activeTallyCount ? tokens.tallyOn : tokens.tallyTrack,
                   boxShadow: i < activeTallyCount ? '0 1px 3px rgba(0,0,0,0.12)' : 'none',
                   transition: 'background 0.3s ease',
@@ -1307,10 +1337,10 @@ export function ExecutiveKpiDeck({
               display: 'flex',
               justifyContent: 'space-between',
               fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-              fontSize: '9px',
-              fontWeight: 600,
-              color: '#94a3b8',
-              marginTop: '4px',
+              fontSize: '10px',
+              fontWeight: 500,
+              color: '#8b93a7',
+              marginTop: '6px',
             }}
           >
             <span>0%</span>

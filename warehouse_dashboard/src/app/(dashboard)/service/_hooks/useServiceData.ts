@@ -1,5 +1,41 @@
 'use client';
 
+// Regex matching Thai titles (compound/longest prefixes first)
+const ACADEMIC_PREFIX_REGEX = /(ศ\.ดร\.|รศ\.ดร\.|ผศ\.ดร\.|อ\.ดร\.|ศาสตราจารย์\s*ดร\.|รองศาสตราจารย์\s*ดร\.|ผู้ช่วยศาสตราจารย์\s*ดร\.|อาจารย์\s*ดร\.|ศาสตราจารย์|รองศาสตราจารย์|ผู้ช่วยศาสตราจารย์|อาจารย์|ศ\.|รศ\.|ผศ\.|อ\.|ดร\.|นางสาว|นาง|นาย|น\.ส\.|ว่าที่ร\.ต\.)/g;
+
+export function extractAcademicPersonsFromService(raw: string): string[] {
+  if (!raw || raw === 'ไม่ระบุ' || raw === '-' || raw === 'nan') return [];
+  const str = String(raw).trim();
+  const matches: { index: number; prefix: string }[] = [];
+  let m: RegExpExecArray | null;
+  const regex = new RegExp(ACADEMIC_PREFIX_REGEX);
+  while ((m = regex.exec(str)) !== null) {
+    matches.push({ index: m.index, prefix: m[0] });
+  }
+
+  if (matches.length === 0) {
+    return [];
+  }
+
+  const results: string[] = [];
+  for (let i = 0; i < matches.length; i++) {
+    const start = matches[i].index;
+    const end = i + 1 < matches.length ? matches[i + 1].index : str.length;
+    let name = str.substring(start, end).replace(/[\r\n,;]+/g, ' ').replace(/\s+/g, ' ').trim();
+    name = name.replace(/\(ที่ปรึกษา\)/g, '').trim();
+
+    // Include only actual academic instructors (ศ., รศ., ผศ., อ., ดร., อาจารย์) and exclude นาย, นาง, นางสาว
+    if (
+      name &&
+      !/^(นาย|นางสาว|นาง|น\.ส\.|ว่าที่ร\.ต\.)/i.test(name) &&
+      /^(ศ\.ดร\.|รศ\.ดร\.|ผศ\.ดร\.|อ\.ดร\.|ศ\.|รศ\.|ผศ\.|อ\.|ดร\.|อาจารย์|ศาสตราจารย์|รองศาสตราจารย์|ผู้ช่วยศาสตราจารย์)/i.test(name)
+    ) {
+      results.push(name);
+    }
+  }
+  return results;
+}
+
 import { useState, useEffect, useMemo } from 'react';
 import serviceData from '@/data/services.json';
 import { getCachedCategoryData, fetchCategoryData } from '@/lib/dataService';
@@ -127,9 +163,12 @@ export function useServiceData(timeFilter?: TimeFilterState) {
   }, [dataList, timeFilter]);
 
   const uniquePersons = useMemo(() => {
-    return new Set(
-      validData.map((d) => String(d.person || '').trim()).filter((p): p is string => Boolean(p && p !== 'nan' && p !== '-'))
-    );
+    const set = new Set<string>();
+    validData.forEach((d) => {
+      const list = extractAcademicPersonsFromService(d.person || '');
+      list.forEach((p) => set.add(p));
+    });
+    return set;
   }, [validData]);
 
   const uniqueTargets = useMemo(() => {

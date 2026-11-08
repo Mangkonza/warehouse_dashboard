@@ -24,6 +24,8 @@ import { StrategicAlignmentMatrix } from '@/components/data-display';
 import { DrillDownProjectDrawer, DepartmentBadge } from '@/components/ui';
 import { CHART_PASTEL_PALETTE } from '@/lib/pastelTheme';
 import '../../research/_components/research-redesign.css';
+import { YearSelectDropdown } from '@/components/ui/YearSelectDropdown';
+import { STANDARD_YEAR_OPTIONS, getDefaultCompareYear } from '@/lib/fiscalYears';
 
 const UCOL: Record<string, string> = {
   AE: '#65B98A',
@@ -182,13 +184,8 @@ export function IPCharts({
   const sourcePool = useMemo(() => (allItems && allItems.length > 0 ? allItems : validIpData), [allItems, validIpData]);
 
   const availableYears = useMemo(() => {
-    const ys = new Set<string>(['2570', '2569', '2568', '2567']);
-    sourcePool.forEach((it) => {
-      const y = getIPFiscalYear(it);
-      if (y && /^25\d{2}$/.test(y)) ys.add(y);
-    });
-    return Array.from(ys).sort((a, b) => Number(b) - Number(a));
-  }, [sourcePool]);
+    return Array.from(STANDARD_YEAR_OPTIONS);
+  }, []);
 
   // ── Chart 1: การกระจายตัวตาม 7 สังกัด (แยกตามประเภท) states ──
   const [ip1Year, setIp1Year] = useState<string>('all');
@@ -196,6 +193,12 @@ export function IPCharts({
   const [ip1CmpYear, setIp1CmpYear] = useState<string>('2567');
   const [ip1Layout, setIp1Layout] = useState<'grouped' | 'stacked'>('stacked');
   const [ip1HoverIdx, setIp1HoverIdx] = useState<number | null>(null);
+  const [ip1ShowPetty, setIp1ShowPetty] = useState<boolean>(true);
+  const [ip1ShowPatent, setIp1ShowPatent] = useState<boolean>(true);
+  const [ip1ShowCopyright, setIp1ShowCopyright] = useState<boolean>(true);
+  const [ip1ShowGranted, setIp1ShowGranted] = useState<boolean>(true);
+  const [ip1ShowPending, setIp1ShowPending] = useState<boolean>(true);
+  const [ip1ShowPrep, setIp1ShowPrep] = useState<boolean>(true);
 
   // ── Chart 2: สัดส่วนประเภททรัพย์สินทางปัญญา states ──
   const [ip2Year, setIp2Year] = useState<string>('all');
@@ -426,7 +429,7 @@ export function IPCharts({
 
   // ── Data Memo 4: Fiscal Year Trend ──
   const ip4TrendData = useMemo(() => {
-    const years = ['2567', '2568', '2569', '2570'];
+    const years = [...STANDARD_YEAR_OPTIONS].reverse();
     const rows = years.map((yr, idx) => {
       const items = sourcePool.filter((it) => getIPFiscalYear(it) === yr);
       const prevYr = idx > 0 ? years[idx - 1] : null;
@@ -683,24 +686,16 @@ export function IPCharts({
                 การกระจายตัวตาม 7 สังกัด ({deptStackMode === 'type' ? 'แยกตามประเภท' : 'แยกตามสถานะ'})
               </h2>
               <div className="rr-ctrls">
-                <div className="rr-sel">
-                  <span>ปี</span>
-                  <select
-                    value={ip1Year}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      setIp1Year(v);
-                      if (v !== 'all') setIp1CmpYear(String(Number(v) - 1));
-                    }}
-                  >
-                    <option value="all">ทั้งหมด</option>
-                    {availableYears.map((y) => (
-                      <option key={y} value={y}>
-                        {y}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <YearSelectDropdown
+                  label="ปี"
+                  value={ip1Year}
+                  onChange={(v) => {
+                    setIp1Year(v);
+                    if (v !== 'all') setIp1CmpYear(getDefaultCompareYear(v, availableYears));
+                  }}
+                  includeAll={true}
+                  allPosition="top"
+                />
 
                 <div className="rr-seg-ctl">
                   <button
@@ -720,18 +715,13 @@ export function IPCharts({
                 </div>
 
                 {ip1Mode === 'yoy' ? (
-                  <div className="rr-sel">
-                    <span>เทียบกับปี</span>
-                    <select value={ip1CmpYear} onChange={(e) => setIp1CmpYear(e.target.value)}>
-                      {availableYears
-                        .filter((y) => y !== ip1Year)
-                        .map((y) => (
-                          <option key={y} value={y}>
-                            {y}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
+                  <YearSelectDropdown
+                    label="เทียบกับปี"
+                    value={ip1CmpYear}
+                    onChange={(v) => setIp1CmpYear(v)}
+                    excludeYear={ip1Year}
+                    includeAll={false}
+                  />
                 ) : (
                   <div className="rr-seg-ctl">
                     <button
@@ -773,38 +763,98 @@ export function IPCharts({
             <div className="rr-legend">
               {deptStackMode === 'type' ? (
                 <>
-                  <span className="rr-pill" style={{ cursor: 'default' }}>
-                    <span className="rr-sw" style={{ backgroundColor: '#8b5cf6' }} />
+                  <button
+                    type="button"
+                    className="rr-pill"
+                    style={{ '--c': '#8b5cf6' } as React.CSSProperties}
+                    aria-pressed={ip1ShowPetty}
+                    onClick={() => {
+                      const activeCount = (ip1ShowPetty ? 1 : 0) + (ip1ShowPatent ? 1 : 0) + (ip1ShowCopyright ? 1 : 0);
+                      if (ip1ShowPetty && activeCount <= 1) return;
+                      setIp1ShowPetty(!ip1ShowPetty);
+                    }}
+                  >
+                    <i />
                     อนุสิทธิบัตร
-                  </span>
-                  <span className="rr-pill" style={{ cursor: 'default' }}>
-                    <span className="rr-sw" style={{ backgroundColor: '#3b82f6' }} />
+                  </button>
+                  <button
+                    type="button"
+                    className="rr-pill"
+                    style={{ '--c': '#3b82f6' } as React.CSSProperties}
+                    aria-pressed={ip1ShowPatent}
+                    onClick={() => {
+                      const activeCount = (ip1ShowPetty ? 1 : 0) + (ip1ShowPatent ? 1 : 0) + (ip1ShowCopyright ? 1 : 0);
+                      if (ip1ShowPatent && activeCount <= 1) return;
+                      setIp1ShowPatent(!ip1ShowPatent);
+                    }}
+                  >
+                    <i />
                     สิทธิบัตรการประดิษฐ์
-                  </span>
-                  <span className="rr-pill" style={{ cursor: 'default' }}>
-                    <span className="rr-sw" style={{ backgroundColor: '#10b981' }} />
+                  </button>
+                  <button
+                    type="button"
+                    className="rr-pill"
+                    style={{ '--c': '#10b981' } as React.CSSProperties}
+                    aria-pressed={ip1ShowCopyright}
+                    onClick={() => {
+                      const activeCount = (ip1ShowPetty ? 1 : 0) + (ip1ShowPatent ? 1 : 0) + (ip1ShowCopyright ? 1 : 0);
+                      if (ip1ShowCopyright && activeCount <= 1) return;
+                      setIp1ShowCopyright(!ip1ShowCopyright);
+                    }}
+                  >
+                    <i />
                     ลิขสิทธิ์ / อื่นๆ
-                  </span>
+                  </button>
                 </>
               ) : (
                 <>
-                  <span className="rr-pill" style={{ cursor: 'default' }}>
-                    <span className="rr-sw" style={{ backgroundColor: '#10b981' }} />
+                  <button
+                    type="button"
+                    className="rr-pill"
+                    style={{ '--c': '#10b981' } as React.CSSProperties}
+                    aria-pressed={ip1ShowGranted}
+                    onClick={() => {
+                      const activeCount = (ip1ShowGranted ? 1 : 0) + (ip1ShowPending ? 1 : 0) + (ip1ShowPrep ? 1 : 0);
+                      if (ip1ShowGranted && activeCount <= 1) return;
+                      setIp1ShowGranted(!ip1ShowGranted);
+                    }}
+                  >
+                    <i />
                     ได้รับความคุ้มครองแล้ว
-                  </span>
-                  <span className="rr-pill" style={{ cursor: 'default' }}>
-                    <span className="rr-sw" style={{ backgroundColor: '#3b82f6' }} />
+                  </button>
+                  <button
+                    type="button"
+                    className="rr-pill"
+                    style={{ '--c': '#3b82f6' } as React.CSSProperties}
+                    aria-pressed={ip1ShowPending}
+                    onClick={() => {
+                      const activeCount = (ip1ShowGranted ? 1 : 0) + (ip1ShowPending ? 1 : 0) + (ip1ShowPrep ? 1 : 0);
+                      if (ip1ShowPending && activeCount <= 1) return;
+                      setIp1ShowPending(!ip1ShowPending);
+                    }}
+                  >
+                    <i />
                     ยื่นคำขอแล้ว
-                  </span>
-                  <span className="rr-pill" style={{ cursor: 'default' }}>
-                    <span className="rr-sw" style={{ backgroundColor: '#f59e0b' }} />
+                  </button>
+                  <button
+                    type="button"
+                    className="rr-pill"
+                    style={{ '--c': '#f59e0b' } as React.CSSProperties}
+                    aria-pressed={ip1ShowPrep}
+                    onClick={() => {
+                      const activeCount = (ip1ShowGranted ? 1 : 0) + (ip1ShowPending ? 1 : 0) + (ip1ShowPrep ? 1 : 0);
+                      if (ip1ShowPrep && activeCount <= 1) return;
+                      setIp1ShowPrep(!ip1ShowPrep);
+                    }}
+                  >
+                    <i />
                     เตรียมความพร้อมยื่นจด
-                  </span>
+                  </button>
                 </>
               )}
               {ip1Mode === 'yoy' && (
-                <span className="rr-pill" style={{ cursor: 'default' }}>
-                  <span className="rr-sw" style={{ backgroundColor: '#cbd5e1' }} />
+                <span className="rr-pill st" style={{ '--c': '#cbd5e1' } as React.CSSProperties}>
+                  <i />
                   ปี {ip1DeptData.cmpYr}
                 </span>
               )}
@@ -824,10 +874,40 @@ export function IPCharts({
                 const plotH = plotB - padT;
                 const colW = plotW / rows.length;
 
+                const getRowTotal = (r: typeof rows[0]) => {
+                  if (deptStackMode === 'type') {
+                    return (
+                      (ip1ShowPetty ? r.petty : 0) +
+                      (ip1ShowPatent ? r.patent : 0) +
+                      (ip1ShowCopyright ? r.copyright : 0)
+                    );
+                  }
+                  return (
+                    (ip1ShowGranted ? r.granted : 0) +
+                    (ip1ShowPending ? r.pending : 0) +
+                    (ip1ShowPrep ? r.prep : 0)
+                  );
+                };
+
+                const getRowPrevTotal = (r: typeof rows[0]) => {
+                  if (deptStackMode === 'type') {
+                    return (
+                      (ip1ShowPetty ? r.prevSeg.petty : 0) +
+                      (ip1ShowPatent ? r.prevSeg.patent : 0) +
+                      (ip1ShowCopyright ? r.prevSeg.copyright : 0)
+                    );
+                  }
+                  return (
+                    (ip1ShowGranted ? r.prevSeg.granted : 0) +
+                    (ip1ShowPending ? r.prevSeg.pending : 0) +
+                    (ip1ShowPrep ? r.prevSeg.prep : 0)
+                  );
+                };
+
                 const maxValRaw = Math.max(
                   4,
-                  ...rows.map((r) => r.total),
-                  ...(isYoy ? rows.map((r) => r.prevTotal) : [0])
+                  ...rows.map(getRowTotal),
+                  ...(isYoy ? rows.map(getRowPrevTotal) : [0])
                 );
                 const maxVal = Math.ceil(maxValRaw * 1.2);
                 const yTicks = [0, Math.round(maxVal / 3), Math.round((maxVal * 2) / 3), maxVal];
@@ -861,23 +941,25 @@ export function IPCharts({
                     {rows.map((r, i) => {
                       const cx = padL + i * colW + colW / 2;
                       const isHov = ip1HoverIdx === i;
+                      const curTotal = getRowTotal(r);
+                      const prevTotal = getRowPrevTotal(r);
                       const segs =
                         deptStackMode === 'type'
                           ? [
-                              { label: 'อนุสิทธิบัตร', val: r.petty, color: '#8b5cf6' },
-                              { label: 'สิทธิบัตรการประดิษฐ์', val: r.patent, color: '#3b82f6' },
-                              { label: 'ลิขสิทธิ์ / อื่นๆ', val: r.copyright, color: '#10b981' },
+                              { key: 'petty', label: 'อนุสิทธิบัตร', val: r.petty, color: '#8b5cf6', visible: ip1ShowPetty },
+                              { key: 'patent', label: 'สิทธิบัตรการประดิษฐ์', val: r.patent, color: '#3b82f6', visible: ip1ShowPatent },
+                              { key: 'copyright', label: 'ลิขสิทธิ์ / อื่นๆ', val: r.copyright, color: '#10b981', visible: ip1ShowCopyright },
                             ]
                           : [
-                              { label: 'ได้รับความคุ้มครองแล้ว', val: r.granted, color: '#10b981' },
-                              { label: 'ยื่นคำขอแล้ว', val: r.pending, color: '#3b82f6' },
-                              { label: 'เตรียมความพร้อมยื่นจด', val: r.prep, color: '#f59e0b' },
+                              { key: 'granted', label: 'ได้รับความคุ้มครองแล้ว', val: r.granted, color: '#10b981', visible: ip1ShowGranted },
+                              { key: 'pending', label: 'ยื่นคำขอแล้ว', val: r.pending, color: '#3b82f6', visible: ip1ShowPending },
+                              { key: 'prep', label: 'เตรียมความพร้อมยื่นจด', val: r.prep, color: '#f59e0b', visible: ip1ShowPrep },
                             ];
 
                       return (
                         <g
                           key={`ip1-col-${r.code}`}
-                          style={{ cursor: r.items.length > 0 ? 'pointer' : 'default' }}
+                          style={{ cursor: curTotal > 0 || (isYoy && prevTotal > 0) ? 'pointer' : 'default' }}
                           onMouseEnter={(e) => {
                             setIp1HoverIdx(i);
                             setTip({
@@ -886,11 +968,23 @@ export function IPCharts({
                               y: e.clientY,
                               title: `${r.name} (${r.code})`,
                               color: r.color,
-                              val: `${r.total} รายการ`,
+                              val: `${curTotal} รายการ`,
                               sub:
                                 deptStackMode === 'type'
-                                  ? `อนุสิทธิบัตร ${r.petty} • สิทธิบัตร ${r.patent} • ลิขสิทธิ์ ${r.copyright}`
-                                  : `คุ้มครองแล้ว ${r.granted} • ยื่นคำขอ ${r.pending} • เตรียมยื่น ${r.prep}`,
+                                  ? [
+                                      ip1ShowPetty ? `อนุสิทธิบัตร ${r.petty}` : null,
+                                      ip1ShowPatent ? `สิทธิบัตร ${r.patent}` : null,
+                                      ip1ShowCopyright ? `ลิขสิทธิ์ ${r.copyright}` : null,
+                                    ]
+                                      .filter(Boolean)
+                                      .join(' • ')
+                                  : [
+                                      ip1ShowGranted ? `คุ้มครองแล้ว ${r.granted}` : null,
+                                      ip1ShowPending ? `ยื่นคำขอ ${r.pending}` : null,
+                                      ip1ShowPrep ? `เตรียมยื่น ${r.prep}` : null,
+                                    ]
+                                      .filter(Boolean)
+                                      .join(' • '),
                             });
                           }}
                           onMouseMove={(e) => setTip((prev) => ({ ...prev, x: e.clientX, y: e.clientY }))}
@@ -899,13 +993,24 @@ export function IPCharts({
                             setTip((prev) => ({ ...prev, show: false }));
                           }}
                           onClick={() => {
-                            if (r.items.length > 0) {
+                            const filteredItems = r.items.filter((it) => {
+                              if (deptStackMode === 'type') {
+                                const tk = getIPTypeKey(it);
+                                if (tk === 'petty') return ip1ShowPetty;
+                                if (tk === 'patent') return ip1ShowPatent;
+                                return ip1ShowCopyright;
+                              }
+                              if (it._pipelineStage === 'granted') return ip1ShowGranted;
+                              if (it._pipelineStage === 'pending') return ip1ShowPending;
+                              return ip1ShowPrep;
+                            });
+                            if (filteredItems.length > 0) {
                               setDrillDown({
                                 isOpen: true,
                                 title: `ทรัพย์สินทางปัญญา: สังกัด ${r.name} (${r.code})`,
-                                subtitle: `รวม ${r.total} รายการ (อนุสิทธิบัตร ${r.petty}, สิทธิบัตร ${r.patent}, ลิขสิทธิ์ ${r.copyright})`,
+                                subtitle: `รวม ${curTotal} รายการ (${deptStackMode === 'type' ? [ip1ShowPetty ? `อนุสิทธิบัตร ${r.petty}` : null, ip1ShowPatent ? `สิทธิบัตร ${r.patent}` : null, ip1ShowCopyright ? `ลิขสิทธิ์ ${r.copyright}` : null].filter(Boolean).join(', ') : [ip1ShowGranted ? `คุ้มครองแล้ว ${r.granted}` : null, ip1ShowPending ? `ยื่นคำขอ ${r.pending}` : null, ip1ShowPrep ? `เตรียมยื่น ${r.prep}` : null].filter(Boolean).join(', ')})`,
                                 accentColor: r.color,
-                                items: r.items,
+                                items: filteredItems,
                               });
                             }
                           }}
@@ -924,11 +1029,11 @@ export function IPCharts({
                             (() => {
                               const bw = 26;
                               const gap = 6;
-                              const hP = (r.prevTotal / maxVal) * plotH;
-                              const hC = (r.total / maxVal) * plotH;
+                              const hP = (prevTotal / maxVal) * plotH;
+                              const hC = (curTotal / maxVal) * plotH;
                               return (
                                 <>
-                                  {r.prevTotal > 0 && (
+                                  {prevTotal > 0 && (
                                     <>
                                       <rect
                                         className="rr-rise"
@@ -947,11 +1052,11 @@ export function IPCharts({
                                         fontWeight="700"
                                         fill="#64748b"
                                       >
-                                        {r.prevTotal}
+                                        {prevTotal}
                                       </text>
                                     </>
                                   )}
-                                  {r.total > 0 && (
+                                  {curTotal > 0 && (
                                     <>
                                       <rect
                                         className="rr-rise"
@@ -973,7 +1078,7 @@ export function IPCharts({
                                         fontWeight="800"
                                         fill="#0f172a"
                                       >
-                                        {r.total}
+                                        {curTotal}
                                       </text>
                                     </>
                                   )}
@@ -982,7 +1087,7 @@ export function IPCharts({
                             })()
                           ) : ip1Layout === 'grouped' ? (
                             (() => {
-                              const activeSegs = segs.filter((s) => s.val > 0);
+                              const activeSegs = segs.filter((s) => s.val > 0 && s.visible);
                               const bw = 20;
                               const gap = 4;
                               const totalW = activeSegs.length * bw + Math.max(0, activeSegs.length - 1) * gap;
@@ -1005,7 +1110,7 @@ export function IPCharts({
                                             title: `${s.label} · ${r.name} (${r.code})`,
                                             color: s.color,
                                             val: `${s.val} รายการ`,
-                                            sub: `${r.total > 0 ? Math.round((s.val / r.total) * 100) : 0}% ของสังกัดนี้ (${r.total} รายการ)`,
+                                            sub: `${curTotal > 0 ? Math.round((s.val / curTotal) * 100) : 0}% ของสังกัดนี้ (${curTotal} รายการ)`,
                                           });
                                         }}
                                       >
@@ -1041,7 +1146,7 @@ export function IPCharts({
                               return (
                                 <>
                                   {segs.map((s, sIdx) => {
-                                    if (s.val <= 0) return null;
+                                    if (s.val <= 0 || !s.visible) return null;
                                     const h = (s.val / maxVal) * plotH;
                                     curY -= h;
                                     const hAdj = Math.max(2, h - 1);
@@ -1058,7 +1163,7 @@ export function IPCharts({
                                             title: `${s.label} · ${r.name} (${r.code})`,
                                             color: s.color,
                                             val: `${s.val} รายการ`,
-                                            sub: `${r.total > 0 ? Math.round((s.val / r.total) * 100) : 0}% ของสังกัดนี้ (${r.total} รายการ)`,
+                                            sub: `${curTotal > 0 ? Math.round((s.val / curTotal) * 100) : 0}% ของสังกัดนี้ (${curTotal} รายการ)`,
                                           });
                                         }}
                                       >
@@ -1090,7 +1195,7 @@ export function IPCharts({
                                       </g>
                                     );
                                   })}
-                                  {r.total > 0 && (
+                                  {curTotal > 0 && (
                                     <text
                                       x={cx}
                                       y={curY - 7}
@@ -1099,7 +1204,7 @@ export function IPCharts({
                                       fontWeight="800"
                                       fill="#0f172a"
                                     >
-                                      {r.total}
+                                      {curTotal}
                                     </text>
                                   )}
                                 </>
@@ -1115,7 +1220,7 @@ export function IPCharts({
 
                           {isYoy && (
                             (() => {
-                              const d = getDeltaInfo(r.total, r.prevTotal);
+                              const d = getDeltaInfo(curTotal, prevTotal);
                               const fillMap: Record<string, string> = {
                                 up: '#dcfce7',
                                 dn: '#fee2e2',
@@ -1171,24 +1276,16 @@ export function IPCharts({
                 {deptStackMode === 'type' ? 'สัดส่วนประเภททรัพย์สินทางปัญญา' : 'สัดส่วนตามสถานะความคุ้มครอง'}
               </h2>
               <div className="rr-ctrls">
-                <div className="rr-sel">
-                  <span>ปี</span>
-                  <select
-                    value={ip2Year}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      setIp2Year(v);
-                      if (v !== 'all') setIp2CmpYear(String(Number(v) - 1));
-                    }}
-                  >
-                    <option value="all">ทั้งหมด</option>
-                    {availableYears.map((y) => (
-                      <option key={y} value={y}>
-                        {y}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <YearSelectDropdown
+                  label="ปี"
+                  value={ip2Year}
+                  onChange={(v) => {
+                    setIp2Year(v);
+                    if (v !== 'all') setIp2CmpYear(getDefaultCompareYear(v, availableYears));
+                  }}
+                  includeAll={true}
+                  allPosition="top"
+                />
 
                 <div className="rr-seg-ctl">
                   <button
@@ -1208,18 +1305,13 @@ export function IPCharts({
                 </div>
 
                 {ip2Mode === 'yoy' && (
-                  <div className="rr-sel">
-                    <span>เทียบกับปี</span>
-                    <select value={ip2CmpYear} onChange={(e) => setIp2CmpYear(e.target.value)}>
-                      {availableYears
-                        .filter((y) => y !== ip2Year)
-                        .map((y) => (
-                          <option key={y} value={y}>
-                            {y}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
+                  <YearSelectDropdown
+                    label="เทียบกับปี"
+                    value={ip2CmpYear}
+                    onChange={(v) => setIp2CmpYear(v)}
+                    excludeYear={ip2Year}
+                    includeAll={false}
+                  />
                 )}
               </div>
             </div>
@@ -1395,24 +1487,16 @@ export function IPCharts({
                 สถานะการยื่นคำขอและการคุ้มครอง (3 ระดับ)
               </h2>
               <div className="rr-ctrls">
-                <div className="rr-sel">
-                  <span>ปี</span>
-                  <select
-                    value={ip3Year}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      setIp3Year(v);
-                      if (v !== 'all') setIp3CmpYear(String(Number(v) - 1));
-                    }}
-                  >
-                    <option value="all">ทั้งหมด</option>
-                    {availableYears.map((y) => (
-                      <option key={y} value={y}>
-                        {y}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <YearSelectDropdown
+                  label="ปี"
+                  value={ip3Year}
+                  onChange={(v) => {
+                    setIp3Year(v);
+                    if (v !== 'all') setIp3CmpYear(getDefaultCompareYear(v, availableYears));
+                  }}
+                  includeAll={true}
+                  allPosition="top"
+                />
 
                 <div className="rr-seg-ctl">
                   <button
@@ -1432,18 +1516,13 @@ export function IPCharts({
                 </div>
 
                 {ip3Mode === 'yoy' ? (
-                  <div className="rr-sel">
-                    <span>เทียบกับปี</span>
-                    <select value={ip3CmpYear} onChange={(e) => setIp3CmpYear(e.target.value)}>
-                      {availableYears
-                        .filter((y) => y !== ip3Year)
-                        .map((y) => (
-                          <option key={y} value={y}>
-                            {y}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
+                  <YearSelectDropdown
+                    label="เทียบกับปี"
+                    value={ip3CmpYear}
+                    onChange={(v) => setIp3CmpYear(v)}
+                    excludeYear={ip3Year}
+                    includeAll={false}
+                  />
                 ) : (
                   <div className="rr-seg-ctl">
                     <button
@@ -1483,16 +1562,16 @@ export function IPCharts({
             </div>
 
             <div className="rr-legend">
-              <span className="rr-pill" style={{ cursor: 'default' }}>
-                <span className="rr-sw" style={{ backgroundColor: '#8b5cf6' }} />
+              <span className="rr-pill st" style={{ '--c': '#8b5cf6' } as React.CSSProperties}>
+                <i />
                 อนุสิทธิบัตร
               </span>
-              <span className="rr-pill" style={{ cursor: 'default' }}>
-                <span className="rr-sw" style={{ backgroundColor: '#3b82f6' }} />
+              <span className="rr-pill st" style={{ '--c': '#3b82f6' } as React.CSSProperties}>
+                <i />
                 สิทธิบัตรการประดิษฐ์
               </span>
-              <span className="rr-pill" style={{ cursor: 'default' }}>
-                <span className="rr-sw" style={{ backgroundColor: '#10b981' }} />
+              <span className="rr-pill st" style={{ '--c': '#10b981' } as React.CSSProperties}>
+                <i />
                 ลิขสิทธิ์ / อื่นๆ
               </span>
             </div>
@@ -1897,33 +1976,35 @@ export function IPCharts({
             <div className="rr-legend">
               {ip4BreakBy === 'type' ? (
                 <>
-                  <span className="rr-pill" style={{ cursor: 'default' }}>
-                    <span className="rr-sw" style={{ backgroundColor: '#8b5cf6' }} />
+                  <span className="rr-pill st" style={{ '--c': '#8b5cf6' } as React.CSSProperties}>
+                    <i />
                     อนุสิทธิบัตร
                   </span>
-                  <span className="rr-pill" style={{ cursor: 'default' }}>
-                    <span className="rr-sw" style={{ backgroundColor: '#3b82f6' }} />
+                  <span className="rr-pill st" style={{ '--c': '#3b82f6' } as React.CSSProperties}>
+                    <i />
                     สิทธิบัตรการประดิษฐ์
                   </span>
-                  <span className="rr-pill" style={{ cursor: 'default' }}>
-                    <span className="rr-sw" style={{ backgroundColor: '#10b981' }} />
+                  <span className="rr-pill st" style={{ '--c': '#10b981' } as React.CSSProperties}>
+                    <i />
                     ลิขสิทธิ์ / อื่นๆ
                   </span>
                 </>
               ) : (
                 ALL_IP_DEPTS.map((c) => (
-                  <span key={`ip4-leg-${c}`} className="rr-pill" style={{ cursor: 'default' }}>
-                    <span className="rr-sw" style={{ backgroundColor: UCOL[c] }} />
+                  <span key={`ip4-leg-${c}`} className="rr-pill st" style={{ '--c': UCOL[c] } as React.CSSProperties}>
+                    <i />
                     {c}
                   </span>
                 ))
               )}
               <button
                 type="button"
-                className={`rr-pill ${!ip4ShowLine ? 'off' : ''}`}
+                className="rr-pill"
+                style={{ '--c': '#f59e0b' } as React.CSSProperties}
+                aria-pressed={ip4ShowLine}
                 onClick={() => setIp4ShowLine((p) => !p)}
               >
-                <span className="rr-sw line" style={{ backgroundColor: '#f59e0b' }} />
+                <i className="ln" />
                 งบสนับสนุนรวม (พันบาท)
               </button>
             </div>
@@ -2359,24 +2440,16 @@ export function IPCharts({
                 10 อันดับอาจารย์และนักประดิษฐ์ที่มีผลงานสูงสุด
               </h2>
               <div className="rr-ctrls">
-                <div className="rr-sel">
-                  <span>ปี</span>
-                  <select
-                    value={ip5Year}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      setIp5Year(v);
-                      if (v !== 'all') setIp5CmpYear(String(Number(v) - 1));
-                    }}
-                  >
-                    <option value="all">ทั้งหมด</option>
-                    {availableYears.map((y) => (
-                      <option key={y} value={y}>
-                        {y}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <YearSelectDropdown
+                  label="ปี"
+                  value={ip5Year}
+                  onChange={(v) => {
+                    setIp5Year(v);
+                    if (v !== 'all') setIp5CmpYear(getDefaultCompareYear(v, availableYears));
+                  }}
+                  includeAll={true}
+                  allPosition="top"
+                />
 
                 <div className="rr-seg-ctl">
                   <button
@@ -2396,18 +2469,13 @@ export function IPCharts({
                 </div>
 
                 {ip5Mode === 'yoy' ? (
-                  <div className="rr-sel">
-                    <span>เทียบกับปี</span>
-                    <select value={ip5CmpYear} onChange={(e) => setIp5CmpYear(e.target.value)}>
-                      {availableYears
-                        .filter((y) => y !== ip5Year)
-                        .map((y) => (
-                          <option key={y} value={y}>
-                            {y}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
+                  <YearSelectDropdown
+                    label="เทียบกับปี"
+                    value={ip5CmpYear}
+                    onChange={(v) => setIp5CmpYear(v)}
+                    excludeYear={ip5Year}
+                    includeAll={false}
+                  />
                 ) : (
                   <div className="rr-seg-ctl">
                     <button
@@ -2430,21 +2498,21 @@ export function IPCharts({
             </div>
 
             <div className="rr-legend">
-              <span className="rr-pill" style={{ cursor: 'default' }}>
-                <span className="rr-sw" style={{ backgroundColor: '#8b5cf6' }} />
+              <span className="rr-pill st" style={{ '--c': '#8b5cf6' } as React.CSSProperties}>
+                <i />
                 อนุสิทธิบัตร
               </span>
-              <span className="rr-pill" style={{ cursor: 'default' }}>
-                <span className="rr-sw" style={{ backgroundColor: '#3b82f6' }} />
+              <span className="rr-pill st" style={{ '--c': '#3b82f6' } as React.CSSProperties}>
+                <i />
                 สิทธิบัตรการประดิษฐ์
               </span>
-              <span className="rr-pill" style={{ cursor: 'default' }}>
-                <span className="rr-sw" style={{ backgroundColor: '#10b981' }} />
+              <span className="rr-pill st" style={{ '--c': '#10b981' } as React.CSSProperties}>
+                <i />
                 ลิขสิทธิ์ / อื่นๆ
               </span>
               {ip5Mode === 'yoy' && (
-                <span className="rr-pill" style={{ cursor: 'default' }}>
-                  <span className="rr-sw" style={{ backgroundColor: '#cbd5e1' }} />
+                <span className="rr-pill st" style={{ '--c': '#cbd5e1' } as React.CSSProperties}>
+                  <i />
                   ปี {ipFacultyData.cmpYr}
                 </span>
               )}
@@ -2819,7 +2887,7 @@ export function IPCharts({
                     >
                       <div className="rr-rk">{idx + 1}</div>
                       <div className="rr-un">
-                        <span className="rr-sw" style={{ backgroundColor: r.color }} />
+                        <span className="w-3 h-3 rounded shrink-0 inline-block" style={{ backgroundColor: r.color, minWidth: '12px', minHeight: '12px' }} />
                         <div className="rr-ut">
                           <b>{r.cluster}</b>
                           <small>งบสนับสนุน {r.support.toLocaleString()} บาท</small>
