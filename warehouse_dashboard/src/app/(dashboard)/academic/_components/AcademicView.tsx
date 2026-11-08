@@ -221,7 +221,7 @@ export function AcademicView() {
                 }}
                 items={validData}
                 tallyCard={{
-                  label: 'โครงการขนาดใหญ่ (งบ 1+ ลบ.)',
+                  label: 'โครงการขนาดใหญ่ (งบประมาณ > 1 ล้านบาท)',
                   chip: `${majorProjectsPct}%`,
                   value: majorProjectsCount,
                   unit: `จาก ${validData.length} โครงการ`,

@@ -23,6 +23,8 @@ import { StrategicAlignmentMatrix } from '@/components/data-display';
 import { DrillDownProjectDrawer, DepartmentBadge } from '@/components/ui';
 import { CHART_PASTEL_PALETTE } from '@/lib/pastelTheme';
 import { PublicationsMonthlyChart } from './PublicationsMonthlyChart';
+import { YearSelectDropdown } from '@/components/ui/YearSelectDropdown';
+import { STANDARD_YEAR_OPTIONS, getDefaultCompareYear } from '@/lib/fiscalYears';
 import { resolveItemFiscalYear } from '@/types/timeFilter';
 import { isTestRecord } from '@/lib/sdgEngine';
 import { resolvePersonAvatar } from '@/lib/personnelService';
@@ -139,31 +141,22 @@ export function PublicationsCharts({
   }, [allItems, validData]);
 
   const availableYears = useMemo(() => {
-    const s = new Set<string>();
-    baseAllPubs.forEach((it) => s.add(resolvePubYear(it)));
-    s.add('2568');
-    s.add('2569');
-    s.add('2567');
-    return Array.from(s)
-      .filter((y) => /^25[6-7]\d$/.test(y))
-      .sort((a, b) => Number(b) - Number(a));
-  }, [baseAllPubs]);
+    return Array.from(STANDARD_YEAR_OPTIONS);
+  }, []);
 
   const [deptYear, setDeptYear] = useState<string>(() => {
-    if (currentFiscalYear && currentFiscalYear !== 'all' && availableYears.includes(currentFiscalYear)) {
+    if (currentFiscalYear && (currentFiscalYear === 'all' || availableYears.includes(currentFiscalYear))) {
       return currentFiscalYear;
     }
-    return availableYears.includes('2568') ? '2568' : availableYears[0] || '2568';
+    return availableYears[0] || '2569';
   });
 
   const [deptCmpYear, setDeptCmpYear] = useState<string>(() => {
-    const others = availableYears.filter((y) => y !== deptYear);
-    if (others.includes('2567')) return '2567';
-    return others[0] || '2567';
+    return getDefaultCompareYear(deptYear, availableYears);
   });
 
   useEffect(() => {
-    if (currentFiscalYear && currentFiscalYear !== 'all' && availableYears.includes(currentFiscalYear)) {
+    if (currentFiscalYear && (currentFiscalYear === 'all' || availableYears.includes(currentFiscalYear))) {
       setDeptYear(currentFiscalYear);
     }
   }, [currentFiscalYear, availableYears]);
@@ -849,15 +842,17 @@ export function PublicationsCharts({
       {activePerspective === 'timeline' && (
         <div style={{ width: '100%' }}>
           <PublicationsMonthlyChart
-            validData={validData}
+            validData={allItems && allItems.length > 0 ? allItems : validData}
+            currentFiscalYear={currentFiscalYear}
             onSelectPeriod={(monthIdx, year, items) => {
               if (!items || items.length === 0) return;
               const MONTH_LABELS = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
               const budget = items.reduce((s, it) => s + (Number(it.budget) || 0), 0);
               const avg = budget / items.length;
+              const yearLabel = year === 0 ? 'ทุกปีงบประมาณ' : 'ปี ' + year;
               setDrillDown({
                 isOpen: true,
-                title: `ผลงานตีพิมพ์ทางวิชาการ: ${MONTH_LABELS[monthIdx]} ${year}`,
+                title: 'ผลงานตีพิมพ์ทางวิชาการ: ' + MONTH_LABELS[monthIdx] + ' (' + yearLabel + ')',
                 subtitle: `รวม ${items.length} เรื่อง • เงินสนับสนุน ${budget.toLocaleString('th-TH')} บาท • เฉลี่ย ${avg.toLocaleString('th-TH', { maximumFractionDigits: 0 })} บาท/เรื่อง`,
                 accentColor: '#16a34a',
                 items,
@@ -1039,7 +1034,7 @@ export function PublicationsCharts({
           });
 
           baseAllPubs.forEach((it) => {
-            if (resolvePubYear(it) !== yr) return;
+            if (yr !== 'all' && resolvePubYear(it) !== yr) return;
             const c = resolvePubDeptCode(it.department, (it as any).departmentCode);
             if (!map[c]) {
               map[c] = {
@@ -1170,16 +1165,18 @@ export function PublicationsCharts({
                     </span>
                   </h2>
                   <div className="rr-ctrls">
-                    <label className="rr-sel">
-                      <span>ปี</span>
-                      <select value={deptYear} onChange={(e) => setDeptYear(e.target.value)}>
-                        {availableYears.map((y) => (
-                          <option key={y} value={y}>
-                            {y}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
+                    <YearSelectDropdown
+                      label="ปี"
+                      value={deptYear}
+                      onChange={(newY) => {
+                        setDeptYear(newY);
+                        if (deptCmpYear === newY) {
+                          setDeptCmpYear(getDefaultCompareYear(newY, availableYears));
+                        }
+                      }}
+                      includeAll={true}
+                      allPosition="top"
+                    />
                     <div className="rr-seg-ctl" role="group" aria-label="โหมดการแสดงผล">
                       <button type="button" aria-pressed={!deptIsCompare} onClick={() => setDeptIsCompare(false)}>
                         ภาพรวม
@@ -1189,18 +1186,13 @@ export function PublicationsCharts({
                       </button>
                     </div>
                     {deptIsCompare && (
-                      <label className="rr-sel">
-                        <span>เทียบกับปี</span>
-                        <select value={deptCmpYear} onChange={(e) => setDeptCmpYear(e.target.value)}>
-                          {availableYears
-                            .filter((y) => y !== deptYear)
-                            .map((y) => (
-                              <option key={y} value={y}>
-                                {y}
-                              </option>
-                            ))}
-                        </select>
-                      </label>
+                      <YearSelectDropdown
+                        label="เทียบกับปี"
+                        value={deptCmpYear}
+                        onChange={(newCmp) => setDeptCmpYear(newCmp)}
+                        excludeYear={deptYear}
+                        includeAll={false}
+                      />
                     )}
                   </div>
                 </div>
@@ -1581,7 +1573,7 @@ export function PublicationsCharts({
             }
           > = {};
           baseAllPubs.forEach((item) => {
-            if (resolvePubYear(item) !== yr) return;
+            if (yr !== 'all' && resolvePubYear(item) !== yr) return;
             const ownerName = String(item.owner || '').trim();
             if (!ownerName || ownerName === '-' || ownerName === 'nan') return;
             const pId = item.person_id || item.owner_id;
@@ -1732,16 +1724,18 @@ export function PublicationsCharts({
                     <span>10 อันดับอาจารย์และนักวิจัยที่มีผลงานตีพิมพ์สูงสุด</span>
                   </h2>
                   <div className="rr-ctrls">
-                    <label className="rr-sel">
-                      <span>ปี</span>
-                      <select value={deptYear} onChange={(e) => setDeptYear(e.target.value)}>
-                        {availableYears.map((y) => (
-                          <option key={y} value={y}>
-                            {y}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
+                    <YearSelectDropdown
+                      label="ปี"
+                      value={deptYear}
+                      onChange={(newY) => {
+                        setDeptYear(newY);
+                        if (deptCmpYear === newY) {
+                          setDeptCmpYear(getDefaultCompareYear(newY, availableYears));
+                        }
+                      }}
+                      includeAll={true}
+                      allPosition="top"
+                    />
                     <div className="rr-seg-ctl" role="group" aria-label="โหมดการแสดงผล">
                       <button type="button" aria-pressed={!deptIsCompare} onClick={() => setDeptIsCompare(false)}>
                         ภาพรวม
@@ -1751,18 +1745,13 @@ export function PublicationsCharts({
                       </button>
                     </div>
                     {deptIsCompare && (
-                      <label className="rr-sel">
-                        <span>เทียบกับปี</span>
-                        <select value={deptCmpYear} onChange={(e) => setDeptCmpYear(e.target.value)}>
-                          {availableYears
-                            .filter((y) => y !== deptYear)
-                            .map((y) => (
-                              <option key={y} value={y}>
-                                {y}
-                              </option>
-                            ))}
-                        </select>
-                      </label>
+                      <YearSelectDropdown
+                        label="เทียบกับปี"
+                        value={deptCmpYear}
+                        onChange={(newCmp) => setDeptCmpYear(newCmp)}
+                        excludeYear={deptYear}
+                        includeAll={false}
+                      />
                     )}
                   </div>
                 </div>

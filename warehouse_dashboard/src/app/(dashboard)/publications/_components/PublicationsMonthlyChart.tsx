@@ -4,10 +4,13 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { FaChartLine } from 'react-icons/fa';
 import { autoDetectJournalRanking } from '@/config/journalRankingConfig';
 import { PublicationItem } from '../_hooks/usePublicationsData';
+import { YearSelectDropdown } from '@/components/ui/YearSelectDropdown';
+import { STANDARD_YEAR_OPTIONS, getDefaultCompareYear } from '@/lib/fiscalYears';
 
 export interface PublicationsMonthlyChartProps {
   validData: PublicationItem[];
-  onSelectPeriod?: (monthIndex: number, year: number, items: PublicationItem[]) => void;
+  currentFiscalYear?: string;
+  onSelectPeriod?: (monthIndex: number, year: number | string, items: PublicationItem[]) => void;
 }
 
 const MONTHS = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
@@ -112,185 +115,7 @@ function extractItemYearAndMonth(item: PublicationItem): { yearBe: number; month
   return { yearBe, monthIdx };
 }
 
-interface CustomYearSelectProps {
-  label: string;
-  value: number;
-  options: Array<{ value: number; label: string; hasData: boolean }>;
-  onChange: (val: number) => void;
-}
-
-function CustomYearSelect({ label, value, options, onChange }: CustomYearSelectProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') setIsOpen(false);
-    }
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('keydown', handleKeyDown);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isOpen]);
-
-  const selectedOption = options.find((o) => o.value === value) || options[0];
-
-  return (
-    <div
-      ref={containerRef}
-      style={{
-        position: 'relative',
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: '8px',
-        padding: '4px 4px 4px 14px',
-        borderRadius: '14px',
-        background: '#eef2f6',
-        fontSize: '13.5px',
-        fontWeight: 600,
-        color: '#64748b',
-        userSelect: 'none',
-      }}
-    >
-      <span>{label}</span>
-      <button
-        type="button"
-        onClick={() => setIsOpen((prev) => !prev)}
-        aria-expanded={isOpen}
-        style={{
-          font: 'inherit',
-          fontSize: '13.5px',
-          fontWeight: 700,
-          color: '#0f172a',
-          minHeight: '36px',
-          padding: '6px 14px',
-          border: isOpen ? '1px solid #fb7185' : '1px solid rgba(15, 23, 42, 0.08)',
-          borderRadius: '10px',
-          cursor: 'pointer',
-          backgroundColor: '#ffffff',
-          boxShadow: isOpen
-            ? '0 0 0 3px rgba(251, 113, 133, 0.25), 0 1px 2px rgba(15, 23, 42, 0.08)'
-            : '0 1px 2px rgba(15,23,42,.1), 0 4px 10px -4px rgba(15,23,42,.12)',
-          outline: 'none',
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '8px',
-          transition: 'all 0.15s ease',
-        }}
-      >
-        <span>{selectedOption ? selectedOption.value : value}</span>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="#64748b"
-          strokeWidth="3"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          style={{
-            width: '12px',
-            height: '12px',
-            transition: 'transform 0.2s ease',
-            transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-          }}
-        >
-          <path d="M6 9l6 6 6-6" />
-        </svg>
-      </button>
-
-      {isOpen && (
-        <div
-          style={{
-            position: 'absolute',
-            top: 'calc(100% + 6px)',
-            right: 0,
-            minWidth: '185px',
-            background: '#ffffff',
-            borderRadius: '14px',
-            border: '1px solid rgba(15, 23, 42, 0.08)',
-            boxShadow: '0 12px 28px -4px rgba(15, 23, 42, 0.16), 0 4px 12px -2px rgba(15, 23, 42, 0.08)',
-            padding: '6px',
-            zIndex: 100,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '2px',
-          }}
-        >
-          {options.map((opt) => {
-            const isSelected = opt.value === value;
-            return (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => {
-                  onChange(opt.value);
-                  setIsOpen(false);
-                }}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '8px',
-                  width: '100%',
-                  padding: '8px 12px',
-                  borderRadius: '10px',
-                  border: 'none',
-                  background: isSelected ? '#fff1f2' : 'transparent',
-                  color: isSelected ? '#be123c' : '#0f172a',
-                  fontWeight: isSelected ? 700 : 500,
-                  fontSize: '13.5px',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  transition: 'background 0.12s, color 0.12s',
-                }}
-                onMouseEnter={(e) => {
-                  if (!isSelected) e.currentTarget.style.background = '#f8fafc';
-                }}
-                onMouseLeave={(e) => {
-                  if (!isSelected) e.currentTarget.style.background = 'transparent';
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span>{opt.value}</span>
-                  {!opt.hasData && (
-                    <span style={{ fontSize: '11.5px', color: '#94a3b8', fontWeight: 400 }}>
-                      (ไม่มีข้อมูล)
-                    </span>
-                  )}
-                </div>
-                {isSelected && (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#be123c"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    style={{ width: '13px', height: '13px', flexShrink: 0 }}
-                  >
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
-export function PublicationsMonthlyChart({ validData, onSelectPeriod }: PublicationsMonthlyChartProps) {
+export function PublicationsMonthlyChart({ validData, currentFiscalYear, onSelectPeriod }: PublicationsMonthlyChartProps) {
   // 1. Group records by Year and Month into structured buckets
   const datasetByYear = useMemo(() => {
     const map: Record<
@@ -345,25 +170,32 @@ export function PublicationsMonthlyChart({ validData, onSelectPeriod }: Publicat
     return map;
   }, [validData]);
 
-  // Future-proof list of years
-  const availableYearsWithData = useMemo(() => {
-    return Object.keys(datasetByYear).map(Number).sort((a, b) => b - a);
-  }, [datasetByYear]);
+  const availableYears = useMemo(() => Array.from(STANDARD_YEAR_OPTIONS), []);
 
-  const FUTURE_PROOF_YEARS = useMemo(() => {
-    const list = new Set<number>([2570, 2569, 2568, 2567, 2566]);
-    availableYearsWithData.forEach((y) => list.add(y));
-    return Array.from(list).sort((a, b) => b - a);
-  }, [availableYearsWithData]);
+  const hasDataByYear = useMemo(() => {
+    return availableYears.reduce<Record<string, boolean>>((acc, y) => {
+      const d = datasetByYear[Number(y)];
+      acc[y] = Boolean(d && d.items.some((arr) => arr.length > 0));
+      return acc;
+    }, {});
+  }, [availableYears, datasetByYear]);
 
   // States
-  const [selectedYear, setSelectedYear] = useState<number>(() => {
-    return availableYearsWithData[0] || 2568;
+  const [selectedYear, setSelectedYear] = useState<string>(() => {
+    if (currentFiscalYear && (currentFiscalYear === 'all' || availableYears.includes(currentFiscalYear))) {
+      return currentFiscalYear;
+    }
+    return availableYears[0] || '2569';
   });
-  const [compareYear, setCompareYear] = useState<number>(() => {
-    const other = FUTURE_PROOF_YEARS.find((y) => y !== (availableYearsWithData[0] || 2568));
-    return other || 2567;
+  const [compareYear, setCompareYear] = useState<string>(() => {
+    return getDefaultCompareYear(selectedYear, availableYears);
   });
+
+  useEffect(() => {
+    if (currentFiscalYear && (currentFiscalYear === 'all' || availableYears.includes(currentFiscalYear))) {
+      setSelectedYear(currentFiscalYear);
+    }
+  }, [currentFiscalYear, availableYears]);
 
   const [mode, setMode] = useState<'total' | 'level' | 'compare'>('level');
   const [metric, setMetric] = useState<'count' | 'fund'>('count');
@@ -372,8 +204,38 @@ export function PublicationsMonthlyChart({ validData, onSelectPeriod }: Publicat
 
   // Active year datasets
   const currentData = useMemo(() => {
+    if (selectedYear === 'all') {
+      const allLevels: Record<string, number[]> = {
+        q1: Array(12).fill(0),
+        q2: Array(12).fill(0),
+        q3: Array(12).fill(0),
+        q4: Array(12).fill(0),
+        t1: Array(12).fill(0),
+        t2: Array(12).fill(0),
+        t3: Array(12).fill(0),
+      };
+      const allFund = Array(12).fill(0);
+      const allItems: PublicationItem[][] = Array.from({ length: 12 }, () => []);
+
+      Object.values(datasetByYear).forEach((yData) => {
+        for (let i = 0; i < 12; i++) {
+          Object.keys(allLevels).forEach((k) => {
+            allLevels[k][i] += yData.levels[k]?.[i] || 0;
+          });
+          allFund[i] += yData.fund[i] || 0;
+          allItems[i].push(...yData.items[i]);
+        }
+      });
+
+      return {
+        levels: allLevels,
+        fund: allFund,
+        items: allItems,
+      };
+    }
+
     return (
-      datasetByYear[selectedYear] || {
+      datasetByYear[Number(selectedYear)] || {
         levels: {
           q1: Array(12).fill(0),
           q2: Array(12).fill(0),
@@ -390,7 +252,36 @@ export function PublicationsMonthlyChart({ validData, onSelectPeriod }: Publicat
   }, [datasetByYear, selectedYear]);
 
   const compareData = useMemo(() => {
-    return datasetByYear[compareYear] || null;
+    if (compareYear === 'all') {
+      const allLevels: Record<string, number[]> = {
+        q1: Array(12).fill(0),
+        q2: Array(12).fill(0),
+        q3: Array(12).fill(0),
+        q4: Array(12).fill(0),
+        t1: Array(12).fill(0),
+        t2: Array(12).fill(0),
+        t3: Array(12).fill(0),
+      };
+      const allFund = Array(12).fill(0);
+      const allItems: PublicationItem[][] = Array.from({ length: 12 }, () => []);
+
+      Object.values(datasetByYear).forEach((yData) => {
+        for (let i = 0; i < 12; i++) {
+          Object.keys(allLevels).forEach((k) => {
+            allLevels[k][i] += yData.levels[k]?.[i] || 0;
+          });
+          allFund[i] += yData.fund[i] || 0;
+          allItems[i].push(...yData.items[i]);
+        }
+      });
+
+      return {
+        levels: allLevels,
+        fund: allFund,
+        items: allItems,
+      };
+    }
+    return datasetByYear[Number(compareYear)] || null;
   }, [datasetByYear, compareYear]);
 
   const hasCompareData = Boolean(compareData);
@@ -602,46 +493,43 @@ export function PublicationsMonthlyChart({ validData, onSelectPeriod }: Publicat
           </h2>
           <p style={{ margin: '5px 0 0', fontSize: '13.5px', color: '#64748b' }}>
             {isCompare
-              ? `แท่ง = ${metric === 'count' ? 'จำนวนผลงาน (เรื่อง)' : 'เงินสนับสนุน (ล้านบาท)'} · เปรียบเทียบปี ${compareYear} กับปี ${selectedYear}`
-              : `แท่ง = จำนวนผลงาน (เรื่อง) · เส้น = เงินสนับสนุน (ล้านบาท) · ปี ${selectedYear}`}
+              ? `แท่ง = ${metric === 'count' ? 'จำนวนผลงาน (เรื่อง)' : 'เงินสนับสนุน (ล้านบาท)'} · เปรียบเทียบปี ${compareYear} กับ${selectedYear === 'all' ? 'ทุกปี' : `ปี ${selectedYear}`}`
+              : `แท่ง = จำนวนผลงาน (เรื่อง) · เส้น = เงินสนับสนุน (ล้านบาท) · ${selectedYear === 'all' ? 'ทุกปี' : `ปี ${selectedYear}`}`}
           </p>
         </div>
 
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
           {/* Year and Compare-Year Controls */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
-            <CustomYearSelect
+            <YearSelectDropdown
               label="ปี"
               value={selectedYear}
-              options={FUTURE_PROOF_YEARS.map((y) => ({
-                value: y,
-                label: `${y}`,
-                hasData: Boolean(datasetByYear[y]),
-              }))}
-              onChange={(y) => {
-                setSelectedYear(y);
-                if (compareYear === y) {
-                  const alt = FUTURE_PROOF_YEARS.find((other) => other !== y);
-                  if (alt) setCompareYear(alt);
+              onChange={(newY) => {
+                setSelectedYear(newY);
+                if (compareYear === newY) {
+                  setCompareYear(getDefaultCompareYear(newY, availableYears));
                 }
               }}
+              includeAll={true}
+              allPosition="top"
+              hasDataByYear={hasDataByYear}
             />
 
             {/* Compare Year Selector (shown only in compare mode) */}
             {isCompare && (
-              <CustomYearSelect
+              <YearSelectDropdown
                 label="เทียบกับปี"
                 value={compareYear}
-                options={FUTURE_PROOF_YEARS.filter((y) => y !== selectedYear).map((y) => ({
-                  value: y,
-                  label: `${y}`,
-                  hasData: Boolean(datasetByYear[y]),
-                }))}
-                onChange={(y) => setCompareYear(y)}
+                onChange={(newCmp) => setCompareYear(newCmp)}
+                excludeYear={selectedYear}
+                includeAll={false}
+                hasDataByYear={hasDataByYear}
               />
             )}
           </div>
+        </div>
 
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
           {/* Mode Segmented Controls */}
           <div
             style={{
@@ -861,7 +749,7 @@ export function PublicationsMonthlyChart({ validData, onSelectPeriod }: Publicat
                   display: 'inline-block',
                 }}
               />
-              ปี {selectedYear}
+              {selectedYear === 'all' ? 'รวมทุกปี' : `ปี ${selectedYear}`}
             </span>
           </>
         )}
@@ -918,7 +806,7 @@ export function PublicationsMonthlyChart({ validData, onSelectPeriod }: Publicat
           }}
         >
           <span>
-            ปี {selectedYear} รวม <b>{comparisonSummary.cVal}</b> {comparisonSummary.unit}
+            {selectedYear === 'all' ? 'รวมทุกปี' : `ปี ${selectedYear}`} รวม <b>{comparisonSummary.cVal}</b> {comparisonSummary.unit}
           </span>
           <span
             style={{
@@ -1066,7 +954,7 @@ export function PublicationsMonthlyChart({ validData, onSelectPeriod }: Publicat
                           {mName} · {metric === 'count' ? 'จำนวนผลงาน' : 'เงินสนับสนุน'}
                         </div>
                         <div style={{ marginTop: '5px', display: 'flex', justifyContent: 'space-between', gap: '16px', fontSize: '14px' }}>
-                          <span style={{ color: '#cbd5e1' }}>ปี {selectedYear}</span>
+                          <span style={{ color: '#cbd5e1' }}>{selectedYear === 'all' ? 'รวมทุกปี' : `ปี ${selectedYear}`}</span>
                           <b>{metric === 'count' ? `${tot} เรื่อง` : `${fVal} ล้านบาท`}</b>
                         </div>
                         {hasCompareData && (
@@ -1617,7 +1505,7 @@ export function PublicationsMonthlyChart({ validData, onSelectPeriod }: Publicat
                     fontWeight: 500,
                   }}
                 >
-                  ยังไม่มีข้อมูลปี {compareYear} สำหรับเปรียบเทียบ — แสดงเฉพาะข้อมูลปี {selectedYear}
+                  ยังไม่มีข้อมูลปี {compareYear} สำหรับเปรียบเทียบ — แสดงเฉพาะข้อมูล{selectedYear === 'all' ? 'รวมทุกปี' : `ปี ${selectedYear}`}
                 </div>
               )}
             </div>

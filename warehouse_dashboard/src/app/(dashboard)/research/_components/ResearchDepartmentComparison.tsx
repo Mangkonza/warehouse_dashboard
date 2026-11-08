@@ -6,6 +6,8 @@ import { ResearchItem } from '../_hooks/useResearchData';
 import { getDepartment, DEPARTMENT_COLORS, DepartmentCode } from '@/lib/departments';
 import { getCachedCategoryData } from '@/lib/dataService';
 import { DrillDownProjectDrawer } from '@/components/data-display/DrillDownProjectDrawer';
+import { YearSelectDropdown } from '@/components/ui/YearSelectDropdown';
+import { STANDARD_YEAR_OPTIONS, getDefaultCompareYear } from '@/lib/fiscalYears';
 
 interface Props {
   allItems: ResearchItem[];
@@ -158,28 +160,25 @@ export interface DeptMetrics {
 
 export function ResearchDepartmentComparison({ allItems, filteredItems, currentFiscalYear }: Props) {
   const availableYears = useMemo(() => {
-    const s = new Set<string>();
-    allItems.forEach((it) => s.add(resolveItemFiscalYear(it)));
-    s.add('2568');
-    s.add('2569');
-    s.add('2567');
-    return Array.from(s)
-      .filter((y) => /^25[6-7]\d$/.test(y))
-      .sort((a, b) => Number(b) - Number(a));
-  }, [allItems]);
+    return Array.from(STANDARD_YEAR_OPTIONS);
+  }, []);
 
   const [year, setYear] = useState<string>(() => {
-    if (currentFiscalYear && currentFiscalYear !== 'all' && availableYears.includes(currentFiscalYear)) {
+    if (currentFiscalYear && (currentFiscalYear === 'all' || availableYears.includes(currentFiscalYear))) {
       return currentFiscalYear;
     }
-    return availableYears.includes('2568') ? '2568' : availableYears[0] || '2568';
+    return availableYears[0] || '2569';
   });
 
   const [cmpYear, setCmpYear] = useState<string>(() => {
-    const others = availableYears.filter((y) => y !== year);
-    if (others.includes('2567')) return '2567';
-    return others[0] || '2567';
+    return getDefaultCompareYear(year, availableYears);
   });
+
+  useEffect(() => {
+    if (currentFiscalYear && (currentFiscalYear === 'all' || availableYears.includes(currentFiscalYear))) {
+      setYear(currentFiscalYear);
+    }
+  }, [currentFiscalYear, availableYears]);
 
   const [isCompare, setIsCompare] = useState<boolean>(false);
   const [rkMetric, setRkMetric] = useState<string>('b');
@@ -208,7 +207,7 @@ export function ResearchDepartmentComparison({ allItems, filteredItems, currentF
   const openDeptDrawer = (deptCode: string, targetYr?: string, extraLabel?: string) => {
     const yr = targetYr || year;
     const matched = allItems.filter((it) => {
-      if (resolveItemFiscalYear(it) !== yr) return false;
+      if (yr !== 'all' && resolveItemFiscalYear(it) !== yr) return false;
       const c = resolveDeptCode(it.department || it.headDepartmentCode || it.departments);
       return c === deptCode;
     });
@@ -223,7 +222,7 @@ export function ResearchDepartmentComparison({ allItems, filteredItems, currentF
 
   const openFacultyTotalDrawer = (targetYr?: string) => {
     const yr = targetYr || year;
-    const matched = allItems.filter((it) => resolveItemFiscalYear(it) === yr);
+    const matched = allItems.filter((it) => yr === 'all' || resolveItemFiscalYear(it) === yr);
     setDrawerState({
       isOpen: true,
       title: `โครงการวิจัยรวมทั้งคณะ (ปีงบ ${yr})`,
@@ -553,16 +552,18 @@ export function ResearchDepartmentComparison({ allItems, filteredItems, currentF
               <p className="rr-sub">ภาควิชา ศูนย์ และสำนักงาน ได้รับงบเท่าไร ทำโครงการขนาดไหน และสร้างผลผลิตได้เท่าไร</p>
             </div>
             <div className="rr-ctrls">
-              <label className="rr-sel">
-                <span>ปี</span>
-                <select value={year} onChange={(e) => setYear(e.target.value)}>
-                  {availableYears.map((y) => (
-                    <option key={y} value={y}>
-                      {y}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <YearSelectDropdown
+                label="ปี"
+                value={year}
+                onChange={(newY) => {
+                  setYear(newY);
+                  if (cmpYear === newY) {
+                    setCmpYear(getDefaultCompareYear(newY, availableYears));
+                  }
+                }}
+                includeAll={true}
+                allPosition="top"
+              />
 
               <div className="rr-seg-ctl" role="group" aria-label="โหมดการแสดงผล">
                 <button type="button" aria-pressed={!isCompare} onClick={() => setIsCompare(false)}>
@@ -574,19 +575,17 @@ export function ResearchDepartmentComparison({ allItems, filteredItems, currentF
               </div>
 
               {isCompare && (
-                <label className="rr-sel">
-                  <span>เทียบกับปี</span>
-                  <select value={cmpYear} onChange={(e) => setCmpYear(e.target.value)}>
-                    {availableYears
-                      .filter((y) => y !== year)
-                      .map((y) => (
-                        <option key={y} value={y}>
-                          {y}
-                          {allItems.some((it) => resolveItemFiscalYear(it) === y) ? '' : ' (ไม่มีข้อมูล)'}
-                        </option>
-                      ))}
-                  </select>
-                </label>
+                <YearSelectDropdown
+                  label="เทียบกับปี"
+                  value={cmpYear}
+                  onChange={(newCmp) => setCmpYear(newCmp)}
+                  excludeYear={year}
+                  includeAll={false}
+                  hasDataByYear={availableYears.reduce<Record<string, boolean>>((acc, y) => {
+                    acc[y] = allItems.some((it) => resolveItemFiscalYear(it) === y);
+                    return acc;
+                  }, {})}
+                />
               )}
             </div>
           </div>
