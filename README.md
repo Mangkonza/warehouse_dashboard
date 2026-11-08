@@ -84,6 +84,10 @@ docker run -d \
 
 #### การนำเข้าข้อมูลเริ่มต้น (Restore Database Dump):
 ```bash
+# กรณีรันคำสั่งจาก Root ไดเรกทอรีของโปรเจกต์:
+docker exec -i ku_warehouse_db psql -U ku_owner -d ku_warehouse < deploy/ku_warehouse_dump.sql
+
+# หรือกรณีวางไฟล์ dump ไว้ในไดเรกทอรีเดียวกัน:
 docker exec -i ku_warehouse_db psql -U ku_owner -d ku_warehouse < ku_warehouse_dump.sql
 ```
 
@@ -179,7 +183,11 @@ docker run -d \
   ```
 - **การเข้าใช้งานผ่านเบราว์เซอร์**:
   - URL: `http://localhost:3000` (หรือ `http://localhost:3000/{BASE_PATH}`)
-  - เข้าสู่หน้า Login และ Dashboard ได้อย่างสมบูรณ์
+  - **บัญชีผู้ดูแลระบบสำหรับทดสอบ (Evaluation & Test Account)**:
+    - **ชื่อผู้ใช้งาน (Username)**: `b0123456789`
+    - **รหัสผ่าน (Password)**: `Admin@1234`
+    - **รหัส OTP (Step 2)**: `123456`
+    - *ขั้นตอนการเข้าสู่ระบบ*: เปิดหน้าแรก `http://localhost:3000` $\rightarrow$ กรอก Username/Password ในขั้นตอนที่ 1 $\rightarrow$ กรอก OTP ในขั้นตอนที่ 2 เพื่อเข้าสู่ระบบในฐานะผู้ดูแลระบบ (Super Admin) และเข้าถึงฟังก์ชันทั้งหมดได้อย่างสมบูรณ์
 
 ---
 
