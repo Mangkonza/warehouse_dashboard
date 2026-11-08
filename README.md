@@ -22,7 +22,6 @@ warehouse_dashboard/
 │   ├── ku_warehouse_dump.sql          # Full Database Dump (PostgreSQL 16) รวมโครงสร้างและข้อมูล
 │   └── schema.sql                     # Database Schema DDL (PostgreSQL 16)
 ├── backend/                           # โฟลเดอร์บริการ Backend API
-│   ├── Dockerfile                     # Dockerfile ประจำ service
 │   ├── prisma/
 │   │   ├── schema.prisma              # Prisma Data Model (PostgreSQL 16)
 │   │   └── migrations/                # ประวัติ Database Migrations ทั้งหมด
@@ -35,7 +34,6 @@ warehouse_dashboard/
 │   ├── scripts/                       # สคริปต์สำรองข้อมูล, นำเข้าข้อมูล, Seed KPI
 │   └── package.json                   # Dependencies (Node 22, Express 5, Prisma 6)
 ├── warehouse_dashboard/               # โฟลเดอร์บริการ Frontend Dashboard
-│   ├── Dockerfile                     # Dockerfile ประจำ service
 │   ├── next.config.ts                 # Next.js Standalone Configuration & Base Path Resolver
 │   ├── public/                        # Static assets, icons, fonts
 │   ├── src/
