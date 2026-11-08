@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { getCachedCategoryData, fetchCategoryData } from '@/lib/dataService';
 import { TimeFilterState, itemMatchesTimeFilter } from '@/types/timeFilter';
 import { autoDetectJournalRanking } from '@/config/journalRankingConfig';
-import { normalizePersonName, normalizeSpellingVariant } from '@/lib/personnelService';
+import { normalizePersonName, normalizeSpellingVariant, resolvePersonAvatar } from '@/lib/personnelService';
 import { PersonnelRecord } from '@/types/dataManagement';
 
 import rawResearch from '@/data/research.json';
@@ -259,7 +259,7 @@ export function usePersonnelData(timeFilter?: TimeFilterState) {
         department: person.department || 'ไม่ระบุสังกัด',
         position: person.position || 'อาจารย์/นักวิจัย',
         email: person.email || '',
-        imageUrl: person.image_url ? person.image_url.trim() : '',
+        imageUrl: (person.image_url && person.image_url.trim()) || resolvePersonAvatar(person.id || pId, person.name),
         researchItems: matchedResearch,
         academicItems: matchedAcademic,
         pubItems: matchedPub,

@@ -1,7 +1,22 @@
 import { PersonnelRecord } from '../types/dataManagement';
+import rawPersonnel from '@/data/personnel.json';
 
 let personnelList: PersonnelRecord[] = [];
 let isFetchingFromApi = false;
+
+// สร้าง Lookup Map สำหรับรูปภาพประจำตัวจากข้อมูลหลัก
+const staticImageMap = new Map<string, string>();
+if (Array.isArray(rawPersonnel)) {
+  (rawPersonnel as any[]).forEach((p) => {
+    if (p.image_url && typeof p.image_url === 'string' && p.image_url.trim()) {
+      const url = p.image_url.trim();
+      const pid = String(p.id !== undefined ? p.id : (p._id || p.person_id || '')).trim();
+      if (pid) staticImageMap.set(pid, url);
+      if (p.name) staticImageMap.set(p.name.trim(), url);
+      if (p.clean_name) staticImageMap.set(p.clean_name.trim(), url);
+    }
+  });
+}
 
 // คำนำหน้าชื่อที่ต้องตัดเพื่อ normalization (เรียงจากยาวไปสั้น)
 export const PREFIXES = [
@@ -58,6 +73,16 @@ export function normalizePersonName(rawName: string): string {
  * ดึงรายชื่อบุคลากรทั้งหมด (อัปเดตจาก LocalStorage แคชในเบราว์เซอร์อัตโนมัติ)
  */
 export function getAllPersonnel(): PersonnelRecord[] {
+  if (personnelList.length === 0 && Array.isArray(rawPersonnel)) {
+    personnelList = (rawPersonnel as any[]).map((p, idx) => ({
+      ...p,
+      id: typeof p.id === 'number' ? p.id : (parseInt(String(p.id).replace('PER-', ''), 10) || idx + 1),
+      _id: String(p._id || p.id),
+      clean_name: p.clean_name || `${p.first_name || ''} ${p.last_name || ''}`.trim() || normalizePersonName(p.name),
+      image_url: p.image_url || staticImageMap.get(String(p.id)) || staticImageMap.get(p.name) || '',
+    }));
+  }
+
   if (typeof window !== 'undefined') {
     try {
       const cached =
@@ -71,6 +96,7 @@ export function getAllPersonnel(): PersonnelRecord[] {
             id: typeof p.id === 'number' ? p.id : (parseInt(String(p.id).replace('PER-', ''), 10) || idx + 1),
             _id: String(p._id || p.id),
             clean_name: p.clean_name || `${p.first_name || ''} ${p.last_name || ''}`.trim() || normalizePersonName(p.name),
+            image_url: p.image_url || p.imageUrl || staticImageMap.get(String(p.id)) || staticImageMap.get(String(p._id)) || staticImageMap.get(p.name) || '',
           }));
         }
       } else if (!isFetchingFromApi && personnelList.length === 0) {
@@ -85,6 +111,7 @@ export function getAllPersonnel(): PersonnelRecord[] {
                 id: typeof p.id === 'number' ? p.id : (parseInt(String(p.id).replace('PER-', ''), 10) || idx + 1),
                 _id: String(p._id || p.id),
                 clean_name: p.clean_name || `${p.first_name || ''} ${p.last_name || ''}`.trim() || normalizePersonName(p.name),
+                image_url: p.image_url || p.imageUrl || staticImageMap.get(String(p.id)) || staticImageMap.get(String(p._id)) || staticImageMap.get(p.name) || '',
               }));
               localStorage.setItem('ku_dw_db_cache_personnel', JSON.stringify(personnelList));
               window.dispatchEvent(new Event('ku_data_updated'));
@@ -123,12 +150,18 @@ export function resolvePersonAvatar(
     const byId = getPersonById(personId);
     const urlById = cleanUrl(byId?.image_url);
     if (urlById) return urlById;
+
+    const fromMap = cleanUrl(staticImageMap.get(String(personId).trim()));
+    if (fromMap) return fromMap;
   }
 
   if (rawName) {
     const byName = matchPerson(rawName);
     const urlByName = cleanUrl(byName?.image_url);
     if (urlByName) return urlByName;
+
+    const fromMap = cleanUrl(staticImageMap.get(rawName.trim()) || staticImageMap.get(normalizePersonName(rawName)));
+    if (fromMap) return fromMap;
   }
 
   return '/default-avatar.png';

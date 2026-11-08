@@ -1,5 +1,43 @@
+import fs from 'fs';
+import path from 'path';
 import { prisma } from '../db/prisma.js';
 import { extractNumericId } from '../utils/sanitize.js';
+
+let fallbackImageMap: Map<string, string> | null = null;
+function getFallbackImage(personId?: string | number | null, nameTh?: string | null): string {
+  if (!fallbackImageMap) {
+    fallbackImageMap = new Map();
+    const candidatePaths = [
+      path.resolve(process.cwd(), '../frontend/src/data/personnel.json'),
+      path.resolve(process.cwd(), 'frontend/src/data/personnel.json'),
+      path.resolve(process.cwd(), 'src/data/personnel.json'),
+    ];
+    for (const p of candidatePaths) {
+      if (fs.existsSync(p)) {
+        try {
+          const list = JSON.parse(fs.readFileSync(p, 'utf8'));
+          if (Array.isArray(list)) {
+            list.forEach((item: any) => {
+              if (item.image_url) {
+                const pid = String(item.id !== undefined ? item.id : (item._id || item.person_id || '')).trim();
+                if (pid) fallbackImageMap!.set(pid, item.image_url.trim());
+                if (item.name) fallbackImageMap!.set(item.name.trim(), item.image_url.trim());
+                if (item.name_th) fallbackImageMap!.set(item.name_th.trim(), item.image_url.trim());
+                if (item.clean_name) fallbackImageMap!.set(item.clean_name.trim(), item.image_url.trim());
+              }
+            });
+          }
+          break;
+        } catch {}
+      }
+    }
+  }
+  const pid = String(personId || '').trim();
+  if (pid && fallbackImageMap.has(pid)) return fallbackImageMap.get(pid)!;
+  const name = String(nameTh || '').trim();
+  if (name && fallbackImageMap.has(name)) return fallbackImageMap.get(name)!;
+  return '';
+}
 
 export function formatPersonnel(p: any) {
   if (!p) return null;
@@ -12,6 +50,8 @@ export function formatPersonnel(p: any) {
   const displayName = hasSeparateNames
     ? (prefix ? `${prefix}${firstName}${lastName ? ' ' + lastName : ''}` : fullConstructed)
     : p.nameTh;
+
+  const resolvedImageUrl = (p.imageUrl && p.imageUrl.trim()) || getFallbackImage(p.personId || p.id, p.nameTh);
 
   return {
     _id: p.personId || String(p.id),
@@ -29,7 +69,7 @@ export function formatPersonnel(p: any) {
     department: deptName,
     department_code: p.departmentCode || '',
     email: p.email || '',
-    image_url: p.imageUrl || '',
+    image_url: resolvedImageUrl,
     createdAt: p.createdAt,
     updatedAt: p.updatedAt,
   };
