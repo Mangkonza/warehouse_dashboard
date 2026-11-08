@@ -16,7 +16,7 @@ warehouse_dashboard/
 ├── Dockerfile.api                     # Multi-stage Dockerfile สำหรับ Backend API (Context: .)
 ├── Dockerfile.web                     # Multi-stage Dockerfile สำหรับ Frontend Next.js (Context: .)
 ├── .dockerignore                      # ป้องกัน secrets, node_modules และ build files เข้า Image
-├── deploy/                            # โฟลเดอร์ไฟล์สำหรับส่งงานและ Deployment
+├── deploy/                            # โฟลเดอร์เตรียมไฟล์สำหรับส่งขึ้น Google Drive (Untracked)
 │   ├── .env                           # Template ตัวแปรสภาพแวดล้อม Production รวมทุก Service
 │   ├── ku_warehouse_deployment_note.txt # สรุปรายละเอียด Commit, Branch, พอร์ต และชนิด DB
 │   ├── ku_warehouse_dump.sql          # Full Database Dump (PostgreSQL 16) รวมโครงสร้างและข้อมูล
@@ -93,7 +93,7 @@ docker run -d \
 
 #### การนำเข้าข้อมูลเริ่มต้น (Restore Database Dump):
 ```bash
-docker exec -i ku_warehouse_db psql -U ku_owner -d ku_warehouse < deploy/ku_warehouse_dump.sql
+docker exec -i ku_warehouse_db psql -U ku_owner -d ku_warehouse < ku_warehouse_dump.sql
 ```
 
 ---
