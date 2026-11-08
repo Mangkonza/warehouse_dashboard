@@ -105,10 +105,14 @@ function mapDepartmentCode(raw) {
 }
 
 function readJsonFile(filename) {
-  const dataBakDir = path.resolve(__dirname, '../../data.bak');
+  const dashDataDir = path.resolve(__dirname, '../../warehouse_dashboard/src/data');
   const dashDataBakDir = path.resolve(__dirname, '../../warehouse_dashboard/src/data.bak');
+  const dataBakDir = path.resolve(__dirname, '../../data.bak');
 
-  let filePath = path.join(dashDataBakDir, filename);
+  let filePath = path.join(dashDataDir, filename);
+  if (!fs.existsSync(filePath)) {
+    filePath = path.join(dashDataBakDir, filename);
+  }
   if (!fs.existsSync(filePath)) {
     filePath = path.join(dataBakDir, filename);
   }
