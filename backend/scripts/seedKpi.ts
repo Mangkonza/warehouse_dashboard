@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import {
   DEFAULT_KPIS,
   STRATEGIC_PILLARS,
-} from '../../frontend/src/config/kpiConfig';
+} from '../../warehouse_dashboard/src/config/kpiConfig';
 import {
   DEFAULT_REPORTING_ROUNDS,
   normalizePlanCodeOnly,
@@ -10,7 +10,7 @@ import {
   normalizeStrategyNameOnly,
   normalizeReportersArray,
   enrichKPIItem,
-} from '../../frontend/src/lib/kpiEngine';
+} from '../../warehouse_dashboard/src/lib/kpiEngine';
 
 const prisma = new PrismaClient({
   datasources: {

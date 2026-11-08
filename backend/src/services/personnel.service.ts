@@ -8,8 +8,8 @@ function getFallbackImage(personId?: string | number | null, nameTh?: string | n
   if (!fallbackImageMap) {
     fallbackImageMap = new Map();
     const candidatePaths = [
-      path.resolve(process.cwd(), '../frontend/src/data/personnel.json'),
-      path.resolve(process.cwd(), 'frontend/src/data/personnel.json'),
+      path.resolve(process.cwd(), '../warehouse_dashboard/src/data/personnel.json'),
+      path.resolve(process.cwd(), 'warehouse_dashboard/src/data/personnel.json'),
       path.resolve(process.cwd(), 'src/data/personnel.json'),
     ];
     for (const p of candidatePaths) {

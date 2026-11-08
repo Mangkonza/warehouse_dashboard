@@ -1,0 +1,28 @@
+$kind: http-request
+description: ตรวจ redirect ไปยัง Portal ENG_LOGIN_URL
+url: "{{webBaseUrl}}/sso/login"
+method: GET
+headers:
+  Accept: application/json
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("External redirect to Portal (HTTP 307)", () => {
+        pm.expect(pm.response.code).to.eql(307);
+        pm.expect(pm.response.headers.get("Location")).to.be.a("string").and.not.empty;
+      });
+      pm.test("Cache-Control is no-store", () => {
+        const cc = pm.response.headers.get("Cache-Control");
+        if (cc) pm.expect(cc.toLowerCase()).to.include("no-store");
+      });
+      pm.test("Response body does not leak raw tokens", () => {
+        const text = pm.response.text();
+        ["exchangeToken", "ssoToken", "intranetToken", "accessToken"].forEach(k => {
+          const v = pm.variables.get(k);
+          if (v && v.length > 5) pm.expect(text).not.to.include(v);
+        });
+      });
+    language: text/javascript
+settings:
+  followRedirects: false
+order: 1000

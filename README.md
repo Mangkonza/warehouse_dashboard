@@ -7,7 +7,7 @@
 ## 1. ภาพรวมโครงสร้างของโปรเจกต์ (Project Architecture & Structure)
 
 โปรเจกต์นี้ได้รับการพัฒนาภายใต้สถาปัตยกรรมแยกส่วน (Decoupled Microservice Architecture) โดยแบ่งออกเป็น 3 บริการหลัก:
-1. **Frontend Web Application (`frontend`)**: พัฒนาด้วย Next.js 16 (App Router + Turbopack), React 19, Tailwind CSS และ Chart.js สำหรับการแสดงผลแดชบอร์ด รายงานยุทธศาสตร์ และระบบบริหารจัดการข้อมูล
+1. **Frontend Web Application (`warehouse_dashboard`)**: พัฒนาด้วย Next.js 16 (App Router + Turbopack), React 19, Tailwind CSS และ Chart.js สำหรับการแสดงผลแดชบอร์ด รายงานยุทธศาสตร์ และระบบบริหารจัดการข้อมูล
 2. **Backend API Service (`backend`)**: พัฒนาด้วย Node.js 22, Express.js 5, TypeScript และ Prisma ORM ให้บริการ RESTful API, ระบบตรวจสอบสิทธิ์, การประเมินผลงานอัตโนมัติ (SDGs/TRL/Quartile) และ Strategic KPI Engine
 3. **Database (`PostgreSQL 16`)**: จัดเก็บข้อมูลพันธกิจ 5 ด้าน (วิจัย, บริการวิชาการ, พัฒนาวิชาการ, ตีพิมพ์, ทรัพย์สินทางปัญญา), ตัวชี้วัดเชิงยุทธศาสตร์ 4 ระดับ และระบบผู้ใช้งาน
 
@@ -28,7 +28,7 @@ warehouse_dashboard/
 │   │   └── index.ts                   # Express Application Entry Point
 │   ├── scripts/                       # สคริปต์สำรองข้อมูล, นำเข้าข้อมูล, Seed KPI
 │   └── package.json                   # Dependencies (Node 22, Express 5, Prisma 6)
-├── frontend/                          # โฟลเดอร์บริการ Frontend Dashboard
+├── warehouse_dashboard/               # โฟลเดอร์บริการ Frontend Dashboard
 │   ├── next.config.ts                 # Next.js Standalone Configuration & Base Path Resolver
 │   ├── public/                        # Static assets, icons, fonts
 │   ├── src/
@@ -37,6 +37,8 @@ warehouse_dashboard/
 │   │   ├── config/                    # KPI Config, Navigation, Constants
 │   │   └── lib/                       # API Client, Pastel Themes, Auth Helpers, KPI Engine
 │   └── package.json                   # Dependencies (Next.js 16, React 19, Tailwind)
+├── db/                                # SQL schemas และ initialization scripts
+│   └── init/                          # Entrypoint script กำหนดผู้ใช้ ku_owner / ku_app
 └── README.md                          # เอกสารแนะนำการติดตั้งและรันระบบ
 ```
 

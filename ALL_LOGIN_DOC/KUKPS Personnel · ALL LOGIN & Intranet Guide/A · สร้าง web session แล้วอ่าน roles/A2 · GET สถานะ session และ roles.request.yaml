@@ -1,0 +1,13 @@
+$kind: http-request
+description: ใช้ cookie jar หลัง A1 ไม่ใช้ Bearer header; tests คาดหวังบัญชีที่ active
+url: "{{webBaseUrl}}/api/auth/roles"
+method: GET
+headers:
+  Accept: application/json
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("HTTP 2xx", () => pm.expect(pm.response.code).to.be.within(200,299));
+      pm.test("Authenticated with roles array", () => { const d=pm.response.json(); pm.expect(d.authenticated).to.eql(true); pm.expect(d.roles).to.be.an("array"); });
+    language: text/javascript
+order: 2000

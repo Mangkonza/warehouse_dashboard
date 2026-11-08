@@ -8,7 +8,7 @@ FROM node:22-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-COPY frontend/package.json frontend/package-lock.json ./
+COPY warehouse_dashboard/package.json warehouse_dashboard/package-lock.json ./
 RUN npm ci --fetch-retries=5
 
 # Stage 2: Build the Next.js application
@@ -16,7 +16,7 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
-COPY frontend/ ./
+COPY warehouse_dashboard/ ./
 
 # Build arguments for paths and endpoints
 ARG BASE_PATH=""

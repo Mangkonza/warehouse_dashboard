@@ -1,0 +1,31 @@
+$kind: http-request
+description: ปิด cookie jar ของ request นี้เพื่อจำลองไม่มี session
+url: "{{webBaseUrl}}/api/auth/roles"
+method: GET
+headers:
+  Accept: application/json
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Unauthenticated roles returns HTTP 401", () => {
+        pm.expect(pm.response.code).to.eql(401);
+        const d = pm.response.json();
+        pm.expect(d.authenticated).to.eql(false);
+        pm.expect(d.roles).to.be.an("array").and.be.empty;
+      });
+      pm.test("Cache-Control is no-store", () => {
+        const cc = pm.response.headers.get("Cache-Control");
+        pm.expect(cc, "Cache-Control header missing").to.be.a("string");
+        pm.expect(cc.toLowerCase()).to.include("no-store");
+      });
+      pm.test("Response body does not leak raw tokens", () => {
+        const text = pm.response.text();
+        ["exchangeToken", "ssoToken", "intranetToken", "accessToken"].forEach(k => {
+          const v = pm.variables.get(k);
+          if (v && v.length > 5) pm.expect(text).not.to.include(v);
+        });
+      });
+    language: text/javascript
+settings:
+  disableCookies: true
+order: 3000

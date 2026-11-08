@@ -1,0 +1,34 @@
+$kind: http-request
+description: ใช้ cookie jar หลัง A1 เพื่อ verify session และดึง roles จาก roleCache/upstream
+url: "{{webBaseUrl}}/api/auth/roles"
+method: GET
+headers:
+  Accept: application/json
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("HTTP 200", () => pm.expect(pm.response.code).to.eql(200));
+      pm.test("Authenticated with roles array", () => {
+        const d = pm.response.json();
+        pm.expect(d.authenticated).to.eql(true);
+        pm.expect(d.roles).to.be.an("array");
+      });
+      pm.test("Cache-Control is no-store", () => {
+        const cc = pm.response.headers.get("Cache-Control");
+        pm.expect(cc, "Cache-Control header missing").to.be.a("string");
+        pm.expect(cc.toLowerCase()).to.include("no-store");
+      });
+      pm.test("Response body does not leak raw tokens", () => {
+        const text = pm.response.text();
+        ["exchangeToken", "ssoToken", "intranetToken", "accessToken"].forEach(k => {
+          const v = pm.variables.get(k);
+          if (v && v.length > 5) pm.expect(text).not.to.include(v);
+        });
+        const d = pm.response.json();
+        pm.expect(d).not.to.have.property("ssoToken");
+        pm.expect(d).not.to.have.property("accessToken");
+        pm.expect(d).not.to.have.property("intranetToken");
+        pm.expect(d).not.to.have.property("exchangeToken");
+      });
+    language: text/javascript
+order: 2000

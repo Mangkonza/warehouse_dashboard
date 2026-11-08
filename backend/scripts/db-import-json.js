@@ -106,7 +106,7 @@ function mapDepartmentCode(raw) {
 
 function readJsonFile(filename) {
   const dataBakDir = path.resolve(__dirname, '../../data.bak');
-  const dashDataBakDir = path.resolve(__dirname, '../../frontend/src/data.bak');
+  const dashDataBakDir = path.resolve(__dirname, '../../warehouse_dashboard/src/data.bak');
 
   let filePath = path.join(dashDataBakDir, filename);
   if (!fs.existsSync(filePath)) {

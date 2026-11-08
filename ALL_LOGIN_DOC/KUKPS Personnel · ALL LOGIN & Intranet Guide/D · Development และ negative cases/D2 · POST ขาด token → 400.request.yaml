@@ -1,0 +1,15 @@
+$kind: http-request
+description: ไม่เรียกระบบกลางเพราะ input ไม่ครบ
+url: "{{webBaseUrl}}/api/auth/portal-session"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: "{}"
+scripts:
+  - type: afterResponse
+    code: pm.test("Missing tokens rejected",()=>{pm.expect(pm.response.code).to.eql(400);pm.expect(pm.response.json().message).to.eql("Missing exchangeToken/accessToken or intranetToken");});
+    language: text/javascript
+order: 2000

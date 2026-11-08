@@ -1,0 +1,1848 @@
+{
+    "ภาควิชาวิศวกรรมการเกษตร": [
+        {
+            "name": "นายชวลิต แซ่จัน",
+            "position": "พนักงานทั่วไป",
+            "email": "fengcls@ku.ac.th",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "ผศ.นงลักษณ์  เล็กรุ่งเรืองกิจ",
+            "position": "หัวหน้าภาค",
+            "email": "fengnllg@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมการเกษตร\\ผศ.นงลักษณ์  เล็กรุ่งเรืองกิจ.jpg"
+        },
+        {
+            "name": "นายธงชัย แสงจันทร์",
+            "position": "พนักงานห้องปฏิบัติการ",
+            "email": "fengths@ku.ac.th",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "ผศ.ดร.วันรัฐ  อับดุลลากาซิม",
+            "position": "ประธานหลักสูตร วศ.ม. (วิศวกรรมเกษตร) และประธานหลักสูตร วศ.ด. (วิศวกรรมเกษตร)",
+            "email": "fengwra@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมการเกษตร\\ผศ.ดร.วันรัฐ  อับดุลลากาซิม.jpg"
+        },
+        {
+            "name": "รศ.ดร.แก้วกานต์  พวงสมบัติ",
+            "position": "คณาจารย์/บุคลากร",
+            "email": "fengkkb@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมการเกษตร\\รศ.ดร.แก้วกานต์  พวงสมบัติ.jpg"
+        },
+        {
+            "name": "รศ.ดร. ศิวลักษณ์ ปฐวีรัตน์",
+            "position": "ประธานหลักสูตร วศ.บ. (วิศวกรรมวิศวกรรมนวัตกรรมเพื่อการเกษตรและอุตสาหกรรม)",
+            "email": "fengslp@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมการเกษตร\\รศ.ดร. ศิวลักษณ์ ปฐวีรัตน์.jpg"
+        },
+        {
+            "name": "รศ.ดร.สิรินาฏ  น้อยพิทักษ์",
+            "position": "คณาจารย์/บุคลากร",
+            "email": "fengsnn@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมการเกษตร\\รศ.ดร.สิรินาฏ  น้อยพิทักษ์.jpg"
+        },
+        {
+            "name": "รศ.ดร.ประเทือง อุษาบริสุทธิ์",
+            "position": "อาจารย์",
+            "email": "fengptu@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมการเกษตร\\รศ.ดร.ประเทือง อุษาบริสุทธิ์.jpg"
+        },
+        {
+            "name": "ผศ.ศุภชัย  กุลมุติวัฒน์",
+            "position": "อาจารย์",
+            "email": "fengsck@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมการเกษตร\\ผศ.ศุภชัย  กุลมุติวัฒน์.jpg"
+        },
+        {
+            "name": "รศ.ดร.วัชรพล ชยประเสริฐ",
+            "position": "อาจารย์",
+            "email": "fengwpc@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมการเกษตร\\รศ.ดร.วัชรพล ชยประเสริฐ.jpg"
+        },
+        {
+            "name": "ผศ.ดร.ศิริศักดิ์  เชิดเกียรติพล",
+            "position": "อาจารย์",
+            "email": "fengsrcp@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมการเกษตร\\ผศ.ดร.ศิริศักดิ์  เชิดเกียรติพล.jpg"
+        },
+        {
+            "name": "ผศ.ดร.ภวินท์  ธัญภัทรานนท์",
+            "position": "อาจารย์",
+            "email": "fengpwt@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมการเกษตร\\ผศ.ดร.ภวินท์  ธัญภัทรานนท์.jpg"
+        },
+        {
+            "name": "รศ.ดร.พิมพ์พรรณ  ปรืองาม",
+            "position": "อาจารย์",
+            "email": "fengpppn@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมการเกษตร\\รศ.ดร.พิมพ์พรรณ  ปรืองาม.jpg"
+        },
+        {
+            "name": "ผศ.ดร.อาทิตย์  พวงสมบัติ",
+            "position": "อาจารย์",
+            "email": "fengatp@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมการเกษตร\\ผศ.ดร.อาทิตย์  พวงสมบัติ.jpg"
+        },
+        {
+            "name": "อ.ดร.ชัยยะ จันทรา",
+            "position": "อาจารย์",
+            "email": "fengcyj@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมการเกษตร\\อ.ดร.ชัยยะ จันทรา.jpg"
+        },
+        {
+            "name": "ผศ.ดร.วัชรชาญ สุขเจริญวิภารัตน์",
+            "position": "อาจารย์",
+            "email": "fengwhs@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมการเกษตร\\ผศ.ดร.วัชรชาญ สุขเจริญวิภารัตน์.jpg"
+        },
+        {
+            "name": "นางสาวอรุณรัตน์ บุญปองหา",
+            "position": "ชำนาญการ",
+            "email": "fengndb@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมการเกษตร\\นางสาวอรุณรัตน์ บุญปองหา.jpg"
+        },
+        {
+            "name": "นางสาวพีรดา แจ้งศรี",
+            "position": "ชำนาญการ",
+            "email": "fengpdj@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมการเกษตร\\นางสาวพีรดา แจ้งศรี.jpg"
+        },
+        {
+            "name": "นางสาวรัตนาภรณ์ สระทองอ้อย",
+            "position": "เจ้าหน้าที่บริหารงานทั่วไป",
+            "email": "fengrosa@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมการเกษตร\\นางสาวรัตนาภรณ์ สระทองอ้อย.jpg"
+        },
+        {
+            "name": "นายภธร จันทรอุดม",
+            "position": "ปฏิบัติการ",
+            "email": "patara.jh@ku.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมการเกษตร\\นายภธร จันทรอุดม.jpg"
+        },
+        {
+            "name": "นายเจนวิทย์ จิตรใจเย็น",
+            "position": "ปฏิบัติการ",
+            "email": "janwit.ji@ku.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมการเกษตร\\นายเจนวิทย์ จิตรใจเย็น.jpg"
+        },
+        {
+            "name": "นายศักดา จันทร์ทอง",
+            "position": "ชำนาญงานพิเศษ",
+            "email": "fengsdc@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมการเกษตร\\นายศักดา จันทร์ทอง.jpg"
+        },
+        {
+            "name": "นายชัชวาล ตาก้อง",
+            "position": "ปฏิบัติงาน",
+            "email": "chatchawan.tak@ku.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมการเกษตร\\นายชัชวาล ตาก้อง.jpg"
+        },
+        {
+            "name": "นางสาวจักจั่น นาฟาง",
+            "position": "แม่บ้านประจำภาควิชา",
+            "email": "ไม่พบอีเมล",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมการเกษตร\\นางสาวจักจั่น นาฟาง.jpg"
+        },
+        {
+            "name": "นางสาวศิรประภา เชียงเงาะ",
+            "position": "แม่บ้านประจำภาควิชา",
+            "email": "fengths@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมการเกษตร\\นางสาวศิรประภา เชียงเงาะ.jpg"
+        }
+    ],
+    "ภาควิชาวิศวกรรมชลประทาน": [
+        {
+            "name": "นายณัฐพล เสรีเผ่าวงษ์",
+            "position": "ปฏิบัติการ",
+            "email": "fengnpse@ku.ac.th",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายธงชัย แสงจันทร์",
+            "position": "พนักงานห้องปฏิบัติการ",
+            "email": "fengths@ku.ac.th",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "ผศ.ดร.ไชยาพงษ์ เทพประสิทธิ์",
+            "position": "หัวหน้าภาควิชา",
+            "email": "fengcpth@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมชลประทาน\\ผศ.ดร.ไชยาพงษ์ เทพประสิทธิ์.jpg"
+        },
+        {
+            "name": "นายชวลิต แซ่จัน",
+            "position": "พนักงานทั่วไป",
+            "email": "fengcls@ku.ac.th",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายแสง ทินวงษ์ปาน",
+            "position": "พนักงานทั่วไป",
+            "email": "fengset@ku.ac.th",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "ผศ.ดร.ชูพันธุ์ ชมภูจันทร์",
+            "position": "รองหัวหน้าภาควิชา",
+            "email": "fengcpcc@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมชลประทาน\\ผศ.ดร.ชูพันธุ์ ชมภูจันทร์.jpg"
+        },
+        {
+            "name": "ผศ.ดร.ทรงศักดิ์ ภัทราวุฒิชัย",
+            "position": "รองหัวหน้าภาควิชา",
+            "email": "songsak.pu@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมชลประทาน\\ผศ.ดร.ทรงศักดิ์ ภัทราวุฒิชัย.jpg"
+        },
+        {
+            "name": "รศ.ดร.วราวุธ  วุฒิวณิชย์",
+            "position": "อาจารย์",
+            "email": "fengvwv@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมชลประทาน\\รศ.ดร.วราวุธ  วุฒิวณิชย์.jpg"
+        },
+        {
+            "name": "รศ.ดร.บัญชา ขวัญยืน",
+            "position": "อาจารย์",
+            "email": "fengbak@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมชลประทาน\\รศ.ดร.บัญชา ขวัญยืน.jpg"
+        },
+        {
+            "name": "รศ.ดร.เอกสิทธิ์ โฆสิตสกุลชัย",
+            "position": "อาจารย์",
+            "email": "fengesk@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมชลประทาน\\รศ.ดร.เอกสิทธิ์ โฆสิตสกุลชัย.jpg"
+        },
+        {
+            "name": "รศ.ดร.ชัยศรี สุขสาโรจน์",
+            "position": "อาจารย์",
+            "email": "fengcss@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมชลประทาน\\รศ.ดร.ชัยศรี สุขสาโรจน์.jpg"
+        },
+        {
+            "name": "รศ.ดร.สมชาย ดอนเจดีย์",
+            "position": "อาจารย์",
+            "email": "fengscd@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมชลประทาน\\รศ.ดร.สมชาย ดอนเจดีย์.jpg"
+        },
+        {
+            "name": "รศ.ดร.วิษุวัฒก์ แต้สมบัติ",
+            "position": "อาจารย์",
+            "email": "fengwwt@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมชลประทาน\\รศ.ดร.วิษุวัฒก์ แต้สมบัติ.jpg"
+        },
+        {
+            "name": "ผศ.นิมิตร เฉิดฉันท์พิพัฒน์",
+            "position": "อาจารย์",
+            "email": "fengnmc@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมชลประทาน\\ผศ.นิมิตร เฉิดฉันท์พิพัฒน์.jpg"
+        },
+        {
+            "name": "ผศ.ดร.นิธิรัชต์ สงวนเดือน",
+            "position": "อาจารย์",
+            "email": "fengntr@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมชลประทาน\\ผศ.ดร.นิธิรัชต์ สงวนเดือน.jpg"
+        },
+        {
+            "name": "ผศ.ดร.จิระกานต์ ศิริวิชญ์ไมตรี",
+            "position": "อาจารย์",
+            "email": "fengcrk@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมชลประทาน\\ผศ.ดร.จิระกานต์ ศิริวิชญ์ไมตรี.jpg"
+        },
+        {
+            "name": "ผศ.ดร.จุติเทพ วงษ์เพ็ชร์",
+            "position": "อาจารย์",
+            "email": "fengjtv@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมชลประทาน\\ผศ.ดร.จุติเทพ วงษ์เพ็ชร์.jpg"
+        },
+        {
+            "name": "ผศ.ดร.เกศวรา สิทธิโชค",
+            "position": "อาจารย์",
+            "email": "fengkrs@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมชลประทาน\\ผศ.ดร.เกศวรา สิทธิโชค.jpg"
+        },
+        {
+            "name": "ผศ.ดร.ศศิวิมล ขาวโกมล",
+            "position": "อาจารย์",
+            "email": "fengsmk@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมชลประทาน\\ผศ.ดร.ศศิวิมล ขาวโกมล.jpg"
+        },
+        {
+            "name": "อ.ดร.ธัญดร ออกวะลา",
+            "position": "อาจารย์",
+            "email": "fengtdo@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมชลประทาน\\อ.ดร.ธัญดร ออกวะลา.jpg"
+        },
+        {
+            "name": "อ.พลเพชร สมานมิตร",
+            "position": "อาจารย์",
+            "email": "fengpes@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมชลประทาน\\อ.พลเพชร สมานมิตร.jpg"
+        },
+        {
+            "name": "นายเอนก ไกรรอด",
+            "position": "ปฏิบัติการ",
+            "email": "fengankr@ku.ac.th",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นางสาวลักษณา ทรัพย์เย็น",
+            "position": "ชำนาญการ",
+            "email": "fenglnn@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมชลประทาน\\นางสาวลักษณา ทรัพย์เย็น.jpg"
+        },
+        {
+            "name": "นางสาวสุกัญญา จำปาอ่อน",
+            "position": "ชำนาญการ",
+            "email": "fengsnpi@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมชลประทาน\\นางสาวสุกัญญา จำปาอ่อน.jpg"
+        },
+        {
+            "name": "นางสาวณัฐธยาน์ นามอินทร์",
+            "position": "ปฏิบัติการ",
+            "email": "fengnan@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมชลประทาน\\นางสาวณัฐธยาน์ นามอินทร์.jpg"
+        },
+        {
+            "name": "นายธีรศักดิ์ ซ้ายอ่อน",
+            "position": "ปฏิบัติการ",
+            "email": "fengtssa@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมชลประทาน\\นายธีรศักดิ์ ซ้ายอ่อน.jpg"
+        },
+        {
+            "name": "นางสาวสุภาพร  พัฒนแก้ว",
+            "position": "ปฏิบัติงาน",
+            "email": "supaporn.patta@ku.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมชลประทาน\\นางสาวสุภาพร  พัฒนแก้ว.jpg"
+        },
+        {
+            "name": "นายธนกร ทองดอนใหม่",
+            "position": "ปฏิบัติงาน",
+            "email": "fengtot@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมชลประทาน\\นายธนกร ทองดอนใหม่.jpg"
+        },
+        {
+            "name": "นายชรัตน์ แก่นประกอบ",
+            "position": "-",
+            "email": "fengcuk@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมชลประทาน\\นายชรัตน์ แก่นประกอบ.jpg"
+        },
+        {
+            "name": "นางสาววนิดา สระทองพลอย",
+            "position": "ดูแลอาคารและสถานที่",
+            "email": "ไม่พบอีเมล",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมชลประทาน\\นางสาววนิดา สระทองพลอย.jpg"
+        },
+        {
+            "name": "นายธนกร  แก่นประกอบ",
+            "position": "-",
+            "email": "ไม่พบอีเมล",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมชลประทาน\\นายธนกร  แก่นประกอบ.jpg"
+        }
+    ],
+    "ภาควิชาวิศวกรรมอาหาร": [
+        {
+            "name": "นายธงชัย แสงจันทร์",
+            "position": "พนักงานห้องปฏิบัติการ",
+            "email": "fengths@ku.ac.th",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "รศ.ดร.กอบศักดิ์ กาญจนาพงศ์กุล",
+            "position": "หัวหน้าภาค",
+            "email": "fengkska@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมอาหาร\\รศ.ดร.กอบศักดิ์ กาญจนาพงศ์กุล.jpg"
+        },
+        {
+            "name": "นายชวลิต แซ่จัน",
+            "position": "พนักงานทั่วไป",
+            "email": "fengcls@ku.ac.th",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "ผศ.ดร.วงศ์ผกา วงศ์รัตน์",
+            "position": "ประธานหลักสูตร ป.โท",
+            "email": "fengwkw@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมอาหาร\\ผศ.ดร.วงศ์ผกา วงศ์รัตน์.jpg"
+        },
+        {
+            "name": "อ.ดร.กฤษณันท์ มะลิทอง",
+            "position": "รองหัวหน้าภาค",
+            "email": "fengknma@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมอาหาร\\อ.ดร.กฤษณันท์ มะลิทอง.jpg"
+        },
+        {
+            "name": "รศ.ดร.รณฤทธิ์ ฤทธิรณ",
+            "position": "ประธานหลักสูตร ป.เอก",
+            "email": "fengror@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมอาหาร\\รศ.ดร.รณฤทธิ์ ฤทธิรณ.jpg"
+        },
+        {
+            "name": "รศ.อมรเดช พุทธิพิพัฒน์ขจร",
+            "position": "ประธานหลักสูตร ป.ตรี",
+            "email": "fengadp@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมอาหาร\\รศ.อมรเดช พุทธิพิพัฒน์ขจร.jpg"
+        },
+        {
+            "name": "รศ.ดร.สุกัญญา วิชชุกิจ",
+            "position": "อาจารย์",
+            "email": "fengskw@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมอาหาร\\รศ.ดร.สุกัญญา วิชชุกิจ.jpg"
+        },
+        {
+            "name": "ผศ.ดร.อังคณา อ.สุวรรณ",
+            "position": "อาจารย์",
+            "email": "fengaao@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมอาหาร\\ผศ.ดร.อังคณา อ.สุวรรณ.jpg"
+        },
+        {
+            "name": "ผศ.เมลดา เฟื่องฟู",
+            "position": "อาจารย์",
+            "email": "fengmdf@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมอาหาร\\ผศ.เมลดา เฟื่องฟู.jpg"
+        },
+        {
+            "name": "อ.ธิติพงศ์ โพธิสุทธิ์",
+            "position": "อาจารย์",
+            "email": "fengttp@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมอาหาร\\อ.ธิติพงศ์ โพธิสุทธิ์.jpg"
+        },
+        {
+            "name": "อ.ดร.สยุมพร รัตนพันธ์",
+            "position": "อาจารย์",
+            "email": "fengsypr@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมอาหาร\\อ.ดร.สยุมพร รัตนพันธ์.jpg"
+        },
+        {
+            "name": "อ.ดร.กรณ์อัฐชญา วีณุตตรานนท์",
+            "position": "อาจารย์",
+            "email": "fengkav@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมอาหาร\\อ.ดร.กรณ์อัฐชญา วีณุตตรานนท์.jpg"
+        },
+        {
+            "name": "นางสาววันวิสาข์ ใจตรง",
+            "position": "เจ้าหน้าที่บริหารงานทั่วไป ชำนาญการ",
+            "email": "fengwsj@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมอาหาร\\นางสาววันวิสาข์ ใจตรง.jpg"
+        },
+        {
+            "name": "นางสาววริศรา สมตน",
+            "position": "เจ้าหน้าที่บริหารงานทั่วไป",
+            "email": "fengwaso@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมอาหาร\\นางสาววริศรา สมตน.jpg"
+        },
+        {
+            "name": "นางสาวคนิจฐา บุญเฟื่อง",
+            "position": "นักวิทยาศาสตร์ ชำนาญการ",
+            "email": "fengktb@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมอาหาร\\นางสาวคนิจฐา บุญเฟื่อง.jpg"
+        },
+        {
+            "name": "นายวุฒิชัย พูลลาภวิวัฒน์",
+            "position": "ช่างเทคนิค",
+            "email": "fengwcpw@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมอาหาร\\นายวุฒิชัย พูลลาภวิวัฒน์.jpg"
+        },
+        {
+            "name": "นายภูมิพัฒน์ โทจันทร์",
+            "position": "วิศวกรไฟฟ้า",
+            "email": "fengppt@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมอาหาร\\นายภูมิพัฒน์ โทจันทร์.jpg"
+        },
+        {
+            "name": "นางอุบล พรมชาติ",
+            "position": "พนักงานสถานที่",
+            "email": "fengobp@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมอาหาร\\นางอุบล พรมชาติ.jpg"
+        }
+    ],
+    "ภาควิชาวิศวกรรมโยธา": [
+        {
+            "name": "รศ.ดร.ปนัดดา กสิกิจวิวัฒน์",
+            "position": "หัวหน้าภาค",
+            "email": "fengpak@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมโยธา\\รศ.ดร.ปนัดดา กสิกิจวิวัฒน์.jpg"
+        },
+        {
+            "name": "ผศ.ดร.การันต์ คล้ายฉ่ำ",
+            "position": "รองหัวหน้าภาค และประธานหลักสูตรวิศวกรรมมหาบัณฑิต สาขาวิชาวิศวกรรมโยธา",
+            "email": "karun.kl@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมโยธา\\ผศ.ดร.การันต์ คล้ายฉ่ำ.jpg"
+        },
+        {
+            "name": "ผศ.ชิษณุพงศ์ สุธัมมะ",
+            "position": "รองหัวหน้าภาค",
+            "email": "fengcpsu@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมโยธา\\ผศ.ชิษณุพงศ์ สุธัมมะ.jpg"
+        },
+        {
+            "name": "รศ.ดร.วรากร ไม้เรียง",
+            "position": "ผู้ทรงคุณวุฒิพิเศษ",
+            "email": "fengwkm@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมโยธา\\รศ.ดร.วรากร ไม้เรียง.jpg"
+        },
+        {
+            "name": "ผศ.ดร.เพ็ญพิชชา สนิทอินทร์",
+            "position": "ประธานหลักสูตรวิศวกรรมศาสตรดุษฎีบัณฑิต สาขาวิชาวิศวกรรมโยธา",
+            "email": "fengppcs@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมโยธา\\ผศ.ดร.เพ็ญพิชชา สนิทอินทร์.jpg"
+        },
+        {
+            "name": "รศ.ดร.นันทวัฒน์ ขมหวาน",
+            "position": "ประธานหลักสูตรวิศวกรรมศาสตรบัณฑิตสาขาวิศวกรรมโยธา-โครงสร้างพื้นฐาน",
+            "email": "fengnwk@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมโยธา\\รศ.ดร.นันทวัฒน์ ขมหวาน.jpg"
+        },
+        {
+            "name": "ผศ.ดร.สมชาย ประยงค์พันธ์",
+            "position": "อาจารย์",
+            "email": "fengscpp@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมโยธา\\ผศ.ดร.สมชาย ประยงค์พันธ์.jpg"
+        },
+        {
+            "name": "ผศ.พงษ์ภวัลย์ ภัทรประภานันท์",
+            "position": "อาจารย์",
+            "email": "fengpwp@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมโยธา\\ผศ.พงษ์ภวัลย์ ภัทรประภานันท์.jpg"
+        },
+        {
+            "name": "รศ.ดร.กมล อมรฟ้า",
+            "position": "อาจารย์",
+            "email": "fengkma@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมโยธา\\รศ.ดร.กมล อมรฟ้า.jpg"
+        },
+        {
+            "name": "รศ.บรรพต กุลสุวรรณ",
+            "position": "อาจารย์",
+            "email": "fengbpk@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมโยธา\\รศ.บรรพต กุลสุวรรณ.jpg"
+        },
+        {
+            "name": "รศ.ดร.สิรัญญา ทองชาติ",
+            "position": "อาจารย์",
+            "email": "fengsytc@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมโยธา\\รศ.ดร.สิรัญญา ทองชาติ.jpg"
+        },
+        {
+            "name": "รศ.ดร.นิภาวรรณ กุลสุวรรณ",
+            "position": "อาจารย์",
+            "email": "fengpnpw@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมโยธา\\รศ.ดร.นิภาวรรณ กุลสุวรรณ.jpg"
+        },
+        {
+            "name": "รศ.กฤษณะ จันทรโชติ",
+            "position": "อาจารย์",
+            "email": "fengknj@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมโยธา\\รศ.กฤษณะ จันทรโชติ.jpg"
+        },
+        {
+            "name": "ดร.ปาณิศา แสงแก้ว",
+            "position": "อาจารย์",
+            "email": "fengpis@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมโยธา\\ดร.ปาณิศา แสงแก้ว.jpg"
+        },
+        {
+            "name": "นายอนุพนธ์ แต่สกุล",
+            "position": "ปฏิบัติการ",
+            "email": "anupon.t@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมโยธา\\นายอนุพนธ์ แต่สกุล.jpg"
+        },
+        {
+            "name": "นายพนาฤทธิ์ จันทร์ทอง",
+            "position": "ปฏิบัติการ",
+            "email": "fengprch@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมโยธา\\นายพนาฤทธิ์ จันทร์ทอง.jpg"
+        },
+        {
+            "name": "นางสาวกัลยรัตน์ เอกจีน",
+            "position": "ปฏิบัติการ",
+            "email": "kanyarat.eakj@ku.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมโยธา\\นางสาวกัลยรัตน์ เอกจีน.jpg"
+        },
+        {
+            "name": "นางสาวศุทธศรี นราลักษณ์",
+            "position": "ปฏิบัติการ",
+            "email": "suttasri.na@ku.th",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นางสาวสุปราณี ปุยะพันธ์",
+            "position": "ชำนาญการ",
+            "email": "fengspn@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมโยธา\\นางสาวสุปราณี ปุยะพันธ์.jpg"
+        },
+        {
+            "name": "นางสาวฐิราภร สมรรถนาวิน",
+            "position": "ชำนาญการ",
+            "email": "fengsmr@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมโยธา\\นางสาวฐิราภร สมรรถนาวิน.jpg"
+        },
+        {
+            "name": "นางสาวศรีวรรณ น่วมปฐม",
+            "position": "ปฏิบัติการ",
+            "email": "fengswn@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมโยธา\\นางสาวศรีวรรณ น่วมปฐม.jpg"
+        },
+        {
+            "name": "นางสาวจิราวรรณ กลับวิหค",
+            "position": "ปฏิบัติการ",
+            "email": "fengcwki@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมโยธา\\นางสาวจิราวรรณ กลับวิหค.jpg"
+        },
+        {
+            "name": "นางสาววิลัย ปู่น้อย",
+            "position": "ปฏิบัติงาน",
+            "email": "fengwlp@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมโยธา\\นางสาววิลัย ปู่น้อย.jpg"
+        }
+    ],
+    "ภาควิชาวิศวกรรมเครื่องกล": [
+        {
+            "name": "ผศ.ดร.จีรชัย สุภาสุทธากูล",
+            "position": "หัวหน้าภาค",
+            "email": "fengjcs@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมเครื่องกล\\ผศ.ดร.จีรชัย สุภาสุทธากูล.jpg"
+        },
+        {
+            "name": "ผศ.ดร.ณัฐดนัย ตัณฑวิรุฬห์",
+            "position": "และประธานหลักสูตร วศ.ม. (วิศวกรรมเครื่องกล-พลังงาน)",
+            "email": "fengndn@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมเครื่องกล\\ผศ.ดร.ณัฐดนัย ตัณฑวิรุฬห์.jpg"
+        },
+        {
+            "name": "ผศ.สวัสดิ์ ภูมิสวัสดิ์",
+            "position": "และประธานโครงการหลักสูตรวิศวกรรมเครื่องกล (ภาคพิเศษ)",
+            "email": "fengswp@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมเครื่องกล\\ผศ.สวัสดิ์ ภูมิสวัสดิ์.jpg"
+        },
+        {
+            "name": "ผศ.ดร.ชนมน จันทนา",
+            "position": "อาจารย์",
+            "email": "fengcnm@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมเครื่องกล\\ผศ.ดร.ชนมน จันทนา.jpg"
+        },
+        {
+            "name": "ผศ.ดร.ธนา ชีพสมทรง",
+            "position": "อาจารย์",
+            "email": "fengtnc@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมเครื่องกล\\ผศ.ดร.ธนา ชีพสมทรง.jpg"
+        },
+        {
+            "name": "ผศ.ดร.หทัยเทพ วงศ์สุวรรณ",
+            "position": "อาจารย์",
+            "email": "fenghtw@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมเครื่องกล\\ผศ.ดร.หทัยเทพ วงศ์สุวรรณ.jpg"
+        },
+        {
+            "name": "รศ.ดร.เบญญา กสานติกุล",
+            "position": "ประธานหลักสูตร วศ.บ. (วิศวกรรมเครื่องกล)",
+            "email": "fengbyk@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมเครื่องกล\\รศ.ดร.เบญญา กสานติกุล.jpg"
+        },
+        {
+            "name": "รศ.วิจิตรา ภูมิสวัสดิ์",
+            "position": "อาจารย์",
+            "email": "fengwth@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมเครื่องกล\\รศ.วิจิตรา ภูมิสวัสดิ์.jpg"
+        },
+        {
+            "name": "รศ.กันต์ธกรณ์ เขาทอง",
+            "position": "อาจารย์",
+            "email": "fengkkk@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมเครื่องกล\\รศ.กันต์ธกรณ์ เขาทอง.jpg"
+        },
+        {
+            "name": "ผศ.ดร.วัชมา โพธิ์ทอง",
+            "position": "อาจารย์",
+            "email": "fengwmp@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมเครื่องกล\\ผศ.ดร.วัชมา โพธิ์ทอง.jpg"
+        },
+        {
+            "name": "ผศ.วรพจน์ ศตเดชากุล",
+            "position": "อาจารย์",
+            "email": "fengwpsk@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมเครื่องกล\\ผศ.วรพจน์ ศตเดชากุล.jpg"
+        },
+        {
+            "name": "รศ.ดร.ปรีดา ปรากฏมาก",
+            "position": "อาจารย์",
+            "email": "fengpdpr@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมเครื่องกล\\รศ.ดร.ปรีดา ปรากฏมาก.jpg"
+        },
+        {
+            "name": "ผศ.ดร.คมกฤษณ์ ชัยโย",
+            "position": "อาจารย์",
+            "email": "fengkrc@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมเครื่องกล\\ผศ.ดร.คมกฤษณ์ ชัยโย.jpg"
+        },
+        {
+            "name": "อ.ดร.ณัฐพงษ์ สุขสบาย",
+            "position": "อาจารย์",
+            "email": "nattapong.s@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมเครื่องกล\\อ.ดร.ณัฐพงษ์ สุขสบาย.jpg"
+        },
+        {
+            "name": "นายเอนก ไกรรอด",
+            "position": "นักวิทยาศาสตร์",
+            "email": "fengankr@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมเครื่องกล\\นายเอนก ไกรรอด.jpg"
+        },
+        {
+            "name": "นายมานิตย์ รุ่งสว่าง",
+            "position": "ช่างเทคนิค",
+            "email": "fengmnr@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมเครื่องกล\\นายมานิตย์ รุ่งสว่าง.jpg"
+        },
+        {
+            "name": "นางสมบูรณ์   พรมชาติ",
+            "position": "เจ้าหน้าที่บริหารงานทั่วไป",
+            "email": "fengsbc@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมเครื่องกล\\นางสมบูรณ์   พรมชาติ.jpg"
+        },
+        {
+            "name": "นางสาววราพร คล้ายพลอย",
+            "position": "เจ้าหน้าที่บริหารงานทั่วไป",
+            "email": "fengwpkl@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมเครื่องกล\\นางสาววราพร คล้ายพลอย.jpg"
+        },
+        {
+            "name": "นางรัชชานนท์ ชูราศรี",
+            "position": "พนักงานสถานที่",
+            "email": "fengrnc@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมเครื่องกล\\นางรัชชานนท์ ชูราศรี.jpg"
+        },
+        {
+            "name": "นายสุทิน พรมชาติ",
+            "position": "ช่างเทคนิค",
+            "email": "fengstpc@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมเครื่องกล\\นายสุทิน พรมชาติ.jpg"
+        },
+        {
+            "name": "นางสาวสุนิสา จ้อยร่อย",
+            "position": "เจ้าหน้าที่บริหารงานทั่วไป",
+            "email": "fengssj@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมเครื่องกล\\นางสาวสุนิสา จ้อยร่อย.jpg"
+        },
+        {
+            "name": "นายศักดิ์สิทธิ์ ช้างเยาว์",
+            "position": "ช่างเทคนิค",
+            "email": "fengssch@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมเครื่องกล\\นายศักดิ์สิทธิ์ ช้างเยาว์.jpg"
+        }
+    ],
+    "ภาควิชาวิศวกรรมอุตสาหการ": [
+        {
+            "name": "นายธงชัย แสงจันทร์",
+            "position": "พนักงานห้องปฏิบัติการ",
+            "email": "fengths@ku.ac.th",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "ผศ.ดร.อธิวัฒน์ บุญมี",
+            "position": "หัวหน้าภาค",
+            "email": "fengawbo@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมอุตสาหการ\\ผศ.ดร.อธิวัฒน์ บุญมี.jpg"
+        },
+        {
+            "name": "นายชวลิต แซ่จัน",
+            "position": "พนักงานทั่วไป",
+            "email": "fengcls@ku.ac.th",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "รศ.ดร.พีรยุทธ์ ชาญเศรษฐิกุล",
+            "position": "ผู้ทรงคุณวุฒิพิเศษ",
+            "email": "@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมอุตสาหการ\\รศ.ดร.พีรยุทธ์ ชาญเศรษฐิกุล.jpg"
+        },
+        {
+            "name": "ผศ.ดร.จิรเกียรติ ทรายทอง",
+            "position": "รองหัวหน้าภาค",
+            "email": "chirakiat.s@ku.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมอุตสาหการ\\ผศ.ดร.จิรเกียรติ ทรายทอง.jpg"
+        },
+        {
+            "name": "ผศ.ปริญญา พัฒนวสันต์พร",
+            "position": "อาจารย์",
+            "email": "fengpypa@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมอุตสาหการ\\ผศ.ปริญญา พัฒนวสันต์พร.jpg"
+        },
+        {
+            "name": "ผศ.ดร.ชัยมงคล ลิ้มเพียรชอบ",
+            "position": "อาจารย์",
+            "email": "fengckl@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมอุตสาหการ\\ผศ.ดร.ชัยมงคล ลิ้มเพียรชอบ.jpg"
+        },
+        {
+            "name": "ผศ.ดร.อณจ ชัยมณี",
+            "position": "อาจารย์",
+            "email": "fenganc@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมอุตสาหการ\\ผศ.ดร.อณจ ชัยมณี.jpg"
+        },
+        {
+            "name": "ผศ.ดร.ภัทรพงษ์ ภาคภูมิ",
+            "position": "อาจารย์",
+            "email": "fengpppa@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมอุตสาหการ\\ผศ.ดร.ภัทรพงษ์ ภาคภูมิ.jpg"
+        },
+        {
+            "name": "รศ.ดร.ศศรส ใจจิตร์",
+            "position": "อาจารย์",
+            "email": "sasarose.j@ku.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมอุตสาหการ\\รศ.ดร.ศศรส ใจจิตร์.jpg"
+        },
+        {
+            "name": "อ.ดร.ปริญญา กวีกิจบัณฑิต",
+            "position": "อาจารย์",
+            "email": "fengpnka@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมอุตสาหการ\\อ.ดร.ปริญญา กวีกิจบัณฑิต.jpg"
+        },
+        {
+            "name": "ผศ.ดร.วรญา เนื่องมัจฉา",
+            "position": "อาจารย์",
+            "email": "fengwyn@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมอุตสาหการ\\ผศ.ดร.วรญา เนื่องมัจฉา.jpg"
+        },
+        {
+            "name": "นางสาวกรชนก กระจ่างเย่า",
+            "position": "ปฏิบัติการ",
+            "email": "fengknkr@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมอุตสาหการ\\นางสาวกรชนก กระจ่างเย่า.jpg"
+        },
+        {
+            "name": "นางสาววิลาสินี แจ้งกระจ่าง",
+            "position": "ปฏิบัติการ",
+            "email": "wilasinee.jang@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมอุตสาหการ\\นางสาววิลาสินี แจ้งกระจ่าง.jpg"
+        },
+        {
+            "name": "นางสาวภัคจิรา สุขเกตุ",
+            "position": "ชำนาญการ",
+            "email": "fengpjr@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมอุตสาหการ\\นางสาวภัคจิรา สุขเกตุ.jpg"
+        },
+        {
+            "name": "นางสาวอัธยา พลายภู่",
+            "position": "ปฏิบัติการ",
+            "email": "fengayp@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมอุตสาหการ\\นางสาวอัธยา พลายภู่.jpg"
+        },
+        {
+            "name": "นายแสน เทพมาลาพันธ์ศิริ",
+            "position": "ปฏิบัติงาน",
+            "email": "san.t@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมอุตสาหการ\\นายแสน เทพมาลาพันธ์ศิริ.jpg"
+        }
+    ],
+    "ภาควิชาวิศวกรรมคอมพิวเตอร์": [
+        {
+            "name": "นายธงชัย แสงจันทร์",
+            "position": "พนักงานห้องปฏิบัติการ",
+            "email": "fengths@ku.ac.th",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "ผศ.ดร.วรัญญา อรรถเสนา",
+            "position": "หัวหน้าภาควิชา",
+            "email": "fengvry@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมคอมพิวเตอร์\\ผศ.ดร.วรัญญา อรรถเสนา.jpg"
+        },
+        {
+            "name": "นายชวลิต แซ่จัน",
+            "position": "พนักงานทั่วไป",
+            "email": "fengcls@ku.ac.th",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "ผศ.ดร.พิเชษฐ์ สืบสายพรหม",
+            "position": "รองหัวหน้าภาควิชา",
+            "email": "fengpcsu@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมคอมพิวเตอร์\\ผศ.ดร.พิเชษฐ์ สืบสายพรหม.jpg"
+        },
+        {
+            "name": "อ.ร้อยโทอนุมัติ อิงคนินันท์",
+            "position": "ประธานโครงการหลักสูตร ป.ตรี",
+            "email": "fengame@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมคอมพิวเตอร์\\อ.ร้อยโทอนุมัติ อิงคนินันท์.jpg"
+        },
+        {
+            "name": "ผศ.ดร.บุญรัตน์ เผดิมรอด",
+            "position": "ประธานหลักสูตร ป.ตรี",
+            "email": "fengbyr@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมคอมพิวเตอร์\\ผศ.ดร.บุญรัตน์ เผดิมรอด.jpg"
+        },
+        {
+            "name": "รศ.ดร.อมรฤทธิ์ พุทธิพิพัฒน์ขจร",
+            "position": "ประธานหลักสูตร ป.โท",
+            "email": "fengarp@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมคอมพิวเตอร์\\รศ.ดร.อมรฤทธิ์ พุทธิพิพัฒน์ขจร.jpg"
+        },
+        {
+            "name": "ผศ.ดร.จักกริช พฤษการ",
+            "position": "อาจารย์",
+            "email": "fengckp@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมคอมพิวเตอร์\\ผศ.ดร.จักกริช พฤษการ.jpg"
+        },
+        {
+            "name": "รศ.ดร.ฐิติพงษ์ สถิรเมธีกุล",
+            "position": "อาจารย์",
+            "email": "thitipong.s@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมคอมพิวเตอร์\\รศ.ดร.ฐิติพงษ์ สถิรเมธีกุล.jpg"
+        },
+        {
+            "name": "ผศ.ดร.เสกสรรค์ มธุลาภรังสรรค์",
+            "position": "อาจารย์",
+            "email": "fengssmt@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมคอมพิวเตอร์\\ผศ.ดร.เสกสรรค์ มธุลาภรังสรรค์.jpg"
+        },
+        {
+            "name": "ผศ.ดร.ดวงเพ็ญ เจตน์พิพัฒนพงษ์",
+            "position": "อาจารย์",
+            "email": "fengdpj@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมคอมพิวเตอร์\\ผศ.ดร.ดวงเพ็ญ เจตน์พิพัฒนพงษ์.jpg"
+        },
+        {
+            "name": "ผศ.ดร.ศิวดล เสถียรพัฒนากูล",
+            "position": "อาจารย์",
+            "email": "fengsds@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมคอมพิวเตอร์\\ผศ.ดร.ศิวดล เสถียรพัฒนากูล.jpg"
+        },
+        {
+            "name": "ผศ.ดร.กายรัฐ เจริญราษฎร์",
+            "position": "อาจารย์",
+            "email": "fengkrj@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมคอมพิวเตอร์\\ผศ.ดร.กายรัฐ เจริญราษฎร์.jpg"
+        },
+        {
+            "name": "อ.พฤษพล ตั้งสัจจะธรรม",
+            "position": "อาจารย์",
+            "email": "pruetsaphon.t@ku.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมคอมพิวเตอร์\\อ.พฤษพล ตั้งสัจจะธรรม.jpg"
+        },
+        {
+            "name": "อ.ธีรวัฒน์ หวายฤทธิ์",
+            "position": "อาจารย์",
+            "email": "theerawat.wha@ku.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมคอมพิวเตอร์\\อ.ธีรวัฒน์ หวายฤทธิ์.jpg"
+        },
+        {
+            "name": "นางสาวจุฑาทิพย์ ทรัพย์ฤทธา",
+            "position": "เจ้าหน้าที่บริหารงานทั่วไปชำนาญการ",
+            "email": "fengjts@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมคอมพิวเตอร์\\นางสาวจุฑาทิพย์ ทรัพย์ฤทธา.jpg"
+        },
+        {
+            "name": "นางสาวมณฑิชา กิจสมสาตร์",
+            "position": "เจ้าหน้าที่บริหารงานทั่วไปปฎิบัติการ",
+            "email": "fengmcn@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมคอมพิวเตอร์\\นางสาวมณฑิชา กิจสมสาตร์.jpg"
+        },
+        {
+            "name": "นายเอกลักษณ์ เรืองศรี",
+            "position": "วิศวกรชำนาญการ",
+            "email": "fengalr@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมคอมพิวเตอร์\\นายเอกลักษณ์ เรืองศรี.jpg"
+        },
+        {
+            "name": "นายวรธนัท เกตุศิริ",
+            "position": "นักวิชาการคอมพิวเตอร์ปฏิบัติการ",
+            "email": "fengsok@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมคอมพิวเตอร์\\นายวรธนัท เกตุศิริ.jpg"
+        },
+        {
+            "name": "นางสาวนนิฌา วงศ์รสกร",
+            "position": "นักวิชาการคอมพิวเตอร์ปฏิบัติการ",
+            "email": "fengncw@ku.ac.th",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมคอมพิวเตอร์\\นางสาวนนิฌา วงศ์รสกร.jpg"
+        },
+        {
+            "name": "นางสาวสุพัตรา ทองดอนแป้น",
+            "position": "แม่บ้าน",
+            "email": "ไม่พบอีเมล",
+            "image_path": "profile_images\\ภาควิชาวิศวกรรมคอมพิวเตอร์\\นางสาวสุพัตรา ทองดอนแป้น.jpg"
+        }
+    ],
+    "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม": [
+        {
+            "name": "ผศ.บุญมา ป้านประดิษฐ์",
+            "position": "ที่ปรึกษาศูนย์",
+            "email": "fengbop@ku.ac.th",
+            "image_path": "profile_images\\ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม\\ผศ.บุญมา ป้านประดิษฐ์.jpg"
+        },
+        {
+            "name": "นายธงชัย แสงจันทร์",
+            "position": "พนักงานห้องปฏิบัติการ",
+            "email": "fengths@ku.ac.th",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายอำพล ชุมเปีย",
+            "position": "ที่ปรึกษาศูนย์",
+            "email": "ไม่พบอีเมล",
+            "image_path": "profile_images\\ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม\\นายอำพล ชุมเปีย.jpg"
+        },
+        {
+            "name": "นายชวลิต แซ่จัน",
+            "position": "พนักงานทั่วไป",
+            "email": "fengcls@ku.ac.th",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "รศ.ดร.สมชาย ดอนเจดีย์",
+            "position": "รักษาการแทนหัวหน้าศูนย์",
+            "email": "fengscd@ku.ac.th",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายอรรถวุทธิ์ รื่นเริงใจ",
+            "position": "ชำนาญการ",
+            "email": "fengavr@ku.ac.th",
+            "image_path": "profile_images\\ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม\\นายอรรถวุทธิ์ รื่นเริงใจ.jpg"
+        },
+        {
+            "name": "นางเนตรนภา วิชานงค์",
+            "position": "ชำนาญการ",
+            "email": "fengnpv@ku.ac.th",
+            "image_path": "profile_images\\ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม\\นางเนตรนภา วิชานงค์.jpg"
+        },
+        {
+            "name": "นายรัตนศักดิ์ ทรัพย์เย็น",
+            "position": "ปฏิบัติการ",
+            "email": "fengrssa@ku.ac.th",
+            "image_path": "profile_images\\ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม\\นายรัตนศักดิ์ ทรัพย์เย็น.jpg"
+        },
+        {
+            "name": "นายภัทรพล ชูราศรี",
+            "position": "ปฏิบัติงาน",
+            "email": "fengppc@ku.ac.th",
+            "image_path": "profile_images\\ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม\\นายภัทรพล ชูราศรี.jpg"
+        },
+        {
+            "name": "นายสมเกียรติ อิ่มจันทร์",
+            "position": "ช่างฝีมือโรงงาน",
+            "email": "fengsii@ku.ac.th",
+            "image_path": "profile_images\\ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม\\นายสมเกียรติ อิ่มจันทร์.jpg"
+        },
+        {
+            "name": "นางณีรนุช ยอดเพชร",
+            "position": "พนักงานสถานที่",
+            "email": "fengnrn@ku.ac.th",
+            "image_path": "profile_images\\ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม\\นางณีรนุช ยอดเพชร.jpg"
+        },
+        {
+            "name": "นายเจษฎาพร ด้วงแก้ว",
+            "position": "พนักงานทั่วไป",
+            "email": "fengjhd@ku.ac.th",
+            "image_path": "profile_images\\ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม\\นายเจษฎาพร ด้วงแก้ว.jpg"
+        },
+        {
+            "name": "นางสาวอทิตยา แผ้วไพบูลย์",
+            "position": "พนักงานธุรการ",
+            "email": "ไม่พบอีเมล",
+            "image_path": "profile_images\\ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม\\นางสาวอทิตยา แผ้วไพบูลย์.jpg"
+        }
+    ],
+    "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร": [
+        {
+            "name": "ผศ.ดร.สุวรรณ หอมหวล",
+            "position": "ที่ปรึกษา",
+            "email": "fengswh@ku.ac.th",
+            "image_path": "profile_images\\ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร\\ผศ.ดร.สุวรรณ หอมหวล.jpg"
+        },
+        {
+            "name": "ผศ.ดร.วัชมา โพธิ์ทอง",
+            "position": "หัวหน้าศูนย์",
+            "email": "fengwmp@ku.ac.th",
+            "image_path": "profile_images\\ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร\\ผศ.ดร.วัชมา โพธิ์ทอง.jpg"
+        },
+        {
+            "name": "ผศ.ดร.ศิริศักดิ์ เชิดเกียรติพล",
+            "position": "รองหัวหน้าศูนย์",
+            "email": "fengsrcp@ku.ac.th",
+            "image_path": "profile_images\\ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร\\ผศ.ดร.ศิริศักดิ์ เชิดเกียรติพล.jpg"
+        },
+        {
+            "name": "นางสาวปรารถนา ชุมพงศ์",
+            "position": "ผู้ปฏิบัติงานบริหาร",
+            "email": "fengpnc@ku.ac.th",
+            "image_path": "profile_images\\ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร\\นางสาวปรารถนา ชุมพงศ์.jpg"
+        },
+        {
+            "name": "นายพลากร จาดปลื้ม",
+            "position": "ช่างเทคนิค",
+            "email": "fengplkj@ku.ac.th",
+            "image_path": "profile_images\\ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร\\นายพลากร จาดปลื้ม.jpg"
+        },
+        {
+            "name": "นายคมกฤช  ตั้งเพียร",
+            "position": "ช่างเทคนิค",
+            "email": "fengkrta@ku.ac.th",
+            "image_path": "profile_images\\ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร\\นายคมกฤช  ตั้งเพียร.jpg"
+        },
+        {
+            "name": "นายสุชาติ จตุรพิธพร",
+            "position": "คณาจารย์/บุคลากร",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายชัยภัค ภัทรจินดา",
+            "position": "ผู้ทรงคุณวุฒิอิสระ",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายสุเทพ วัฒนศัพท์",
+            "position": "ผู้แทนสานักงานมาตรฐานผลิตภัณฑ์อุตสาหกรรม",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายทรงพล นพคุณ",
+            "position": "ผู้แทนสมาคมการค้าผู้ประกอบการอลูมิเนียมและกระจกไทย",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายธนวัฒน์ มงคลอดิสัย",
+            "position": "ผู้แทนบริษัท พฤกษา เรียลเอสเต็ท จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายธนา รัตนนาคินทร์",
+            "position": "ผู้แทนบริษัท ทวีมงคลก่อสร้าง (2000) จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายวรพจน์ สุดสงวน",
+            "position": "ผู้แทนบริษัท สโตนเฮ้นจ์ อินเตอร์ จำกัด (มหาชน)",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายชูเกียรติ ธนะฤกษ์",
+            "position": "ผู้แทนบริษัท สี่พระยาก่อสร้าง จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายชูเกียรติ กันฉาย",
+            "position": "ผู้แทนบริษัท ไทย-ออสท์ อะลูมิเนียม จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายมานิตย์ ศรีแสงสังข์",
+            "position": "ผู้แทนบริษัท เรโปรเฮ้าส์ จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายณัฐธพงษ์ ประสิทธิ์เดชสกุล",
+            "position": "ผู้แทนบริษัท โอ อาร์ เอ็ม อลูมิเนียม จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นางสาวน้าผึ้ง บุตรดีวงษ์",
+            "position": "ผู้แทนบริษัท วินเซท อลูมิเนียม จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายวัชมา โพธิ์ทอง",
+            "position": "ผู้แทนมหาวิทยาลัยเกษตรศาสตร์ วิทยาเขตกำแพงแสน",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายอิทธิพล บารมีเกรียงไกร",
+            "position": "ผู้แทนสำนักงานมาตรฐานผลิตภัณฑ์อุตสาหกรรม",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายสุภัทร์ รัตนะโสภณชัย",
+            "position": "ผู้แทนสมาคมการค้าผู้ประกอบการอลูมิเนียมและกระจกไทย",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นางสาวพันธ์ทิพย์ เวงคกุล",
+            "position": "ผู้แทนบริษัท พฤกษา เรียลเอสเต็ท จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายวีรพงษ์ รักอักษร",
+            "position": "ผู้แทนบริษัท มีนบุรีรับสร้างบ้าน (2019) จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายฉัตรชาย จิตรสายธาร",
+            "position": "ผู้แทนบริษัท ศุภาลัย จำกัด (มหาชน)",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นางสาวสฤกกา พงษ์สุวรรณ",
+            "position": "ผู้แทนบริษัท ซันเคียว โฮม (ไทยแลนด์) จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นางชริตา คอนเอม",
+            "position": "ผู้แทนบริษัท แม็กโนเลีย ควอลิตี้ ดิเวล็อปเม้นท์ จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายพงศธร ไตรวิทยาศิลย์",
+            "position": "ผู้แทนบริษัท โกลด์สตาร์เม็ททอล จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายธีระพล อินทร",
+            "position": "ผู้แทนบริษัท เคเอส แมนูแฟคทอรี่ (1991) จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายคมสัน พิสุทธอานนท์",
+            "position": "ผู้แทนบริษัท ซี.เอ็น. โปรเกรส อินเตอร์ กรุ๊ป จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายพิพัฒน์ โกวิทคณิต",
+            "position": "ผู้แทนบริษัท อลูเม็ท จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นาย อาศิรวรรธน์ โพธิพันธุ์",
+            "position": "มหาวิทยาลัยเกษตรศาสตร์",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นาง จิราวดี  พิพัฒนาทรกุล",
+            "position": "สำนักงานมาตรฐานผลิตภัณฑ์อุตสหกรรม",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นาย บูรณินทุ์ กัมผลพันธุ์",
+            "position": "สมาคมอาเซียน ไวนิล เคาน์ซิล",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นาย ณรงค์ฤทธิ์  ศรีลาพัฒน์",
+            "position": "สมาคมอาเซียน ไวนิล เคาน์ซิล",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นาย อดิศร แสงสุข",
+            "position": "พส์เบอร์ก จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นางสาว นวลอนงค์ เมธาพิพัฒน์กุล",
+            "position": "บริษัท นวพลาสติกอุตสาหกรรม จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นาย อิทธิชัย โรจนนิรันด์กิจ",
+            "position": "บริษัท ดีคอยนิค (ประเทศไทย) จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นาย ธนินทร์ รัตนศิริวิไล",
+            "position": "บริษัท บางกอก พีวีซี จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นาย สาธิต ศักดิ์พรรณทรู",
+            "position": "บริษัท วินโดว์เอเชีย จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นาย ตวง ตัณฑเศรษฐี",
+            "position": "บริษัท เอ อี เอเชีย จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นาย สุนัย ปั้นมีรส",
+            "position": "ผู้ออกแบบอิสระ",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นาย วีรพงษ์ รักอักษร",
+            "position": "บริษัท แม็กโนเลีย ควอลิตี้ ดิเวล็อปเม้นท์ จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นาย อรุณวัฏ รัตนศึกษา",
+            "position": "บริษัท ศุภาลัย จำกัด (มหาชน)",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นาย ชัยพร ควนวิไล",
+            "position": "บริษัท แสนสิริ จำกัด (มหาชน)",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายอาศิรวรรธน์  โพธิพันธุ์",
+            "position": "ผู้แทนคณะสถาปัตยกรรมศาสตร์ มหาวิทยาลัยเกษตรศาสตร์",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายไพศาล  หล่อพงศ์ไพบูลย์",
+            "position": "ผู้แทนสานักงานมาตรฐานผลิตภัณฑ์อุตสาหกรรม",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายบูรณินทุ์  กัมพลพันธ์",
+            "position": "ผู้แทนสมาคมอาเซียน ไวนิล เคาน์ซิล",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายณรงค์ฤทธิ์  ศรีลาพัฒน์",
+            "position": "ผู้แทนสมาคมอาเซียน ไวนิล เคาน์ซิล",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายอดิศร  แสงสุข ผู้แทน",
+            "position": "ผู้แทนบริษัท แฮพส์เบอร์ก จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายนนทภัทร  เรืองตระกูล",
+            "position": "บริษัท นวพลาสติกอุตสาหกรรม จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นางสาวนวลอนงค์  เมธาพิพัฒน์กุล",
+            "position": "ผู้แทนบริษัท นวพลาสติกอุตสาหกรรม จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายมนตรา  เพิ่มทรัพย์",
+            "position": "ผู้แทนบริษัท ดีคอยนิค (ประเทศไทย) จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายอิทธิชัย  โรจนนิรันดร์กิจ",
+            "position": "ผู้แทนบริษัท ดีคอยนิค (ประเทศไทย) จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายธนินทร์  รัตนศิริวิไล",
+            "position": "ผู้แทนบริษัท บางกอกพีวีซี จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายตวง  ตัณฑเศรษฐี",
+            "position": "ผู้แทนบริษัทวินโดว์เอเชีย จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายกวิภัฎ  มลิวัลย์",
+            "position": "ผู้แทนผู้ออกแบบอิสระ",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายวีรพงษ์  รักอักษร",
+            "position": "ผู้แทนบริษัท เซ็นทรัลพัฒนา  จำกัด (มหาชน)",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายวัฒนา  พิมพ์จุฑา",
+            "position": "ผู้แทนบริษัท ศุภาลัย  จำกัด (มหาชน)",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายมนต์เสน่ห์  พงศ์เมธินทร์",
+            "position": "ผู้แทนบริษัท แฮพส์เบอร์ก จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายชัยภัค  ภัทรจินดา",
+            "position": "ผู้แทนมหาวิทยาลัยศิลปากร วิทยาเขตวังท่าพระ",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายไพศาล หล่อพงศ์ไพบูลย์",
+            "position": "ผู้แทนสมาคมการค้าผู้ประกอบการอลูมิเนียมและกระจกไทย ผู้ใช้",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายบูรณินทุ์ กัมพลพันธ์",
+            "position": "ผู้แทนสมาคมอาเซียน ไวนิล เคาน์ซิล",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายอรรถทวี ธัญญะวุฒิ",
+            "position": "ผู้แทนบริษัท แมกโนเลีย ควอลิตี้ ดีเวล็อปเม้นต์ คอร์ปอเรชั่น จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายธนพนธ์ วิทูรแก้วศิริ",
+            "position": "ผู้แทนบริษัท วินเวิร์ธ จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นางสาวชญาณิน จิตรานุเคราะห์",
+            "position": "ผู้แทนบริษัท ปีเตอร์สัน 1990 จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายนำชัย เงินคล้าย",
+            "position": "ที่ปรึกษาบริษัทรับเหมาก่อสร้างโครงการ",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายชนุดม โทนุสิทธิ์",
+            "position": "ผู้แทนบริษัท วายเอชเอส อินเตอร์เนชั่นแนล จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายณรงค์ฤทธิ์ ศรีลาพัฒน์",
+            "position": "ผู้แทนบริษัท พรพระนคร จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายเกรียงศักดิ์ แซ่ลี้",
+            "position": "ผู้แทนบริษัท แฮพส์เบอร์ก จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายเจริญพงษ์ สุขสวัสดิ์",
+            "position": "ผู้แทนบริษัท คริสตัลวิว วินโดว์แอนด์ดอร์ จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายอดิศร แสงสุข",
+            "position": "ผู้แทนบริษัท มาลีฟาซาดเอ็นจิเนียริ่ง เซอร์วิส จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายธนา  รัตนนาคินทร์",
+            "position": "ผู้แทนบริษัท นวพลาสติกอุตสาหกรรม จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายศุภชัย งามใหญ่",
+            "position": "ผู้แทนบริษัท สโตนเฮ้นจ์ อินเตอร์ จำกัด (มหาชน)",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายกัมพล ออฟูวงศ์",
+            "position": "ผู้แทนบริษัท ซี.เอ็น. โปรเกรส อินเตอร์ กรุ๊ป จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายพูลลาภ สุมิตรเหมาะ",
+            "position": "ผู้แทนบริษัท เฟรมเทค วินโดว์ แอนด์ ดอร์ จำกัด",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายวัชมา  โพธิ์ทอง",
+            "position": "ผู้แทนมหาวิทยาลัยเกษตรศาสตร์ วิทยาเขตกำแพงแสน",
+            "email": "ไม่พบอีเมล",
+            "image_path": "ไม่มีรูปภาพ"
+        }
+    ],
+    "ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ": [
+        {
+            "name": "นายธงชัย แสงจันทร์",
+            "position": "พนักงานห้องปฏิบัติการ",
+            "email": "fengths@ku.ac.th",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "ดร.นิติรงค์ พงษ์พานิช",
+            "position": "นักวิจัยชำนาญการ",
+            "email": "rdinrp@ku.ac.th",
+            "image_path": "profile_images\\ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ\\ดร.นิติรงค์ พงษ์พานิช.jpg"
+        },
+        {
+            "name": "นายชวลิต แซ่จัน",
+            "position": "พนักงานทั่วไป",
+            "email": "fengcls@ku.ac.th",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายธนัญกรณ์ ใจผ่อง",
+            "position": "ชำนาญการ",
+            "email": "rdiwtjh@ku.ac.th",
+            "image_path": "profile_images\\ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ\\นายธนัญกรณ์ ใจผ่อง.jpg"
+        },
+        {
+            "name": "นายทิตินัย เทียนแย้ม",
+            "position": "ชำนาญการ",
+            "email": "rditnt@ku.ac.th",
+            "image_path": "profile_images\\ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ\\นายทิตินัย เทียนแย้ม.jpg"
+        },
+        {
+            "name": "นายสุบรรณ สนิทอินทร์",
+            "position": "ปฏิบัติการ",
+            "email": "kpssbsa@ku.ac.th",
+            "image_path": "profile_images\\ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ\\นายสุบรรณ สนิทอินทร์.jpg"
+        },
+        {
+            "name": "นายจิรัฐ  มั่นเกษม",
+            "position": "ปฏิบัติการ",
+            "email": "fengjrm@ku.ac.th",
+            "image_path": "profile_images\\ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ\\นายจิรัฐ  มั่นเกษม.jpg"
+        },
+        {
+            "name": "นายกิตติเดช โพธิ์นิยม",
+            "position": "ชำนาญการ",
+            "email": "rdikit@ku.ac.th",
+            "image_path": "profile_images\\ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ\\นายกิตติเดช โพธิ์นิยม.jpg"
+        },
+        {
+            "name": "นางสาวทัดชาวดี นฤทุม",
+            "position": "ชำนาญการ",
+            "email": "kpstdsi@ku.ac.th",
+            "image_path": "profile_images\\ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ\\นางสาวทัดชาวดี นฤทุม.jpg"
+        },
+        {
+            "name": "นางสาวพัชรียา  ไวภารา",
+            "position": "ปฏิบัติการ",
+            "email": "fengpew@ku.ac.th",
+            "image_path": "profile_images\\ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ\\นางสาวพัชรียา  ไวภารา.jpg"
+        },
+        {
+            "name": "นายประเสริฐศักดิ์ ภักดีวงศ์",
+            "position": "ชำนาญการ",
+            "email": "fengpspu@ku.ac.th",
+            "image_path": "profile_images\\ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ\\นายประเสริฐศักดิ์ ภักดีวงศ์.jpg"
+        },
+        {
+            "name": "นายภาณุวัฒน์  วณิชวิวัฒน์วงศ์",
+            "position": "ปฏิบัติการ",
+            "email": "phanuwat.wa@ku.th",
+            "image_path": "profile_images\\ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ\\นายภาณุวัฒน์  วณิชวิวัฒน์วงศ์.jpg"
+        },
+        {
+            "name": "นางสุวรรณรัตน์ สุขเกษม",
+            "position": "ส 4",
+            "email": "rdisrs@ku.ac.th",
+            "image_path": "profile_images\\ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ\\นางสุวรรณรัตน์ สุขเกษม.jpg"
+        },
+        {
+            "name": "นายณัฐดนัย เทพทอง",
+            "position": "ผู้ช่วยช่างทั่วไป (งานโรงงาน)",
+            "email": "ไม่พบอีเมล",
+            "image_path": "profile_images\\ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ\\นายณัฐดนัย เทพทอง.jpg"
+        },
+        {
+            "name": "นายสัญญา เอกจีน",
+            "position": "ผู้ช่วยช่างทั่วไป (งานสนาม)",
+            "email": "fengths@ku.ac.th",
+            "image_path": "profile_images\\ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ\\นายสัญญา เอกจีน.jpg"
+        }
+    ],
+    "สำนักงานเลขานุการ": [
+        {
+            "name": "นางสาวเพชรน้อย ยอดอยู่ดี",
+            "position": "ชำนาญการ",
+            "email": "fengpny@ku.ac.th",
+            "image_path": "profile_images\\สำนักงานเลขานุการ\\นางสาวเพชรน้อย ยอดอยู่ดี.jpg"
+        },
+        {
+            "name": "นางสาวศศิธร ชลรัตน์อมฤต",
+            "position": "ชำนาญการ",
+            "email": "fengsstc@ku.ac.th",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นางสาวกุสุมา ภิญโญ",
+            "position": "ปฏิบัติการ",
+            "email": "fengkup@ku.ac.th",
+            "image_path": "profile_images\\สำนักงานเลขานุการ\\นางสาวกุสุมา ภิญโญ.jpg"
+        },
+        {
+            "name": "นายประสิทธิ์ รุ่งโรจน์",
+            "position": "(พนักงานจ้างเหมา)",
+            "email": "fengpny@ku.ac.th",
+            "image_path": "profile_images\\สำนักงานเลขานุการ\\นายประสิทธิ์ รุ่งโรจน์.jpg"
+        },
+        {
+            "name": "นายณัฐพล เสรีเผ่าวงษ์",
+            "position": "ชำนาญการ",
+            "email": "fengnpse@ku.ac.th",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นายสาคร เขียวชะอุ่ม",
+            "position": "พนักงานทั่วไป",
+            "email": "fengskk@ku.ac.th",
+            "image_path": "profile_images\\สำนักงานเลขานุการ\\นายสาคร เขียวชะอุ่ม.jpg"
+        },
+        {
+            "name": "นายชวลิต แซ่จัน",
+            "position": "พนักงานทั่วไป",
+            "email": "fengcls@ku.ac.th",
+            "image_path": "profile_images\\สำนักงานเลขานุการ\\นายชวลิต แซ่จัน.jpg"
+        },
+        {
+            "name": "นายวิโรจน์ ศรีมงคลชัย",
+            "position": "ปฏิบัติงาน",
+            "email": "fengvrsc@ku.ac.th",
+            "image_path": "profile_images\\สำนักงานเลขานุการ\\นายวิโรจน์ ศรีมงคลชัย.jpg"
+        },
+        {
+            "name": "นายศักดิ์สิทธิ์ เหมือนประสิทธิ์",
+            "position": "ชำนาญงาน",
+            "email": "fengssms@ku.ac.th",
+            "image_path": "profile_images\\สำนักงานเลขานุการ\\นายศักดิ์สิทธิ์ เหมือนประสิทธิ์.jpg"
+        },
+        {
+            "name": "นายสมประสงค์ ชัยศิริพงษ์",
+            "position": "ปฏิบัติงาน",
+            "email": "fengsscp@ku.ac.th",
+            "image_path": "profile_images\\สำนักงานเลขานุการ\\นายสมประสงค์ ชัยศิริพงษ์.jpg"
+        },
+        {
+            "name": "นายนพเก้า ดอนเจดีย์",
+            "position": "ปฏิบัติงาน",
+            "email": "fengnkd@ku.ac.th",
+            "image_path": "profile_images\\สำนักงานเลขานุการ\\นายนพเก้า ดอนเจดีย์.jpg"
+        },
+        {
+            "name": "นายแสง ทินวงษ์ปาน",
+            "position": "พนักงานทั่วไป",
+            "email": "fengset@ku.ac.th",
+            "image_path": "profile_images\\สำนักงานเลขานุการ\\นายแสง ทินวงษ์ปาน.jpg"
+        },
+        {
+            "name": "นายขจรศักดิ์  แซ่จัน",
+            "position": "(พนักงานจ้างเหมา)",
+            "email": "ไม่พบอีเมล",
+            "image_path": "profile_images\\สำนักงานเลขานุการ\\นายขจรศักดิ์  แซ่จัน.jpg"
+        },
+        {
+            "name": "นายภานุพงศ์ คำทองหลาง",
+            "position": "(พนักงานจ้างเหมา)",
+            "email": "ไม่พบอีเมล",
+            "image_path": "profile_images\\สำนักงานเลขานุการ\\นายภานุพงศ์ คำทองหลาง.jpg"
+        },
+        {
+            "name": "นางสาวกรรณิการ์ ปู่น้อย",
+            "position": "ชำนาญการ",
+            "email": "fengknk@ku.ac.th",
+            "image_path": "profile_images\\สำนักงานเลขานุการ\\นางสาวกรรณิการ์ ปู่น้อย.jpg"
+        },
+        {
+            "name": "นางปนิตา มีหมู่",
+            "position": "ชำนาญการ",
+            "email": "fengpnt@ku.ac.th",
+            "image_path": "profile_images\\สำนักงานเลขานุการ\\นางปนิตา มีหมู่.jpg"
+        },
+        {
+            "name": "นางสาวอรุณี สุขศรี",
+            "position": "ปฏิบัติการ",
+            "email": "fengansu@ku.ac.th",
+            "image_path": "profile_images\\สำนักงานเลขานุการ\\นางสาวอรุณี สุขศรี.jpg"
+        },
+        {
+            "name": "นายวีระพงษ์ กระแสธีป",
+            "position": "ปฏิบัติการ",
+            "email": "fengwok@ku.ac.th",
+            "image_path": "profile_images\\สำนักงานเลขานุการ\\นายวีระพงษ์ กระแสธีป.jpg"
+        },
+        {
+            "name": "นางสาวทศพร  เอี่ยมสะอาด",
+            "position": "ปฏิบัติการ",
+            "email": "ไม่พบอีเมล",
+            "image_path": "profile_images\\สำนักงานเลขานุการ\\นางสาวทศพร  เอี่ยมสะอาด.jpg"
+        },
+        {
+            "name": "นายสุขชัย ยั่งยืน",
+            "position": "ชำนาญการ",
+            "email": "fengtcy@ku.ac.th",
+            "image_path": "profile_images\\สำนักงานเลขานุการ\\นายสุขชัย ยั่งยืน.jpg"
+        },
+        {
+            "name": "นางสาวปิยวรรณ จันทร์สี",
+            "position": "ชำนาญการ",
+            "email": "fengpwj@ku.ac.th",
+            "image_path": "profile_images\\สำนักงานเลขานุการ\\นางสาวปิยวรรณ จันทร์สี.jpg"
+        },
+        {
+            "name": "นายชนานันท์ โคตรภักดี",
+            "position": "ปฏิบัติการ",
+            "email": "fengcnkh@ku.ac.th",
+            "image_path": "profile_images\\สำนักงานเลขานุการ\\นายชนานันท์ โคตรภักดี.jpg"
+        },
+        {
+            "name": "นางสาวปฐมาภรณ์ อุ่นเรือน",
+            "position": "ปฏิบัติการ",
+            "email": "fengppo@ku.ac.th",
+            "image_path": "profile_images\\สำนักงานเลขานุการ\\นางสาวปฐมาภรณ์ อุ่นเรือน.jpg"
+        },
+        {
+            "name": "นางรัตนา เขียวแก้ว",
+            "position": "ชำนาญงาน",
+            "email": "fengrnkg@ku.ac.th",
+            "image_path": "profile_images\\สำนักงานเลขานุการ\\นางรัตนา เขียวแก้ว.jpg"
+        },
+        {
+            "name": "นางสุกัญญา พันยุโดด",
+            "position": "ชำนาญการพิเศษ",
+            "email": "fengsyp@ku.ac.th",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นางสาวธัญรดี เกษม",
+            "position": "ปฏิบัติการ",
+            "email": "fengtnka@ku.ac.th",
+            "image_path": "profile_images\\สำนักงานเลขานุการ\\นางสาวธัญรดี เกษม.jpg"
+        },
+        {
+            "name": "นางสาวสโรชา พึ่งอุบล",
+            "position": "ปฏิบัติการ",
+            "email": "fengscph@ku.ac.th",
+            "image_path": "profile_images\\สำนักงานเลขานุการ\\นางสาวสโรชา พึ่งอุบล.jpg"
+        },
+        {
+            "name": "นางสาวพรเพ็ญ เอี่ยมทิพย์",
+            "position": "ปฏิบัติการ",
+            "email": "fengpha@ku.ac.th",
+            "image_path": "profile_images\\สำนักงานเลขานุการ\\นางสาวพรเพ็ญ เอี่ยมทิพย์.jpg"
+        },
+        {
+            "name": "นางสาวนันฑริกา  มาช่วย",
+            "position": "ปฏิบัติการ",
+            "email": "nantarika.m@ku.th",
+            "image_path": "profile_images\\สำนักงานเลขานุการ\\นางสาวนันฑริกา  มาช่วย.jpg"
+        },
+        {
+            "name": "นางนภัสวรรณ คำฝั้น",
+            "position": "ชำนาญการ",
+            "email": "fengnps@ku.ac.th",
+            "image_path": "ไม่มีรูปภาพ"
+        },
+        {
+            "name": "นางสาวเกวลิน อิสสะอาด",
+            "position": "ชำนาญการ",
+            "email": "fengkri@ku.ac.th",
+            "image_path": "profile_images\\สำนักงานเลขานุการ\\นางสาวเกวลิน อิสสะอาด.jpg"
+        },
+        {
+            "name": "นางสาวนุศรา สุขีวงศ์",
+            "position": "ชำนาญการ",
+            "email": "fengnrsw@ku.ac.th",
+            "image_path": "profile_images\\สำนักงานเลขานุการ\\นางสาวนุศรา สุขีวงศ์.jpg"
+        },
+        {
+            "name": "นายมาโนช ทองดอนเหมือน",
+            "position": "ชำนาญการ",
+            "email": "fengmnt@ku.ac.th",
+            "image_path": "profile_images\\สำนักงานเลขานุการ\\นายมาโนช ทองดอนเหมือน.jpg"
+        },
+        {
+            "name": "นางชุติมา  ทองสน",
+            "position": "(พนักงานจ้างเหมา)",
+            "email": "ไม่พบอีเมล",
+            "image_path": "profile_images\\สำนักงานเลขานุการ\\นางชุติมา  ทองสน.jpg"
+        },
+        {
+            "name": "นางนงนาถ  คุ้มพะเนียด",
+            "position": "(พนักงานจ้างเหมา)",
+            "email": "ไม่พบอีเมล",
+            "image_path": "profile_images\\สำนักงานเลขานุการ\\นางนงนาถ  คุ้มพะเนียด.jpg"
+        },
+        {
+            "name": "นางสาวพวงผกา  คำผาสุข",
+            "position": "(พนักงานจ้างเหมา)",
+            "email": "ไม่พบอีเมล",
+            "image_path": "profile_images\\สำนักงานเลขานุการ\\นางสาวพวงผกา  คำผาสุข.jpg"
+        },
+        {
+            "name": "นางสาวละอองดาว  เสือขำ",
+            "position": "(พนักงานจ้างเหมา)",
+            "email": "ไม่พบอีเมล",
+            "image_path": "profile_images\\สำนักงานเลขานุการ\\นางสาวละอองดาว  เสือขำ.jpg"
+        },
+        {
+            "name": "นางสาวจุฑาทิพย์ ทรัพย์ฤทธา",
+            "position": "ผู้จัดการ",
+            "email": "fengjts@ku.ac.th",
+            "image_path": "profile_images\\สำนักงานเลขานุการ\\นางสาวจุฑาทิพย์ ทรัพย์ฤทธา.jpg"
+        },
+        {
+            "name": "นางสาวทิวาทิพย์  แซ่แต้",
+            "position": "(พนักงานจ้างเหมา)",
+            "email": "ไม่พบอีเมล",
+            "image_path": "profile_images\\สำนักงานเลขานุการ\\นางสาวทิวาทิพย์  แซ่แต้.jpg"
+        },
+        {
+            "name": "นางสาวมณิสรา  วงศ์วัฒนากูล",
+            "position": "(พนักงานจ้างเหมา)",
+            "email": "ไม่พบอีเมล",
+            "image_path": "profile_images\\สำนักงานเลขานุการ\\นางสาวมณิสรา  วงศ์วัฒนากูล.jpg"
+        },
+        {
+            "name": "นางสาวอภิชญา พรมมิ",
+            "position": "(พนักงานจ้างเหมา)",
+            "email": "ไม่พบอีเมล",
+            "image_path": "profile_images\\สำนักงานเลขานุการ\\นางสาวอภิชญา พรมมิ.jpg"
+        },
+        {
+            "name": "นายโชคชัย ไป๋เขียว",
+            "position": "(พนักงานจ้างเหมา)",
+            "email": "ไม่พบอีเมล",
+            "image_path": "profile_images\\สำนักงานเลขานุการ\\นายโชคชัย ไป๋เขียว.jpg"
+        }
+    ]
+}

@@ -1,0 +1,57 @@
+$kind: http-request
+name: D1 · POST direct accessToken (development เท่านั้น)
+description: นอก production ใช้ SSO token โดยตรง ใน production คาดหวัง 403
+url: "{{webBaseUrl}}/api/auth/portal-session"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "accessToken": "{{accessToken}}",
+      "intranetToken": "{{intranetToken}}"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      if (pm.response.code === 403) {
+        pm.test("Production rejects direct token with 403", () => {
+          const d = pm.response.json();
+          pm.expect(d.error || d.message).to.be.a("string");
+        });
+      } else {
+        pm.test("Development bootstrap success (HTTP 200)", () => {
+          pm.expect(pm.response.code).to.eql(200);
+          pm.expect(pm.response.json().session).to.be.a("string");
+        });
+      }
+      pm.test("Cache-Control is no-store", () => {
+        const cc = pm.response.headers.get("Cache-Control");
+        pm.expect(cc, "Cache-Control header missing").to.be.a("string");
+        pm.expect(cc.toLowerCase()).to.include("no-store");
+      });
+      pm.test("Response body does not leak raw tokens", () => {
+        const text = pm.response.text();
+        ["exchangeToken", "ssoToken", "intranetToken", "accessToken"].forEach(k => {
+          const v = pm.variables.get(k);
+          if (v && v.length > 5) pm.expect(text).not.to.include(v);
+        });
+        const d = pm.response.json();
+        pm.expect(d).not.to.have.property("ssoToken");
+        pm.expect(d).not.to.have.property("accessToken");
+        pm.expect(d).not.to.have.property("intranetToken");
+        pm.expect(d).not.to.have.property("exchangeToken");
+      });
+      pm.test("Auth cookies are HttpOnly when set", () => {
+        const cookies = pm.response.headers.all().filter(x => x.key.toLowerCase() === "set-cookie").map(x => x.value);
+        if (cookies.length > 0) {
+          ["USER_SESSION", "ACCESS_TOKEN", "INTRANET_TOKEN"].forEach(name => {
+            const c = cookies.find(x => x.startsWith(name + "="));
+            if (c) pm.expect(c.toLowerCase()).to.include("httponly");
+          });
+        }
+      });
+    language: text/javascript
+order: 1000

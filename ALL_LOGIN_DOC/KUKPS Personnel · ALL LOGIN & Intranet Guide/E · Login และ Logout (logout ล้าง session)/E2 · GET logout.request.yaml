@@ -1,0 +1,15 @@
+$kind: http-request
+description: ล้าง cookie ทั้งสามและ redirect ระบบกลาง ใช้หลังทดสอบ session เสร็จ
+url: "{{webBaseUrl}}/logout"
+method: GET
+headers:
+  Accept: application/json
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("External redirect",()=>{pm.expect(pm.response.code).to.eql(307);pm.expect(pm.response.headers.get("Location")).to.be.a("string");});
+      pm.test("Auth cookies cleared",()=>{const h=pm.response.headers.all().filter(x=>x.key.toLowerCase()==="set-cookie").map(x=>x.value).join("; ");["USER_SESSION=","ACCESS_TOKEN=","INTRANET_TOKEN="].forEach(n=>pm.expect(h).to.include(n));pm.expect(h.toLowerCase()).to.include("max-age=0");});
+    language: text/javascript
+settings:
+  followRedirects: false
+order: 2000

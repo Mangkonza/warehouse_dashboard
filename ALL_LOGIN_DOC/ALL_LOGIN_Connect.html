@@ -1,0 +1,760 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ALL LOGIN & Intranet — Integration Guide</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #18312d;
+        --green: #086650;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #f1f5f3;
+        color: var(--ink);
+        font:
+          16px/1.8 "Leelawadee UI",
+          Tahoma,
+          sans-serif;
+      }
+      header {
+        background: #064c3c;
+        color: white;
+        padding: 30px max(24px, calc((100vw - 1200px) / 2));
+      }
+      header strong {
+        font-size: 24px;
+      }
+      header p {
+        margin: 4px 0;
+        opacity: 0.85;
+      }
+      .layout {
+        max-width: 1240px;
+        margin: auto;
+        display: grid;
+        grid-template-columns: 260px minmax(0, 1fr);
+        gap: 28px;
+        padding: 28px 24px;
+      }
+      nav {
+        position: sticky;
+        top: 20px;
+        align-self: start;
+        max-height: 90vh;
+        overflow: auto;
+      }
+      nav a {
+        display: block;
+        color: var(--green);
+        text-decoration: none;
+        padding: 7px 10px;
+        border-bottom: 1px solid #d6e3dd;
+        font-size: 14px;
+      }
+      main {
+        min-width: 0;
+        background: white;
+        padding: 32px;
+        border: 1px solid #dce7e1;
+        border-radius: 12px;
+      }
+      h1 {
+        font-size: 30px;
+        line-height: 1.4;
+        margin-top: 0;
+      }
+      h2 {
+        font-size: 23px;
+        color: var(--green);
+        border-top: 1px solid #dce7e1;
+        padding-top: 26px;
+        margin-top: 36px;
+        scroll-margin-top: 20px;
+      }
+      p {
+        overflow-wrap: anywhere;
+      }
+      .bullet {
+        padding-left: 12px;
+      }
+      .table-wrap {
+        overflow: auto;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 14px;
+        margin: 16px 0;
+      }
+      td {
+        border: 1px solid #d5e1dc;
+        padding: 12px;
+        vertical-align: top;
+      }
+      tr:first-child {
+        background: #e8f2ec;
+        font-weight: bold;
+      }
+      pre {
+        background: #112f29;
+        color: #e9f7ef;
+        padding: 18px;
+        border-radius: 8px;
+        overflow: auto;
+        font:
+          14px/1.6 Consolas,
+          monospace;
+      }
+      a {
+        color: #086650;
+      }
+      .downloads a {
+        color: white;
+        margin-right: 20px;
+      }
+      footer {
+        margin-top: 32px;
+        color: #60756b;
+        font-size: 13px;
+      }
+      @media (max-width: 900px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+        nav {
+          position: static;
+          max-height: none;
+        }
+        main {
+          padding: 20px;
+        }
+      }
+      @media print {
+        body {
+          background: white;
+          font-size: 11pt;
+        }
+        header {
+          padding: 12px;
+          background: white;
+          color: black;
+        }
+        .layout {
+          display: block;
+          padding: 0;
+        }
+        nav,
+        .downloads {
+          display: none;
+        }
+        main {
+          border: 0;
+          padding: 0;
+        }
+        h2 {
+          break-after: avoid;
+        }
+        pre {
+          white-space: pre-wrap;
+          overflow-wrap: anywhere;
+          color: black;
+          background: #eee;
+        }
+        tr {
+          break-inside: avoid;
+        }
+        a {
+          color: black;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <strong>ALL LOGIN × Intranet</strong>
+      <p>KUKPS Engineering Personnel • Integration Guide • 26 ตุลาคม 2026</p>
+      <p class="downloads">
+        <a href="README.md">Markdown</a
+        ><a href="postmancollection.json" download>Postman Collection</a>
+      </p>
+    </header>
+    <div class="layout">
+      <nav aria-label="สารบัญ">
+        <a href="#section-1">1. ไฟล์และขอบเขต</a
+        ><a href="#section-2">2. Token และหน้าที่</a
+        ><a href="#section-3">3. Flow การเข้าสู่ระบบ</a
+        ><a href="#section-4">4. ตั้งค่า environment ฝั่งเว็บ</a
+        ><a href="#section-5">5. Endpoint ของระบบกลาง</a
+        ><a href="#section-6">6. Endpoint ฝั่งเว็บ</a
+        ><a href="#section-7">7. Session, profile และสิทธิ์</a
+        ><a href="#section-8">8. ใช้งาน Postman Collection</a
+        ><a href="#section-9">9. Error และการแก้ปัญหา</a
+        ><a href="#section-10">10. Checklist รับมอบการเชื่อมต่อ</a
+        ><a href="#section-11">11. แหล่งอ้างอิงและการตรวจเอกสาร</a>
+      </nav>
+      <main>
+        <h1>คู่มือเชื่อมต่อ ALL LOGIN และ Intranet</h1>
+        <p>
+          คู่มือสำหรับ kukps-eng-personnel-web • ตรวจจาก source code วันที่ 26
+          ตุลาคม 2026
+        </p>
+        <p>
+          เอกสารนี้อธิบายพฤติกรรมที่โค้ดฝั่งเว็บใช้อยู่จริง
+          ไม่ใช่ข้อยืนยันสัญญาทั้งหมดของระบบกลาง ยังไม่ได้ทดสอบกับ ALL LOGIN /
+          Intranet จริง และไม่ได้เปลี่ยนโค้ดระบบ ข้อมูล URL อ้างอิงจาก
+          configuration ปัจจุบัน ส่วน token และ secret ต้องกรอกเอง
+        </p>
+        <h2 id="section-1">1. ไฟล์และขอบเขต</h2>
+        <p class="bullet">• README.md: คู่มือสำหรับนักพัฒนาและผู้ตั้งค่าระบบ</p>
+        <p class="bullet">
+          • postmancollection.json: Postman Collection v2.1 สำหรับ import
+          แล้วเรียก endpoint
+        </p>
+        <p class="bullet">
+          • index.html: คู่มือเดียวกันในรูปแบบเว็บ เปิดอ่านออฟไลน์และพิมพ์เป็น
+          PDF ได้
+        </p>
+        <p>
+          การสร้าง session และตรวจ ALL LOGIN / Intranet อยู่ใน Next.js ไม่ใช่
+          NestJS personnel API ที่ repository ข้างเคียง ไม่ควรนำ JWT
+          ของเว็บไปถือว่าเป็น Bearer token ของ personnel API โดยอัตโนมัติ
+        </p>
+        <h2 id="section-2">2. Token และหน้าที่</h2>
+        <div class="table-wrap">
+          <table>
+            <tbody>
+              <tr>
+                <td>ค่า</td>
+                <td>ที่มา / การใช้งาน</td>
+              </tr>
+              <tr>
+                <td>exchangeToken</td>
+                <td>
+                  Portal ส่งมาให้เว็บ ใช้ POST แลกกับ ENG_TOKEN_EXCHANGE_URL;
+                  ให้ถือเป็นรหัสใช้ครั้งเดียวตาม flow
+                  และรับใหม่เมื่อต้องทดลองอีกครั้ง
+                  อายุและเงื่อนไขการใช้ซ้ำต้องยืนยันกับเจ้าของ Portal
+                </td>
+              </tr>
+              <tr>
+                <td>ssoToken / accessToken</td>
+                <td>
+                  ผลแลก token ชื่อ ssoToken ถูกนำไปเป็น Bearer ของ me และ verify
+                  และเก็บใน ACCESS_TOKEN
+                </td>
+              </tr>
+              <tr>
+                <td>intranetToken</td>
+                <td>
+                  Portal ส่งแยกมา ใช้ Bearer ของ get-role และเก็บใน
+                  INTRANET_TOKEN
+                </td>
+              </tr>
+              <tr>
+                <td>USER_SESSION</td>
+                <td>
+                  JWT HS256 ที่เว็บสร้างเองสำหรับข้อมูลผู้ใช้ ไม่ใช่ SSO token
+                  และไม่ใช่แหล่ง roles
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          ห้ามสลับ SSO token กับ Intranet token และไม่ควรส่ง accessToken พร้อม
+          exchangeToken: นอก production โค้ดเลือก accessToken ก่อน ส่วน
+          production ปฏิเสธทันทีหากมี accessToken
+        </p>
+        <h2 id="section-3">3. Flow การเข้าสู่ระบบ</h2>
+        <p>
+          1. ผู้ใช้เปิด /login ภายใต้ base path หรือเปิด /admin, /user โดยไม่มี
+          USER_SESSION → middleware redirect ไป ENG_LOGIN_URL
+        </p>
+        <p>
+          2. ระบบ Portal ทำขั้นตอนเข้าสู่ระบบและส่งผู้ใช้กลับพร้อม exchangeToken
+          และ intranetToken; วิธีตั้งค่าปุ่มระบบและ callback ฝั่ง Portal
+          ต้องประสานผู้ดูแล เพราะไม่มีโค้ด Portal ใน repository นี้
+        </p>
+        <p>
+          3. ตัวอย่าง URL กลับเข้าเว็บ:
+          https://YOUR-WEB-HOST/kukps-eng-personnel-web/admin?exchangeToken=URL_ENCODED_CODE&amp;intranetToken=URL_ENCODED_TOKEN
+        </p>
+        <p>
+          4. middleware ของ /admin และ /user ส่งต่อไป GET
+          /api/auth/portal-session พร้อม next ที่เป็น path เดิมและตัด token
+          query ออก
+        </p>
+        <p>
+          5. Next.js POST ไป exchange-token ด้วย exchangeToken → ต้องได้ HTTP
+          2xx, status=success และ ssoToken ที่ไม่ว่าง
+        </p>
+        <p>
+          6. Next.js GET me ด้วย Bearer SSO → ต้องได้ HTTP 2xx และ profile หรือ
+          user
+        </p>
+        <p>
+          7. เว็บสร้าง USER_SESSION และตั้ง ACCESS_TOKEN / INTRANET_TOKEN แล้ว
+          GET route redirect กลับ next; POST route ส่ง JSON {session,user}
+        </p>
+        <p>
+          8. GET /api/auth/roles ใช้ cookie ทั้งสาม อ่าน nontriId จาก session
+          แล้วเรียก verify กับ get-role พร้อมกัน ตรวจสถานะเข้าสู่ระบบและคืน
+          roles
+        </p>
+        <p>
+          9. /admin ต้องมี role ชื่อ admin ตรงตัว; authenticated=false หรือ
+          error จะไป /logout ส่วนไม่มี admin จะไป /home
+        </p>
+        <p>
+          URL ทั้งหมดในเอกสารที่ขึ้นต้น /api, /login, /logout, /admin, /user
+          ต้องต่อหลัง /kukps-eng-personnel-web ใน deployment ปัจจุบัน
+          หน้าอื่นอาจรับ query ผ่าน UserProvider แล้ว POST bootstrap ได้
+          แต่เส้นทางที่ middleware จัดการชัดเจนคือ /admin และ /user
+        </p>
+        <h2 id="section-4">4. ตั้งค่า environment ฝั่งเว็บ</h2>
+        <p>
+          ตัวอย่างสำหรับพัฒนาใน .env.local (แทนค่าของตัวเอง ห้ามนำ placeholder
+          secret ไปใช้งานจริง):
+        </p>
+        <pre><code>NEXT_PUBLIC_APP_URL=http://localhost:4000
+NEXT_PUBLIC_BASE_PATH=/kukps-eng-personnel-web
+ENG_LOGIN_URL=https://office.eng.kps.ku.ac.th/eng-main/home
+ENG_LOGOUT_URL=https://office.eng.kps.ku.ac.th/eng-main/useraccess
+ENG_TOKEN_EXCHANGE_URL=https://office.eng.kps.ku.ac.th/eng-main/api/external/exchange-token
+ENG_AUTH_ME_URL=https://eng.kps.ku.ac.th/std-eng-auth-service/api/me.php
+ALL_LOGIN_STATUS_URL=https://eng.kps.ku.ac.th/std-eng-auth-service/api/verify.php
+ENG_MAIN_ROLE_URL=https://office.eng.kps.ku.ac.th/eng-main/api/external/get-role
+ENG_SYSTEM_ID=&lt;SYSTEM_ID_FROM_INTRANET_ADMIN&gt;
+JWT_COOKIE_SECRET=&lt;LONG_RANDOM_PRIVATE_SECRET&gt;
+CENTRAL_AUTH_STRICT_TLS=true
+</code></pre>
+        <p class="bullet">
+          • production ใช้ NEXT_PUBLIC_APP_URL=https://office.eng.kps.ku.ac.th
+          หรือ origin สาธารณะจริง ตัวแปรนี้กำหนด origin สำหรับ redirect;
+          หากใช้ค่า production ตอนทดสอบ local จะถูกส่งออกจาก localhost
+        </p>
+        <p class="bullet">
+          • next.config.ts กำหนด basePath และ assetPrefix แบบตายตัวเป็น
+          /kukps-eng-personnel-web ดังนั้นเปลี่ยน NEXT_PUBLIC_BASE_PATH
+          อย่างเดียวไม่พอ ต้องให้ตรงกันและ build
+          ใหม่เมื่อเปลี่ยนค่าที่เกี่ยวข้องกับ client
+        </p>
+        <p class="bullet">
+          • ตั้ง ENG_SYSTEM_ID ให้ตรงระบบที่ลงทะเบียนใน Intranet
+          และให้เจ้าของระบบจัด role ของผู้ใช้ โดย repository ไม่ระบุวิธีออก
+          token หรือจัดสรร role
+        </p>
+        <p class="bullet">
+          • JWT_COOKIE_SECRET มีลำดับ fallback เป็น NEXTAUTH_SECRET
+          แล้วเป็นข้อความคงที่ kukps-eng-personnel-web จึงควรตั้ง secret จริงทุก
+          deployment
+        </p>
+        <p class="bullet">
+          • CENTRAL_AUTH_STRICT_TLS ต้องเป็นข้อความ true ตรงตัวเพื่อเปิดตรวจ
+          certificate; หากไม่ตั้ง โค้ดปัจจุบันปิดการตรวจ TLS ของการเรียกระบบกลาง
+        </p>
+        <p class="bullet">
+          • npm run dev ใช้พอร์ต 4000; npm run start ไม่ได้ระบุพอร์ตใน script
+          จึงต้องกำหนดตาม deployment เอง รีสตาร์ต process หลังแก้ server
+          environment
+        </p>
+        <p class="bullet">
+          • reverse proxy ควรส่ง x-forwarded-host และ x-forwarded-proto
+          ให้ถูกต้อง เมื่อ NEXT_PUBLIC_APP_URL ใช้ได้ โค้ดจะเลือก origin
+          จากตัวแปรนี้ก่อน forwarded headers
+        </p>
+        <h2 id="section-5">5. Endpoint ของระบบกลาง</h2>
+        <p>
+          รายการต่อไปนี้คือ contract ที่เว็บคาดหวังจาก source code
+          ต้องยืนยันรายละเอียดเพิ่มเติมกับผู้ดูแลระบบกลาง
+        </p>
+        <div class="table-wrap">
+          <table>
+            <tbody>
+              <tr>
+                <td>Method / ตัวแปร URL</td>
+                <td>Auth / input</td>
+                <td>เงื่อนไขผลลัพธ์ที่เว็บใช้</td>
+              </tr>
+              <tr>
+                <td>POST ENG_TOKEN_EXCHANGE_URL</td>
+                <td>JSON {exchangeToken}; ไม่มี Bearer ในโค้ด</td>
+                <td>HTTP 2xx และ {status:success,ssoToken:...}</td>
+              </tr>
+              <tr>
+                <td>GET ENG_AUTH_ME_URL</td>
+                <td>Bearer accessToken</td>
+                <td>HTTP 2xx และ {profile:{...}} หรือ {user:{...}}</td>
+              </tr>
+              <tr>
+                <td>GET ALL_LOGIN_STATUS_URL</td>
+                <td>Bearer accessToken</td>
+                <td>
+                  HTTP 2xx และ active===true หรือ authenticated===true ต้องเป็น
+                  boolean
+                </td>
+              </tr>
+              <tr>
+                <td>GET ENG_MAIN_ROLE_URL</td>
+                <td>Bearer intranetToken; query nontriId, systemId</td>
+                <td>HTTP 2xx และข้อมูล roles ที่ normalize ได้</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>ตัวอย่างเชิงโครงสร้าง ไม่ใช่ข้อมูลจริง:</p>
+        <pre><code>{
+  &quot;status&quot;: &quot;success&quot;,
+  &quot;ssoToken&quot;: &quot;&lt;SSO_TOKEN&gt;&quot;
+}
+</code></pre>
+        <pre><code>{
+  &quot;profile&quot;: {
+    &quot;uid&quot;: &quot;example.nontri&quot;,
+    &quot;first-name&quot;: &quot;ชื่อ&quot;,
+    &quot;last-name&quot;: &quot;นามสกุล&quot;,
+    &quot;google-mail&quot;: &quot;example@ku.th&quot;,
+    &quot;faculty&quot;: &quot;คณะวิศวกรรมศาสตร์&quot;
+  }
+}
+</code></pre>
+        <pre><code>{ &quot;active&quot;: true }
+</code></pre>
+        <pre><code>{ &quot;roles&quot;: [&quot;admin&quot;, &quot;user&quot;] }
+</code></pre>
+        <p>
+          normalizeRoles รองรับ array ของ string หรือ object ที่มี role,
+          roleName, name, role_name หรือ roleCode; object ชั้นนอกอ่าน roles →
+          data → role ตามลำดับ และรองรับ string ใน field เหล่านั้น แต่ bare
+          string ที่ root ไม่ถูกแปลงเป็น role ไม่มีการเปลี่ยนตัวพิมพ์เล็ก/ใหญ่
+        </p>
+        <h2 id="section-6">6. Endpoint ฝั่งเว็บ</h2>
+        <div class="table-wrap">
+          <table>
+            <tbody>
+              <tr>
+                <td>Method / path</td>
+                <td>Input / output</td>
+                <td>หมายเหตุ</td>
+              </tr>
+              <tr>
+                <td>GET /api/auth/portal-session</td>
+                <td>
+                  query exchangeToken + intranetToken และ next แบบ optional;
+                  สำเร็จ 307 + Set-Cookie
+                </td>
+                <td>
+                  เหมาะกับ browser callback; next default / และยอมรับเฉพาะ path
+                  ใน origin เดียว
+                </td>
+              </tr>
+              <tr>
+                <td>POST /api/auth/portal-session</td>
+                <td>
+                  JSON {exchangeToken,intranetToken}; สำเร็จ 200 {session,user}
+                  + Set-Cookie
+                </td>
+                <td>
+                  เหมาะกับ client bootstrap และ Postman; ไม่ได้คืน roles ใน user
+                </td>
+              </tr>
+              <tr>
+                <td>GET /api/auth/roles</td>
+                <td>cookies; สำเร็จ 200 {authenticated:true,roles:[...]}</td>
+                <td>
+                  ไม่ใช้ Authorization header จาก caller เพื่อสร้าง session
+                </td>
+              </tr>
+              <tr>
+                <td>GET /login</td>
+                <td>307 ไป ENG_LOGIN_URL</td>
+                <td>
+                  ไม่มีการเติม callback / state parameter โดย middleware
+                  ต้องตั้งที่ Portal ให้สอดคล้อง
+                </td>
+              </tr>
+              <tr>
+                <td>GET /logout</td>
+                <td>ลบ cookie ทั้งสาม แล้ว 307 ไป ENG_LOGOUT_URL</td>
+                <td>
+                  ไม่พบการเรียก token revocation API จากเว็บ ผล logout
+                  ระบบกลางขึ้นกับปลายทาง
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>ตัวอย่าง POST:</p>
+        <pre><code>POST http://localhost:4000/kukps-eng-personnel-web/api/auth/portal-session
+Content-Type: application/json
+
+{&quot;exchangeToken&quot;:&quot;&lt;FRESH_CODE&gt;&quot;,&quot;intranetToken&quot;:&quot;&lt;INTRANET_TOKEN&gt;&quot;}
+</code></pre>
+        <p>
+          โหมดทดสอบนอก production อนุญาตแทน exchangeToken ด้วย accessToken ใน
+          GET/POST ได้ ส่วน NODE_ENV=production คืน 403 เมื่อส่ง accessToken
+          แม้จะส่ง exchangeToken มาด้วย อย่าเปิดใช้ direct-token flow เป็นแนวทาง
+          production
+        </p>
+        <h2 id="section-7">7. Session, profile และสิทธิ์</h2>
+        <p class="bullet">
+          • nontriId ที่ใช้เรียก get-role มาจาก user.uid → intranet JWT sub →
+          ส่วนท้ายของ user.sub หลังเครื่องหมาย colon ตามลำดับ
+        </p>
+        <p class="bullet">
+          • firstName อ่าน first-name หรือ givenname; lastName อ่าน last-name
+          หรือ surname; name อ่าน thainame หรือชื่อรวม; email อ่าน google-mail →
+          office365-mail → userprincipalname
+        </p>
+        <p class="bullet">
+          • exp และ iat ให้ความสำคัญกับ Intranet JWT ก่อน SSO JWT; หากไม่มี exp
+          จะไม่กำหนด maxAge และตัวตรวจอายุจะไม่ถือว่าหมดอายุเพราะไม่มี exp
+        </p>
+        <p class="bullet">
+          • ทั้งสาม cookie ใช้ Path=/ และ SameSite=Lax โดยไม่ระบุ Domain;
+          ACCESS_TOKEN และ INTRANET_TOKEN เป็น HttpOnly และ Secure เฉพาะ
+          production
+        </p>
+        <p class="bullet">
+          • USER_SESSION อ่านได้จาก JavaScript และไม่ได้ตั้ง Secure หรือ
+          HttpOnly ในโค้ดปัจจุบัน; bootstrap ยังลบ legacy cookie
+          kukps_eng_personnel_user, token, role_token
+        </p>
+        <p class="bullet">
+          • authGuard cache ผล verify + roles ใน memory ของแต่ละ process
+          เป็นเวลา 60 วินาที โดย key แยกตาม nontriId และ token ทั้งสอง การแก้
+          role หรือ logout กลางอาจยังไม่สะท้อนจน cache หมดอายุ
+        </p>
+        <p class="bullet">
+          • middleware ตรวจแค่การมี USER_SESSION; /admin มี server role guard
+          จริง แต่ /user/layout.tsx comment server role guard ไว้ อย่าถือว่า
+          /user บังคับ role user แล้ว
+        </p>
+        <p class="bullet">
+          • createSessionJwt เซ็น HS256 แต่ getCurrentRoles อ่าน payload ด้วย
+          decodeJwtPayload โดยไม่ได้ตรวจ signature ของ USER_SESSION; bootstrap
+          ไม่ได้ตรวจ Intranet token กับ get-role จนกว่าจะอ่าน roles การสร้าง
+          session สำเร็จจึงไม่ยืนยันสิทธิ์
+        </p>
+        <p>
+          ข้อจำกัดข้างต้นเป็นสิ่งที่พบจากโค้ด ไม่ได้แก้ในงานเอกสารนี้
+          หากนำแนวทางไปใช้ในระบบใหม่ควรตรวจ signature, อายุ, issuer/audience
+          และความสัมพันธ์ของตัวตนจาก token ที่เชื่อถือได้
+          พร้อมออกแบบการบังคับสิทธิ์ฝั่ง server ให้ครบ
+        </p>
+        <h2 id="section-8">8. ใช้งาน Postman Collection</h2>
+        <p>
+          1. Import postmancollection.json ใน Postman แล้วเลือก collection นี้
+        </p>
+        <p>
+          2. ตั้ง webBaseUrl เป็น URL เว็บรวม base path โดยไม่มี slash ปิดท้าย
+          ค่าเริ่มต้น http://localhost:4000/kukps-eng-personnel-web
+        </p>
+        <p>
+          3. ตั้ง systemId และ nontriId; ตัวแปร endpoint ระบบกลางเตรียม URL ตาม
+          configuration ปัจจุบันไว้แล้ว ปรับได้ตาม environment
+        </p>
+        <p>
+          4. ใส่ exchangeToken / intranetToken / accessToken เฉพาะ local value
+          หรือ environment ส่วนตัว อย่า export token จริงหรือ sync ลงไฟล์คู่มือ
+        </p>
+        <p>
+          5. เลือก flow A: รัน A1 POST bootstrap ด้วย exchangeToken ใหม่ → A2
+          GET roles โดยเปิด cookie jar; server เป็นผู้แลก code ให้ ไม่ต้องรัน B1
+          ก่อน
+        </p>
+        <p>
+          6. เลือก flow B สำหรับตรวจ upstream: B1 แลก code ใหม่ → B2 me → B3
+          verify → B4 get-role; B1 เก็บ accessToken เป็นตัวแปร local ของ
+          collection และ B2 ช่วยเก็บ nontriId จาก profile ตามลำดับเดียวกับเว็บ
+        </p>
+        <p>
+          7. Flow B ใช้ code ไปแล้ว จึงต้องรับ code ใหม่เพื่อรัน A1; ห้ามรันทั้ง
+          collection แบบลำดับอัตโนมัติโดยหวังใช้ code เดิมซ้ำ
+        </p>
+        <p>
+          8. Flow C: GET callback เป็นทางเลือกแทน A1 ต้องใช้ code ใหม่ ปิด
+          Follow redirects ใน request นี้เพื่อดู 307, Location และ Set-Cookie;
+          อย่าส่ง token ผ่านช่อง URL ของเว็บสาธารณะหรือบันทึก URL ที่มี token
+        </p>
+        <p>
+          9. Flow D: direct accessToken POST ใช้เฉพาะ development; negative
+          cases ใช้ POST {} และ GET roles แบบปิด cookie jar เพื่อตรวจ 400 / 401
+          ส่วน login/logout ปิด Follow redirects เพื่อไม่ตามไปถึงหน้า Portal
+        </p>
+        <p>
+          10. หลัง logout ใน Postman ให้ทดสอบ roles อีกครั้งด้วย cookie jar
+          เดิม; Postman กับ browser ไม่แชร์ cookie jar ต้องทดสอบ browser แยก
+        </p>
+        <p>
+          Postman เรียก API server-to-server ได้ แต่ไม่จำลองการ login
+          แบบโต้ตอบหรือ SameSite ของ browser; cookie แบบ Secure ใน production
+          ต้องเรียก HTTPS จึงใช้งานได้ Collection ไม่มี username/password
+          หรือวิธีขอ token ใหม่อัตโนมัติ เพราะไม่พบ contract ส่วนนั้น
+        </p>
+        <h2 id="section-9">9. Error และการแก้ปัญหา</h2>
+        <div class="table-wrap">
+          <table>
+            <tbody>
+              <tr>
+                <td>อาการ / status</td>
+                <td>ความหมายและจุดตรวจ</td>
+              </tr>
+              <tr>
+                <td>bootstrap 400</td>
+                <td>
+                  ไม่มี exchangeToken/accessToken หรือไม่มี intranetToken;
+                  ตรวจชื่อ field ให้ตรง
+                </td>
+              </tr>
+              <tr>
+                <td>bootstrap 403</td>
+                <td>
+                  ส่ง accessToken ตอน production ให้ใช้ exchangeToken ใหม่แทน
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  bootstrap 500 Missing ENG_AUTH_ME_URL / ENG_TOKEN_EXCHANGE_URL
+                </td>
+                <td>ตั้ง server environment แล้ว restart</td>
+              </tr>
+              <tr>
+                <td>Cannot exchange portal token</td>
+                <td>
+                  ตรวจ code ใหม่ URL และผล upstream; โค้ดส่ง status ของ upstream
+                  กลับแม้ body ไม่ผ่านเงื่อนไข ดังนั้นกรณี upstream 200 แต่
+                  status ไม่ใช่ success อาจยังเป็น HTTP 200 ที่มี error body
+                  ต้องตรวจ body ด้วย
+                </td>
+              </tr>
+              <tr>
+                <td>Cannot load central user data</td>
+                <td>me ตอบไม่ใช่ 2xx; ตรวจ SSO token ไม่ใช่ Intranet token</td>
+              </tr>
+              <tr>
+                <td>bootstrap 502 Invalid central user data</td>
+                <td>me ไม่มี profile หรือ user ตามที่เว็บคาดหวัง</td>
+              </tr>
+              <tr>
+                <td>bootstrap 500 Cannot create portal session</td>
+                <td>
+                  exception เช่น network/TLS/JSON ไม่ถูกต้อง ดู error และ cause
+                  โดยไม่เผย token
+                </td>
+              </tr>
+              <tr>
+                <td>roles 401</td>
+                <td>
+                  ไม่มี session/token ครบ, session หมดอายุ หรือ verify ไม่ให้
+                  active/authenticated เป็น true; response อาจมี roles จาก
+                  upstream แม้ authenticated=false
+                </td>
+              </tr>
+              <tr>
+                <td>roles 500</td>
+                <td>
+                  upstream verify/get-role ไม่ใช่ 2xx, network error หรือขาด
+                  ALL_LOGIN_STATUS_URL / ENG_MAIN_ROLE_URL / ENG_SYSTEM_ID
+                </td>
+              </tr>
+              <tr>
+                <td>admin กลับ home</td>
+                <td>
+                  เข้าสู่ระบบแล้วแต่ไม่มี role admin ตรงตัว ตรวจ
+                  systemId/nontriId และรอ cache 60 วินาที
+                </td>
+              </tr>
+              <tr>
+                <td>redirect ไป host/path ผิด</td>
+                <td>
+                  ตรวจ NEXT_PUBLIC_APP_URL, NEXT_PUBLIC_BASE_PATH,
+                  next.config.ts และ forwarded headers
+                </td>
+              </tr>
+              <tr>
+                <td>เข้าแล้วหลุด / cookie ไม่ติด</td>
+                <td>
+                  ตรวจ origin ที่ใช้จริง HTTPS ใน production cookie jar, exp ของ
+                  token และ cookie ชื่อซ้ำจากระบบอื่นที่ Path=/
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <h2 id="section-10">10. Checklist รับมอบการเชื่อมต่อ</h2>
+        <p class="bullet">
+          • ผู้ดูแล Portal ยืนยัน systemId, callback URL, รูปแบบ token, อายุ
+          code และการออก role
+        </p>
+        <p class="bullet">
+          • ตั้ง public origin และ base path ตรง reverse proxy / Next.js และใช้
+          TLS ที่ตรวจ certificate ได้
+        </p>
+        <p class="bullet">
+          • browser: เข้า Portal → กลับ /admin พร้อม code → URL ปลายทางไม่มี
+          token → โหลด profile และ roles ได้
+        </p>
+        <p class="bullet">
+          • Postman: bootstrap มี Set-Cookie ทั้งสาม และ roles ตอบ
+          authenticated=true พร้อมสิทธิ์ที่คาดหวัง
+        </p>
+        <p class="bullet">
+          • ทดสอบไม่มี admin, session หมดอายุ, verify false, code ใช้ซ้ำ/หมดอายุ
+          และ upstream ล่มใน environment ทดสอบตามสัญญาที่ผู้ดูแลยืนยัน
+        </p>
+        <p class="bullet">
+          • ทดสอบ logout ทั้ง browser และระบบกลาง รวมถึงผล cache; ยืนยัน /user
+          guard และการตรวจ signature ก่อนอาศัยเป็น security boundary
+        </p>
+        <h2 id="section-11">11. แหล่งอ้างอิงและการตรวจเอกสาร</h2>
+        <p>เส้นทางต่อไปนี้อ้างอิงจาก repository root:</p>
+        <p class="bullet">
+          • src/middleware.ts: redirect login/logout, รับ token query, ตรวจ
+          cookie เบื้องต้น
+        </p>
+        <p class="bullet">
+          • src/app/api/auth/portal-session/route.ts: exchange, me, GET/POST
+          bootstrap, redirect และ cookie
+        </p>
+        <p class="bullet">
+          • src/app/api/auth/roles/route.ts: HTTP status ของ session/roles
+        </p>
+        <p class="bullet">
+          • src/app/utils/authGuard.ts: verify, get-role, normalizeRoles และ
+          cache
+        </p>
+        <p class="bullet">
+          • src/app/utils/serverJwt.ts และ src/app/utils/jwt.ts: การสร้าง JWT
+          และ decode/expiry
+        </p>
+        <p class="bullet">
+          • src/app/contexts/userContext.tsx: client bootstrap, profile, query
+          cleanup และ logout
+        </p>
+        <p class="bullet">
+          • src/app/admin/layout.tsx และ src/app/user/layout.tsx: การบังคับ role
+          ในหน้าเว็บ
+        </p>
+        <p class="bullet">
+          • next.config.ts และ package.json: base path และพอร์ต development
+        </p>
+        <p>
+          ตรวจไฟล์ JSON และรูปแบบเอกสารได้ในเครื่อง
+          การตรวจเหล่านี้ไม่ยืนยันการเชื่อมต่อจริงกับระบบกลาง ต้องใช้ token
+          ที่ผู้ดูแลออกให้และทดสอบ flow ตาม checklist แยกต่างหาก
+        </p>
+        <footer>
+          จัดทำจาก source code ใน workspace • ไม่ได้ทดสอบ upstream จริง •
+          เปิดอ่านออฟไลน์ได้
+        </footer>
+      </main>
+    </div>
+  </body>
+</html>

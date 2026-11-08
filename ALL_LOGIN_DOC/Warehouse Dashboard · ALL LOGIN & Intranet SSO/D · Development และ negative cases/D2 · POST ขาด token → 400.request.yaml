@@ -1,0 +1,32 @@
+$kind: http-request
+description: ไม่เรียกระบบกลางเมื่อขาด required tokens
+url: "{{webBaseUrl}}/api/auth/portal-session"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: "{}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Missing tokens rejected with HTTP 400", () => {
+        pm.expect(pm.response.code).to.eql(400);
+        const d = pm.response.json();
+        pm.expect(d.error || d.message).to.be.a("string");
+      });
+      pm.test("Cache-Control is no-store", () => {
+        const cc = pm.response.headers.get("Cache-Control");
+        pm.expect(cc, "Cache-Control header missing").to.be.a("string");
+        pm.expect(cc.toLowerCase()).to.include("no-store");
+      });
+      pm.test("Response body does not leak raw tokens", () => {
+        const text = pm.response.text();
+        ["exchangeToken", "ssoToken", "intranetToken", "accessToken"].forEach(k => {
+          const v = pm.variables.get(k);
+          if (v && v.length > 5) pm.expect(text).not.to.include(v);
+        });
+      });
+    language: text/javascript
+order: 2000
