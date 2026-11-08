@@ -37,8 +37,6 @@ warehouse_dashboard/
 │   │   ├── config/                    # KPI Config, Navigation, Constants
 │   │   └── lib/                       # API Client, Pastel Themes, Auth Helpers, KPI Engine
 │   └── package.json                   # Dependencies (Next.js 16, React 19, Tailwind)
-├── db/                                # SQL schemas และ initialization scripts
-│   └── init/                          # Entrypoint script กำหนดผู้ใช้ ku_owner / ku_app
 └── README.md                          # เอกสารแนะนำการติดตั้งและรันระบบ
 ```
 
