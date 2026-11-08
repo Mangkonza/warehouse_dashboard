@@ -55,13 +55,13 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isLoading && !isSsoLoading && !isAuthenticated && pathname !== '/login') {
       const returnUrl =
-        pathname && pathname.startsWith('/') && !pathname.startsWith('//')
+        pathname && pathname !== '/' && pathname.startsWith('/') && !pathname.startsWith('//')
           ? pathname
           : '/overview';
 
-      router.replace(`/login?returnUrl=${encodeURIComponent(returnUrl)}`);
+      window.location.replace(`/login?returnUrl=${encodeURIComponent(returnUrl)}`);
     }
-  }, [isLoading, isSsoLoading, isAuthenticated, pathname, router]);
+  }, [isLoading, isSsoLoading, isAuthenticated, pathname]);
 
   const handleTogglePin = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -97,7 +97,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   }, [isForceCollapsed]);
 
   // Loading Screen ระหว่างตรวจสอบสิทธิ์
-  if (isLoading) {
+  if (isLoading || isSsoLoading) {
     return <PageLoader message="กำลังตรวจสอบสิทธิ์การเข้าใช้งาน..." />;
   }
 
