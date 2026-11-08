@@ -115,6 +115,8 @@ export async function proxy(request: NextRequest) {
     appPath.startsWith('/api/v1/auth') ||
     appPath.startsWith('/api/health') ||
     appPath.startsWith('/api/auth') ||
+    appPath === '/login' ||
+    appPath === '/auth' ||
     appPath === '/sso/login' ||
     appPath === '/sso/logout' ||
     appPath === '/forbidden' ||
@@ -146,18 +148,13 @@ export async function proxy(request: NextRequest) {
   const hasUserSession = Boolean(request.cookies.get(COOKIE_USER_SESSION)?.value);
   const isAuthenticated = Boolean(session || hasUserSession);
 
-  // If already logged in with ku_session or SSO, visiting /login or /auth redirects to /overview
-  if (isAuthenticated && (appPath === '/login' || appPath === '/auth')) {
-    return NextResponse.redirect(new URL('/overview', request.url));
-  }
-
   // Check if route requires session
   const isProtected =
     appPath === '/' || PROTECTED_PREFIXES.some((prefix) => appPath.startsWith(prefix));
 
   if (isProtected && !isAuthenticated) {
     // Open redirect prevention: must start with / and not //
-    const returnUrl = appPath.startsWith('/') && !appPath.startsWith('//') ? appPath : '/overview';
+    const returnUrl = appPath && appPath !== '/' && appPath.startsWith('/') && !appPath.startsWith('//') ? appPath : '/overview';
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('returnUrl', returnUrl);
     return NextResponse.redirect(loginUrl);

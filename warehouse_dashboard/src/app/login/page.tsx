@@ -16,7 +16,7 @@ function LoginContent() {
   const rawReturnUrl = searchParams.get('returnUrl');
   // ป้องกัน open redirect: ตรวจสอบว่า returnUrl ต้องขึ้นต้นด้วย / และไม่ใช่ //
   const returnUrl =
-    rawReturnUrl && rawReturnUrl.startsWith('/') && !rawReturnUrl.startsWith('//')
+    rawReturnUrl && rawReturnUrl !== '/' && rawReturnUrl.startsWith('/') && !rawReturnUrl.startsWith('//')
       ? rawReturnUrl
       : '/overview';
 
@@ -24,9 +24,9 @@ function LoginContent() {
 
   useEffect(() => {
     if (!isAuthLoading && !isSsoLoading && isAuthenticated) {
-      router.replace(returnUrl);
+      window.location.replace(returnUrl);
     }
-  }, [isAuthenticated, isAuthLoading, isSsoLoading, router, returnUrl]);
+  }, [isAuthenticated, isAuthLoading, isSsoLoading, returnUrl]);
 
   return (
     <div
