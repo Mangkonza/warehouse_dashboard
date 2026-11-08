@@ -16,11 +16,6 @@ warehouse_dashboard/
 ├── Dockerfile.api                     # Multi-stage Dockerfile สำหรับ Backend API (Context: .)
 ├── Dockerfile.web                     # Multi-stage Dockerfile สำหรับ Frontend Next.js (Context: .)
 ├── .dockerignore                      # ป้องกัน secrets, node_modules และ build files เข้า Image
-├── deploy/                            # โฟลเดอร์เตรียมไฟล์สำหรับส่งขึ้น Google Drive (Untracked)
-│   ├── .env                           # Template ตัวแปรสภาพแวดล้อม Production รวมทุก Service
-│   ├── ku_warehouse_deployment_note.txt # สรุปรายละเอียด Commit, Branch, พอร์ต และชนิด DB
-│   ├── ku_warehouse_dump.sql          # Full Database Dump (PostgreSQL 16) รวมโครงสร้างและข้อมูล
-│   └── schema.sql                     # Database Schema DDL (PostgreSQL 16)
 ├── backend/                           # โฟลเดอร์บริการ Backend API
 │   ├── prisma/
 │   │   ├── schema.prisma              # Prisma Data Model (PostgreSQL 16)
@@ -42,8 +37,6 @@ warehouse_dashboard/
 │   │   ├── config/                    # KPI Config, Navigation, Constants
 │   │   └── lib/                       # API Client, Pastel Themes, Auth Helpers, KPI Engine
 │   └── package.json                   # Dependencies (Next.js 16, React 19, Tailwind)
-├── db/                                # SQL schemas และ initialization scripts
-│   └── init/                          # Entrypoint script กำหนดผู้ใช้ ku_owner / ku_app
 └── README.md                          # เอกสารแนะนำการติดตั้งและรันระบบ
 ```
 
@@ -91,6 +84,10 @@ docker run -d \
 
 #### การนำเข้าข้อมูลเริ่มต้น (Restore Database Dump):
 ```bash
+# กรณีรันคำสั่งจาก Root ไดเรกทอรีของโปรเจกต์:
+docker exec -i ku_warehouse_db psql -U ku_owner -d ku_warehouse < deploy/ku_warehouse_dump.sql
+
+# หรือกรณีวางไฟล์ dump ไว้ในไดเรกทอรีเดียวกัน:
 docker exec -i ku_warehouse_db psql -U ku_owner -d ku_warehouse < ku_warehouse_dump.sql
 ```
 
@@ -186,7 +183,11 @@ docker run -d \
   ```
 - **การเข้าใช้งานผ่านเบราว์เซอร์**:
   - URL: `http://localhost:3000` (หรือ `http://localhost:3000/{BASE_PATH}`)
-  - เข้าสู่หน้า Login และ Dashboard ได้อย่างสมบูรณ์
+  - **บัญชีผู้ดูแลระบบสำหรับทดสอบ (Evaluation & Test Account)**:
+    - **ชื่อผู้ใช้งาน (Username)**: `b0123456789`
+    - **รหัสผ่าน (Password)**: `Admin@1234`
+    - **รหัส OTP (Step 2)**: `123456`
+    - *ขั้นตอนการเข้าสู่ระบบ*: เปิดหน้าแรก `http://localhost:3000` $\rightarrow$ กรอก Username/Password ในขั้นตอนที่ 1 $\rightarrow$ กรอก OTP ในขั้นตอนที่ 2 เพื่อเข้าสู่ระบบในฐานะผู้ดูแลระบบ (Super Admin) และเข้าถึงฟังก์ชันทั้งหมดได้อย่างสมบูรณ์
 
 ---
 

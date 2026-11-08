@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { usePersonnelData } from '../../_hooks/usePersonnelData';
 import { useTimeFilter, TimeFilterBar } from '@/features/time-filter';
 import { DepartmentBadge, PublicationTypeBadge, IPTypeBadge, ServiceTypeBadge } from '@/components/ui';
+import { resolvePersonAvatar } from '@/lib/personnelService';
 import { autoDetectJournalRanking, JOURNAL_TIER_STYLES } from '@/config/journalRankingConfig';
 import { JournalTierBadge } from '@/components/ui/JournalTierBadge';
 import {
@@ -88,7 +89,10 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
     return getPersonPortfolio(personnelId);
   }, [getPersonPortfolio, personnelId]);
 
-  const profileImageUrl = portfolio?.imageUrl || portfolio?.personnel?.image_url;
+  const profileImageUrl =
+    portfolio?.imageUrl ||
+    portfolio?.personnel?.image_url ||
+    resolvePersonAvatar(portfolio?.id || personnelId, portfolio?.name);
 
   if (!portfolio) {
     return (
@@ -239,7 +243,17 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             {/* Profile Image (ถ้าไม่พบรูปให้ใช้ default avatar) */}
             <img
-              src={profileImageUrl && !imageError ? encodeURI(profileImageUrl) : '/default-avatar.png'}
+              src={
+                profileImageUrl && !imageError
+                  ? (() => {
+                      try {
+                        return encodeURI(decodeURI(profileImageUrl.trim()));
+                      } catch {
+                        return encodeURI(profileImageUrl.trim());
+                      }
+                    })()
+                  : '/default-avatar.png'
+              }
               alt={portfolio.name}
               onError={() => setImageError(true)}
               style={{
