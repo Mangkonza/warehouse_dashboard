@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
-const basePath = (process.env.BASE_PATH ?? '').trim();
-const normalizedBasePath = basePath && basePath !== '/' ? basePath : undefined;
+const rawBasePath = (process.env.BASE_PATH ?? process.env.NEXT_PUBLIC_BASE_PATH ?? '').trim();
+const normalizedBasePath = rawBasePath && rawBasePath !== '/'
+  ? (rawBasePath.startsWith('/') ? rawBasePath.replace(/\/+$/, '') : `/${rawBasePath.replace(/\/+$/, '')}`)
+  : undefined;
 
 const nextConfig: NextConfig = {
   output: "standalone",
@@ -9,6 +11,7 @@ const nextConfig: NextConfig = {
   assetPrefix: normalizedBasePath,
   env: {
     BASE_PATH: normalizedBasePath || '',
+    NEXT_PUBLIC_BASE_PATH: normalizedBasePath || '',
   },
   allowedDevOrigins: [
     "192.168.56.1",

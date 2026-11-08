@@ -18,15 +18,18 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 ARG BASE_PATH=""
-ENV BASE_PATH=${BASE_PATH}
+ARG NEXT_PUBLIC_BASE_PATH=""
+ARG NEXT_PUBLIC_API_URL="http://localhost:8000/api/v1"
+ARG NEXT_PUBLIC_USE_MOCK=""
 ARG BACKEND_URL="http://backend:8000"
-ENV BACKEND_URL=${BACKEND_URL}
-ARG AUTH_SESSION_SECRET="a8f4c91b7d3e2a0f8b1c4e9d7a2f0b8c4d9e1f7a2b0c4d8e9f1a2b3c4d5e6f7a"
-ENV AUTH_SESSION_SECRET=${AUTH_SESSION_SECRET}
-ARG AUTH_SESSION_SECRET="a8f4c91b7d3e2a0f8b1c4e9d7a2f0b8c4d9e1f7a2b0c4d8e9f1a2b3c4d5e6f7a"
-ENV AUTH_SESSION_SECRET=${AUTH_SESSION_SECRET}
-ENV NEXT_TELEMETRY_DISABLED=1
-ENV NODE_ENV=production
+
+ENV BASE_PATH=${BASE_PATH:-$NEXT_PUBLIC_BASE_PATH} \
+    NEXT_PUBLIC_BASE_PATH=${NEXT_PUBLIC_BASE_PATH:-$BASE_PATH} \
+    NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL} \
+    NEXT_PUBLIC_USE_MOCK=${NEXT_PUBLIC_USE_MOCK} \
+    BACKEND_URL=${BACKEND_URL} \
+    NEXT_TELEMETRY_DISABLED=1 \
+    NODE_ENV=production
 
 RUN npm run build
 
@@ -40,11 +43,16 @@ ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
 ARG BASE_PATH=""
-ENV BASE_PATH=${BASE_PATH}
+ARG NEXT_PUBLIC_BASE_PATH=""
+ARG NEXT_PUBLIC_API_URL="http://localhost:8000/api/v1"
+ARG NEXT_PUBLIC_USE_MOCK=""
 ARG BACKEND_URL="http://backend:8000"
-ENV BACKEND_URL=${BACKEND_URL}
-ARG AUTH_SESSION_SECRET="a8f4c91b7d3e2a0f8b1c4e9d7a2f0b8c4d9e1f7a2b0c4d8e9f1a2b3c4d5e6f7a"
-ENV AUTH_SESSION_SECRET=${AUTH_SESSION_SECRET}
+
+ENV BASE_PATH=${BASE_PATH:-$NEXT_PUBLIC_BASE_PATH} \
+    NEXT_PUBLIC_BASE_PATH=${NEXT_PUBLIC_BASE_PATH:-$BASE_PATH} \
+    NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL} \
+    NEXT_PUBLIC_USE_MOCK=${NEXT_PUBLIC_USE_MOCK} \
+    BACKEND_URL=${BACKEND_URL}
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs && \
@@ -58,5 +66,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 USER nextjs
 
 EXPOSE 3000
+
+HEALTHCHECK --interval=10s --timeout=5s --start-period=10s --retries=3 \
+  CMD node -e "fetch('http://localhost:3000' + (process.env.BASE_PATH || '') + '/api/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
 
 CMD ["node", "server.js"]

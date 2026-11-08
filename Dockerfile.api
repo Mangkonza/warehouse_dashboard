@@ -1,0 +1,57 @@
+# ------------------------------------------------------------------------------
+# Backend Production Multi-Stage Dockerfile (Express + Prisma)
+# Service: API
+# ------------------------------------------------------------------------------
+
+# Stage 1: Dependencies and TypeScript Build
+FROM node:22-alpine AS builder
+RUN apk add --no-cache openssl
+WORKDIR /app
+
+# Copy package manifests and prisma schema
+COPY backend/package.json backend/package-lock.json ./
+COPY backend/prisma ./prisma/
+
+# Install exact dependencies
+RUN npm ci
+
+# Generate Prisma Client
+RUN npx prisma generate
+
+# Copy source and tsconfig
+COPY backend/tsconfig.json ./
+COPY backend/src ./src/
+
+# Build TypeScript to dist
+RUN npm run build
+RUN npm prune --omit=dev
+
+# Stage 2: Minimal Production Runner
+FROM node:22-alpine AS runner
+RUN apk add --no-cache openssl
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV PORT=8000
+ENV HOST=0.0.0.0
+
+# Create dedicated non-root user and persistent uploads directory
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 expressjs && \
+    mkdir -p /app/uploads && \
+    chown -R expressjs:nodejs /app
+
+# Copy production artifacts from builder
+COPY --from=builder --chown=expressjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=expressjs:nodejs /app/dist ./dist
+COPY --from=builder --chown=expressjs:nodejs /app/package.json ./package.json
+COPY --from=builder --chown=expressjs:nodejs /app/prisma ./prisma
+
+USER expressjs
+
+EXPOSE 8000
+
+HEALTHCHECK --interval=10s --timeout=5s --start-period=10s --retries=3 \
+  CMD node -e "fetch('http://localhost:8000/api/v1/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+
+CMD ["node", "dist/index.js"]

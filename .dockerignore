@@ -1,0 +1,46 @@
+# Git
+.git
+.gitignore
+
+# Dependencies
+**/node_modules/
+node_modules/
+
+# Build outputs
+**/.next/
+.next/
+**/dist/
+dist/
+**/*.tsbuildinfo
+
+# Environment and secrets
+**/.env
+**/.env.*
+!**/.env*.example
+.env
+.env.local
+.env.development
+.env.production
+.env.backend
+.env.frontend
+.env.db
+
+# Backups and temporary data
+backups/
+data/
+data.bak/
+docs/
+reports/
+ALL_LOGIN_DOC/
+**/uploads/*
+!**/uploads/.gitkeep
+*.sql.gz
+*.dump
+
+# OS and logs
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
