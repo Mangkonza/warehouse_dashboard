@@ -31,6 +31,7 @@ node_modules/
 **/*.zip
 *.tar.gz
 **/.git.bak/
+deploy/
 
 # ==========================================
 # Logs & Temporary Files
