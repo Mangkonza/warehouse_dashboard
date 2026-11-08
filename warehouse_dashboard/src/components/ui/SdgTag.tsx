@@ -49,18 +49,17 @@ export const SdgTag: React.FC<SdgTagProps> = ({
   }
 
   const bgColor = info.color;
-  const textColor = getSdgTextColor(info.number);
 
   return (
     <span
       className={cn(
         BADGE_BASE_CLASSES,
-        'transition-opacity shrink-0',
+        'transition-opacity shrink-0 text-white',
         className
       )}
       style={{
         backgroundColor: bgColor,
-        color: textColor,
+        color: '#ffffff',
         ...style,
       }}
       title={`${info.code}: ${info.nameTh}`}

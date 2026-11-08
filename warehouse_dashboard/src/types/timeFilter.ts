@@ -20,7 +20,7 @@ export interface TimeFilterState {
 // ปีงบประมาณเริ่ม 1 ต.ค. / ปีการศึกษาเริ่ม มิ.ย.
 export const getCurrentFiscalYear = (d: Date = new Date()): string => {
   const be = d.getFullYear() + 543;
-  return String(d.getMonth() + 1 >= 10 ? be + 1 : be);
+  return String(be);
 };
 
 export const getCurrentAcademicYear = (d: Date = new Date()): string => {

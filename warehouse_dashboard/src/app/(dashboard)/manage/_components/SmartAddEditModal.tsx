@@ -40,7 +40,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { DatePicker } from '@/components/ui/date-picker';
-import { DepartmentSelect } from '@/components/ui';
+import { DepartmentSelect, ConfirmActionModal } from '@/components/ui';
 import { Spinner } from '@/components/ui/Spinner';
 
 const getCategoryIcon = (key: string) => {
@@ -83,6 +83,45 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
   const [errorMsg, setErrorMsg] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const formScrollRef = useRef<HTMLFormElement | null>(null);
+  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
+
+  // Prevent background page from scrolling when modal is open
+  useEffect(() => {
+    if (!isOpen) {
+      setShowDiscardConfirm(false);
+      return;
+    }
+
+    const prevBodyOverflow = document.body.style.overflow;
+    const prevHtmlOverflow = document.documentElement.style.overflow;
+
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = prevBodyOverflow;
+      document.documentElement.style.overflow = prevHtmlOverflow;
+    };
+  }, [isOpen]);
+
+  // Handle Escape key to show confirmation
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setShowDiscardConfirm(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
+
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      setShowDiscardConfirm(true);
+    }
+  };
 
   const isEdit = Boolean(initialData);
 
@@ -572,6 +611,7 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
 
   return (
     <div
+      onClick={handleBackdropClick}
       style={{
         position: 'fixed',
         inset: 0,
@@ -582,9 +622,11 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
         justifyContent: 'center',
         zIndex: 10000,
         padding: '16px',
+        overflow: 'hidden',
       }}
     >
       <div
+        onClick={(e) => e.stopPropagation()}
         style={{
           backgroundColor: '#ffffff',
           borderRadius: '16px',
@@ -1097,6 +1139,23 @@ export const SmartAddEditModal: React.FC<SmartAddEditModalProps> = ({
           </div>
         </form>
       </div>
+
+      {/* Confirmation Modal when clicking outside / backdrop */}
+      <ConfirmActionModal
+        isOpen={showDiscardConfirm}
+        title="ต้องการปิดโดยไม่บันทึกหรือไม่"
+        confirmText="ยืนยัน"
+        cancelText="ยกเลิก"
+        type="danger"
+        compact={true}
+        onConfirm={() => {
+          setShowDiscardConfirm(false);
+          onClose();
+        }}
+        onCancel={() => {
+          setShowDiscardConfirm(false);
+        }}
+      />
     </div>
   );
 };

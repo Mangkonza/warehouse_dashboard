@@ -15,6 +15,8 @@ import { DrillDownProjectDrawer } from '@/components/data-display/DrillDownProje
 import { CategoryKey } from '@/types/dataManagement';
 import { getCachedCategoryData, getCachedEvaluations } from '@/lib/dataService';
 import { resolveHybridSDG, isTestRecord } from '@/lib/sdgEngine';
+import { YearSelectDropdown } from '@/components/ui/YearSelectDropdown';
+import { CURRENT_FISCAL_YEAR } from '@/lib/fiscalYears';
 
 const MONTH_NAMES = [
   'ม.ค.',
@@ -71,7 +73,20 @@ export function SdgsDashboardView({
   const [drawerSubtitle, setDrawerSubtitle] = useState<string>('');
 
   // Sync filters
-  const currentFiscalYear = tabFilter.fiscalYear || '2569';
+  // Dynamic Year computation: Checks current year (defaults to current BE year)
+  // Options: Current year as starting point, and 2 previous years (e.g., 2569 -> 2569, 2568, 2567; 2570 -> 2570, 2569, 2568)
+  const currentBeYear = useMemo(() => new Date().getFullYear() + 543, []);
+  const yearOptions = useMemo(
+    () => [currentBeYear, currentBeYear - 1, currentBeYear - 2],
+    [currentBeYear]
+  );
+
+  // Sync filters: if tabFilter has no fiscalYear set, default to currentBeYear
+  const currentFiscalYear = useMemo(() => {
+    if (tabFilter.fiscalYear === 'all') return 'all';
+    if (tabFilter.fiscalYear) return tabFilter.fiscalYear;
+    return String(currentBeYear);
+  }, [tabFilter.fiscalYear, currentBeYear]);
   const currentDept = tabFilter.department || 'all';
   const currentStrategic = tabFilter.customFilters?.strategicFilter || 'all';
 
@@ -223,7 +238,8 @@ export function SdgsDashboardView({
         if (targetYearCe !== null) {
           const cat = (item._category || activeCategory || '').toLowerCase();
           const d = extractRecordDate(item, cat);
-          const recYear = d ? d.year : 2025;
+          const fallbackFy = item.fiscal_year_be || item.fiscal_year || item.fiscalYear || item.fiscalYearBe;
+          const recYear = d ? d.year : (fallbackFy ? toCeYear(parseInt(String(fallbackFy), 10)) : 2025);
           if (recYear !== targetYearCe) return false;
         }
 
@@ -400,11 +416,17 @@ export function SdgsDashboardView({
             'inline-flex items-center justify-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full border leading-tight select-none',
             isDarkBg
               ? 'bg-white/20 text-white border-white/30 shadow-xs'
-              : 'bg-[#dcfce7] border-[#bbf7d0]'
+              : 'bg-[#dcfce7] text-[#166534] border-[#bbf7d0]'
           )}
         >
-          <span className={cn('text-[10px] leading-none', isDarkBg ? 'text-white' : 'text-[#15803d]')}>▲</span>
-          <span className={isDarkBg ? 'text-white' : 'text-slate-900'}>{cleanNum}%</span>
+          <svg
+            className={cn('w-2 h-2 shrink-0 fill-current', isDarkBg ? 'text-white' : 'text-[#166534]')}
+            viewBox="0 0 8 7"
+            aria-hidden="true"
+          >
+            <path d="M4 0.5L8 6.5H0L4 0.5Z" />
+          </svg>
+          <span className={isDarkBg ? 'text-white' : 'text-[#166534]'}>{cleanNum}%</span>
         </span>
       );
     }
@@ -416,11 +438,17 @@ export function SdgsDashboardView({
             'inline-flex items-center justify-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full border leading-tight select-none',
             isDarkBg
               ? 'bg-white/20 text-white border-white/30 shadow-xs'
-              : 'bg-[#fee2e2] border-[#fecaca]'
+              : 'bg-[#fee2e2] text-[#991b1b] border-[#fecaca]'
           )}
         >
-          <span className={cn('text-[10px] leading-none', isDarkBg ? 'text-white' : 'text-[#dc2626]')}>▼</span>
-          <span className={isDarkBg ? 'text-white' : 'text-slate-900'}>{cleanNum}%</span>
+          <svg
+            className={cn('w-2 h-2 shrink-0 fill-current', isDarkBg ? 'text-white' : 'text-[#991b1b]')}
+            viewBox="0 0 8 7"
+            aria-hidden="true"
+          >
+            <path d="M0 0.5H8L4 6.5L0 0.5Z" />
+          </svg>
+          <span className={isDarkBg ? 'text-white' : 'text-[#991b1b]'}>{cleanNum}%</span>
         </span>
       );
     }
@@ -433,7 +461,7 @@ export function SdgsDashboardView({
           'inline-flex items-center justify-center text-[11px] font-bold px-2 py-0.5 rounded-full border select-none',
           isDarkBg
             ? 'bg-white/20 text-white border-white/30 shadow-xs'
-            : 'bg-slate-100 text-slate-800 border-slate-200'
+            : 'bg-slate-100 text-slate-700 border-slate-200'
         )}
       >
         {neutralText}
@@ -479,17 +507,17 @@ export function SdgsDashboardView({
 
         {/* Prototype .ctrl Capsule Component */}
         <div className="inline-flex items-center gap-1.5 p-1 bg-white border border-slate-200 rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.05)] text-xs text-slate-700 flex-wrap max-w-full">
-          <select
+          <YearSelectDropdown
+            variant="capsule"
             value={currentFiscalYear}
-            onChange={(e) => setTabFilter({ fiscalYear: e.target.value })}
-            className="bg-transparent border-0 rounded-full px-2.5 py-1 font-medium text-slate-800 hover:bg-slate-50 cursor-pointer focus:outline-none"
-            aria-label="ปีงบประมาณ"
-          >
-            <option value="2569">ปี 2569 (2026)</option>
-            <option value="2568">ปี 2568 (2025)</option>
-            <option value="2567">ปี 2567 (2024)</option>
-            <option value="all">ทุกปีงบประมาณ</option>
-          </select>
+            onChange={(val) => setTabFilter({ fiscalYear: val })}
+            ariaLabel="ปีงบประมาณ"
+            includeAll={true}
+            allPosition="bottom"
+            allLabel="ทุกปีงบประมาณ"
+            showCeYear={true}
+            yearPrefix="ปี "
+          />
           <span className="text-slate-300">|</span>
           <select
             value={compareYearsCount}
@@ -668,14 +696,14 @@ export function SdgsDashboardView({
                           className="shrink-0 px-2 py-0.5 rounded-[6px] text-[12px] font-bold leading-none"
                           style={{
                             backgroundColor: isSelected ? 'rgba(255,255,255,0.25)' : tile.color,
-                            color: textColor,
+                            color: '#ffffff',
                           }}
                         >
                           {sdgNumStr}
                         </span>
                         <span
                           className="text-[14.5px] font-bold truncate"
-                          style={{ color: isSelected ? textColor : '#0f172a' }}
+                          style={{ color: isSelected ? '#ffffff' : '#0f172a' }}
                           title={`SDG ${tile.sdgNumber}: ${tile.nameTh}`}
                         >
                           {tile.nameTh}
@@ -686,7 +714,7 @@ export function SdgsDashboardView({
                       <div className="flex items-baseline gap-2">
                         <span
                           className="text-[30px] font-black leading-none tracking-tight"
-                          style={{ color: isSelected ? textColor : '#0f172a' }}
+                          style={{ color: isSelected ? '#ffffff' : '#0f172a' }}
                         >
                           {tile.currentCount}
                         </span>
@@ -714,7 +742,7 @@ export function SdgsDashboardView({
                               <span
                                 className="text-[11.5px]"
                                 style={{
-                                  color: isSelected ? textColor : '#64748b',
+                                  color: isSelected ? '#ffffff' : '#64748b',
                                   opacity: isSelected ? 0.85 : 1,
                                 }}
                               >
@@ -728,7 +756,7 @@ export function SdgsDashboardView({
                                 )}
                                 style={{
                                   color: isSelected
-                                    ? textColor
+                                    ? '#ffffff'
                                     : !yc.hasData
                                     ? '#94a3b8'
                                     : '#0f172a',
@@ -736,7 +764,7 @@ export function SdgsDashboardView({
                                     isLatest && !isSelected
                                       ? tile.color
                                       : isLatest && isSelected
-                                      ? textColor
+                                      ? '#ffffff'
                                       : 'transparent',
                                   paddingBottom: isLatest ? '1px' : '0',
                                 }}

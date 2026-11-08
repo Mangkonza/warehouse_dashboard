@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo } from 'react';
 import { useDashboardTabFilter, useTimeFilter } from '@/features/time-filter';
-import { useServiceData } from '../_hooks/useServiceData';
+import { useServiceData, extractAcademicPersonsFromService } from '../_hooks/useServiceData';
 import { ServiceCharts, ServicePerspective } from './ServiceCharts';
 import { TopSegmentedTabs } from '@/components/ui/TopSegmentedTabs';
 import { StrategicAlignmentMatrix } from '@/components/data-display/StrategicAlignmentMatrix';
@@ -126,8 +126,10 @@ export function ServiceView() {
 
   const personFreq: Record<string, number> = {};
   validData.forEach((d: any) => {
-    const p = d.person || '';
-    if (p && p !== 'ไม่ระบุ' && p !== '-') personFreq[p] = (personFreq[p] || 0) + 1;
+    const names = extractAcademicPersonsFromService(d.person || '');
+    names.forEach((p) => {
+      personFreq[p] = (personFreq[p] || 0) + 1;
+    });
   });
   const maxWorkload = Math.max(10, ...Object.values(personFreq));
 
@@ -225,7 +227,7 @@ export function ServiceView() {
                   label: 'บุคลากรผู้ให้บริการวิชาการ',
                   chip: `${participationPct}% มีส่วนร่วม`,
                   value: uniquePersons.size,
-                  unit: 'ท่าน',
+                  unit: `จาก ${FACULTY_STAFF_BASELINE} ท่าน`,
                   percent: participationPct,
                   totalCount: FACULTY_STAFF_BASELINE,
                   activeCount: uniquePersons.size,

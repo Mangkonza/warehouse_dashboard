@@ -12,7 +12,7 @@ import { PersonnelRankingTable } from './PersonnelRankingTable';
 import { DashboardTabFilterBar } from '@/components/ui/DashboardTabFilterBar';
 import { TopSegmentedTabs } from '@/components/ui/TopSegmentedTabs';
 import { dashboardPageSubtitleStyle, dashboardPageTitleStyle, dashboardTheme } from '@/lib/dashboardTheme';
-import { FaSyncAlt, FaUserTie, FaTable } from 'react-icons/fa';
+import { FaSyncAlt, FaUserTie, FaTrophy } from 'react-icons/fa';
 
 const VALID_PERSONNEL_TABS: PersonnelPerspective[] = ['overview', 'table'];
 
@@ -197,7 +197,7 @@ export function PersonnelView() {
           colorTheme="teal"
           tabs={[
             { key: 'overview', label: 'ภาพรวมและ 10 อันดับอาจารย์', icon: <FaUserTie style={{ fontSize: '13px' }} /> },
-            { key: 'table', label: 'ทำเนียบและตารางจัดอันดับบุคลากร', icon: <FaTable style={{ fontSize: '13px' }} /> },
+            { key: 'table', label: 'ทำเนียบและตารางจัดอันดับบุคลากร', icon: <FaTrophy style={{ fontSize: '13px' }} /> },
           ]}
         />
       </div>

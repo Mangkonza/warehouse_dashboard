@@ -23,6 +23,8 @@ import { StrategicAlignmentMatrix } from '@/components/data-display';
 import { DrillDownProjectDrawer, DepartmentBadge } from '@/components/ui';
 import { CHART_PASTEL_PALETTE } from '@/lib/pastelTheme';
 import { resolveItemFiscalYear } from '@/types/timeFilter';
+import { YearSelectDropdown } from '@/components/ui/YearSelectDropdown';
+import { STANDARD_YEAR_OPTIONS, getDefaultCompareYear } from '@/lib/fiscalYears';
 import { isTestRecord } from '@/lib/sdgEngine';
 import { resolvePersonAvatar } from '@/lib/personnelService';
 
@@ -135,31 +137,22 @@ export function ResearchCharts({
   }, [allItems, validData]);
 
   const availableYears = useMemo(() => {
-    const s = new Set<string>();
-    baseAllResearch.forEach((it) => s.add(resolveResearchYear(it)));
-    s.add('2568');
-    s.add('2569');
-    s.add('2567');
-    return Array.from(s)
-      .filter((y) => /^25[6-7]\d$/.test(y))
-      .sort((a, b) => Number(b) - Number(a));
-  }, [baseAllResearch]);
+    return Array.from(STANDARD_YEAR_OPTIONS);
+  }, []);
 
   const [facYear, setFacYear] = useState<string>(() => {
-    if (currentFiscalYear && currentFiscalYear !== 'all' && availableYears.includes(currentFiscalYear)) {
+    if (currentFiscalYear && (currentFiscalYear === 'all' || availableYears.includes(currentFiscalYear))) {
       return currentFiscalYear;
     }
-    return availableYears.includes('2568') ? '2568' : availableYears[0] || '2568';
+    return availableYears[0] || '2569';
   });
 
   const [facCmpYear, setFacCmpYear] = useState<string>(() => {
-    const others = availableYears.filter((y) => y !== facYear);
-    if (others.includes('2567')) return '2567';
-    return others[0] || '2567';
+    return getDefaultCompareYear(facYear, availableYears);
   });
 
   useEffect(() => {
-    if (currentFiscalYear && currentFiscalYear !== 'all' && availableYears.includes(currentFiscalYear)) {
+    if (currentFiscalYear && (currentFiscalYear === 'all' || availableYears.includes(currentFiscalYear))) {
       setFacYear(currentFiscalYear);
     }
   }, [currentFiscalYear, availableYears]);
@@ -1677,7 +1670,7 @@ export function ResearchCharts({
             }
           > = {};
           baseAllResearch.forEach((item) => {
-            if (resolveResearchYear(item) !== yr) return;
+            if (yr !== 'all' && resolveResearchYear(item) !== yr) return;
             const headName = String(item.head || '').trim();
             if (!headName || headName === '-' || headName === 'nan') return;
             const key = item.head_id ? `id_${item.head_id}` : headName;
@@ -1811,16 +1804,18 @@ export function ResearchCharts({
                     <span>10 อันดับหัวหน้าโครงการวิจัยที่มีงบประมาณวิจัยสูงสุด</span>
                   </h2>
                   <div className="rr-ctrls">
-                    <label className="rr-sel">
-                      <span>ปี</span>
-                      <select value={facYear} onChange={(e) => setFacYear(e.target.value)}>
-                        {availableYears.map((y) => (
-                          <option key={y} value={y}>
-                            {y}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
+                    <YearSelectDropdown
+                      label="ปี"
+                      value={facYear}
+                      onChange={(newY) => {
+                        setFacYear(newY);
+                        if (facCmpYear === newY) {
+                          setFacCmpYear(getDefaultCompareYear(newY, availableYears));
+                        }
+                      }}
+                      includeAll={true}
+                      allPosition="top"
+                    />
                     <div className="rr-seg-ctl" role="group" aria-label="โหมดการแสดงผล">
                       <button type="button" aria-pressed={!facIsCompare} onClick={() => setFacIsCompare(false)}>
                         ภาพรวม
@@ -1830,18 +1825,13 @@ export function ResearchCharts({
                       </button>
                     </div>
                     {facIsCompare && (
-                      <label className="rr-sel">
-                        <span>เทียบกับปี</span>
-                        <select value={facCmpYear} onChange={(e) => setFacCmpYear(e.target.value)}>
-                          {availableYears
-                            .filter((y) => y !== facYear)
-                            .map((y) => (
-                              <option key={y} value={y}>
-                                {y}
-                              </option>
-                            ))}
-                        </select>
-                      </label>
+                      <YearSelectDropdown
+                        label="เทียบกับปี"
+                        value={facCmpYear}
+                        onChange={(newCmp) => setFacCmpYear(newCmp)}
+                        excludeYear={facYear}
+                        includeAll={false}
+                      />
                     )}
                   </div>
                 </div>
