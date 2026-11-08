@@ -1,21 +1,58 @@
 'use client';
 
-import React from 'react';
-import { useTimeFilter, TimeFilterBar } from '@/features/time-filter';
+import React, { useEffect, useMemo } from 'react';
+import { useDashboardTabFilter, useTimeFilter } from '@/features/time-filter';
 import { usePublicationsData } from '../_hooks/usePublicationsData';
-import { PublicationsCharts } from './PublicationsCharts';
-import { PublicationsTable } from './PublicationsTable';
-import { DepartmentSelect, StrategicFilterSelect } from '@/components/ui';
-import { FaBook, FaGlobeAmericas, FaAward, FaCoins } from 'react-icons/fa';
+import { PublicationsCharts, PubPerspective } from './PublicationsCharts';
+import { TopSegmentedTabs } from '@/components/ui/TopSegmentedTabs';
+import { StrategicAlignmentMatrix } from '@/components/data-display/StrategicAlignmentMatrix';
+import { MissionDataTable } from '@/components/data-display/MissionDataTable';
+import { DashboardTabFilterBar } from '@/components/ui/DashboardTabFilterBar';
+import { UndatedNotice } from '@/components/ui/UndatedNotice';
+import { ExecutiveKpiDeck } from '@/components/data-display/ExecutiveKpiDeck';
+import { MissionYoYControls } from '@/components/data-display/MissionYoYControls';
+import { dashboardPageSubtitleStyle, dashboardPageTitleStyle, dashboardTheme } from '@/lib/dashboardTheme';
+import { FaBook, FaGlobeAmericas, FaAward, FaCoins, FaChartLine, FaBuilding, FaUserTie, FaBookOpen, FaLeaf, FaTable } from 'react-icons/fa';
+import { usePerspectiveTab } from '@/hooks/usePerspectiveTab';
+
+const VALID_PUB_TABS: PubPerspective[] = [
+  'timeline',
+  'quartile_tci',
+  'department',
+  'faculty',
+  'journals',
+  'sdg',
+  'table',
+];
 
 export function PublicationsView() {
-  const { timeFilter, setTimeFilter, resetTimeFilter } = useTimeFilter();
+  const [activePerspective, setActivePerspective] = usePerspectiveTab<PubPerspective>(
+    'publications',
+    VALID_PUB_TABS,
+    'timeline'
+  );
+  const {
+    tabFilter,
+    setTabFilter,
+    resetTabFilter,
+    timeFilter,
+  } = useDashboardTabFilter('publications');
+
+  const { setIsTimeModalOpen } = useTimeFilter('publications');
+
   const {
     validData,
+    allItems,
+    undatedCount,
     filteredData,
     q1Count,
     q2Count,
+    q3Count,
+    q4Count,
+    tci1Count,
+    tci2Count,
     tciCount,
+    confCount,
     otherCount,
     internationalCount,
     nationalCount,
@@ -30,285 +67,228 @@ export function PublicationsView() {
     setStatusFilter,
     selectedDept,
     setSelectedDept,
+    setFiscalYearFilter,
     strategicFilter,
     setStrategicFilter,
   } = usePublicationsData(timeFilter);
 
-  const highTierCount = q1Count + q2Count;
-  const highTierPct = validData.length > 0 ? ((highTierCount / validData.length) * 100).toFixed(1) : '0';
+  // Synchronize tabFilter to usePublicationsData internal states
+  useEffect(() => {
+    if (tabFilter.department && tabFilter.department !== 'all') {
+      setTabFilter({ department: 'all' });
+    }
+  }, [tabFilter.department, setTabFilter]);
+
+  useEffect(() => {
+    setFiscalYearFilter(tabFilter.fiscalYear || 'all');
+  }, [tabFilter.fiscalYear, setFiscalYearFilter]);
+
+  useEffect(() => {
+    setLevelFilter(tabFilter.customFilters?.levelFilter || 'all');
+  }, [tabFilter.customFilters?.levelFilter, setLevelFilter]);
+
+  useEffect(() => {
+    setStatusFilter(tabFilter.customFilters?.statusFilter || 'all');
+  }, [tabFilter.customFilters?.statusFilter, setStatusFilter]);
+
+  useEffect(() => {
+    setStrategicFilter(tabFilter.customFilters?.strategicFilter || 'all');
+  }, [tabFilter.customFilters?.strategicFilter, setStrategicFilter]);
+
+  useEffect(() => {
+    if (tabFilter.search !== undefined) {
+      setSearchTerm(tabFilter.search);
+    }
+  }, [tabFilter.search, setSearchTerm]);
+
+  const intlAllCount = q1Count + q2Count + q3Count + q4Count;
+  const intlPct = validData.length > 0 ? ((intlAllCount / validData.length) * 100).toFixed(1) : '0';
   const tciPct = validData.length > 0 ? ((tciCount / validData.length) * 100).toFixed(1) : '0';
   const avgSupport = validData.length > 0 ? Math.round(totalSupportBudget / validData.length).toLocaleString('th-TH') : '0';
+  const uniqueDepts = new Set(validData.map((d: any) => d.department_clean || d.department).filter(Boolean));
+  const topTierCount = q1Count + q2Count;
+  const topTierPct = validData.length > 0 ? ((topTierCount / validData.length) * 100).toFixed(1) : '0';
+  const hasTierData = topTierCount > 0;
+
+  // Multi-tier segments breakdown for Card 1 (Q1-Q4, TCI, Other separated)
+  const pubSegments = useMemo(() => {
+    const total = validData.length || 1;
+    const tiers = [
+      { key: 'Q1', label: 'Q1', count: q1Count, color: '#9f1239' },
+      { key: 'Q2', label: 'Q2', count: q2Count, color: '#e11d48' },
+      { key: 'Q3', label: 'Q3', count: q3Count, color: '#fb7185' },
+      { key: 'Q4', label: 'Q4', count: q4Count, color: '#fecdd3' },
+      { key: 'TCI', label: 'TCI', count: tciCount, color: '#4338ca' },
+    ];
+    if (confCount > 0) {
+      tiers.push({ key: 'conf', label: 'ประชุมวิชาการ', count: confCount, color: '#818cf8' });
+    }
+    if (otherCount > 0) {
+      tiers.push({ key: 'other', label: 'อื่นๆ', count: otherCount, color: '#cbd5e1' });
+    }
+
+    return tiers
+      .filter((t) => t.count > 0)
+      .map((t) => ({
+        key: t.key,
+        label: t.label,
+        value: t.count,
+        displayValue: `${t.count} เรื่อง`,
+        unit: 'เรื่อง',
+        percent: Number(((t.count / total) * 100).toFixed(1)),
+        color: t.color,
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [validData.length, q1Count, q2Count, q3Count, q4Count, tciCount, confCount, otherCount]);
+
+  const pubBudgetValue = (totalSupportBudget / 1000000).toFixed(2);
+  const pubBudgetUnit = 'ล้านบาท';
+  const pubBudgetCurrent = totalSupportBudget / 1000000;
+  const pubBudgetMax = Math.max(1.5, Math.ceil((totalSupportBudget / 1000000) * 1.5 * 10) / 10);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {/* ZONE 1: Global Filter Bar (Sticky Docked Under Header) */}
-      <div
-        style={{
-          position: 'sticky',
-          top: '50px',
-          zIndex: 40,
-          backdropFilter: 'blur(12px)',
-          backgroundColor: 'rgba(255, 255, 255, 0.95)',
-          border: '1px solid #e2e8f0',
-          padding: '10px 16px',
-          borderRadius: '16px',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          gap: '8px',
-        }}
-      >
-        <TimeFilterBar
-          value={timeFilter}
-          onChange={setTimeFilter}
-          onReset={resetTimeFilter}
-          totalCount={validData.length}
-        />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div>
+        <h1 style={dashboardPageTitleStyle}>ผลงานตีพิมพ์ทางวิชาการ</h1>
+        <p style={dashboardPageSubtitleStyle}>
+          ภาพรวมคุณภาพวารสาร เงินสนับสนุน และผลผลิตตีพิมพ์
+        </p>
+      </div>
 
-        <DepartmentSelect
-          value={selectedDept}
-          onChange={setSelectedDept}
-          allowAll
-          allLabel="ทุกภาควิชา / ศูนย์"
-          allValue="all"
-          size="sm"
-          className="w-[170px]"
-        />
-
-        {/* Database Tier Segmented Control */}
-        <div
-          style={{
-            display: 'inline-flex',
-            backgroundColor: '#f1f5f9',
-            padding: '3px',
-            borderRadius: '9px',
-            fontSize: '12px',
-            fontWeight: 500,
-            height: '32px',
-            boxSizing: 'border-box',
-            alignItems: 'center',
-          }}
-        >
-          {[
-            { id: 'all', label: `ทั้งหมด (${validData.length})` },
-            { id: 'Q1', label: `Q1 (${q1Count})` },
-            { id: 'Q2', label: `Q2 (${q2Count})` },
-            { id: 'TCI', label: `TCI (${tciCount})` },
-          ].map((f) => (
-            <button
-              key={f.id}
-              onClick={() => setLevelFilter(f.id)}
-              style={{
-                padding: '4px 8px',
-                borderRadius: '7px',
-                border: 'none',
-                cursor: 'pointer',
-                backgroundColor: levelFilter === f.id ? '#ffffff' : 'transparent',
-                color: levelFilter === f.id ? '#be123c' : '#64748b',
-                fontWeight: levelFilter === f.id ? 700 : 500,
-                boxShadow: levelFilter === f.id ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Status Toggle */}
-        <div
-          style={{
-            display: 'inline-flex',
-            backgroundColor: '#f1f5f9',
-            padding: '3px',
-            borderRadius: '9px',
-            fontSize: '12px',
-            fontWeight: 500,
-            height: '32px',
-            boxSizing: 'border-box',
-            alignItems: 'center',
-          }}
-        >
-          {[
-            { id: 'all', label: 'ทุกสถานะ' },
-            { id: 'published', label: 'ตีพิมพ์แล้ว' },
-            { id: 'prep', label: 'เตรียมพร้อม' },
-          ].map((s) => (
-            <button
-              key={s.id}
-              onClick={() => setStatusFilter(s.id)}
-              style={{
-                padding: '4px 8px',
-                borderRadius: '7px',
-                border: 'none',
-                cursor: 'pointer',
-                backgroundColor: statusFilter === s.id ? '#ffffff' : 'transparent',
-                color: statusFilter === s.id ? '#0f172a' : '#64748b',
-                fontWeight: statusFilter === s.id ? 600 : 500,
-                boxShadow: statusFilter === s.id ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
-              }}
-            >
-              {s.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Standard Touchpoint: Strategic Filter (ต่อหลังตัวกรองก่อนหน้าทันที) */}
-        <StrategicFilterSelect
-          value={strategicFilter}
-          onChange={setStrategicFilter}
+      {/* Top Segmented Tabs - Style identical to manage?tab=research */}
+      <div style={{ overflowX: 'auto', padding: '2px 0 6px 0' }}>
+        <TopSegmentedTabs
+          activeCategory={activePerspective}
+          onSelectCategory={setActivePerspective}
+          colorTheme="rose"
+          tabs={[
+            { key: 'timeline', label: 'แนวโน้มการตีพิมพ์รายเดือนและงบสนับสนุน', icon: <FaChartLine style={{ fontSize: '13px' }} /> },
+            { key: 'quartile_tci', label: 'ระดับฐานข้อมูล', icon: <FaAward style={{ fontSize: '13px' }} /> },
+            { key: 'department', label: 'การผลิตผลงานรายสังกัด', icon: <FaBuilding style={{ fontSize: '13px' }} /> },
+            { key: 'faculty', label: 'อาจารย์และนักวิจัยตีพิมพ์สูงสุด', icon: <FaUserTie style={{ fontSize: '13px' }} /> },
+            { key: 'journals', label: 'วารสารและแหล่งตีพิมพ์ยอดนิยม', icon: <FaBookOpen style={{ fontSize: '13px' }} /> },
+            { key: 'sdg', label: 'ความสอดคล้องเชิงยุทธศาสตร์ (SDGs)', icon: <FaLeaf style={{ fontSize: '13px' }} /> },
+            { key: 'table', label: 'รายการผลงานตีพิมพ์ทางวิชาการ', icon: <FaTable style={{ fontSize: '13px' }} /> },
+          ]}
         />
       </div>
 
-      {/* ZONE 2: Executive Bento KPI Grid (Rose Pastel Glow) */}
-      <div
+      {/* ZONE 1: Unified filter card */}
+      <DashboardTabFilterBar
+        tabKey="publications"
+        totalCount={validData.length}
+        filteredCount={filteredData.length}
+        filterState={tabFilter}
+        onFilterChange={setTabFilter}
+        onReset={resetTabFilter}
+        showFiscalYear={true}
+        showDepartment={false}
+        showStrategic={false}
+        showDetailedTime={true}
+        detailedTimeLabel="เลือกช่วงเวลา"
+        onOpenDetailedTime={() => setIsTimeModalOpen(true)}
         style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-          gap: '16px',
+          position: 'static',
+          backdropFilter: 'none',
+          backgroundColor: dashboardTheme.colors.surface,
+          borderRadius: `${dashboardTheme.radius.card}px`,
+          boxShadow: 'none',
         }}
-      >
-        {/* Card 1: Total Publications */}
-        <div
-          style={{
-            backgroundColor: '#ffffff',
-            borderRadius: '20px',
-            padding: '20px',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 2px 10px rgba(244, 63, 94, 0.06)',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}>ผลงานตีพิมพ์ทางวิชาการรวม</span>
-            <div style={{ width: '32px', height: '32px', borderRadius: '10px', backgroundColor: '#fff1f2', color: '#f43f5e', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <FaBook style={{ fontSize: '15px' }} />
-            </div>
-          </div>
-          <div style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.5px' }}>
-            {validData.length} <span style={{ fontSize: '16px', fontWeight: 600, color: '#64748b' }}>เรื่อง</span>
-          </div>
-          <div style={{ marginTop: '8px', fontSize: '12px', color: '#be123c', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ padding: '2px 6px', borderRadius: '6px', backgroundColor: '#fff1f2', border: '1px solid #fecdd3', fontWeight: 600 }}>
-              ตีพิมพ์สำเร็จ {publishedCount}
-            </span>
-            <span style={{ color: '#94a3b8' }}>•</span>
-            <span style={{ color: '#64748b' }}>เตรียมความพร้อม {inPrepCount}</span>
-          </div>
-        </div>
-
-        {/* Card 2: High Tier Q1/Q2 */}
-        <div
-          style={{
-            backgroundColor: '#ffffff',
-            borderRadius: '20px',
-            padding: '20px',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 2px 10px rgba(14, 165, 233, 0.06)',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}>สัดส่วนนานาชาติ Q1 / Q2</span>
-            <div style={{ width: '32px', height: '32px', borderRadius: '10px', backgroundColor: '#f0f9ff', color: '#0ea5e9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <FaGlobeAmericas style={{ fontSize: '15px' }} />
-            </div>
-          </div>
-          <div style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.5px' }}>
-            {highTierPct}% <span style={{ fontSize: '16px', fontWeight: 600, color: '#64748b' }}>({highTierCount} เรื่อง)</span>
-          </div>
-          <div style={{ marginTop: '8px', fontSize: '12px', color: '#0369a1', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ padding: '2px 6px', borderRadius: '6px', backgroundColor: '#ecfdf5', border: '1px solid #a7f3d0', color: '#047857', fontWeight: 700 }}>
-              Q1: {q1Count}
-            </span>
-            <span style={{ color: '#94a3b8' }}>•</span>
-            <span style={{ padding: '2px 6px', borderRadius: '6px', backgroundColor: '#f0f9ff', border: '1px solid #bae6fd', color: '#0369a1', fontWeight: 700 }}>
-              Q2: {q2Count}
-            </span>
-          </div>
-        </div>
-
-        {/* Card 3: TCI */}
-        <div
-          style={{
-            backgroundColor: '#ffffff',
-            borderRadius: '20px',
-            padding: '20px',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 2px 10px rgba(245, 158, 11, 0.06)',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}>ผลงานระดับชาติ (TCI)</span>
-            <div style={{ width: '32px', height: '32px', borderRadius: '10px', backgroundColor: '#fffbeb', color: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <FaAward style={{ fontSize: '15px' }} />
-            </div>
-          </div>
-          <div style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.5px' }}>
-            {tciPct}% <span style={{ fontSize: '16px', fontWeight: 600, color: '#64748b' }}>({tciCount} เรื่อง)</span>
-          </div>
-          <div style={{ marginTop: '8px', fontSize: '12px', color: '#b45309', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ padding: '2px 6px', borderRadius: '6px', backgroundColor: '#fffbeb', border: '1px solid #fde68a', fontWeight: 600 }}>
-              TCI กลุ่ม 1 และ 2
-            </span>
-            <span style={{ color: '#94a3b8' }}>•</span>
-            <span style={{ color: '#64748b' }}>{nationalCount} บทความในประเทศ</span>
-          </div>
-        </div>
-
-        {/* Card 4: Support Budget */}
-        <div
-          style={{
-            backgroundColor: '#ffffff',
-            borderRadius: '20px',
-            padding: '20px',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 2px 10px rgba(16, 185, 129, 0.06)',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}>งบสนับสนุนการตีพิมพ์</span>
-            <div style={{ width: '32px', height: '32px', borderRadius: '10px', backgroundColor: '#ecfdf5', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <FaCoins style={{ fontSize: '15px' }} />
-            </div>
-          </div>
-          <div style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.5px' }}>
-            {totalSupportBudget.toLocaleString('th-TH')} <span style={{ fontSize: '16px', fontWeight: 600, color: '#64748b' }}>บาท</span>
-          </div>
-          <div style={{ marginTop: '8px', fontSize: '12px', color: '#059669', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ padding: '2px 6px', borderRadius: '6px', backgroundColor: '#ecfdf5', border: '1px solid #a7f3d0', fontWeight: 600 }}>
-              เฉลี่ย {avgSupport} ฿/เรื่อง
-            </span>
-            <span style={{ color: '#94a3b8' }}>•</span>
-            <span style={{ color: '#64748b' }}>เงินรางวัลและค่าตีพิมพ์</span>
-          </div>
-        </div>
-      </div>
-
-      {/* ZONE 3: Publications Charts */}
-      <PublicationsCharts
-        validData={filteredData}
-        onSelectDept={(dept) => setSelectedDept(dept === selectedDept ? 'all' : dept)}
-        onSelectLevel={(lvl) => setLevelFilter(lvl === levelFilter ? 'all' : lvl)}
       />
 
-      {/* ZONE 4: Publications Table with Strategy Badges & BibTeX/CSV Export */}
-      <PublicationsTable
-        filteredData={filteredData}
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        levelFilter={levelFilter}
-        onLevelChange={setLevelFilter}
-        selectedDept={selectedDept}
-        onDeptChange={setSelectedDept}
-      />
+      {undatedCount > 0 && <UndatedNotice count={undatedCount} />}
+
+      {/* PERSPECTIVE VIEW: Dedicated page view for Strategic Alignment */}
+      {activePerspective === 'sdg' ? (
+        <div style={{ marginTop: '8px' }}>
+          <StrategicAlignmentMatrix
+            items={filteredData}
+            categoryKey="publications"
+            missionTitle="ผลงานตีพิมพ์ทางวิชาการ"
+            unitLabel="เรื่อง"
+            showBudget={true}
+          />
+        </div>
+      ) : activePerspective === 'table' ? (
+        <div style={{ marginTop: '8px' }}>
+          <MissionDataTable
+            categoryKey="publications"
+            items={validData}
+            title="ผลงานตีพิมพ์ทางวิชาการ"
+          />
+        </div>
+      ) : (
+        <>
+          {activePerspective === 'timeline' && (
+            <>
+              {/* ZONE 2: Executive Blueprint KPI Deck */}
+              <ExecutiveKpiDeck
+                mission="publications"
+                blueprintCard={{
+                  label: 'ผลงานตีพิมพ์ทางวิชาการรวม',
+                  value: validData.length,
+                  unit: 'เรื่อง',
+                  segments: pubSegments,
+                }}
+                gearCard={{
+                  label: 'ผลงานที่ตีพิมพ์สำเร็จแล้ว',
+                  value: publishedCount,
+                  unit: 'เรื่อง',
+                  gearValue: uniqueDepts.size,
+                  gearLabel: 'สังกัด',
+                }}
+                items={validData}
+                tallyCard={{
+                  label: hasTierData ? 'ผลงานกลุ่มควอร์ไทล์สูง (Q1 - Q2)' : 'ผลงานตีพิมพ์สำเร็จ (Published)',
+                  chip: `${hasTierData ? topTierPct : (validData.length > 0 ? Math.round((publishedCount / validData.length) * 100) : 0)}%`,
+                  value: hasTierData ? topTierCount : publishedCount,
+                  unit: `จาก ${validData.length} เรื่อง`,
+                  percent: hasTierData ? (parseFloat(topTierPct) || 0) : (validData.length > 0 ? (publishedCount / validData.length) * 100 : 0),
+                  totalCount: validData.length,
+                  activeCount: hasTierData ? topTierCount : publishedCount,
+                }}
+                rulerCard={{
+                  label: 'เงินสนับสนุนตีพิมพ์รวม',
+                  value: pubBudgetValue,
+                  unit: pubBudgetUnit,
+                  current: pubBudgetCurrent,
+                  max: pubBudgetMax,
+                  marks: [
+                    { label: '0', positionPercent: 2 },
+                    { label: (pubBudgetMax / 3).toFixed(2), positionPercent: 33 },
+                    { label: ((pubBudgetMax * 2) / 3).toFixed(2), positionPercent: 66 },
+                    { label: `สูงสุด ${pubBudgetMax.toFixed(2)}`, positionPercent: 96 },
+                  ],
+                }}
+              />
+            </>
+          )}
+
+          {/* ZONE 3: 5 Dimension Tabs Charts */}
+          <PublicationsCharts
+            validData={filteredData}
+            allItems={allItems || validData}
+            currentFiscalYear={timeFilter?.mode === 'fiscal' && timeFilter.fiscalYear !== 'all' ? timeFilter.fiscalYear : undefined}
+            activePerspective={activePerspective}
+            onChangePerspective={setActivePerspective}
+            hideSelector={true}
+            onSelectDept={(dept) => {
+              const nextDept = dept === selectedDept ? 'all' : dept;
+              setSelectedDept(nextDept);
+            }}
+            onSelectLevel={(lvl) => {
+              const nextLvl = lvl === levelFilter ? 'all' : lvl;
+              setLevelFilter(nextLvl);
+              setTabFilter({
+                customFilters: {
+                  ...(tabFilter.customFilters || {}),
+                  levelFilter: nextLvl,
+                },
+              });
+            }}
+          />
+        </>
+      )}
     </div>
   );
 }

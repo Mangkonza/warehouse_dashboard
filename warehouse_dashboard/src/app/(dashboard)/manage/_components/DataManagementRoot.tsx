@@ -3,13 +3,14 @@
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { CategoryKey, PersonnelRecord } from '@/types/dataManagement';
+import { formatPersonName, splitFullName } from '@/lib/formatPersonName';
 import { CATEGORIES_CONFIG, DEPARTMENTS, getDepartmentAbbr } from '@/config/dataManagementConfig';
 import { TopSegmentedTabs } from './TopSegmentedTabs';
 import { DataTable } from './DataTable';
 import { PersonnelGrid } from './PersonnelGrid';
 import { SmartAddEditModal } from './SmartAddEditModal';
 import { ImportExcelModal } from '@/features/data-import';
-import { ConfirmActionModal, SearchInput } from '@/components/ui';
+import { ConfirmActionModal, SearchInput, TablePagination } from '@/components/ui';
 import {
   Select,
   SelectContent,
@@ -18,7 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { FilterModal } from './FilterModal';
-import { FilterPopover, ActiveFilterChips } from '@/components/ui';
+import { FilterPopover, ActiveFilterChips, PersonnelMissingField } from '@/components/ui';
 import { itemMatchesDepartmentMulti, itemMatchesDateRange, itemMatchesNumericRanges } from '@/lib/filterMatching';
 import { downloadExcelTemplate, exportTableToExcel } from '@/lib/etlEngine';
 import {
@@ -46,7 +47,6 @@ import rawAcademic from '@/data/academic.json';
 import rawPublications from '@/data/publications.json';
 import rawServices from '@/data/services.json';
 import rawIP from '@/data/ip.json';
-import rawPersonnel from '@/data/personnel.json';
 import { KPIManagementTab } from './KPIManagementTab';
 import { UserRoleManagementTab } from './UserRoleManagementTab';
 import { RoleManagementService } from '@/services/roleManagement.service';
@@ -290,7 +290,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
     service: getInitialDataset('service', rawServices),
     publications: getInitialDataset('publications', rawPublications),
     ip: getInitialDataset('ip', rawIP),
-    personnel: getInitialDataset('personnel', rawPersonnel as PersonnelRecord[]),
+    personnel: getInitialDataset('personnel', [] as PersonnelRecord[]),
     kpi: [],
     user_roles: [],
   }));
@@ -402,10 +402,12 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
   const [selectedRole, setSelectedRole] = useState('');
   const [selectedImageStatus, setSelectedImageStatus] = useState<'all' | 'has_image' | 'no_image'>('all');
   const [selectedCompleteness, setSelectedCompleteness] = useState<'all' | 'complete' | 'incomplete'>('all');
+  const [selectedMissingField, setSelectedMissingField] = useState<PersonnelMissingField>('all');
   const [selectedSubFilter, setSelectedSubFilter] = useState('');
   const [selectedSdgs, setSelectedSdgs] = useState<string[]>([]);
   const [selectedFramework, setSelectedFramework] = useState<EvalFramework>('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [recentlyAddedIds, setRecentlyAddedIds] = useState<string[]>([]);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [personnelViewMode, setPersonnelViewMode] = useState<'grid' | 'table'>(resolveInitialPersonnelViewMode);
 
@@ -529,6 +531,13 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
   // Filtered dataset
   const filteredData = useMemo(() => {
     return currentList.filter((item: any) => {
+      // If item is recently added, bypass filters so it always displays
+      if (recentlyAddedIds.length > 0) {
+        const itemTokens = [item.dbId, item.id, item._id].filter(Boolean).map(String);
+        if (itemTokens.some((id) => recentlyAddedIds.includes(id))) {
+          return true;
+        }
+      }
       // 1. Department filter
       if (selectedDept || selectedDeptCustom) {
         if (!itemMatchesDepartmentMulti(item, selectedDept, selectedDeptCustom)) {
@@ -564,11 +573,11 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
         if (!hasMatch) return false;
       }
 
-      // 2. Personnel: Role / Position Filter
+      // 2. Personnel: Academic Position Filter (ตำแหน่งทางวิชาการ)
       if (activeCategory === 'personnel' && selectedRole) {
         const pos = String(item.position || '').toLowerCase();
-        const title = String(item.title_th || '').toLowerCase();
-        const name = String(item.name || '').toLowerCase();
+        const title = String(item.title_th || item.titleTh || '').toLowerCase();
+        const name = String(item.name || item.name_th || '').toLowerCase();
 
         const isProf = (title.includes('ศ.') || name.includes('ศ.ดร.') || pos.includes('ศาสตราจารย์')) &&
                        !title.includes('ผศ.') && !title.includes('รศ.') &&
@@ -576,32 +585,52 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
         const isAssoc = (title.includes('รศ.') || name.includes('รศ.') || pos.includes('รองศาสตราจารย์')) &&
                         !title.includes('ผศ.') && !pos.includes('ผู้ช่วย');
         const isAsst = (title.includes('ผศ.') || name.includes('ผศ.') || pos.includes('ผู้ช่วยศาสตราจารย์'));
-        const isLecturer = !isProf && !isAssoc && !isAsst &&
-                           (title.includes('อ.') || title.includes('ดร.') || pos.includes('อาจารย์'));
+        const isLecturer = (pos.includes('อาจารย์') || title.includes('อ.') || title.includes('ดร.')) &&
+                           !isProf && !isAssoc && !isAsst;
         const isExecutive = pos.includes('หัวหน้า') || pos.includes('คณบดี') || pos.includes('ประธาน') || pos.includes('ผู้อำนวยการ');
-        const isStaff = !isProf && !isAssoc && !isAsst && !isLecturer;
+        const isStaff = !isProf && !isAssoc && !isAsst && !isLecturer &&
+                        !pos.includes('ผู้แทน') && !pos.includes('บริษัท') && !pos.includes('สมาคม');
+        const isExternal = pos.includes('ผู้แทน') || pos.includes('บริษัท') || pos.includes('สมาคม') || pos.includes('อิสระ');
 
-        if (selectedRole === 'professor' && !isProf) return false;
-        if (selectedRole === 'assoc_prof' && !isAssoc) return false;
-        if (selectedRole === 'asst_prof' && !isAsst) return false;
-        if (selectedRole === 'lecturer' && !isLecturer) return false;
-        if (selectedRole === 'executive' && !isExecutive) return false;
-        if (selectedRole === 'staff' && !isStaff) return false;
+        if ((selectedRole === 'professor' || selectedRole === 'ศาสตราจารย์') && !isProf) return false;
+        if ((selectedRole === 'assoc_prof' || selectedRole === 'รองศาสตราจารย์') && !isAssoc) return false;
+        if ((selectedRole === 'asst_prof' || selectedRole === 'ผู้ช่วยศาสตราจารย์') && !isAsst) return false;
+        if ((selectedRole === 'lecturer' || selectedRole === 'อาจารย์') && !isLecturer) return false;
+        if ((selectedRole === 'executive' || selectedRole === 'ผู้บริหาร') && !isExecutive) return false;
+        if ((selectedRole === 'staff' || selectedRole === 'เจ้าหน้าที่' || selectedRole === 'บุคลากร') && !isStaff) return false;
+        if ((selectedRole === 'external' || selectedRole === 'ผู้แทนภายนอก') && !isExternal) return false;
       }
 
-      // 3. Personnel: Profile Image Status Filter
+      // 3. Personnel: Missing Fields Filter (ช่องข้อมูลที่ว่างอยู่)
+      if (activeCategory === 'personnel' && selectedMissingField && selectedMissingField !== 'all') {
+        const valImg = item.image_url ? String(item.image_url).trim() : '';
+        const hasImg = Boolean(valImg && valImg !== '-' && valImg !== 'nan' && valImg !== 'null' && valImg !== 'undefined');
+
+        const valEmail = item.email ? String(item.email).trim() : '';
+        const hasEmail = Boolean(valEmail && valEmail !== 'ไม่พบอีเมล' && valEmail !== '-' && valEmail !== 'nan' && valEmail !== 'null' && valEmail !== 'undefined');
+
+        const valPos = item.position ? String(item.position).trim() : '';
+        const hasPos = Boolean(valPos && valPos !== '-' && valPos !== 'nan' && valPos !== 'null' && valPos !== 'undefined');
+
+        if (selectedMissingField === 'no_image' && hasImg) return false;
+        if (selectedMissingField === 'no_email' && hasEmail) return false;
+        if (selectedMissingField === 'no_position' && hasPos) return false;
+        if (selectedMissingField === 'incomplete' && hasImg && hasEmail && hasPos) return false;
+      }
+
+      // 4. Personnel: Profile Image Status Filter (Legacy fallback)
       if (activeCategory === 'personnel' && selectedImageStatus !== 'all') {
-        const hasImg = Boolean(item.image_url && String(item.image_url).trim() !== '');
+        const hasImg = Boolean(item.image_url && String(item.image_url).trim() !== '' && String(item.image_url).trim() !== '-');
         if (selectedImageStatus === 'has_image' && !hasImg) return false;
         if (selectedImageStatus === 'no_image' && hasImg) return false;
       }
 
-      // Personnel: Profile Completeness Filter
+      // Personnel: Profile Completeness Filter (Legacy fallback)
       if (activeCategory === 'personnel' && selectedCompleteness !== 'all') {
         const isIncomplete = (
-          !item.position || !String(item.position).trim() ||
-          !item.email || !String(item.email).trim() || item.email === 'ไม่พบอีเมล' ||
-          !item.image_url || !String(item.image_url).trim()
+          !item.position || !String(item.position).trim() || item.position === '-' ||
+          !item.email || !String(item.email).trim() || item.email === 'ไม่พบอีเมล' || item.email === '-' ||
+          !item.image_url || !String(item.image_url).trim() || item.image_url === '-'
         );
         if (selectedCompleteness === 'incomplete' && !isIncomplete) return false;
         if (selectedCompleteness === 'complete' && isIncomplete) return false;
@@ -679,7 +708,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
 
         // SDGs Filter (multi-select OR match)
         if (selectedSdgs && selectedSdgs.length > 0) {
-          const selectedSdgNums = selectedSdgs.map((s) => Number(s));
+          const selectedSdgNums = selectedSdgs.map((s) => parseSdgNumber(s)).filter((n): n is number => n !== null);
           const hasMatchingSdg = selectedSdgNums.some((s) => sdg_ids.includes(s));
           if (!hasMatchingSdg) return false;
         }
@@ -694,6 +723,29 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
       // 6. Search term filter
       if (!searchTerm.trim()) return true;
       const q = searchTerm.toLowerCase().trim();
+
+      if (activeCategory === 'personnel') {
+        const pfx = String(item.title_th || '').toLowerCase().trim();
+        const first = String(item.first_name || '').toLowerCase().trim();
+        const last = String(item.last_name || '').toLowerCase().trim();
+        const firstLast = `${first} ${last}`.trim();
+        const pfxFirstLast = `${pfx}${first} ${last}`.trim();
+        const legacyName = String(item.name || item.name_th || '').toLowerCase().trim();
+
+        if (
+          first.includes(q) ||
+          last.includes(q) ||
+          firstLast.includes(q) ||
+          pfxFirstLast.includes(q) ||
+          legacyName.includes(q) ||
+          String(item.position || '').toLowerCase().includes(q) ||
+          String(item.department || '').toLowerCase().includes(q) ||
+          String(item.email || '').toLowerCase().includes(q)
+        ) {
+          return true;
+        }
+        return false;
+      }
 
       for (const field of currentConfig.searchFields) {
         const val = item[field];
@@ -715,6 +767,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
     selectedRole,
     selectedImageStatus,
     selectedCompleteness,
+    selectedMissingField,
     selectedSubFilter,
     selectedSdgs,
     selectedFramework,
@@ -723,12 +776,52 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
     activeCategory,
   ]);
 
+  // Sorted dataset: for personnel, sort by first_name then last_name using Thai collation
+  const sortedData = useMemo(() => {
+    let result = filteredData;
+    if (activeCategory === 'personnel') {
+      result = [...filteredData].sort((a: any, b: any) => {
+        const aFirst = a.first_name || splitFullName(a.name || a.name_th || '', a.title_th).first_name;
+        const bFirst = b.first_name || splitFullName(b.name || b.name_th || '', b.title_th).first_name;
+        const cmpFirst = aFirst.localeCompare(bFirst, 'th');
+        if (cmpFirst !== 0) return cmpFirst;
+        const aLast = a.last_name || splitFullName(a.name || a.name_th || '', a.title_th).last_name;
+        const bLast = b.last_name || splitFullName(b.name || b.name_th || '', b.title_th).last_name;
+        return aLast.localeCompare(bLast, 'th');
+      });
+    }
+
+    // Pin recently added items to the very top in all categories
+    if (recentlyAddedIds.length > 0) {
+      const recentItems: any[] = [];
+      const otherItems: any[] = [];
+      for (const item of result) {
+        const itemTokens = [item.dbId, item.id, item._id].filter(Boolean).map(String);
+        if (itemTokens.some((id) => recentlyAddedIds.includes(id))) {
+          recentItems.push(item);
+        } else {
+          otherItems.push(item);
+        }
+      }
+      recentItems.sort((a, b) => {
+        const aTokens = [a.dbId, a.id, a._id].filter(Boolean).map(String);
+        const bTokens = [b.dbId, b.id, b._id].filter(Boolean).map(String);
+        const idxA = Math.min(...aTokens.map((t) => recentlyAddedIds.indexOf(t)).filter((x) => x >= 0));
+        const idxB = Math.min(...bTokens.map((t) => recentlyAddedIds.indexOf(t)).filter((x) => x >= 0));
+        return idxA - idxB;
+      });
+      return [...recentItems, ...otherItems];
+    }
+
+    return result;
+  }, [filteredData, activeCategory, recentlyAddedIds]);
+
   // Pagination
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage) || 1;
+  const totalPages = Math.ceil(sortedData.length / itemsPerPage) || 1;
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedData = useMemo(() => {
-    return filteredData.slice(startIndex, startIndex + itemsPerPage);
-  }, [filteredData, startIndex, itemsPerPage]);
+    return sortedData.slice(startIndex, startIndex + itemsPerPage);
+  }, [sortedData, startIndex, itemsPerPage]);
 
   // Counts for tabs
   const counts = useMemo(() => {
@@ -752,7 +845,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
       { key: 'publications', label: 'ผลงานตีพิมพ์ทางวิชาการ', count: counts.publications },
       { key: 'service', label: 'งานบริการวิชาการ', count: counts.service },
       { key: 'ip', label: 'งานทรัพย์สินทางปัญญา', count: counts.ip },
-      { key: 'personnel', label: 'บุคลากรและอาจารย์', count: counts.personnel },
+      { key: 'personnel', label: 'คณาจารย์และบุคลากร', count: counts.personnel },
       { key: 'kpi', label: 'ตัวชี้วัดตามแผนยุทธศาสตร์', count: counts.kpi },
     ];
 
@@ -773,6 +866,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
     setSelectedRole('');
     setSelectedImageStatus('all');
     setSelectedCompleteness('all');
+    setSelectedMissingField('all');
     setSelectedSubFilter('');
     setSelectedSdgs([]);
     setSelectedFramework('all');
@@ -808,6 +902,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
     setSelectedRole('');
     setSelectedImageStatus('all');
     setSelectedCompleteness('all');
+    setSelectedMissingField('all');
     setSelectedSubFilter('');
     setSelectedSdgs([]);
     setSelectedFramework('all');
@@ -825,6 +920,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
     (activeCategory === 'personnel' && selectedRole) ||
     (activeCategory === 'personnel' && selectedImageStatus !== 'all') ||
     (activeCategory === 'personnel' && selectedCompleteness !== 'all') ||
+    (activeCategory === 'personnel' && selectedMissingField !== 'all') ||
     selectedSubFilter ||
     selectedSdgs.length > 0 ||
     selectedFramework !== 'all'
@@ -839,6 +935,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
     (activeCategory === 'personnel' && selectedRole ? 1 : 0) +
     (activeCategory === 'personnel' && selectedImageStatus !== 'all' ? 1 : 0) +
     (activeCategory === 'personnel' && selectedCompleteness !== 'all' ? 1 : 0) +
+    (activeCategory === 'personnel' && selectedMissingField !== 'all' ? 1 : 0) +
     (selectedSubFilter ? 1 : 0) +
     (selectedSdgs.length > 0 ? 1 : 0) +
     (selectedFramework !== 'all' ? 1 : 0);
@@ -857,6 +954,27 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
       }
 
       const savedRecord = saveResult.data || record;
+
+      if (isNew) {
+        const idsToAdd = [
+          savedRecord.dbId,
+          savedRecord.id,
+          savedRecord._id,
+          record.dbId,
+          record.id,
+          record._id,
+        ]
+          .filter(Boolean)
+          .map(String);
+        if (idsToAdd.length > 0) {
+          setRecentlyAddedIds((prev) => [
+            ...idsToAdd,
+            ...prev.filter((id) => !idsToAdd.includes(id)),
+          ]);
+        }
+        setCurrentPage(1);
+        setSearchTerm('');
+      }
 
       setDatasets((prev) => {
         const list = [...(prev[targetCategory] || [])];
@@ -1111,7 +1229,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
             ระบบจัดการข้อมูล
           </h2>
           <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
-            จัดการและนำเข้าข้อมูลโครงการวิจัย โครงการพัฒนาวิชาการ ผลงานตีพิมพ์ทางวิชาการ งานบริการวิชาการ งานทรัพย์สินทางปัญญา ข้อมูลบุคลากรและอาจารย์ และตัวชี้วัดตามแผนยุทธศาสตร์
+            จัดการและนำเข้าข้อมูลโครงการวิจัย โครงการพัฒนาวิชาการ ผลงานตีพิมพ์ทางวิชาการ งานบริการวิชาการ งานทรัพย์สินทางปัญญา ข้อมูลคณาจารย์และบุคลากร และตัวชี้วัดตามแผนยุทธศาสตร์
           </div>
         </div>
       </div>
@@ -1353,6 +1471,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
                   role: selectedRole,
                   imageStatus: selectedImageStatus,
                   completeness: selectedCompleteness,
+                  missingField: selectedMissingField,
                   subFilter: selectedSubFilter,
                   sdgs: selectedSdgs,
                   framework: selectedFramework,
@@ -1367,6 +1486,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
                   setSelectedRole(newFilters.role || '');
                   setSelectedImageStatus(newFilters.imageStatus || 'all');
                   setSelectedCompleteness(newFilters.completeness || 'all');
+                  setSelectedMissingField(newFilters.missingField || 'all');
                   setSelectedSubFilter(newFilters.subFilter || '');
                   setSelectedSdgs(newFilters.sdgs || []);
                   setSelectedFramework(newFilters.framework || 'all');
@@ -1467,7 +1587,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
 
               {/* ส่งออก Excel */}
               <button
-                onClick={() => exportTableToExcel(filteredData, activeCategory)}
+                onClick={() => exportTableToExcel(sortedData, activeCategory)}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -1565,6 +1685,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
             <div style={{ padding: '20px', backgroundColor: '#f8fafc' }}>
               <PersonnelGrid
                 personnel={paginatedData as PersonnelRecord[]}
+                recentlyAddedIds={recentlyAddedIds}
                 onEdit={(person) => {
                   const actualIdx = datasets.personnel.findIndex(
                     (p) => (p._id && p._id === person._id) || (p.id && p.id === person.id) || p === person
@@ -1586,6 +1707,7 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
               key={`${activeCategory}-page-${currentPage}`}
               categoryKey={activeCategory}
               currentPage={currentPage}
+              recentlyAddedIds={recentlyAddedIds}
               columns={currentConfig.columns}
               data={paginatedData}
               startIndex={startIndex}
@@ -1606,144 +1728,22 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
             />
           )}
 
-          {/* Footer: Pagination & ข้อมูลจำนวนรายการ */}
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              padding: '12px 20px',
-              borderTop: '1px solid #e2e8f0',
-              backgroundColor: '#ffffff',
-              fontSize: '13px',
-              color: '#64748b',
-              flexWrap: 'wrap',
-              gap: '12px',
-            }}
-          >
-            <div>
-              แสดง {filteredData.length > 0 ? startIndex + 1 : 0} ถึง{' '}
-              {Math.min(startIndex + itemsPerPage, filteredData.length)} จากทั้งหมด{' '}
-              <strong style={{ color: '#1e293b' }}>{filteredData.length}</strong> รายการ
-              {selectedDept && ` (สังกัด: ${selectedDept.replace('ภาควิชา', '')})`}
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span>แสดง:</span>
-                <Select
-                  value={String(itemsPerPage)}
-                  onValueChange={(val) => {
-                    if (val) {
-                      setItemsPerPage(Number(val));
-                      setCurrentPage(1);
-                    }
-                  }}
-                >
-                  <SelectTrigger className="h-7 text-xs w-[70px] bg-white">
-                    <SelectValue placeholder={String(itemsPerPage)} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="10">10</SelectItem>
-                    <SelectItem value="25">25</SelectItem>
-                    <SelectItem value="50">50</SelectItem>
-                    <SelectItem value="100">100</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* ปุ่มเปลี่ยนหน้า */}
-              <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                <button
-                  type="button"
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  style={{
-                    padding: '5px 9px',
-                    borderRadius: '6px',
-                    border: '1px solid #cbd5e1',
-                    backgroundColor: currentPage === 1 ? '#f8fafc' : '#ffffff',
-                    color: currentPage === 1 ? '#cbd5e1' : '#334155',
-                    cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-                    fontSize: '12px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    transition: 'all 0.15s ease',
-                  }}
-                  title="หน้าก่อนหน้า"
-                >
-                  <FaChevronLeft style={{ fontSize: '10px' }} />
-                </button>
-
-                {/* Dynamic Page Numbers */}
-                {Array.from({ length: totalPages }, (_, i) => i + 1)
-                  .filter((p) => {
-                    if (totalPages <= 6) return true;
-                    if (p === 1 || p === totalPages) return true;
-                    return Math.abs(p - currentPage) <= 1;
-                  })
-                  .map((p, idx, arr) => {
-                    const isCurrent = p === currentPage;
-                    const prevP = arr[idx - 1];
-                    const hasGap = prevP && p - prevP > 1;
-
-                    return (
-                      <React.Fragment key={p}>
-                        {hasGap && (
-                          <span style={{ padding: '0 3px', color: '#94a3b8', fontSize: '12px' }}>…</span>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => setCurrentPage(p)}
-                          style={{
-                            minWidth: '28px',
-                            height: '28px',
-                            padding: '0 6px',
-                            borderRadius: '6px',
-                            border: isCurrent ? '1px solid #00A651' : '1px solid #e2e8f0',
-                            backgroundColor: isCurrent ? '#00A651' : '#ffffff',
-                            color: isCurrent ? '#ffffff' : '#334155',
-                            fontWeight: isCurrent ? 700 : 500,
-                            fontSize: '12px',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            transition: 'all 0.15s ease',
-                          }}
-                        >
-                          {p}
-                        </button>
-                      </React.Fragment>
-                    );
-                  })}
-
-                <button
-                  type="button"
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                  style={{
-                    padding: '5px 9px',
-                    borderRadius: '6px',
-                    border: '1px solid #cbd5e1',
-                    backgroundColor: currentPage === totalPages ? '#f8fafc' : '#ffffff',
-                    color: currentPage === totalPages ? '#cbd5e1' : '#334155',
-                    cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
-                    fontSize: '12px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    transition: 'all 0.15s ease',
-                  }}
-                  title="หน้าถัดไป"
-                >
-                  <FaChevronRight style={{ fontSize: '10px' }} />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+          {/* Footer: Pagination & ข้อมูลจำนวนรายการ */}
+          <TablePagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredData.length}
+            pageSize={itemsPerPage}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={(newSize) => {
+              setItemsPerPage(newSize);
+              setCurrentPage(1);
+            }}
+            pageSizeOptions={[10, 25, 50, 100]}
+            unitLabel="รายการ"
+            extraInfo={selectedDept ? ` (สังกัด: ${selectedDept.replace('ภาควิชา', '')})` : undefined}
+          />
+        </div>
       )}
 
       {/* Modals */}

@@ -6,13 +6,16 @@
 export const DEPARTMENT_COLORS = {
   AE: "#65B98A",
   CPE: "#5B9BD5",
+  IRRE: "#4FA9A0",
   IRE: "#4FA9A0",
   FE: "#E88762",
   IE: "#9B78D0",
   ME: "#777ED0",
   CE: "#D96B8A",
   EEEC: "#91B95B",
+  TDWCB: "#D5A04F",
   DWT: "#D5A04F",
+  TDW: "#D5A04F",
   NAMC: "#BB68BC",
   OFS: "#E9A88F",
   OTH: "#2E3136",
@@ -32,13 +35,13 @@ export interface DepartmentInfo {
 export const DEPARTMENTS: DepartmentInfo[] = [
   { code: "AE", name: "ภาควิชาวิศวกรรมเกษตร", group: "ภาควิชา", color: DEPARTMENT_COLORS.AE },
   { code: "CPE", name: "ภาควิชาวิศวกรรมคอมพิวเตอร์", group: "ภาควิชา", color: DEPARTMENT_COLORS.CPE },
-  { code: "IRE", name: "ภาควิชาวิศวกรรมชลประทาน", group: "ภาควิชา", color: DEPARTMENT_COLORS.IRE },
+  { code: "IRRE", name: "ภาควิชาวิศวกรรมชลประทาน", group: "ภาควิชา", color: DEPARTMENT_COLORS.IRRE },
   { code: "FE", name: "ภาควิชาวิศวกรรมอาหาร", group: "ภาควิชา", color: DEPARTMENT_COLORS.FE },
   { code: "IE", name: "ภาควิชาวิศวกรรมอุตสาหการ", group: "ภาควิชา", color: DEPARTMENT_COLORS.IE },
   { code: "ME", name: "ภาควิชาวิศวกรรมเครื่องกล", group: "ภาควิชา", color: DEPARTMENT_COLORS.ME },
   { code: "CE", name: "ภาควิชาวิศวกรรมโยธา", group: "ภาควิชา", color: DEPARTMENT_COLORS.CE },
   { code: "EEEC", name: "ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม", group: "ศูนย์", color: DEPARTMENT_COLORS.EEEC },
-  { code: "DWT", name: "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร", group: "ศูนย์", color: DEPARTMENT_COLORS.DWT },
+  { code: "TDWCB", name: "ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร", group: "ศูนย์", color: DEPARTMENT_COLORS.TDWCB },
   { code: "NAMC", name: "ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ", group: "ศูนย์", color: DEPARTMENT_COLORS.NAMC },
   { code: "OFS", name: "สำนักงานเลขานุการ", group: "สำนักงาน", color: DEPARTMENT_COLORS.OFS },
   { code: "OTH", name: "อื่นๆ (ระบุเอง)", group: "อื่นๆ", color: DEPARTMENT_COLORS.OTH },
@@ -62,7 +65,7 @@ export function getDepartmentColor(code: string): string {
     return DEPARTMENT_COLORS[upper];
   }
   const resolved = getDepartment(code);
-  return resolved.color || DEFAULT_DEPARTMENT_COLOR;
+  return resolved?.color || DEFAULT_DEPARTMENT_COLOR;
 }
 
 /**
@@ -70,6 +73,17 @@ export function getDepartmentColor(code: string): string {
  */
 export function getBadgeTextColor(_bgColor?: string): string {
   return "#ffffff";
+}
+
+function findDept(code: string): DepartmentInfo {
+  const found = DEPARTMENTS.find((d) => d.code === code);
+  if (found) return found;
+  return {
+    code,
+    name: code,
+    group: "อื่นๆ",
+    color: DEPARTMENT_COLORS.OTH,
+  };
 }
 
 /**
@@ -103,14 +117,15 @@ export function getDepartment(codeOrName: string | null | undefined): Department
     };
   }
 
-  // 1. Direct code lookup (AE, CPE, IRE, FE, IE, ME, CE, EEEC, DWT, NAMC, OFS, OTH)
+  // 1. Direct code lookup (AE, CPE, IRRE, FE, IE, ME, CE, EEEC, TDWCB, NAMC, OFS, OTH)
   const directMatch = DEPARTMENTS.find((d) => d.code.toUpperCase() === upper);
   if (directMatch) return directMatch;
 
-  // 2. Legacy code lookup: ABE -> AE, TDW -> DWT, OFFICE -> OFS
-  if (upper === "ABE") return DEPARTMENTS.find((d) => d.code === "AE")!;
-  if (upper === "TDW") return DEPARTMENTS.find((d) => d.code === "DWT")!;
-  if (upper === "OFFICE") return DEPARTMENTS.find((d) => d.code === "OFS")!;
+  // 2. Legacy code lookup: ABE -> AE, IRE -> IRRE, TDW/DWT -> TDWCB, OFFICE -> OFS
+  if (upper === "IRE") return findDept("IRRE");
+  if (upper === "DWT" || upper === "TDW") return findDept("TDWCB");
+  if (upper === "ABE") return findDept("AE");
+  if (upper === "OFFICE") return findDept("OFS");
 
   // 3. Exact name lookup
   const nameMatch = DEPARTMENTS.find(
@@ -121,57 +136,57 @@ export function getDepartment(codeOrName: string | null | undefined): Department
   // 4. Fuzzy / Keyword matching for real-world variations & typos
   // วิศวกรรมเกษตร (AE)
   if (clean.includes("เกษตร") || clean.includes("วศ.กษ.") || upper.includes("ABE") || upper === "AE") {
-    return DEPARTMENTS.find((d) => d.code === "AE")!;
+    return findDept("AE");
   }
 
   // วิศวกรรมคอมพิวเตอร์ (CPE)
   if (clean.includes("คอมพิวเตอร์") || clean.includes("คอม") || clean.includes("วศ.คพ.") || upper.includes("CPE")) {
-    return DEPARTMENTS.find((d) => d.code === "CPE")!;
+    return findDept("CPE");
   }
 
-  // วิศวกรรมชลประทาน (IRE) - includes typo "ศวกรรมชลประทาน", "วิศวกรรมการชลประทาน"
-  if (clean.includes("ชลประทาน") || clean.includes("วศ.ชป.") || upper.includes("IRE")) {
-    return DEPARTMENTS.find((d) => d.code === "IRE")!;
+  // วิศวกรรมชลประทาน (IRRE) - includes typo "ศวกรรมชลประทาน", "วิศวกรรมการชลประทาน"
+  if (clean.includes("ชลประทาน") || clean.includes("วศ.ชป.") || upper.includes("IRRE") || upper.includes("IRE")) {
+    return findDept("IRRE");
   }
 
   // วิศวกรรมอาหาร (FE) - includes "วิศวกรรมการอาหาร", typo "วิศกวรรมการอาหาร", "วศ.อห."
   if (clean.includes("อาหาร") || clean.includes("วศ.อห.") || upper.includes("FE")) {
-    return DEPARTMENTS.find((d) => d.code === "FE")!;
+    return findDept("FE");
   }
 
   // วิศวกรรมอุตสาหการ (IE)
   if (clean.includes("อุตสาหการ") || clean.includes("วศ.อหก.") || upper.includes("IE")) {
-    return DEPARTMENTS.find((d) => d.code === "IE")!;
+    return findDept("IE");
   }
 
   // วิศวกรรมเครื่องกล (ME) - includes typo "วิศววกรรมเครื่องกล"
   if (clean.includes("เครื่องกล") || clean.includes("วศ.คก.") || upper.includes("ME")) {
-    return DEPARTMENTS.find((d) => d.code === "ME")!;
+    return findDept("ME");
   }
 
   // วิศวกรรมโยธา (CE) - includes typos "วิศกวรรมโยธา", "วิศวกรรโยธา", "วศ.ยธ."
   if (clean.includes("โยธา") || clean.includes("วศ.ยธ.") || upper.includes("CE")) {
-    return DEPARTMENTS.find((d) => d.code === "CE")!;
+    return findDept("CE");
   }
 
   // ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม (EEEC)
   if (clean.includes("พลังงาน") || clean.includes("สิ่งแวดล้อม") || upper.includes("EEEC")) {
-    return DEPARTMENTS.find((d) => d.code === "EEEC")!;
+    return findDept("EEEC");
   }
 
-  // ศูนย์ทดสอบประตู หน้าต่าง (DWT) - includes "ประตูหน้าต่างฯ", "ผนังกระจก", "TDW"
-  if (clean.includes("ประตู") || clean.includes("หน้าต่าง") || clean.includes("ผนังกระจก") || upper.includes("TDW") || upper.includes("DWT")) {
-    return DEPARTMENTS.find((d) => d.code === "DWT")!;
+  // ศูนย์ทดสอบประตู หน้าต่าง (TDWCB) - includes "ประตูหน้าต่างฯ", "ผนังกระจก", "TDW", "DWT"
+  if (clean.includes("ประตู") || clean.includes("หน้าต่าง") || clean.includes("ผนังกระจก") || upper.includes("TDWCB") || upper.includes("TDW") || upper.includes("DWT")) {
+    return findDept("TDWCB");
   }
 
   // ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ (NAMC) - includes "เครื่องจักรกลฯ"
   if (clean.includes("เครื่องจักรกล") || upper.includes("NAMC")) {
-    return DEPARTMENTS.find((d) => d.code === "NAMC")!;
+    return findDept("NAMC");
   }
 
   // สำนักงานเลขานุการ (OFS)
   if (clean.includes("เลขานุการ") || clean.includes("สำนักงาน") || upper.includes("OFFICE") || upper.includes("OFS")) {
-    return DEPARTMENTS.find((d) => d.code === "OFS")!;
+    return findDept("OFS");
   }
 
   // 5. Fallback for custom / other departments (e.g. "งานพัฒนากายภาพ") -> uses code OTH and color #2E3136

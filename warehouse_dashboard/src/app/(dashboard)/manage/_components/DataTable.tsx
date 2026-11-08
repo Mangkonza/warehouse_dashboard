@@ -1,9 +1,10 @@
 'use client';
+import { formatPersonName } from '@/lib/formatPersonName';
 
 import React, { useState } from 'react';
 import { ColumnDef, CategoryKey } from '@/types/dataManagement';
 import { getDepartmentAbbr, CATEGORIES_CONFIG } from '@/config/dataManagementConfig';
-import { DepartmentBadge, RecordDetailDrawer, LevelBadge, ServiceTypeBadge, IPTypeBadge, PublicationTypeBadge, TrlBadge, formatDateBE, formatMoney } from '@/components/ui';
+import { DepartmentBadge, JournalTierBadge, RecordDetailDrawer, LevelBadge, ServiceTypeBadge, IPTypeBadge, PublicationTypeBadge, TrlBadge, formatDateBE, formatMoney } from '@/components/ui';
 import { getCachedEvaluations } from '@/lib/dataService';
 import {
   FaUser,
@@ -30,6 +31,7 @@ interface DataTableProps {
   currentPage?: number;
   onRowClick?: (item: any, index: number) => void;
   hideCheckbox?: boolean;
+  recentlyAddedIds?: string[];
 }
 
 export const DataTable: React.FC<DataTableProps> = ({
@@ -42,6 +44,7 @@ export const DataTable: React.FC<DataTableProps> = ({
   categoryKey,
   currentPage = 1,
   onRowClick,
+  recentlyAddedIds,
   hideCheckbox = false,
 }) => {
   // Drawer แสดงรายละเอียดข้อมูลแบบเต็ม (Record Detail Drawer)
@@ -77,13 +80,17 @@ export const DataTable: React.FC<DataTableProps> = ({
       (rawVal === undefined || rawVal === null || rawVal === '' || rawVal === 'nan' || rawVal === 'NaT') &&
       col.type !== 'publication_journal' &&
       col.type !== 'ip_req_info' &&
-      col.type !== 'ip_reg_info'
+      col.type !== 'ip_reg_info' &&
+      col.type !== 'avatar'
     ) {
       return <span style={{ color: '#cbd5e1' }}>-</span>;
     }
 
     switch (col.type) {
-      case 'avatar':
+      case 'avatar': {
+        const valStr = rawVal ? String(rawVal).trim() : '';
+        const isValid = valStr !== '' && valStr !== '-' && valStr !== 'nan' && valStr !== 'NaT' && valStr !== 'null' && valStr !== 'undefined';
+        const imgSrc = isValid ? encodeURI(valStr) : '/default-avatar.png';
         return (
           <div
             style={{
@@ -91,37 +98,29 @@ export const DataTable: React.FC<DataTableProps> = ({
               height: '34px',
               borderRadius: '50%',
               overflow: 'hidden',
-              backgroundColor: '#e2e8f0',
+              backgroundColor: '#99b8db',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               margin: '0 auto',
               border: '1.5px solid #e2e8f0',
+              flexShrink: 0,
             }}
           >
-            {rawVal ? (
-              <>
-                <img
-                  src={encodeURI(String(rawVal))}
-                  alt="Profile"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }}
-                  onError={(e) => {
-                    const target = e.currentTarget;
-                    target.style.display = 'none';
-                    if (target.nextElementSibling) {
-                      (target.nextElementSibling as HTMLElement).style.display = 'flex';
-                    }
-                  }}
-                />
-                <span style={{ display: 'none', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
-                  <FaUser style={{ color: '#94a3b8', fontSize: '14px' }} />
-                </span>
-              </>
-            ) : (
-              <FaUser style={{ color: '#94a3b8', fontSize: '14px' }} />
-            )}
+            <img
+              src={imgSrc}
+              alt="Profile"
+              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }}
+              onError={(e) => {
+                const target = e.currentTarget;
+                if (target.src !== '/default-avatar.png' && !target.src.endsWith('/default-avatar.png')) {
+                  target.src = '/default-avatar.png';
+                }
+              }}
+            />
           </div>
         );
+      }
 
       case 'currency':
         const num = Number(rawVal);
@@ -148,6 +147,28 @@ export const DataTable: React.FC<DataTableProps> = ({
           return <LevelBadge value={rawVal} />;
         }
 
+                if (col.key === 'title_th') {
+          const valStr = String(rawVal ?? '').trim();
+          if (!valStr || valStr === '-' || valStr === 'nan') {
+            return <span style={{ color: '#cbd5e1' }}>-</span>;
+          }
+          return (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <span
+                className="inline-flex items-center justify-center min-w-[56px] px-3 py-[3px] border border-transparent rounded-full text-[12.5px] font-normal whitespace-nowrap select-none cursor-default shadow-xs text-center"
+                style={{
+                  backgroundColor: '#e2e8f0',
+                  color: '#000000',
+                  fontWeight: 400,
+                }}
+                title={valStr}
+              >
+                {valStr}
+              </span>
+            </div>
+          );
+        }
+
         if (col.key === 'department') {
           let deptText = String(rawVal ?? '');
           if ((!deptText || deptText === 'ü' || deptText === 'P' || deptText === '-' || deptText === 'nan') && (item as any)?.creator) {
@@ -156,7 +177,7 @@ export const DataTable: React.FC<DataTableProps> = ({
           const depts = Array.from(new Set(deptText.split(',').map((s) => s.trim()).filter(Boolean)));
           if (depts.length === 0) return <span style={{ color: '#cbd5e1' }}>-</span>;
           return (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px', alignItems: 'center' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px', alignItems: 'center', justifyContent: 'center' }}>
               {depts.map((d, idx) => (
                 <DepartmentBadge key={idx} value={d} />
               ))}
@@ -297,24 +318,7 @@ export const DataTable: React.FC<DataTableProps> = ({
           glow: 'none',
         };
 
-        return (
-          <span
-            style={{
-              display: 'inline-block',
-              padding: '2px 10px',
-              borderRadius: '12px',
-              fontSize: '13px',
-              fontWeight: 600,
-              fontFamily: "'Kanit', sans-serif",
-              backgroundColor: tierStyle.bg,
-              color: tierStyle.text,
-              border: `1px solid ${tierStyle.border}`,
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {tierStr || 'ระดับชาติ'}
-          </span>
-        );
+        return <JournalTierBadge value={tierStr || 'ระดับชาติ'} />;
       }
 
       case 'members': {
@@ -736,7 +740,9 @@ export const DataTable: React.FC<DataTableProps> = ({
       default:
         // คอลัมน์ชื่อโครงการ / ชื่องาน / ชื่อผลงาน / ชื่อบุคลากร (ไม่ตัวหนา: fontWeight: 400 แสดงสูงสุด 2 บรรทัด)
         if (col.key === 'name') {
-          const strVal = String(rawVal);
+          const strVal = categoryKey === 'personnel' && col.key === 'name'
+          ? formatPersonName(item, { includePrefix: false })
+          : String(rawVal);
           return (
             <div
               style={{
@@ -901,6 +907,14 @@ export const DataTable: React.FC<DataTableProps> = ({
           {data.length > 0 ? (
             data.map((item, idx) => {
               const rowNum = startIndex + idx + 1;
+              const isRecent = Boolean(
+                recentlyAddedIds &&
+                recentlyAddedIds.length > 0 &&
+                [item.dbId, item.id, item._id]
+                  .filter(Boolean)
+                  .some((id) => recentlyAddedIds.includes(String(id)))
+              );
+              const defaultBg = isRecent ? '#ecfdf5' : (idx % 2 === 1 ? '#fafcfb' : '#ffffff');
               const rowKey =
                 item._id ||
                 (item.id && item.id !== 'nan'
@@ -911,16 +925,36 @@ export const DataTable: React.FC<DataTableProps> = ({
                   key={rowKey}
                   onClick={(e) => handleRowClick(item, idx, e)}
                   style={{
-                    borderBottom: '1px solid #e2e8f0',
-                    backgroundColor: idx % 2 === 1 ? '#fafcfb' : '#ffffff',
+                    borderBottom: isRecent ? '1.5px solid #a7f3d0' : '1px solid #e2e8f0',
+                    borderLeft: isRecent ? '4px solid #10b981' : undefined,
+                    backgroundColor: defaultBg,
                     transition: 'background-color 0.15s',
                     cursor: 'pointer',
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f0fbf5')}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = idx % 2 === 1 ? '#fafcfb' : '#ffffff')}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = isRecent ? '#d1fae5' : '#f0fbf5')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = defaultBg)}
                 >
-                  <td style={{ textAlign: 'center', padding: '11px 6px', color: '#94a3b8', fontSize: '13px', verticalAlign: 'top' }}>
+                  <td style={{ textAlign: 'center', padding: '11px 6px', color: isRecent ? '#047857' : '#94a3b8', fontSize: '13px', verticalAlign: 'top', fontWeight: isRecent ? 700 : 400 }}>
                     {rowNum}
+                    {isRecent && (
+                      <div style={{ marginTop: '3px' }}>
+                        <span
+                          style={{
+                            display: 'inline-block',
+                            fontSize: '10px',
+                            fontWeight: 700,
+                            padding: '1px 5px',
+                            borderRadius: '4px',
+                            backgroundColor: '#10b981',
+                            color: '#ffffff',
+                            lineHeight: 1.2,
+                            boxShadow: '0 1px 3px rgba(16,185,129,0.3)',
+                          }}
+                        >
+                          ใหม่
+                        </span>
+                      </div>
+                    )}
                   </td>
                   {columns.map((col) => {
                     const isDept = col.key === 'department';
@@ -930,7 +964,7 @@ export const DataTable: React.FC<DataTableProps> = ({
                         style={{
                           width: col.width || (isDept ? '10%' : undefined),
                           padding: col.type === 'avatar' ? '7px 4px' : '11px 8px',
-                          textAlign: isDept ? 'left' : col.align || 'left',
+                          textAlign: (isDept || col.align === 'center') ? 'center' : col.align || 'left',
                           verticalAlign: isDept ? 'middle' : 'top',
                           color: '#1e293b',
                           overflow: 'visible',

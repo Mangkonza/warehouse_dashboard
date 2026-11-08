@@ -32,8 +32,6 @@ export const BulkEvaluationModal: React.FC<BulkEvaluationModalProps> = ({
   const [isConfirming, setIsConfirming] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  if (!isOpen) return null;
-
   // For publications: check if all selected items share the same level ('นานาชาติ' or 'ชาติ')
   const sameLevel = React.useMemo(() => {
     if (category !== 'publications' || selectedRecords.length === 0) return '';
@@ -44,6 +42,8 @@ export const BulkEvaluationModal: React.FC<BulkEvaluationModalProps> = ({
     );
     return allSame ? firstLevel : '';
   }, [category, selectedRecords]);
+
+  if (!isOpen) return null;
 
   const handleOpenConfirm = () => {
     setIsConfirming(true);
@@ -95,7 +95,7 @@ export const BulkEvaluationModal: React.FC<BulkEvaluationModalProps> = ({
               title="ปิดหน้าต่าง"
               className="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center transition-colors cursor-pointer"
             >
-              <FaTimes />
+              <FaTimes className="text-[18px]" />
             </button>
           </div>
 

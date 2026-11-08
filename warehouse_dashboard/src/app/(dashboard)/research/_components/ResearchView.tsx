@@ -1,17 +1,43 @@
 'use client';
 
-import React from 'react';
-import { useTimeFilter, TimeFilterBar } from '@/features/time-filter';
+import React, { useEffect, useMemo } from 'react';
+import { useDashboardTabFilter, useTimeFilter } from '@/features/time-filter';
 import { useResearchData } from '../_hooks/useResearchData';
-import { ResearchCharts } from './ResearchCharts';
-import { ResearchTable } from './ResearchTable';
-import { DepartmentSelect, StrategicFilterSelect } from '@/components/ui';
-import { FaCoins, FaFlask, FaAward, FaChartLine } from 'react-icons/fa';
+import { ResearchCharts, ResearchPerspective } from './ResearchCharts';
+import { ResearchBudgetFundingOverview } from './ResearchBudgetFundingOverview';
+import { ResearchDepartmentComparison } from './ResearchDepartmentComparison';
+import { TopSegmentedTabs } from '@/components/ui/TopSegmentedTabs';
+import { StrategicAlignmentMatrix } from '@/components/data-display/StrategicAlignmentMatrix';
+import { MissionDataTable } from '@/components/data-display/MissionDataTable';
+import { DashboardTabFilterBar } from '@/components/ui/DashboardTabFilterBar';
+import { UndatedNotice } from '@/components/ui/UndatedNotice';
+import { ExecutiveKpiDeck } from '@/components/data-display/ExecutiveKpiDeck';
+import { MissionYoYControls } from '@/components/data-display/MissionYoYControls';
+import { dashboardPageSubtitleStyle, dashboardPageTitleStyle, dashboardTheme } from '@/lib/dashboardTheme';
+import { FaCoins, FaFlask, FaAward, FaChartLine, FaBuilding, FaUserTie, FaLeaf, FaTable } from 'react-icons/fa';
+import { usePerspectiveTab } from '@/hooks/usePerspectiveTab';
+
+const VALID_RESEARCH_TABS: ResearchPerspective[] = ['overview', 'productivity', 'faculty', 'sdg', 'table'];
 
 export function ResearchView() {
-  const { timeFilter, setTimeFilter, resetTimeFilter } = useTimeFilter();
+  const [activePerspective, setActivePerspective] = usePerspectiveTab<ResearchPerspective>(
+    'research',
+    VALID_RESEARCH_TABS,
+    'overview'
+  );
+  const {
+    tabFilter,
+    setTabFilter,
+    resetTabFilter,
+    timeFilter,
+  } = useDashboardTabFilter('research');
+
+  const { setIsTimeModalOpen } = useTimeFilter('research');
+
   const {
     validData,
+    allItems,
+    undatedCount,
     filteredData,
     totalInternalBudget,
     totalExternalBudget,
@@ -35,6 +61,35 @@ export function ResearchView() {
     setStrategicFilter,
   } = useResearchData(timeFilter);
 
+  // Synchronize tabFilter to useResearchData internal states
+  useEffect(() => {
+    if (tabFilter.department && tabFilter.department !== 'all') {
+      setTabFilter({ department: 'all' });
+    }
+  }, [tabFilter.department, setTabFilter]);
+
+  useEffect(() => {
+    setFundingType(tabFilter.customFilters?.fundingType || 'all');
+  }, [tabFilter.customFilters?.fundingType, setFundingType]);
+
+  useEffect(() => {
+    setGrantTier(tabFilter.customFilters?.grantTier || 'all');
+  }, [tabFilter.customFilters?.grantTier, setGrantTier]);
+
+  useEffect(() => {
+    setSelectedFund(tabFilter.customFilters?.selectedFund || 'all');
+  }, [tabFilter.customFilters?.selectedFund, setSelectedFund]);
+
+  useEffect(() => {
+    setStrategicFilter(tabFilter.customFilters?.strategicFilter || 'all');
+  }, [tabFilter.customFilters?.strategicFilter, setStrategicFilter]);
+
+  useEffect(() => {
+    if (tabFilter.search !== undefined) {
+      setSearchTerm(tabFilter.search);
+    }
+  }, [tabFilter.search, setSearchTerm]);
+
   const budgetMillions = (totalBudgetAll / 1000000).toFixed(2);
   const extMillions = (totalExternalBudget / 1000000).toFixed(2);
   const intMillions = (totalInternalBudget / 1000000).toFixed(2);
@@ -44,266 +99,173 @@ export function ResearchView() {
   const maxProjectBudgetMillions = maxProj
     ? (((Number(maxProj.budget_internal) || 0) + (Number(maxProj.budget_external) || 0) || Number(maxProj.budget) || 0) / 1000000).toFixed(2)
     : '18.00';
+  const extProjectCount = validData.filter(
+    (d: any) => (Number(d.budget_external) || 0) > 0 || String(d.funding_type || '').includes('ภายนอก')
+  ).length;
+  const extProjectPct = validData.length > 0 ? Math.round((extProjectCount / validData.length) * 100) : 0;
+
+  const researchSegments = useMemo(() => {
+    return [
+      {
+        label: 'ทุนภายนอก',
+        value: extMillions,
+        displayValue: `${extMillions} ลบ.`,
+        unit: 'ล้านบาท',
+        percent: parseFloat(extPct) || 0,
+        color: '#38bdf8',
+      },
+      {
+        label: 'ทุนภายใน',
+        value: intMillions,
+        displayValue: `${intMillions} ลบ.`,
+        unit: 'ล้านบาท',
+        percent: parseFloat((100 - parseFloat(extPct)).toFixed(1)) || 0,
+        color: '#86efac',
+      },
+    ];
+  }, [extMillions, intMillions, extPct]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {/* ZONE 1: Global Filter Bar (Sticky Docked Under Header) */}
-      <div
-        style={{
-          position: 'sticky',
-          top: '50px',
-          zIndex: 40,
-          backdropFilter: 'blur(12px)',
-          backgroundColor: 'rgba(255, 255, 255, 0.95)',
-          border: '1px solid #e2e8f0',
-          padding: '10px 16px',
-          borderRadius: '16px',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          gap: '8px',
-        }}
-      >
-        <TimeFilterBar
-          value={timeFilter}
-          onChange={setTimeFilter}
-          onReset={resetTimeFilter}
-          totalCount={validData.length}
-        />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      {/* Page header — matches the data-management tab */}
+      <div>
+        <h1 style={dashboardPageTitleStyle}>โครงการวิจัย</h1>
+        <p style={dashboardPageSubtitleStyle}>
+          ภาพรวมงบประมาณ แหล่งทุน และผลผลิตงานวิจัย
+        </p>
+      </div>
 
-        <DepartmentSelect
-          value={selectedDept}
-          onChange={setSelectedDept}
-          allowAll
-          allLabel="ทุกภาควิชา / ศูนย์"
-          allValue="all"
-          size="sm"
-          className="w-[170px]"
-        />
-
-        {/* Funding Type Toggle */}
-        <div
-          style={{
-            display: 'inline-flex',
-            backgroundColor: '#f1f5f9',
-            padding: '3px',
-            borderRadius: '9px',
-            fontSize: '12px',
-            fontWeight: 500,
-            height: '32px',
-            boxSizing: 'border-box',
-            alignItems: 'center',
-          }}
-        >
-          {[
-            { id: 'all', label: 'ทุนทั้งหมด' },
-            { id: 'external', label: 'ทุนภายนอก' },
-            { id: 'internal', label: 'ทุนภายใน' },
-          ].map((f) => (
-            <button
-              key={f.id}
-              onClick={() => setFundingType(f.id as any)}
-              style={{
-                padding: '4px 10px',
-                borderRadius: '7px',
-                border: 'none',
-                cursor: 'pointer',
-                backgroundColor: fundingType === f.id ? '#ffffff' : 'transparent',
-                color: fundingType === f.id ? '#0f172a' : '#64748b',
-                fontWeight: fundingType === f.id ? 600 : 500,
-                boxShadow: fundingType === f.id ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Grant Size Tier Dropdown */}
-        <select
-          value={grantTier}
-          onChange={(e) => setGrantTier(e.target.value)}
-          style={{
-            padding: '5px 10px',
-            borderRadius: '9px',
-            border: '1px solid #e2e8f0',
-            backgroundColor: '#ffffff',
-            fontSize: '12px',
-            color: '#334155',
-            cursor: 'pointer',
-            outline: 'none',
-            height: '32px',
-            boxSizing: 'border-box',
-          }}
-          aria-label="ขนาดงบประมาณ"
-        >
-          <option value="all">ทุกขนาดงบประมาณ</option>
-          <option value="tier1">&lt; 5 แสนบาท</option>
-          <option value="tier2">5 แสน - 2 ล้านบาท</option>
-          <option value="tier3">2 - 10 ล้านบาท</option>
-          <option value="tier4">&ge; 10 ล้านบาท (ขนาดใหญ่)</option>
-        </select>
-
-        {/* Standard Touchpoint: Strategic Filter (ต่อหลังตัวกรองก่อนหน้าทันที) */}
-        <StrategicFilterSelect
-          value={strategicFilter}
-          onChange={setStrategicFilter}
+      {/* Top Segmented Tabs - Style identical to manage?tab=research */}
+      <div style={{ overflowX: 'auto', padding: '2px 0 6px 0' }}>
+        <TopSegmentedTabs
+          activeCategory={activePerspective}
+          onSelectCategory={setActivePerspective}
+          colorTheme="emerald"
+          tabs={[
+            { key: 'overview', label: 'ภาพรวมงบประมาณและแหล่งทุน', icon: <FaCoins style={{ fontSize: '13px' }} /> },
+            { key: 'productivity', label: 'เปรียบเทียบผลงานรายสังกัด', icon: <FaBuilding style={{ fontSize: '13px' }} /> },
+            { key: 'faculty', label: 'อาจารย์และหัวหน้าโครงการวิจัย', icon: <FaUserTie style={{ fontSize: '13px' }} /> },
+            { key: 'sdg', label: 'ความสอดคล้องเชิงยุทธศาสตร์ (SDGs)', icon: <FaLeaf style={{ fontSize: '13px' }} /> },
+            { key: 'table', label: 'รายการโครงการวิจัย', icon: <FaTable style={{ fontSize: '13px' }} /> },
+          ]}
         />
       </div>
 
-      {/* ZONE 2: Executive Bento KPI Grid (Modern Pastel Glow) */}
-      <div
+      {/* ZONE 1: Unified filter card */}
+      <DashboardTabFilterBar
+        tabKey="research"
+        totalCount={validData.length}
+        filteredCount={filteredData.length}
+        filterState={tabFilter}
+        onFilterChange={setTabFilter}
+        onReset={resetTabFilter}
+        showFiscalYear={true}
+        showDepartment={false}
+        showStrategic={false}
+        showDetailedTime={true}
+        detailedTimeLabel="เลือกช่วงเวลา"
+        onOpenDetailedTime={() => setIsTimeModalOpen(true)}
         style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-          gap: '16px',
+          position: 'static',
+          backdropFilter: 'none',
+          backgroundColor: dashboardTheme.colors.surface,
+          borderRadius: `${dashboardTheme.radius.card}px`,
+          boxShadow: 'none',
         }}
-      >
-        {/* Card 1: Total Research Funding */}
-        <div
-          style={{
-            backgroundColor: '#ffffff',
-            borderRadius: '20px',
-            padding: '20px',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 2px 10px rgba(16, 185, 129, 0.06)',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}>งบประมาณวิจัยรวม</span>
-            <div style={{ width: '32px', height: '32px', borderRadius: '10px', backgroundColor: '#ecfdf5', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <FaCoins style={{ fontSize: '15px' }} />
-            </div>
-          </div>
-          <div style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.5px' }}>
-            {budgetMillions} <span style={{ fontSize: '16px', fontWeight: 600, color: '#64748b' }}>ล้านบาท</span>
-          </div>
-          <div style={{ marginTop: '8px', fontSize: '12px', color: '#059669', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ padding: '2px 6px', borderRadius: '6px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', fontWeight: 600 }}>
-              ทุนภายนอก {extMillions} ลบ.
-            </span>
-            <span style={{ color: '#94a3b8' }}>•</span>
-            <span style={{ color: '#64748b' }}>ทุนภายใน {intMillions} ลบ.</span>
-          </div>
-        </div>
-
-        {/* Card 2: Total Projects */}
-        <div
-          style={{
-            backgroundColor: '#ffffff',
-            borderRadius: '20px',
-            padding: '20px',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 2px 10px rgba(14, 165, 233, 0.06)',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}>โครงการวิจัยทั้งหมด</span>
-            <div style={{ width: '32px', height: '32px', borderRadius: '10px', backgroundColor: '#f0f9ff', color: '#0ea5e9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <FaFlask style={{ fontSize: '15px' }} />
-            </div>
-          </div>
-          <div style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.5px' }}>
-            {validData.length} <span style={{ fontSize: '16px', fontWeight: 600, color: '#64748b' }}>โครงการ</span>
-          </div>
-          <div style={{ marginTop: '8px', fontSize: '12px', color: '#0369a1', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ padding: '2px 6px', borderRadius: '6px', backgroundColor: '#f0f9ff', border: '1px solid #bae6fd', fontWeight: 600 }}>
-              ครอบคลุม {uniqueDepts.size} หน่วยงาน
-            </span>
-            <span style={{ color: '#94a3b8' }}>•</span>
-            <span style={{ color: '#64748b' }}>หัวหน้าโครงการ {activePisCount} ท่าน</span>
-          </div>
-        </div>
-
-        {/* Card 3: External Ratio */}
-        <div
-          style={{
-            backgroundColor: '#ffffff',
-            borderRadius: '20px',
-            padding: '20px',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 2px 10px rgba(245, 158, 11, 0.06)',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}>สัดส่วนพึ่งพาทุนภายนอก</span>
-            <div style={{ width: '32px', height: '32px', borderRadius: '10px', backgroundColor: '#fffbeb', color: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <FaAward style={{ fontSize: '15px' }} />
-            </div>
-          </div>
-          <div style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.5px' }}>
-            {extPct}%
-          </div>
-          <div style={{ marginTop: '8px', fontSize: '12px', color: '#b45309', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ padding: '2px 6px', borderRadius: '6px', backgroundColor: '#fffbeb', border: '1px solid #fde68a', fontWeight: 600 }}>
-              16 โครงการทุนนอก
-            </span>
-            <span style={{ color: '#94a3b8' }}>•</span>
-            <span style={{ color: '#64748b' }}>{extMillions} จาก {budgetMillions} ล้านบาท</span>
-          </div>
-        </div>
-
-        {/* Card 4: Average & Max Grant */}
-        <div
-          style={{
-            backgroundColor: '#ffffff',
-            borderRadius: '20px',
-            padding: '20px',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 2px 10px rgba(99, 102, 241, 0.06)',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}>งบเฉลี่ยต่อโครงการ</span>
-            <div style={{ width: '32px', height: '32px', borderRadius: '10px', backgroundColor: '#eef2ff', color: '#6366f1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <FaChartLine style={{ fontSize: '15px' }} />
-            </div>
-          </div>
-          <div style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.5px' }}>
-            {avgGrantMillions} <span style={{ fontSize: '16px', fontWeight: 600, color: '#64748b' }}>ล้านบาท</span>
-          </div>
-          <div style={{ marginTop: '8px', fontSize: '12px', color: '#4338ca', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ padding: '2px 6px', borderRadius: '6px', backgroundColor: '#eef2ff', border: '1px solid #c7d2fe', fontWeight: 600 }}>
-              สูงสุด {maxProjectBudgetMillions} ลบ.
-            </span>
-            <span style={{ color: '#94a3b8' }}>•</span>
-            <span style={{ color: '#64748b' }} title={maxProj?.name || ''}>
-              {maxProj?.head || 'ศ.ดร.เชาว์'}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* ZONE 3: Research Charts (Combo Stacked Bar, Pareto Tiers, SDGs/ISEE/IAM) */}
-      <ResearchCharts
-        validData={filteredData}
-        selectedDept={selectedDept}
-        onSelectDept={(dept) => setSelectedDept(dept === selectedDept ? 'all' : dept)}
-        selectedFund={selectedFund}
-        onSelectFund={(fund) => setSelectedFund(fund === selectedFund ? 'all' : fund)}
       />
 
-      {/* ZONE 4: Research Table with Strategy Badges & Excel Export */}
-      <ResearchTable
-        filteredData={filteredData}
-        uniqueDepts={uniqueDepts}
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        selectedDept={selectedDept}
-        onDeptChange={setSelectedDept}
-        selectedFund={selectedFund}
-        onFundChange={setSelectedFund}
-      />
+      {undatedCount > 0 && <UndatedNotice count={undatedCount} />}
+
+      {/* PERSPECTIVE VIEW: Dedicated page view for Strategic Alignment */}
+      {activePerspective === 'sdg' ? (
+        <div style={{ marginTop: '8px' }}>
+          <StrategicAlignmentMatrix
+            items={filteredData}
+            categoryKey="research"
+            missionTitle="โครงการวิจัย"
+            unitLabel="โครงการ"
+            showBudget={true}
+          />
+        </div>
+      ) : activePerspective === 'table' ? (
+        <div style={{ marginTop: '8px' }}>
+          <MissionDataTable
+            categoryKey="research"
+            items={validData}
+            title="โครงการวิจัย"
+          />
+        </div>
+      ) : activePerspective === 'overview' ? (
+        <>
+          {/* ZONE 2: Executive Blueprint KPI Deck */}
+          <ExecutiveKpiDeck
+            mission="research"
+            blueprintCard={{
+              label: 'งบประมาณวิจัยรวม',
+              value: budgetMillions,
+              unit: 'ล้านบาท',
+              segments: researchSegments,
+            }}
+            gearCard={{
+              label: 'โครงการวิจัยทั้งหมด',
+              value: validData.length,
+              unit: 'โครงการ',
+              gearValue: uniqueDepts.size,
+              gearLabel: 'สังกัด',
+            }}
+            items={validData}
+            tallyCard={{
+              label: 'โครงการที่ได้ทุนภายนอก',
+              chip: `${extProjectPct}%`,
+              value: extProjectCount,
+              unit: `จาก ${validData.length} โครงการ`,
+              percent: extProjectPct,
+              totalCount: validData.length,
+              activeCount: extProjectCount,
+            }}
+            rulerCard={{
+              label: 'งบเฉลี่ยต่อโครงการ',
+              value: avgGrantMillions,
+              unit: 'ล้านบาท',
+              current: parseFloat(avgGrantMillions) || 0,
+              max: parseFloat(maxProjectBudgetMillions) || 18,
+              marks: [
+                { label: '0', positionPercent: 2 },
+                { label: ((parseFloat(maxProjectBudgetMillions) || 18) / 3).toFixed(0), positionPercent: 33 },
+                { label: (((parseFloat(maxProjectBudgetMillions) || 18) * 2) / 3).toFixed(0), positionPercent: 66 },
+                { label: `สูงสุด ${(parseFloat(maxProjectBudgetMillions) || 18).toFixed(2)}`, positionPercent: 96 },
+              ],
+            }}
+          />
+
+          {/* ZONE 3: Overview - Budget & Funding Sources (Redesign) */}
+          <ResearchBudgetFundingOverview
+            allItems={allItems || validData}
+            filteredItems={validData}
+            currentFiscalYear={timeFilter?.mode === 'fiscal' && timeFilter.fiscalYear !== 'all' ? timeFilter.fiscalYear : undefined}
+          />
+        </>
+      ) : activePerspective === 'productivity' ? (
+        <div style={{ marginTop: '8px' }}>
+          {/* ZONE 3: Productivity - Department Comparison (Redesign) */}
+          <ResearchDepartmentComparison
+            allItems={allItems || validData}
+            filteredItems={validData}
+            currentFiscalYear={timeFilter?.mode === 'fiscal' && timeFilter.fiscalYear !== 'all' ? timeFilter.fiscalYear : undefined}
+          />
+        </div>
+      ) : (
+        /* ZONE 3: Other Perspectives (e.g. Faculty PI ranking) */
+        <ResearchCharts
+          validData={filteredData}
+          allItems={allItems || validData}
+          currentFiscalYear={timeFilter?.mode === 'fiscal' && timeFilter.fiscalYear !== 'all' ? timeFilter.fiscalYear : undefined}
+          selectedDept={selectedDept}
+          activePerspective={activePerspective}
+          onChangePerspective={setActivePerspective}
+          hideSelector={true}
+        />
+      )}
     </div>
   );
 }

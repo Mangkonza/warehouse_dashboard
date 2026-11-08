@@ -106,7 +106,7 @@ export const ImportBulkMenu: React.FC<ImportBulkMenuProps> = ({
               <FaBuilding className="text-blue-600 text-sm shrink-0" />
               <div>
                 <div className="font-semibold">กำหนดสังกัดให้ทุกแถวที่ว่าง</div>
-                <div className="text-[10px] text-slate-500">เลือกภาควิชา/ศูนย์สำหรับแถวที่ยังไม่มีสังกัด</div>
+                <div className="text-[10px] text-slate-500">เลือกสังกัดสำหรับแถวที่ยังไม่มีสังกัด</div>
               </div>
             </button>
           </div>
@@ -161,7 +161,13 @@ export const ImportBulkMenu: React.FC<ImportBulkMenuProps> = ({
                 <label className="block text-xs font-semibold text-slate-700 mb-1">วันที่เริ่มต้นดำเนินการ</label>
                 <DatePicker
                   value={batchStartDate}
-                  onChange={(_, dateStr) => setBatchStartDate(dateStr)}
+                  maxDate={batchEndDate || undefined}
+                  onChange={(_, dateStr) => {
+                    setBatchStartDate(dateStr);
+                    if (dateStr && batchEndDate && dateStr > batchEndDate) {
+                      setBatchEndDate('');
+                    }
+                  }}
                   placeholder="เลือกวันที่เริ่มต้น (พ.ศ.)..."
                 />
               </div>
@@ -170,7 +176,13 @@ export const ImportBulkMenu: React.FC<ImportBulkMenuProps> = ({
                 <label className="block text-xs font-semibold text-slate-700 mb-1">วันที่สิ้นสุดดำเนินการ</label>
                 <DatePicker
                   value={batchEndDate}
-                  onChange={(_, dateStr) => setBatchEndDate(dateStr)}
+                  minDate={batchStartDate || undefined}
+                  onChange={(_, dateStr) => {
+                    setBatchEndDate(dateStr);
+                    if (dateStr && batchStartDate && dateStr < batchStartDate) {
+                      setBatchStartDate('');
+                    }
+                  }}
                   placeholder="เลือกวันที่สิ้นสุด (พ.ศ.)..."
                 />
               </div>
@@ -214,7 +226,7 @@ export const ImportBulkMenu: React.FC<ImportBulkMenuProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">เลือกสังกัดภาควิชา/ศูนย์</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">เลือกสังกัด</label>
               <DepartmentSelect
                 value={batchDept}
                 onChange={(code) => setBatchDept(code)}

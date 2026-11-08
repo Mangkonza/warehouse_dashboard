@@ -1,39 +1,39 @@
 'use client';
 
-import { FilterPopover, ActiveFilterChips } from '@/components/ui';
-
 import React, { useState, useMemo, useEffect } from 'react';
-import { ConfirmActionModal } from '@/components/ui';
-import { KPIItem, KPICalcType, KPICategory, FilterOperator } from '@/types/kpi';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { FilterPopover, ActiveFilterChips, ConfirmActionModal, TablePagination, StrategyBadge } from '@/components/ui';
+import {
+  KPIItem,
+  KPICategory,
+  KPIReportingRoundConfig,
+} from '@/types/kpi';
 import {
   getStoredKPIs,
-  addKPI,
-  updateKPI,
+  fetchKPIsFromBackend,
+  fetchReportingRoundsFromBackend,
   deleteKPI,
-  resetKPIsToDefault,
   evaluateKPI,
-  includeProjectInKPI,
-  excludeProjectFromKPI,
-  ENGINEERING_DEPARTMENTS,
+  getStrategicPillar,
+  getStoredReportingRounds,
 } from '@/lib/kpiEngine';
 import {
   FaPlus,
   FaEdit,
   FaTrashAlt,
-  FaRedoAlt,
   FaSearch,
-  FaCalculator,
-  FaSave,
-  FaBullseye,
   FaChevronLeft,
   FaChevronRight,
-  FaFolderOpen,
-  FaCheckCircle,
-  FaLink,
-  FaUnlink,
   FaFileExcel,
+  FaFileExport,
   FaTimes,
+  FaCalendarCheck,
+  FaLink,
 } from 'react-icons/fa';
+import * as XLSX from 'xlsx';
+import { StrategicKpiModal } from '@/app/(dashboard)/kpi/_components/StrategicKpiFormView';
+import { StrategicKpiRoundReportModal } from '@/app/(dashboard)/kpi/_components/StrategicKpiRoundReportView';
+import { KpiHoverTooltip } from '@/app/(dashboard)/kpi/_components/KpiHoverTooltip';
 
 interface KPIManagementTabProps {
   datasets: Record<string, any[]>;
@@ -43,77 +43,45 @@ interface KPIManagementTabProps {
 
 const CATEGORY_LABELS: Record<KPICategory, string> = {
   research: 'โครงการวิจัย',
-  academic: 'โครงการพัฒนาวิชาการ',
+  academic: 'พัฒนาวิชาการ/หลักสูตร',
   publications: 'ผลงานตีพิมพ์ทางวิชาการ',
   service: 'งานบริการวิชาการ',
-  ip: 'งานทรัพย์สินทางปัญญา',
+  ip: 'ทรัพย์สินทางปัญญา/เชิงพาณิชย์',
   personnel: 'บุคลากร/อาจารย์',
-  strategy: 'ยุทธศาสตร์คณะฯ',
+  strategy: 'ยุทธศาสตร์และความร่วมมือ',
 };
 
-// 1. ชุดสีพาสเทลเฉพาะสำหรับแต่ละหมวดหมู่ (7 สีไม่ซ้ำกัน)
 const CATEGORY_STYLES: Record<KPICategory, { bg: string; border: string; color: string }> = {
-  research: { bg: '#ecfdf5', border: '#a7f3d0', color: '#047857' },       // Emerald Pastel
-  academic: { bg: '#eef2ff', border: '#c7d2fe', color: '#4338ca' },       // Indigo Pastel
-  publications: { bg: '#fffbeb', border: '#fde68a', color: '#b45309' },   // Amber Pastel
-  service: { bg: '#f0f9ff', border: '#bae6fd', color: '#0369a1' },        // Sky Pastel
-  ip: { bg: '#fff1f2', border: '#fecdd3', color: '#be123c' },             // Rose Pastel
-  personnel: { bg: '#faf5ff', border: '#e9d5ff', color: '#7e22ce' },      // Purple Pastel
-  strategy: { bg: '#f8fafc', border: '#cbd5e1', color: '#334155' },       // Slate Pastel
+  research: { bg: '#ecfdf5', border: '#a7f3d0', color: '#047857' },
+  academic: { bg: '#eef2ff', border: '#c7d2fe', color: '#4338ca' },
+  publications: { bg: '#fffbeb', border: '#fde68a', color: '#b45309' },
+  service: { bg: '#f0f9ff', border: '#bae6fd', color: '#0369a1' },
+  ip: { bg: '#fff1f2', border: '#fecdd3', color: '#be123c' },
+  personnel: { bg: '#faf5ff', border: '#e9d5ff', color: '#7e22ce' },
+  strategy: { bg: '#f8fafc', border: '#cbd5e1', color: '#334155' },
 };
 
-const CALC_LABELS: Record<KPICalcType, { label: string; desc: string }> = {
-  auto_sum: {
-    label: 'รวมตัวเลขสะสม',
-    desc: 'รวมยอดเงินหรือตัวเลข จากฟิลด์ที่กำหนดแบบอัตโนมัติ',
-  },
-  auto_count: {
-    label: 'นับจำนวนรายการทั้งหมด',
-    desc: 'นับจำนวนแถวข้อมูลทั้งหมดในตารางที่เลือก',
-  },
-  auto_filtered_count: {
-    label: 'นับตามเงื่อนไข',
-    desc: 'นับเฉพาะรายการที่ตรงตามเงื่อนไขที่กำหนด เช่น งบ > 10 ล้าน',
-  },
-  auto_completeness: {
-    label: 'ตรวจสอบความครบถ้วน 7 ภาควิชา',
-    desc: 'ตรวจสอบว่าทุกภาควิชามีการดำเนินงานครบถ้วนหรือไม่',
-  },
-  manual: {
-    label: 'บันทึกผลงานแบบแมนนวล',
-    desc: 'สำหรับตัวชี้วัดภายนอกหรือที่ยังไม่มีฐานข้อมูลรองรับ',
-  },
-};
-
-// 2. ชุดสีพาสเทลสำหรับวิธีการประเมิน (แยกครบ 5 สีเฉพาะตัว ไม่ซ้ำกัน)
-const CALC_STYLES: Record<KPICalcType, { bg: string; border: string; color: string }> = {
-  auto_count: { bg: '#eff6ff', border: '#bfdbfe', color: '#1d4ed8' },          // ฟ้าพาสเทล (นับทั้งหมด)
-  auto_filtered_count: { bg: '#f5f3ff', border: '#ddd6fe', color: '#6d28d9' }, // ม่วงพาสเทล (นับตามเงื่อนไข)
-  auto_sum: { bg: '#fefce8', border: '#fef08a', color: '#a16207' },            // เหลืองทองพาสเทล (รวมยอดเงิน)
-  auto_completeness: { bg: '#ecfdf5', border: '#a7f3d0', color: '#047857' },   // เขียวพาสเทล (ครบ 7 ภาควิชา)
-  manual: { bg: '#fff7ed', border: '#fed7aa', color: '#c2410c' },              // ส้มพาสเทล (บันทึกแมนนวล)
-};
-
-// 3. ตัวเลือกสถานะความสำเร็จ
-const STATUS_OPTIONS = [
-  { value: 'all', label: 'ทุกสถานะ' },
-  { value: 'achieved', label: 'บรรลุเป้าหมาย (≥ 100%)' },
-  { value: 'on_track', label: 'เป็นไปตามเป้า (70–99%)' },
-  { value: 'at_risk', label: 'เฝ้าระวัง (40–69%)' },
-  { value: 'behind', label: 'ต้องเร่งรัด (< 40%)' },
-];
-
-// ฟังก์ชันล้างอักขระพิเศษ จุด ขีด ช่องว่าง เพื่อการค้นหาที่ยืดหยุ่น
 const cleanSearchText = (str: string) => str.toLowerCase().replace(/[\s.\-_/\\()]/g, '');
 
-export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets, onOpenImportExcel, showToast }) => {
+export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({
+  datasets,
+  onOpenImportExcel,
+  showToast,
+}) => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const mapKpiIdParam = searchParams.get('mapKpiId');
+
   const [kpis, setKpis] = useState<KPIItem[]>(() => getStoredKPIs());
+  const [reportingRounds, setReportingRounds] = useState<KPIReportingRoundConfig[]>(() =>
+    getStoredReportingRounds().filter((r) => r.isActive !== false)
+  );
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedCalcType, setSelectedCalcType] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
 
   const hasActiveFilters =
     (selectedCategory && selectedCategory !== 'all') ||
@@ -127,207 +95,73 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets, on
     setCurrentPage(1);
   };
 
-  // Modals state
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingKpi, setEditingKpi] = useState<KPIItem | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [expandedKpis, setExpandedKpis] = useState<Record<string, boolean>>({});
 
-  // Mapping Modal State
-  const [mappingKpi, setMappingKpi] = useState<KPIItem | null>(null);
-  const [mappingSearch, setMappingSearch] = useState('');
-  const [activeMappingSubTab, setActiveMappingSubTab] = useState<'matched' | 'all'>('matched');
+  // Modal เพิ่ม/แก้ไขตัวชี้วัดตามแผนยุทธศาสตร์ (สไตล์เดียวกับหมวดหมู่อื่น)
+  const [isStrategicKpiModalOpen, setIsStrategicKpiModalOpen] = useState(false);
+  const [editingStrategicKpiId, setEditingStrategicKpiId] = useState<string | undefined>(undefined);
 
-  // Form State
-  const [formCode, setFormCode] = useState('');
-  const [formTitle, setFormTitle] = useState('');
-  const [formCategory, setFormCategory] = useState<KPICategory>('research');
-  const [formFiscalYear, setFormFiscalYear] = useState('2570');
-  const [formTargetValue, setFormTargetValue] = useState<number>(100);
-  const [formUnit, setFormUnit] = useState('เรื่อง');
-  const [formCalcType, setFormCalcType] = useState<KPICalcType>('auto_count');
-  const [formDatasetKey, setFormDatasetKey] = useState('research');
-  const [formSumField, setFormSumField] = useState('budget_external');
-  const [formFilterField, setFormFilterField] = useState('budget_external');
-  const [formFilterOperator, setFormFilterOperator] = useState<FilterOperator>('gte');
-  const [formFilterValue, setFormFilterValue] = useState<string>('10000000');
-  const [formManualProgress, setFormManualProgress] = useState<number>(0);
-  const [formDescription, setFormDescription] = useState('');
-  const [formResponsibleUnit, setFormResponsibleUnit] = useState('');
+  // Modal รายงานผลตามรอบ + จัดการโครงการที่ผูกกับตัวชี้วัด (ยุบรวมเข้าด้วยกัน)
+  const [roundReportKpiId, setRoundReportKpiId] = useState<string | null>(null);
+  const [roundReportInitialRoundId, setRoundReportInitialRoundId] = useState<string | undefined>(
+    undefined
+  );
 
-  // Reload KPI list
   const refreshList = () => {
     const list = getStoredKPIs();
     setKpis(list);
-    if (mappingKpi) {
-      const refreshedTarget = list.find((k) => k.id === mappingKpi.id) || null;
-      setMappingKpi(refreshedTarget);
-    }
+    setReportingRounds(getStoredReportingRounds().filter((r) => r.isActive !== false));
   };
 
-  // Open modal for Add
   useEffect(() => {
     refreshList();
+    fetchKPIsFromBackend().then((liveKpis) => {
+      if (liveKpis && liveKpis.length > 0) setKpis(liveKpis);
+    });
+    fetchReportingRoundsFromBackend().then((liveRounds) => {
+      if (liveRounds && liveRounds.length > 0) {
+        setReportingRounds(liveRounds.filter((r) => r.isActive !== false));
+      }
+    });
     const handleUpdate = () => refreshList();
     window.addEventListener('kpi_updated', handleUpdate);
+    window.addEventListener('kpi_rounds_updated', handleUpdate);
     window.addEventListener('storage', handleUpdate);
     return () => {
       window.removeEventListener('kpi_updated', handleUpdate);
+      window.removeEventListener('kpi_rounds_updated', handleUpdate);
       window.removeEventListener('storage', handleUpdate);
     };
   }, []);
 
+  // Automatically open Unified Round Report & Project Mapping modal if ?mapKpiId=... is passed
+  useEffect(() => {
+    if (mapKpiIdParam && kpis.length > 0) {
+      const target = kpis.find((k) => k.id === mapKpiIdParam);
+      if (target) {
+        setRoundReportInitialRoundId(undefined);
+        setRoundReportKpiId(target.id);
+      }
+    }
+  }, [mapKpiIdParam, kpis]);
+
+  // เปิด Modal เพิ่มตัวชี้วัดตามแผนยุทธศาสตร์ (สไตล์เดียวกับหมวดหมู่อื่น)
   const handleOpenAdd = () => {
-    setEditingKpi(null);
-    setFormCode(`KPI 2.1-${kpis.length + 1}`);
-    setFormTitle('');
-    setFormCategory('research');
-    setFormFiscalYear('2570');
-    setFormTargetValue(10);
-    setFormUnit('โครงการ');
-    setFormCalcType('auto_count');
-    setFormDatasetKey('research');
-    setFormSumField('budget_external');
-    setFormFilterField('budget_external');
-    setFormFilterOperator('gte');
-    setFormFilterValue('10000000');
-    setFormManualProgress(0);
-    setFormDescription('');
-    setFormResponsibleUnit('รองคณบดีฝ่ายวิจัยและนวัตกรรมสากล');
-    setIsModalOpen(true);
+    setEditingStrategicKpiId(undefined);
+    setIsStrategicKpiModalOpen(true);
   };
 
-  // Open modal for Edit
+  // เปิด Modal แก้ไขตัวชี้วัดตามแผนยุทธศาสตร์ (สไตล์เดียวกับหมวดหมู่อื่น)
   const handleOpenEdit = (item: KPIItem) => {
-    setEditingKpi(item);
-    setFormCode(item.code);
-    setFormTitle(item.title);
-    setFormCategory(item.category);
-    setFormFiscalYear(item.fiscalYear || '2570');
-    setFormTargetValue(item.targetValue);
-    setFormUnit(item.unit);
-    setFormCalcType(item.calcType);
-    setFormDatasetKey(item.datasetKey);
-    setFormSumField(item.sumField || 'budget_external');
-    setFormFilterField(item.filterConfig?.field || 'budget_external');
-    setFormFilterOperator(item.filterConfig?.operator || 'gte');
-    setFormFilterValue(String(item.filterConfig?.value ?? '10000000'));
-    setFormManualProgress(item.manualProgress ?? 0);
-    setFormDescription(item.description || '');
-    setFormResponsibleUnit(item.responsibleUnit || '');
-    setIsModalOpen(true);
+    setEditingStrategicKpiId(item.id);
+    setIsStrategicKpiModalOpen(true);
   };
 
-  // Open Mapping Modal
-  const handleOpenMapping = (item: KPIItem) => {
-    setMappingKpi(item);
-    setMappingSearch('');
-    setActiveMappingSubTab('matched');
-  };
-
-  // Toggle Project Inclusion / Exclusion
-  const handleIncludeProject = (projectId: string) => {
-    if (!mappingKpi) return;
-    includeProjectInKPI(mappingKpi.id, projectId);
-    refreshList();
-  };
-
-  const handleExcludeProject = (projectId: string) => {
-    if (!mappingKpi) return;
-    excludeProjectFromKPI(mappingKpi.id, projectId);
-    refreshList();
-  };
-
-  // Live Preview inside edit modal
-  const livePreview = useMemo(() => {
-    const draft: KPIItem = {
-      id: 'preview',
-      code: formCode || 'KPI TEST',
-      title: formTitle || 'ตัวชี้วัดทดสอบ',
-      category: formCategory,
-      fiscalYear: formFiscalYear,
-      targetValue: formTargetValue || 1,
-      unit: formUnit,
-      calcType: formCalcType,
-      datasetKey: formDatasetKey,
-      sumField: formSumField,
-      filterConfig:
-        formCalcType === 'auto_filtered_count'
-          ? {
-              field: formFilterField,
-              operator: formFilterOperator,
-              value: formFilterValue,
-            }
-          : undefined,
-      completenessField: 'department',
-      completenessExpected: ENGINEERING_DEPARTMENTS,
-      manualProgress: formManualProgress,
-    };
-    return evaluateKPI(draft, datasets);
-  }, [
-    formCode,
-    formTitle,
-    formCategory,
-    formFiscalYear,
-    formTargetValue,
-    formUnit,
-    formCalcType,
-    formDatasetKey,
-    formSumField,
-    formFilterField,
-    formFilterOperator,
-    formFilterValue,
-    formManualProgress,
-    datasets,
-  ]);
-
-  // Submit Add/Edit Modal
-  const handleSaveKpi = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formCode.trim() || !formTitle.trim()) {
-      alert('กรุณากรอกรหัสและชื่อตัวชี้วัดให้ครบถ้วน');
-      return;
-    }
-
-    const payload: Omit<KPIItem, 'id'> = {
-      code: formCode.trim(),
-      title: formTitle.trim(),
-      category: formCategory,
-      fiscalYear: formFiscalYear,
-      targetValue: Number(formTargetValue),
-      unit: formUnit.trim() || 'หน่วย',
-      calcType: formCalcType,
-      datasetKey: formDatasetKey,
-      sumField: formCalcType === 'auto_sum' ? formSumField : undefined,
-      filterConfig:
-        formCalcType === 'auto_filtered_count'
-          ? {
-              field: formFilterField,
-              operator: formFilterOperator,
-              value: isNaN(Number(formFilterValue)) ? formFilterValue : Number(formFilterValue),
-            }
-          : undefined,
-      completenessField: formCalcType === 'auto_completeness' ? 'department' : undefined,
-      completenessExpected: formCalcType === 'auto_completeness' ? ENGINEERING_DEPARTMENTS : undefined,
-      manualProgress: formCalcType === 'manual' ? Number(formManualProgress) : undefined,
-      description: formDescription.trim(),
-      responsibleUnit: formResponsibleUnit.trim(),
-    };
-
-    if (editingKpi) {
-      updateKPI({ ...editingKpi, ...payload });
-      if (showToast) {
-        showToast(`บันทึกการแก้ไขตัวชี้วัด "${payload.code}" เรียบร้อยแล้ว`, 'success');
-      }
-    } else {
-      addKPI(payload);
-      if (showToast) {
-        showToast(`เพิ่มตัวชี้วัด "${payload.code}" เรียบร้อยแล้ว`, 'success');
-      }
-    }
-
-    setIsModalOpen(false);
-    refreshList();
+  // เปิด Modal กรอกผลรายงานตามรอบ + จัดการโครงการที่ผูกกับตัวชี้วัด
+  const handleOpenRoundReport = (item: KPIItem, roundId?: string) => {
+    setRoundReportInitialRoundId(roundId);
+    setRoundReportKpiId(item.id);
   };
 
   // Delete
@@ -341,28 +175,26 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets, on
     refreshList();
   };
 
-  // Reset to default
-  const handleReset = () => {
-    if (confirm('คุณต้องการคืนค่าตัวชี้วัดเริ่มต้นตามยุทธศาสตร์ของคณะฯ ใช่หรือไม่?')) {
-      resetKPIsToDefault();
-      if (showToast) {
-        showToast('คืนค่าตัวชี้วัดเริ่มต้นตามแผนยุทธศาสตร์สำเร็จ', 'success');
-      }
-      refreshList();
-    }
-  };
-
-  // Filtered KPI list (รองรับทั้ง ค้นหา, ยุทธศาสตร์ ย.1-ย.3, หมวดหมู่, วิธีการประเมิน, และสถานะ)
+  // Filtered KPI list
   const filteredKPIs = useMemo(() => {
     return kpis.filter((item) => {
-      // 1. กรองตามหมวดหมู่ / ยุทธศาสตร์
       if (selectedCategory !== 'all') {
-        if (selectedCategory === 'strat_y1') {
-          if (!item.code.startsWith('ย.1')) return false;
+        if (
+          selectedCategory.startsWith('strat_') &&
+          !['strat_y1', 'strat_y2', 'strat_y3', 'strat_y4', 'strat_faculty'].includes(
+            selectedCategory
+          )
+        ) {
+          const code = selectedCategory.replace(/^strat_/, '').replace(/_/g, '.');
+          if (item.strategyCode !== code && !item.code.startsWith(code)) return false;
+        } else if (selectedCategory === 'strat_y1') {
+          if (!item.strategyCode?.startsWith('1.') && !item.code.startsWith('ย.1')) return false;
         } else if (selectedCategory === 'strat_y2') {
-          if (!item.code.startsWith('ย.2')) return false;
+          if (!item.strategyCode?.startsWith('2.') && !item.code.startsWith('ย.2')) return false;
         } else if (selectedCategory === 'strat_y3') {
-          if (!item.code.startsWith('ย.3')) return false;
+          if (!item.strategyCode?.startsWith('3.') && !item.code.startsWith('ย.3')) return false;
+        } else if (selectedCategory === 'strat_y4') {
+          if (!item.strategyCode?.startsWith('4.') && !item.code.startsWith('ย.4')) return false;
         } else if (selectedCategory === 'strat_faculty') {
           if (!item.code.startsWith('KPI')) return false;
         } else if (item.category !== selectedCategory) {
@@ -370,19 +202,45 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets, on
         }
       }
 
-      // 2. กรองตามวิธีการประเมิน
       if (selectedCalcType !== 'all' && item.calcType !== selectedCalcType) return false;
 
-      // 3. กรองตามสถานะความสำเร็จ
       if (selectedStatus !== 'all') {
         const evalRes = evaluateKPI(item, datasets);
-        if (evalRes.status !== selectedStatus) return false;
+        const matchStatus =
+          evalRes.status === selectedStatus ||
+          ((selectedStatus === 'in_progress' || selectedStatus === 'on_track') &&
+            (evalRes.status === 'in_progress' || evalRes.status === 'on_track' || evalRes.status === 'at_risk'));
+        if (!matchStatus) return false;
       }
 
-      // 4. กรองตามคำค้นหาแบบยืดหยุ่น
       if (!searchQuery.trim()) return true;
 
-      const rawContent = `${item.code} ${item.title} ${item.description || ''} ${item.responsibleUnit || ''} ${item.fiscalYear || ''}`.toLowerCase();
+      const subStr = (item.subIndicators || [])
+        .map(
+          (s) =>
+            `${s.title} ${s.evidence || ''} ${s.remarks || ''} ${(s.reporters || []).join(' ')} ${
+              s.reporter || ''
+            }`
+        )
+        .join(' ');
+      const rawContent = [
+        item.code,
+        item.title,
+        item.description || '',
+        item.strategyCode || '',
+        item.strategyName || '',
+        item.planCode || '',
+        item.planName || '',
+        item.collectionPeriod || '',
+        item.evidence || '',
+        item.remarks || '',
+        item.reporter || '',
+        item.responsibleUnit || '',
+        item.fiscalYear || '',
+        subStr,
+      ]
+        .join(' ')
+        .toLowerCase();
       const cleanedContent = cleanSearchText(rawContent);
 
       const tokens = searchQuery.trim().split(/\s+/).filter(Boolean);
@@ -409,16 +267,92 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets, on
     return kpis.find((k) => k.id === deleteConfirmId) || null;
   }, [deleteConfirmId, kpis]);
 
-  const currentMappingEvaluation = useMemo(() => {
-    if (!mappingKpi) return null;
-    return evaluateKPI(mappingKpi, datasets);
-  }, [mappingKpi, datasets]);
+  const activeRounds = useMemo(() => {
+    if (reportingRounds.length > 0) return reportingRounds;
+    return [
+      {
+        id: 'round-6m',
+        name: 'รอบ 6 เดือน',
+        periodLabel: 'ต.ค. 68 - มี.ค. 69',
+        startDate: '2025-10-01',
+        endDate: '2026-03-31',
+        isCumulative: true,
+        sortOrder: 1,
+      },
+      {
+        id: 'round-9m',
+        name: 'รอบ 9 เดือน',
+        periodLabel: 'ต.ค. 68 - ก.ค. 69',
+        startDate: '2025-10-01',
+        endDate: '2026-07-31',
+        isCumulative: true,
+        sortOrder: 2,
+      },
+    ];
+  }, [reportingRounds]);
 
-  const allDatasetItems = useMemo(() => {
-    if (!mappingKpi) return [];
-    const raw = datasets[mappingKpi.datasetKey] || [];
-    return raw.filter((item) => item && (item.name || item.title));
-  }, [mappingKpi, datasets]);
+  // ส่งออกข้อมูลตัวชี้วัดตามแผนยุทธศาสตร์เป็นไฟล์ Excel (.xlsx)
+  const handleExportExcel = () => {
+    const rowsToExport = filteredKPIs.map((item, idx) => {
+      const evalRes = evaluateKPI(item, datasets);
+      const pillar = getStrategicPillar(item.strategyCode);
+      const rowData: Record<string, any> = {
+        ลำดับที่: idx + 1,
+        ปีงบประมาณ: item.fiscalYear || '2569',
+        รหัสยุทธศาสตร์: item.strategyCode || pillar?.code || '-',
+        ชื่อยุทธศาสตร์: item.strategyName || pillar?.fullName || '-',
+        รหัสแผนงาน: item.planCode || '-',
+        ชื่อแผนงาน: item.planName || '-',
+        รหัสตัวชี้วัด: item.code,
+        ชื่อตัวชี้วัดตามแผนยุทธศาสตร์: item.title,
+        คำอธิบายตัวชี้วัด: item.description || '-',
+        หมวดหมู่ข้อมูลหลัก: CATEGORY_LABELS[item.category] || item.category,
+        รอบการเก็บข้อมูล: item.collectionPeriod || 'ปีงบประมาณ',
+        หน่วยนับ: item.unit,
+        'เป้าหมาย 2569': item.targetLabel || item.targetValue,
+        เป้าหมายส่วนงาน: item.departmentTarget !== undefined ? item.departmentTarget : '-',
+      };
+
+      activeRounds.forEach((round) => {
+        const rVal =
+          evalRes.valuesByRound?.[round.id] ??
+          (round.id === 'round-6m'
+            ? evalRes.value6M
+            : round.id === 'round-9m'
+            ? evalRes.value9M ?? evalRes.currentValue
+            : null);
+        const rTxt =
+          evalRes.textsByRound?.[round.id] ||
+          (round.id === 'round-6m'
+            ? item.actual6MText
+            : round.id === 'round-9m'
+            ? item.actual9MText
+            : undefined);
+        rowData[`ผลการดำเนินงาน (${round.name})`] =
+          rTxt || (rVal !== null && rVal !== undefined ? rVal : '-');
+      });
+
+      rowData['ความก้าวหน้า (%)'] = `${evalRes.percentage}%`;
+      rowData['สถานะการดำเนินงาน'] = evalRes.statusLabel;
+      rowData['จำนวนโครงการที่ผูก'] = (evalRes.matchedProjects || []).length;
+      rowData['ผู้รายงาน'] = item.reporter || '-';
+      rowData['หน่วยงานผู้รับผิดชอบ'] = item.responsibleUnit || '-';
+      rowData['หลักฐานอ้างอิง'] = item.evidence || '-';
+      rowData['หมายเหตุ / รายชื่อโครงการ'] = item.remarks || '-';
+      return rowData;
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(rowsToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'ตัวชี้วัดตามแผนยุทธศาสตร์');
+    const dateStr = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(workbook, `KU_KPS_Strategic_KPI_${dateStr}.xlsx`);
+    if (showToast) {
+      showToast(`ส่งออกข้อมูลตัวชี้วัดตามแผนยุทธศาสตร์ (${rowsToExport.length} รายการ) สำเร็จ`, 'success');
+    }
+  };
+
+  const totalColSpan = 8 + activeRounds.length;
 
   return (
     <>
@@ -429,25 +363,27 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets, on
           borderRadius: '12px',
           border: '1px solid #e2e8f0',
           boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
-          overflow: 'hidden',
+          overflow: 'visible',
         }}
       >
-        {/* Action & Filter Bar (มีตัวกรองครบ 4 ด้าน: ค้นหา, ยุทธศาสตร์/หมวด, วิธีประเมิน, สถานะ) */}
+
+        {/* Action & Filter Bar */}
         <div
           style={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            padding: '16px 20px',
+            padding: '14px 20px',
             backgroundColor: '#ffffff',
+            borderTopLeftRadius: '12px',
+            borderTopRightRadius: '12px',
             borderBottom: '1px solid #e2e8f0',
             flexWrap: 'wrap',
             gap: '12px',
           }}
         >
-          {/* ฝั่งซ้าย: ค้นหา + ตัวกรองหมวดยุทธศาสตร์ + ตัวกรองวิธีการประเมิน + ตัวกรองสถานะ */}
+          {/* ฝั่งซ้าย: ค้นหา + ตัวกรอง */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-            {/* ค้นหาแบบยืดหยุ่น */}
             <div
               style={{
                 display: 'flex',
@@ -457,7 +393,7 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets, on
                 border: '1px solid #cbd5e1',
                 borderRadius: '8px',
                 backgroundColor: '#ffffff',
-                width: '240px',
+                width: '280px',
                 maxWidth: '100%',
                 boxShadow: '0 1px 2px rgba(0, 0, 0, 0.02)',
               }}
@@ -465,7 +401,7 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets, on
               <FaSearch style={{ color: '#94a3b8', fontSize: '13px' }} />
               <input
                 type="text"
-                placeholder="ค้นหา (เช่น ย1 ap3)..."
+                placeholder="ค้นหา (เช่น 2.1-1, Mega Project, ชื่อตัวชี้วัด, ชื่อผู้รายงาน)..."
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
@@ -498,7 +434,6 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets, on
               )}
             </div>
 
-            {/* Filter Popover แบบเดียวกับแท็บอื่น ๆ ในระบบ */}
             <FilterPopover
               category="kpi"
               categoryTitle="ตัวชี้วัดตามแผนยุทธศาสตร์"
@@ -519,7 +454,6 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets, on
               onReset={handleResetFilters}
             />
 
-            {/* ปุ่มล้างตัวกรองทั้งหมด เมื่อมีการกรอง */}
             {hasActiveFilters && (
               <button
                 type="button"
@@ -547,10 +481,11 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets, on
             )}
           </div>
 
-          {/* ฝั่งขวา: ปุ่มคืนค่ามาตรฐาน + ปุ่มเพิ่มตัวชี้วัด */}
+          {/* ฝั่งขวา: ปุ่มส่งออก Excel + เพิ่มตัวชี้วัดตามแผนยุทธศาสตร์ + นำเข้าไฟล์ Excel */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
             <button
-              onClick={handleReset}
+              type="button"
+              onClick={handleExportExcel}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -565,10 +500,18 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets, on
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
               }}
-              title="คืนค่าตัวชี้วัดเริ่มต้นตามแผนยุทธศาสตร์"
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = '#00A651';
+                e.currentTarget.style.color = '#00A651';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = '#cbd5e1';
+                e.currentTarget.style.color = '#334155';
+              }}
+              title="ส่งออกข้อมูลตัวชี้วัดตามแผนยุทธศาสตร์เป็นไฟล์ Excel (.xlsx)"
             >
-              <FaRedoAlt style={{ color: '#64748b', fontSize: '11px' }} />
-              <span>คืนค่ามาตรฐาน</span>
+              <FaFileExport style={{ color: '#64748b', fontSize: '12px' }} />
+              <span>ส่งออก Excel</span>
             </button>
 
             <button
@@ -628,169 +571,157 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets, on
 
         {/* แถบชิปแสดงตัวกรองที่เลือก */}
         {hasActiveFilters && (
-          <ActiveFilterChips
-            category="kpi"
-            filters={{
-              departments: [],
-              kpiStrategy: selectedCategory,
-              kpiCalcType: selectedCalcType,
-              kpiStatus: selectedStatus,
-            }}
-            onRemove={(key) => {
-              if (key === 'kpiStrategy') setSelectedCategory('all');
-              if (key === 'kpiCalcType') setSelectedCalcType('all');
-              if (key === 'kpiStatus') setSelectedStatus('all');
-              setCurrentPage(1);
-            }}
-            onClearAll={handleResetFilters}
-          />
+          <div style={{ padding: '0 20px' }}>
+            <ActiveFilterChips
+              category="kpi"
+              filters={{
+                departments: [],
+                kpiStrategy: selectedCategory,
+                kpiCalcType: selectedCalcType,
+                kpiStatus: selectedStatus,
+              }}
+              onRemove={(key) => {
+                if (key === 'kpiStrategy') setSelectedCategory('all');
+                if (key === 'kpiCalcType') setSelectedCalcType('all');
+                if (key === 'kpiStatus') setSelectedStatus('all');
+                setCurrentPage(1);
+              }}
+              onClearAll={handleResetFilters}
+            />
+          </div>
         )}
 
-        {/* ตารางข้อมูล DataTable */}
-        <div style={{ width: '100%', overflowX: 'auto' }}>
+        {/* ตารางจัดการตัวชี้วัดตามแผนยุทธศาสตร์ */}
+        <div
+          style={{
+            width: '100%',
+            overflowX: 'auto',
+            scrollbarWidth: 'thin',
+            scrollbarColor: '#94a3b8 #f1f5f9',
+          }}
+        >
           <table
             style={{
               width: '100%',
-              minWidth: '1120px',
+              minWidth: '1380px',
               tableLayout: 'fixed',
               borderCollapse: 'collapse',
               textAlign: 'left',
-              fontSize: '13.5px',
+              fontSize: '13px',
             }}
           >
             <thead>
               <tr style={{ backgroundColor: '#00A651' }}>
                 <th
                   style={{
-                    width: '5%',
-                    minWidth: '65px',
+                    width: '4%',
+                    minWidth: '50px',
                     textAlign: 'center',
                     padding: '12px 6px',
+                    backgroundColor: '#00A651',
                     color: '#ffffff',
                     fontWeight: 600,
-                    fontSize: '13px',
-                    backgroundColor: '#00A651',
+                    fontSize: '12.5px',
                     borderBottom: '2px solid #00A651',
-                    verticalAlign: 'middle',
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  ลำดับที่
-                </th>
-                <th
-                  style={{
-                    width: '10%',
-                    minWidth: '95px',
-                    textAlign: 'left',
-                    padding: '12px 10px',
-                    color: '#ffffff',
-                    fontWeight: 600,
-                    fontSize: '13px',
-                    backgroundColor: '#00A651',
-                    borderBottom: '2px solid #00A651',
-                    verticalAlign: 'middle',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  รหัส
-                </th>
-                <th
-                  style={{
-                    width: '27%',
-                    minWidth: '220px',
-                    textAlign: 'left',
-                    padding: '12px 10px',
-                    color: '#ffffff',
-                    fontWeight: 600,
-                    fontSize: '13px',
-                    backgroundColor: '#00A651',
-                    borderBottom: '2px solid #00A651',
-                    verticalAlign: 'middle',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  ชื่อตัวชี้วัดตามแผนยุทธศาสตร์
+                  ลำดับ
                 </th>
                 <th
                   style={{
                     width: '12%',
-                    minWidth: '110px',
+                    minWidth: '130px',
                     textAlign: 'left',
                     padding: '12px 10px',
+                    backgroundColor: '#00A651',
                     color: '#ffffff',
                     fontWeight: 600,
-                    fontSize: '13px',
-                    backgroundColor: '#00A651',
+                    fontSize: '12.5px',
                     borderBottom: '2px solid #00A651',
-                    verticalAlign: 'middle',
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  หมวดหมู่
+                  ยุทธศาสตร์ / แผนงาน
                 </th>
                 <th
                   style={{
-                    width: '13%',
-                    minWidth: '120px',
+                    width: '25%',
+                    minWidth: '250px',
                     textAlign: 'left',
                     padding: '12px 10px',
+                    backgroundColor: '#00A651',
                     color: '#ffffff',
                     fontWeight: 600,
-                    fontSize: '13px',
-                    backgroundColor: '#00A651',
+                    fontSize: '12.5px',
                     borderBottom: '2px solid #00A651',
-                    verticalAlign: 'middle',
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  วิธีการประเมิน
-                </th>
-                <th
-                  style={{
-                    width: '9%',
-                    minWidth: '80px',
-                    textAlign: 'right',
-                    padding: '12px 10px',
-                    color: '#ffffff',
-                    fontWeight: 600,
-                    fontSize: '13px',
-                    backgroundColor: '#00A651',
-                    borderBottom: '2px solid #00A651',
-                    verticalAlign: 'middle',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  เป้าหมาย
+                  รหัส และชื่อตัวชี้วัดตามแผนยุทธศาสตร์
                 </th>
                 <th
                   style={{
                     width: '10%',
-                    minWidth: '85px',
-                    textAlign: 'right',
-                    padding: '12px 10px',
+                    minWidth: '110px',
+                    textAlign: 'center',
+                    padding: '12px 8px',
+                    backgroundColor: '#00A651',
                     color: '#ffffff',
                     fontWeight: 600,
-                    fontSize: '13px',
-                    backgroundColor: '#00A651',
+                    fontSize: '12.5px',
                     borderBottom: '2px solid #00A651',
-                    verticalAlign: 'middle',
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  ผลงานปัจจุบัน
+                  รอบการเก็บข้อมูล
                 </th>
                 <th
                   style={{
                     width: '9%',
                     minWidth: '95px',
-                    textAlign: 'left',
+                    textAlign: 'right',
                     padding: '12px 10px',
+                    backgroundColor: '#00A651',
                     color: '#ffffff',
                     fontWeight: 600,
-                    fontSize: '13px',
-                    backgroundColor: '#00A651',
+                    fontSize: '12.5px',
                     borderBottom: '2px solid #00A651',
-                    verticalAlign: 'middle',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  เป้าหมาย 2569
+                </th>
+                {activeRounds.map((round) => (
+                  <th
+                    key={round.id}
+                    style={{
+                      width: '8%',
+                      minWidth: '92px',
+                      textAlign: 'right',
+                      padding: '12px 10px',
+                      backgroundColor: '#00A651',
+                      color: '#ffffff',
+                      fontWeight: 600,
+                      fontSize: '12.5px',
+                      borderBottom: '2px solid #00A651',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {round.name}
+                  </th>
+                ))}
+                <th
+                  style={{
+                    width: '8%',
+                    minWidth: '95px',
+                    textAlign: 'left',
+                    padding: '12px 10px',
+                    backgroundColor: '#00A651',
+                    color: '#ffffff',
+                    fontWeight: 600,
+                    fontSize: '12.5px',
+                    borderBottom: '2px solid #00A651',
                     whiteSpace: 'nowrap',
                   }}
                 >
@@ -798,17 +729,36 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets, on
                 </th>
                 <th
                   style={{
-                    width: '5%',
-                    minWidth: '70px',
-                    textAlign: 'center',
-                    padding: '12px 6px',
+                    width: '9%',
+                    minWidth: '125px',
+                    textAlign: 'left',
+                    padding: '12px 8px',
+                    backgroundColor: '#00A651',
                     color: '#ffffff',
                     fontWeight: 600,
-                    fontSize: '13px',
-                    backgroundColor: '#00A651',
+                    fontSize: '12.5px',
                     borderBottom: '2px solid #00A651',
-                    verticalAlign: 'middle',
                     whiteSpace: 'nowrap',
+                  }}
+                >
+                  ผู้รายงาน
+                </th>
+                <th
+                  style={{
+                    width: '175px',
+                    minWidth: '175px',
+                    textAlign: 'center',
+                    padding: '12px 8px',
+                    backgroundColor: '#00A651',
+                    color: '#ffffff',
+                    fontWeight: 600,
+                    fontSize: '12.5px',
+                    borderBottom: '2px solid #00A651',
+                    whiteSpace: 'nowrap',
+                    position: 'sticky',
+                    right: 0,
+                    zIndex: 10,
+                    boxShadow: '-3px 0 6px rgba(0, 0, 0, 0.08)',
                   }}
                 >
                   จัดการ
@@ -818,7 +768,7 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets, on
             <tbody>
               {paginatedKPIs.length === 0 ? (
                 <tr>
-                  <td colSpan={9} style={{ padding: '36px', textAlign: 'center', color: '#94a3b8' }}>
+                  <td colSpan={totalColSpan} style={{ padding: '36px', textAlign: 'center', color: '#94a3b8' }}>
                     ไม่พบตัวชี้วัดที่ตรงกับเงื่อนไขการค้นหา
                   </td>
                 </tr>
@@ -826,217 +776,618 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets, on
                 paginatedKPIs.map((kpi, idx) => {
                   const rowNum = startIndex + idx + 1;
                   const evalRes = evaluateKPI(kpi, datasets);
-                  const catStyle = CATEGORY_STYLES[kpi.category] || { bg: '#f1f5f9', border: '#e2e8f0', color: '#475569' };
-                  const calcStyle = CALC_STYLES[kpi.calcType] || { bg: '#f0f4f8', border: '#d9e2ec', color: '#243b53' };
+                  const catStyle = CATEGORY_STYLES[kpi.category] || {
+                    bg: '#f1f5f9',
+                    border: '#e2e8f0',
+                    color: '#475569',
+                  };
+                  const pillar = getStrategicPillar(kpi.strategyCode);
+                  const isExpanded = Boolean(expandedKpis[kpi.id]);
+                  const subCount = kpi.subIndicators?.length || 0;
 
                   return (
-                    <tr
-                      key={kpi.id}
-                      style={{
-                        borderBottom: '1px solid #e2e8f0',
-                        backgroundColor: idx % 2 === 1 ? '#fafcfb' : '#ffffff',
-                        transition: 'background-color 0.15s ease',
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f0fbf5')}
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.backgroundColor = idx % 2 === 1 ? '#fafcfb' : '#ffffff')
-                      }
-                    >
-                      <td style={{ textAlign: 'center', padding: '11px 6px', color: '#94a3b8', fontSize: '13px' }}>
-                        {rowNum}
-                      </td>
-
-                      <td style={{ padding: '11px 10px', fontWeight: 700, color: '#00A651', fontFamily: 'monospace', fontSize: '13px' }}>
-                        {kpi.code}
-                      </td>
-
-                      <td style={{ padding: '11px 10px' }}>
-                        <div
-                          onClick={() => setExpandedKpis((prev) => ({ ...prev, [kpi.id]: !prev[kpi.id] }))}
+                    <React.Fragment key={kpi.id}>
+                      <tr
+                        style={{
+                          borderBottom: isExpanded ? '1px dashed #cbd5e1' : '1px solid #e2e8f0',
+                          backgroundColor: idx % 2 === 1 ? '#fafcfb' : '#ffffff',
+                          transition: 'background-color 0.15s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#f0fbf5';
+                          const stickyTd = e.currentTarget.querySelector('.sticky-action-cell') as HTMLElement;
+                          if (stickyTd) stickyTd.style.backgroundColor = '#f0fbf5';
+                        }}
+                        onMouseLeave={(e) => {
+                          const bg = idx % 2 === 1 ? '#fafcfb' : '#ffffff';
+                          e.currentTarget.style.backgroundColor = bg;
+                          const stickyTd = e.currentTarget.querySelector('.sticky-action-cell') as HTMLElement;
+                          if (stickyTd) stickyTd.style.backgroundColor = bg;
+                        }}
+                      >
+                        <td
                           style={{
-                            fontWeight: 400,
-                            color: '#0f172a',
-                            fontSize: '13.5px',
-                            lineHeight: '1.4',
-                            cursor: kpi.description ? 'pointer' : 'default',
+                            textAlign: 'center',
+                            padding: '11px 6px',
+                            color: '#94a3b8',
+                            fontSize: '12.5px',
+                            verticalAlign: 'top',
                           }}
-                          title={kpi.title}
                         >
-                          {kpi.title}
-                        </div>
-                        {kpi.description && (
-                          <div
-                            onClick={() => setExpandedKpis((prev) => ({ ...prev, [kpi.id]: !prev[kpi.id] }))}
-                            style={{
-                              fontSize: '11.5px',
-                              color: '#64748b',
-                              marginTop: '2px',
-                              lineHeight: 1.35,
-                              display: expandedKpis[kpi.id] ? 'block' : '-webkit-box',
-                              WebkitLineClamp: expandedKpis[kpi.id] ? 'unset' : 1,
-                              WebkitBoxOrient: 'vertical',
-                              overflow: expandedKpis[kpi.id] ? 'visible' : 'hidden',
-                              cursor: 'pointer',
-                            }}
-                            title={kpi.description}
-                          >
-                            {kpi.description}
+                          {rowNum}
+                        </td>
+
+                        {/* ยุทธศาสตร์ / แผนงาน */}
+                        <td style={{ padding: '11px 10px', verticalAlign: 'top' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                            {pillar || kpi.strategyCode ? (
+                              <StrategyBadge value={pillar?.code || kpi.strategyCode} />
+                            ) : (
+                              <StrategyBadge value={CATEGORY_LABELS[kpi.category] || kpi.category} showPrefix={false} />
+                            )}
+                            {kpi.planCode && (
+                              <KpiHoverTooltip
+                                badge={`ยุทธศาสตร์ที่ ${pillar?.code || kpi.strategyCode || '-'}`}
+                                fullText={kpi.planName || kpi.planCode}
+                                style={{ fontSize: '11.5px', color: '#475569', fontWeight: 600, paddingLeft: '4px' }}
+                              >
+                                {kpi.planCode}
+                              </KpiHoverTooltip>
+                            )}
                           </div>
-                        )}
-                        {kpi.responsibleUnit && (
-                          <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>
-                            {kpi.responsibleUnit}
-                          </div>
-                        )}
-                      </td>
+                        </td>
 
-                      {/* หมวดหมู่: แสดงสีพาสเทลเฉพาะตามประเภทงาน */}
-                      <td style={{ padding: '11px 10px' }}>
-                        <span
-                          style={{
-                            display: 'inline-block',
-                            padding: '3px 9px',
-                            borderRadius: '6px',
-                            backgroundColor: catStyle.bg,
-                            border: `1px solid ${catStyle.border}`,
-                            color: catStyle.color,
-                            fontSize: '12px',
-                            fontWeight: 600,
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          {CATEGORY_LABELS[kpi.category] || kpi.category}
-                        </span>
-                      </td>
-
-                      {/* วิธีการประเมิน: แสดงสีพาสเทลครบ 5 สีเฉพาะตัว (ฟ้า/ม่วง/เหลือง/เขียว/ส้ม) */}
-                      <td style={{ padding: '11px 10px' }}>
-                        <span
-                          style={{
-                            display: 'inline-block',
-                            padding: '3px 9px',
-                            borderRadius: '6px',
-                            backgroundColor: calcStyle.bg,
-                            border: `1px solid ${calcStyle.border}`,
-                            color: calcStyle.color,
-                            fontSize: '12px',
-                            fontWeight: 600,
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          {CALC_LABELS[kpi.calcType]?.label || kpi.calcType}
-                        </span>
-                      </td>
-
-                      <td style={{ padding: '11px 10px', textAlign: 'right', fontWeight: 600, color: '#334155', fontSize: '13.5px' }}>
-                        {kpi.targetValue.toLocaleString()} {kpi.unit}
-                      </td>
-
-                      <td style={{ padding: '11px 10px', textAlign: 'right', fontWeight: 700, color: evalRes.statusColor, fontSize: '13.5px' }}>
-                        {evalRes.currentValue.toLocaleString()} {kpi.unit}
-                      </td>
-
-                      <td style={{ padding: '11px 10px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <div
-                            style={{
-                              flex: 1,
-                              height: '7px',
-                              backgroundColor: '#e2e8f0',
-                              borderRadius: '4px',
-                              overflow: 'hidden',
-                            }}
-                          >
-                            <div
+                        {/* รหัส และชื่อตัวชี้วัด */}
+                        <td style={{ padding: '11px 10px', verticalAlign: 'top', maxWidth: '340px' }}>
+                          <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', minWidth: 0 }}>
+                            <span
                               style={{
-                                width: `${Math.min(evalRes.percentage, 100)}%`,
-                                height: '100%',
-                                backgroundColor: evalRes.statusColor,
-                                borderRadius: '4px',
+                                fontWeight: 700,
+                                color: '#00A651',
+                                fontFamily: 'monospace',
+                                fontSize: '12.5px',
+                                whiteSpace: 'nowrap',
+                                flexShrink: 0,
                               }}
-                            />
+                            >
+                              {kpi.code}
+                            </span>
+                            <KpiHoverTooltip
+                              badge={kpi.code}
+                              fullText={kpi.title}
+                              subText="คลิกที่ชื่อเพื่อดูตัวชี้วัดย่อย คำอธิบาย หลักฐาน "
+                              onClick={() =>
+                                setExpandedKpis((prev) => ({ ...prev, [kpi.id]: !prev[kpi.id] }))
+                              }
+                              style={{
+                                flex: 1,
+                                fontWeight: 600,
+                                color: '#0f172a',
+                                fontSize: '13px',
+                                lineHeight: 1.4,
+                              }}
+                            >
+                              {kpi.title}
+                            </KpiHoverTooltip>
+                          </div>
+
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              flexWrap: 'wrap',
+                              marginTop: '4px',
+                            }}
+                          >
+                            {subCount > 0 && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setExpandedKpis((prev) => ({ ...prev, [kpi.id]: !prev[kpi.id] }))
+                                }
+                                style={{
+                                  border: '1px solid #bae6fd',
+                                  backgroundColor: '#f0f9ff',
+                                  color: '#0369a1',
+                                  borderRadius: '4px',
+                                  padding: '1px 6px',
+                                  fontSize: '11px',
+                                  fontWeight: 600,
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                ตัวชี้วัดย่อย {subCount} รายการ
+                              </button>
+                            )}
+                            {(kpi.description || kpi.evidence || kpi.remarks) && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setExpandedKpis((prev) => ({ ...prev, [kpi.id]: !prev[kpi.id] }))
+                                }
+                                style={{
+                                  border: 'none',
+                                  background: 'none',
+                                  color: '#64748b',
+                                  padding: 0,
+                                  fontSize: '11px',
+                                  cursor: 'pointer',
+                                  textDecoration: 'underline',
+                                }}
+                              >
+                                {isExpanded ? 'ซ่อนรายละเอียด' : 'ดูเกณฑ์/หลักฐาน/หมายเหตุ'}
+                              </button>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* รอบการเก็บข้อมูล & หมวดหมู่ */}
+                        <td
+                          style={{
+                            padding: '11px 8px',
+                            textAlign: 'center',
+                            verticalAlign: 'top',
+                          }}
+                        >
+                          <div style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>
+                            {kpi.collectionPeriod || 'ปีงบประมาณ'}
                           </div>
                           <span
                             style={{
-                              fontSize: '11.5px',
-                              fontWeight: 700,
-                              color: evalRes.statusColor,
-                              minWidth: '35px',
-                              textAlign: 'right',
+                              display: 'inline-block',
+                              marginTop: '3px',
+                              padding: '1px 6px',
+                              borderRadius: '4px',
+                              backgroundColor: catStyle.bg,
+                              border: `1px solid ${catStyle.border}`,
+                              color: catStyle.color,
+                              fontSize: '10.5px',
+                              fontWeight: 600,
                             }}
                           >
-                            {evalRes.percentage}%
+                            {CATEGORY_LABELS[kpi.category] || kpi.category}
                           </span>
-                        </div>
-                      </td>
+                        </td>
 
-                      {/* จัดการ */}
-                      <td
-                        style={{
-                          textAlign: 'center',
-                          padding: '6px 4px',
-                          whiteSpace: 'nowrap',
-                          verticalAlign: 'middle',
-                        }}
-                      >
-                        <button
-                          onClick={() => handleOpenMapping(kpi)}
+                        {/* เป้าหมาย 2569 */}
+                        <td
                           style={{
-                            background: 'none',
-                            border: 'none',
-                            color: '#2563eb',
-                            cursor: 'pointer',
-                            padding: '4px 6px',
-                            borderRadius: '4px',
-                            fontSize: '13px',
-                            transition: 'background-color 0.15s',
+                            padding: '11px 10px',
+                            textAlign: 'right',
+                            verticalAlign: 'top',
+                            fontWeight: 600,
+                            color: '#334155',
                           }}
-                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#dbeafe')}
-                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                          title="ดูและจัดการโครงการที่เข้าเกณฑ์ตัวชี้วัดนี้"
                         >
-                          <FaFolderOpen />
-                        </button>
+                          <div>
+                            {kpi.targetLabel || kpi.targetValue.toLocaleString('th-TH')} {kpi.unit}
+                          </div>
+                          {kpi.departmentTarget !== undefined && (
+                            <div style={{ fontSize: '10.5px', color: '#c2410c' }}>
+                              (ส่วนงาน: {kpi.departmentTarget})
+                            </div>
+                          )}
+                        </td>
 
-                        <button
-                          onClick={() => handleOpenEdit(kpi)}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            color: '#e5a812',
-                            cursor: 'pointer',
-                            padding: '4px 6px',
-                            borderRadius: '4px',
-                            fontSize: '13px',
-                            transition: 'background-color 0.15s',
-                          }}
-                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#fef3c7')}
-                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                          title="แก้ไขข้อมูลตัวชี้วัด"
-                        >
-                          <FaEdit />
-                        </button>
+                        {/* คอลัมน์ผลตามรอบการรายงานผล (Dynamic - คลิกเพื่อกรอกผลตามรอบได้ทันที) */}
+                        {activeRounds.map((round) => {
+                          const rVal =
+                            evalRes.valuesByRound?.[round.id] ??
+                            (round.id === 'round-6m'
+                              ? evalRes.value6M
+                              : round.id === 'round-9m'
+                              ? evalRes.value9M ?? evalRes.currentValue
+                              : null);
+                          const rTxt =
+                            evalRes.textsByRound?.[round.id] ||
+                            (round.id === 'round-6m'
+                              ? kpi.actual6MText
+                              : round.id === 'round-9m'
+                              ? kpi.actual9MText
+                              : undefined);
 
-                        <button
-                          onClick={() => setDeleteConfirmId(kpi.id)}
+                          return (
+                            <td
+                              key={round.id}
+                              onClick={() => handleOpenRoundReport(kpi, round.id)}
+                              title={`คลิกเพื่อกรอกผลรายงานหรือผูกโครงการ (${round.name})`}
+                              style={{
+                                padding: '11px 10px',
+                                textAlign: 'right',
+                                verticalAlign: 'top',
+                                fontWeight: round.id === 'round-9m' ? 700 : 500,
+                                color: round.id === 'round-9m' ? evalRes.statusColor : '#475569',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              <span
+                                style={{
+                                  borderBottom: '1px dashed #cbd5e1',
+                                  paddingBottom: '1px',
+                                }}
+                              >
+                                {rTxt ||
+                                  (rVal !== null && rVal !== undefined
+                                    ? `${rVal.toLocaleString('th-TH')} ${kpi.unit}`
+                                    : '-')}
+                              </span>
+                            </td>
+                          );
+                        })}
+
+                        {/* ความก้าวหน้า */}
+                        <td style={{ padding: '11px 10px', verticalAlign: 'top' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <div
+                              style={{
+                                flex: 1,
+                                height: '6px',
+                                backgroundColor: '#e2e8f0',
+                                borderRadius: '4px',
+                                overflow: 'hidden',
+                              }}
+                            >
+                              <div
+                                style={{
+                                  width: `${Math.min(evalRes.percentage, 100)}%`,
+                                  height: '100%',
+                                  backgroundColor: evalRes.statusColor,
+                                  borderRadius: '4px',
+                                }}
+                              />
+                            </div>
+                            <span
+                              style={{
+                                fontSize: '11.5px',
+                                fontWeight: 700,
+                                color: evalRes.statusColor,
+                                minWidth: '34px',
+                                textAlign: 'right',
+                              }}
+                            >
+                              {evalRes.percentage}%
+                            </span>
+                          </div>
+                          {(evalRes.matchedProjects || []).length > 0 && (
+                            <div
+                              onClick={() => handleOpenRoundReport(kpi)}
+                              style={{
+                                marginTop: '4px',
+                                fontSize: '10.5px',
+                                color: '#0284c7',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                              }}
+                              title="คลิกเพื่อดูโครงการที่ผูกกับตัวชี้วัดนี้"
+                            >
+                              <FaLink style={{ fontSize: '9px' }} />
+                              <span>ผูก {(evalRes.matchedProjects || []).length} โครงการ</span>
+                            </div>
+                          )}
+                        </td>
+
+                        {/* ผู้รายงาน (แสดงชื่อจริงเต็มของบุคลากร/อาจารย์) */}
+                        <td
                           style={{
-                            background: 'none',
-                            border: 'none',
-                            color: '#ef4444',
-                            cursor: 'pointer',
-                            padding: '4px 6px',
-                            borderRadius: '4px',
-                            fontSize: '13px',
-                            transition: 'background-color 0.15s',
+                            padding: '11px 8px',
+                            textAlign: 'left',
+                            verticalAlign: 'top',
                           }}
-                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#fee2e2')}
-                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                          title="ลบตัวชี้วัด"
                         >
-                          <FaTrashAlt />
-                        </button>
-                      </td>
-                    </tr>
+                          {kpi.reporter ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                              {kpi.reporter
+                                .split(',')
+                                .map((r) => r.trim())
+                                .filter(Boolean)
+                                .map((repName, rIdx) => (
+                                  <span
+                                    key={rIdx}
+                                    style={{
+                                      display: 'inline-block',
+                                      width: 'fit-content',
+                                      maxWidth: '100%',
+                                      padding: '2px 8px',
+                                      borderRadius: '6px',
+                                      backgroundColor: '#f8fafc',
+                                      border: '1px solid #e2e8f0',
+                                      color: '#1e293b',
+                                      fontSize: '11.5px',
+                                      fontWeight: 500,
+                                      lineHeight: 1.35,
+                                    }}
+                                  >
+                                    {repName}
+                                  </span>
+                                ))}
+                            </div>
+                          ) : (
+                            <span style={{ color: '#94a3b8' }}>-</span>
+                          )}
+                        </td>
+
+                        {/* จัดการ (ยุบรวมรายงานผลตามรอบ + ผูกโครงการ ไว้ในปุ่มเดียว พร้อมปุ่มแก้ไขและลบ) */}
+                        <td
+                          className="sticky-action-cell"
+                          style={{
+                            width: '175px',
+                            minWidth: '175px',
+                            textAlign: 'center',
+                            padding: '10px 8px',
+                            whiteSpace: 'nowrap',
+                            verticalAlign: 'top',
+                            position: 'sticky',
+                            right: 0,
+                            zIndex: 5,
+                            backgroundColor: idx % 2 === 1 ? '#fafcfb' : '#ffffff',
+                            boxShadow: '-3px 0 6px rgba(0, 0, 0, 0.04)',
+                            borderBottom: isExpanded ? '1px dashed #cbd5e1' : '1px solid #e2e8f0',
+                            transition: 'background-color 0.15s ease',
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '6px',
+                              flexWrap: 'nowrap',
+                            }}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => handleOpenRoundReport(kpi)}
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                backgroundColor: '#f0fdf4',
+                                border: '1px solid #bbf7d0',
+                                color: '#008c44',
+                                cursor: 'pointer',
+                                padding: '4px 8px',
+                                borderRadius: '6px',
+                                fontSize: '11.5px',
+                                fontWeight: 600,
+                                flexShrink: 0,
+                                transition: 'all 0.15s ease',
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = '#dcfce7';
+                                e.currentTarget.style.borderColor = '#00A651';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = '#f0fdf4';
+                                e.currentTarget.style.borderColor = '#bbf7d0';
+                              }}
+                              title="กรอกผลรายงานตัวชี้วัดตามรอบการรายงานผล และจัดการโครงการที่ผูกกับตัวชี้วัด"
+                            >
+                              <FaCalendarCheck style={{ fontSize: '12px' }} />
+                              <span>รายงานผล</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEdit(kpi)}
+                              style={{
+                                background: '#fefce8',
+                                border: '1px solid #fef08a',
+                                color: '#ca8a04',
+                                cursor: 'pointer',
+                                padding: '5px 7px',
+                                borderRadius: '6px',
+                                fontSize: '12px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0,
+                                transition: 'all 0.15s ease',
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = '#fef08a';
+                                e.currentTarget.style.borderColor = '#eab308';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = '#fefce8';
+                                e.currentTarget.style.borderColor = '#fef08a';
+                              }}
+                              title="แก้ไขโครงสร้างตัวชี้วัดตามแผนยุทธศาสตร์"
+                            >
+                              <FaEdit />
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => setDeleteConfirmId(kpi.id)}
+                              style={{
+                                background: '#fef2f2',
+                                border: '1px solid #fecaca',
+                                color: '#dc2626',
+                                cursor: 'pointer',
+                                padding: '5px 7px',
+                                borderRadius: '6px',
+                                fontSize: '12px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0,
+                                transition: 'all 0.15s ease',
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = '#fee2e2';
+                                e.currentTarget.style.borderColor = '#ef4444';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = '#fef2f2';
+                                e.currentTarget.style.borderColor = '#fecaca';
+                              }}
+                              title="ลบตัวชี้วัด"
+                            >
+                              <FaTrashAlt />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+
+                      {/* แถวขยายแสดงตัวชี้วัดย่อย + คำอธิบาย + หลักฐาน + หมายเหตุ */}
+                      {isExpanded && (
+                        <tr
+                          style={{
+                            backgroundColor: '#f8fafc',
+                            borderBottom: '1px solid #cbd5e1',
+                          }}
+                        >
+                          <td colSpan={totalColSpan} style={{ padding: '14px 20px' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                              {kpi.subIndicators && kpi.subIndicators.length > 0 && (
+                                <div
+                                  style={{
+                                    backgroundColor: '#ffffff',
+                                    borderRadius: '8px',
+                                    border: '1px solid #e2e8f0',
+                                    padding: '10px 14px',
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      fontSize: '12px',
+                                      fontWeight: 700,
+                                      color: '#0f172a',
+                                      marginBottom: '6px',
+                                    }}
+                                  >
+                                    รายการตัวชี้วัดย่อย / โครงการส่วนงาน ({kpi.subIndicators.length}{' '}
+                                    รายการ):
+                                  </div>
+                                  <div
+                                    style={{
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      gap: '6px',
+                                    }}
+                                  >
+                                    {kpi.subIndicators.map((sub, sIdx) => (
+                                      <div
+                                        key={sIdx}
+                                        style={{
+                                          display: 'flex',
+                                          justifyContent: 'space-between',
+                                          alignItems: 'center',
+                                          flexWrap: 'wrap',
+                                          gap: '10px',
+                                          fontSize: '12px',
+                                          padding: '6px 8px',
+                                          borderRadius: '6px',
+                                          backgroundColor: sub.title.includes('[โครงการส่วนงาน]')
+                                            ? '#fff7ed'
+                                            : '#f8fafc',
+                                        }}
+                                      >
+                                        <span style={{ fontWeight: 500, color: '#1e293b', flex: 1 }}>
+                                          {sub.title}
+                                        </span>
+                                        <span style={{ color: '#64748b' }}>
+                                          เป้า: {sub.target ?? '-'} {sub.unit || ''}
+                                        </span>
+                                        {activeRounds.map((round) => {
+                                          const val =
+                                            sub.resultsByRound?.[round.id] ??
+                                            (round.id === 'round-6m'
+                                              ? sub.actual6M
+                                              : round.id === 'round-9m'
+                                              ? sub.actual9M
+                                              : '-');
+                                          return (
+                                            <span key={round.id} style={{ color: '#047857' }}>
+                                              {round.name}:{' '}
+                                              <strong>
+                                                {typeof val === 'number'
+                                                  ? val.toLocaleString('th-TH')
+                                                  : val ?? '-'}
+                                              </strong>
+                                            </span>
+                                          );
+                                        })}
+                                        <span style={{ color: '#64748b' }}>
+                                          ผู้รายงาน:{' '}
+                                          {(sub.reporters && sub.reporters.join(', ')) ||
+                                            sub.reporter ||
+                                            kpi.reporter ||
+                                            '-'}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              <div
+                                style={{
+                                  display: 'grid',
+                                  gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+                                  gap: '10px',
+                                  fontSize: '12px',
+                                }}
+                              >
+                                {kpi.description && (
+                                  <div
+                                    style={{
+                                      backgroundColor: '#ffffff',
+                                      padding: '10px 12px',
+                                      borderRadius: '8px',
+                                      border: '1px solid #e2e8f0',
+                                    }}
+                                  >
+                                    <strong style={{ color: '#0f172a' }}>คำอธิบายตัวชี้วัด: </strong>
+                                    <div style={{ color: '#475569', marginTop: '3px' }}>
+                                      {kpi.description}
+                                    </div>
+                                  </div>
+                                )}
+                                {kpi.evidence && (
+                                  <div
+                                    style={{
+                                      backgroundColor: '#ffffff',
+                                      padding: '10px 12px',
+                                      borderRadius: '8px',
+                                      border: '1px solid #e2e8f0',
+                                    }}
+                                  >
+                                    <strong style={{ color: '#0369a1' }}>หลักฐานอ้างอิง: </strong>
+                                    <div style={{ color: '#475569', marginTop: '3px' }}>
+                                      {kpi.evidence}
+                                    </div>
+                                  </div>
+                                )}
+                                {kpi.remarks && (
+                                  <div
+                                    style={{
+                                      backgroundColor: '#ffffff',
+                                      padding: '10px 12px',
+                                      borderRadius: '8px',
+                                      border: '1px solid #e2e8f0',
+                                      gridColumn: '1 / -1',
+                                      whiteSpace: 'pre-line',
+                                    }}
+                                  >
+                                    <strong style={{ color: '#b45309' }}>
+                                      หมายเหตุ / รายชื่อโครงการและบุคลากร:{' '}
+                                    </strong>
+                                    <div style={{ color: '#334155', marginTop: '3px' }}>
+                                      {kpi.remarks}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
                   );
                 })
               )}
@@ -1045,988 +1396,37 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets, on
         </div>
 
         {/* Footer: Pagination */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: '12px 20px',
-            borderTop: '1px solid #e2e8f0',
-            backgroundColor: '#ffffff',
-            fontSize: '13px',
-            color: '#64748b',
-            flexWrap: 'wrap',
-            gap: '12px',
+        <TablePagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={filteredKPIs.length}
+          pageSize={itemsPerPage}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(newSize) => {
+            setItemsPerPage(newSize);
+            setCurrentPage(1);
           }}
-        >
-          <div>
-            แสดง {filteredKPIs.length > 0 ? startIndex + 1 : 0} ถึง{' '}
-            {Math.min(startIndex + itemsPerPage, filteredKPIs.length)} จากทั้งหมด{' '}
-            <strong style={{ color: '#1e293b' }}>{filteredKPIs.length}</strong> ตัวชี้วัด
-            {selectedCategory !== 'all' && ` (กรอง: ${
-              selectedCategory === 'strat_y1' ? 'ยุทธศาสตร์ที่ 1' :
-              selectedCategory === 'strat_y2' ? 'ยุทธศาสตร์ที่ 2' :
-              selectedCategory === 'strat_y3' ? 'ยุทธศาสตร์ที่ 3' :
-              selectedCategory === 'strat_faculty' ? 'ตัวชี้วัดภาพรวมคณะ' :
-              CATEGORY_LABELS[selectedCategory as KPICategory]
-            })`}
-            {selectedCalcType !== 'all' && ` (วิธีประเมิน: ${CALC_LABELS[selectedCalcType as KPICalcType]?.label})`}
-            {selectedStatus !== 'all' && ` (สถานะ: ${STATUS_OPTIONS.find(s => s.value === selectedStatus)?.label})`}
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span>แสดง:</span>
-              <select
-                value={itemsPerPage}
-                onChange={(e) => {
-                  setItemsPerPage(Number(e.target.value));
-                  setCurrentPage(1);
-                }}
-                style={{
-                  height: '32px',
-                  padding: '0 8px',
-                  borderRadius: '6px',
-                  border: '1px solid #cbd5e1',
-                  backgroundColor: '#ffffff',
-                  fontSize: '12px',
-                  outline: 'none',
-                  cursor: 'pointer',
-                }}
-              >
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-              </select>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span>
-                หน้า {currentPage} จาก {totalPages}
-              </span>
-              <button
-                disabled={currentPage <= 1}
-                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                style={{
-                  padding: '4px 8px',
-                  borderRadius: '6px',
-                  border: '1px solid #cbd5e1',
-                  backgroundColor: currentPage <= 1 ? '#f8fafc' : '#ffffff',
-                  color: currentPage <= 1 ? '#cbd5e1' : '#334155',
-                  cursor: currentPage <= 1 ? 'not-allowed' : 'pointer',
-                  fontSize: '11px',
-                }}
-                title="หน้าก่อนหน้า"
-              >
-                <FaChevronLeft />
-              </button>
-              <button
-                disabled={currentPage >= totalPages}
-                onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-                style={{
-                  padding: '4px 8px',
-                  borderRadius: '6px',
-                  border: '1px solid #cbd5e1',
-                  backgroundColor: currentPage >= totalPages ? '#f8fafc' : '#ffffff',
-                  color: currentPage >= totalPages ? '#cbd5e1' : '#334155',
-                  cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer',
-                  fontSize: '11px',
-                }}
-                title="หน้าถัดไป"
-              >
-                <FaChevronRight />
-              </button>
-            </div>
-          </div>
-        </div>
+          pageSizeOptions={[10, 20, 50, 100]}
+          unitLabel="ตัวชี้วัด"
+          style={{ borderBottomLeftRadius: '12px', borderBottomRightRadius: '12px' }}
+        />
       </div>
 
-      {/* หน้าที่ 2: Modal จัดการผูกโครงการเข้าตัวชี้วัด */}
-      {mappingKpi && currentMappingEvaluation && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(15, 23, 42, 0.65)',
-            backdropFilter: 'blur(3px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 99999,
-            padding: '16px',
+      {/* Modal กรอกผลรายงานตัวชี้วัดตามรอบการรายงานผล + จัดการโครงการที่ผูกกับตัวชี้วัด (ยุบรวมเข้าด้วยกัน) */}
+      {roundReportKpiId && (
+        <StrategicKpiRoundReportModal
+          isOpen={Boolean(roundReportKpiId)}
+          kpiId={roundReportKpiId}
+          initialRoundId={roundReportInitialRoundId}
+          onClose={() => {
+            setRoundReportKpiId(null);
+            setRoundReportInitialRoundId(undefined);
           }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setMappingKpi(null);
+          onSaved={() => {
+            refreshList();
           }}
-        >
-          <div
-            style={{
-              backgroundColor: '#ffffff',
-              borderRadius: '16px',
-              maxWidth: '850px',
-              width: '100%',
-              maxHeight: '90vh',
-              display: 'flex',
-              flexDirection: 'column',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.28)',
-              overflow: 'hidden',
-            }}
-          >
-            {/* Header */}
-            <div
-              style={{
-                padding: '18px 24px',
-                backgroundColor: '#0284c7',
-                color: '#ffffff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ backgroundColor: '#ffffff', color: '#0284c7', padding: '2px 8px', borderRadius: '4px', fontWeight: 700, fontSize: '12px' }}>
-                    {mappingKpi.code}
-                  </span>
-                  <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 600 }}>
-                    จัดการโครงการที่ผูกกับตัวชี้วัด
-                  </h3>
-                </div>
-                <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#e0f2fe' }}>
-                  {mappingKpi.title}
-                </p>
-              </div>
-              <button
-                onClick={() => setMappingKpi(null)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#ffffff',
-                  fontSize: '22px',
-                  cursor: 'pointer',
-                  lineHeight: 1,
-                }}
-              >
-                &times;
-              </button>
-            </div>
-
-            {/* สรุปตัวเลข Actual vs Target */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '12px 24px',
-                backgroundColor: '#f0f9ff',
-                borderBottom: '1px solid #bae6fd',
-              }}
-            >
-              <div>
-                <span style={{ fontSize: '12px', color: '#0369a1', fontWeight: 600 }}>ความคืบหน้ารวม: </span>
-                <strong style={{ fontSize: '15px', color: '#0c4a6e' }}>
-                  {currentMappingEvaluation.currentValue.toLocaleString()} / {mappingKpi.targetValue.toLocaleString()} {mappingKpi.unit}
-                </strong>
-                <span style={{ marginLeft: '10px', fontSize: '12px', color: currentMappingEvaluation.statusColor, fontWeight: 700 }}>
-                  ({currentMappingEvaluation.percentage}% • {currentMappingEvaluation.statusLabel})
-                </span>
-              </div>
-              <div style={{ fontSize: '12px', color: '#0284c7' }}>
-                จำนวนโครงการที่เชื่อมโยง: <strong>{(currentMappingEvaluation.matchedProjects || []).length}</strong> รายการ
-              </div>
-            </div>
-
-            {/* Sub-Tabs */}
-            <div style={{ display: 'flex', borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', padding: '0 24px' }}>
-              <button
-                onClick={() => setActiveMappingSubTab('matched')}
-                style={{
-                  padding: '12px 16px',
-                  border: 'none',
-                  background: 'none',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  color: activeMappingSubTab === 'matched' ? '#0284c7' : '#64748b',
-                  borderBottom: activeMappingSubTab === 'matched' ? '2px solid #0284c7' : 'none',
-                  cursor: 'pointer',
-                }}
-              >
-                โครงการที่เชื่อมโยงอยู่ ({(currentMappingEvaluation.matchedProjects || []).length})
-              </button>
-              <button
-                onClick={() => setActiveMappingSubTab('all')}
-                style={{
-                  padding: '12px 16px',
-                  border: 'none',
-                  background: 'none',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  color: activeMappingSubTab === 'all' ? '#0284c7' : '#64748b',
-                  borderBottom: activeMappingSubTab === 'all' ? '2px solid #0284c7' : 'none',
-                  cursor: 'pointer',
-                }}
-              >
-                + ค้นหาและผูกโครงการเพิ่มด้วยมือ
-              </button>
-            </div>
-
-            {/* ค้นหาใน Modal */}
-            <div style={{ padding: '12px 24px', borderBottom: '1px solid #e2e8f0' }}>
-              <input
-                type="text"
-                placeholder="ค้นหาชื่อโครงการ, ผู้รับผิดชอบ หรือหน่วยงาน..."
-                value={mappingSearch}
-                onChange={(e) => setMappingSearch(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '8px 12px',
-                  borderRadius: '8px',
-                  border: '1px solid #cbd5e1',
-                  fontSize: '13px',
-                }}
-              />
-            </div>
-
-            {/* Body List */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px' }}>
-              {activeMappingSubTab === 'matched' ? (
-                <div>
-                  {(currentMappingEvaluation.matchedProjects || [])
-                    .filter((p: any) => {
-                      if (!mappingSearch.trim()) return true;
-                      const q = mappingSearch.toLowerCase();
-                      const name = (p.name || p.title || '').toLowerCase();
-                      const leader = (p.leader || p.author || p.creator || '').toLowerCase();
-                      return name.includes(q) || leader.includes(q);
-                    })
-                    .map((proj: any, idx: number) => {
-                      const projId = String(proj.id || proj.code || `idx-${idx}`);
-                      const isManuallyAdded = (mappingKpi.manualIncludedProjectIds || []).includes(projId);
-
-                      return (
-                        <div
-                          key={projId}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            padding: '12px',
-                            borderRadius: '8px',
-                            border: '1px solid #e2e8f0',
-                            marginBottom: '8px',
-                            backgroundColor: isManuallyAdded ? '#f0fdf4' : '#ffffff',
-                          }}
-                        >
-                          <div style={{ flex: 1, paddingRight: '12px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              <span style={{ fontSize: '11px', padding: '2px 6px', borderRadius: '4px', backgroundColor: isManuallyAdded ? '#dcfce7' : '#e0f2fe', color: isManuallyAdded ? '#15803d' : '#0369a1', fontWeight: 600 }}>
-                                {isManuallyAdded ? 'เพิ่มด้วยมือ' : 'ระบบแนะนำอัตโนมัติ'}
-                              </span>
-                              {proj.budget && (
-                                <span style={{ fontSize: '11px', color: '#64748b' }}>
-                                  งบประมาณ: {Number(proj.budget).toLocaleString()} บาท
-                                </span>
-                              )}
-                            </div>
-                            <div style={{ fontSize: '13.5px', fontWeight: 500, color: '#1e293b', marginTop: '4px' }}>
-                              {proj.name || proj.title}
-                            </div>
-                            <div style={{ fontSize: '11.5px', color: '#64748b', marginTop: '2px' }}>
-                              {proj.leader || proj.author || proj.creator || proj.department || 'ไม่ระบุผู้รับผิดชอบ'}
-                            </div>
-                          </div>
-
-                          <button
-                            onClick={() => handleExcludeProject(projId)}
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              padding: '6px 10px',
-                              borderRadius: '6px',
-                              border: '1px solid #fecaca',
-                              backgroundColor: '#fff1f2',
-                              color: '#e11d48',
-                              fontSize: '12px',
-                              fontWeight: 500,
-                              cursor: 'pointer',
-                              whiteSpace: 'nowrap',
-                            }}
-                            title="คัดโครงการนี้ออกจากตัวชี้วัด"
-                          >
-                            <FaUnlink />
-                            <span>นำออก</span>
-                          </button>
-                        </div>
-                      );
-                    })}
-                  {(currentMappingEvaluation.matchedProjects || []).length === 0 && (
-                    <div style={{ textAlign: 'center', padding: '30px', color: '#94a3b8', fontSize: '13px' }}>
-                      ยังไม่มีโครงการที่เชื่อมโยงกับตัวชี้วัดนี้
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div>
-                  {allDatasetItems
-                    .filter((p: any) => {
-                      const q = mappingSearch.toLowerCase();
-                      const name = (p.name || p.title || '').toLowerCase();
-                      const leader = (p.leader || p.author || p.creator || '').toLowerCase();
-                      return name.includes(q) || leader.includes(q);
-                    })
-                    .slice(0, 30)
-                    .map((proj: any, idx: number) => {
-                      const projId = String(proj.id || proj.code || `idx-${idx}`);
-                      const isAlreadyMatched = (currentMappingEvaluation.matchedProjects || []).some(
-                        (m: any) => String(m.id || m.code || '') === projId
-                      );
-
-                      return (
-                        <div
-                          key={projId}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            padding: '10px 12px',
-                            borderRadius: '8px',
-                            border: '1px solid #e2e8f0',
-                            marginBottom: '6px',
-                            backgroundColor: isAlreadyMatched ? '#f8fafc' : '#ffffff',
-                          }}
-                        >
-                          <div style={{ flex: 1, paddingRight: '12px' }}>
-                            <div style={{ fontSize: '13px', fontWeight: 500, color: '#1e293b' }}>
-                              {proj.name || proj.title}
-                            </div>
-                            <div style={{ fontSize: '11.5px', color: '#64748b' }}>
-                              {proj.leader || proj.author || proj.creator || proj.department}
-                            </div>
-                          </div>
-
-                          {isAlreadyMatched ? (
-                            <span style={{ fontSize: '12px', color: '#059669', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              <FaCheckCircle /> ผูกอยู่แล้ว
-                            </span>
-                          ) : (
-                            <button
-                              onClick={() => handleIncludeProject(projId)}
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                                padding: '5px 10px',
-                                borderRadius: '6px',
-                                border: '1px solid #00A651',
-                                backgroundColor: '#f0fdf4',
-                                color: '#15803d',
-                                fontSize: '12px',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                              }}
-                            >
-                              <FaLink />
-                              <span>ผูกโครงการ</span>
-                            </button>
-                          )}
-                        </div>
-                      );
-                    })}
-                </div>
-              )}
-            </div>
-
-            {/* Footer */}
-            <div style={{ padding: '12px 24px', backgroundColor: '#f8fafc', borderTop: '1px solid #e2e8f0', textAlign: 'right' }}>
-              <button
-                onClick={() => setMappingKpi(null)}
-                style={{
-                  padding: '7px 18px',
-                  borderRadius: '6px',
-                  backgroundColor: '#0284c7',
-                  color: '#ffffff',
-                  border: 'none',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                ปิดหน้าต่าง
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* หน้าที่ 1: Modal เพิ่ม/แก้ไขตัวชี้วัด */}
-      {isModalOpen && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(15, 23, 42, 0.65)',
-            backdropFilter: 'blur(3px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 99999,
-            padding: '16px',
-          }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setIsModalOpen(false);
-          }}
-        >
-          <div
-            style={{
-              backgroundColor: '#ffffff',
-              borderRadius: '16px',
-              maxWidth: '680px',
-              width: '100%',
-              maxHeight: '90vh',
-              display: 'flex',
-              flexDirection: 'column',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.28)',
-              overflow: 'hidden',
-            }}
-          >
-            <div
-              style={{
-                padding: '20px 24px',
-                backgroundColor: '#00A651',
-                color: '#ffffff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <FaBullseye style={{ fontSize: '20px', color: '#86efac' }} />
-                <div>
-                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600 }}>
-                    {editingKpi ? 'แก้ไขตัวชี้วัดตามแผนยุทธศาสตร์' : 'เพิ่มตัวชี้วัดตามแผนยุทธศาสตร์'}
-                  </h3>
-                </div>
-              </div>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#ffffff',
-                  fontSize: '22px',
-                  cursor: 'pointer',
-                  padding: '4px',
-                  opacity: 0.85,
-                  lineHeight: 1,
-                }}
-              >
-                &times;
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveKpi} style={{ display: 'flex', flexDirection: 'column', flex: 1, overflowY: 'auto' }}>
-              <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {/* รหัส & ชื่อ */}
-                <div style={{ display: 'grid', gridTemplateColumns: '160px 1fr', gap: '14px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                      รหัสตัวชี้วัด <span style={{ color: '#ef4444' }}>*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="เช่น KPI 2.1-1"
-                      value={formCode}
-                      onChange={(e) => setFormCode(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        borderRadius: '8px',
-                        border: '1px solid #cbd5e1',
-                        fontSize: '13.5px',
-                        fontWeight: 600,
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                      ชื่อตัวชี้วัดยุทธศาสตร์ <span style={{ color: '#ef4444' }}>*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="ระบุชื่อตัวชี้วัดที่ต้องการวัดผล"
-                      value={formTitle}
-                      onChange={(e) => setFormTitle(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        borderRadius: '8px',
-                        border: '1px solid #cbd5e1',
-                        fontSize: '13.5px',
-                      }}
-                    />
-                  </div>
-                </div>
-
-                {/* หมวดหมู่, ปีงบ, เป้าหมาย, หน่วยนับ */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr 1fr 1fr', gap: '12px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                      หมวดหมู่
-                    </label>
-                    <select
-                      value={formCategory}
-                      onChange={(e) => {
-                        const newCat = e.target.value as KPICategory;
-                        setFormCategory(newCat);
-                        if (['research', 'academic', 'publications', 'service', 'ip', 'personnel'].includes(newCat)) {
-                          setFormDatasetKey(newCat);
-                        }
-                      }}
-                      style={{
-                        width: '100%',
-                        height: '38px',
-                        padding: '0 10px',
-                        borderRadius: '8px',
-                        border: '1px solid #cbd5e1',
-                        backgroundColor: '#ffffff',
-                        fontSize: '13px',
-                        color: '#1e293b',
-                        outline: 'none',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      {Object.entries(CATEGORY_LABELS).map(([k, lbl]) => (
-                        <option key={k} value={k}>
-                          {lbl}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                      ปีงบประมาณ
-                    </label>
-                    <input
-                      type="text"
-                      value={formFiscalYear}
-                      onChange={(e) => setFormFiscalYear(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        borderRadius: '8px',
-                        border: '1px solid #cbd5e1',
-                        fontSize: '13px',
-                        textAlign: 'center',
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                      เป้าหมาย <span style={{ color: '#ef4444' }}>*</span>
-                    </label>
-                    <input
-                      type="number"
-                      required
-                      min={0}
-                      value={formTargetValue}
-                      onChange={(e) => setFormTargetValue(Number(e.target.value))}
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        borderRadius: '8px',
-                        border: '1px solid #cbd5e1',
-                        fontSize: '13px',
-                        fontWeight: 600,
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                      หน่วยนับ
-                    </label>
-                    <input
-                      type="text"
-                      value={formUnit}
-                      onChange={(e) => setFormUnit(e.target.value)}
-                      placeholder="เช่น เรื่อง, บาท"
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        borderRadius: '8px',
-                        border: '1px solid #cbd5e1',
-                        fontSize: '13px',
-                      }}
-                    />
-                  </div>
-                </div>
-
-                {/* วิธีการประเมินผล */}
-                <div
-                  style={{
-                    backgroundColor: '#f8fafc',
-                    padding: '16px',
-                    borderRadius: '10px',
-                    border: '1px solid #e2e8f0',
-                  }}
-                >
-                  <label
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      fontSize: '13px',
-                      fontWeight: 700,
-                      color: '#0f172a',
-                      marginBottom: '10px',
-                    }}
-                  >
-                    <FaCalculator style={{ color: '#00A651' }} />
-                    <span>วิธีการประเมินผลและการคำนวณ</span>
-                  </label>
-
-                  <div
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-                      gap: '8px',
-                      marginBottom: '14px',
-                    }}
-                  >
-                    {(Object.keys(CALC_LABELS) as KPICalcType[]).map((mode) => {
-                      const isSel = formCalcType === mode;
-                      return (
-                        <div
-                          key={mode}
-                          onClick={() => setFormCalcType(mode)}
-                          style={{
-                            padding: '10px 12px',
-                            borderRadius: '8px',
-                            border: isSel ? '2px solid #00A651' : '1px solid #cbd5e1',
-                            backgroundColor: isSel ? '#f0fdf4' : '#ffffff',
-                            cursor: 'pointer',
-                            transition: 'all 0.15s ease',
-                          }}
-                        >
-                          <div
-                            style={{
-                              fontWeight: 600,
-                              fontSize: '12.5px',
-                              color: isSel ? '#15803d' : '#334155',
-                            }}
-                          >
-                            {CALC_LABELS[mode].label}
-                          </div>
-                          <div
-                            style={{
-                              fontSize: '11px',
-                              color: '#64748b',
-                              marginTop: '3px',
-                              lineHeight: 1.3,
-                            }}
-                          >
-                            {CALC_LABELS[mode].desc}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {formCalcType !== 'manual' && (
-                    <div style={{ paddingTop: '10px', borderTop: '1px dashed #cbd5e1' }}>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-                        <div>
-                          <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                            เชื่อมโยงตารางข้อมูล
-                          </label>
-                          <select
-                            value={formDatasetKey}
-                            onChange={(e) => setFormDatasetKey(e.target.value)}
-                            style={{
-                              width: '100%',
-                              height: '38px',
-                              padding: '0 10px',
-                              borderRadius: '8px',
-                              border: '1px solid #cbd5e1',
-                              backgroundColor: '#ffffff',
-                              fontSize: '13px',
-                              color: '#1e293b',
-                              outline: 'none',
-                              cursor: 'pointer',
-                            }}
-                          >
-                            <option value="research">โครงการวิจัย (research)</option>
-                            <option value="academic">โครงการพัฒนาวิชาการ (academic)</option>
-                            <option value="publications">ผลงานตีพิมพ์ทางวิชาการ (publications)</option>
-                            <option value="service">งานบริการวิชาการ (service)</option>
-                            <option value="ip">งานทรัพย์สินทางปัญญา (ip)</option>
-                            <option value="personnel">บุคลากร/อาจารย์ (personnel)</option>
-                          </select>
-                        </div>
-
-                        {formCalcType === 'auto_sum' && (
-                          <div>
-                            <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                              ฟิลด์ตัวเลขที่ต้องการรวมยอด
-                            </label>
-                            <select
-                              value={formSumField}
-                              onChange={(e) => setFormSumField(e.target.value)}
-                              style={{
-                                width: '100%',
-                                height: '38px',
-                                padding: '0 10px',
-                                borderRadius: '8px',
-                                border: '1px solid #cbd5e1',
-                                backgroundColor: '#ffffff',
-                                fontSize: '13px',
-                                color: '#1e293b',
-                                outline: 'none',
-                                cursor: 'pointer',
-                              }}
-                            >
-                              <option value="budget_external">งบวิจัยภายนอก (budget_external)</option>
-                              <option value="budget_internal">งบวิจัยภายใน (budget_internal)</option>
-                              <option value="budget">งบประมาณรวม (budget)</option>
-                            </select>
-                          </div>
-                        )}
-                      </div>
-
-                      {formCalcType === 'auto_filtered_count' && (
-                        <div style={{ marginTop: '12px' }}>
-                          <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#475569', marginBottom: '8px' }}>
-                            เงื่อนไขการกรอง
-                          </label>
-                          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1.2fr', gap: '8px' }}>
-                            <select
-                              value={formFilterField}
-                              onChange={(e) => setFormFilterField(e.target.value)}
-                              style={{
-                                height: '36px',
-                                padding: '0 8px',
-                                borderRadius: '6px',
-                                border: '1px solid #cbd5e1',
-                                backgroundColor: '#ffffff',
-                                fontSize: '12.5px',
-                                color: '#1e293b',
-                                outline: 'none',
-                              }}
-                            >
-                              <option value="budget_external">งบภายนอก</option>
-                              <option value="budget_internal">งบภายใน</option>
-                              <option value="budget">งบประมาณ</option>
-                              <option value="department">ภาควิชา</option>
-                              <option value="fund_source">แหล่งทุน</option>
-                              <option value="journal">ระดับวารสาร / Quartile</option>
-                            </select>
-
-                            <select
-                              value={formFilterOperator}
-                              onChange={(e) => setFormFilterOperator(e.target.value as FilterOperator)}
-                              style={{
-                                height: '36px',
-                                padding: '0 8px',
-                                borderRadius: '6px',
-                                border: '1px solid #cbd5e1',
-                                backgroundColor: '#ffffff',
-                                fontSize: '12.5px',
-                                color: '#1e293b',
-                                outline: 'none',
-                              }}
-                            >
-                              <option value="gte">&ge; มากกว่าหรือเท่ากับ</option>
-                              <option value="lte">&le; น้อยกว่าหรือเท่ากับ</option>
-                              <option value="equals">= เท่ากับ</option>
-                              <option value="contains">ประกอบด้วยคำว่า</option>
-                              <option value="not_empty">มีข้อมูล (ไม่ว่าง)</option>
-                            </select>
-
-                            <input
-                              type="text"
-                              value={formFilterValue}
-                              onChange={(e) => setFormFilterValue(e.target.value)}
-                              placeholder="เช่น 10000000"
-                              style={{
-                                padding: '7px 10px',
-                                borderRadius: '6px',
-                                border: '1px solid #cbd5e1',
-                                fontSize: '12.5px',
-                              }}
-                            />
-                          </div>
-                        </div>
-                      )}
-
-                      {formCalcType === 'auto_completeness' && (
-                        <div style={{ marginTop: '10px' }}>
-                          <div style={{ fontSize: '12px', color: '#059669', fontWeight: 600 }}>
-                            ตรวจสอบการมีส่วนร่วมครบทั้ง 7 ภาควิชา: AE, CPE, IRE, FE, IE, ME, CE
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {formCalcType === 'manual' && (
-                    <div style={{ paddingTop: '10px', borderTop: '1px dashed #cbd5e1' }}>
-                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
-                        บันทึกผลงานสะสมปัจจุบัน
-                      </label>
-                      <input
-                        type="number"
-                        value={formManualProgress}
-                        onChange={(e) => setFormManualProgress(Number(e.target.value))}
-                        placeholder="ระบุตัวเลขผลงานปัจจุบัน"
-                        style={{
-                          width: '240px',
-                          padding: '7px 10px',
-                          borderRadius: '6px',
-                          border: '1px solid #cbd5e1',
-                          fontSize: '13px',
-                        }}
-                      />
-                    </div>
-                  )}
-                </div>
-
-                {/* กล่องคำนวณจำลองผลลัพธ์แบบเรียลไทม์ */}
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    backgroundColor: '#f0fdf4',
-                    border: '1px solid #86efac',
-                    borderRadius: '10px',
-                    padding: '12px 18px',
-                  }}
-                >
-                  <div>
-                    <div style={{ fontSize: '11.5px', color: '#15803d', fontWeight: 600, textTransform: 'uppercase' }}>
-                      ผลการคำนวณจำลองแบบเรียลไทม์
-                    </div>
-                    <div style={{ fontSize: '18px', fontWeight: 800, color: '#166534', marginTop: '2px' }}>
-                      {livePreview.currentValue.toLocaleString()} / {formTargetValue.toLocaleString()} {formUnit}
-                    </div>
-                  </div>
-
-                  <div style={{ textAlign: 'right' }}>
-                    <span
-                      style={{
-                        display: 'inline-block',
-                        padding: '4px 10px',
-                        borderRadius: '16px',
-                        backgroundColor: livePreview.statusColor,
-                        color: '#ffffff',
-                        fontSize: '12px',
-                        fontWeight: 700,
-                      }}
-                    >
-                      {livePreview.percentage}% • {livePreview.statusLabel}
-                    </span>
-                  </div>
-                </div>
-
-                {/* ผู้รับผิดชอบ & คำอธิบาย */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                      หน่วยงานผู้รับผิดชอบหลัก
-                    </label>
-                    <input
-                      type="text"
-                      value={formResponsibleUnit}
-                      onChange={(e) => setFormResponsibleUnit(e.target.value)}
-                      placeholder="เช่น รองคณบดีฝ่ายวิจัยและนวัตกรรมสากล"
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        borderRadius: '8px',
-                        border: '1px solid #cbd5e1',
-                        fontSize: '13px',
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                      คำอธิบาย / เกณฑ์ตัวชี้วัด
-                    </label>
-                    <input
-                      type="text"
-                      value={formDescription}
-                      onChange={(e) => setFormDescription(e.target.value)}
-                      placeholder="เกณฑ์ความสำเร็จ หรือคำอธิบายเพิ่มเติม"
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        borderRadius: '8px',
-                        border: '1px solid #cbd5e1',
-                        fontSize: '13px',
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Modal Footer */}
-              <div
-                style={{
-                  padding: '16px 24px',
-                  backgroundColor: '#f8fafc',
-                  borderTop: '1px solid #e2e8f0',
-                  display: 'flex',
-                  justifyContent: 'flex-end',
-                  gap: '10px',
-                }}
-              >
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  style={{
-                    padding: '8px 18px',
-                    borderRadius: '8px',
-                    border: '1px solid #cbd5e1',
-                    backgroundColor: '#ffffff',
-                    color: '#475569',
-                    fontSize: '13px',
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                  }}
-                >
-                  ยกเลิก
-                </button>
-                <button
-                  type="submit"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '8px 24px',
-                    borderRadius: '8px',
-                    border: 'none',
-                    backgroundColor: '#00A651',
-                    color: '#ffffff',
-                    fontSize: '13.5px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    boxShadow: '0 2px 6px rgba(0, 166, 81, 0.25)',
-                  }}
-                >
-                  <FaSave style={{ fontSize: '13px' }} />
-                  <span>บันทึกข้อมูล</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+          showToast={showToast}
+        />
       )}
 
       {/* Modal ยืนยันการลบตัวชี้วัด */}
@@ -2042,6 +1442,24 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({ datasets, on
           if (deleteConfirmId) handleDelete(deleteConfirmId);
         }}
         onCancel={() => setDeleteConfirmId(null)}
+      />
+
+      {/* Modal เพิ่ม/แก้ไขตัวชี้วัดตามแผนยุทธศาสตร์ (สไตล์เดียวกับหมวดหมู่อื่น) */}
+      <StrategicKpiModal
+        isOpen={isStrategicKpiModalOpen}
+        onClose={() => {
+          setIsStrategicKpiModalOpen(false);
+          setEditingStrategicKpiId(undefined);
+        }}
+        kpiId={editingStrategicKpiId}
+        onSaved={() => {
+          refreshList();
+          setCurrentPage(1);
+          setSearchQuery('');
+          setIsStrategicKpiModalOpen(false);
+          setEditingStrategicKpiId(undefined);
+        }}
+        showToast={showToast}
       />
     </>
   );

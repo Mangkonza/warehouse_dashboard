@@ -127,7 +127,7 @@ d:\Data warehoues\Project\
 | **โครงการพัฒนาวิชาการ (Academic)** | ข้อมูลโครงการพัฒนาวิชาการ หน่วยงานผู้ว่าจ้าง งบประมาณ และการบูรณาการ | `src/app/(dashboard)/academic/page.tsx`<br>`src/app/(dashboard)/academic/_components/AcademicView.tsx` |
 | **ผลงานตีพิมพ์ทางวิชาการ (Publications)** | ตารางผลงานตีพิมพ์ การจำแนกระดับชาติ/นานาชาติ และเงินสนับสนุน | `src/app/(dashboard)/publications/page.tsx`<br>`src/app/(dashboard)/publications/_components/PublicationsTable.tsx` |
 | **งานบริการวิชาการ (Academic Services)** | แสดงงานบริการวิชาการ ประเภทบริการ จำนวนผู้เข้าร่วม และชั่วโมงที่ใช้ | `src/app/(dashboard)/service/page.tsx`<br>`src/app/(dashboard)/service/_components/ServiceView.tsx` |
-| **งานทรัพย์สินทางปัญญา (IP)** | ทะเบียนสิทธิบัตร อนุสิทธิบัตร ลิขสิทธิ์ วันที่ยื่นขอ และผู้ประดิษฐ์ | `src/app/(dashboard)/ip/page.tsx`<br>`src/app/(dashboard)/ip/_components/IPView.tsx` |
+| **งานทรัพย์สินทางปัญญา (IP)** | ทะเบียนสิทธิบัตร อนุสิทธิบัตร ลิขสิทธิ์ วันที่ยื่นขอ และผู้สร้างผลงาน | `src/app/(dashboard)/ip/page.tsx`<br>`src/app/(dashboard)/ip/_components/IPView.tsx` |
 | **ตัวชี้วัดยุทธศาสตร์ (Strategic KPIs)** | ติดตามคะแนนและการบรรลุเป้าหมายตามแผนยุทธศาสตร์คณะ เปรียบเทียบ Target/Actual | `src/app/(dashboard)/kpi/page.tsx`<br>`src/app/(dashboard)/kpi/_components/KPIView.tsx`<br>`src/lib/kpiEngine.ts` |
 | **การติดตามโครงการ (Project Monitoring)** | ติดตามสถานะโครงการที่ขอขยายเวลาสัญญา (Extension Timelines) และกำหนดส่งงาน | `src/app/(dashboard)/monitoring/page.tsx`<br>`src/lib/projectMonitoringEngine.ts` |
 | **การประเมินคุณภาพ (Evaluation)** | ประเมินผลงานแบบเดี่ยวและกลุ่ม: UN SDGs (1–17), คุณภาพวารสาร (Q1–Q4, TCI), TRL (1–9) | `src/app/(dashboard)/evaluation/page.tsx`<br>`src/app/(dashboard)/evaluation/_components/EvaluationView.tsx`<br>`src/app/(dashboard)/evaluation/_components/EvaluationDrawer.tsx`<br>`src/app/(dashboard)/evaluation/_components/BulkEvaluationModal.tsx` |
@@ -225,7 +225,7 @@ erDiagram
    - `id` (PK, Int Auto), `legacy_id` (Unique), `name`, `service_category`, `provider_name`, `department_code` (FK), `target_group`, `hours_spent`, `attendees_count`, `date`, `fiscal_year`
 7. **`intellectual_properties` (งานทรัพย์สินทางปัญญา)**
    - `id` (PK, Int Auto), `legacy_id` (Unique), `title`, `type` (สิทธิบัตร/อนุสิทธิบัตร/ลิขสิทธิ์), `creator_name`, `department_code` (FK), `application_number`, `registration_number`, `filing_date`, `protection_start`, `support_amount`, `status`, `fiscal_year`
-   - ตารางเชื่อมโยง: `ip_inventors` (ผู้ประดิษฐ์), `ip_departments` (ภาควิชาเจ้าของร่วม)
+   - ตารางเชื่อมโยง: `ip_inventors` (ผู้สร้างผลงาน), `ip_departments` (ภาควิชาเจ้าของร่วม)
 8. **`evaluations` (ผลการประเมินคุณภาพ)**
    - `id` (PK, Int Auto), `category` (VarChar(50)), `record_id` (VarChar(100)), `sdg_ids` (Int[]), `i_type` (VarChar(50)), `journal_index` (VarChar(100)), `evaluated_by`, `evaluated_at`
    - Unique Index: `[category, record_id]`
@@ -272,7 +272,7 @@ erDiagram
 | | `GET` | `/api/v1/dashboard/publications` | Public / Session | ดึงสรุปสถิติผลงานตีพิมพ์ |
 | | `GET` | `/api/v1/dashboard/services` | Public / Session | ดึงสรุปสถิติด้านบริการวิชาการ |
 | | `GET` | `/api/v1/dashboard/ip` | Public / Session | ดึงสรุปสถิติด้านทรัพย์สินทางปัญญา |
-| **Personnel**| `GET` | `/api/v1/personnel` | requireRole('personnel') | รายชื่ออาจารย์และบุคลากร |
+| **Personnel**| `GET` | `/api/v1/personnel` | requireRole('personnel') | รายชื่อคณาจารย์และบุคลากร |
 | | `GET` | `/api/v1/personnel/:id` | requireRole('personnel') | ข้อมูลประวัติและผลงานรายบุคคล |
 | **Lookups** | `GET` | `/api/v1/lookups/departments` | Public | รายชื่อภาควิชาและสังกัดมาตรฐาน |
 | | `GET` | `/api/v1/lookups/funding-sources`| Public | รายชื่อแหล่งทุนวิจัย |

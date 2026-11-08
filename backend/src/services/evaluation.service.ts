@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import { EvaluationRepository } from '../repositories/evaluation.repository.js';
 
 function parseJournalIndex(raw: any): { type: 'Q' | 'TCI'; value: string } | null {
@@ -59,6 +61,48 @@ function formatEvaluation(item: any) {
   };
 }
 
+
+function syncEvaluationsToJson(items: Array<{ category: string; recordId: string; sdgIds?: number[]; iType?: string | null; journalIndex?: any; evaluatedBy?: string }>) {
+  try {
+    const candidates = [
+      path.resolve(process.cwd(), '../warehouse_dashboard/src/data'),
+      path.resolve(process.cwd(), 'warehouse_dashboard/src/data'),
+      path.resolve(process.cwd(), 'src/data'),
+    ];
+    for (const dir of candidates) {
+      const evalPath = path.join(dir, 'evaluations.json');
+      const persistPath = path.join(dir, 'persisted_evaluations.json');
+      if (fs.existsSync(evalPath) || fs.existsSync(dir)) {
+        let current: any = {};
+        if (fs.existsSync(evalPath)) {
+          try { current = JSON.parse(fs.readFileSync(evalPath, 'utf8')); } catch {}
+        }
+        items.forEach((it) => {
+          const key = `${it.category.toLowerCase()}_${String(it.recordId).trim()}`;
+          current[key] = {
+            id: key,
+            category: it.category,
+            record_id: it.recordId,
+            sdg_ids: it.sdgIds || [],
+            i_type: it.iType || null,
+            journal_index: it.journalIndex ? (typeof it.journalIndex === 'object' ? it.journalIndex : { type: 'Q', value: it.journalIndex }) : null,
+            evaluated_by: it.evaluatedBy || 'user',
+            evaluated_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          };
+        });
+        const str = JSON.stringify(current, null, 2);
+        fs.writeFileSync(evalPath, str, 'utf8');
+        if (fs.existsSync(persistPath)) {
+          fs.writeFileSync(persistPath, str, 'utf8');
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('[EvaluationService] Failed to sync evaluations to JSON:', err);
+  }
+}
+
 export class EvaluationService {
   static async getEvaluations(category?: string, recordId?: string) {
     if (category && recordId) {
@@ -100,6 +144,7 @@ export class EvaluationService {
       evaluatedBy: body.evaluated_by ? String(body.evaluated_by).trim() : 'user',
     });
 
+    syncEvaluationsToJson([{ category, recordId, sdgIds, iType: body.i_type, journalIndex, evaluatedBy: body.evaluated_by }]);
     return { status: 'success', data: formatEvaluation(saved) };
   }
 
@@ -119,6 +164,7 @@ export class EvaluationService {
     }));
 
     const results = await EvaluationRepository.bulkUpsert(payload);
+    syncEvaluationsToJson(payload);
     return {
       status: 'success',
       message: `บันทึกผลการประเมินสำเร็จ ${results.length} รายการ`,

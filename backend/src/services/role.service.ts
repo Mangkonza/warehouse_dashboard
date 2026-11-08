@@ -188,7 +188,7 @@ export class RoleService {
     const newRole: AppRole = data.role === 'user' ? 'user' : data.role === 'admin' ? 'admin' : (existing.role as AppRole);
     const isRoleChanging = newRole !== existing.role;
 
-    // กฎ: ห้ามลดระดับสิทธิ์ตัวเอง (แต่สามารถแก้ไขชื่อ-นามสกุลและหมายเหตุของตนเองได้)
+    // กฎ: ห้ามลดระดับสิทธิ์ตัวเอง (แต่สามารถแก้ไขชื่อ-นามสกุลของตนเองได้)
     if (actor.username.toLowerCase() === targetUsername && isRoleChanging) {
       throw new RoleError('ไม่อนุญาตให้ลดระดับสิทธิ์ของบัญชีตนเองที่กำลังใช้งานอยู่', 403, 'SELF_MODIFICATION_FORBIDDEN');
     }

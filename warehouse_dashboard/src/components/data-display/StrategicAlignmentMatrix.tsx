@@ -13,7 +13,8 @@ import { CategoryKey } from '@/types/dataManagement';
 import { resolveItemStrategicAlignment } from '@/lib/pastelTheme';
 import { extractItemBudget } from '@/lib/sdgEngine';
 import { DrillDownProjectDrawer } from './DrillDownProjectDrawer';
-import { HybridSdgCard } from './HybridSdgCard';
+import { SdgsDashboardView } from '@/app/(dashboard)/sdgs/_components/SdgsDashboardView';
+import { cn } from '@/lib/utils';
 
 export interface StrategicAlignmentMatrixProps {
   items: any[];
@@ -93,9 +94,13 @@ export const StrategicAlignmentMatrix: React.FC<StrategicAlignmentMatrixProps> =
     };
   }, [items, categoryKey]);
 
+  // Temporarily hidden from web display per user request, while preserving code and calculations
+  const SHOW_ISEE_IAM = false;
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {/* SECTION 1: Dual Executive Alignment Cards (ISEE & IAM) */}
+      {/* SECTION 1: Dual Executive Alignment Cards (ISEE & IAM) - preserved in code, hidden from UI */}
+      {SHOW_ISEE_IAM && (
       <div
         style={{
           display: 'grid',
@@ -132,7 +137,7 @@ export const StrategicAlignmentMatrix: React.FC<StrategicAlignmentMatrixProps> =
                 <FaChartBar style={{ fontSize: '15px' }} />
               </div>
               <h3 style={{ margin: 0, fontSize: '15.5px', fontWeight: 700, color: '#0f172a' }}>
-                ความสอดคล้องตามยุทธศาสตร์มหาวิทยาลัย (ISEE)
+                ความสอดคล้องตามยุทธศาสตร์มหาวิทยาลัย (ISEE 4 Pillars)
               </h3>
             </div>
             <span
@@ -265,7 +270,7 @@ export const StrategicAlignmentMatrix: React.FC<StrategicAlignmentMatrixProps> =
                 <FaAward style={{ fontSize: '15px' }} />
               </div>
               <h3 style={{ margin: 0, fontSize: '15.5px', fontWeight: 700, color: '#0f172a' }}>
-                การขับเคลื่อนตามค่านิยมองค์กร (IAM)
+                การขับเคลื่อนตามค่านิยมองค์กร (IAM Core Values)
               </h3>
             </div>
             <span
@@ -369,15 +374,14 @@ export const StrategicAlignmentMatrix: React.FC<StrategicAlignmentMatrixProps> =
           </div>
         </div>
       </div>
+      )}
 
       {/* SECTION 2: United Nations SDGs 17 Goals Matrix */}
-      <div>
-        <HybridSdgCard
-          items={items}
-          categoryKey={categoryKey}
-          title="เป้าหมายการพัฒนาที่ยั่งยืน (UN SDGs 17 เป้าหมาย)"
-          unitLabel={unitLabel}
-          showBudget={showBudget}
+      <div className="space-y-4">
+        <SdgsDashboardView
+          embeddedCategory={categoryKey}
+          isEmbedded={true}
+          embeddedItems={items}
         />
       </div>
 

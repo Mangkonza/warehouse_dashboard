@@ -1,7 +1,46 @@
 'use client';
 
 import React from 'react';
+import { getSdgInfo, getSdgTextColor } from '@/lib/sdg';
 import { cn } from '@/lib/utils';
+
+export interface SdgNumberBadgeProps {
+  goalNumber: number; // 1 - 17
+  selected?: boolean;
+  className?: string;
+}
+
+/**
+ * Shared crisp numeric SDG icon badge component.
+ * Used in the Evaluation Drawer and Heatmap row headers.
+ */
+export const SdgNumberBadge: React.FC<SdgNumberBadgeProps> = ({
+  goalNumber,
+  selected = false,
+  className,
+}) => {
+  const info = getSdgInfo(goalNumber);
+  const bgColor = info?.color || '#00A651';
+  const textColor = getSdgTextColor(goalNumber);
+
+  return (
+    <span
+      className={cn(
+        'w-7 h-7 rounded-lg inline-flex items-center justify-center font-bold text-[13px] shrink-0 transition-transform duration-100 shadow-2xs select-none',
+        selected ? 'bg-white shadow-sm' : '',
+        className
+      )}
+      style={{
+        backgroundColor: selected ? '#ffffff' : bgColor,
+        color: selected ? bgColor : textColor,
+        lineHeight: 1,
+        textAlign: 'center',
+      }}
+    >
+      <span style={{ transform: 'translateY(-0.5px)' }}>{goalNumber}</span>
+    </span>
+  );
+};
 
 export interface SdgCardProps {
   goalNumber: number; // 1 - 17
@@ -12,11 +51,11 @@ export interface SdgCardProps {
 }
 
 /**
- * Single-layer compact SDG selection card.
- * - Shows plain number 1-17 on the left followed by Thai title
- * - No inner boxes, no "SDG 1", no checkmarks
- * - Selected state: full background #006C68, border #004E4B, all text turns white
- * - Unselected state: white background, black text, light gray border
+ * Universal SDG Selection Card used in the Project Evaluation Drawer.
+ * Uses a crisp numeric icon badge instead of photo image as requested.
+ * - 2-column multi-select button
+ * - Unselected: white button background, colored numeric icon box, dark text
+ * - Selected: full SDG color background, contrast text, white numeric icon box
  */
 export const SdgCard: React.FC<SdgCardProps> = ({
   goalNumber,
@@ -25,42 +64,45 @@ export const SdgCard: React.FC<SdgCardProps> = ({
   onToggle,
   className,
 }) => {
+  const info = getSdgInfo(goalNumber);
+  const bgColor = info?.color || '#00A651';
+  const textColor = getSdgTextColor(goalNumber);
+
   return (
     <button
       type="button"
       onClick={() => onToggle(goalNumber)}
       className={cn(
-        "flex items-center gap-2 px-2.5 py-1.5 min-h-[36px] rounded-lg text-left transition-all duration-150 cursor-pointer select-none",
+        'group flex items-center gap-2.5 px-3 py-2 min-h-[44px] rounded-xl text-left transition-all duration-150 cursor-pointer select-none',
         selected
-          ? "tag-sdg bg-eval-sdg border border-eval-sdg-border text-white shadow-xs"
-          : "bg-white text-black border border-slate-200 hover:border-slate-300 hover:bg-slate-50",
+          ? 'shadow-sm border border-black/15'
+          : 'bg-white text-slate-800 border border-slate-200 hover:border-slate-300 hover:bg-slate-50/80',
         className
       )}
       style={{
-        backgroundColor: selected ? '#006C68' : '#ffffff',
-        borderColor: selected ? '#004E4B' : '#e2e8f0',
+        backgroundColor: selected ? bgColor : '#ffffff',
+        borderColor: selected ? 'rgba(0, 0, 0, 0.15)' : '#e2e8f0',
+        color: selected ? textColor : '#0f172a',
       }}
+      aria-pressed={selected}
+      aria-label={`SDG ${goalNumber}: ${nameTh}`}
     >
-      {/* Raw number icon-like prefix (plain text, no circle/nested box) */}
-      <span
-        className={cn(
-          "text-[13px] font-semibold min-w-[18px] shrink-0 text-center",
-          selected ? "text-white" : "text-black"
-        )}
-      >
-        {goalNumber}
-      </span>
+      {/* Numeric Icon Box (Replaces photo image) */}
+      <SdgNumberBadge goalNumber={goalNumber} selected={selected} />
 
-      {/* Thai SDG Name: 13px normal weight */}
-      <span
-        className={cn(
-          "text-[13px] font-normal leading-snug whitespace-nowrap overflow-hidden text-ellipsis",
-          selected ? "text-white" : "text-black"
-        )}
-        title={nameTh}
-      >
-        {nameTh}
-      </span>
+      {/* Thai Title (number removed to prevent duplication with icon) */}
+      <div className="flex flex-col justify-center min-w-0 leading-tight">
+        <span
+          className="text-[12.5px] truncate"
+          style={{
+            color: selected ? textColor : '#0f172a',
+            fontWeight: 600,
+          }}
+          title={nameTh}
+        >
+          {nameTh}
+        </span>
+      </div>
     </button>
   );
 };

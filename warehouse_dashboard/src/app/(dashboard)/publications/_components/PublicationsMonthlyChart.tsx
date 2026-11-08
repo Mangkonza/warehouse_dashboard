@@ -1,0 +1,1654 @@
+'use client';
+
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { FaChartLine } from 'react-icons/fa';
+import { autoDetectJournalRanking } from '@/config/journalRankingConfig';
+import { PublicationItem } from '../_hooks/usePublicationsData';
+
+export interface PublicationsMonthlyChartProps {
+  validData: PublicationItem[];
+  onSelectPeriod?: (monthIndex: number, year: number, items: PublicationItem[]) => void;
+}
+
+const MONTHS = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+
+export const PUB_LEVELS = [
+  { k: 'q1', n: 'Q1', c: '#9f1239' },
+  { k: 'q2', n: 'Q2', c: '#e11d48' },
+  { k: 'q3', n: 'Q3', c: '#fb7185' },
+  { k: 'q4', n: 'Q4', c: '#fecdd3' },
+  { k: 't1', n: 'TCI 1', c: '#4338ca' },
+  { k: 't2', n: 'TCI 2', c: '#818cf8' },
+  { k: 't3', n: 'TCI 3', c: '#c7d2fe' },
+] as const;
+
+export const PUB_CHART_COLORS = {
+  line: '#0f766e',
+  lineInk: '#0f766e',
+  g0: '#fb7185',
+  g1: '#be123c',
+  cur: '#be123c',
+  curInk: '#9f1239',
+  total: '#e11d48',
+};
+
+// Monotone cubic spline curve algorithm (Fritsch-Carlson)
+function monoSpline(p: Array<{ x: number; y: number }>): string {
+  const n = p.length;
+  if (n === 0) return '';
+  if (n === 1) return `M${p[0].x.toFixed(1)},${p[0].y.toFixed(1)}`;
+
+  const dx: number[] = [];
+  const m: number[] = [];
+  const t: number[] = [];
+
+  for (let i = 0; i < n - 1; i++) {
+    dx[i] = p[i + 1].x - p[i].x;
+    m[i] = (p[i + 1].y - p[i].y) / (dx[i] || 1);
+  }
+
+  t[0] = m[0];
+  t[n - 1] = m[n - 2];
+  for (let i = 1; i < n - 1; i++) {
+    t[i] = m[i - 1] * m[i] <= 0 ? 0 : (m[i - 1] + m[i]) / 2;
+  }
+
+  for (let i = 0; i < n - 1; i++) {
+    if (m[i] === 0) {
+      t[i] = 0;
+      t[i + 1] = 0;
+    } else {
+      const a = t[i] / m[i];
+      const b = t[i + 1] / m[i];
+      const s = a * a + b * b;
+      if (s > 9) {
+        const k = 3 / Math.sqrt(s);
+        t[i] = k * a * m[i];
+        t[i + 1] = k * b * m[i];
+      }
+    }
+  }
+
+  let d = `M${p[0].x.toFixed(1)},${p[0].y.toFixed(1)}`;
+  for (let i = 0; i < n - 1; i++) {
+    d += ` C${(p[i].x + dx[i] / 3).toFixed(1)},${(p[i].y + (t[i] * dx[i]) / 3).toFixed(1)} ` +
+      `${(p[i + 1].x - dx[i] / 3).toFixed(1)},${(p[i + 1].y - (t[i + 1] * dx[i]) / 3).toFixed(1)} ` +
+      `${p[i + 1].x.toFixed(1)},${p[i + 1].y.toFixed(1)}`;
+  }
+  return d;
+}
+
+function extractItemYearAndMonth(item: PublicationItem): { yearBe: number; monthIdx: number } | null {
+  let yearBe = Number(item.fiscal_year_be);
+  let monthIdx: number | null = null;
+
+  const myMatch = /^(\d{4})-(0[1-9]|1[0-2])$/.exec(String(item.month_year || '').trim());
+  if (myMatch) {
+    const ceYear = Number(myMatch[1]);
+    monthIdx = Number(myMatch[2]) - 1;
+    if (!yearBe || isNaN(yearBe)) {
+      yearBe = ceYear > 2400 ? ceYear : ceYear + 543;
+    }
+  }
+
+  if (monthIdx === null) {
+    const rawDate = String(item.date || item.filing_date || item.publish_date || '');
+    const dMatch = /(\d{4})-(\d{1,2})-(\d{1,2})/.exec(rawDate);
+    if (dMatch) {
+      const y = Number(dMatch[1]);
+      monthIdx = Number(dMatch[2]) - 1;
+      if (!yearBe || isNaN(yearBe)) {
+        yearBe = y > 2400 ? y : y + 543;
+      }
+    }
+  }
+
+  if (monthIdx === null && item.month) {
+    const idx = MONTHS.indexOf(String(item.month).trim());
+    if (idx >= 0) monthIdx = idx;
+  }
+
+  if (monthIdx === null || isNaN(yearBe)) return null;
+  return { yearBe, monthIdx };
+}
+
+interface CustomYearSelectProps {
+  label: string;
+  value: number;
+  options: Array<{ value: number; label: string; hasData: boolean }>;
+  onChange: (val: number) => void;
+}
+
+function CustomYearSelect({ label, value, options, onChange }: CustomYearSelectProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') setIsOpen(false);
+    }
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen]);
+
+  const selectedOption = options.find((o) => o.value === value) || options[0];
+
+  return (
+    <div
+      ref={containerRef}
+      style={{
+        position: 'relative',
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '8px',
+        padding: '4px 4px 4px 14px',
+        borderRadius: '14px',
+        background: '#eef2f6',
+        fontSize: '13.5px',
+        fontWeight: 600,
+        color: '#64748b',
+        userSelect: 'none',
+      }}
+    >
+      <span>{label}</span>
+      <button
+        type="button"
+        onClick={() => setIsOpen((prev) => !prev)}
+        aria-expanded={isOpen}
+        style={{
+          font: 'inherit',
+          fontSize: '13.5px',
+          fontWeight: 700,
+          color: '#0f172a',
+          minHeight: '36px',
+          padding: '6px 14px',
+          border: isOpen ? '1px solid #fb7185' : '1px solid rgba(15, 23, 42, 0.08)',
+          borderRadius: '10px',
+          cursor: 'pointer',
+          backgroundColor: '#ffffff',
+          boxShadow: isOpen
+            ? '0 0 0 3px rgba(251, 113, 133, 0.25), 0 1px 2px rgba(15, 23, 42, 0.08)'
+            : '0 1px 2px rgba(15,23,42,.1), 0 4px 10px -4px rgba(15,23,42,.12)',
+          outline: 'none',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '8px',
+          transition: 'all 0.15s ease',
+        }}
+      >
+        <span>{selectedOption ? selectedOption.value : value}</span>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#64748b"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{
+            width: '12px',
+            height: '12px',
+            transition: 'transform 0.2s ease',
+            transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+          }}
+        >
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 6px)',
+            right: 0,
+            minWidth: '185px',
+            background: '#ffffff',
+            borderRadius: '14px',
+            border: '1px solid rgba(15, 23, 42, 0.08)',
+            boxShadow: '0 12px 28px -4px rgba(15, 23, 42, 0.16), 0 4px 12px -2px rgba(15, 23, 42, 0.08)',
+            padding: '6px',
+            zIndex: 100,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '2px',
+          }}
+        >
+          {options.map((opt) => {
+            const isSelected = opt.value === value;
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => {
+                  onChange(opt.value);
+                  setIsOpen(false);
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '8px',
+                  width: '100%',
+                  padding: '8px 12px',
+                  borderRadius: '10px',
+                  border: 'none',
+                  background: isSelected ? '#fff1f2' : 'transparent',
+                  color: isSelected ? '#be123c' : '#0f172a',
+                  fontWeight: isSelected ? 700 : 500,
+                  fontSize: '13.5px',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  transition: 'background 0.12s, color 0.12s',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isSelected) e.currentTarget.style.background = '#f8fafc';
+                }}
+                onMouseLeave={(e) => {
+                  if (!isSelected) e.currentTarget.style.background = 'transparent';
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span>{opt.value}</span>
+                  {!opt.hasData && (
+                    <span style={{ fontSize: '11.5px', color: '#94a3b8', fontWeight: 400 }}>
+                      (ไม่มีข้อมูล)
+                    </span>
+                  )}
+                </div>
+                {isSelected && (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#be123c"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    style={{ width: '13px', height: '13px', flexShrink: 0 }}
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function PublicationsMonthlyChart({ validData, onSelectPeriod }: PublicationsMonthlyChartProps) {
+  // 1. Group records by Year and Month into structured buckets
+  const datasetByYear = useMemo(() => {
+    const map: Record<
+      number,
+      {
+        levels: Record<string, number[]>;
+        fund: number[];
+        items: PublicationItem[][];
+      }
+    > = {};
+
+    validData.forEach((item) => {
+      const info = extractItemYearAndMonth(item);
+      if (!info) return;
+      const { yearBe, monthIdx } = info;
+
+      if (!map[yearBe]) {
+        map[yearBe] = {
+          levels: {
+            q1: Array(12).fill(0),
+            q2: Array(12).fill(0),
+            q3: Array(12).fill(0),
+            q4: Array(12).fill(0),
+            t1: Array(12).fill(0),
+            t2: Array(12).fill(0),
+            t3: Array(12).fill(0),
+          },
+          fund: Array(12).fill(0),
+          items: Array.from({ length: 12 }, () => []),
+        };
+      }
+
+      const budget = typeof item.budget === 'number' ? item.budget : Number(item.budget) || 0;
+      const tier = String(autoDetectJournalRanking(item.journal || '', item.level || ''));
+      let lKey = 'q1';
+      if (tier === 'Q1') lKey = 'q1';
+      else if (tier === 'Q2') lKey = 'q2';
+      else if (tier === 'Q3') lKey = 'q3';
+      else if (tier === 'Q4') lKey = 'q4';
+      else if (tier === 'TCI 1' || tier === 'TCI') lKey = 't1';
+      else if (tier === 'TCI 2') lKey = 't2';
+      else if (tier === 'TCI 3') lKey = 't3';
+      else lKey = 't1';
+
+      if (map[yearBe].levels[lKey]) {
+        map[yearBe].levels[lKey][monthIdx]++;
+      }
+      map[yearBe].fund[monthIdx] += budget;
+      map[yearBe].items[monthIdx].push(item);
+    });
+
+    return map;
+  }, [validData]);
+
+  // Future-proof list of years
+  const availableYearsWithData = useMemo(() => {
+    return Object.keys(datasetByYear).map(Number).sort((a, b) => b - a);
+  }, [datasetByYear]);
+
+  const FUTURE_PROOF_YEARS = useMemo(() => {
+    const list = new Set<number>([2570, 2569, 2568, 2567, 2566]);
+    availableYearsWithData.forEach((y) => list.add(y));
+    return Array.from(list).sort((a, b) => b - a);
+  }, [availableYearsWithData]);
+
+  // States
+  const [selectedYear, setSelectedYear] = useState<number>(() => {
+    return availableYearsWithData[0] || 2568;
+  });
+  const [compareYear, setCompareYear] = useState<number>(() => {
+    const other = FUTURE_PROOF_YEARS.find((y) => y !== (availableYearsWithData[0] || 2568));
+    return other || 2567;
+  });
+
+  const [mode, setMode] = useState<'total' | 'level' | 'compare'>('level');
+  const [metric, setMetric] = useState<'count' | 'fund'>('count');
+  const [hiddenLevels, setHiddenLevels] = useState<Record<string, boolean>>({});
+  const [showFundLine, setShowFundLine] = useState<boolean>(true);
+
+  // Active year datasets
+  const currentData = useMemo(() => {
+    return (
+      datasetByYear[selectedYear] || {
+        levels: {
+          q1: Array(12).fill(0),
+          q2: Array(12).fill(0),
+          q3: Array(12).fill(0),
+          q4: Array(12).fill(0),
+          t1: Array(12).fill(0),
+          t2: Array(12).fill(0),
+          t3: Array(12).fill(0),
+        },
+        fund: Array(12).fill(0),
+        items: Array.from({ length: 12 }, () => []),
+      }
+    );
+  }, [datasetByYear, selectedYear]);
+
+  const compareData = useMemo(() => {
+    return datasetByYear[compareYear] || null;
+  }, [datasetByYear, compareYear]);
+
+  const hasCompareData = Boolean(compareData);
+
+  const prevTotals = useMemo(() => {
+    if (!compareData) return Array(12).fill(0);
+    return MONTHS.map((_, i) => {
+      return PUB_LEVELS.reduce((sum, l) => sum + (compareData.levels[l.k]?.[i] || 0), 0);
+    });
+  }, [compareData]);
+
+  // Monthly sums for current year
+  const currentTotalsAll = useMemo(() => {
+    return MONTHS.map((_, i) => {
+      return PUB_LEVELS.reduce((sum, l) => sum + (currentData.levels[l.k]?.[i] || 0), 0);
+    });
+  }, [currentData]);
+
+  const currentTotalsVis = useMemo(() => {
+    return MONTHS.map((_, i) => {
+      return PUB_LEVELS.reduce((sum, l) => {
+        if (hiddenLevels[l.k]) return sum;
+        return sum + (currentData.levels[l.k]?.[i] || 0);
+      }, 0);
+    });
+  }, [currentData, hiddenLevels]);
+
+  // Tooltip & hover states
+  const [activeMonthIdx, setActiveMonthIdx] = useState<number | null>(null);
+  const [activeSegKey, setActiveSegKey] = useState<string | null>(null);
+  const [activeDotMonth, setActiveDotMonth] = useState<number | null>(null);
+  const [tooltip, setTooltip] = useState<{
+    visible: boolean;
+    x: number;
+    y: number;
+    content: React.ReactNode;
+  }>({
+    visible: false,
+    x: 0,
+    y: 0,
+    content: null,
+  });
+
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const plotRef = useRef<HTMLDivElement>(null);
+
+  // Resize handler for SVG width
+  const [plotWidth, setPlotWidth] = useState<number>(760);
+  useEffect(() => {
+    const updateW = () => {
+      if (scrollerRef.current) {
+        setPlotWidth(Math.max(720, scrollerRef.current.clientWidth - 32));
+      }
+    };
+    updateW();
+    window.addEventListener('resize', updateW);
+    return () => window.removeEventListener('resize', updateW);
+  }, []);
+
+  // Geometry calculations
+  const isCompare = mode === 'compare';
+  const showRightAxis = !isCompare && showFundLine;
+  const H = 370;
+  const ml = 46;
+  const mr = showRightAxis ? 56 : 24;
+  const mt = 32;
+  const mb = 36;
+  const pw = plotWidth - ml - mr;
+  const ph = H - mt - mb;
+  const cw = pw / 12;
+
+  // Left Y-axis scale calculation
+  const { lmax, lstep, ldec } = useMemo(() => {
+    const vals: number[] = [];
+    if (isCompare) {
+      for (let i = 0; i < 12; i++) {
+        const c = metric === 'count' ? currentTotalsAll[i] : currentData.fund[i] / 1e6;
+        vals.push(c);
+        if (hasCompareData && compareData) {
+          const p = metric === 'count' ? prevTotals[i] : compareData.fund[i] / 1e6;
+          vals.push(p);
+        }
+      }
+    } else {
+      for (let i = 0; i < 12; i++) {
+        vals.push(mode === 'total' ? currentTotalsAll[i] : currentTotalsVis[i]);
+      }
+    }
+    const vmax = Math.max(0, ...vals);
+    if (isCompare && metric === 'fund') {
+      const step = Math.max(0.04, Math.ceil(vmax / 4 / 0.01) * 0.01);
+      return { lstep: step, lmax: step * 4, ldec: 2 };
+    }
+    const step = Math.max(1, Math.ceil(vmax / 4));
+    return { lstep: step, lmax: step * 4, ldec: 0 };
+  }, [isCompare, metric, currentTotalsAll, currentTotalsVis, currentData, hasCompareData, compareData, prevTotals, mode]);
+
+  const yv = (val: number) => mt + ph - (lmax > 0 ? (val / lmax) * ph : 0);
+
+  // Right Y-axis scale calculation (funding in millions)
+  const { rmax, rstep } = useMemo(() => {
+    const fmaxVal = Math.max(0, ...currentData.fund) / 1e6;
+    const step = Math.max(0.04, Math.ceil(fmaxVal / 4 / 0.01) * 0.01);
+    return { rstep: step, rmax: step * 4 };
+  }, [currentData.fund]);
+
+  const yf = (mil: number) => mt + ph - (rmax > 0 ? (mil / rmax) * ph : 0);
+
+  // Spline points for funding line
+  const fundPoints = useMemo(() => {
+    return MONTHS.map((_, i) => ({
+      x: ml + i * cw + cw / 2,
+      y: yf(currentData.fund[i] / 1e6),
+    }));
+  }, [currentData.fund, ml, cw, yf]);
+
+  const splinePath = useMemo(() => {
+    return monoSpline(fundPoints);
+  }, [fundPoints]);
+
+  // Tooltip positioning helper
+  const handlePointerMove = (e: React.PointerEvent, content: React.ReactNode) => {
+    if (!plotRef.current) return;
+    const box = plotRef.current.getBoundingClientRect();
+    const x = Math.max(10, Math.min(box.width - 190, e.clientX - box.left + 16));
+    const y = Math.max(10, e.clientY - box.top - 80);
+    setTooltip({ visible: true, x, y, content });
+  };
+
+  const handlePointerLeave = () => {
+    setActiveMonthIdx(null);
+    setActiveSegKey(null);
+    setActiveDotMonth(null);
+    setTooltip((prev) => ({ ...prev, visible: false }));
+  };
+
+  // Level toggle handler (safeguard: keep at least 1 visible)
+  const toggleLevel = (key: string) => {
+    const visibleCount = PUB_LEVELS.filter((l) => !hiddenLevels[l.k]).length;
+    if (!hiddenLevels[key] && visibleCount <= 1) return;
+    setHiddenLevels((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  // Comparison summary calculation
+  const comparisonSummary = useMemo(() => {
+    if (!isCompare || !hasCompareData || !compareData) return null;
+    const curSum = metric === 'count'
+      ? currentTotalsAll.reduce((a, b) => a + b, 0)
+      : currentData.fund.reduce((a, b) => a + b, 0);
+    const prevSum = metric === 'count'
+      ? prevTotals.reduce((a, b) => a + b, 0)
+      : compareData.fund.reduce((a, b) => a + b, 0);
+
+    const unit = metric === 'count' ? 'เรื่อง' : 'ล้านบาท';
+    const cVal = metric === 'count' ? curSum : (curSum / 1e6).toFixed(2);
+    const pVal = metric === 'count' ? prevSum : (prevSum / 1e6).toFixed(2);
+
+    let diffText = '';
+    let isUp = true;
+    if (metric === 'count') {
+      const d = curSum - prevSum;
+      isUp = d >= 0;
+      diffText = `${isUp ? '▲ +' : '▼ −'}${Math.abs(d)} ${unit}`;
+    } else {
+      const pct = prevSum > 0 ? ((curSum - prevSum) / prevSum) * 100 : 0;
+      isUp = pct >= 0;
+      diffText = `${isUp ? '▲ +' : '▼ −'}${Math.abs(pct).toFixed(1)}%`;
+    }
+
+    return { cVal, pVal, unit, diffText, isUp };
+  }, [isCompare, hasCompareData, compareData, metric, currentTotalsAll, currentData.fund, prevTotals]);
+
+  return (
+    <div
+      style={{
+        backgroundColor: '#ffffff',
+        borderRadius: '28px',
+        padding: '24px 28px 22px',
+        border: '1px solid rgba(15, 23, 42, 0.08)',
+        boxShadow: '0 1px 3px rgba(15,23,42,0.04), 0 20px 40px -24px rgba(15,23,42,0.18)',
+        position: 'relative',
+        width: '100%',
+      }}
+    >
+      {/* HEADER & CONTROLS */}
+      <div
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          gap: '14px 24px',
+        }}
+      >
+        <div>
+          <h2
+            style={{
+              margin: 0,
+              fontSize: '20px',
+              fontWeight: 700,
+              color: '#0f172a',
+              letterSpacing: '-0.01em',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '9px',
+            }}
+          >
+            <FaChartLine style={{ color: '#fb7185', fontSize: '18px' }} /> ผลงานตีพิมพ์และเงินสนับสนุนรายเดือน
+          </h2>
+          <p style={{ margin: '5px 0 0', fontSize: '13.5px', color: '#64748b' }}>
+            {isCompare
+              ? `แท่ง = ${metric === 'count' ? 'จำนวนผลงาน (เรื่อง)' : 'เงินสนับสนุน (ล้านบาท)'} · เปรียบเทียบปี ${compareYear} กับปี ${selectedYear}`
+              : `แท่ง = จำนวนผลงาน (เรื่อง) · เส้น = เงินสนับสนุน (ล้านบาท) · ปี ${selectedYear}`}
+          </p>
+        </div>
+
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
+          {/* Year and Compare-Year Controls */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
+            <CustomYearSelect
+              label="ปี"
+              value={selectedYear}
+              options={FUTURE_PROOF_YEARS.map((y) => ({
+                value: y,
+                label: `${y}`,
+                hasData: Boolean(datasetByYear[y]),
+              }))}
+              onChange={(y) => {
+                setSelectedYear(y);
+                if (compareYear === y) {
+                  const alt = FUTURE_PROOF_YEARS.find((other) => other !== y);
+                  if (alt) setCompareYear(alt);
+                }
+              }}
+            />
+
+            {/* Compare Year Selector (shown only in compare mode) */}
+            {isCompare && (
+              <CustomYearSelect
+                label="เทียบกับปี"
+                value={compareYear}
+                options={FUTURE_PROOF_YEARS.filter((y) => y !== selectedYear).map((y) => ({
+                  value: y,
+                  label: `${y}`,
+                  hasData: Boolean(datasetByYear[y]),
+                }))}
+                onChange={(y) => setCompareYear(y)}
+              />
+            )}
+          </div>
+
+          {/* Mode Segmented Controls */}
+          <div
+            style={{
+              display: 'inline-flex',
+              gap: '2px',
+              padding: '4px',
+              borderRadius: '14px',
+              background: '#eef2f6',
+            }}
+          >
+            {[
+              { k: 'total', label: 'รวมทั้งหมด' },
+              { k: 'level', label: 'แยกตามระดับ' },
+              { k: 'compare', label: 'เทียบข้ามปี' },
+            ].map((m) => {
+              const active = mode === m.k;
+              return (
+                <button
+                  key={m.k}
+                  type="button"
+                  onClick={() => setMode(m.k as any)}
+                  style={{
+                    font: 'inherit',
+                    fontSize: '13.5px',
+                    fontWeight: active ? 700 : 500,
+                    minHeight: '36px',
+                    padding: '6px 14px',
+                    border: 'none',
+                    borderRadius: '10px',
+                    backgroundColor: active ? '#ffffff' : 'transparent',
+                    color: active ? '#be123c' : '#64748b',
+                    cursor: 'pointer',
+                    boxShadow: active ? '0 1px 2px rgba(15,23,42,.1), 0 4px 10px -4px rgba(15,23,42,.12)' : 'none',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  {m.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Metric Segmented Controls (compare mode only) */}
+          {isCompare && (
+            <div
+              style={{
+                display: 'inline-flex',
+                gap: '2px',
+                padding: '4px',
+                borderRadius: '14px',
+                background: '#eef2f6',
+              }}
+            >
+              {[
+                { k: 'count', label: 'จำนวนผลงาน' },
+                { k: 'fund', label: 'เงินสนับสนุน' },
+              ].map((m) => {
+                const active = metric === m.k;
+                return (
+                  <button
+                    key={m.k}
+                    type="button"
+                    onClick={() => setMetric(m.k as any)}
+                    style={{
+                      font: 'inherit',
+                      fontSize: '13.5px',
+                      fontWeight: active ? 700 : 500,
+                      minHeight: '36px',
+                      padding: '6px 14px',
+                      border: 'none',
+                      borderRadius: '10px',
+                      backgroundColor: active ? '#ffffff' : 'transparent',
+                      color: active ? '#be123c' : '#64748b',
+                      cursor: 'pointer',
+                      boxShadow: active ? '0 1px 2px rgba(15,23,42,.1), 0 4px 10px -4px rgba(15,23,42,.12)' : 'none',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    {m.label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* INTERACTIVE LEGEND */}
+      <div
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '8px',
+          margin: '18px 0 6px',
+        }}
+      >
+        {mode === 'level' &&
+          PUB_LEVELS.map((lvl) => {
+            const isHidden = Boolean(hiddenLevels[lvl.k]);
+            return (
+              <button
+                key={lvl.k}
+                type="button"
+                onClick={() => toggleLevel(lvl.k)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  font: 'inherit',
+                  fontSize: '13.5px',
+                  fontWeight: 600,
+                  minHeight: '34px',
+                  padding: '4px 12px 4px 10px',
+                  borderRadius: '999px',
+                  border: '1px solid #e3e9f0',
+                  backgroundColor: '#ffffff',
+                  color: '#0f172a',
+                  cursor: 'pointer',
+                  opacity: isHidden ? 0.45 : 1,
+                  transition: 'opacity 0.15s, background-color 0.15s',
+                }}
+              >
+                <span
+                  style={{
+                    width: '12px',
+                    height: '12px',
+                    borderRadius: '4px',
+                    backgroundColor: isHidden ? 'transparent' : lvl.c,
+                    boxShadow: isHidden ? `inset 0 0 0 2px ${lvl.c}` : 'none',
+                    display: 'inline-block',
+                    flexShrink: 0,
+                  }}
+                />
+                {lvl.n}
+              </button>
+            );
+          })}
+
+        {mode === 'total' && (
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              fontSize: '13.5px',
+              fontWeight: 600,
+              minHeight: '34px',
+              padding: '4px 12px 4px 10px',
+              borderRadius: '999px',
+              border: '1px solid #e3e9f0',
+              backgroundColor: '#ffffff',
+              color: '#0f172a',
+            }}
+          >
+            <span
+              style={{
+                width: '12px',
+                height: '12px',
+                borderRadius: '4px',
+                backgroundColor: PUB_CHART_COLORS.total,
+                display: 'inline-block',
+              }}
+            />
+            ผลงานรวม
+          </span>
+        )}
+
+        {isCompare && (
+          <>
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: '13.5px',
+                fontWeight: 600,
+                minHeight: '34px',
+                padding: '4px 12px 4px 10px',
+                borderRadius: '999px',
+                border: '1px solid #e3e9f0',
+                backgroundColor: '#ffffff',
+                color: '#0f172a',
+              }}
+            >
+              <span
+                style={{
+                  width: '12px',
+                  height: '12px',
+                  borderRadius: '4px',
+                  backgroundColor: '#cbd5e1',
+                  display: 'inline-block',
+                }}
+              />
+              ปี {compareYear} {!hasCompareData && <small style={{ color: '#94a3b8', fontWeight: 400 }}>(ไม่มีข้อมูล)</small>}
+            </span>
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: '13.5px',
+                fontWeight: 600,
+                minHeight: '34px',
+                padding: '4px 12px 4px 10px',
+                borderRadius: '999px',
+                border: '1px solid #e3e9f0',
+                backgroundColor: '#ffffff',
+                color: '#0f172a',
+              }}
+            >
+              <span
+                style={{
+                  width: '12px',
+                  height: '12px',
+                  borderRadius: '4px',
+                  backgroundColor: PUB_CHART_COLORS.cur,
+                  display: 'inline-block',
+                }}
+              />
+              ปี {selectedYear}
+            </span>
+          </>
+        )}
+
+        {/* Toggle Funding line pill */}
+        {!isCompare && (
+          <button
+            type="button"
+            onClick={() => setShowFundLine((prev) => !prev)}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              font: 'inherit',
+              fontSize: '13.5px',
+              fontWeight: 600,
+              minHeight: '34px',
+              padding: '4px 12px 4px 10px',
+              borderRadius: '999px',
+              border: '1px solid #e3e9f0',
+              backgroundColor: '#ffffff',
+              color: '#0f172a',
+              cursor: 'pointer',
+              opacity: showFundLine ? 1 : 0.45,
+              transition: 'opacity 0.15s',
+            }}
+          >
+            <span
+              style={{
+                height: '4px',
+                width: '16px',
+                borderRadius: '2px',
+                backgroundColor: PUB_CHART_COLORS.line,
+                display: 'inline-block',
+                boxShadow: showFundLine ? `0 0 6px rgba(244, 63, 94, 0.4)` : 'none',
+              }}
+            />
+            เงินสนับสนุน (ล้านบาท)
+          </button>
+        )}
+      </div>
+
+      {/* SUMMARY LINE (compare mode) */}
+      {comparisonSummary && (
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            gap: '6px 12px',
+            margin: '10px 0 2px',
+            fontSize: '14.5px',
+            color: '#0f172a',
+          }}
+        >
+          <span>
+            ปี {selectedYear} รวม <b>{comparisonSummary.cVal}</b> {comparisonSummary.unit}
+          </span>
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              fontSize: '12.5px',
+              fontWeight: 700,
+              padding: '3px 9px',
+              borderRadius: '999px',
+              backgroundColor: comparisonSummary.isUp ? '#dcfce7' : '#fee2e2',
+              color: comparisonSummary.isUp ? '#166534' : '#991b1b',
+            }}
+          >
+            {comparisonSummary.diffText}
+          </span>
+          <span style={{ color: '#64748b' }}>
+            เทียบปี {compareYear} ({comparisonSummary.pVal} {comparisonSummary.unit})
+          </span>
+        </div>
+      )}
+
+      {/* CHART SCROLLER & PLOT */}
+      <div
+        ref={scrollerRef}
+        style={{
+          overflowX: 'auto',
+          margin: '6px -8px 0',
+          padding: '0 8px',
+        }}
+      >
+        <div
+          ref={plotRef}
+          style={{
+            position: 'relative',
+            minWidth: '720px',
+            width: `${plotWidth}px`,
+          }}
+          onPointerLeave={handlePointerLeave}
+        >
+          <svg
+            width={plotWidth}
+            height={H}
+            viewBox={`0 0 ${plotWidth} ${H}`}
+            style={{ display: 'block', overflow: 'visible', userSelect: 'none' }}
+          >
+            <defs>
+              <linearGradient id="gPubGreen" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stopColor={PUB_CHART_COLORS.g0} />
+                <stop offset="1" stopColor={PUB_CHART_COLORS.g1} />
+              </linearGradient>
+            </defs>
+
+            {/* Grid lines and Left Y-Axis */}
+            {[0, 1, 2, 3, 4].map((i) => {
+              const gy = mt + ph - (i * ph) / 4;
+              const val = ldec ? (lstep * i).toFixed(ldec) : lstep * i;
+              return (
+                <g key={`grid-${i}`}>
+                  <line
+                    x1={ml}
+                    x2={plotWidth - mr}
+                    y1={gy}
+                    y2={gy}
+                    stroke="#e8edf3"
+                    strokeWidth={1}
+                    strokeDasharray={i === 0 ? 'none' : '3 5'}
+                  />
+                  <text
+                    x={ml - 12}
+                    y={gy + 4}
+                    textAnchor="end"
+                    fontSize="12"
+                    fill="#64748b"
+                    fontFamily="'Kanit', sans-serif"
+                    fontWeight="500"
+                  >
+                    {val}
+                  </text>
+                  {showRightAxis && (
+                    <text
+                      x={plotWidth - mr + 12}
+                      y={gy + 4}
+                      fontSize="12"
+                      fill="#64748b"
+                      fontFamily="'Kanit', sans-serif"
+                      fontWeight="500"
+                    >
+                      {(rstep * i).toFixed(2)}
+                    </text>
+                  )}
+                </g>
+              );
+            })}
+
+            {/* Axis Unit Labels */}
+            <text x={ml} y={mt - 14} textAnchor="start" fontSize="12" fontWeight="600" fill="#64748b">
+              {isCompare && metric === 'fund' ? 'ล้านบาท' : 'เรื่อง'}
+            </text>
+            {showRightAxis && (
+              <text x={plotWidth - mr} y={mt - 14} textAnchor="end" fontSize="12" fontWeight="600" fill="#64748b">
+                ล้านบาท
+              </text>
+            )}
+
+            {/* Column Background hover highlight rects */}
+            {MONTHS.map((_, i) => {
+              const x0 = ml + i * cw;
+              const isOn = activeMonthIdx === i;
+              return (
+                <rect
+                  key={`colbg-${i}`}
+                  x={x0 + 3}
+                  y={mt - 6}
+                  width={cw - 6}
+                  height={ph + 6}
+                  rx="14"
+                  fill="rgba(15, 23, 42, 0.05)"
+                  opacity={isOn ? 1 : 0}
+                  style={{ transition: 'opacity 0.12s' }}
+                  pointerEvents="none"
+                />
+              );
+            })}
+
+            {/* Month Column hit areas */}
+            {MONTHS.map((mName, i) => {
+              const x1 = ml + i * cw;
+              return (
+                <rect
+                  key={`mhit-${i}`}
+                  x={x1}
+                  y={mt - 6}
+                  width={cw}
+                  height={ph + 6}
+                  fill="transparent"
+                  style={{ cursor: 'pointer' }}
+                  onPointerMove={(e) => {
+                    setActiveMonthIdx(i);
+                    const tot = currentTotalsAll[i];
+                    const fVal = (currentData.fund[i] / 1e6).toFixed(2);
+                    const content = isCompare ? (
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#cbd5e1' }}>
+                          <span style={{ width: '8px', height: '8px', borderRadius: '2px', background: PUB_CHART_COLORS.cur }} />
+                          {mName} · {metric === 'count' ? 'จำนวนผลงาน' : 'เงินสนับสนุน'}
+                        </div>
+                        <div style={{ marginTop: '5px', display: 'flex', justifyContent: 'space-between', gap: '16px', fontSize: '14px' }}>
+                          <span style={{ color: '#cbd5e1' }}>ปี {selectedYear}</span>
+                          <b>{metric === 'count' ? `${tot} เรื่อง` : `${fVal} ล้านบาท`}</b>
+                        </div>
+                        {hasCompareData && (
+                          <div style={{ marginTop: '3px', display: 'flex', justifyContent: 'space-between', gap: '16px', fontSize: '14px' }}>
+                            <span style={{ color: '#cbd5e1' }}>ปี {compareYear}</span>
+                            <b>
+                              {metric === 'count'
+                                ? `${prevTotals[i]} เรื่อง`
+                                : `${(compareData!.fund[i] / 1e6).toFixed(2)} ล้านบาท`}
+                            </b>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#cbd5e1' }}>
+                          <span style={{ width: '8px', height: '8px', borderRadius: '2px', background: PUB_CHART_COLORS.total }} />
+                          {mName} {selectedYear}
+                        </div>
+                        <div style={{ marginTop: '5px', display: 'flex', justifyContent: 'space-between', gap: '16px', fontSize: '14px' }}>
+                          <span style={{ color: '#cbd5e1' }}>ผลงานรวม</span>
+                          <b>{tot} เรื่อง</b>
+                        </div>
+                        <div style={{ marginTop: '3px', display: 'flex', justifyContent: 'space-between', gap: '16px', fontSize: '14px' }}>
+                          <span style={{ color: '#cbd5e1' }}>เงินสนับสนุน</span>
+                          <b>{fVal} ล้านบาท</b>
+                        </div>
+                      </div>
+                    );
+                    handlePointerMove(e, content);
+                  }}
+                  onClick={() => {
+                    onSelectPeriod?.(i, selectedYear, currentData.items[i]);
+                  }}
+                />
+              );
+            })}
+
+            {/* BARS */}
+            {MONTHS.map((mName, i) => {
+              const cx = ml + i * cw + cw / 2;
+
+              if (mode === 'level') {
+                const bw = Math.min(52, cw * 0.56);
+                let cum = 0;
+                const totVis = currentTotalsVis[i];
+                const totAll = currentTotalsAll[i];
+                const gap = 3;
+
+                return (
+                  <g key={`bar-lvl-${i}`}>
+                    {PUB_LEVELS.map((lvl) => {
+                      if (hiddenLevels[lvl.k]) return null;
+                      const v = currentData.levels[lvl.k]?.[i] || 0;
+                      if (!v) return null;
+                      const y1 = yv(cum + v);
+                      const y0 = yv(cum);
+                      const h = Math.max(y0 - y1 - gap, 3);
+                      const r = Math.min(7, h / 2);
+                      const isHovered = activeMonthIdx === i && activeSegKey === lvl.k;
+                      const segY = y1 + gap / 2;
+                      cum += v;
+
+                      return (
+                        <g key={`seg-${lvl.k}-${i}`}>
+                          <rect
+                            x={cx - bw / 2}
+                            y={segY}
+                            width={bw}
+                            height={h}
+                            rx={r}
+                            fill={lvl.c}
+                            style={{
+                              cursor: 'pointer',
+                              filter: isHovered ? 'drop-shadow(0 4px 10px rgba(15,23,42,0.3)) brightness(0.96)' : 'none',
+                              opacity: activeSegKey && !isHovered ? 0.6 : 1,
+                              transition: 'all 0.15s ease',
+                            }}
+                            onPointerMove={(e) => {
+                              e.stopPropagation();
+                              setActiveMonthIdx(i);
+                              setActiveSegKey(lvl.k);
+                              const pct = totAll > 0 ? Math.round((v / totAll) * 100) : 0;
+                              const content = (
+                                <div>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#cbd5e1' }}>
+                                    <span style={{ width: '9px', height: '9px', borderRadius: '3px', background: lvl.c }} />
+                                    {lvl.n} · {mName} {selectedYear}
+                                  </div>
+                                  <div style={{ marginTop: '4px', display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                                    <b style={{ fontSize: '24px', fontWeight: 800 }}>{v}</b>
+                                    <span style={{ fontSize: '13px', color: '#cbd5e1' }}>เรื่อง</span>
+                                  </div>
+                                  <div style={{ marginTop: '2px', fontSize: '12.5px', color: '#94a3b8' }}>
+                                    {pct}% ของเดือนนี้ ({totAll} เรื่อง)
+                                  </div>
+                                </div>
+                              );
+                              handlePointerMove(e, content);
+                            }}
+                            onClick={() => {
+                              onSelectPeriod?.(i, selectedYear, currentData.items[i]);
+                            }}
+                          />
+                          {h >= 14 && (
+                            <text
+                              x={cx}
+                              y={segY + h / 2 + 5}
+                              textAnchor="middle"
+                              fontSize={h >= 24 ? "14" : "13"}
+                              fontWeight="800"
+                              fill={
+                                lvl.k === 'q4'
+                                  ? '#881337'
+                                  : lvl.k === 't3'
+                                  ? '#1e1b4b'
+                                  : '#ffffff'
+                              }
+                              pointerEvents="none"
+                              style={{ textShadow: lvl.k === 'q3' ? '0 1px 2px rgba(0,0,0,0.35)' : 'none' }}
+                            >
+                              {v}
+                            </text>
+                          )}
+                        </g>
+                      );
+                    })}
+                    {totVis > 0 && (
+                      <text
+                        x={cx}
+                        y={yv(totVis) - 8}
+                        textAnchor="middle"
+                        fontSize="14"
+                        fontWeight="800"
+                        fill="#0f172a"
+                        pointerEvents="none"
+                      >
+                        {totVis}
+                      </text>
+                    )}
+                  </g>
+                );
+              }
+
+              if (mode === 'total') {
+                const bw2 = Math.min(46, cw * 0.5);
+                const tv = currentTotalsAll[i];
+                if (tv <= 0) return null;
+                const yy = yv(tv);
+                const hh = Math.max(yv(0) - yy, 0);
+                const isHovered = activeMonthIdx === i;
+
+                return (
+                  <g key={`bar-tot-${i}`}>
+                    <rect
+                      x={cx - bw2 / 2}
+                      y={yy}
+                      width={bw2}
+                      height={hh}
+                      rx={Math.min(10, hh / 2)}
+                      fill="url(#gPubGreen)"
+                      style={{
+                        cursor: 'pointer',
+                        filter: isHovered ? 'drop-shadow(0 4px 10px rgba(15,23,42,0.3)) brightness(0.95)' : 'none',
+                        transition: 'filter 0.15s',
+                      }}
+                      onPointerMove={(e) => {
+                        e.stopPropagation();
+                        setActiveMonthIdx(i);
+                        const fVal = (currentData.fund[i] / 1e6).toFixed(2);
+                        const content = (
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#cbd5e1' }}>
+                              <span style={{ width: '8px', height: '8px', borderRadius: '2px', background: PUB_CHART_COLORS.total }} />
+                              {mName} {selectedYear}
+                            </div>
+                            <div style={{ marginTop: '5px', display: 'flex', justifyContent: 'space-between', gap: '16px', fontSize: '14px' }}>
+                              <span style={{ color: '#cbd5e1' }}>ผลงานรวม</span>
+                              <b>{tv} เรื่อง</b>
+                            </div>
+                            <div style={{ marginTop: '3px', display: 'flex', justifyContent: 'space-between', gap: '16px', fontSize: '14px' }}>
+                              <span style={{ color: '#cbd5e1' }}>เงินสนับสนุน</span>
+                              <b>{fVal} ล้านบาท</b>
+                            </div>
+                          </div>
+                        );
+                        handlePointerMove(e, content);
+                      }}
+                      onClick={() => {
+                        onSelectPeriod?.(i, selectedYear, currentData.items[i]);
+                      }}
+                    />
+                    <text
+                      x={cx}
+                      y={yy - 8}
+                      textAnchor="middle"
+                      fontSize="12.5"
+                      fontWeight="700"
+                      fill="#475569"
+                      pointerEvents="none"
+                    >
+                      {tv}
+                    </text>
+                  </g>
+                );
+              }
+
+              // mode === 'compare'
+              const cv = metric === 'count' ? currentTotalsAll[i] : currentData.fund[i] / 1e6;
+              const pv = hasCompareData && compareData
+                ? metric === 'count'
+                  ? prevTotals[i]
+                  : compareData.fund[i] / 1e6
+                : 0;
+              const bw3 = Math.min(30, cw * 0.32);
+              const g2 = 5;
+              const xc = hasCompareData ? cx + g2 / 2 : cx - bw3 / 2;
+              const xp = cx - g2 / 2 - bw3;
+
+              return (
+                <g key={`bar-cmp-${i}`}>
+                  {hasCompareData && pv > 0 && (
+                    <rect
+                      x={xp}
+                      y={yv(pv)}
+                      width={bw3}
+                      height={yv(0) - yv(pv)}
+                      rx={Math.min(9, (yv(0) - yv(pv)) / 2)}
+                      fill="#cbd5e1"
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => {
+                        onSelectPeriod?.(i, compareYear, compareData?.items[i] || []);
+                      }}
+                    />
+                  )}
+                  {cv > 0 && (
+                    <>
+                      <rect
+                        x={xc}
+                        y={yv(cv)}
+                        width={bw3}
+                        height={yv(0) - yv(cv)}
+                        rx={Math.min(9, (yv(0) - yv(cv)) / 2)}
+                        fill="url(#gPubGreen)"
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => {
+                          onSelectPeriod?.(i, selectedYear, currentData.items[i]);
+                        }}
+                      />
+                      <text
+                        x={xc + bw3 / 2}
+                        y={yv(cv) - 8}
+                        textAnchor="middle"
+                        fontSize="12.5"
+                        fontWeight="700"
+                        fill={PUB_CHART_COLORS.curInk}
+                        pointerEvents="none"
+                      >
+                        {metric === 'count' ? cv : cv.toFixed(2)}
+                      </text>
+                    </>
+                  )}
+                </g>
+              );
+            })}
+
+            {/* FUNDING LINE */}
+            {showRightAxis && (
+              <g pointerEvents="none">
+                {/* White outline path */}
+                <path
+                  d={splinePath}
+                  fill="none"
+                  stroke="#ffffff"
+                  strokeWidth={7}
+                  strokeLinecap="round"
+                  opacity={0.9}
+                />
+                {/* Colored spline line */}
+                <path
+                  d={splinePath}
+                  fill="none"
+                  stroke={PUB_CHART_COLORS.line}
+                  strokeWidth={3}
+                  strokeLinecap="round"
+                />
+
+                {/* Dots and Floating Value Badges */}
+                {fundPoints.map((pt, i) => {
+                  const tv2 = mode === 'level' ? currentTotalsVis[i] : currentTotalsAll[i];
+                  const tTop = yv(tv2) - 22;
+                  const tBot = yv(tv2) - 6;
+                  const hasT = tv2 > 0;
+                  const LW = 40;
+                  const LH = 20;
+
+                  let cyL = pt.y - 18;
+                  let lx = pt.x;
+
+                  const over = (cy: number) => hasT && cy + LH / 2 + 3 > tTop && cy - LH / 2 - 3 < tBot;
+                  if (cyL - LH / 2 < mt - 14 || over(cyL)) {
+                    cyL = pt.y + 18;
+                    if (over(cyL)) {
+                      cyL = pt.y;
+                      lx = pt.x + LW / 2 + 12;
+                      if (lx + LW / 2 > plotWidth - mr + 8) lx = pt.x - LW / 2 - 12;
+                    }
+                  }
+
+                  const isDotActive = activeDotMonth === i;
+                  const fMillion = (currentData.fund[i] / 1e6).toFixed(2);
+
+                  return (
+                    <g key={`fpt-${i}`}>
+                      <circle
+                        cx={pt.x}
+                        cy={pt.y}
+                        r={isDotActive ? 6 : 3.5}
+                        fill="#ffffff"
+                        stroke={PUB_CHART_COLORS.line}
+                        strokeWidth={2.5}
+                        style={{ transition: 'r 0.12s' }}
+                      />
+                      <rect
+                        x={lx - LW / 2}
+                        y={cyL - LH / 2}
+                        width={LW}
+                        height={LH}
+                        rx="10"
+                        fill="#ffffff"
+                        stroke={PUB_CHART_COLORS.line}
+                        strokeOpacity={0.35}
+                      />
+                      <text
+                        x={lx}
+                        y={cyL + 4.2}
+                        textAnchor="middle"
+                        fontSize="12"
+                        fontWeight="700"
+                        fill={PUB_CHART_COLORS.lineInk}
+                      >
+                        {fMillion}
+                      </text>
+                    </g>
+                  );
+                })}
+              </g>
+            )}
+
+            {/* Funding Line Interactive hit circles */}
+            {showRightAxis &&
+              fundPoints.map((pt, i) => (
+                <circle
+                  key={`fhit-${i}`}
+                  cx={pt.x}
+                  cy={pt.y}
+                  r={15}
+                  fill="transparent"
+                  style={{ cursor: 'pointer' }}
+                  onPointerMove={(e) => {
+                    e.stopPropagation();
+                    setActiveMonthIdx(i);
+                    setActiveDotMonth(i);
+                    const f = currentData.fund[i];
+                    const t = currentTotalsAll[i];
+                    const content = (
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#cbd5e1' }}>
+                          <span style={{ width: '12px', height: '3px', borderRadius: '1.5px', background: PUB_CHART_COLORS.line }} />
+                          เงินสนับสนุน · {MONTHS[i]} {selectedYear}
+                        </div>
+                        <div style={{ marginTop: '4px', display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                          <b style={{ fontSize: '24px', fontWeight: 800 }}>{f.toLocaleString('en-US')}</b>
+                          <span style={{ fontSize: '13px', color: '#cbd5e1' }}>บาท</span>
+                        </div>
+                        <div style={{ marginTop: '2px', fontSize: '12.5px', color: '#94a3b8' }}>
+                          ≈ {(f / 1e6).toFixed(2)} ล้านบาท
+                          {t > 0 && ` · เฉลี่ย ${(f / t).toLocaleString('en-US', { maximumFractionDigits: 0 })} บาท/เรื่อง`}
+                        </div>
+                      </div>
+                    );
+                    handlePointerMove(e, content);
+                  }}
+                />
+              ))}
+
+            {/* X-AXIS MONTH LABELS (แสดงเฉพาะชื่อเดือน ไม่แสดงปี เพราะด้านบนมีปุ่มเลือกปีและคำอธิบายกำกับอยู่แล้ว) */}
+            {MONTHS.map((mName, i) => (
+              <text
+                key={`m-lbl-${i}`}
+                x={ml + i * cw + cw / 2}
+                y={H - 12}
+                textAnchor="middle"
+                fontSize="13"
+                fontWeight="700"
+                fill="#334155"
+                fontFamily="'Kanit', sans-serif"
+              >
+                {mName}
+              </text>
+            ))}
+          </svg>
+
+          {/* DELTAS IN COMPARE MODE */}
+          {isCompare && (
+            <div style={{ marginTop: '2px' }}>
+              {hasCompareData ? (
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(12, minmax(0, 1fr))',
+                    marginLeft: `${ml}px`,
+                    marginRight: `${mr}px`,
+                  }}
+                >
+                  {MONTHS.map((_, i) => {
+                    const c = metric === 'count' ? currentTotalsAll[i] : currentData.fund[i];
+                    const p = metric === 'count' ? prevTotals[i] : compareData?.fund[i] || 0;
+
+                    if (p === 0 && c > 0) {
+                      return (
+                        <div key={`d-${i}`} style={{ display: 'flex', justifyContent: 'center' }}>
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              fontSize: '12px',
+                              fontWeight: 700,
+                              padding: '4px 8px',
+                              borderRadius: '999px',
+                              backgroundColor: '#dbeafe',
+                              color: '#1e40af',
+                            }}
+                          >
+                            ใหม่
+                          </span>
+                        </div>
+                      );
+                    }
+                    if (p === 0 && c === 0) {
+                      return (
+                        <div key={`d-${i}`} style={{ display: 'flex', justifyContent: 'center' }}>
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              fontSize: '12px',
+                              fontWeight: 600,
+                              padding: '4px 8px',
+                              borderRadius: '999px',
+                              backgroundColor: '#f1f5f9',
+                              color: '#64748b',
+                            }}
+                          >
+                            –
+                          </span>
+                        </div>
+                      );
+                    }
+
+                    let isUp = true;
+                    let text = '';
+                    if (metric === 'count') {
+                      const d = c - p;
+                      if (d === 0) {
+                        return (
+                          <div key={`d-${i}`} style={{ display: 'flex', justifyContent: 'center' }}>
+                            <span
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                fontSize: '12px',
+                                fontWeight: 600,
+                                padding: '4px 8px',
+                                borderRadius: '999px',
+                                backgroundColor: '#f1f5f9',
+                                color: '#475569',
+                              }}
+                            >
+                              เท่าเดิม
+                            </span>
+                          </div>
+                        );
+                      }
+                      isUp = d > 0;
+                      text = `${Math.abs(d)}`;
+                    } else {
+                      const pc = p > 0 ? ((c - p) / p) * 100 : 0;
+                      if (Math.abs(pc) < 0.5) {
+                        return (
+                          <div key={`d-${i}`} style={{ display: 'flex', justifyContent: 'center' }}>
+                            <span
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                fontSize: '12px',
+                                fontWeight: 600,
+                                padding: '4px 8px',
+                                borderRadius: '999px',
+                                backgroundColor: '#f1f5f9',
+                                color: '#475569',
+                              }}
+                            >
+                              เท่าเดิม
+                            </span>
+                          </div>
+                        );
+                      }
+                      isUp = pc > 0;
+                      text = `${Math.abs(pc).toFixed(0)}%`;
+                    }
+
+                    return (
+                      <div key={`d-${i}`} style={{ display: 'flex', justifyContent: 'center' }}>
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '2px',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            padding: '4px 8px',
+                            borderRadius: '999px',
+                            backgroundColor: isUp ? '#dcfce7' : '#fee2e2',
+                            color: isUp ? '#166534' : '#991b1b',
+                          }}
+                        >
+                          <span>{isUp ? '▲' : '▼'}</span>
+                          {text}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    marginLeft: `${ml}px`,
+                    marginRight: `${mr}px`,
+                    padding: '10px 16px',
+                    borderRadius: '12px',
+                    background: '#f1f5f9',
+                    color: '#475569',
+                    fontSize: '13.5px',
+                    fontWeight: 500,
+                  }}
+                >
+                  ยังไม่มีข้อมูลปี {compareYear} สำหรับเปรียบเทียบ — แสดงเฉพาะข้อมูลปี {selectedYear}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* FLOATING DARK BLUR TOOLTIP */}
+          {tooltip.visible && (
+            <div
+              style={{
+                position: 'absolute',
+                left: `${tooltip.x}px`,
+                top: `${tooltip.y}px`,
+                zIndex: 40,
+                pointerEvents: 'none',
+                minWidth: '160px',
+                whiteSpace: 'nowrap',
+                background: 'rgba(15, 23, 42, 0.94)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
+                color: '#ffffff',
+                borderRadius: '14px',
+                padding: '10px 14px 11px',
+                boxShadow: '0 18px 36px -12px rgba(15, 23, 42, 0.55)',
+                animation: 'popoverFadeIn 0.12s ease-out',
+              }}
+            >
+              {tooltip.content}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

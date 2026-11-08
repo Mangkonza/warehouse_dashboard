@@ -1,3 +1,4 @@
+import { saveEvaluation } from '@/lib/serverDataStore';
 import { NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -37,6 +38,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    try { saveEvaluation(body); } catch {}
     const res = await fetch(`${BACKEND_URL}/api/v1/evaluation`, {
       method: 'POST',
       headers: getForwardHeaders(request),

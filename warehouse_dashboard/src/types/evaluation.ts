@@ -35,8 +35,7 @@ export function isEvaluated(
 ): boolean {
   if (!evaluation) return false;
   const hasSdg = Array.isArray(evaluation.sdg_ids) && evaluation.sdg_ids.length > 0;
-  const hasIType = evaluation.i_type === 'I_AM' || evaluation.i_type === 'I_SEE';
-  if (!hasSdg || !hasIType) return false;
+  if (!hasSdg) return false;
 
   if (category && category.toLowerCase() === 'publications') {
     const j: any = evaluation.journal_index;

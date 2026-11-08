@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import academicData from '@/data/academic.json';
 import { getCachedCategoryData, fetchCategoryData } from '@/lib/dataService';
-import { TimeFilterState, itemMatchesTimeFilter } from '@/types/timeFilter';
+import { TimeFilterState, itemMatchesTimeFilter, resolveItemDate } from '@/types/timeFilter';
 import { isTestRecord, detectSDGsFromText } from '@/lib/sdgEngine';
 import { normalizeAcademicMonth, itemMatchesStrategicFilter } from '@/lib/pastelTheme';
 import { getDepartment } from '@/lib/departments';
@@ -35,24 +35,24 @@ export function useAcademicData(timeFilter?: TimeFilterState) {
   const [selectedClient, setSelectedClient] = useState('all');
   const [selectedDept, setSelectedDept] = useState('all');
   const [selectedMonth, setSelectedMonth] = useState('all');
-  const [hideMissingClient, setHideMissingClient] = useState(true);
+  const [hideMissingClient, setHideMissingClient] = useState(false);
   const [strategicFilter, setStrategicFilter] = useState('all');
 
   const [dataList, setDataList] = useState<AcademicItem[]>(() => {
-    return (getCachedCategoryData('academic') as AcademicItem[]) || (academicData as AcademicItem[]);
+    return (getCachedCategoryData('academic') as AcademicItem[]) || [];
   });
 
   useEffect(() => {
     let isMounted = true;
     fetchCategoryData('academic').then((fresh) => {
-      if (isMounted && Array.isArray(fresh) && fresh.length > 0) {
+      if (isMounted && Array.isArray(fresh)) {
         setDataList(fresh as AcademicItem[]);
       }
     });
 
     const handleUpdate = () => {
       const fresh = getCachedCategoryData('academic') as AcademicItem[];
-      if (fresh && fresh.length > 0) setDataList(fresh);
+      if (Array.isArray(fresh)) setDataList(fresh);
     };
     window.addEventListener('ku_data_updated', handleUpdate);
     return () => {
@@ -65,11 +65,18 @@ export function useAcademicData(timeFilter?: TimeFilterState) {
   const validData = useMemo(() => {
     return dataList
       .filter((item) => item.name && item.name !== 'nan' && item.name !== 'NaT' && item.name !== 'เรื่อง' && !isTestRecord(item))
-      .filter((item) => !timeFilter || itemMatchesTimeFilter(item, timeFilter))
+      .filter((item) => !timeFilter || itemMatchesTimeFilter(item, timeFilter, 'academic'))
       .map((item) => ({
         ...item,
         normalizedMonth: normalizeAcademicMonth(item.month),
       }));
+  }, [dataList, timeFilter]);
+
+  const undatedCount = useMemo(() => {
+    if (!timeFilter || timeFilter.mode === 'all') return 0;
+    return dataList
+      .filter((item) => item.name && item.name !== 'nan' && item.name !== 'NaT' && item.name !== 'เรื่อง' && !isTestRecord(item))
+      .filter((item) => resolveItemDate(item, 'academic') === null).length;
   }, [dataList, timeFilter]);
 
   const {
@@ -220,6 +227,8 @@ export function useAcademicData(timeFilter?: TimeFilterState) {
 
   return {
     validData,
+    allItems: dataList,
+    undatedCount,
     displayData,
     totalBudgetAll,
     totalAllocFaculty,

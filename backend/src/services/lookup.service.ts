@@ -54,12 +54,56 @@ export class LookupService {
         personId: p.personId,
         title: p.titleTh,
         name: p.nameTh,
+        firstName: p.firstName || '',
+        lastName: p.lastName || '',
         nameEn: p.nameEn,
         position: p.position,
         department: p.department?.nameTh || p.departmentCode,
         departmentCode: p.departmentCode,
         email: p.email,
       })),
+    };
+  }
+
+  static async getKpiOptions(fieldKey?: string) {
+    const list = await LookupRepository.getKpiOptions(fieldKey);
+    return {
+      status: 'success',
+      total: list.length,
+      data: list,
+    };
+  }
+
+  static async addKpiOption(fieldKey: string, value: string, label?: string) {
+    const item = await LookupRepository.upsertKpiOption(fieldKey, value, label, true);
+    return {
+      status: 'success',
+      data: item,
+    };
+  }
+
+  static async getStrategicHierarchy() {
+    const list = await LookupRepository.getStrategicStrategies();
+    return {
+      status: 'success',
+      total: list.length,
+      data: list,
+    };
+  }
+
+  static async createStrategicStrategy(id: string, code: string, name: string, pillarGroup?: string) {
+    const item = await LookupRepository.createStrategicStrategy(id, code, name, pillarGroup);
+    return {
+      status: 'success',
+      data: item,
+    };
+  }
+
+  static async createStrategicPlan(id: string, strategyId: string, code: string, name: string) {
+    const item = await LookupRepository.createStrategicPlan(id, strategyId, code, name);
+    return {
+      status: 'success',
+      data: item,
     };
   }
 }

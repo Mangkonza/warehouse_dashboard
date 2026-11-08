@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { FaTable, FaTimes, FaDownload } from 'react-icons/fa';
 import { SearchInput, DepartmentBadge, RecordDetailDrawer, StrategyBadges } from '@/components/ui';
+import { dashboardCardStyle } from '@/lib/dashboardTheme';
 import { calculateProjectTimeline } from '@/lib/projectMonitoringEngine';
 import { ResearchItem, normalizeFundSource } from '../_hooks/useResearchData';
 
@@ -32,7 +34,7 @@ export function ResearchTable({
   const hasActiveFilter = selectedDept !== 'all' || selectedFund !== 'all' || searchTerm.trim() !== '';
 
   const handleExportCSV = () => {
-    const headers = ['รหัสโครงการ', 'ชื่อโครงการวิจัย', 'หัวหน้าโครงการ', 'ภาควิชา', 'สถานะ', 'งบภายใน', 'งบภายนอก', 'งบรวม', 'แหล่งทุน'];
+    const headers = ['รหัสโครงการ', 'ชื่อโครงการวิจัย', 'หัวหน้าโครงการ', 'สังกัด', 'สถานะ', 'งบภายใน', 'งบภายนอก', 'งบรวม', 'แหล่งทุน'];
     const rows = filteredData.map((item) => {
       const internal = Number(item.budget_internal) || 0;
       const external = Number(item.budget_external) || 0;
@@ -62,7 +64,7 @@ export function ResearchTable({
   };
 
   return (
-    <div className="table-card" style={{ backgroundColor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.03)' }}>
+    <div className="table-card" style={{ ...dashboardCardStyle, padding: '20px' }}>
       <div
         style={{
           display: 'flex',
@@ -75,7 +77,7 @@ export function ResearchTable({
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
-            <FaTable style={{ color: '#10b981', marginRight: '8px' }} /> โครงการวิจัย ({filteredData.length})
+            <FaTable style={{ color: '#00A651', marginRight: '8px' }} /> โครงการวิจัย ({filteredData.length})
           </h3>
           <button
             onClick={handleExportCSV}
@@ -85,9 +87,9 @@ export function ResearchTable({
               gap: '6px',
               padding: '5px 12px',
               borderRadius: '8px',
-              backgroundColor: '#ecfdf5',
-              border: '1px solid #a7f3d0',
-              color: '#047857',
+              backgroundColor: '#ffffff',
+              border: '1px solid #cbd5e1',
+              color: '#334155',
               fontSize: '12px',
               fontWeight: 600,
               cursor: 'pointer',
@@ -95,7 +97,7 @@ export function ResearchTable({
             }}
             title="ส่งออกไฟล์สรุปข้อมูล CSV"
           >
-            <FaDownload style={{ fontSize: '11px' }} /> Export CSV
+            <FaDownload style={{ fontSize: '11px' }} /> ส่งออก CSV
           </button>
         </div>
 
@@ -150,18 +152,18 @@ export function ResearchTable({
       </div>
 
       <div className="table-responsive" style={{ overflowX: 'auto' }}>
-        <table className="data-table table-emerald" style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, fontSize: '13px' }}>
+        <table className="data-table table-manage" style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, fontSize: '13px' }}>
           <thead>
-            <tr style={{ backgroundColor: '#ecfdf5', color: '#065f46', textAlign: 'left' }}>
-              <th style={{ width: '44px', textAlign: 'center', padding: '10px 8px', backgroundColor: '#ecfdf5', color: '#065f46', borderBottom: '2px solid #a7f3d0' }}>#</th>
-              <th style={{ padding: '10px 8px', backgroundColor: '#ecfdf5', color: '#065f46', borderBottom: '2px solid #a7f3d0' }}>ชื่อโครงการวิจัย</th>
-              <th style={{ padding: '10px 8px', backgroundColor: '#ecfdf5', color: '#065f46', borderBottom: '2px solid #a7f3d0' }}>หัวหน้าโครงการ</th>
-              <th style={{ width: '100px', textAlign: 'left', padding: '10px 8px', backgroundColor: '#ecfdf5', color: '#065f46', borderBottom: '2px solid #a7f3d0' }}>ภาควิชา</th>
-              <th style={{ width: '110px', textAlign: 'center', padding: '10px 8px', backgroundColor: '#ecfdf5', color: '#065f46', borderBottom: '2px solid #a7f3d0' }}>สถานะ</th>
-              <th style={{ textAlign: 'right', padding: '10px 8px', backgroundColor: '#ecfdf5', color: '#065f46', borderBottom: '2px solid #a7f3d0' }}>งบภายใน / ภายนอก</th>
-              <th style={{ textAlign: 'right', padding: '10px 8px', backgroundColor: '#ecfdf5', color: '#065f46', borderBottom: '2px solid #a7f3d0' }}>งบประมาณรวม</th>
-              <th style={{ padding: '10px 8px', backgroundColor: '#ecfdf5', color: '#065f46', borderBottom: '2px solid #a7f3d0' }}>แหล่งทุน</th>
-              <th style={{ width: '120px', padding: '10px 8px', backgroundColor: '#ecfdf5', color: '#065f46', borderBottom: '2px solid #a7f3d0' }}>ยุทธศาสตร์</th>
+            <tr style={{ backgroundColor: '#00A651', color: '#ffffff', textAlign: 'left' }}>
+              <th style={{ width: '44px', textAlign: 'center', padding: '10px 8px', backgroundColor: '#00A651', color: '#ffffff', borderBottom: '2px solid #00A651' }}>#</th>
+              <th style={{ padding: '10px 8px', backgroundColor: '#00A651', color: '#ffffff', borderBottom: '2px solid #00A651' }}>ชื่อโครงการวิจัย</th>
+              <th style={{ padding: '10px 8px', backgroundColor: '#00A651', color: '#ffffff', borderBottom: '2px solid #00A651' }}>หัวหน้าโครงการ</th>
+              <th style={{ width: '100px', textAlign: 'left', padding: '10px 8px', backgroundColor: '#00A651', color: '#ffffff', borderBottom: '2px solid #00A651' }}>สังกัด</th>
+              <th style={{ width: '110px', textAlign: 'center', padding: '10px 8px', backgroundColor: '#00A651', color: '#ffffff', borderBottom: '2px solid #00A651' }}>สถานะ</th>
+              <th style={{ textAlign: 'right', padding: '10px 8px', backgroundColor: '#00A651', color: '#ffffff', borderBottom: '2px solid #00A651' }}>งบภายใน / ภายนอก</th>
+              <th style={{ textAlign: 'right', padding: '10px 8px', backgroundColor: '#00A651', color: '#ffffff', borderBottom: '2px solid #00A651' }}>งบประมาณรวม</th>
+              <th style={{ padding: '10px 8px', backgroundColor: '#00A651', color: '#ffffff', borderBottom: '2px solid #00A651' }}>แหล่งทุน</th>
+              <th style={{ width: '120px', padding: '10px 8px', backgroundColor: '#00A651', color: '#ffffff', borderBottom: '2px solid #00A651' }}>ยุทธศาสตร์</th>
             </tr>
           </thead>
           <tbody>
@@ -197,14 +199,14 @@ export function ResearchTable({
                   <td style={{ fontWeight: 400, color: '#334155', padding: '10px 8px' }}>
                     {item.head && item.head !== 'nan' ? (
                       item.head_id ? (
-                        <a
+                        <Link
                           href={`/personnel/${item.head_id}`}
                           onClick={(e) => e.stopPropagation()}
                           style={{ color: '#10b981', fontWeight: 600, textDecoration: 'none' }}
                           title="คลิกเพื่อดูแฟ้มผลงานอาจารย์"
                         >
                           {item.head}
-                        </a>
+                        </Link>
                       ) : (
                         item.head
                       )

@@ -30,7 +30,7 @@ export function PersonnelForm({
         />
       </FormField>
 
-      {/* 2. คำนำหน้า & 3. ชื่อ-นามสกุล */}
+      {/* 2. คำนำหน้า & 3. ชื่อ และ นามสกุล */}
       <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-start">
         <div className="sm:col-span-4">
           <FormField label="คำนำหน้า" error={errors.title_th}>
@@ -43,28 +43,55 @@ export function PersonnelForm({
         </div>
 
         <div className="sm:col-span-8">
-          <FormField
-            label="ชื่อ-นามสกุล"
-            required
-            error={errors.name}
-          >
-            <input
-              type="text"
-              value={formData.name || ''}
-              onChange={(e) => onChange('name', e.target.value)}
-              placeholder="กรอกชื่อ-นามสกุล"
-              className={cn(
-                'w-full h-10 px-3 rounded-lg border border-input bg-background text-sm font-normal outline-none transition-colors shadow-2xs placeholder:text-slate-400 hover:border-slate-400 focus:border-[#00A651] focus:ring-1 focus:ring-[#00A651]',
-                errors.name && 'border-destructive focus:border-destructive ring-1 ring-destructive'
-              )}
-            />
-          </FormField>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <FormField
+              label="ชื่อ"
+              required
+              fieldKey="first_name"
+              error={errors.first_name}
+            >
+              <input
+                id="field-first_name"
+                name="first_name"
+                type="text"
+                value={formData.first_name || ''}
+                onChange={(e) => onChange('first_name', e.target.value)}
+                placeholder="กรอกชื่อ"
+                className={cn(
+                  'w-full h-10 px-3 rounded-lg border border-input bg-background text-sm font-normal outline-none transition-colors shadow-2xs placeholder:text-slate-400 hover:border-slate-400 focus:border-[#00A651] focus:ring-1 focus:ring-[#00A651]',
+                  errors.first_name && 'border-destructive focus:border-destructive ring-1 ring-destructive'
+                )}
+              />
+            </FormField>
+
+            <FormField
+              label="นามสกุล"
+              required
+              fieldKey="last_name"
+              error={errors.last_name}
+            >
+              <input
+                id="field-last_name"
+                name="last_name"
+                type="text"
+                value={formData.last_name || ''}
+                onChange={(e) => onChange('last_name', e.target.value)}
+                placeholder="กรอกนามสกุล"
+                className={cn(
+                  'w-full h-10 px-3 rounded-lg border border-input bg-background text-sm font-normal outline-none transition-colors shadow-2xs placeholder:text-slate-400 hover:border-slate-400 focus:border-[#00A651] focus:ring-1 focus:ring-[#00A651]',
+                  errors.last_name && 'border-destructive focus:border-destructive ring-1 ring-destructive'
+                )}
+              />
+            </FormField>
+          </div>
         </div>
       </div>
 
       {/* 4. ตำแหน่งทางวิชาการ */}
-      <FormField label="ตำแหน่งทางวิชาการ" error={errors.position}>
+      <FormField label="ตำแหน่งทางวิชาการ" fieldKey="position" error={errors.position}>
         <input
+          id="field-position"
+          name="position"
           type="text"
           value={formData.position || ''}
           onChange={(e) => onChange('position', e.target.value)}
@@ -80,13 +107,16 @@ export function PersonnelForm({
       <FormField
         label="สังกัด"
         required
+        fieldKey="department"
         error={errors.department}
       >
-        <DepartmentSelect
-          value={formData.department || ''}
-          onChange={(dept) => onChange('department', dept)}
-          className="w-full"
-        />
+        <div id="field-department" data-field="department">
+          <DepartmentSelect
+            value={formData.department || ''}
+            onChange={(dept) => onChange('department', dept)}
+            className="w-full"
+          />
+        </div>
       </FormField>
 
       {/* 6. อีเมล KU */}

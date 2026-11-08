@@ -12,6 +12,8 @@ export interface FormFieldProps {
   className?: string;
   labelClassName?: string;
   htmlFor?: string;
+  fieldKey?: string;
+  id?: string;
   children: React.ReactNode;
 }
 
@@ -23,10 +25,18 @@ export function FormField({
   className,
   labelClassName,
   htmlFor,
+  fieldKey,
+  id,
   children,
 }: FormFieldProps) {
+  const containerId = id || (fieldKey ? `field-${fieldKey}` : undefined);
+
   return (
-    <div className={cn('flex flex-col gap-1.5 w-full', className)}>
+    <div
+      id={containerId}
+      data-field={fieldKey}
+      className={cn('flex flex-col gap-1.5 w-full', className)}
+    >
       {label && (
         <div className="flex items-center justify-between">
           <label
@@ -37,7 +47,9 @@ export function FormField({
             )}
           >
             <span>{label}</span>
-            {required && <span className="text-red-500 font-bold">*</span>}
+            {required && (
+              <span className="text-rose-500 font-bold text-sm leading-none ml-0.5" title="จำเป็นต้องระบุ">*</span>
+            )}
           </label>
           {hint && !error && (
             <span className="text-[11.5px] text-slate-400 font-normal">{hint}</span>
@@ -45,14 +57,22 @@ export function FormField({
         </div>
       )}
 
-      <div>{children}</div>
+      <div className="relative">
+        {children}
 
-      {error && (
-        <div className="flex items-center gap-1 text-[11.5px] font-medium text-red-600 mt-0.5 animate-in fade-in-50 duration-150">
-          <AlertCircle className="size-3.5 shrink-0 text-red-500" />
-          <span>{error}</span>
-        </div>
-      )}
+        {error && (
+          <div className="absolute top-[calc(100%+6px)] left-0 z-40 pointer-events-none animate-in fade-in-50 zoom-in-95 duration-150">
+            <div className="relative inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-rose-300 shadow-xl shadow-rose-950/10 text-xs font-medium text-slate-800 pointer-events-auto whitespace-nowrap">
+              {/* Top caret arrow pointing up to input */}
+              <span className="absolute -top-1.5 left-4 size-2.5 bg-white border-t border-l border-rose-300 rotate-45 transform" />
+              <div className="size-4 rounded-full bg-rose-500 text-white flex items-center justify-center shrink-0 font-bold text-[10px]">
+                !
+              </div>
+              <span className="text-rose-700 font-normal">{error}</span>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

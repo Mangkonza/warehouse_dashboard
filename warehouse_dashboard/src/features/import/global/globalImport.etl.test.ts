@@ -78,7 +78,7 @@ describe('Universal Global Import & ETL Layer Tests', () => {
     it('should normalize departments to canonical codes', () => {
       expect(normalizeDepartmentUniversal('คอมพิวเตอร์').code).toBe('CPE');
       expect(normalizeDepartmentUniversal('วิศวกรรมเกษตร').code).toBe('AE');
-      expect(normalizeDepartmentUniversal('ชลประทาน').code).toBe('IRE');
+      expect(normalizeDepartmentUniversal('ชลประทาน').code).toBe('IRRE');
       expect(normalizeDepartmentUniversal('โยธา').code).toBe('CE');
       expect(normalizeDepartmentUniversal('เครื่องกล').code).toBe('ME');
       expect(normalizeDepartmentUniversal('วิศวกรรมการอาหาร').code).toBe('FE');

@@ -8,20 +8,19 @@ import rawAcademic from '@/data/academic.json';
 import rawPublications from '@/data/publications.json';
 import rawServices from '@/data/services.json';
 import rawIP from '@/data/ip.json';
-import rawPersonnel from '@/data/personnel.json';
 
 export const DEFAULT_CATEGORY_DATA: Record<string, any[]> = {
-  research: rawResearch,
-  academic: rawAcademic,
-  publications: rawPublications,
-  service: rawServices,
-  services: rawServices,
-  ip: rawIP,
-  personnel: rawPersonnel,
+  research: [],
+  academic: [],
+  publications: [],
+  service: [],
+  services: [],
+  ip: [],
+  personnel: [],
 };
 
 // Local storage prefixes
-const LS_PREFIX = 'ku_dw_cache_';
+const LS_PREFIX = 'ku_dw_db_cache_';
 const LS_DELETED_PREFIX = 'ku_dw_deleted_';
 
 const getAuthHeaders = (): Record<string, string> => {
@@ -211,27 +210,8 @@ export async function fetchCategoryData(category: string): Promise<any[]> {
     if (res.ok) {
       const result = await res.json();
       if (result && Array.isArray(result.data)) {
-        if (result.data.length > 0) {
-          // Merge server items with any active local edits & deduplicate
-          const cached = getCachedCategoryData(category) || [];
-          const seenKeys = new Set<string>();
-          const merged: any[] = [];
-          for (const serverItem of result.data) {
-            const match = cached.find((c) => isSameItem(c, serverItem));
-            const item = match ? { ...serverItem, ...match } : serverItem;
-            const k = normalizeKey(item.id) || normalizeKey(item._id) || (item.dbId ? `db_${item.dbId}` : normalizeKey(item.name || item.title));
-            if (!k || !seenKeys.has(k)) {
-              if (k) seenKeys.add(k);
-              merged.push(item);
-            }
-          }
-          setCachedCategoryData(category, merged, false);
-          return merged;
-        } else {
-          // Empty DB state: do not resurrect static json dummy data
-          setCachedCategoryData(category, [], false);
-          return [];
-        }
+        setCachedCategoryData(category, result.data, false);
+        return result.data;
       }
     }
   } catch (err) {

@@ -14,6 +14,7 @@ export const ResearchFormFields: React.FC<ResearchFormFieldsProps> = ({
   onChange,
   setFormData,
   isEdit = false,
+  errors,
   readOnly = false,
   className,
 }) => {
@@ -31,6 +32,7 @@ export const ResearchFormFields: React.FC<ResearchFormFieldsProps> = ({
         onChange={onChange}
         setFormData={setFormData}
         isEdit={isEdit}
+        errors={errors}
       />
     </fieldset>
   );

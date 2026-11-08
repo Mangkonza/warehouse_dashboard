@@ -34,10 +34,22 @@ export function calculateProjectTimeline(item: Record<string, any>, referenceDat
     }
   }
 
+  // ปรับแก้ปี พ.ศ. ที่ติดเป็น 1968 จาก Excel 2 หลัก (เช่น 68 -> 1968 แท้จริงคือ 2568 พ.ศ. = 2025 ค.ศ.)
+  const normalizeCeDate = (d: Date): Date => {
+    if (isNaN(d.getTime())) return d;
+    const y = d.getFullYear();
+    if (y >= 1960 && y <= 1980) {
+      d.setFullYear(y + 57); // 1968 (BE 2568) -> 2025 CE
+    } else if (y > 2400) {
+      d.setFullYear(y - 543); // 2568 BE -> 2025 CE
+    }
+    return d;
+  };
+
   // 4. กำหนดวันเริ่มต้นโครงการ (Start Date)
   let startDate: Date;
   if (hasExplicitStartDate) {
-    startDate = new Date(rawStart);
+    startDate = normalizeCeDate(new Date(rawStart));
   } else {
     // กำหนดวันเริ่มต้นตามต้นปีงบประมาณของโครงการ (1 ต.ค. ของปีก่อนหน้า)
     startDate = new Date(fiscalYearCe - 1, 9, 1);
@@ -46,7 +58,7 @@ export function calculateProjectTimeline(item: Record<string, any>, referenceDat
   // 5. กำหนดวันสิ้นสุดเดิม (Original End Date)
   let originalEndDate: Date;
   if (hasExplicitEndDate) {
-    originalEndDate = new Date(rawEnd);
+    originalEndDate = normalizeCeDate(new Date(rawEnd));
   } else {
     originalEndDate = new Date(startDate);
     originalEndDate.setMonth(originalEndDate.getMonth() + durationMonths);
@@ -60,7 +72,7 @@ export function calculateProjectTimeline(item: Record<string, any>, referenceDat
   if (approvedExtensions.length > 0) {
     const latestExtension = approvedExtensions[approvedExtensions.length - 1];
     if (latestExtension.extended_end_date) {
-      currentEndDate = new Date(latestExtension.extended_end_date);
+      currentEndDate = normalizeCeDate(new Date(latestExtension.extended_end_date));
     }
   }
 
@@ -68,8 +80,19 @@ export function calculateProjectTimeline(item: Record<string, any>, referenceDat
   const msPerDay = 1000 * 60 * 60 * 24;
   const daysRemaining = Math.round((currentEndDate.getTime() - today.getTime()) / msPerDay);
   
-  // โครงการจะถือว่าเกินกำหนดสัญญา (isOverdue) ได้ก็ต่อเมื่อ "มีวันสิ้นสุดระบุไว้จริง" เท่านั้น
-  const isOverdue = hasExplicitEndDate && daysRemaining < 0;
+  // โครงการจะถือว่าเกินกำหนดสัญญา (isOverdue) เมื่อพ้นวันสิ้นสุดสัญญา (daysRemaining < 0)
+  // และไม่ปิดโครงการโดยอัตโนมัติ (ต้องมีผู้ใช้มากดปิดโครงการเอง)
+  const isOverdue = !isNaN(currentEndDate.getTime()) && daysRemaining < 0;
+
+  // ใกล้ครบกำหนดสัญญา: เหลือน้อยกว่า 1 เดือน (<= 30 วัน) จากวันปัจจุบัน และยังไม่ปิดหรือยกเลิก
+  const isExpiringSoon =
+    !isOverdue &&
+    daysRemaining >= 0 &&
+    daysRemaining <= 30 &&
+    item.status !== 'completed' &&
+    item.status !== 'cancelled' &&
+    !item.closed_date &&
+    !item.is_completed;
 
   // 8. คำนวณความก้าวหน้าประมาณการ (%)
   const totalProjectDays = Math.max(1, Math.round((currentEndDate.getTime() - startDate.getTime()) / msPerDay));
@@ -134,6 +157,7 @@ export function calculateProjectTimeline(item: Record<string, any>, referenceDat
     progress_percent: progressPercent,
     status: status,
     is_overdue: isOverdue && status !== 'completed' && status !== 'cancelled' && status !== 'waiting_eval' && status !== 'evaluated',
+    is_expiring_soon: isExpiringSoon,
     extensions: extensions,
   };
 }

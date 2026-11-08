@@ -13,7 +13,7 @@ export interface MenuItemConfig {
 
 export const VALID_TABS = [
   "overview",
-  "studio",
+  "sdgs",
   "monitoring",
   "evaluation",
   "research",
@@ -34,7 +34,7 @@ export const LEGACY_TAB_ALIASES: Record<string, string> = {
 
 export const TAB_TITLES: Record<string, string> = {
   overview: "แดชบอร์ด ภาพรวม",
-  studio: "วิเคราะห์ข้อมูล (BI Studio)",
+  sdgs: "เป้าหมาย SDGs",
   monitoring: "ติดตามสถานะโครงการ",
   evaluation: "การประเมิน",
   research: "โครงการวิจัย",
@@ -49,7 +49,6 @@ export const TAB_TITLES: Record<string, string> = {
 
 export const MAIN_MENU_ITEMS: MenuItemConfig[] = [
   { id: "overview", label: "แดชบอร์ด ภาพรวม", path: "/overview", iconName: "FaThLarge" },
-  { id: "studio", label: "วิเคราะห์ข้อมูล", path: "/studio", iconName: "FaChartLine" },
   { id: "monitoring", label: "ติดตามสถานะโครงการ", path: "/monitoring", iconName: "FaClock" },
   { id: "evaluation", label: "การประเมิน", path: "/evaluation", iconName: "FaClipboardCheck" },
   { id: "research", label: "โครงการวิจัย", path: "/research", iconName: "FaFlask" },

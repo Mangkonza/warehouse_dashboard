@@ -218,9 +218,7 @@ export const ProjectExtensionModal: React.FC<ProjectExtensionModalProps> = ({
               <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#0f172a', margin: 0 }}>
                 บันทึกขอขยายระยะเวลาโครงการ
               </h2>
-              <p style={{ fontSize: '12.5px', color: '#64748b', margin: '2px 0 0 0' }}>
-                ตามระเบียบมหาวิทยาลัยเกษตรศาสตร์ และ สวพ.มก. (KURDI)
-              </p>
+              
             </div>
           </div>
 
@@ -281,7 +279,7 @@ export const ProjectExtensionModal: React.FC<ProjectExtensionModalProps> = ({
               หัวหน้าโครงการ: <strong>{projectItem.head || projectItem.person || '-'}</strong>
             </span>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-              ภาควิชา: <DepartmentBadge value={projectItem.department} />
+              สังกัด: <DepartmentBadge value={projectItem.department} />
             </span>
           </div>
 

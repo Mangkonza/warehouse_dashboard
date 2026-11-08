@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import pubData from '@/data/publications.json';
 import { getCachedCategoryData, fetchCategoryData } from '@/lib/dataService';
-import { TimeFilterState, itemMatchesTimeFilter } from '@/types/timeFilter';
+import { TimeFilterState, itemMatchesTimeFilter, resolveItemDate } from '@/types/timeFilter';
 import { isTestRecord, detectSDGsFromText } from '@/lib/sdgEngine';
 import { autoDetectJournalRanking } from '@/config/journalRankingConfig';
 import { getDepartment } from '@/lib/departments';
@@ -50,13 +50,13 @@ export function usePublicationsData(timeFilter?: TimeFilterState) {
   const [strategicFilter, setStrategicFilter] = useState('all');
 
   const [dataList, setDataList] = useState<PublicationItem[]>(() => {
-    return (getCachedCategoryData('publications') as PublicationItem[]) || (pubData as PublicationItem[]);
+    return (getCachedCategoryData('publications') as PublicationItem[]) || [];
   });
 
   const refreshData = async () => {
     try {
       const fresh = await fetchCategoryData('publications');
-      if (Array.isArray(fresh) && fresh.length > 0) {
+      if (Array.isArray(fresh)) {
         setDataList(fresh);
       }
     } catch (e) {
@@ -76,17 +76,29 @@ export function usePublicationsData(timeFilter?: TimeFilterState) {
   const validData = useMemo(() => {
     return dataList
       .filter((item) => item.name && item.name !== 'nan' && item.name !== 'NaT' && !isTestRecord(item))
-      .filter((item) => !timeFilter || itemMatchesTimeFilter(item, timeFilter))
+      .filter((item) => !timeFilter || itemMatchesTimeFilter(item, timeFilter, 'publications'))
       .map((item) => ({
         ...item,
-        _detectedTier: item.journal_tier || autoDetectJournalRanking(item.journal || '', item.level || ''),
+        _detectedTier: item.journal_tier || autoDetectJournalRanking(item.journal || '', `${item.level || ''} ${item.remarks || ''}`),
       }));
+  }, [dataList, timeFilter]);
+
+  const undatedCount = useMemo(() => {
+    if (!timeFilter || timeFilter.mode === 'all') return 0;
+    return dataList
+      .filter((item) => item.name && item.name !== 'nan' && item.name !== 'NaT' && !isTestRecord(item))
+      .filter((item) => resolveItemDate(item, 'publications') === null).length;
   }, [dataList, timeFilter]);
 
   const {
     q1Count,
     q2Count,
+    q3Count,
+    q4Count,
+    tci1Count,
+    tci2Count,
     tciCount,
+    confCount,
     otherCount,
     internationalCount,
     nationalCount,
@@ -96,7 +108,11 @@ export function usePublicationsData(timeFilter?: TimeFilterState) {
   } = useMemo(() => {
     let q1 = 0;
     let q2 = 0;
-    let tci = 0;
+    let q3 = 0;
+    let q4 = 0;
+    let tci1 = 0;
+    let tci2 = 0;
+    let conf = 0;
     let other = 0;
     let intl = 0;
     let nat = 0;
@@ -105,7 +121,7 @@ export function usePublicationsData(timeFilter?: TimeFilterState) {
     let prepCount = 0;
 
     validData.forEach((d) => {
-      const tier = d._detectedTier || '';
+      const tier = String(d._detectedTier || '');
       const lvl = String(d.level || '');
       const typ = String(d.type || '');
       const st = String(d.status || '');
@@ -122,10 +138,18 @@ export function usePublicationsData(timeFilter?: TimeFilterState) {
 
       if (tier === 'Q1') {
         q1++;
-      } else if (tier === 'Q2' || tier === 'Q3' || tier === 'Q4') {
+      } else if (tier === 'Q2') {
         q2++;
-      } else if (tier.startsWith('TCI')) {
-        tci++;
+      } else if (tier === 'Q3') {
+        q3++;
+      } else if (tier === 'Q4') {
+        q4++;
+      } else if (tier === 'TCI 1') {
+        tci1++;
+      } else if (tier === 'TCI 2') {
+        tci2++;
+      } else if (tier.includes('Conference') || tier.includes('ประชุม') || lvl.includes('ประชุม')) {
+        conf++;
       } else {
         other++;
       }
@@ -134,7 +158,12 @@ export function usePublicationsData(timeFilter?: TimeFilterState) {
     return {
       q1Count: q1,
       q2Count: q2,
-      tciCount: tci,
+      q3Count: q3,
+      q4Count: q4,
+      tci1Count: tci1,
+      tci2Count: tci2,
+      tciCount: tci1 + tci2,
+      confCount: conf,
       otherCount: other,
       internationalCount: intl,
       nationalCount: nat,
@@ -146,12 +175,18 @@ export function usePublicationsData(timeFilter?: TimeFilterState) {
 
   const filteredData = useMemo(() => {
     return validData.filter((item) => {
-      // 1. Level / Tier filter
+      // 1. Level / Tier filter (รองรับครบทุกระดับคุณภาพ)
       if (levelFilter !== 'all') {
         const tier = String(item._detectedTier || '');
         if (levelFilter === 'Q1' && tier !== 'Q1') return false;
-        if (levelFilter === 'Q2' && tier !== 'Q2' && tier !== 'Q3' && tier !== 'Q4') return false;
+        if (levelFilter === 'Q2' && tier !== 'Q2') return false;
+        if (levelFilter === 'Q3' && tier !== 'Q3') return false;
+        if (levelFilter === 'Q4' && tier !== 'Q4') return false;
+        if (levelFilter === 'TCI 1' && tier !== 'TCI 1') return false;
+        if (levelFilter === 'TCI 2' && tier !== 'TCI 2') return false;
         if (levelFilter === 'TCI' && !tier.startsWith('TCI')) return false;
+        if (levelFilter === 'conf' && !tier.includes('Conference') && !tier.includes('ประชุม')) return false;
+        if (levelFilter === 'other' && (tier.startsWith('Q') || tier.startsWith('TCI') || tier.includes('Conference'))) return false;
       }
 
       // 2. Status filter
@@ -198,10 +233,17 @@ export function usePublicationsData(timeFilter?: TimeFilterState) {
 
   return {
     validData,
+    allItems: dataList,
+    undatedCount,
     filteredData,
     q1Count,
     q2Count,
+    q3Count,
+    q4Count,
+    tci1Count,
+    tci2Count,
     tciCount,
+    confCount,
     otherCount,
     internationalCount,
     nationalCount,

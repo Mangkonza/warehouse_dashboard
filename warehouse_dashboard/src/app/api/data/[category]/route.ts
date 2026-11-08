@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { readCategoryData, readEvaluations } from '@/lib/serverDataStore';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -29,13 +30,38 @@ export async function GET(request: NextRequest, context: RouteContext) {
       headers: getForwardHeaders(request),
       cache: 'no-store',
     });
+    if (!res.ok) throw new Error(`Backend status ${res.status}`);
     const data = await res.json();
+    if (data && Array.isArray(data.data)) {
+      const evaluations = readEvaluations();
+      const catLower = category.toLowerCase();
+      data.data = data.data.map((cleaned: any) => {
+        if (!cleaned.evaluation || !cleaned.sdg_ids || cleaned.sdg_ids.length === 0) {
+          const recId = String(cleaned.id || cleaned._id || cleaned.name || '').trim();
+          const evalKey = `${catLower}_${recId}`;
+          const evalRecord = evaluations[evalKey] || null;
+          if (evalRecord) {
+            cleaned.evaluation = evalRecord;
+            cleaned.sdg_ids = evalRecord.sdg_ids || [];
+            cleaned.i_type = evalRecord.i_type ?? null;
+            cleaned.journal_index = evalRecord.journal_index ?? null;
+          }
+        }
+        return cleaned;
+      });
+    }
     return NextResponse.json(data, { status: res.status });
   } catch (error: any) {
-    return NextResponse.json(
-      { status: 'error', message: error?.message || 'Backend connection failed' },
-      { status: 502 }
-    );
+    try {
+      const { category } = await context.params;
+      const items = readCategoryData(category);
+      return NextResponse.json({ status: 'success', data: items });
+    } catch (err: any) {
+      return NextResponse.json(
+        { status: 'error', message: err?.message || 'Backend connection failed' },
+        { status: 502 }
+      );
+    }
   }
 }
 
@@ -49,6 +75,24 @@ export async function POST(request: NextRequest, context: RouteContext) {
       body: JSON.stringify(body),
     });
     const data = await res.json();
+    if (data && Array.isArray(data.data)) {
+      const evaluations = readEvaluations();
+      const catLower = category.toLowerCase();
+      data.data = data.data.map((cleaned: any) => {
+        if (!cleaned.evaluation || !cleaned.sdg_ids || cleaned.sdg_ids.length === 0) {
+          const recId = String(cleaned.id || cleaned._id || cleaned.name || '').trim();
+          const evalKey = `${catLower}_${recId}`;
+          const evalRecord = evaluations[evalKey] || null;
+          if (evalRecord) {
+            cleaned.evaluation = evalRecord;
+            cleaned.sdg_ids = evalRecord.sdg_ids || [];
+            cleaned.i_type = evalRecord.i_type ?? null;
+            cleaned.journal_index = evalRecord.journal_index ?? null;
+          }
+        }
+        return cleaned;
+      });
+    }
     return NextResponse.json(data, { status: res.status });
   } catch (error: any) {
     return NextResponse.json(
@@ -68,6 +112,24 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       body: JSON.stringify(body),
     });
     const data = await res.json();
+    if (data && Array.isArray(data.data)) {
+      const evaluations = readEvaluations();
+      const catLower = category.toLowerCase();
+      data.data = data.data.map((cleaned: any) => {
+        if (!cleaned.evaluation || !cleaned.sdg_ids || cleaned.sdg_ids.length === 0) {
+          const recId = String(cleaned.id || cleaned._id || cleaned.name || '').trim();
+          const evalKey = `${catLower}_${recId}`;
+          const evalRecord = evaluations[evalKey] || null;
+          if (evalRecord) {
+            cleaned.evaluation = evalRecord;
+            cleaned.sdg_ids = evalRecord.sdg_ids || [];
+            cleaned.i_type = evalRecord.i_type ?? null;
+            cleaned.journal_index = evalRecord.journal_index ?? null;
+          }
+        }
+        return cleaned;
+      });
+    }
     return NextResponse.json(data, { status: res.status });
   } catch (error: any) {
     return NextResponse.json(
@@ -86,6 +148,24 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
       headers: getForwardHeaders(request),
     });
     const data = await res.json();
+    if (data && Array.isArray(data.data)) {
+      const evaluations = readEvaluations();
+      const catLower = category.toLowerCase();
+      data.data = data.data.map((cleaned: any) => {
+        if (!cleaned.evaluation || !cleaned.sdg_ids || cleaned.sdg_ids.length === 0) {
+          const recId = String(cleaned.id || cleaned._id || cleaned.name || '').trim();
+          const evalKey = `${catLower}_${recId}`;
+          const evalRecord = evaluations[evalKey] || null;
+          if (evalRecord) {
+            cleaned.evaluation = evalRecord;
+            cleaned.sdg_ids = evalRecord.sdg_ids || [];
+            cleaned.i_type = evalRecord.i_type ?? null;
+            cleaned.journal_index = evalRecord.journal_index ?? null;
+          }
+        }
+        return cleaned;
+      });
+    }
     return NextResponse.json(data, { status: res.status });
   } catch (error: any) {
     return NextResponse.json(

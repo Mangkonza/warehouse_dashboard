@@ -104,7 +104,7 @@ export const ImportModalFrame: React.FC<ImportModalFrameProps> = ({
             aria-label="ปิดหน้าต่างนำเข้าข้อมูล"
             className="w-[2rem] h-[2rem] rounded-[0.5rem] flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors disabled:opacity-40 cursor-pointer shrink-0"
           >
-            <FaTimes className="text-[0.875rem]" />
+            <FaTimes className="text-[18px]" />
           </button>
         </header>
 

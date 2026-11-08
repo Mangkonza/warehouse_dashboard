@@ -297,7 +297,14 @@ export const ImportReviewRow = memo(function ImportReviewRow({
         >
           <DatePicker
             value={data.start_date}
-            onChange={(_, dateStr) => onUpdateRowData(row.rowId, { start_date: dateStr || null })}
+            maxDate={data.end_date || undefined}
+            onChange={(_, dateStr) => {
+              const updates: Partial<typeof data> = { start_date: dateStr || null };
+              if (dateStr && data.end_date && dateStr > data.end_date) {
+                updates.end_date = null;
+              }
+              onUpdateRowData(row.rowId, updates);
+            }}
             disabled={excluded}
             placeholder="วันเริ่มต้น..."
             className="text-xs h-8"
@@ -313,7 +320,14 @@ export const ImportReviewRow = memo(function ImportReviewRow({
         >
           <DatePicker
             value={data.end_date}
-            onChange={(_, dateStr) => onUpdateRowData(row.rowId, { end_date: dateStr || null })}
+            minDate={data.start_date || undefined}
+            onChange={(_, dateStr) => {
+              const updates: Partial<typeof data> = { end_date: dateStr || null };
+              if (dateStr && data.start_date && dateStr < data.start_date) {
+                updates.start_date = null;
+              }
+              onUpdateRowData(row.rowId, updates);
+            }}
             disabled={excluded}
             placeholder="วันสิ้นสุด..."
             className="text-xs h-8"
@@ -422,7 +436,14 @@ export const ImportReviewRow = memo(function ImportReviewRow({
                   <label className="block text-slate-600 font-semibold mb-1">วันที่เริ่มต้นบูรณาการ</label>
                   <DatePicker
                     value={data.integration_start_date}
-                    onChange={(_, dateStr) => onUpdateRowData(row.rowId, { integration_start_date: dateStr || null })}
+                    maxDate={data.integration_end_date || undefined}
+                    onChange={(_, dateStr) => {
+                      const updates: Partial<typeof data> = { integration_start_date: dateStr || null };
+                      if (dateStr && data.integration_end_date && dateStr > data.integration_end_date) {
+                        updates.integration_end_date = null;
+                      }
+                      onUpdateRowData(row.rowId, updates);
+                    }}
                     disabled={excluded}
                     placeholder="วันเริ่มบูรณาการ..."
                   />
@@ -432,7 +453,14 @@ export const ImportReviewRow = memo(function ImportReviewRow({
                   <label className="block text-slate-600 font-semibold mb-1">วันที่สิ้นสุดบูรณาการ</label>
                   <DatePicker
                     value={data.integration_end_date}
-                    onChange={(_, dateStr) => onUpdateRowData(row.rowId, { integration_end_date: dateStr || null })}
+                    minDate={data.integration_start_date || undefined}
+                    onChange={(_, dateStr) => {
+                      const updates: Partial<typeof data> = { integration_end_date: dateStr || null };
+                      if (dateStr && data.integration_start_date && dateStr < data.integration_start_date) {
+                        updates.integration_start_date = null;
+                      }
+                      onUpdateRowData(row.rowId, updates);
+                    }}
                     disabled={excluded}
                     placeholder="วันสิ้นสุดบูรณาการ..."
                   />

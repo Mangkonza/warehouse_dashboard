@@ -1,8 +1,14 @@
 'use client';
 
 import React from 'react';
-import { FaEdit, FaBan, FaUndo } from 'react-icons/fa';
-import { StatusBadge } from '@/components/ui/StatusBadge';
+import {
+  FaEdit,
+  FaBan,
+  FaUndo,
+  FaExclamationCircle,
+  FaExclamationTriangle,
+  FaCopy,
+} from 'react-icons/fa';
 import { ImportRow } from '../types';
 import { cn } from '@/lib/utils';
 
@@ -19,25 +25,30 @@ const ImportListItemComponent: React.FC<ImportListItemProps> = ({
   row,
   index,
   selected,
-  isRecentlyFixed = false,
   onSelect,
   onToggleExclude,
 }) => {
   const errorIssues = row.issues.filter((i) => i.severity === 'error');
   const warningIssues = row.issues.filter((i) => i.severity === 'warning');
 
-  const formatBudget = (val: number) => {
-    if (!val || isNaN(val)) return '—';
-    return `฿${val.toLocaleString('th-TH', { maximumFractionDigits: 0 })}`;
-  };
+  const isError = !row.excluded && (row.status === 'error' || errorIssues.length > 0);
+  const isWarning =
+    !row.excluded && !isError && (row.status === 'warning' || warningIssues.length > 0);
+  const isDuplicate = !row.excluded && row.status === 'duplicate';
+  const isReady = !row.excluded && !isError && !isWarning && !isDuplicate;
 
-  const badgeLabel = row.excluded
-    ? 'ไม่นำเข้า'
-    : errorIssues.length > 0
-    ? `ต้องแก้ ${errorIssues.length} จุด`
-    : warningIssues.length > 0
-    ? `ควรตรวจ ${warningIssues.length} จุด`
-    : undefined;
+  // Reason texts exactly following Image 2 design
+  const errorReason =
+    errorIssues.length > 0
+      ? errorIssues.map((i) => i.message || `ขาดข้อมูล: ${i.label}`).join(', ')
+      : 'มีข้อผิดพลาดที่ต้องแก้ไข';
+
+  const warningReason =
+    warningIssues.length > 0
+      ? warningIssues.map((i) => i.message || `ควรตรวจ: ${i.label}`).join(', ')
+      : 'มีข้อควรตรวจสอบ';
+
+  const duplicateReason = row.duplicateOf || 'มีในระบบแล้ว (จะถูกข้าม)';
 
   return (
     <div
@@ -45,114 +56,100 @@ const ImportListItemComponent: React.FC<ImportListItemProps> = ({
       data-row-id={row.rowId}
       onClick={() => onSelect(row.rowId)}
       className={cn(
-        'imp-row-item group relative flex items-center justify-between gap-[0.75rem] px-[0.875rem] border-b border-slate-100 transition-colors cursor-pointer select-none',
-        selected
-          ? 'bg-emerald-50/70 border-l-[3px] border-l-[#00A651]'
-          : 'hover:bg-slate-50/90 border-l-[3px] border-l-transparent',
-        row.excluded && 'opacity-55 bg-slate-50/50'
+        'group relative flex items-center justify-between gap-3 p-3.5 rounded-xl border transition-all cursor-pointer select-none',
+        // 1. ต้องแก้ไข: พื้นแดงจาง + ไอคอนวงกลมแดง + เหตุผลสีแดงเข้ม
+        isError && 'bg-[#fff5f5] border-[#fed7d7] hover:border-rose-300',
+        // 2. ควรตรวจ: พื้นส้มจาง + ไอคอนสามเหลี่ยมส้ม + เหตุผล
+        isWarning && 'bg-[#fffaf0] border-[#feebc8] hover:border-amber-300',
+        // 3. ซ้ำในระบบ: ตัวหนังสือเทา + ไอคอนสำเนา (จะถูกข้าม)
+        isDuplicate && 'bg-slate-50/70 border-slate-200 hover:border-slate-300 opacity-80',
+        // 4. พร้อมนำเข้า: เงียบที่สุด มีแค่จุดเขียวเล็ก ๆ
+        isReady && 'bg-white border-slate-200/90 hover:border-slate-300 shadow-2xs',
+        // Excluded state
+        row.excluded && 'opacity-50 bg-slate-100/60 border-slate-200 line-through',
+        // Selected highlight
+        selected &&
+          (isError
+            ? 'ring-2 ring-rose-500 border-rose-500 bg-[#ffebeb]'
+            : isWarning
+            ? 'ring-2 ring-amber-500 border-amber-500 bg-[#fff5e0]'
+            : isDuplicate
+            ? 'ring-2 ring-slate-400 border-slate-400'
+            : 'ring-2 ring-[#00A651] border-[#00A651] bg-emerald-50/20')
       )}
     >
-      {/* Left main 3-line summary */}
-      <div className="flex-1 min-w-0 flex flex-col justify-center gap-[0.1875rem]">
-        {/* Line 1: #Index + StatusBadge + Category + Sheet + RecentlyFixed badge */}
-        <div className="flex items-center gap-[0.375rem] min-w-0 overflow-hidden">
-          <span className="text-[0.6875rem] font-bold text-slate-400 tabular-nums shrink-0">
+      {/* Left content: 3 lines clean layout matching Image 2 */}
+      <div className="flex-1 min-w-0 flex flex-col gap-1">
+        {/* Top: Icon + #Index */}
+        <div className="flex items-center gap-1.5">
+          {isError && <FaExclamationCircle className="text-rose-500 text-sm shrink-0" />}
+          {isWarning && <FaExclamationTriangle className="text-amber-500 text-sm shrink-0" />}
+          {isDuplicate && <FaCopy className="text-slate-400 text-sm shrink-0" />}
+          {isReady && <span className="size-2 rounded-full bg-emerald-500 shrink-0" />}
+          {row.excluded && <FaBan className="text-slate-400 text-xs shrink-0" />}
+
+          <span className="text-xs font-mono font-semibold text-slate-400 tabular-nums">
             #{index + 1}
-          </span>
-
-          <StatusBadge
-            variant={row.excluded ? 'excluded' : row.status}
-            label={badgeLabel}
-          />
-
-          {isRecentlyFixed && !row.excluded && (
-            <StatusBadge variant="fixed" label="แก้ไขแล้ว ✓" />
-          )}
-
-          <span className="px-[0.375rem] py-[0.0625rem] rounded-[0.25rem] bg-slate-100 text-slate-600 text-[0.6875rem] font-medium truncate max-w-[9rem] shrink-0">
-            {row.categoryLabel}
-          </span>
-
-          <span className="text-[0.6875rem] text-slate-400 truncate">
-            ชีต: {row.sheetName} (แถว {row.excelRowNumber})
           </span>
         </div>
 
-        {/* Line 2: Title */}
-        <div className="truncate text-[0.8125rem] font-bold text-slate-800 leading-snug">
+        {/* Middle: Title */}
+        <div className="text-[13.5px] font-semibold leading-snug line-clamp-2">
           {row.data.name ? (
-            <span className={cn(row.excluded && 'line-through text-slate-400')}>
+            <span className={cn(isDuplicate ? 'text-slate-500' : 'text-slate-800')}>
               {row.data.name}
             </span>
           ) : (
-            <span className="text-rose-600 italic font-semibold">
+            <span className="text-rose-600 font-semibold">
               (ยังไม่ได้ระบุชื่อโครงการ/ผลงาน)
             </span>
           )}
         </div>
 
-        {/* Line 3: Issue summary OR concise metadata */}
-        <div className="truncate text-[0.75rem] leading-tight">
-          {row.excluded ? (
-            <span className="text-slate-400">ยกเว้นการนำเข้าแถวนี้</span>
-          ) : row.status === 'duplicate' ? (
-            <span className="text-purple-700 font-medium">
-              {row.duplicateOf || 'ซ้ำกับข้อมูลที่มีอยู่แล้ว'}
-            </span>
-          ) : errorIssues.length > 0 ? (
-            <span className="text-rose-600 font-semibold">
-              ขาดข้อมูลบังคับ: {errorIssues.map((i) => i.label).join(', ')}
-            </span>
-          ) : warningIssues.length > 0 ? (
-            <span className="text-amber-700 font-medium">
-              ควรตรวจ: {warningIssues.map((i) => i.label).join(', ')}
-            </span>
-          ) : (
-            <span className="text-slate-500">
-              {row.data.head_name || 'ไม่ระบุผู้รับผิดชอบ'} •{' '}
-              {row.data.department_code || 'ไม่ระบุภาควิชา'} • {formatBudget(row.data.budget)}
-            </span>
-          )}
-        </div>
+        {/* Bottom: Reason (only for non-ready states, matching Image 2) */}
+        {isError && (
+          <div className="text-xs font-medium text-rose-600 truncate mt-0.5">
+            {errorReason}
+          </div>
+        )}
+
+        {isWarning && (
+          <div className="text-xs font-medium text-amber-700 truncate mt-0.5">
+            {warningReason}
+          </div>
+        )}
+
+        {isDuplicate && (
+          <div className="text-xs font-normal text-slate-400 truncate mt-0.5">
+            {duplicateReason}
+          </div>
+        )}
+
+        {row.excluded && (
+          <div className="text-xs font-normal text-slate-400 truncate mt-0.5">
+            ยกเว้นการนำเข้าแถวนี้
+          </div>
+        )}
       </div>
 
-      {/* Container-query extra columns (visible when left pane is wide) */}
-      <div className="imp-row-meta-lg hidden flex-col items-end justify-center text-right shrink-0 w-[9.5rem]">
-        <span className="text-[0.75rem] font-semibold text-slate-700 truncate max-w-full">
-          {row.data.head_name || '—'}
-        </span>
-        <span className="text-[0.6875rem] text-slate-400 truncate max-w-full">
-          {row.data.start_date ? `${row.data.start_date}` : 'ไม่ระบุวันที่'}
-        </span>
-      </div>
-
-      <div className="imp-row-meta-md hidden flex-col items-end justify-center text-right shrink-0 w-[6.5rem]">
-        <span className="px-[0.375rem] py-[0.0625rem] rounded bg-slate-100 text-slate-700 text-[0.6875rem] font-bold">
-          {row.data.department_code || '—'}
-        </span>
-        <span className="text-[0.75rem] font-bold text-emerald-700 tabular-nums">
-          {formatBudget(row.data.budget)}
-        </span>
-      </div>
-
-      {/* Action buttons: Edit & Exclude */}
-      <div className="flex items-center gap-[0.375rem] shrink-0">
+      {/* Right actions: Edit & Exclude buttons */}
+      <div className="flex items-center gap-1.5 shrink-0 pl-2">
         <button
           type="button"
           onClick={(e) => {
             e.stopPropagation();
             onSelect(row.rowId);
           }}
-          title="เปิดฟอร์มแก้ไขทางขวา"
+          title="แก้ไขรายการนี้"
           className={cn(
-            'inline-flex items-center gap-[0.25rem] px-[0.5rem] py-[0.3125rem] rounded-[0.4375rem] text-[0.75rem] font-semibold transition-colors cursor-pointer',
-            selected
-              ? 'bg-[#00A651] text-white'
-              : 'bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700'
+            'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer shadow-2xs',
+            selected || isReady
+              ? 'bg-[#00A651] text-white hover:bg-[#008f45]'
+              : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50'
           )}
         >
-          <FaEdit className="text-[0.6875rem]" />
-          <span className="hidden sm:inline">แก้ไข</span>
+          <FaEdit className="text-[11px]" />
+          <span>แก้ไข</span>
         </button>
 
         <button
@@ -163,17 +160,13 @@ const ImportListItemComponent: React.FC<ImportListItemProps> = ({
           }}
           title={row.excluded ? 'คืนค่าแถวนี้กลับมานำเข้า' : 'ไม่นำเข้าแถวนี้'}
           className={cn(
-            'w-[1.875rem] h-[1.875rem] rounded-[0.4375rem] flex items-center justify-center transition-colors cursor-pointer',
+            'size-8 rounded-lg flex items-center justify-center transition-colors cursor-pointer',
             row.excluded
               ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
               : 'text-slate-400 hover:bg-rose-50 hover:text-rose-600'
           )}
         >
-          {row.excluded ? (
-            <FaUndo className="text-[0.6875rem]" />
-          ) : (
-            <FaBan className="text-[0.75rem]" />
-          )}
+          {row.excluded ? <FaUndo className="text-xs" /> : <FaBan className="text-xs" />}
         </button>
       </div>
     </div>

@@ -12,9 +12,15 @@ export function parseSafeDate(val: any): Date | null {
   // If year > 2400, convert to CE (Common Era / AD)
   let dateStr = s;
   const beMatch = s.match(/^(\d{4})([-/].*)$/);
-  if (beMatch && parseInt(beMatch[1], 10) > 2400) {
-    const ceYear = parseInt(beMatch[1], 10) - 543;
-    dateStr = `${ceYear}${beMatch[2]}`;
+  if (beMatch) {
+    const y = parseInt(beMatch[1], 10);
+    if (y > 2400) {
+      const ceYear = y - 543;
+      dateStr = `${ceYear}${beMatch[2]}`;
+    } else if (y >= 1960 && y <= 1980) {
+      const ceYear = y + 57;
+      dateStr = `${ceYear}${beMatch[2]}`;
+    }
   }
 
   const d = new Date(dateStr);

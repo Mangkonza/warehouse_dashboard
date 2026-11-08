@@ -7,16 +7,26 @@ import { KpiHeaderToolbar } from './KpiHeaderToolbar';
 import { KpiSummaryCards } from './KpiSummaryCards';
 import { KpiFilterBar } from './KpiFilterBar';
 import { KpiGridCards } from './KpiGridCards';
+import { KpiStrategicTableView } from './KpiStrategicTableView';
 
 export function KPIView() {
   const { timeFilter, setTimeFilter, resetTimeFilter } = useTimeFilter();
   const {
-    filteredKPIs,
+    filteredKPIs, computedKPIs,
+    reportingRounds,
     overallStats,
+    selectedStrategy,
+    setSelectedStrategy,
     selectedCategory,
     setSelectedCategory,
     selectedStatus,
     setSelectedStatus,
+    selectedRound,
+    setSelectedRound,
+    viewMode,
+    setViewMode,
+    searchQuery,
+    setSearchQuery,
     expandedId,
     setExpandedId,
     isRefreshing,
@@ -29,6 +39,11 @@ export function KPIView() {
         timeFilter={timeFilter}
         isRefreshing={isRefreshing}
         onRefresh={loadLiveData}
+        selectedRound={selectedRound}
+        onSelectRound={setSelectedRound}
+        reportingRounds={reportingRounds}
+        viewMode={viewMode}
+        onSelectViewMode={setViewMode}
       />
 
       <TimeFilterBar
@@ -39,23 +54,36 @@ export function KPIView() {
       />
 
       <KpiSummaryCards
-        stats={overallStats}
+        stats={overallStats} items={computedKPIs} selectedStrategy={selectedStrategy} onSelectStrategy={setSelectedStrategy}
         selectedStatus={selectedStatus}
         onSelectStatus={setSelectedStatus}
       />
 
       <KpiFilterBar
+        selectedStrategy={selectedStrategy}
+        onSelectStrategy={setSelectedStrategy}
         selectedCategory={selectedCategory}
         onSelectCategory={setSelectedCategory}
         selectedStatus={selectedStatus}
         onSelectStatus={setSelectedStatus}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
       />
 
-      <KpiGridCards
-        filteredKPIs={filteredKPIs}
-        expandedId={expandedId}
-        onToggleExpand={(id) => setExpandedId(expandedId === id ? null : id)}
-      />
+      {viewMode === 'table' ? (
+        <KpiStrategicTableView
+          filteredKPIs={filteredKPIs}
+          selectedRound={selectedRound}
+          reportingRounds={reportingRounds}
+        />
+      ) : (
+        <KpiGridCards
+          filteredKPIs={filteredKPIs}
+          reportingRounds={reportingRounds}
+          expandedId={expandedId}
+          onToggleExpand={(id) => setExpandedId(expandedId === id ? null : id)}
+        />
+      )}
     </div>
   );
 }

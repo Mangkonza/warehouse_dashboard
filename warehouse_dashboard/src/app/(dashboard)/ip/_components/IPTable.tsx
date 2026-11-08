@@ -1,14 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { FaTable, FaFileExcel, FaTimes, FaHourglassHalf } from 'react-icons/fa';
-import { SearchInput, DepartmentBadge, DepartmentSelect, RecordDetailDrawer, IPTypeBadge, StrategyBadges } from '@/components/ui';
+import { SearchInput, DepartmentBadge, RecordDetailDrawer, IPTypeBadge, StrategyBadges } from '@/components/ui';
 import { IPItem } from '../_hooks/useIPData';
 
 interface IPTableProps {
   filteredIpData: IPItem[];
   totalCount?: number;
-  availableDepts: string[];
   searchTerm: string;
   onSearchChange: (value: string) => void;
   deptFilter: string;
@@ -20,7 +20,6 @@ interface IPTableProps {
 export function IPTable({
   filteredIpData,
   totalCount,
-  availableDepts,
   searchTerm,
   onSearchChange,
   deptFilter,
@@ -37,9 +36,9 @@ export function IPTable({
     const headers = [
       'ลำดับ',
       'ชื่อผลงานการประดิษฐ์',
-      'ผู้ประดิษฐ์หลัก',
-      'ภาควิชา',
-      'ประเภท IP',
+      'ผู้สร้างผลงานหลัก',
+      'สังกัด',
+      'ประเภท',
       'เลขที่คำขอ',
       'เลขทะเบียน',
       'สถานะ',
@@ -155,21 +154,12 @@ export function IPTable({
           )}
 
           <SearchInput
-            placeholder="ค้นหาชื่อเรื่อง / ผู้ประดิษฐ์ / เลขคำขอ..."
+            placeholder="ค้นหาชื่อเรื่อง / ผู้สร้างผลงาน / เลขคำขอ..."
             value={searchTerm}
             onChange={onSearchChange}
             width="230px"
           />
 
-          <DepartmentSelect
-            value={deptFilter}
-            onChange={onDeptChange}
-            allowAll
-            allLabel="ทุกภาควิชา"
-            allValue="all"
-            size="sm"
-            className="w-[175px]"
-          />
 
           {hasActiveFilter && (
             <button
@@ -197,13 +187,13 @@ export function IPTable({
       </div>
 
       <div className="table-scroll" style={{ maxHeight: '480px' }}>
-        <table>
+        <table className="table-manage">
           <thead>
             <tr>
               <th style={{ width: '45px', textAlign: 'center' }}>#</th>
               <th style={{ minWidth: '220px' }}>ชื่อผลงานการประดิษฐ์</th>
-              <th>ผู้ประดิษฐ์หลัก</th>
-              <th style={{ width: '130px', textAlign: 'left' }}>ภาควิชา</th>
+              <th>ผู้สร้างผลงานหลัก</th>
+              <th style={{ width: '130px', textAlign: 'left' }}>สังกัด</th>
               <th style={{ textAlign: 'center', width: '110px' }}>ประเภท</th>
               <th style={{ minWidth: '150px' }}>เลขที่คำขอ / เลขทะเบียน</th>
               <th style={{ textAlign: 'center', width: '150px' }}>สถานะการคุ้มครอง</th>
@@ -263,14 +253,14 @@ export function IPTable({
                     <td style={{ fontWeight: 500, color: '#334155' }}>
                       {item.creator && item.creator !== 'nan' ? (
                         item.person_id ? (
-                          <a
+                          <Link
                             href={`/personnel/${item.person_id}`}
                             onClick={(e) => e.stopPropagation()}
                             style={{ color: '#7c3aed', fontWeight: 600, textDecoration: 'none' }}
                             title="คลิกเพื่อดูแฟ้มผลงานอาจารย์"
                           >
                             {item.creator}
-                          </a>
+                          </Link>
                         ) : (
                           item.creator
                         )

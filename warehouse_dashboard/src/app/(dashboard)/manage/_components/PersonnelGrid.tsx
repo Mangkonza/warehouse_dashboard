@@ -1,4 +1,5 @@
 'use client';
+import { formatPersonName } from '@/lib/formatPersonName';
 
 import React from 'react';
 import { PersonnelRecord } from '@/types/dataManagement';
@@ -10,12 +11,14 @@ interface PersonnelGridProps {
   personnel: PersonnelRecord[];
   onEdit: (person: PersonnelRecord) => void;
   onDelete: (person: PersonnelRecord) => void;
+  recentlyAddedIds?: string[];
 }
 
 export const PersonnelGrid: React.FC<PersonnelGridProps> = ({
   personnel,
   onEdit,
   onDelete,
+  recentlyAddedIds,
 }) => {
   return (
     <div
@@ -26,13 +29,21 @@ export const PersonnelGrid: React.FC<PersonnelGridProps> = ({
         padding: '4px 0',
       }}
     >
-      {personnel.map((p) => (
+      {personnel.map((p) => {
+        const isRecent = Boolean(
+          recentlyAddedIds &&
+          recentlyAddedIds.length > 0 &&
+          [(p as any).dbId, p.id, p._id]
+            .filter(Boolean)
+            .some((id) => recentlyAddedIds.includes(String(id)))
+        );
+        return (
         <div
           key={p._id || p.id}
           style={{
-            backgroundColor: '#ffffff',
+            backgroundColor: isRecent ? '#f0fdf4' : '#ffffff',
             borderRadius: '12px',
-            border: '1px solid #e2e8f0',
+            border: isRecent ? '2px solid #10b981' : '1px solid #e2e8f0',
             padding: '18px',
             display: 'flex',
             flexDirection: 'column',
@@ -68,7 +79,7 @@ export const PersonnelGrid: React.FC<PersonnelGridProps> = ({
             >
               <img
                 src={p.image_url ? encodeURI(p.image_url) : '/default-avatar.png'}
-                alt={p.name}
+                alt={formatPersonName(p, { includePrefix: true })}
                 style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center', backgroundColor: '#99b8db' }}
                 onError={(e) => {
                   const target = e.currentTarget;
@@ -81,20 +92,22 @@ export const PersonnelGrid: React.FC<PersonnelGridProps> = ({
 
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                {p.title_th && (
+                {isRecent && (
                   <span
                     style={{
                       fontSize: '11px',
-                      fontWeight: 600,
+                      fontWeight: 700,
                       padding: '1px 6px',
                       borderRadius: '4px',
-                      backgroundColor: '#e0f2fe',
-                      color: '#0369a1',
+                      backgroundColor: '#10b981',
+                      color: '#ffffff',
+                      boxShadow: '0 1px 3px rgba(16,185,129,0.3)',
                     }}
                   >
-                    {p.title_th}
+                    ✨ ใหม่
                   </span>
                 )}
+                
                 {(!p.position || !p.position.trim() || !p.email || !p.email.trim() || p.email === 'ไม่พบอีเมล' || !p.image_url || !p.image_url.trim()) && (
                   <span
                     style={{
@@ -121,7 +134,7 @@ export const PersonnelGrid: React.FC<PersonnelGridProps> = ({
                   lineHeight: '1.3',
                 }}
               >
-                {p.name}
+                {formatPersonName(p, { includePrefix: true })}
               </div>
 
               <div
@@ -211,7 +224,8 @@ export const PersonnelGrid: React.FC<PersonnelGridProps> = ({
             </div>
           </div>
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 };

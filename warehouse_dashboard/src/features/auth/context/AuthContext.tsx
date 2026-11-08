@@ -157,6 +157,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const isAdmin = user?.role === 'admin';
 
+  const openLoginModal = useCallback(() => setIsLoginModalOpen(true), []);
+  const closeLoginModal = useCallback(() => setIsLoginModalOpen(false), []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -168,8 +171,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loginWithMock,
         loginWithCredentials,
         logout,
-        openLoginModal: () => setIsLoginModalOpen(true),
-        closeLoginModal: () => setIsLoginModalOpen(false),
+        openLoginModal,
+        closeLoginModal,
         isLoginModalOpen,
       }}
     >

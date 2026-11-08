@@ -27,10 +27,10 @@ interface MultiMemberSelectorProps {
 }
 
 const ROLE_OPTIONS: { role: MemberRole; label: string }[] = [
-  { role: 'PI', label: 'หัวหน้าโครงการ (PI)' },
-  { role: 'Co-PI', label: 'ผู้ร่วมวิจัย (Co-PI)' },
-  { role: 'RA', label: 'ผู้ช่วยวิจัย (RA)' },
-  { role: 'Advisor', label: 'ที่ปรึกษาโครงการ (Advisor)' },
+  { role: 'PI', label: 'หัวหน้าโครงการ' },
+  { role: 'Co-PI', label: 'ผู้ร่วมวิจัย' },
+  { role: 'RA', label: 'ผู้ช่วยวิจัย' },
+  { role: 'Advisor', label: 'ที่ปรึกษาโครงการ' },
 ];
 
 const AFFILIATION_OPTIONS: { type: AffiliationType; label: string; icon: any }[] = [
@@ -93,7 +93,7 @@ export const MultiMemberSelector: React.FC<MultiMemberSelectorProps> = ({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
       <label style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a' }}>
-        ทีมงานผู้ดำเนินโครงการ & ความร่วมมือข้ามสังกัด (Project Members & Collaboration)
+        ทีมงานผู้ดำเนินโครงการและความร่วมมือข้ามสังกัด
       </label>
 
       {/* Existing Members Roster */}

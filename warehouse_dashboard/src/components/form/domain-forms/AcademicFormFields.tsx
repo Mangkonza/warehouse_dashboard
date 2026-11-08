@@ -10,6 +10,7 @@ export interface AcademicFormFieldsProps {
   setFormData: React.Dispatch<React.SetStateAction<Record<string, any>>>;
   readOnly?: boolean;
   className?: string;
+  errors?: Record<string, string>;
 }
 
 export const AcademicFormFields: React.FC<AcademicFormFieldsProps> = ({
@@ -18,6 +19,7 @@ export const AcademicFormFields: React.FC<AcademicFormFieldsProps> = ({
   setFormData,
   readOnly = false,
   className,
+  errors,
 }) => {
   return (
     <fieldset
@@ -32,6 +34,7 @@ export const AcademicFormFields: React.FC<AcademicFormFieldsProps> = ({
         formData={formData}
         onChange={onChange}
         setFormData={setFormData}
+        errors={errors}
       />
     </fieldset>
   );

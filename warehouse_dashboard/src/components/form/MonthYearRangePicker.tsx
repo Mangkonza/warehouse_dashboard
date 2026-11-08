@@ -62,15 +62,23 @@ export function MonthYearRangePicker({
   }, [value.start, value.end]);
 
   const handleStartChange = (start: string | null) => {
+    let nextEnd = value.end;
+    if (start && nextEnd && start > nextEnd) {
+      nextEnd = null;
+    }
     onChange({
       start,
-      end: value.end,
+      end: nextEnd,
     });
   };
 
   const handleEndChange = (end: string | null) => {
+    let nextStart = value.start;
+    if (end && nextStart && end < nextStart) {
+      nextStart = null;
+    }
     onChange({
-      start: value.start,
+      start: nextStart,
       end,
     });
   };
@@ -81,6 +89,7 @@ export function MonthYearRangePicker({
         <div className="flex-1 min-w-0">
           <MonthYearPicker
             value={value.start}
+            maxYearMonth={value.end}
             onChange={handleStartChange}
             placeholder={startPlaceholder}
             disabled={disabled}
@@ -94,6 +103,7 @@ export function MonthYearRangePicker({
         <div className="flex-1 min-w-0">
           <MonthYearPicker
             value={value.end}
+            minYearMonth={value.start}
             onChange={handleEndChange}
             placeholder={endPlaceholder}
             disabled={disabled}

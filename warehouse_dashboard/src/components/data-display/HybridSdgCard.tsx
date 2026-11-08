@@ -10,9 +10,18 @@ import {
 import { formatMoney } from '@/components/ui/RecordDetailDrawer';
 import { DrillDownProjectDrawer } from './DrillDownProjectDrawer';
 import { CategoryKey } from '@/types/dataManagement';
-import { FaGlobeAsia, FaLayerGroup, FaThLarge, FaTrophy, FaChevronRight } from 'react-icons/fa';
+import {
+  FaGlobeAsia,
+  FaLayerGroup,
+  FaThLarge,
+  FaTrophy,
+  FaChevronRight,
+  FaSortAmountDown,
+  FaSortNumericDown,
+} from 'react-icons/fa';
 
 export type SdgViewMode = 'active' | 'cluster' | 'matrix17';
+export type SdgSortMode = 'number' | 'desc';
 
 export interface HybridSdgCardProps {
   title?: string;
@@ -37,6 +46,7 @@ export const HybridSdgCard: React.FC<HybridSdgCardProps> = ({
   onSelectSdgCode,
 }) => {
   const [viewMode, setViewMode] = useState<SdgViewMode>(defaultMode);
+  const [sortOrder, setSortOrder] = useState<SdgSortMode>('number');
   const [hoveredKey, setHoveredKey] = useState<string | null>(null);
   const [drawerState, setDrawerState] = useState<{
     isOpen: boolean;
@@ -51,6 +61,27 @@ export const HybridSdgCard: React.FC<HybridSdgCardProps> = ({
   });
 
   const summary = useMemo(() => aggregateSDGMetrics(items), [items]);
+
+  const sortedActiveSDGs = useMemo(() => {
+    return [...summary.activeSDGs].sort((a, b) => {
+      if (sortOrder === 'desc') {
+        if (b.count !== a.count) return b.count - a.count;
+        return b.budget - a.budget;
+      }
+      return a.sdg.number - b.sdg.number;
+    });
+  }, [summary.activeSDGs, sortOrder]);
+
+  const sortedAll17 = useMemo(() => {
+    return [...summary.all17].sort((a, b) => {
+      if (sortOrder === 'desc') {
+        if (b.count !== a.count) return b.count - a.count;
+        return a.sdg.number - b.sdg.number;
+      }
+      return a.sdg.number - b.sdg.number;
+    });
+  }, [summary.all17, sortOrder]);
+
   const maxActiveCount = useMemo(
     () => Math.max(...summary.activeSDGs.map((s) => s.count), 1),
     [summary.activeSDGs]
@@ -171,8 +202,8 @@ export const HybridSdgCard: React.FC<HybridSdgCardProps> = ({
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  padding: '6px 12px',
-                  borderRadius: '6px',
+                  padding: '6px 14px',
+                  borderRadius: '9999px',
                   border: 'none',
                   backgroundColor: isActive ? '#00A651' : 'transparent',
                   color: isActive ? '#ffffff' : '#475569',
@@ -189,18 +220,54 @@ export const HybridSdgCard: React.FC<HybridSdgCardProps> = ({
             );
           })}
         </div>
+
+        {/* Sort Toggle Button (เรียงสลับจาก 12345 สลับเป็นมากสุดไปหาน้อยสุด) */}
+        {(viewMode === 'active' || viewMode === 'matrix17') && (
+          <button
+            type="button"
+            onClick={() => setSortOrder((prev) => (prev === 'number' ? 'desc' : 'number'))}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 12px',
+              borderRadius: '8px',
+              border: '1px solid #cbd5e1',
+              backgroundColor: '#ffffff',
+              color: '#334155',
+              fontSize: '12px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+            }}
+            title="สลับการเรียงลำดับเป้าหมาย SDG"
+          >
+            {sortOrder === 'number' ? (
+              <>
+                <FaSortNumericDown style={{ color: '#00A651', fontSize: '13px' }} />
+                <span>เรียงตามข้อ (1-17)</span>
+              </>
+            ) : (
+              <>
+                <FaSortAmountDown style={{ color: '#00A651', fontSize: '13px' }} />
+                <span>เรียงตามจำนวน (มากไปน้อย)</span>
+              </>
+            )}
+          </button>
+        )}
       </div>
 
       {/* MODE 1: Top Active SDGs (เฉพาะเป้าหมายที่มีผลงานจริง) */}
       {viewMode === 'active' && (
         <div>
-          {summary.activeSDGs.length === 0 ? (
+          {sortedActiveSDGs.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '32px', color: '#94a3b8', fontSize: '13.5px' }}>
               ไม่มีรายการข้อมูลในช่วงเวลาที่เลือก
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {summary.activeSDGs.map((entry) => {
+              {sortedActiveSDGs.map((entry) => {
                 const widthPct = Math.max(8, Math.round((entry.count / maxActiveCount) * 100));
                 const isSelected = selectedSdgCode === entry.sdg.code;
                 const isHovered = hoveredKey === entry.sdg.code;
@@ -211,7 +278,7 @@ export const HybridSdgCard: React.FC<HybridSdgCardProps> = ({
                 return (
                   <div
                     key={entry.sdg.code}
-                    style={{ position: 'relative' }}
+                    style={{ position: 'relative', zIndex: isHovered ? 40 : 1 }}
                     onMouseEnter={() => setHoveredKey(entry.sdg.code)}
                     onMouseLeave={() => setHoveredKey(null)}
                   >
@@ -321,17 +388,23 @@ export const HybridSdgCard: React.FC<HybridSdgCardProps> = ({
                       </div>
                     </div>
 
-                    {/* Smart Rich Tooltip on Hover (แสดง Top 3 โครงการโดยไม่ให้กราฟรก) */}
+                    {/* Smart Rich Tooltip on Hover (แสดง Top 3 โครงการโดยไม่ให้กราฟรก และลอยเหนือเลเยอร์ไม่ทำให้เลย์เอาต์เพี้ยน) */}
                     {isHovered && top3.length > 0 && (
                       <div
                         style={{
-                          marginTop: '4px',
+                          position: 'absolute',
+                          top: 'calc(100% + 4px)',
+                          left: 0,
+                          right: 0,
+                          zIndex: 50,
+                          boxShadow: '0 8px 24px rgba(15, 23, 42, 0.14)',
                           padding: '10px 14px',
                           borderRadius: '8px',
-                          backgroundColor: '#f8fafc',
+                          backgroundColor: '#ffffff',
                           border: '1px solid #cbd5e1',
                           fontSize: '12px',
                           color: '#334155',
+                          pointerEvents: 'none',
                         }}
                       >
                         <div style={{ fontWeight: 600, color: '#1e293b', marginBottom: '4px' }}>
@@ -591,7 +664,7 @@ export const HybridSdgCard: React.FC<HybridSdgCardProps> = ({
               gap: '10px',
             }}
           >
-            {summary.all17.map((entry) => {
+            {sortedAll17.map((entry) => {
               const hasData = entry.count > 0;
               return (
                 <div

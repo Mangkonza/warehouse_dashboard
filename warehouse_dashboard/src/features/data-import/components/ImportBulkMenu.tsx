@@ -130,7 +130,7 @@ export const ImportBulkMenu: React.FC<ImportBulkMenuProps> = ({
         }
         return null;
       },
-      `เติมภาควิชา ${selectedDept} แล้ว ${ids.size} แถว`
+      `เติมสังกัด ${selectedDept} แล้ว ${ids.size} แถว`
     );
     handleOpenChange(false);
   };
@@ -236,7 +236,7 @@ export const ImportBulkMenu: React.FC<ImportBulkMenuProps> = ({
             >
               <span className="flex items-center gap-[0.5rem] font-semibold text-slate-700">
                 <FaBuilding className="text-emerald-600 shrink-0" />
-                <span>เติมภาควิชาให้แถวที่ว่าง</span>
+                <span>เติมสังกัดให้แถวที่ว่าง</span>
               </span>
               <span className="px-[0.375rem] py-[0.0625rem] rounded-full bg-slate-100 text-slate-600 font-bold text-[0.6875rem]">
                 {emptyDeptRows.length} แถว
@@ -350,13 +350,13 @@ export const ImportBulkMenu: React.FC<ImportBulkMenuProps> = ({
                 <FaArrowLeft className="text-[0.75rem]" />
               </button>
               <span className="text-[0.8125rem] font-bold text-slate-800">
-                เติมภาควิชาให้แถวที่ว่าง
+                เติมสังกัดให้แถวที่ว่าง
               </span>
             </div>
 
             <div className="space-y-[0.375rem]">
               <label className="block text-[0.75rem] font-semibold text-slate-600">
-                เลือกภาควิชา/หน่วยงาน
+                เลือกสังกัด
               </label>
               <select
                 value={selectedDept}
@@ -372,7 +372,7 @@ export const ImportBulkMenu: React.FC<ImportBulkMenuProps> = ({
             </div>
 
             <div className="p-[0.625rem] rounded-[0.5rem] bg-emerald-50 border border-emerald-200 text-[0.75rem] text-emerald-900">
-              จะแก้ <strong>{emptyDeptRows.length} แถว</strong> (เฉพาะแถวที่ยังไม่มีภาควิชาในรายการที่แสดงอยู่)
+              จะแก้ <strong>{emptyDeptRows.length} แถว</strong> (เฉพาะแถวที่ยังไม่มีสังกัดในรายการที่แสดงอยู่)
             </div>
 
             <div className="flex items-center justify-end gap-[0.5rem]">
@@ -488,7 +488,13 @@ export const ImportBulkMenu: React.FC<ImportBulkMenuProps> = ({
                 </label>
                 <DatePicker
                   value={bulkStartDate}
-                  onChange={(_, dateStr) => setBulkStartDate(dateStr)}
+                  maxDate={bulkEndDate || undefined}
+                  onChange={(_, dateStr) => {
+                    setBulkStartDate(dateStr);
+                    if (dateStr && bulkEndDate && dateStr > bulkEndDate) {
+                      setBulkEndDate('');
+                    }
+                  }}
                   placeholder="เลือกวันเริ่มต้น"
                 />
               </div>
@@ -498,7 +504,13 @@ export const ImportBulkMenu: React.FC<ImportBulkMenuProps> = ({
                 </label>
                 <DatePicker
                   value={bulkEndDate}
-                  onChange={(_, dateStr) => setBulkEndDate(dateStr)}
+                  minDate={bulkStartDate || undefined}
+                  onChange={(_, dateStr) => {
+                    setBulkEndDate(dateStr);
+                    if (dateStr && bulkStartDate && dateStr < bulkStartDate) {
+                      setBulkStartDate('');
+                    }
+                  }}
                   placeholder="เลือกวันสิ้นสุด"
                 />
               </div>

@@ -403,7 +403,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
               background: 'none',
               border: 'none',
               color: '#ffffff',
-              fontSize: '20px',
+              fontSize: '18px', borderRadius: '6px',
               cursor: 'pointer',
               padding: '4px',
               opacity: 0.85,

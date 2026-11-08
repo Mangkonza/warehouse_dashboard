@@ -1,4 +1,5 @@
 'use client';
+import { formatPersonName } from '@/lib/formatPersonName';
 
 import { useState, useEffect, useMemo } from 'react';
 import { getCachedCategoryData, fetchCategoryData } from '@/lib/dataService';
@@ -7,7 +8,6 @@ import { autoDetectJournalRanking } from '@/config/journalRankingConfig';
 import { normalizePersonName, normalizeSpellingVariant } from '@/lib/personnelService';
 import { PersonnelRecord } from '@/types/dataManagement';
 
-import rawPersonnel from '@/data/personnel.json';
 import rawResearch from '@/data/research.json';
 import rawAcademic from '@/data/academic.json';
 import rawPublications from '@/data/publications.json';
@@ -69,27 +69,46 @@ function parseItemBudget(item: any): number {
 }
 
 export function usePersonnelData(timeFilter?: TimeFilterState) {
-  const [personnelList, setPersonnelList] = useState<PersonnelRecord[]>(() => {
-    return (getCachedCategoryData('personnel') || rawPersonnel) as PersonnelRecord[];
-  });
-  const [researchList, setResearchList] = useState<any[]>(() => getCachedCategoryData('research') || rawResearch);
-  const [academicList, setAcademicList] = useState<any[]>(() => getCachedCategoryData('academic') || rawAcademic);
-  const [pubList, setPubList] = useState<any[]>(() => getCachedCategoryData('publications') || rawPublications);
-  const [serviceList, setServiceList] = useState<any[]>(() => getCachedCategoryData('service') || rawServices);
-  const [ipList, setIpList] = useState<any[]>(() => getCachedCategoryData('ip') || rawIP);
+  const [personnelList, setPersonnelList] = useState<PersonnelRecord[]>(() => (getCachedCategoryData('personnel') || []) as PersonnelRecord[]);
+  const [researchList, setResearchList] = useState<any[]>(() => getCachedCategoryData('research') || []);
+  const [academicList, setAcademicList] = useState<any[]>(() => getCachedCategoryData('academic') || []);
+  const [pubList, setPubList] = useState<any[]>(() => getCachedCategoryData('publications') || []);
+  const [serviceList, setServiceList] = useState<any[]>(() => getCachedCategoryData('service') || []);
+  const [ipList, setIpList] = useState<any[]>(() => getCachedCategoryData('ip') || []);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
+    Promise.all([
+      fetchCategoryData('personnel'),
+      fetchCategoryData('research'),
+      fetchCategoryData('academic'),
+      fetchCategoryData('publications'),
+      fetchCategoryData('service'),
+      fetchCategoryData('ip'),
+    ]).then(([per, res, aca, pub, srv, ip]) => {
+      if (!isMounted) return;
+      if (Array.isArray(per)) setPersonnelList(per as PersonnelRecord[]);
+      if (Array.isArray(res)) setResearchList(res);
+      if (Array.isArray(aca)) setAcademicList(aca);
+      if (Array.isArray(pub)) setPubList(pub);
+      if (Array.isArray(srv)) setServiceList(srv);
+      if (Array.isArray(ip)) setIpList(ip);
+    });
+
     const handleUpdate = () => {
-      setPersonnelList((getCachedCategoryData('personnel') || rawPersonnel) as PersonnelRecord[]);
-      setResearchList(getCachedCategoryData('research') || rawResearch);
-      setAcademicList(getCachedCategoryData('academic') || rawAcademic);
-      setPubList(getCachedCategoryData('publications') || rawPublications);
-      setServiceList(getCachedCategoryData('service') || rawServices);
-      setIpList(getCachedCategoryData('ip') || rawIP);
+      setPersonnelList((getCachedCategoryData('personnel') || []) as PersonnelRecord[]);
+      setResearchList(getCachedCategoryData('research') || []);
+      setAcademicList(getCachedCategoryData('academic') || []);
+      setPubList(getCachedCategoryData('publications') || []);
+      setServiceList(getCachedCategoryData('service') || []);
+      setIpList(getCachedCategoryData('ip') || []);
     };
     window.addEventListener('ku_data_updated', handleUpdate);
-    return () => window.removeEventListener('ku_data_updated', handleUpdate);
+    return () => {
+      isMounted = false;
+      window.removeEventListener('ku_data_updated', handleUpdate);
+    };
   }, []);
 
   const refreshData = async () => {
@@ -119,27 +138,27 @@ export function usePersonnelData(timeFilter?: TimeFilterState) {
   // Filter items by time filter if provided
   const filteredResearch = useMemo(() => {
     if (!timeFilter) return researchList;
-    return researchList.filter((item) => itemMatchesTimeFilter(item, timeFilter));
+    return researchList.filter((item) => itemMatchesTimeFilter(item, timeFilter, 'research'));
   }, [researchList, timeFilter]);
 
   const filteredAcademic = useMemo(() => {
     if (!timeFilter) return academicList;
-    return academicList.filter((item) => itemMatchesTimeFilter(item, timeFilter));
+    return academicList.filter((item) => itemMatchesTimeFilter(item, timeFilter, 'academic'));
   }, [academicList, timeFilter]);
 
   const filteredPub = useMemo(() => {
     if (!timeFilter) return pubList;
-    return pubList.filter((item) => itemMatchesTimeFilter(item, timeFilter));
+    return pubList.filter((item) => itemMatchesTimeFilter(item, timeFilter, 'publications'));
   }, [pubList, timeFilter]);
 
   const filteredService = useMemo(() => {
     if (!timeFilter) return serviceList;
-    return serviceList.filter((item) => itemMatchesTimeFilter(item, timeFilter));
+    return serviceList.filter((item) => itemMatchesTimeFilter(item, timeFilter, 'service'));
   }, [serviceList, timeFilter]);
 
   const filteredIP = useMemo(() => {
     if (!timeFilter) return ipList;
-    return ipList.filter((item) => itemMatchesTimeFilter(item, timeFilter));
+    return ipList.filter((item) => itemMatchesTimeFilter(item, timeFilter, 'ip'));
   }, [ipList, timeFilter]);
 
   // Aggregate works for all personnel
@@ -235,9 +254,9 @@ export function usePersonnelData(timeFilter?: TimeFilterState) {
       return {
         personnel: person,
         id: pId || 0,
-        name: person.name || 'ไม่ระบุชื่อ',
+        name: formatPersonName(person) || person.name || 'ไม่ระบุชื่อ',
         cleanName: clean,
-        department: person.department || 'ไม่ระบุภาควิชา',
+        department: person.department || 'ไม่ระบุสังกัด',
         position: person.position || 'อาจารย์/นักวิจัย',
         email: person.email || '',
         imageUrl: person.image_url ? person.image_url.trim() : '',

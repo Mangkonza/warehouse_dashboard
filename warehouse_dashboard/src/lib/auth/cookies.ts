@@ -26,7 +26,8 @@ export interface CookieWriter {
 }
 
 export function authCookieOptions(maxAge?: number): CookieOptions {
-  const opts: CookieOptions = { path: '/', sameSite: 'lax', httpOnly: true, secure: isProduction() };
+  const isSecure = isProduction() && process.env.ALLOW_DIRECT_TOKEN !== 'true';
+  const opts: CookieOptions = { path: '/', sameSite: 'lax', httpOnly: true, secure: isSecure };
   if (typeof maxAge === 'number') opts.maxAge = Math.max(0, Math.floor(maxAge));
   return opts;
 }

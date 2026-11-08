@@ -1,3 +1,5 @@
+import { formatPersonName } from '@/lib/formatPersonName';
+import { calculateProjectTimeline } from '@/lib/projectMonitoringEngine';
 import { CategoryConfig, CategoryKey } from '../types/dataManagement';
 export type { CategoryConfig, CategoryKey };
 
@@ -17,7 +19,7 @@ export function normalizeDepartmentName(raw?: string): string {
   
   if (clean.includes('เกษตร') || clean.includes('ABE')) return 'ภาควิชาวิศวกรรมเกษตร';
   if (clean.includes('คอมพิวเตอร์') || clean.includes('CPE')) return 'ภาควิชาวิศวกรรมคอมพิวเตอร์';
-  if (clean.includes('ชลประทาน') || clean.includes('IRE')) return 'ภาควิชาวิศวกรรมชลประทาน';
+  if (clean.includes('ชลประทาน') || clean.includes('IRRE') || clean.includes('IRE')) return 'ภาควิชาวิศวกรรมชลประทาน';
   if (clean.includes('อาหาร') || clean.includes('FE')) return 'ภาควิชาวิศวกรรมอาหาร';
   if (clean.includes('อุตสาหการ') || clean.includes('IE')) return 'ภาควิชาวิศวกรรมอุตสาหการ';
   if (clean.includes('เครื่องกล') || clean.includes('ME')) return 'ภาควิชาวิศวกรรมเครื่องกล';
@@ -39,8 +41,8 @@ export const DEPARTMENT_ABBR_MAP: Record<string, string> = {
   'วิศวกรรมเกษตร': 'AE',
   'ภาควิชาวิศวกรรมคอมพิวเตอร์': 'CPE',
   'วิศวกรรมคอมพิวเตอร์': 'CPE',
-  'ภาควิชาวิศวกรรมชลประทาน': 'IRE',
-  'วิศวกรรมชลประทาน': 'IRE',
+  'ภาควิชาวิศวกรรมชลประทาน': 'IRRE',
+  'วิศวกรรมชลประทาน': 'IRRE',
   'ภาควิชาวิศวกรรมอาหาร': 'FE',
   'ภาควิชาวิศวกรรมการอาหาร': 'FE',
   'วิศวกรรมอาหาร': 'FE',
@@ -52,7 +54,7 @@ export const DEPARTMENT_ABBR_MAP: Record<string, string> = {
   'ภาควิชาวิศวกรรมโยธา': 'CE',
   'วิศวกรรมโยธา': 'CE',
   'ศูนย์ปฏิบัติการวิศวกรรมพลังงานและสิ่งแวดล้อม': 'EEEC',
-  'ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร': 'DWT',
+  'ศูนย์ทดสอบประตู หน้าต่าง และระบบผนังกระจกสำหรับงานอาคาร': 'TDWCB',
   'ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ': 'NAMC',
   'สำนักงานเลขานุการ': 'OFS',
 };
@@ -223,7 +225,22 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
             },
           },
           { key: 'start_date', label: 'ระยะเวลาดำเนินโครงการ (เริ่มต้น)', type: 'date' },
-          { key: 'end_date', label: 'ระยะเวลาดำเนินโครงการ (สิ้นสุด)', type: 'date' },
+          {
+            key: 'end_date',
+            label: 'ระยะเวลาดำเนินโครงการ (สิ้นสุด)',
+            type: 'date',
+            getValue: (item) => {
+              if (item.end_date) return item.end_date;
+              if (item._timeline?.end_date) return item._timeline.end_date;
+              if (item.timeline?.end_date) return item.timeline.end_date;
+              if (item.original_end_date) return item.original_end_date;
+              if (item.start_date || item.fiscal_year || item.fiscal_year_be) {
+                const tl = calculateProjectTimeline(item);
+                return tl.end_date || null;
+              }
+              return null;
+            },
+          },
         ],
       },
       {
@@ -466,7 +483,7 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
           },
           {
             key: 'alloc_dept',
-            label: 'หักเข้าภาควิชา',
+            label: 'หักเข้าสังกัด',
             type: 'allocation',
             getValue: (item) => {
               const b = Number(item.budget) || 0;
@@ -533,13 +550,28 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
             key: 'start_date',
             label: 'วันที่เริ่มต้นดำเนินการ',
             type: 'date',
-            getValue: (item) => item.start_date || (item.month ? item.month : null),
+            getValue: (item) => item.start_date || item.integration_start_date || null,
           },
           {
             key: 'end_date',
             label: 'วันที่สิ้นสุดดำเนินการ',
             type: 'date',
-            getValue: (item) => item.end_date || null,
+            getValue: (item) => {
+              if (item.end_date) return item.end_date;
+              if (item.integration_end_date) return item.integration_end_date;
+              if (item._timeline?.end_date) return item._timeline.end_date;
+              if (item.timeline?.end_date) return item.timeline.end_date;
+              if (item.start_date || item.fiscal_year || item.fiscal_year_be) {
+                const tl = calculateProjectTimeline(item);
+                return tl.end_date || null;
+              }
+              return null;
+            },
+          },
+          {
+            key: 'month',
+            label: 'เดือนที่ดำเนินโครงการ',
+            getValue: (item) => item.month || '-',
           },
         ],
       },
@@ -573,7 +605,7 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
         ],
       },
       {
-        groupLabel: 'การบูรณาการการใช้ประโยชน์และหมายเหตุ',
+        groupLabel: 'การบูรณาการการใช้ประโยชน์',
         fields: [
           {
             key: 'research_projects',
@@ -762,7 +794,7 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
         ],
       },
       {
-        groupLabel: 'รายละเอียดการตีพิมพ์และหมายเหตุ',
+        groupLabel: 'รายละเอียดการตีพิมพ์',
         fields: [
           {
             key: 'journal',
@@ -799,7 +831,7 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
     columns: [
       { key: 'name', label: 'ชื่อผลงาน', type: 'text', width: '25%', required: true },
       { key: 'type', label: 'ประเภท', type: 'badge', width: '10%', align: 'center', required: true },
-      { key: 'creator', label: 'ผู้ประดิษฐ์', type: 'text', width: '12%' },
+      { key: 'creator', label: 'ผู้สร้างผลงาน', type: 'text', width: '12%' },
       { key: 'department', label: 'สังกัด', type: 'badge', width: '8%' },
       { key: 'application_number', label: 'เลขที่คำขอ', type: 'ip_req_info', width: '12%', align: 'center' },
       { key: 'registration_number', label: 'เลขทะเบียน', type: 'ip_reg_info', width: '11%', align: 'center' },
@@ -807,7 +839,7 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
     ],
     detailGroups: [
       {
-        groupLabel: 'ข้อมูลพื้นฐานและผู้ประดิษฐ์ / ผู้สร้างสรรค์',
+        groupLabel: 'ข้อมูลพื้นฐานผู้สร้าง',
         fields: [
           {
             key: 'type',
@@ -833,7 +865,7 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
           },
           {
             key: 'inventors',
-            label: 'ผู้ประดิษฐ์ / ผู้สร้างสรรค์',
+            label: 'ผู้สร้างผลงาน',
             type: 'person_list',
             span: 2,
             getValue: (item) => item.inventors || item.creator,
@@ -902,7 +934,7 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
         ],
       },
       {
-        groupLabel: 'การสนับสนุนและหมายเหตุ',
+        groupLabel: 'การสนับสนุน',
         fields: [
           { key: 'support_amount', label: 'เงินสนับสนุนจากคณะ', type: 'currency' },
           { key: 'remarks', label: 'หมายเหตุ', getValue: (item) => item.remarks || '-' },
@@ -918,7 +950,7 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
 
   personnel: {
     key: 'personnel',
-    title: 'ข้อมูลบุคลากรและอาจารย์',
+    title: 'ข้อมูลคณาจารย์และบุคลากร',
     titleEn: 'Faculty & Personnel',
     icon: 'fa-users',
     color: '#00838f',
@@ -931,25 +963,25 @@ export const CATEGORIES_CONFIG: Record<CategoryKey, CategoryConfig> = {
       { key: 'title_th', label: 'คำนำหน้า', type: 'badge', width: '10%', align: 'center' },
       { key: 'name', label: 'ชื่อ-นามสกุล', type: 'text', width: '25%', required: true },
       { key: 'position', label: 'ตำแหน่งทางวิชาการ', type: 'text', width: '19%' },
-      { key: 'department', label: 'สังกัด', type: 'badge', width: '18%', selectOptions: DEPARTMENTS },
+      { key: 'department', label: 'สังกัด', type: 'badge', width: '18%', align: 'center', selectOptions: DEPARTMENTS },
       { key: 'email', label: 'อีเมล KU', type: 'email', width: '20%' },
     ],
     detailGroups: [
       {
-        groupLabel: 'ข้อมูลบุคลากรและอาจารย์',
+        groupLabel: 'ข้อมูลคณาจารย์และบุคลากร',
         fields: [
           { key: 'title_th', label: 'คำนำหน้า', getValue: (item) => item.title_th || item.prefix || '-' },
-          { key: 'name', label: 'ชื่อ-นามสกุล', getValue: (item) => item.name || '-' },
-          { key: 'position', label: 'ตำแหน่งทางวิชาการ / ตำแหน่งงาน', getValue: (item) => item.position || '-' },
+          { key: 'name', label: 'ชื่อ-นามสกุล', getValue: (item) => formatPersonName(item, { includePrefix: false }) || '-' },
+          { key: 'position', label: 'ตำแหน่งทางวิชาการ', getValue: (item) => item.position || '-' },
           { key: 'department', label: 'สังกัด', type: 'department', getValue: (item) => item.department || '-' },
           { key: 'email', label: 'อีเมล KU', span: 2, getValue: (item) => item.email || '-' },
         ],
       },
     ],
     templateSampleRows: [
-      { title_th: '', name: '', position: '', department: '', email: '' },
+      { title_th: '', first_name: '', last_name: '', position: '', department: '', email: '' },
     ],
-    searchFields: ['name', 'clean_name', 'position', 'department', 'email'],
+    searchFields: ['name', 'first_name', 'last_name', 'clean_name', 'position', 'department', 'email'],
   },
 
   kpi: {

@@ -16,7 +16,7 @@ export const FACT_DOMAINS_CONFIG: Record<FactDomainId, FactDomainDef> = {
       { id: 'budget_internal', label: 'งบทุนภายใน (บาท)', field: 'budget_internal', aggregation: 'SUM', format: 'currency', description: 'งบสนับสนุนจากภายในมหาวิทยาลัยเกษตรศาสตร์' },
     ],
     dimensions: [
-      { id: 'department', label: 'ภาควิชา / สังกัด', field: 'department', type: 'categorical', description: '11 ภาควิชาและศูนย์งาน' },
+      { id: 'department', label: 'สังกัด', field: 'department', type: 'categorical', description: '11 สังกัดและศูนย์งาน' },
       { id: 'fund_source', label: 'แหล่งเงินทุน', field: 'fund_source', type: 'categorical', description: 'หน่วยงานผู้ให้ทุน เช่น วช., คณะฯ, สวทช.' },
       { id: 'fiscal_year', label: 'ปีงบประมาณ (พ.ศ.)', field: 'fiscal_year', type: 'time', description: 'ปีงบประมาณที่ดำเนินโครงการ' },
       { id: 'sdg', label: 'เป้าหมายความยั่งยืน (SDG)', field: 'sdg_code', type: 'categorical', description: 'เป้าหมาย SDGs 1 - 17' },
@@ -56,7 +56,7 @@ export const FACT_DOMAINS_CONFIG: Record<FactDomainId, FactDomainDef> = {
     ],
     dimensions: [
       { id: 'level', label: 'ระดับ / ควอร์ไทล์ (Q1-Q4 / TCI)', field: 'level', type: 'categorical', description: 'Q1, Q2, Q3, Q4, TCI 1, TCI 2' },
-      { id: 'department', label: 'ภาควิชา / สังกัด', field: 'department', type: 'categorical', description: 'ภาควิชาของเจ้าของผลงาน' },
+      { id: 'department', label: 'สังกัด', field: 'department', type: 'categorical', description: 'สังกัดของเจ้าของผลงาน' },
       { id: 'type', label: 'ประเภทผลงาน', field: 'type', type: 'categorical', description: 'วารสารวิชาการ, การประชุมวิชาการ, เตรียมความพร้อม' },
       { id: 'journal', label: 'วารสาร / แหล่งตีพิมพ์', field: 'journal', type: 'categorical', description: 'ชื่อวารสารที่ตีพิมพ์' },
       { id: 'owner', label: 'เจ้าของผลงาน', field: 'owner', type: 'categorical', description: 'ชื่ออาจารย์ผู้ประพันธ์' },
@@ -74,7 +74,7 @@ export const FACT_DOMAINS_CONFIG: Record<FactDomainId, FactDomainDef> = {
       { id: 'activity_count', label: 'จำนวนกิจกรรม (ครั้ง)', field: 'name', aggregation: 'COUNT', format: 'number', description: 'จำนวนหลักสูตรหรือกิจกรรมที่จัดขึ้น' },
     ],
     dimensions: [
-      { id: 'department', label: 'ภาควิชา / ศูนย์ผู้จัด', field: 'department', type: 'categorical', description: 'ภาควิชาหรือศูนย์ที่จัดกิจกรรม' },
+      { id: 'department', label: 'สังกัด / ศูนย์ผู้จัด', field: 'department', type: 'categorical', description: 'สังกัดหรือศูนย์ที่จัดกิจกรรม' },
       { id: 'target_group', label: 'กลุ่มเป้าหมาย / ผู้รับบริการ', field: 'target_group', type: 'categorical', description: 'เกษตรกร, วิศวกร, ประชาชนทั่วไป' },
       { id: 'person', label: 'ผู้รับผิดชอบกิจกรรม', field: 'person', type: 'categorical', description: 'อาจารย์หรือบุคลากรผู้จัด' },
     ],
@@ -84,7 +84,7 @@ export const FACT_DOMAINS_CONFIG: Record<FactDomainId, FactDomainDef> = {
     id: 'ip',
     nameTh: 'งานทรัพย์สินทางปัญญา',
     nameEn: 'Intellectual Property',
-    description: 'สิทธิบัตรการประดิษฐ์ อนุสิทธิบัตร และลิขสิทธิ์ของคณะวิศวกรรมศาสตร์',
+    description: 'สิทธิบัตรการประดิษฐ์ อนุสิทธิบัตร และลิขสิทธิ์',
     iconName: 'FaCertificate',
     color: '#6a1b9a',
     measures: [
@@ -93,8 +93,8 @@ export const FACT_DOMAINS_CONFIG: Record<FactDomainId, FactDomainDef> = {
     dimensions: [
       { id: 'type', label: 'ประเภททรัพย์สินทางปัญญา', field: 'type', type: 'categorical', description: 'สิทธิบัตรการประดิษฐ์, อนุสิทธิบัตร, ลิขสิทธิ์' },
       { id: 'status', label: 'สถานะการคุ้มครอง / ยื่นขอ', field: 'status', type: 'categorical', description: 'ยื่นคำขอแล้ว, ประกาศโฆษณา, รับจดทะเบียนแล้ว' },
-      { id: 'department', label: 'ภาควิชา / สังกัด', field: 'department', type: 'categorical', description: 'ภาควิชาของผู้ประดิษฐ์' },
-      { id: 'creator', label: 'ผู้ประดิษฐ์', field: 'creator', type: 'categorical', description: 'ชื่ออาจารย์ผู้ประดิษฐ์' },
+      { id: 'department', label: 'สังกัด', field: 'department', type: 'categorical', description: 'สังกัดของผู้สร้างผลงาน' },
+      { id: 'creator', label: 'ผู้สร้างผลงาน', field: 'creator', type: 'categorical', description: 'ชื่ออาจารย์ผู้สร้างผลงาน' },
     ],
   },
 
@@ -112,7 +112,7 @@ export const FACT_DOMAINS_CONFIG: Record<FactDomainId, FactDomainDef> = {
     ],
     dimensions: [
       { id: 'status', label: 'สถานะการดำเนินงาน', field: 'status', type: 'categorical', description: 'กำลังดำเนินการ, ขอขยายเวลา, ล่าช้า, ปิดแล้ว' },
-      { id: 'department', label: 'ภาควิชา / สังกัด', field: 'department', type: 'categorical', description: 'ภาควิชาผู้รับผิดชอบโครงการ' },
+      { id: 'department', label: 'สังกัด', field: 'department', type: 'categorical', description: 'สังกัดผู้รับผิดชอบโครงการ' },
     ],
   },
 };

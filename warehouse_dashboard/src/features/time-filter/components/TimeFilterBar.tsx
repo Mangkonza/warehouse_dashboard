@@ -73,15 +73,6 @@ export const TimeFilterBar: React.FC<TimeFilterBarProps> = ({ totalCount, custom
           }}
         >
           <span>{getTimeFilterLabel(timeFilter)}</span>
-          {customCountLabel ? (
-            <span style={{ fontSize: '11.5px', color: '#64748b', fontWeight: 500 }}>
-              ({customCountLabel})
-            </span>
-          ) : totalCount !== undefined ? (
-            <span style={{ fontSize: '11.5px', color: '#64748b', fontWeight: 500 }}>
-              ({totalCount} รายการ)
-            </span>
-          ) : null}
         </div>
 
         {/* ปุ่มลัดเลือกปีงบประมาณในคลิกเดียว */}

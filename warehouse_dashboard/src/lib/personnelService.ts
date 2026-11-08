@@ -1,12 +1,7 @@
-import personnelData from '../data/personnel.json';
 import { PersonnelRecord } from '../types/dataManagement';
 
-let personnelList: PersonnelRecord[] = (personnelData as any[]).map((p, idx) => ({
-  ...p,
-  id: typeof p.id === 'number' ? p.id : (parseInt(String(p.id).replace('PER-', ''), 10) || idx + 1),
-  _id: String(p._id || p.id),
-  clean_name: p.clean_name || p.name || '',
-}));
+let personnelList: PersonnelRecord[] = [];
+let isFetchingFromApi = false;
 
 // คำนำหน้าชื่อที่ต้องตัดเพื่อ normalization (เรียงจากยาวไปสั้น)
 export const PREFIXES = [
@@ -65,7 +60,9 @@ export function normalizePersonName(rawName: string): string {
 export function getAllPersonnel(): PersonnelRecord[] {
   if (typeof window !== 'undefined') {
     try {
-      const cached = localStorage.getItem('ku_dw_cache_personnel');
+      const cached =
+        localStorage.getItem('ku_dw_db_cache_personnel') ||
+        localStorage.getItem('ku_dw_cache_personnel');
       if (cached) {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed) && parsed.length > 0) {
@@ -73,15 +70,68 @@ export function getAllPersonnel(): PersonnelRecord[] {
             ...p,
             id: typeof p.id === 'number' ? p.id : (parseInt(String(p.id).replace('PER-', ''), 10) || idx + 1),
             _id: String(p._id || p.id),
-            clean_name: p.clean_name || normalizePersonName(p.name),
+            clean_name: p.clean_name || `${p.first_name || ''} ${p.last_name || ''}`.trim() || normalizePersonName(p.name),
           }));
         }
+      } else if (!isFetchingFromApi && personnelList.length === 0) {
+        isFetchingFromApi = true;
+        fetch('/api/v1/data/personnel')
+          .then((res) => (res.ok ? res.json() : null))
+          .then((json) => {
+            const list = Array.isArray(json?.data) ? json.data : (Array.isArray(json) ? json : []);
+            if (list.length > 0) {
+              personnelList = list.map((p: any, idx: number) => ({
+                ...p,
+                id: typeof p.id === 'number' ? p.id : (parseInt(String(p.id).replace('PER-', ''), 10) || idx + 1),
+                _id: String(p._id || p.id),
+                clean_name: p.clean_name || `${p.first_name || ''} ${p.last_name || ''}`.trim() || normalizePersonName(p.name),
+              }));
+              localStorage.setItem('ku_dw_db_cache_personnel', JSON.stringify(personnelList));
+              window.dispatchEvent(new Event('ku_data_updated'));
+            }
+          })
+          .catch(() => {})
+          .finally(() => {
+            isFetchingFromApi = false;
+          });
       }
     } catch {
       // ignore
     }
   }
   return personnelList;
+}
+
+/**
+ * คืนค่า URL รูปประจำตัวของบุคลากร (ถ้าไม่พบให้คืนค่า '/default-avatar.png')
+ */
+export function resolvePersonAvatar(
+  personId?: number | string | null,
+  rawName?: string | null,
+  explicitUrl?: string | null
+): string {
+  const cleanUrl = (u?: string | null) => {
+    const s = String(u || '').trim();
+    if (!s || s === '-' || s === 'nan' || s === 'NaT' || s === 'null' || s === 'undefined') return '';
+    return encodeURI(s);
+  };
+
+  const direct = cleanUrl(explicitUrl);
+  if (direct) return direct;
+
+  if (personId !== null && personId !== undefined && personId !== '') {
+    const byId = getPersonById(personId);
+    const urlById = cleanUrl(byId?.image_url);
+    if (urlById) return urlById;
+  }
+
+  if (rawName) {
+    const byName = matchPerson(rawName);
+    const urlByName = cleanUrl(byName?.image_url);
+    if (urlByName) return urlByName;
+  }
+
+  return '/default-avatar.png';
 }
 
 /**
@@ -115,6 +165,11 @@ export function searchPersonnel(query: string, limit: number = 10): PersonnelRec
   return list.filter((p) => {
     const pName = String(p.name || '').toLowerCase();
     const pClean = String(p.clean_name || '').toLowerCase();
+    const pFirst = String(p.first_name || '').toLowerCase();
+    const pLast = String(p.last_name || '').toLowerCase();
+    const pCombined = `${pFirst} ${pLast}`.trim();
+    const pPrefix = String(p.title_th || '').toLowerCase();
+    const pFullWithPrefix = `${pPrefix}${pFirst} ${pLast}`.trim();
     const pDept = String(p.department || '').toLowerCase();
     const pEmail = String(p.email || '').toLowerCase();
     const pPos = String(p.position || '').toLowerCase();
@@ -122,6 +177,10 @@ export function searchPersonnel(query: string, limit: number = 10): PersonnelRec
     return (
       pName.includes(q) ||
       pClean.includes(qClean) ||
+      pFirst.includes(q) ||
+      pLast.includes(q) ||
+      pCombined.includes(q) ||
+      pFullWithPrefix.includes(q) ||
       pDept.includes(q) ||
       pEmail.includes(q) ||
       pPos.includes(q)

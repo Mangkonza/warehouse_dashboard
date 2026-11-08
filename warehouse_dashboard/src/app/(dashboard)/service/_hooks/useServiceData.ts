@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import serviceData from '@/data/services.json';
 import { getCachedCategoryData, fetchCategoryData } from '@/lib/dataService';
-import { TimeFilterState, itemMatchesTimeFilter } from '@/types/timeFilter';
+import { TimeFilterState, itemMatchesTimeFilter, resolveItemDate } from '@/types/timeFilter';
 import { isTestRecord } from '@/lib/sdgEngine';
 import { getDepartment } from '@/lib/departments';
 import { parseServiceFiscalYear, categorizeServiceActivity, itemMatchesStrategicFilter } from '@/lib/pastelTheme';
@@ -76,20 +76,20 @@ export function useServiceData(timeFilter?: TimeFilterState) {
   const [strategicFilter, setStrategicFilter] = useState('all');
 
   const [dataList, setDataList] = useState<ServiceItem[]>(() => {
-    return (getCachedCategoryData('service') as ServiceItem[]) || (serviceData as ServiceItem[]);
+    return (getCachedCategoryData('service') as ServiceItem[]) || [];
   });
 
   useEffect(() => {
     let isMounted = true;
     fetchCategoryData('service').then((fresh) => {
-      if (isMounted && Array.isArray(fresh) && fresh.length > 0) {
+      if (isMounted && Array.isArray(fresh)) {
         setDataList(fresh as ServiceItem[]);
       }
     });
 
     const handleUpdate = () => {
       const fresh = getCachedCategoryData('service') as ServiceItem[];
-      if (fresh && fresh.length > 0) setDataList(fresh);
+      if (Array.isArray(fresh)) setDataList(fresh);
     };
     window.addEventListener('ku_data_updated', handleUpdate);
     return () => {
@@ -98,14 +98,13 @@ export function useServiceData(timeFilter?: TimeFilterState) {
     };
   }, []);
 
-  const validData = useMemo(() => {
+  const allValidItems = useMemo(() => {
     return dataList
       .filter((item) => item.name && item.name !== 'nan' && item.name !== 'NaT' && !isTestRecord(item))
-      .filter((item) => !timeFilter || itemMatchesTimeFilter(item, timeFilter))
       .map((item) => {
         const resolved = resolveServiceType(item);
         const smartRole = categorizeServiceActivity(item.name, item.topic_title, item.target_group);
-        const fYear = parseServiceFiscalYear(item.date);
+        const fYear = parseServiceFiscalYear(item.date || item.start_date || (item.fiscal_year ? String(item.fiscal_year) : undefined));
         return {
           ...item,
           service_type: item.service_type || resolved,
@@ -114,6 +113,17 @@ export function useServiceData(timeFilter?: TimeFilterState) {
           _fiscalYear: fYear,
         };
       });
+  }, [dataList]);
+
+  const validData = useMemo(() => {
+    return allValidItems.filter((item) => !timeFilter || itemMatchesTimeFilter(item, timeFilter, 'service'));
+  }, [allValidItems, timeFilter]);
+
+  const undatedCount = useMemo(() => {
+    if (!timeFilter || timeFilter.mode === 'all') return 0;
+    return dataList
+      .filter((item) => item.name && item.name !== 'nan' && item.name !== 'NaT' && !isTestRecord(item))
+      .filter((item) => resolveItemDate(item, 'service') === null).length;
   }, [dataList, timeFilter]);
 
   const uniquePersons = useMemo(() => {
@@ -205,6 +215,8 @@ export function useServiceData(timeFilter?: TimeFilterState) {
 
   return {
     validData,
+    allItems: allValidItems,
+    undatedCount,
     filteredData,
     uniquePersons,
     uniqueTargets,

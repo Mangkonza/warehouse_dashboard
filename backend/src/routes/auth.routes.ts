@@ -26,6 +26,66 @@ function getRoleTitle(role: AppRole, username: string): string {
 const handleLogin = async (req: Request, res: Response) => {
   const { username, password, otp } = req.body;
 
+  const normalized = String(username || '').trim();
+  const normalizedLower = normalized.toLowerCase();
+  const passwordClean = String(password || '').trim();
+  const otpClean = otp ? String(otp).trim() : '';
+
+  // 1. ตรวจสอบบัญชีจากฐานข้อมูล user_roles โดยตรง (Database Authentication - ไม่ใช่ mock)
+  try {
+    const dbUserRole = await prisma.userRole.findUnique({
+      where: { username: normalizedLower },
+    });
+
+    if (dbUserRole && dbUserRole.password) {
+      const isPasswordValid = dbUserRole.password === passwordClean;
+      const isOtpValid = dbUserRole.otp ? dbUserRole.otp === otpClean : true;
+
+      if (!isPasswordValid || !isOtpValid) {
+        res.status(401).json({
+          status: 'error',
+          code: 'INVALID_CREDENTIALS',
+          error: 'รหัสผ่านหรือ OTP สำหรับ Super Admin ไม่ถูกต้อง',
+        });
+        return;
+      }
+
+      resetLoginAttempts(req);
+      MockAuthService.resetFailedAttempts(normalizedLower);
+
+      const role: AppRole = (dbUserRole.role as AppRole) || 'user';
+      const roleTitle = getRoleTitle(role, normalizedLower);
+
+      const user: AuthUser = {
+        id: `ku-${normalizedLower}`,
+
+        nontriAccount: dbUserRole.username,
+        email: `${normalizedLower}@ku.th`,
+        nameTh: dbUserRole.displayName || 'ผู้ดูแลระบบ (Super Admin)',
+        facultyName: 'คณะวิศวกรรมศาสตร์ กำแพงแสน',
+        departmentName: 'สำนักงานเลขานุการ คณะวิศวกรรมศาสตร์',
+        campus: 'K',
+        typePerson: roleTitle,
+        role,
+        isMock: false,
+      };
+
+      const { cookieValue, payload } = signSession(normalizedLower, false);
+      res.cookie(SESSION_COOKIE_NAME, cookieValue, getSessionCookieOptions());
+
+      const token = AuthService.generateToken(user);
+      res.json({
+        status: 'success',
+        token,
+        user,
+        expiresAt: payload.expiresAt,
+      });
+      return;
+    }
+  } catch (err) {
+    console.error('Database authentication error:', err);
+  }
+
   // โหมด Mock Auth (เมื่อเปิดใช้งานและไม่ได้อยู่บน Production)
   if (env.AUTH_MOCK_ENABLED) {
     try {
@@ -67,10 +127,8 @@ const handleLogin = async (req: Request, res: Response) => {
     return;
   }
 
-  const normalized = String(username).trim();
-  const normalizedLower = normalized.toLowerCase();
-  const passwordClean = String(password).trim();
-  const otpClean = otp ? String(otp).trim() : '';
+  // Re-use normalized variables
+  // (already defined above)
 
   // ตรวจสอบความถูกต้องของบัญชี
   const isAdminAccount = normalizedLower === 'admin';

@@ -20,9 +20,9 @@ const DEPT_MAP: Record<string, string> = {
   'อาหาร': 'FE',
   'อุตสาหการ': 'IE',
   'เครื่องกล': 'ME',
-  'ชลประทาน': 'IRE',
-  'ทรัพยากรน้ำ': 'IRE',
-  'ประตู': 'DWT',
+  'ชลประทาน': 'IRRE',
+  'ทรัพยากรน้ำ': 'IRRE',
+  'ประตู': 'TDWCB',
   'เกษตร': 'NAMC',
   'สำนักงาน': 'OFS',
 };
@@ -30,7 +30,7 @@ const DEPT_MAP: Record<string, string> = {
 function resolveDeptCode(input?: string): string | null {
   if (!input) return null;
   const s = input.trim();
-  const validCodes = ['AE', 'CE', 'CPE', 'DWT', 'EEEC', 'FE', 'IE', 'IRE', 'ME', 'NAMC', 'OFS', 'OTH'];
+  const validCodes = ['AE', 'CE', 'CPE', 'DWT', 'EEEC', 'FE', 'IE', 'IRE', 'IRRE', 'ME', 'NAMC', 'OFS', 'OTH', 'TDWCB'];
   if (validCodes.includes(s.toUpperCase())) return s.toUpperCase();
   for (const [kw, code] of Object.entries(DEPT_MAP)) {
     if (s.includes(kw)) return code;
@@ -59,6 +59,7 @@ function formatServiceRecord(item: any) {
     start_date: item.startDate ? item.startDate.toISOString().split('T')[0] : '',
     end_date: item.endDate ? item.endDate.toISOString().split('T')[0] : '',
     fiscal_year: item.fiscalYear || '',
+    remarks: item.remarks || '',
     createdAt: item.createdAt,
     updatedAt: item.updatedAt,
   };
@@ -102,8 +103,70 @@ export class ServiceService {
     if (!item) return null;
     return formatServiceRecord(item);
   }
+  static validateService(body: any, isUpdate = false) {
+    if (!isUpdate || body.target_group !== undefined || body.targetGroup !== undefined) {
+      const tg = String(body.target_group ?? body.targetGroup ?? '').trim();
+      if (!tg) {
+        const err: any = new Error('กรุณากรอกกลุ่มเป้าหมาย / ผู้เข้าร่วม (target_group)');
+        err.status = 400;
+        err.field = 'target_group';
+        throw err;
+      }
+    }
+
+    const start = body.start_date !== undefined ? body.start_date : body.startDate;
+    const end = body.end_date !== undefined ? body.end_date : body.endDate;
+
+    if (!isUpdate || start !== undefined) {
+      if (!start || !String(start).trim()) {
+        const err: any = new Error('กรุณาระบุวันที่เริ่มต้นจัดกิจกรรม (start_date)');
+        err.status = 400;
+        err.field = 'start_date';
+        throw err;
+      }
+    }
+
+    if (!isUpdate || end !== undefined) {
+      if (!end || !String(end).trim()) {
+        const err: any = new Error('กรุณาระบุวันที่สิ้นสุดจัดกิจกรรม (end_date)');
+        err.status = 400;
+        err.field = 'end_date';
+        throw err;
+      }
+    }
+
+    if (start && end && String(end) < String(start)) {
+      const err: any = new Error('วันที่สิ้นสุดจัดกิจกรรมต้องไม่เกิดขึ้นก่อนวันที่เริ่มต้น (end_date >= start_date)');
+      err.status = 400;
+      err.field = 'end_date';
+      throw err;
+    }
+
+    if (!isUpdate || body.hours_spent !== undefined || body.hoursSpent !== undefined) {
+      const hrs = Number(body.hours_spent ?? body.hoursSpent);
+      if (isNaN(hrs) || hrs <= 0) {
+        const err: any = new Error('จำนวนชั่วโมงต้องเป็นตัวเลขที่มากกว่า 0 (hours_spent > 0)');
+        err.status = 400;
+        err.field = 'hours_spent';
+        throw err;
+      }
+    }
+
+    if (!isUpdate || body.attendees_count !== undefined || body.attendeesCount !== undefined) {
+      const att = Number(body.attendees_count ?? body.attendeesCount);
+      if (isNaN(att) || att <= 0) {
+        const err: any = new Error('จำนวนคนเข้าร่วมต้องเป็นตัวเลขที่มากกว่า 0 (attendees_count > 0)');
+        err.status = 400;
+        err.field = 'attendees_count';
+        throw err;
+      }
+    }
+  }
+
+
 
   static async create(body: any) {
+    this.validateService(body, false);
     const name = String(body.name || body.topic_title || '').trim();
     if (!name) {
       const err: any = new Error('กรุณากรอกหัวข้อ / ชื่อโครงการบริการวิชาการ');
@@ -138,6 +201,7 @@ export class ServiceService {
   }
 
   static async update(identifier: string | number, body: any) {
+    this.validateService(body, true);
     let existing;
     const numId = extractNumericId(identifier);
     if (numId !== null) {

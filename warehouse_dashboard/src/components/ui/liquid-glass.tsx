@@ -82,7 +82,7 @@ const liquidbuttonVariants = cva(
         lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
         xl: "h-12 rounded-md px-8 has-[>svg]:px-6",
         xxl: "h-14 rounded-md px-10 has-[>svg]:px-8",
-        tab: "h-10 rounded-full px-4 text-[13.5px]",
+        tab: "h-11 rounded-full px-5 text-[14px] font-semibold",
         icon: "size-9",
       },
     },

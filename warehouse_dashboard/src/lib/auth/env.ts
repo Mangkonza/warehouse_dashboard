@@ -36,7 +36,7 @@ function readUrl(name: string): string {
   if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
     throw new AuthConfigError(`Environment variable ${name} must use http(s)`);
   }
-  if (isProduction() && parsed.protocol !== 'https:') {
+  if (isProduction() && parsed.protocol !== 'https:' && parsed.hostname !== 'localhost' && parsed.hostname !== '127.0.0.1') {
     throw new AuthConfigError(`Environment variable ${name} must use https in production`);
   }
   if (parsed.username || parsed.password) {
@@ -62,7 +62,7 @@ export function parseOrigin(value: string, name = 'PUBLIC_ORIGIN'): string {
   if (parsed.username || parsed.password) {
     throw new AuthConfigError(`Environment variable ${name} must not embed credentials`);
   }
-  if (isProduction() && parsed.protocol !== 'https:') {
+  if (isProduction() && parsed.protocol !== 'https:' && parsed.hostname !== 'localhost' && parsed.hostname !== '127.0.0.1') {
     throw new AuthConfigError(`Environment variable ${name} must use https in production`);
   }
   return parsed.origin;

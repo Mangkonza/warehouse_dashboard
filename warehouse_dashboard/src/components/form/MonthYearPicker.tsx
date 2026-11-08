@@ -29,6 +29,8 @@ export interface MonthYearPickerProps {
   className?: string;
   minYear?: number;
   maxYear?: number;
+  minYearMonth?: string | null;
+  maxYearMonth?: string | null;
   size?: 'default' | 'sm';
 }
 
@@ -52,6 +54,8 @@ export function MonthYearPicker({
   className,
   minYear = 2000,
   maxYear = 2040,
+  minYearMonth,
+  maxYearMonth,
   size = 'default',
 }: MonthYearPickerProps) {
   const [open, setOpen] = React.useState(false);
@@ -73,9 +77,34 @@ export function MonthYearPicker({
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1;
 
+  const minYearLimit = React.useMemo(() => {
+    if (minYearMonth) {
+      const y = parseInt(minYearMonth.split('-')[0], 10);
+      if (!isNaN(y)) return Math.max(minYear, y);
+    }
+    return minYear;
+  }, [minYear, minYearMonth]);
+
+  const maxYearLimit = React.useMemo(() => {
+    if (maxYearMonth) {
+      const y = parseInt(maxYearMonth.split('-')[0], 10);
+      if (!isNaN(y)) return Math.min(maxYear, y);
+    }
+    return maxYear;
+  }, [maxYear, maxYearMonth]);
+
   // Viewing year state in popover
   const [viewYear, setViewYear] = React.useState<number>(() => {
-    return parsed ? parsed.year : currentYear;
+    if (parsed) return parsed.year;
+    if (minYearMonth) {
+      const y = parseInt(minYearMonth.split('-')[0], 10);
+      if (!isNaN(y)) return y;
+    }
+    if (maxYearMonth) {
+      const y = parseInt(maxYearMonth.split('-')[0], 10);
+      if (!isNaN(y)) return y;
+    }
+    return currentYear;
   });
 
   // When value changes from outside, sync viewYear
@@ -85,10 +114,18 @@ export function MonthYearPicker({
     }
   }, [parsed]);
 
-  const handlePrevYear = () => setViewYear((y) => Math.max(minYear, y - 1));
-  const handleNextYear = () => setViewYear((y) => Math.min(maxYear, y + 1));
+  const handlePrevYear = () => setViewYear((y) => Math.max(minYearLimit, y - 1));
+  const handleNextYear = () => setViewYear((y) => Math.min(maxYearLimit, y + 1));
+
+  const isMonthDisabled = (monthIndex: number) => {
+    const ym = `${viewYear}-${String(monthIndex + 1).padStart(2, '0')}`;
+    if (minYearMonth && ym < minYearMonth) return true;
+    if (maxYearMonth && ym > maxYearMonth) return true;
+    return false;
+  };
 
   const handleSelectMonth = (monthIndex: number) => {
+    if (isMonthDisabled(monthIndex)) return;
     const m = String(monthIndex + 1).padStart(2, '0');
     const nextVal = `${viewYear}-${m}`;
     onChange(nextVal);
@@ -152,7 +189,7 @@ export function MonthYearPicker({
               variant="ghost"
               size="icon-sm"
               onClick={handlePrevYear}
-              disabled={viewYear <= minYear}
+              disabled={viewYear <= minYearLimit}
               className="size-8 rounded-full hover:bg-emerald-50 text-slate-600 hover:text-emerald-700"
             >
               <ChevronLeft className="size-4" />
@@ -169,7 +206,7 @@ export function MonthYearPicker({
               variant="ghost"
               size="icon-sm"
               onClick={handleNextYear}
-              disabled={viewYear >= maxYear}
+              disabled={viewYear >= maxYearLimit}
               className="size-8 rounded-full hover:bg-emerald-50 text-slate-600 hover:text-emerald-700"
             >
               <ChevronRight className="size-4" />
@@ -182,20 +219,26 @@ export function MonthYearPicker({
               const monthNum = idx + 1;
               const isSelected = parsed && parsed.year === viewYear && parsed.month === monthNum;
               const isCurrent = currentYear === viewYear && currentMonth === monthNum;
+              const disabledMonth = isMonthDisabled(idx);
 
               return (
                 <button
                   key={idx}
                   type="button"
-                  onClick={() => handleSelectMonth(idx)}
+                  disabled={disabledMonth}
+                  onClick={() => !disabledMonth && handleSelectMonth(idx)}
                   className={cn(
                     'h-10 rounded-xl text-xs font-medium transition-all select-none',
-                    'hover:bg-emerald-100/70 hover:text-emerald-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20',
-                    isSelected
+                    disabledMonth
+                      ? 'opacity-30 cursor-not-allowed bg-slate-100 text-slate-400 hover:bg-slate-100'
+                      : 'hover:bg-emerald-100/70 hover:text-emerald-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20',
+                    isSelected && !disabledMonth
                       ? 'bg-[#00A651] text-white font-semibold shadow-xs hover:bg-[#008f45] hover:text-white'
-                      : isCurrent
+                      : isCurrent && !disabledMonth
                       ? 'bg-emerald-50 text-emerald-800 border border-emerald-300 font-semibold'
-                      : 'text-slate-700 bg-slate-50/50 hover:bg-emerald-50'
+                      : !disabledMonth
+                      ? 'text-slate-700 bg-slate-50/50 hover:bg-emerald-50'
+                      : ''
                   )}
                 >
                   {mName}

@@ -7,7 +7,7 @@ import { FaBuilding, FaCalendarAlt, FaCheckDouble, FaEyeSlash, FaEye } from 'rea
 import { DepartmentBadge } from '@/components/ui';
 import { matchDepartmentCode } from '@/config/departments';
 import { getDepartment } from '@/lib/departments';
-import { normalizeAcademicMonth } from '@/lib/pastelTheme';
+import { normalizeAcademicMonth, CHART_PASTEL_PALETTE } from '@/lib/pastelTheme';
 import { autoDetectJournalRanking } from '@/config/journalRankingConfig';
 
 interface DepartmentMatrixAndPulseProps {
@@ -31,7 +31,7 @@ export function DepartmentMatrixAndPulse({
   const [hideServices, setHideServices] = useState(false);
   const chartInstances = useRef<Chart[]>([]);
 
-  const DEPTS = ['IRE', 'FE', 'IE', 'ME', 'CE', 'CPE', 'AE'];
+  const DEPTS = ['IRRE', 'FE', 'IE', 'ME', 'CE', 'CPE', 'AE'];
   const THAI_MONTHS = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
 
   // Helper to get month index 0..11
@@ -114,7 +114,7 @@ export function DepartmentMatrixAndPulse({
     });
 
     validPub.forEach((p) => {
-      const m = getMonthIndex(p.pub_date || p.date);
+      const m = getMonthIndex(p.month_year || p.pub_date || p.date, p.month);
       if (m >= 0 && m < 12) pM[m]++;
     });
 
@@ -129,11 +129,12 @@ export function DepartmentMatrixAndPulse({
     });
 
     // Compute cumulative cash
+    const cumCash: number[] = [];
     let running = 0;
-    const cumCash = monthlyCash.map((val) => {
-      running += val;
-      return Number(running.toFixed(2));
-    });
+    for (let idx = 0; idx < monthlyCash.length; idx++) {
+      running += monthlyCash[idx];
+      cumCash.push(Number(running.toFixed(2)));
+    }
 
     return {
       resMonthly: rM,
@@ -196,6 +197,7 @@ export function DepartmentMatrixAndPulse({
 
     Chart.register(ChartDataLabels);
     Chart.defaults.font.family = "'Kanit', sans-serif";
+    Chart.defaults.font.size = 13.5;
 
     const createChart = (id: string, config: any) => {
       const canvas = document.getElementById(id) as HTMLCanvasElement;
@@ -214,14 +216,18 @@ export function DepartmentMatrixAndPulse({
             {
               label: 'โครงการพัฒนาวิชาการ',
               data: acaBudgets,
-              backgroundColor: '#38BDF8',
+              backgroundColor: CHART_PASTEL_PALETTE.missions.academic.fill,
+              borderColor: CHART_PASTEL_PALETTE.missions.academic.border,
+              borderWidth: 1.5,
               borderRadius: 6,
               stack: 'budget',
             },
             {
               label: 'โครงการวิจัย',
               data: resBudgets,
-              backgroundColor: '#34D399',
+              backgroundColor: CHART_PASTEL_PALETTE.missions.research.fill,
+              borderColor: CHART_PASTEL_PALETTE.missions.research.border,
+              borderWidth: 1.5,
               borderRadius: 6,
               stack: 'budget',
             },
@@ -231,19 +237,38 @@ export function DepartmentMatrixAndPulse({
           responsive: true,
           maintainAspectRatio: false,
           scales: {
-            x: { stacked: true, grid: { display: false } },
+            x: {
+              stacked: true,
+              grid: { display: false },
+              ticks: { font: { size: 13, weight: 600, family: "'Kanit', sans-serif" }, color: '#0F172A' },
+            },
             y: {
               stacked: true,
               beginAtZero: true,
-              title: { display: true, text: 'งบประมาณ (ล้านบาท)' },
+              grid: { color: CHART_PASTEL_PALETTE.gridLines },
+              title: {
+                display: true,
+                text: 'งบประมาณ (ล้านบาท)',
+                font: { size: 13.5, weight: 700, family: "'Kanit', sans-serif" },
+                color: '#0F172A',
+              },
+              ticks: { font: { size: 12.5, weight: 600, family: "'Kanit', sans-serif" }, color: '#334155' },
             },
           },
           plugins: {
-            legend: { position: 'top' },
+            legend: {
+              position: 'top',
+              labels: {
+                boxWidth: 14,
+                padding: 12,
+                font: { size: 13.5, weight: 600, family: "'Kanit', sans-serif" },
+                color: '#0F172A',
+              },
+            },
             datalabels: {
-              color: '#ffffff',
-              font: { weight: 'bold', size: 10 },
-              formatter: (v: number) => (v > 10 ? `${v.toFixed(1)}M` : ''),
+              color: '#0F172A',
+              font: { weight: 'bold', size: 12.5, family: "'Kanit', sans-serif" },
+              formatter: (v: number) => (v > 10 ? `${v.toFixed(1)} ล้านบาท` : ''),
             },
           },
         },
@@ -256,22 +281,45 @@ export function DepartmentMatrixAndPulse({
         data: {
           labels: THAI_MONTHS,
           datasets: [
-            { label: 'วิจัย', data: resMonthly, backgroundColor: '#34D399', stack: 'm', borderRadius: 6 },
-            { label: 'พัฒนาวิชาการ', data: acaMonthly, backgroundColor: '#38BDF8', stack: 'm', borderRadius: 6 },
-            { label: 'ตีพิมพ์', data: pubMonthly, backgroundColor: '#FB7185', stack: 'm', borderRadius: 6 },
-            ...(!hideServices ? [{ label: 'บริการวิชาการ', data: srvMonthly, backgroundColor: '#FBBF24', stack: 'm', borderRadius: 6 }] : []),
-            { label: 'ทรัพย์สินฯ', data: ipMonthly, backgroundColor: '#A78BFA', stack: 'm', borderRadius: 6 },
+            { label: 'วิจัย', data: resMonthly, backgroundColor: CHART_PASTEL_PALETTE.missions.research.fill, borderColor: CHART_PASTEL_PALETTE.missions.research.border, borderWidth: 1, stack: 'm', borderRadius: 6 },
+            { label: 'พัฒนาวิชาการ', data: acaMonthly, backgroundColor: CHART_PASTEL_PALETTE.missions.academic.fill, borderColor: CHART_PASTEL_PALETTE.missions.academic.border, borderWidth: 1, stack: 'm', borderRadius: 6 },
+            { label: 'ตีพิมพ์', data: pubMonthly, backgroundColor: CHART_PASTEL_PALETTE.missions.publications.fill, borderColor: CHART_PASTEL_PALETTE.missions.publications.border, borderWidth: 1, stack: 'm', borderRadius: 6 },
+            ...(!hideServices ? [{ label: 'บริการวิชาการ', data: srvMonthly, backgroundColor: CHART_PASTEL_PALETTE.missions.service.fill, borderColor: CHART_PASTEL_PALETTE.missions.service.border, borderWidth: 1, stack: 'm', borderRadius: 6 }] : []),
+            { label: 'ทรัพย์สินฯ', data: ipMonthly, backgroundColor: CHART_PASTEL_PALETTE.missions.ip.fill, borderColor: CHART_PASTEL_PALETTE.missions.ip.border, borderWidth: 1, stack: 'm', borderRadius: 6 },
           ],
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           scales: {
-            x: { stacked: true, grid: { display: false } },
-            y: { stacked: true, beginAtZero: true, title: { display: true, text: 'จำนวนกิจกรรม (รายการ)' } },
+            x: {
+              stacked: true,
+              grid: { display: false },
+              ticks: { font: { size: 13, weight: 600, family: "'Kanit', sans-serif" }, color: '#0F172A' },
+            },
+            y: {
+              stacked: true,
+              beginAtZero: true,
+              grid: { color: CHART_PASTEL_PALETTE.gridLines },
+              title: {
+                display: true,
+                text: 'จำนวนกิจกรรม (รายการ)',
+                font: { size: 13.5, weight: 700, family: "'Kanit', sans-serif" },
+                color: '#0F172A',
+              },
+              ticks: { font: { size: 12.5, weight: 600, family: "'Kanit', sans-serif" }, color: '#334155' },
+            },
           },
           plugins: {
-            legend: { position: 'top', labels: { boxWidth: 12 } },
+            legend: {
+              position: 'top',
+              labels: {
+                boxWidth: 14,
+                padding: 12,
+                font: { size: 13.5, weight: 600, family: "'Kanit', sans-serif" },
+                color: '#0F172A',
+              },
+            },
             datalabels: { display: false },
           },
         },
@@ -285,13 +333,14 @@ export function DepartmentMatrixAndPulse({
             {
               label: 'เม็ดเงินสะสมทั้งคณะ (ล้านบาท)',
               data: cumulativeCash,
-              borderColor: '#34D399',
-              backgroundColor: 'rgba(52, 211, 153, 0.14)',
+              borderColor: CHART_PASTEL_PALETTE.missions.research.border,
+              backgroundColor: 'rgba(134, 239, 172, 0.2)',
               fill: true,
               tension: 0.35,
               borderWidth: 2.5,
               pointRadius: 4,
               pointBackgroundColor: '#059669',
+              pointBorderColor: '#ffffff',
             },
           ],
         },
@@ -299,17 +348,30 @@ export function DepartmentMatrixAndPulse({
           responsive: true,
           maintainAspectRatio: false,
           scales: {
-            y: { beginAtZero: true, title: { display: true, text: 'ล้านบาท' } },
-            x: { grid: { display: false } },
+            y: {
+              beginAtZero: true,
+              grid: { color: CHART_PASTEL_PALETTE.gridLines },
+              title: {
+                display: true,
+                text: 'ยอดสะสม (ล้านบาท)',
+                font: { size: 13.5, weight: 700, family: "'Kanit', sans-serif" },
+                color: '#0F172A',
+              },
+              ticks: { font: { size: 12.5, weight: 600, family: "'Kanit', sans-serif" }, color: '#334155' },
+            },
+            x: {
+              grid: { display: false },
+              ticks: { font: { size: 13, weight: 600, family: "'Kanit', sans-serif" }, color: '#0F172A' },
+            },
           },
           plugins: {
             legend: { display: false },
             datalabels: {
               anchor: 'end',
               align: 'top',
-              color: '#047857',
-              font: { weight: 'bold', size: 10 },
-              formatter: (v: number, ctx: any) => (ctx.dataIndex % 2 === 1 || ctx.dataIndex === 11 ? `${v.toFixed(0)}M` : ''),
+              color: '#0F172A',
+              font: { weight: 'bold', size: 12.5, family: "'Kanit', sans-serif" },
+              formatter: (v: number, ctx: any) => (ctx.dataIndex % 2 === 1 || ctx.dataIndex === 11 ? `${v.toFixed(0)} ลบ.` : ''),
             },
           },
         },
@@ -322,20 +384,43 @@ export function DepartmentMatrixAndPulse({
         data: {
           labels: DEPTS,
           datasets: [
-            { label: 'นานาชาติ Q1', data: q1Data, backgroundColor: '#34D399', stack: 'q', borderRadius: 6 },
-            { label: 'นานาชาติ Q2', data: q2Data, backgroundColor: '#38BDF8', stack: 'q', borderRadius: 6 },
-            { label: 'ระดับชาติ TCI', data: tciData, backgroundColor: '#FBBF24', stack: 'q', borderRadius: 6 },
+            { label: 'นานาชาติ Q1', data: q1Data, backgroundColor: CHART_PASTEL_PALETTE.missions.research.fill, borderColor: '#22C55E', borderWidth: 1, stack: 'q', borderRadius: 6 },
+            { label: 'นานาชาติ Q2', data: q2Data, backgroundColor: CHART_PASTEL_PALETTE.missions.academic.fill, borderColor: '#3B82F6', borderWidth: 1, stack: 'q', borderRadius: 6 },
+            { label: 'ระดับชาติ TCI', data: tciData, backgroundColor: CHART_PASTEL_PALETTE.missions.service.fill, borderColor: '#F59E0B', borderWidth: 1, stack: 'q', borderRadius: 6 },
           ],
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           scales: {
-            x: { stacked: true, grid: { display: false } },
-            y: { stacked: true, beginAtZero: true, title: { display: true, text: 'เรื่อง' } },
+            x: {
+              stacked: true,
+              grid: { display: false },
+              ticks: { font: { size: 13, weight: 600, family: "'Kanit', sans-serif" }, color: '#0F172A' },
+            },
+            y: {
+              stacked: true,
+              beginAtZero: true,
+              grid: { color: CHART_PASTEL_PALETTE.gridLines },
+              title: {
+                display: true,
+                text: 'จำนวนบทความ (เรื่อง)',
+                font: { size: 13.5, weight: 700, family: "'Kanit', sans-serif" },
+                color: '#0F172A',
+              },
+              ticks: { font: { size: 12.5, weight: 600, family: "'Kanit', sans-serif" }, color: '#334155' },
+            },
           },
           plugins: {
-            legend: { position: 'top' },
+            legend: {
+              position: 'top',
+              labels: {
+                boxWidth: 14,
+                padding: 12,
+                font: { size: 13.5, weight: 600, family: "'Kanit', sans-serif" },
+                color: '#0F172A',
+              },
+            },
             datalabels: { display: false },
           },
         },
@@ -346,8 +431,8 @@ export function DepartmentMatrixAndPulse({
         data: {
           labels: [`ผลงานตีพิมพ์ (${validPub.length} เรื่อง)`, `ทรัพย์สินทางปัญญา (${validIP.length} รายการ)`],
           datasets: [
-            { label: 'สำเร็จเสร็จสิ้น (คุ้มครอง/ตีพิมพ์แล้ว)', data: [pubComplete, ipComplete], backgroundColor: '#34D399', borderRadius: 6 },
-            { label: 'อยู่ระหว่างดำเนินการ (เตรียม/ยื่นคำขอ)', data: [pubPrep, ipPrep], backgroundColor: '#FBBF24', borderRadius: 6 },
+            { label: 'สำเร็จเสร็จสิ้น (คุ้มครอง/ตีพิมพ์แล้ว)', data: [pubComplete, ipComplete], backgroundColor: CHART_PASTEL_PALETTE.missions.research.fill, borderColor: '#22C55E', borderWidth: 1, borderRadius: 6 },
+            { label: 'อยู่ระหว่างดำเนินการ (เตรียม/ยื่นคำขอ)', data: [pubPrep, ipPrep], backgroundColor: CHART_PASTEL_PALETTE.missions.service.fill, borderColor: '#F59E0B', borderWidth: 1, borderRadius: 6 },
           ],
         },
         options: {
@@ -363,21 +448,36 @@ export function DepartmentMatrixAndPulse({
               beginAtZero: true,
               grace: '20%',
               suggestedMax: 60,
-              title: { display: true, text: 'จำนวนรายการ' },
+              grid: { color: CHART_PASTEL_PALETTE.gridLines },
+              title: {
+                display: true,
+                text: 'จำนวนรายการ',
+                font: { size: 13.5, weight: 700, family: "'Kanit', sans-serif" },
+                color: '#0F172A',
+              },
+              ticks: { font: { size: 12.5, weight: 600, family: "'Kanit', sans-serif" }, color: '#334155' },
             },
-            x: { grid: { display: false } },
+            x: {
+              grid: { display: false },
+              ticks: { font: { size: 13, weight: 600, family: "'Kanit', sans-serif" }, color: '#0F172A' },
+            },
           },
           plugins: {
             legend: {
               position: 'top',
-              labels: { boxWidth: 12, padding: 14, font: { size: 12 } },
+              labels: {
+                boxWidth: 14,
+                padding: 14,
+                font: { size: 13.5, weight: 600, family: "'Kanit', sans-serif" },
+                color: '#0F172A',
+              },
             },
             datalabels: {
               anchor: 'end',
               align: 'top',
               offset: 4,
-              color: '#0f172a',
-              font: { weight: 'bold', size: 11 },
+              color: '#0F172A',
+              font: { weight: 'bold', size: 13, family: "'Kanit', sans-serif" },
               formatter: (v: number) => `${v}`,
             },
           },
@@ -423,7 +523,7 @@ export function DepartmentMatrixAndPulse({
       >
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           {[
-            { id: 'matrix', label: 'เปรียบเทียบผลงาน 7 ภาควิชา', icon: <FaBuilding /> },
+            { id: 'matrix', label: 'เปรียบเทียบผลงาน 7 สังกัด', icon: <FaBuilding /> },
             { id: 'pulse', label: 'แนวโน้มผลงานและงบประมาณรายเดือน', icon: <FaCalendarAlt /> },
             { id: 'quality', label: 'คุณภาพผลงานตีพิมพ์และสถานะความสำเร็จ', icon: <FaCheckDouble /> },
           ].map((t) => {
@@ -434,18 +534,19 @@ export function DepartmentMatrixAndPulse({
                 type="button"
                 onClick={() => setSubTab(t.id as any)}
                 style={{
-                  padding: '8px 16px',
+                  padding: '10px 20px',
                   borderRadius: '10px',
                   border: active ? '1.5px solid #10b981' : '1px solid #cbd5e1',
                   backgroundColor: active ? '#ecfdf5' : '#ffffff',
                   color: active ? '#047857' : '#475569',
-                  fontSize: '13px',
-                  fontWeight: active ? 700 : 500,
+                  fontSize: '14px',
+                  fontWeight: active ? 700 : 600,
                   cursor: 'pointer',
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '6px',
+                  gap: '8px',
                   transition: 'all 0.15s ease',
+                  boxShadow: active ? '0 1px 3px rgba(16, 185, 129, 0.15)' : 'none',
                 }}
               >
                 <span>{t.icon}</span>
@@ -463,14 +564,15 @@ export function DepartmentMatrixAndPulse({
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
-              padding: '6px 12px',
+              padding: '8px 16px',
               borderRadius: '8px',
               border: hideServices ? '1px solid #f59e0b' : '1px solid #cbd5e1',
               backgroundColor: hideServices ? '#fffbeb' : '#ffffff',
               color: hideServices ? '#b45309' : '#475569',
-              fontSize: '12px',
+              fontSize: '13px',
               fontWeight: 600,
               cursor: 'pointer',
+              transition: 'all 0.15s ease',
             }}
           >
             {hideServices ? <FaEye style={{ color: '#d97706' }} /> : <FaEyeSlash />}
@@ -483,59 +585,53 @@ export function DepartmentMatrixAndPulse({
       {subTab === 'matrix' && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
           <div>
-            <h4 style={{ margin: '0 0 6px 0', fontSize: '14.5px', fontWeight: 700, color: '#0f172a' }}>
-              งบประมาณรวม 7 ภาควิชา (วิจัย + พัฒนาวิชาการ)
+            <h4 style={{ margin: '0 0 12px 0', fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
+              งบประมาณรวม 7 สังกัด (วิจัย + พัฒนาวิชาการ)
             </h4>
-            <p style={{ margin: '0 0 14px 0', fontSize: '12px', color: '#64748b' }}>
-              คำนวณสดจากฐานข้อมูลจริงตามเงื่อนไขตัวกรอง
-            </p>
-            <div style={{ height: '300px' }}>
+            <div style={{ height: '390px' }}>
               <canvas id="c_ov_dept_budget" />
             </div>
           </div>
 
           <div>
-            <h4 style={{ margin: '0 0 6px 0', fontSize: '14.5px', fontWeight: 700, color: '#0f172a' }}>
-              ตารางสรุปจำนวนผลงาน 5 พันธกิจแยกตามภาควิชา
+            <h4 style={{ margin: '0 0 12px 0', fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
+              ตารางสรุปจำนวนผลงาน 5 พันธกิจแยกตามสังกัด
             </h4>
-            <p style={{ margin: '0 0 14px 0', fontSize: '12px', color: '#64748b' }}>
-              ตารางความร้อนสะท้อนการมีส่วนร่วมครบทุกมิติ (ยิ่งสีเข้มยิ่งมีผลงานมาก)
-            </p>
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                 <thead>
                   <tr style={{ backgroundColor: '#ecfdf5', borderBottom: '2px solid #a7f3d0', color: '#065f46' }}>
-                    <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: 700 }}>ภาควิชา</th>
-                    <th style={{ padding: '8px 8px', textAlign: 'center', color: '#047857', fontWeight: 700 }}>วิจัย</th>
-                    <th style={{ padding: '8px 8px', textAlign: 'center', color: '#0284c7', fontWeight: 700 }}>พัฒนาวิชาการ</th>
-                    <th style={{ padding: '8px 8px', textAlign: 'center', color: '#be123c', fontWeight: 700 }}>ตีพิมพ์</th>
-                    <th style={{ padding: '8px 8px', textAlign: 'center', color: '#92400e', fontWeight: 700 }}>บริการวิชาการ</th>
-                    <th style={{ padding: '8px 8px', textAlign: 'center', color: '#6d28d9', fontWeight: 700 }}>ทรัพย์สินฯ</th>
-                    <th style={{ padding: '8px 10px', textAlign: 'right', color: '#065f46', fontWeight: 700 }}>งบประมาณรวม</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 700 }}>สังกัด</th>
+                    <th style={{ padding: '10px 8px', textAlign: 'center', color: '#047857', fontWeight: 700 }}>วิจัย</th>
+                    <th style={{ padding: '10px 8px', textAlign: 'center', color: '#0284c7', fontWeight: 700 }}>พัฒนาวิชาการ</th>
+                    <th style={{ padding: '10px 8px', textAlign: 'center', color: '#be123c', fontWeight: 700 }}>ตีพิมพ์</th>
+                    <th style={{ padding: '10px 8px', textAlign: 'center', color: '#92400e', fontWeight: 700 }}>บริการวิชาการ</th>
+                    <th style={{ padding: '10px 8px', textAlign: 'center', color: '#6d28d9', fontWeight: 700 }}>ทรัพย์สินฯ</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'right', color: '#065f46', fontWeight: 700 }}>งบประมาณรวม</th>
                   </tr>
                 </thead>
                 <tbody>
                   {heatmapData.map((row) => (
                     <tr key={row.code} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                      <td style={{ padding: '8px 10px', fontWeight: 600 }}>
+                      <td style={{ padding: '10px 12px', fontWeight: 600 }}>
                         <DepartmentBadge value={row.code} />
                       </td>
-                      <td style={{ padding: '8px 8px', textAlign: 'center', backgroundColor: getHeatmapColor(row.res, 10), fontWeight: 700 }}>
+                      <td style={{ padding: '10px 8px', textAlign: 'center', backgroundColor: getHeatmapColor(row.res, 10), fontWeight: 700 }}>
                         {row.res}
                       </td>
-                      <td style={{ padding: '8px 8px', textAlign: 'center', backgroundColor: getHeatmapColor(row.aca, 40), fontWeight: 700 }}>
+                      <td style={{ padding: '10px 8px', textAlign: 'center', backgroundColor: getHeatmapColor(row.aca, 40), fontWeight: 700 }}>
                         {row.aca}
                       </td>
-                      <td style={{ padding: '8px 8px', textAlign: 'center', backgroundColor: getHeatmapColor(row.pub, 15), fontWeight: 700 }}>
+                      <td style={{ padding: '10px 8px', textAlign: 'center', backgroundColor: getHeatmapColor(row.pub, 15), fontWeight: 700 }}>
                         {row.pub}
                       </td>
-                      <td style={{ padding: '8px 8px', textAlign: 'center', backgroundColor: getHeatmapColor(row.srv, 120), fontWeight: 700 }}>
+                      <td style={{ padding: '10px 8px', textAlign: 'center', backgroundColor: getHeatmapColor(row.srv, 120), fontWeight: 700 }}>
                         {row.srv}
                       </td>
-                      <td style={{ padding: '8px 8px', textAlign: 'center', backgroundColor: getHeatmapColor(row.ip, 10), fontWeight: 700 }}>
+                      <td style={{ padding: '10px 8px', textAlign: 'center', backgroundColor: getHeatmapColor(row.ip, 10), fontWeight: 700 }}>
                         {row.ip}
                       </td>
-                      <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 700, color: '#0f172a' }}>
+                      <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, color: '#0f172a' }}>
                         {row.totalBudget}
                       </td>
                     </tr>
@@ -551,25 +647,24 @@ export function DepartmentMatrixAndPulse({
       {subTab === 'pulse' && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
           <div>
-            <h4 style={{ margin: '0 0 6px 0', fontSize: '14.5px', fontWeight: 700, color: '#0f172a' }}>
+            <h4 style={{ margin: '0 0 6px 0', fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
               ความเคลื่อนไหวรายเดือนรวม 5 พันธกิจ (ม.ค. - ธ.ค.)
             </h4>
-            <p style={{ margin: '0 0 14px 0', fontSize: '12px', color: '#64748b' }}>
-              {hideServices ? 'กำลังซ่อนงานบริการวิชาการ เพื่อดูสัดส่วนอีก 4 พันธกิจชัดเจน' : 'แสดงรวมทุกกิจกรรมของทั้ง 5 พันธกิจ'}
-            </p>
-            <div style={{ height: '300px' }}>
+            {hideServices && (
+              <p style={{ margin: '0 0 10px 0', fontSize: '12.5px', color: '#d97706', fontWeight: 600 }}>
+                กำลังซ่อนงานบริการวิชาการ เพื่อดูสัดส่วนอีก 4 พันธกิจชัดเจน
+              </p>
+            )}
+            <div style={{ height: '390px', marginTop: hideServices ? '0' : '8px' }}>
               <canvas id="c_ov_monthly_pulse" />
             </div>
           </div>
 
           <div>
-            <h4 style={{ margin: '0 0 6px 0', fontSize: '14.5px', fontWeight: 700, color: '#0f172a' }}>
+            <h4 style={{ margin: '0 0 14px 0', fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
               ยอดงบประมาณสะสมรายเดือน (ล้านบาท)
             </h4>
-            <p style={{ margin: '0 0 14px 0', fontSize: '12px', color: '#64748b' }}>
-              การทยอยลงนามและรับเงินทุนวิจัย + โครงการพัฒนาวิชาการตลอดทั้งปี
-            </p>
-            <div style={{ height: '300px' }}>
+            <div style={{ height: '390px' }}>
               <canvas id="c_ov_cumulative_cash" />
             </div>
           </div>
@@ -580,25 +675,19 @@ export function DepartmentMatrixAndPulse({
       {subTab === 'quality' && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
           <div>
-            <h4 style={{ margin: '0 0 6px 0', fontSize: '14.5px', fontWeight: 700, color: '#0f172a' }}>
-              คุณภาพผลงานตีพิมพ์รายภาควิชา (Q1, Q2, TCI)
+            <h4 style={{ margin: '0 0 14px 0', fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
+              คุณภาพผลงานตีพิมพ์รายสังกัด (Q1, Q2, TCI)
             </h4>
-            <p style={{ margin: '0 0 14px 0', fontSize: '12px', color: '#64748b' }}>
-              นับสดจากฐานข้อมูลตีพิมพ์ตามภาควิชา
-            </p>
-            <div style={{ height: '300px' }}>
+            <div style={{ height: '390px' }}>
               <canvas id="c_ov_pub_quality" />
             </div>
           </div>
 
           <div>
-            <h4 style={{ margin: '0 0 6px 0', fontSize: '14.5px', fontWeight: 700, color: '#0f172a' }}>
+            <h4 style={{ margin: '0 0 14px 0', fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
               เปรียบเทียบสถานะผลงานที่สำเร็จแล้วกับกำลังดำเนินการ
             </h4>
-            <p style={{ margin: '0 0 14px 0', fontSize: '12px', color: '#64748b' }}>
-              เปรียบเทียบสัดส่วนงานสำเร็จ vs อยู่ระหว่างดำเนินการ
-            </p>
-            <div style={{ height: '300px' }}>
+            <div style={{ height: '390px' }}>
               <canvas id="c_ov_pipeline_completion" />
             </div>
           </div>

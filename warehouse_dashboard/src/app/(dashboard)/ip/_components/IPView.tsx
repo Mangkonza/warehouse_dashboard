@@ -1,19 +1,42 @@
 'use client';
 
-import React from 'react';
-import { useTimeFilter, TimeFilterBar } from '@/features/time-filter';
+import React, { useEffect, useMemo } from 'react';
+import { useDashboardTabFilter, useTimeFilter } from '@/features/time-filter';
 import { useIPData } from '../_hooks/useIPData';
-import { IPCharts } from './IPCharts';
-import { IPTable } from './IPTable';
-import { DepartmentSelect, StrategicFilterSelect } from '@/components/ui';
-import { FaCertificate, FaShieldAlt, FaHourglassHalf, FaCoins, FaUndoAlt } from 'react-icons/fa';
+import { IPCharts, IPPerspective } from './IPCharts';
+import { TopSegmentedTabs } from '@/components/ui/TopSegmentedTabs';
+import { StrategicAlignmentMatrix } from '@/components/data-display/StrategicAlignmentMatrix';
+import { MissionDataTable } from '@/components/data-display/MissionDataTable';
+import { FaCertificate, FaShieldAlt, FaUserTie, FaLeaf, FaHourglassHalf, FaCoins, FaTable } from 'react-icons/fa';
+import { DashboardTabFilterBar } from '@/components/ui/DashboardTabFilterBar';
+import { UndatedNotice } from '@/components/ui/UndatedNotice';
+import { ExecutiveKpiDeck } from '@/components/data-display/ExecutiveKpiDeck';
+import { MissionYoYControls } from '@/components/data-display/MissionYoYControls';
+import { dashboardPageSubtitleStyle, dashboardPageTitleStyle, dashboardTheme } from '@/lib/dashboardTheme';
+import { usePerspectiveTab } from '@/hooks/usePerspectiveTab';
+
+const VALID_IP_TABS: IPPerspective[] = ['types_dept', 'protection_status', 'faculty', 'sdg', 'table'];
 
 export function IPView() {
-  const { timeFilter, setTimeFilter, resetTimeFilter } = useTimeFilter();
+  const [activePerspective, setActivePerspective] = usePerspectiveTab<IPPerspective>(
+    'ip',
+    VALID_IP_TABS,
+    'types_dept'
+  );
+  const {
+    tabFilter,
+    setTabFilter,
+    resetTabFilter,
+    timeFilter,
+  } = useDashboardTabFilter('ip');
+
+  const { setIsTimeModalOpen } = useTimeFilter('ip');
+
   const {
     validIpData,
+    allItems,
+    undatedCount,
     filteredIpData,
-    availableDepts,
     patentCount,
     pettyPatentCount,
     copyrightCount,
@@ -35,405 +58,247 @@ export function IPView() {
     setStrategicFilter,
   } = useIPData(timeFilter);
 
-  const hasFilter =
-    fiscalYearFilter !== 'all' ||
-    deptFilter !== 'all' ||
-    pipelineFilter !== 'all' ||
-    typeFilter !== 'all' ||
-    strategicFilter !== 'all' ||
-    searchTerm.trim() !== '';
+  // Synchronize tabFilter to useIPData internal states
+  useEffect(() => {
+    if (tabFilter.department && tabFilter.department !== 'all') {
+      setTabFilter({ department: 'all' });
+    }
+  }, [tabFilter.department, setTabFilter]);
 
-  const handleResetAll = () => {
-    resetTimeFilter();
-    setFiscalYearFilter('all');
-    setDeptFilter('all');
-    setPipelineFilter('all');
-    setTypeFilter('all');
-    setStrategicFilter('all');
-    setSearchTerm('');
-  };
+  useEffect(() => {
+    setFiscalYearFilter(tabFilter.fiscalYear || 'all');
+  }, [tabFilter.fiscalYear, setFiscalYearFilter]);
+
+  useEffect(() => {
+    setPipelineFilter(tabFilter.customFilters?.pipelineFilter || 'all');
+  }, [tabFilter.customFilters?.pipelineFilter, setPipelineFilter]);
+
+  useEffect(() => {
+    setTypeFilter(tabFilter.customFilters?.typeFilter || 'all');
+  }, [tabFilter.customFilters?.typeFilter, setTypeFilter]);
+
+  useEffect(() => {
+    setStrategicFilter(tabFilter.customFilters?.strategicFilter || 'all');
+  }, [tabFilter.customFilters?.strategicFilter, setStrategicFilter]);
+
+  useEffect(() => {
+    if (tabFilter.search !== undefined) {
+      setSearchTerm(tabFilter.search);
+    }
+  }, [tabFilter.search, setSearchTerm]);
 
   const protectedPct = validIpData.length > 0 ? ((protectedCount / validIpData.length) * 100).toFixed(1) : '0';
   const inPrepPct = validIpData.length > 0 ? ((inPrepCount / validIpData.length) * 100).toFixed(1) : '0';
+  const uniqueDepts = new Set(validIpData.map((d: any) => d.department_clean || d.department).filter(Boolean));
+  const maxSupportCeiling = Math.max(420000, validIpData.length * 20000);
+
+  // Unique creators across all validIpData items
+  const uniqueCreators = useMemo(() => {
+    const set = new Set<string>();
+    validIpData.forEach((item: any) => {
+      if (Array.isArray(item.inventors)) {
+        item.inventors.forEach((inv: any) => {
+          const n = typeof inv === 'string' ? inv : inv?.name;
+          let clean = String(n || '').replace(/\s+/g, ' ').trim();
+          clean = clean.replace(/^(ศ\.|รศ\.|ผศ\.|อ\.|ดร\.)\s+/g, '$1');
+          if (clean && clean !== '-' && clean !== 'nan' && clean !== 'NaT') {
+            set.add(clean);
+          }
+        });
+      }
+      const raw = String(item.creator || '').trim();
+      if (raw && raw !== '-' && raw !== 'nan' && raw !== 'NaT') {
+        const parts = raw.split(/[,;\n]/);
+        parts.forEach((p) => {
+          let clean = p.replace(/\s+/g, ' ').trim();
+          clean = clean.replace(/^(ศ\.|รศ\.|ผศ\.|อ\.|ดร\.)\s+/g, '$1');
+          if (clean && clean !== '-' && clean !== 'nan' && clean !== 'NaT') {
+            set.add(clean);
+          }
+        });
+      }
+    });
+    return set;
+  }, [validIpData]);
+
+  // IP Types breakdown segments for Card 1
+  const ipSegments = useMemo(() => {
+    const counts: Record<string, number> = {};
+    validIpData.forEach((item: any) => {
+      const rawType = String(item.type || item.category || '').trim();
+      let norm = 'อื่นๆ';
+      if (rawType.includes('อนุสิทธิบัตร')) norm = 'อนุสิทธิบัตร';
+      else if (rawType.includes('สิทธิบัตรการประดิษฐ์') || rawType === 'สิทธิบัตร') norm = 'สิทธิบัตรการประดิษฐ์';
+      else if (rawType.includes('สิทธิบัตรการออกแบบ') || rawType.includes('ออกแบบ')) norm = 'สิทธิบัตรการออกแบบ';
+      else if (rawType.includes('ลิขสิทธิ์')) norm = 'ลิขสิทธิ์';
+      else if (rawType.includes('เครื่องหมายการค้า')) norm = 'เครื่องหมายการค้า';
+      else if (rawType) norm = rawType;
+      counts[norm] = (counts[norm] || 0) + 1;
+    });
+
+    const total = validIpData.length || 1;
+    const colorMap: Record<string, string> = {
+      'อนุสิทธิบัตร': '#a78bfa',
+      'สิทธิบัตรการประดิษฐ์': '#c4b5fd',
+      'สิทธิบัตรการออกแบบ': '#ddd6fe',
+      'ลิขสิทธิ์': '#e9d5ff',
+      'เครื่องหมายการค้า': '#f3e8ff',
+      'อื่นๆ': '#cbd5e1',
+    };
+
+    return Object.entries(counts)
+      .map(([name, count]) => ({
+        label: name,
+        value: count,
+        displayValue: `${count} รายการ`,
+        unit: 'รายการ',
+        percent: Number(((count / total) * 100).toFixed(1)),
+        color: colorMap[name] || '#a78bfa',
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [validIpData]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {/* ZONE 1: Global Filter Bar (Sticky Docked Under Header) */}
-      <div
-        style={{
-          position: 'sticky',
-          top: '50px',
-          zIndex: 40,
-          backdropFilter: 'blur(12px)',
-          backgroundColor: 'rgba(255, 255, 255, 0.95)',
-          border: '1px solid #e2e8f0',
-          padding: '10px 16px',
-          borderRadius: '16px',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          gap: '8px',
-        }}
-      >
-          <TimeFilterBar
-            value={timeFilter}
-            onChange={setTimeFilter}
-            onReset={resetTimeFilter}
-            totalCount={validIpData.length}
-          />
-
-          {/* Fiscal Year Toggle */}
-          <div
-            style={{
-              display: 'inline-flex',
-              backgroundColor: '#f1f5f9',
-              padding: '3px',
-              borderRadius: '10px',
-              fontSize: '12px',
-              fontWeight: 500,
-            }}
-          >
-            {[
-              { id: 'all', label: `ทั้งหมด (${validIpData.length})` },
-              { id: '2570', label: 'ปีงบ 2570' },
-              { id: '2569', label: 'ปีงบ 2569' },
-              { id: '2568', label: 'ปีงบ 2568' },
-            ].map((tab) => {
-              const active = fiscalYearFilter === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setFiscalYearFilter(tab.id)}
-                  style={{
-                    padding: '5px 12px',
-                    borderRadius: '8px',
-                    border: 'none',
-                    backgroundColor: active ? '#ffffff' : 'transparent',
-                    color: active ? '#6d28d9' : '#64748b',
-                    fontWeight: active ? 700 : 500,
-                    boxShadow: active ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  {tab.label}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Department Select */}
-          <DepartmentSelect
-            value={deptFilter}
-            onChange={setDeptFilter}
-            allowAll
-            allLabel="ทุกภาควิชา (ครบ 7 ภาค)"
-            allValue="all"
-            size="sm"
-            className="w-[185px]"
-          />
-
-          {/* Pipeline Status Toggle */}
-          <div
-            style={{
-              display: 'inline-flex',
-              backgroundColor: '#f1f5f9',
-              padding: '3px',
-              borderRadius: '10px',
-              fontSize: '12px',
-              fontWeight: 500,
-            }}
-          >
-            {[
-              { id: 'all', label: `สถานะทั้งหมด (${validIpData.length})` },
-              { id: 'granted', label: `🟢 คุ้มครองแล้ว (${protectedCount})` },
-              { id: 'pending', label: `🔵 ยื่นคำขอแล้ว (${pendingCount})` },
-              { id: 'in_prep', label: `🟠 เตรียมยื่นจด (${inPrepCount})` },
-            ].map((tab) => {
-              const active = pipelineFilter === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setPipelineFilter(tab.id as any)}
-                  style={{
-                    padding: '5px 10px',
-                    borderRadius: '8px',
-                    border: 'none',
-                    backgroundColor: active ? '#ffffff' : 'transparent',
-                    color: active ? '#6d28d9' : '#64748b',
-                    fontWeight: active ? 700 : 500,
-                    boxShadow: active ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  {tab.label}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* IP Type Select */}
-          <select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            style={{
-              padding: '6px 12px',
-              borderRadius: '8px',
-              border: '1px solid #cbd5e1',
-              backgroundColor: '#ffffff',
-              fontSize: '12px',
-              color: '#334155',
-              cursor: 'pointer',
-              fontWeight: 500,
-              outline: 'none',
-            }}
-          >
-            <option value="all">ประเภท IP ทั้งหมด</option>
-            <option value="อนุสิทธิบัตร">อนุสิทธิบัตร ({pettyPatentCount})</option>
-            <option value="สิทธิบัตรการประดิษฐ์">สิทธิบัตรการประดิษฐ์ ({patentCount})</option>
-          </select>
-
-          {/* Strategic Filter Select */}
-          <StrategicFilterSelect
-            value={strategicFilter}
-            onChange={setStrategicFilter}
-          />
-
-        {hasFilter && (
-          <button
-            type="button"
-            onClick={handleResetAll}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '4px 10px',
-              borderRadius: '8px',
-              border: '1px solid #ddd6fe',
-              backgroundColor: '#f5f3ff',
-              color: '#6d28d9',
-              fontSize: '12px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              height: '32px',
-              boxSizing: 'border-box',
-              marginLeft: 'auto',
-            }}
-          >
-            <FaUndoAlt style={{ fontSize: '11px' }} />
-            <span>ล้างตัวกรอง</span>
-          </button>
-        )}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div>
+        <h1 style={dashboardPageTitleStyle}>งานทรัพย์สินทางปัญญา</h1>
+        <p style={dashboardPageSubtitleStyle}>
+          ภาพรวมสิทธิบัตร อนุสิทธิบัตร และสถานะการคุ้มครองทรัพย์สินทางปัญญา
+        </p>
       </div>
 
-      {/* ZONE 2: Executive Bento KPI Cards in Lavender Violet Palette */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-          gap: '16px',
-        }}
-      >
-        {/* Card 1: Total IP */}
-        <div
-          style={{
-            background: 'linear-gradient(135deg, #f5f3ff 0%, #ffffff 100%)',
-            border: '1px solid #ddd6fe',
-            borderRadius: '16px',
-            padding: '20px',
-            boxShadow: '0 4px 14px rgba(139, 92, 246, 0.08)',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <span style={{ fontSize: '13px', fontWeight: 600, color: '#6d28d9' }}>
-              ทรัพย์สินทางปัญญาทั้งหมด
-            </span>
-            <div
-              style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '10px',
-                backgroundColor: '#ede9fe',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#7c3aed',
-              }}
-            >
-              <FaCertificate style={{ fontSize: '16px' }} />
-            </div>
-          </div>
-          <div style={{ marginTop: '12px' }}>
-            <div style={{ fontSize: '28px', fontWeight: 800, color: '#1e293b', letterSpacing: '-0.02em' }}>
-              {validIpData.length} <span style={{ fontSize: '16px', fontWeight: 600, color: '#6d28d9' }}>รายการ</span>
-            </div>
-            <div style={{ fontSize: '12px', color: '#5b21b6', marginTop: '4px' }}>
-              อนุสิทธิบัตร {pettyPatentCount} (95.2%) • สิทธิบัตรการประดิษฐ์ {patentCount} (4.8%)
-            </div>
-          </div>
-        </div>
-
-        {/* Card 2: Granted & Protected */}
-        <div
-          style={{
-            background: 'linear-gradient(135deg, #ecfdf5 0%, #ffffff 100%)',
-            border: '1px solid #a7f3d0',
-            borderRadius: '16px',
-            padding: '20px',
-            boxShadow: '0 4px 14px rgba(16, 185, 129, 0.08)',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <span style={{ fontSize: '13px', fontWeight: 600, color: '#047857' }}>
-              ได้รับความคุ้มครองแล้ว
-            </span>
-            <div
-              style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '10px',
-                backgroundColor: '#d1fae5',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#059669',
-              }}
-            >
-              <FaShieldAlt style={{ fontSize: '16px' }} />
-            </div>
-          </div>
-          <div style={{ marginTop: '12px' }}>
-            <div style={{ fontSize: '28px', fontWeight: 800, color: '#1e293b', letterSpacing: '-0.02em' }}>
-              {protectedCount} <span style={{ fontSize: '16px', fontWeight: 600, color: '#047857' }}>รายการ</span>
-            </div>
-            <div style={{ fontSize: '12px', color: '#065f46', marginTop: '4px' }}>
-              คิดเป็น {protectedPct}% ของผลงานทั้งหมด • รอพิจารณาคำขอ {pendingCount} รายการ
-            </div>
-          </div>
-        </div>
-
-        {/* Card 3: Backlog & In Prep */}
-        <div
-          style={{
-            background: 'linear-gradient(135deg, #fffbeb 0%, #ffffff 100%)',
-            border: '1px solid #fed7aa',
-            borderRadius: '16px',
-            padding: '20px',
-            boxShadow: '0 4px 14px rgba(245, 158, 11, 0.08)',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <span style={{ fontSize: '13px', fontWeight: 600, color: '#92400e' }}>
-              ค้างท่อเตรียมยื่นจด (Bottleneck)
-            </span>
-            <div
-              style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '10px',
-                backgroundColor: '#fef3c7',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#d97706',
-              }}
-            >
-              <FaHourglassHalf style={{ fontSize: '16px' }} />
-            </div>
-          </div>
-          <div style={{ marginTop: '12px' }}>
-            <div style={{ fontSize: '28px', fontWeight: 800, color: '#1e293b', letterSpacing: '-0.02em' }}>
-              {inPrepCount} <span style={{ fontSize: '16px', fontWeight: 600, color: '#92400e' }}>รายการ</span>
-            </div>
-            <div style={{ fontSize: '12px', color: '#78350f', marginTop: '4px' }}>
-              คิดเป็น {inPrepPct}% (คอขวดเร่งด่วน) • รอยื่นเอกสารรับเลขคำขอ
-            </div>
-          </div>
-        </div>
-
-        {/* Card 4: Incentive Support */}
-        <div
-          style={{
-            background: 'linear-gradient(135deg, #fff1f2 0%, #ffffff 100%)',
-            border: '1px solid #fecdd3',
-            borderRadius: '16px',
-            padding: '20px',
-            boxShadow: '0 4px 14px rgba(244, 63, 94, 0.08)',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <span style={{ fontSize: '13px', fontWeight: 600, color: '#be123c' }}>
-              งบสนับสนุนที่คณะจ่ายจริง
-            </span>
-            <div
-              style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '10px',
-                backgroundColor: '#ffe4e6',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#e11d48',
-              }}
-            >
-              <FaCoins style={{ fontSize: '16px' }} />
-            </div>
-          </div>
-          <div style={{ marginTop: '12px' }}>
-            <div style={{ fontSize: '28px', fontWeight: 800, color: '#1e293b', letterSpacing: '-0.02em' }}>
-              {totalSupportAmount.toLocaleString('th-TH')} <span style={{ fontSize: '16px', fontWeight: 600, color: '#be123c' }}>บาท</span>
-            </div>
-            <div style={{ fontSize: '12px', color: '#9f1239', marginTop: '4px' }}>
-              สนับสนุนแล้ว 12 รายการ (@20,000 บ.) • รอพิจารณา 9 รายการ
-            </div>
-          </div>
-        </div>
+      {/* Top Segmented Tabs - Style identical to manage?tab=research */}
+      <div style={{ overflowX: 'auto', padding: '2px 0 6px 0' }}>
+        <TopSegmentedTabs
+          activeCategory={activePerspective}
+          onSelectCategory={setActivePerspective}
+          colorTheme="purple"
+          tabs={[
+            { key: 'types_dept', label: 'ประเภททรัพย์สินทางปัญญาและสังกัด', icon: <FaCertificate style={{ fontSize: '13px' }} /> },
+            { key: 'protection_status', label: 'สถานะการยื่นและคุ้มครอง', icon: <FaShieldAlt style={{ fontSize: '13px' }} /> },
+            { key: 'faculty', label: 'ผู้สร้างผลงานและนวัตกรรม', icon: <FaUserTie style={{ fontSize: '13px' }} /> },
+            { key: 'sdg', label: 'ความสอดคล้องเชิงยุทธศาสตร์ (SDGs)', icon: <FaLeaf style={{ fontSize: '13px' }} /> },
+            { key: 'table', label: 'รายการงานทรัพย์สินทางปัญญา', icon: <FaTable style={{ fontSize: '13px' }} /> },
+          ]}
+        />
       </div>
 
-      {/* ZONE 3: 4 Dimension Tabs Charts */}
-      <IPCharts
-        validIpData={validIpData}
-        onSelectDept={(dept) => setDeptFilter(dept === deptFilter ? 'all' : dept)}
-        onSelectType={(type) => setTypeFilter(type === typeFilter ? 'all' : type)}
-      />
-
-      {/* ZONE 4: Smart IP Data Grid Table */}
-      <IPTable
-        filteredIpData={filteredIpData}
+      {/* ZONE 1: Unified filter card */}
+      <DashboardTabFilterBar
+        tabKey="ip"
         totalCount={validIpData.length}
-        availableDepts={availableDepts}
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        deptFilter={deptFilter}
-        onDeptChange={setDeptFilter}
-        typeFilter={typeFilter}
-        onTypeChange={setTypeFilter}
+        filteredCount={filteredIpData.length}
+        filterState={tabFilter}
+        onFilterChange={setTabFilter}
+        onReset={resetTabFilter}
+        showFiscalYear={true}
+        showDepartment={false}
+        showStrategic={false}
+        showDetailedTime={true}
+        detailedTimeLabel="เลือกช่วงเวลา"
+        onOpenDetailedTime={() => setIsTimeModalOpen(true)}
+        style={{
+          position: 'static',
+          backdropFilter: 'none',
+          backgroundColor: dashboardTheme.colors.surface,
+          borderRadius: `${dashboardTheme.radius.card}px`,
+          boxShadow: 'none',
+        }}
       />
+
+      {undatedCount > 0 && <UndatedNotice count={undatedCount} />}
+
+      {/* PERSPECTIVE VIEW: Dedicated page view for Strategic Alignment */}
+      {activePerspective === 'sdg' ? (
+        <div style={{ marginTop: '8px' }}>
+          <StrategicAlignmentMatrix
+            items={filteredIpData}
+            categoryKey="ip"
+            missionTitle="งานทรัพย์สินทางปัญญา"
+            unitLabel="รายการ"
+            showBudget={true}
+          />
+        </div>
+      ) : activePerspective === 'table' ? (
+        <div style={{ marginTop: '8px' }}>
+          <MissionDataTable
+            categoryKey="ip"
+            items={validIpData}
+            title="งานทรัพย์สินทางปัญญา"
+          />
+        </div>
+      ) : (
+        <>
+          {activePerspective === 'types_dept' && (
+            <>
+              {/* ZONE 2: Executive Blueprint KPI Deck */}
+              <ExecutiveKpiDeck
+                mission="ip"
+                blueprintCard={{
+                  label: 'ทรัพย์สินทางปัญญาทั้งหมด',
+                  value: validIpData.length,
+                  unit: 'รายการ',
+                  segments: ipSegments,
+                }}
+                gearCard={{
+                  label: 'จำนวนผู้สร้างผลงานทั้งหมด',
+                  value: uniqueCreators.size,
+                  unit: 'ท่าน',
+                  gearValue: uniqueDepts.size,
+                  gearLabel: 'สังกัด',
+                }}
+                items={validIpData}
+                tallyCard={{
+                  label: 'ได้รับความคุ้มครองแล้ว',
+                  chip: `${protectedPct}%`,
+                  value: protectedCount,
+                  unit: `จาก ${validIpData.length} รายการ`,
+                  percent: parseFloat(protectedPct) || 0,
+                  totalCount: validIpData.length,
+                  activeCount: protectedCount,
+                }}
+                rulerCard={{
+                  label: 'งบสนับสนุนสะสมที่จัดสรรจริง',
+                  value: totalSupportAmount.toLocaleString('th-TH'),
+                  unit: 'บาท',
+                  current: totalSupportAmount,
+                  max: maxSupportCeiling,
+                  marks: [
+                    { label: '0', positionPercent: 2 },
+                    { label: `${Math.round(maxSupportCeiling / 3000)}k`, positionPercent: 33 },
+                    { label: `${Math.round((maxSupportCeiling * 2) / 3000)}k`, positionPercent: 66 },
+                    { label: `เพดาน ${(maxSupportCeiling / 1000).toLocaleString('th-TH')} บ.`, positionPercent: 96 },
+                  ],
+                }}
+              />
+            </>
+          )}
+
+          {/* ZONE 3: 4 Dimension Tabs Charts */}
+          <IPCharts
+            validIpData={filteredIpData}
+            allItems={allItems || validIpData}
+            currentFiscalYear={tabFilter.fiscalYear || 'all'}
+            activePerspective={activePerspective}
+            onChangePerspective={setActivePerspective}
+            hideSelector={true}
+            onSelectDept={(dept) => {
+              const nextDept = dept === deptFilter ? 'all' : dept;
+              setDeptFilter(nextDept);
+            }}
+            onSelectType={(type) => {
+              const nextType = type === typeFilter ? 'all' : type;
+              setTypeFilter(nextType);
+              setTabFilter({
+                customFilters: {
+                  ...(tabFilter.customFilters || {}),
+                  typeFilter: nextType,
+                },
+              });
+            }}
+          />
+        </>
+      )}
     </div>
   );
 }

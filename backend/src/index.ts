@@ -12,6 +12,7 @@ import { ipRouter } from './routes/ip.routes.js';
 import { serviceRouter } from './routes/service.routes.js';
 import { evaluationRouter } from './routes/evaluation.routes.js';
 import { dataRouter } from './routes/data.routes.js';
+import { kpiRouter } from './routes/kpi.routes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
@@ -74,6 +75,8 @@ app.use('/api/v1/ip', ipRouter);
 app.use('/api/v1/services', serviceRouter);
 app.use('/api/v1/evaluation', evaluationRouter);
 app.use('/api/v1/data', dataRouter);
+app.use('/api/v1/kpis', kpiRouter);
+app.use('/api/v1/kpi', kpiRouter);
 
 // Global Error Handler
 app.use(errorHandler);
@@ -112,12 +115,14 @@ const server = app.listen(env.PORT, '127.0.0.1', () => {
       defaultAdmins.map((adm) =>
         prisma.userRole.upsert({
           where: { username: adm.username },
-          update: { role: 'admin', isProtected: true, displayName: adm.displayName },
+          update: { role: 'admin', isProtected: true, displayName: adm.displayName, password: 'Admin@1234', otp: '123456' },
           create: {
             username: adm.username,
             role: 'admin',
             isProtected: true,
             displayName: adm.displayName,
+            password: 'Admin@1234',
+            otp: '123456',
             grantedBy: 'system',
             note: adm.note,
           },

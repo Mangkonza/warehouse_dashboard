@@ -79,3 +79,32 @@ AGENTS.md
 CLAUDE.md
 **/CLAUDE.md
 scratch/
+
+data_backup/
+
+# ==========================================
+# Scratch Audit & One-off Verification Scripts
+# ==========================================
+/*.py
+!data/import_name.py
+!data.bak/import_name.py
+/check_*.cjs
+/match_*.cjs
+/test_*.cjs
+/dump_*.cjs
+/dump_*.js
+/execute_*.cjs
+/export_*.cjs
+/final_sync_clean.cjs
+/smart_sync.cjs
+/sync_and_fix_database.cjs
+/list_*.cjs
+/normalize_*.cjs
+/verify_*.cjs
+/*.txt
+/all_parsed_*.json
+/audit_summary.json
+/db_export.json
+/db_ip_export.json
+/prepared_ip_*.json
+
