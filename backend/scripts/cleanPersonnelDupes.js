@@ -204,8 +204,8 @@ async function cleanPersonnel() {
 
 function syncJsonFiles() {
   const jsonPaths = [
-    path.resolve(__dirname, '../../warehouse_dashboard/src/data/personnel.json'),
-    path.resolve(__dirname, '../../warehouse_dashboard/src/data/persisted_personnel.json'),
+    path.resolve(__dirname, '../../frontend/src/data/personnel.json'),
+    path.resolve(__dirname, '../../frontend/src/data/persisted_personnel.json'),
     path.resolve(__dirname, '../../data/all_data.json')
   ];
 

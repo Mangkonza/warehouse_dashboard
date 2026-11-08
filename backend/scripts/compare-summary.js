@@ -15,7 +15,7 @@ const prisma = new PrismaClient({
 });
 
 function readJsonFile(filename) {
-  const dashDataBakDir = path.resolve(__dirname, '../../warehouse_dashboard/src/data.bak');
+  const dashDataBakDir = path.resolve(__dirname, '../../frontend/src/data.bak');
   const filePath = path.join(dashDataBakDir, filename);
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }

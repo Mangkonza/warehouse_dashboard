@@ -65,8 +65,8 @@ function formatEvaluation(item: any) {
 function syncEvaluationsToJson(items: Array<{ category: string; recordId: string; sdgIds?: number[]; iType?: string | null; journalIndex?: any; evaluatedBy?: string }>) {
   try {
     const candidates = [
-      path.resolve(process.cwd(), '../warehouse_dashboard/src/data'),
-      path.resolve(process.cwd(), 'warehouse_dashboard/src/data'),
+      path.resolve(process.cwd(), '../frontend/src/data'),
+      path.resolve(process.cwd(), 'frontend/src/data'),
       path.resolve(process.cwd(), 'src/data'),
     ];
     for (const dir of candidates) {

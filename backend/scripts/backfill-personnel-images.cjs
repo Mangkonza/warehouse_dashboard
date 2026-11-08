@@ -3,8 +3,8 @@ const path = require('path');
 const { PrismaClient } = require('../node_modules/@prisma/client');
 const prisma = new PrismaClient();
 
-const jsonPath = path.resolve(__dirname, '../../warehouse_dashboard/src/data/personnel.json');
-const publicDir = path.resolve(__dirname, '../../warehouse_dashboard/public');
+const jsonPath = path.resolve(__dirname, '../../frontend/src/data/personnel.json');
+const publicDir = path.resolve(__dirname, '../../frontend/public');
 const reportsDir = path.resolve(__dirname, '../../reports');
 
 async function main() {
