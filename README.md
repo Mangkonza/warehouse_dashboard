@@ -123,6 +123,8 @@ docker volume create ku-warehouse-uploads
 docker run -d \
   --name ku_warehouse_backend \
   --network ku-warehouse-net \
+  --network-alias backend \
+  --network-alias ku_warehouse_backend \
   --restart unless-stopped \
   -p 8000:8000 \
   -v ku-warehouse-uploads:/app/uploads \
