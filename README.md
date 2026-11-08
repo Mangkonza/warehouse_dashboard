@@ -16,11 +16,6 @@ warehouse_dashboard/
 ├── Dockerfile.api                     # Multi-stage Dockerfile สำหรับ Backend API (Context: .)
 ├── Dockerfile.web                     # Multi-stage Dockerfile สำหรับ Frontend Next.js (Context: .)
 ├── .dockerignore                      # ป้องกัน secrets, node_modules และ build files เข้า Image
-├── deploy/                            # โฟลเดอร์เตรียมไฟล์สำหรับส่งขึ้น Google Drive (Untracked)
-│   ├── .env                           # Template ตัวแปรสภาพแวดล้อม Production รวมทุก Service
-│   ├── ku_warehouse_deployment_note.txt # สรุปรายละเอียด Commit, Branch, พอร์ต และชนิด DB
-│   ├── ku_warehouse_dump.sql          # Full Database Dump (PostgreSQL 16) รวมโครงสร้างและข้อมูล
-│   └── schema.sql                     # Database Schema DDL (PostgreSQL 16)
 ├── backend/                           # โฟลเดอร์บริการ Backend API
 │   ├── prisma/
 │   │   ├── schema.prisma              # Prisma Data Model (PostgreSQL 16)
