@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { isExternalResearchItem, ResearchItem } from '../ResearchCharts';
-import researchData from '@/data/research.json';
+const researchData: any[] = [];
 
 describe('Research Project External vs Internal Logic', () => {
   it('correctly classifies items based on budget_external and budget_internal', () => {

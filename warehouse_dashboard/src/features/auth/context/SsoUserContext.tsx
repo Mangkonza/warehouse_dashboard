@@ -80,9 +80,24 @@ export function SsoUserProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const logout = useCallback(() => {
-    const logoutUrl = withBasePath(APP_ROUTES.ssoLogout);
-    window.location.href = logoutUrl;
+  const logout = useCallback(async () => {
+    try {
+      const logoutUrl = withBasePath(APP_ROUTES.ssoLogout);
+      await fetch(logoutUrl, { method: 'GET', credentials: 'same-origin' }).catch(() => {});
+    } catch {}
+    setUser(null);
+    setStatus('unauthenticated');
+    if (typeof document !== 'undefined') {
+      document.cookie = 'user_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+      document.cookie = 'ku_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('ku_auth_logout'));
+      const ADMIN_PATHS = ['/manage', '/evaluation', '/monitoring', '/kpi', '/user-roles', '/admin'];
+      if (ADMIN_PATHS.some((p) => window.location.pathname.startsWith(p))) {
+        window.location.replace('/overview');
+      }
+    }
   }, []);
 
   useEffect(() => {

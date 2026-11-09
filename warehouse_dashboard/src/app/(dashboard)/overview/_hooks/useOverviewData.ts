@@ -18,11 +18,6 @@ import { isTestRecord } from '@/lib/sdgEngine';
 import { CategoryKey } from '@/config/dataManagementConfig';
 import { buildKpiScorecard } from '../_services/kpiScorecard';
 
-import rawResearch from '@/data/research.json';
-import rawAcademic from '@/data/academic.json';
-import rawPublications from '@/data/publications.json';
-import rawServices from '@/data/services.json';
-import rawIP from '@/data/ip.json';
 
 export interface OverviewKpiScore {
   id: string;
@@ -122,19 +117,19 @@ export function useOverviewData(timeFilter: TimeFilterState) {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [snapshotToast, setSnapshotToast] = useState<string | null>(null);
 
-  const [researchList, setResearchList] = useState<any[]>(() => getCachedCategoryData('research') || rawResearch);
-  const [academicList, setAcademicList] = useState<any[]>(() => getCachedCategoryData('academic') || rawAcademic);
-  const [pubList, setPubList] = useState<any[]>(() => getCachedCategoryData('publications') || rawPublications);
-  const [serviceList, setServiceList] = useState<any[]>(() => getCachedCategoryData('service') || rawServices);
-  const [ipList, setIpList] = useState<any[]>(() => getCachedCategoryData('ip') || rawIP);
+  const [researchList, setResearchList] = useState<any[]>(() => getCachedCategoryData('research') || []);
+  const [academicList, setAcademicList] = useState<any[]>(() => getCachedCategoryData('academic') || []);
+  const [pubList, setPubList] = useState<any[]>(() => getCachedCategoryData('publications') || []);
+  const [serviceList, setServiceList] = useState<any[]>(() => getCachedCategoryData('service') || []);
+  const [ipList, setIpList] = useState<any[]>(() => getCachedCategoryData('ip') || []);
 
   useEffect(() => {
     const handleUpdate = () => {
-      setResearchList(getCachedCategoryData('research') || rawResearch);
-      setAcademicList(getCachedCategoryData('academic') || rawAcademic);
-      setPubList(getCachedCategoryData('publications') || rawPublications);
-      setServiceList(getCachedCategoryData('service') || rawServices);
-      setIpList(getCachedCategoryData('ip') || rawIP);
+      setResearchList(getCachedCategoryData('research') || []);
+      setAcademicList(getCachedCategoryData('academic') || []);
+      setPubList(getCachedCategoryData('publications') || []);
+      setServiceList(getCachedCategoryData('service') || []);
+      setIpList(getCachedCategoryData('ip') || []);
     };
     window.addEventListener('ku_data_updated', handleUpdate);
     return () => window.removeEventListener('ku_data_updated', handleUpdate);

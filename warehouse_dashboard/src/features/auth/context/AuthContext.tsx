@@ -80,8 +80,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.removeItem(SESSION_STORAGE_KEYS.token);
         localStorage.removeItem(SESSION_STORAGE_KEYS.user);
       } catch {}
-      if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
-        window.location.href = '/login';
+      // Clear all auth cookies
+      if (typeof document !== 'undefined') {
+        document.cookie = 'ku_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+        document.cookie = 'user_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+        document.cookie = 'access_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+        document.cookie = 'intranet_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+      }
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('ku_auth_logout'));
+        window.dispatchEvent(new CustomEvent('ku_roles_updated'));
+        const ADMIN_PATHS = ['/manage', '/evaluation', '/monitoring', '/kpi', '/user-roles', '/admin'];
+        if (ADMIN_PATHS.some((p) => window.location.pathname.startsWith(p))) {
+          window.location.replace('/overview');
+        }
       }
     }
   }, []);

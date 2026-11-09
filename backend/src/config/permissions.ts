@@ -28,7 +28,7 @@ export const RESOURCE_REQUIRED_ROLE: Record<AppResource, AppRole> = {
   service: 'user',
   ip: 'user',
   kpi: 'admin',
-  personnel: 'admin',
+  personnel: 'user',
   studio: 'admin',
   evaluation: 'admin',
   monitoring: 'admin',

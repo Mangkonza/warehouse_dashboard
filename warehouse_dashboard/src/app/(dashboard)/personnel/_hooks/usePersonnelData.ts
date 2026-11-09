@@ -8,11 +8,6 @@ import { autoDetectJournalRanking } from '@/config/journalRankingConfig';
 import { normalizePersonName, normalizeSpellingVariant, resolvePersonAvatar } from '@/lib/personnelService';
 import { PersonnelRecord } from '@/types/dataManagement';
 
-import rawResearch from '@/data/research.json';
-import rawAcademic from '@/data/academic.json';
-import rawPublications from '@/data/publications.json';
-import rawServices from '@/data/services.json';
-import rawIP from '@/data/ip.json';
 
 export interface PersonnelWorkMetric {
   personnel: PersonnelRecord;

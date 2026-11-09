@@ -89,20 +89,14 @@ async function verifyKuSessionCookie(cookieValue?: string): Promise<{ username: 
 }
 
 // Protected dashboard routes requiring legacy authentication
-const PROTECTED_PREFIXES = [
-  '/overview',
-  '/research',
-  '/academic',
-  '/publications',
-  '/service',
-  '/services',
-  '/ip',
+// Only admin / management paths require authentication
+const ADMIN_PROTECTED_PREFIXES = [
   '/kpi',
-  '/personnel',
   '/evaluation',
   '/monitoring',
   '/manage',
   '/user-roles',
+  '/admin',
 ];
 
 export async function proxy(request: NextRequest) {
@@ -148,12 +142,16 @@ export async function proxy(request: NextRequest) {
   const hasUserSession = Boolean(request.cookies.get(COOKIE_USER_SESSION)?.value);
   const isAuthenticated = Boolean(session || hasUserSession);
 
-  // Check if route requires session
-  const isProtected =
-    appPath === '/' || PROTECTED_PREFIXES.some((prefix) => appPath.startsWith(prefix));
+  // Root path redirects directly to overview dashboard without requiring login
+  if (appPath === '/') {
+    const origin = getPublicOrigin(request.headers);
+    return NextResponse.redirect(new URL('/overview', origin), 307);
+  }
 
-  if (isProtected && !isAuthenticated) {
-    // Open redirect prevention: must start with / and not //
+  // Check if route requires admin session
+  const isAdminProtected = ADMIN_PROTECTED_PREFIXES.some((prefix) => appPath.startsWith(prefix));
+
+  if (isAdminProtected && !isAuthenticated) {
     const returnUrl = appPath && appPath !== '/' && appPath.startsWith('/') && !appPath.startsWith('//') ? appPath : '/overview';
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('returnUrl', returnUrl);

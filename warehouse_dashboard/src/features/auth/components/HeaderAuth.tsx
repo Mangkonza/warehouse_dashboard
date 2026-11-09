@@ -63,9 +63,8 @@ export const HeaderAuth: React.FC = () => {
   const handleLogout = () => {
     if (sso?.status === 'authenticated' && sso.logout) {
       sso.logout();
-    } else {
-      legacyLogout();
     }
+    legacyLogout();
   };
 
   return (

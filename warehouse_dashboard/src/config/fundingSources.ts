@@ -1,4 +1,10 @@
-[
+export interface FundingSourceItem {
+  id?: string;
+  name: string;
+  type?: string;
+}
+
+export const FUNDING_SOURCES: FundingSourceItem[] = [
   {
     "id": "fund_nrct",
     "name": "สำนักงานการวิจัยแห่งชาติ (วช.)",
@@ -54,4 +60,5 @@
     "name": "test",
     "type": "ภายใน"
   }
-]
+];
+export default FUNDING_SOURCES;

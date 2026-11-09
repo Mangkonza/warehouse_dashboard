@@ -3,11 +3,6 @@ import { EvaluationRecord } from '../types/evaluation';
 import { CategoryKey } from '../types/dataManagement';
 
 // Base master datasets fallback
-import rawResearch from '@/data/research.json';
-import rawAcademic from '@/data/academic.json';
-import rawPublications from '@/data/publications.json';
-import rawServices from '@/data/services.json';
-import rawIP from '@/data/ip.json';
 
 export const DEFAULT_CATEGORY_DATA: Record<string, any[]> = {
   research: [],

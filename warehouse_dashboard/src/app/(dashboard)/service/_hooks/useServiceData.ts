@@ -37,7 +37,6 @@ export function extractAcademicPersonsFromService(raw: string): string[] {
 }
 
 import { useState, useEffect, useMemo } from 'react';
-import serviceData from '@/data/services.json';
 import { getCachedCategoryData, fetchCategoryData } from '@/lib/dataService';
 import { TimeFilterState, itemMatchesTimeFilter, resolveItemDate } from '@/types/timeFilter';
 import { isTestRecord } from '@/lib/sdgEngine';

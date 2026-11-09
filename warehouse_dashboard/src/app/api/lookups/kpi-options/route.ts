@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-const BACKEND_URL = process.env.BACKEND_INTERNAL_URL || 'http://localhost:8000';
+const BACKEND_URL = process.env.BACKEND_INTERNAL_URL || process.env.BACKEND_URL || 'http://ku_warehouse_backend:8000';
 
 const getForwardHeaders = (request: NextRequest): Record<string, string> => {
   const headers: Record<string, string> = {

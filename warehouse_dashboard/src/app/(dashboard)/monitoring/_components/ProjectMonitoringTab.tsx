@@ -26,8 +26,6 @@ import {
 import { isEvaluated, EvaluationRecord } from '@/types/evaluation';
 import { formatDateBE } from '@/components/ui/RecordDetailDrawer';
 import { isTestRecord } from '@/lib/sdgEngine';
-import rawResearch from '@/data/research.json';
-import rawAcademic from '@/data/academic.json';
 import {
   FaSearch,
   FaChevronLeft,
@@ -95,10 +93,10 @@ export default function ProjectMonitoringTab({}: ProjectMonitoringTabProps) {
 
   // 1. Datasets State
   const [researchList, setResearchList] = useState<any[]>(() => {
-    return getCachedCategoryData('research') || rawResearch;
+    return getCachedCategoryData('research') || [];
   });
   const [academicList, setAcademicList] = useState<any[]>(() => {
-    return getCachedCategoryData('academic') || rawAcademic;
+    return getCachedCategoryData('academic') || [];
   });
 
   // 2. Evaluations State

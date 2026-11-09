@@ -78,8 +78,8 @@ export interface RulerCardData {
 export interface ExecutiveKpiDeckProps {
   mission: MissionKey;
   blueprintCard: BlueprintCardData;
-  gearCard: GearCardData;
-  tallyCard: TallyCardData;
+  gearCard?: GearCardData;
+  tallyCard?: TallyCardData;
   rulerCard: RulerCardData;
   items?: any[];
   className?: string;
@@ -359,6 +359,7 @@ export function ExecutiveKpiDeck({
   }, [isGearPopoverOpen]);
 
   const departmentBreakdown: DepartmentBreakdownItem[] = useMemo(() => {
+    if (!gearCard) return [];
     if (gearCard.departments && gearCard.departments.length > 0) {
       return gearCard.departments;
     }
@@ -409,17 +410,17 @@ export function ExecutiveKpiDeck({
         };
       })
       .sort((a, b) => b.count - a.count);
-  }, [gearCard.departments, gearCard.items, items]);
+  }, [gearCard?.departments, gearCard?.items, items]);
 
   const gearValueDisplay =
-    gearCard.gearValue !== undefined && gearCard.gearValue !== null
+    gearCard?.gearValue !== undefined && gearCard?.gearValue !== null
       ? gearCard.gearValue
       : departmentBreakdown.length > 0
       ? departmentBreakdown.length
       : 0;
 
   const defaultPopoverTitle = useMemo(() => {
-    if (gearCard.popoverTitle) return gearCard.popoverTitle;
+    if (gearCard?.popoverTitle) return gearCard.popoverTitle;
     switch (mission) {
       case 'publications':
         return 'สังกัดที่มีผลงาน';
@@ -432,10 +433,10 @@ export function ExecutiveKpiDeck({
       default:
         return 'สังกัดที่มีโครงการ';
     }
-  }, [gearCard.popoverTitle, mission]);
+  }, [gearCard?.popoverTitle, mission]);
 
   const defaultPopoverSubtitle = useMemo(() => {
-    if (gearCard.popoverSubtitle) return gearCard.popoverSubtitle;
+    if (gearCard?.popoverSubtitle) return gearCard.popoverSubtitle;
     switch (mission) {
       case 'publications':
         return 'สัดส่วนผลงานแยกตามสังกัด';
@@ -448,7 +449,7 @@ export function ExecutiveKpiDeck({
       default:
         return 'สัดส่วนโครงการแยกตามสังกัด';
     }
-  }, [gearCard.popoverSubtitle, mission]);
+  }, [gearCard?.popoverSubtitle, mission]);
 
   // Multi-segment Blueprint Card data calculation (with backwards compatibility)
   const cardSegments: BlueprintSegment[] = useMemo(() => {
@@ -503,9 +504,9 @@ export function ExecutiveKpiDeck({
   // Tally Bars calculations (24 bars matching progress-card.html)
   const TALLY_TOTAL = 24;
   const tallyPercent =
-    tallyCard.percent !== undefined
+    tallyCard?.percent !== undefined
       ? tallyCard.percent
-      : tallyCard.totalCount && tallyCard.totalCount > 0
+      : tallyCard?.totalCount && tallyCard.totalCount > 0
         ? ((Number(tallyCard.activeCount || tallyCard.value) || 0) / tallyCard.totalCount) * 100
         : 50;
   const activeTallyCount = Math.round((Math.max(0, Math.min(100, tallyPercent)) / 100) * TALLY_TOTAL);
@@ -525,7 +526,11 @@ export function ExecutiveKpiDeck({
       className={`exec-kpi-deck-wrap ${className}`}
       style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+        gridTemplateColumns: [blueprintCard, gearCard, tallyCard, rulerCard].filter(Boolean).length === 2
+          ? 'repeat(2, minmax(0, 1fr))'
+          : [blueprintCard, gearCard, tallyCard, rulerCard].filter(Boolean).length === 3
+          ? 'repeat(3, minmax(0, 1fr))'
+          : 'repeat(4, minmax(0, 1fr))',
         gap: '16px',
         width: '100%',
         ...style,
@@ -879,6 +884,7 @@ export function ExecutiveKpiDeck({
       </div>
 
       {/* CARD 2: Total Items + Animated Mechanical Gearbox & Calibrated Dial */}
+      {gearCard && (
       <div
         className="exec-card exec-c2"
         style={{
@@ -1230,8 +1236,10 @@ export function ExecutiveKpiDeck({
           )}
         </div>
       </div>
+      )}
 
       {/* CARD 3: Target/Proportion with Pill Chip & Segmented LED Oscilloscope Bars */}
+      {tallyCard && (
       <div
         className="exec-card exec-c3"
         style={{
@@ -1349,6 +1357,7 @@ export function ExecutiveKpiDeck({
           </div>
         </div>
       </div>
+      )}
 
       {/* CARD 4: Benchmark Scale with Precision Vernier Caliper Gauge */}
       <div

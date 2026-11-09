@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import academicData from '@/data/academic.json';
 import { getCachedCategoryData, fetchCategoryData } from '@/lib/dataService';
 import { TimeFilterState, itemMatchesTimeFilter, resolveItemDate } from '@/types/timeFilter';
 import { isTestRecord, detectSDGsFromText } from '@/lib/sdgEngine';

@@ -1,12 +1,11 @@
 'use client';
+import { getCachedCategoryData } from '@/lib/dataService';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import { FormField } from '@/components/form/FormField';
 import { PersonPicker } from '@/components/form/PersonPicker';
 import { DepartmentSelect } from '@/components/ui';
-import researchData from '@/data/research.json';
-import ipData from '@/data/ip.json';
 import { DatePicker } from '@/components/ui/date-picker';
 import { MoneyInput } from '@/components/form/MoneyInput';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -78,7 +77,7 @@ export const AcademicProjectForm: React.FC<AcademicProjectFormProps> = ({
   const [ipFilterType, setIpFilterType] = useState<string>('all');
   const [ipSearchQuery, setIpSearchQuery] = useState<string>(() => formData.patent_integration || '');
   const [isIpDropdownOpen, setIsIpDropdownOpen] = useState(false);
-  const [ipDatabase, setIpDatabase] = useState<any[]>(() => ipData || []);
+  const [ipDatabase, setIpDatabase] = useState<any[]>(() => getCachedCategoryData('ip') || []);
   const [showAddIpSidePane, setShowAddIpSidePane] = useState(false);
   const [newIpFormData, setNewIpFormData] = useState<Record<string, any>>({
     type: 'patent',

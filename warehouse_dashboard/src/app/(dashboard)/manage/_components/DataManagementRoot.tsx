@@ -42,11 +42,6 @@ import {
 } from 'react-icons/fa';
 
 // Initial JSON datasets
-import rawResearch from '@/data/research.json';
-import rawAcademic from '@/data/academic.json';
-import rawPublications from '@/data/publications.json';
-import rawServices from '@/data/services.json';
-import rawIP from '@/data/ip.json';
 import { KPIManagementTab } from './KPIManagementTab';
 import { UserRoleManagementTab } from './UserRoleManagementTab';
 import { RoleManagementService } from '@/services/roleManagement.service';
@@ -284,12 +279,12 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
 
   // Datasets state with sanitized data and stable unique IDs
   const [datasets, setDatasets] = useState<Record<CategoryKey, any[]>>(() => ({
-    monitoring: getInitialDataset('research', rawResearch),
-    research: getInitialDataset('research', rawResearch),
-    academic: getInitialDataset('academic', rawAcademic),
-    service: getInitialDataset('service', rawServices),
-    publications: getInitialDataset('publications', rawPublications),
-    ip: getInitialDataset('ip', rawIP),
+    monitoring: getInitialDataset('research', []),
+    research: getInitialDataset('research', []),
+    academic: getInitialDataset('academic', []),
+    service: getInitialDataset('service', []),
+    publications: getInitialDataset('publications', []),
+    ip: getInitialDataset('ip', []),
     personnel: getInitialDataset('personnel', [] as PersonnelRecord[]),
     kpi: [],
     user_roles: [],
@@ -1728,22 +1723,38 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
             />
           )}
 
-          {/* Footer: Pagination & ข้อมูลจำนวนรายการ */}
-          <TablePagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            totalItems={filteredData.length}
-            pageSize={itemsPerPage}
-            onPageChange={setCurrentPage}
-            onPageSizeChange={(newSize) => {
-              setItemsPerPage(newSize);
-              setCurrentPage(1);
-            }}
-            pageSizeOptions={[10, 25, 50, 100]}
-            unitLabel="รายการ"
-            extraInfo={selectedDept ? ` (สังกัด: ${selectedDept.replace('ภาควิชา', '')})` : undefined}
-          />
-        </div>
+          {/* Footer: Pagination & ข้อมูลจำนวนรายการ */}
+
+          <TablePagination
+
+            currentPage={currentPage}
+
+            totalPages={totalPages}
+
+            totalItems={filteredData.length}
+
+            pageSize={itemsPerPage}
+
+            onPageChange={setCurrentPage}
+
+            onPageSizeChange={(newSize) => {
+
+              setItemsPerPage(newSize);
+
+              setCurrentPage(1);
+
+            }}
+
+            pageSizeOptions={[10, 25, 50, 100]}
+
+            unitLabel="รายการ"
+
+            extraInfo={selectedDept ? ` (สังกัด: ${selectedDept.replace('ภาควิชา', '')})` : undefined}
+
+          />
+
+        </div>
+
       )}
 
       {/* Modals */}
