@@ -6,6 +6,15 @@ import { useAuth, useSsoUserSafe } from '@/features/auth';
 import { AuthModal } from '@/features/auth/components/AuthModal';
 
 function LoginContent() {
+  const basePath = (process.env.NEXT_PUBLIC_BASE_PATH || '').replace(/\/+$/, '');
+  const bgUrl = `${basePath}/bg9.jpg`;
+  React.useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, isLoading: isAuthLoading } = useAuth();
@@ -36,11 +45,11 @@ function LoginContent() {
         left: 0,
         right: 0,
         bottom: 0,
-        width: '100vw',
-        height: '100vh',
-        minHeight: '100vh',
+        width: '100%',
+        height: '100%',
+        minHeight: '100%',
         backgroundColor: '#121518',
-        backgroundImage: "url('/bg9.jpg')",
+        backgroundImage: `url('${bgUrl}')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
@@ -61,7 +70,7 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div style={{ minHeight: '100vh', backgroundColor: '#121518' }} />}>
+    <Suspense fallback={<div style={{ minHeight: '100%', backgroundColor: '#121518' }} />}>
       <LoginContent />
     </Suspense>
   );

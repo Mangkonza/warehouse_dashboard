@@ -51,17 +51,16 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const isSsoLoading = sso?.status === 'loading';
   const isAuthenticated = Boolean(user || ssoUser);
 
-  // AuthGate: หากไม่มี session ให้เปลี่ยนไปหน้า Login (รองรับทั้ง Legacy User และ Central SSO User)
-  useEffect(() => {
-    if (!isLoading && !isSsoLoading && !isAuthenticated && pathname !== '/login') {
-      const returnUrl =
-        pathname && pathname !== '/' && pathname.startsWith('/') && !pathname.startsWith('//')
-          ? pathname
-          : '/overview';
+  // AuthGate: ป้องกันเฉพาะหน้าที่ต้องใช้สิทธิ์ Admin เท่านั้น
+  // หน้าสาธารณะ (Overview, Research, Academic Dev, Publications, Services, IP, Personnel, SDGs) ทุกคนสามารถเข้าชมได้
+  const ADMIN_PATHS = ['/manage', '/evaluation', '/monitoring', '/kpi', '/user-roles', '/admin'];
+  const isProtectedPath = Boolean(pathname && ADMIN_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`)));
 
-      window.location.replace(`/login?returnUrl=${encodeURIComponent(returnUrl)}`);
+  useEffect(() => {
+    if (!isLoading && !isSsoLoading && !isAuthenticated && isProtectedPath) {
+      window.location.replace(`/login?returnUrl=${encodeURIComponent(pathname)}`);
     }
-  }, [isLoading, isSsoLoading, isAuthenticated, pathname]);
+  }, [isLoading, isSsoLoading, isAuthenticated, pathname, isProtectedPath]);
 
   const handleTogglePin = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -101,12 +100,12 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     return <PageLoader message="กำลังตรวจสอบสิทธิ์การเข้าใช้งาน..." />;
   }
 
-  if (!isAuthenticated && pathname !== '/login') {
+  if (!isAuthenticated && isProtectedPath) {
     return <PageLoader message="กำลังนำคุณไปยังหน้าเข้าสู่ระบบ..." />;
   }
 
   const getSingleRoleTitle = (): string => {
-    if (!user) return 'ยังไม่ได้เข้าสู่ระบบ';
+    if (!user) return 'ผู้เยี่ยมชม (Guest)';
 
     if (user.role === 'admin') {
       return 'ผู้ดูแลระบบ';

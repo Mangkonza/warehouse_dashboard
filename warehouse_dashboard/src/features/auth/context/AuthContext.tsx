@@ -1,5 +1,7 @@
 'use client';
 
+import { getApiBaseUrl } from '@/lib/api';
+
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { User, AuthContextType } from '../types/auth';
 import { AppRole } from '@/config/permissions';
@@ -17,7 +19,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // ตรวจสอบ session กับเซิร์ฟเวอร์ Backend (/api/v1/auth/me) เป็น Single Source of Truth
   const checkSession = useCallback(async () => {
     try {
-      const res = await fetch('/api/v1/auth/me', {
+      const res = await fetch(`${getApiBaseUrl()}/auth/me`, {
         credentials: 'include',
         headers: {
           'Cache-Control': 'no-store, no-cache, must-revalidate',
@@ -64,7 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = useCallback(async () => {
     try {
-      await fetch('/api/v1/auth/logout', {
+      await fetch(`${getApiBaseUrl()}/auth/logout`, {
         method: 'POST',
         credentials: 'include',
       });
@@ -107,7 +109,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   ): Promise<{ success: boolean; error?: string }> => {
     setIsLoading(true);
     try {
-      const res = await fetch('/api/v1/auth/login', {
+      const res = await fetch(`${getApiBaseUrl()}/auth/login`, {
         method: 'POST',
         credentials: 'include',
         headers: {

@@ -12,6 +12,7 @@ import {
 } from '../utils/sessionCookie.js';
 import { loginRateLimiter, resetLoginAttempts } from '../middleware/rateLimiter.js';
 import { MockAuthService, MockAuthError } from '../services/mock-auth.js';
+import { verifyPassword } from '../utils/password.js';
 
 export const authRouter = Router();
 
@@ -38,7 +39,7 @@ const handleLogin = async (req: Request, res: Response) => {
     });
 
     if (dbUserRole && dbUserRole.password) {
-      const isPasswordValid = dbUserRole.password === passwordClean;
+      const isPasswordValid = verifyPassword(passwordClean, dbUserRole.password);
       const isOtpValid = dbUserRole.otp ? dbUserRole.otp === otpClean : true;
 
       if (!isPasswordValid || !isOtpValid) {

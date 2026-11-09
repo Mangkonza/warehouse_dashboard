@@ -3,7 +3,7 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useSsoUserSafe } from '../context/SsoUserContext';
-import { FaGraduationCap, FaPowerOff } from 'react-icons/fa';
+import { FaUser, FaPowerOff } from 'react-icons/fa';
 
 export const HeaderAuth: React.FC = () => {
   const { user: legacyUser, openLoginModal, logout: legacyLogout } = useAuth();
@@ -35,8 +35,8 @@ export const HeaderAuth: React.FC = () => {
           onMouseOver={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.35)')}
           onMouseOut={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)')}
         >
-          <FaGraduationCap style={{ fontSize: '16px' }} />
-          <span>เข้าสู่ระบบ KU ALL-Login</span>
+          <FaUser style={{ fontSize: '14px' }} />
+          <span>เข้าสู่ระบบ (Login)</span>
         </button>
       </div>
     );
