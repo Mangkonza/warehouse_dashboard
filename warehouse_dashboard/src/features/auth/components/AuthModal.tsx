@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { FaRedo } from 'react-icons/fa';
+import { KU_80_LOGO_BASE64 } from '@/assets/kuLogoBase64';
 
 export interface AuthModalProps {
   forceOpen?: boolean;
@@ -122,7 +123,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ forceOpen = false }) => {
         {/* โลโก้ KU 80 ฉลองครบรอบ 80 ปี มก. */}
         <div style={{ textAlign: 'center', marginBottom: '22px' }}>
           <img
-            src="/KU-english-80-1024x1024.png"
+            src={KU_80_LOGO_BASE64}
             alt="Kasetsart University 80th Anniversary"
             style={{
               height: '92px',
