@@ -166,8 +166,14 @@ export function usePersonnelData(timeFilter?: TimeFilterState) {
       const firstName = nameParts[0] || '';
       const lastName = nameParts[nameParts.length - 1] || '';
 
-      const isMatch = (idVal: any, nameVal: any) => {
+            const isMatch = (idVal: any, nameVal: any) => {
         if (pId && idVal && (Number(idVal) === pId || String(idVal) === String(pId))) {
+          if (nameVal && normClean && normClean.length >= 3) {
+            const normVal = normalizeSpellingVariant(normalizePersonName(String(nameVal)).toLowerCase());
+            if (!normVal.includes(normClean) && !(nameParts.length >= 2 && normVal.includes(firstName) && normVal.includes(lastName))) {
+              return false;
+            }
+          }
           return true;
         }
         if (!nameVal || !normClean || normClean.length < 3) return false;

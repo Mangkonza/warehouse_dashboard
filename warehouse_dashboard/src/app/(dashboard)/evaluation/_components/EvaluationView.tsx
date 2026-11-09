@@ -234,12 +234,15 @@ export const EvaluationView: React.FC = () => {
         });
         counts[cat] = count;
       } else {
-        // 'unevaluated'
+        // 'unevaluated' - neither manually evaluated nor auto-detected
         let count = 0;
         list.forEach((item) => {
           const key = getRecordEvalKey(cat, item);
           if (!isEvaluated(cat, evalMap[key])) {
-            count += 1;
+            const hybrid = resolveHybridSDG(item, cat, evalMap);
+            if (!hybrid.sdgIds || hybrid.sdgIds.length === 0) {
+              count += 1;
+            }
           }
         });
         counts[cat] = count;
@@ -295,7 +298,7 @@ export const EvaluationView: React.FC = () => {
       // 1. Status Filter
       if (statusFilter === 'evaluated' && !evaluated) return false;
       if (statusFilter === 'auto_detected' && !isAuto) return false;
-      if (statusFilter === 'unevaluated' && evaluated) return false;
+      if (statusFilter === 'unevaluated' && (evaluated || isAuto)) return false;
 
       // 2. Department Filter
       if (selectedDept || selectedDeptCustom) {

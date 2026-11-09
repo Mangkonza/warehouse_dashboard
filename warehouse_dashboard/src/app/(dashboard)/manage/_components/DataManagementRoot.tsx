@@ -113,7 +113,7 @@ function resolveInitialCategory(): CategoryKey {
       const params = new URLSearchParams(window.location.search);
       const urlTab = params.get('tab') || params.get('category');
       if (urlTab === 'user_roles') {
-        window.location.replace('/user-roles');
+        const basePath = (process.env.NEXT_PUBLIC_BASE_PATH || '').replace(/\/+$/, ''); window.location.replace(`${basePath}/user-roles`);
         return 'research';
       }
       if (urlTab && VALID_CATEGORIES.includes(urlTab as CategoryKey)) {

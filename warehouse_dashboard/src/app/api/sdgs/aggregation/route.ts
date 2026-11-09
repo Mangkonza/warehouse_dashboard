@@ -3,6 +3,8 @@ import { aggregateSdgsData, SdgFilterParams } from '@/lib/sdgAggregationService'
 
 export const dynamic = 'force-dynamic';
 
+const BACKEND_URL = process.env.BACKEND_INTERNAL_URL || process.env.BACKEND_URL || 'http://localhost:8000';
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -35,7 +37,50 @@ export async function GET(req: NextRequest) {
       monthTo,
     };
 
-    const result = aggregateSdgsData(params);
+    const categoriesToFetch =
+      category && category !== 'all'
+        ? [category]
+        : ['research', 'academic', 'publications', 'ip', 'service'];
+
+    const customDatasets: Record<string, any[]> = {};
+    let customEvaluations: Record<string, any> = {};
+
+    await Promise.all([
+      ...categoriesToFetch.map(async (cat) => {
+        try {
+          const res = await fetch(`${BACKEND_URL}/api/v1/data/${cat}`, { cache: 'no-store' });
+          if (res.ok) {
+            const json = await res.json();
+            customDatasets[cat] = Array.isArray(json.data) ? json.data : [];
+          }
+        } catch (e) {
+          console.error(`[API /api/sdgs/aggregation] Error fetching data for ${cat}:`, e);
+          customDatasets[cat] = [];
+        }
+      }),
+      (async () => {
+        try {
+          const res = await fetch(`${BACKEND_URL}/api/v1/evaluation`, { cache: 'no-store' });
+          if (res.ok) {
+            const json = await res.json();
+            if (Array.isArray(json.data)) {
+              const map: Record<string, any> = {};
+              json.data.forEach((ev: any) => {
+                if (ev && ev.id) map[ev.id] = ev;
+                if (ev && ev.category && ev.record_id) {
+                  map[`${ev.category.toLowerCase()}_${ev.record_id}`] = ev;
+                }
+              });
+              customEvaluations = map;
+            }
+          }
+        } catch (e) {
+          console.error('[API /api/sdgs/aggregation] Error fetching evaluations:', e);
+        }
+      })(),
+    ]);
+
+    const result = aggregateSdgsData(params, customDatasets, customEvaluations);
     return NextResponse.json(result);
   } catch (error: any) {
     console.error('[API /api/sdgs/aggregation] Error:', error);

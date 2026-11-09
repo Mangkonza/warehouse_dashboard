@@ -27,7 +27,7 @@ import { YearSelectDropdown } from '@/components/ui/YearSelectDropdown';
 import { STANDARD_YEAR_OPTIONS, getDefaultCompareYear } from '@/lib/fiscalYears';
 import { resolveItemFiscalYear } from '@/types/timeFilter';
 import { isTestRecord } from '@/lib/sdgEngine';
-import { resolvePersonAvatar } from '@/lib/personnelService';
+import { resolvePersonAvatar, matchPerson } from '@/lib/personnelService';
 
 const UCOL: Record<string, string> = {
   AE: '#65B98A',

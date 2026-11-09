@@ -490,6 +490,9 @@ export default function ProjectMonitoringTab({}: ProjectMonitoringTabProps) {
       status: 'completed',
       closed_date: todayStr,
       is_completed: true,
+      ...(isResearch
+        ? { project_nature: item.project_nature && item.project_nature.length > 0 ? item.project_nature : ['วิจัยพื้นฐาน'] }
+        : { characteristics: item.characteristics && item.characteristics.length > 0 ? item.characteristics : ['บริการวิชาการ'] }),
     };
 
     const res = await saveCategoryRecord(cat, updatedItem, false);
@@ -540,6 +543,9 @@ export default function ProjectMonitoringTab({}: ProjectMonitoringTabProps) {
       status: 'cancelled',
       cancelled_date: todayStr,
       is_completed: false,
+      ...(isResearch
+        ? { project_nature: item.project_nature && item.project_nature.length > 0 ? item.project_nature : ['วิจัยพื้นฐาน'] }
+        : { characteristics: item.characteristics && item.characteristics.length > 0 ? item.characteristics : ['บริการวิชาการ'] }),
     };
 
     const res = await saveCategoryRecord(cat, updatedItem, false);

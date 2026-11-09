@@ -128,10 +128,22 @@ export function resolvePersonAvatar(
   const direct = cleanUrl(explicitUrl);
   if (direct) return direct;
 
-  if (personId !== null && personId !== undefined && personId !== '') {
+    if (personId !== null && personId !== undefined && personId !== '') {
     const byId = getPersonById(personId);
-    const urlById = cleanUrl(byId?.image_url);
-    if (urlById) return urlById;
+    if (byId) {
+      let isCompatible = true;
+      if (rawName && rawName.trim().length >= 3) {
+        const cleanReq = normalizePersonName(rawName).toLowerCase();
+        const cleanById = normalizePersonName(byId.name || byId.name_th || '').toLowerCase();
+        if (cleanReq && cleanById && !cleanById.includes(cleanReq) && !cleanReq.includes(cleanById)) {
+          isCompatible = false;
+        }
+      }
+      if (isCompatible) {
+        const urlById = cleanUrl(byId?.image_url);
+        if (urlById) return urlById;
+      }
+    }
 
     const fromMap = cleanUrl(staticImageMap.get(String(personId).trim()));
     if (fromMap) return fromMap;

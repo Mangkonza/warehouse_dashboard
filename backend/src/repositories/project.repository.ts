@@ -42,10 +42,7 @@ export class ProjectRepository {
     const total = await prisma.researchProject.count({ where });
     const items = await prisma.researchProject.findMany({
       where,
-      include: {
-        members: true,
-        departments: { include: { department: true } },
-      },
+      include: { members: true, departments: { include: { department: true } }, headPersonnel: true },
       orderBy: { id: 'desc' },
       skip: page && limit ? (page - 1) * limit : undefined,
       take: limit || undefined,
@@ -59,20 +56,14 @@ export class ProjectRepository {
     if (numId !== null) {
       const item = await prisma.researchProject.findUnique({
         where: { id: numId },
-        include: {
-          members: true,
-          departments: { include: { department: true } },
-        },
+        include: { members: true, departments: { include: { department: true } }, headPersonnel: true },
       });
       if (item) return item;
     }
     const str = String(identifier).trim();
     const byLegacy = await prisma.researchProject.findUnique({
       where: { legacyId: str },
-      include: {
-        members: true,
-        departments: { include: { department: true } },
-      },
+      include: { members: true, departments: { include: { department: true } }, headPersonnel: true },
     });
     if (byLegacy) return byLegacy;
 
@@ -84,10 +75,7 @@ export class ProjectRepository {
           { name: str },
         ],
       },
-      include: {
-        members: true,
-        departments: { include: { department: true } },
-      },
+      include: { members: true, departments: { include: { department: true } }, headPersonnel: true },
     });
   }
 
@@ -152,10 +140,7 @@ export class ProjectRepository {
 
       return tx.researchProject.findUnique({
         where: { id: created.id },
-        include: {
-          members: true,
-          departments: { include: { department: true } },
-        },
+        include: { members: true, departments: { include: { department: true } }, headPersonnel: true },
       });
     });
   }
@@ -244,10 +229,7 @@ export class ProjectRepository {
 
       return tx.researchProject.findUnique({
         where: { id },
-        include: {
-          members: true,
-          departments: { include: { department: true } },
-        },
+        include: { members: true, departments: { include: { department: true } }, headPersonnel: true },
       });
     });
   }
@@ -288,7 +270,7 @@ export class ProjectRepository {
     const total = await prisma.academicDevProject.count({ where });
     const items = await prisma.academicDevProject.findMany({
       where,
-      include: { department: true },
+      include: { department: true, headPersonnel: true },
       orderBy: { id: 'desc' },
       skip: page && limit ? (page - 1) * limit : undefined,
       take: limit || undefined,
@@ -302,14 +284,14 @@ export class ProjectRepository {
     if (numId !== null) {
       const item = await prisma.academicDevProject.findUnique({
         where: { id: numId },
-        include: { department: true },
+        include: { department: true, headPersonnel: true },
       });
       if (item) return item;
     }
     const str = String(identifier).trim();
     const byLegacy = await prisma.academicDevProject.findUnique({
       where: { legacyId: str },
-      include: { department: true },
+      include: { department: true, headPersonnel: true },
     });
     if (byLegacy) return byLegacy;
 
@@ -320,7 +302,7 @@ export class ProjectRepository {
           { name: str },
         ],
       },
-      include: { department: true },
+      include: { department: true, headPersonnel: true },
     });
   }
 
@@ -363,7 +345,7 @@ export class ProjectRepository {
     return prisma.academicDevProject.update({
       where: { id: created.id },
       data: { legacyId: data.id || `acad_${created.id}` },
-      include: { department: true },
+      include: { department: true, headPersonnel: true },
     });
   }
 
@@ -406,7 +388,7 @@ export class ProjectRepository {
         ...(data.status !== undefined ? { status: data.status } : {}),
         ...(data.remarks !== undefined ? { remarks: data.remarks } : {}),
       },
-      include: { department: true },
+      include: { department: true, headPersonnel: true },
     });
   }
 
@@ -450,10 +432,7 @@ export class ProjectRepository {
     const total = await prisma.publication.count({ where });
     const items = await prisma.publication.findMany({
       where,
-      include: {
-        authors: true,
-        department: true,
-      },
+      include: { authors: { include: { personnel: true } }, department: true },
       orderBy: { id: 'desc' },
       skip: page && limit ? (page - 1) * limit : undefined,
       take: limit || undefined,
@@ -467,20 +446,14 @@ export class ProjectRepository {
     if (numId !== null) {
       const item = await prisma.publication.findUnique({
         where: { id: numId },
-        include: {
-          authors: true,
-          department: true,
-        },
+        include: { authors: { include: { personnel: true } }, department: true },
       });
       if (item) return item;
     }
     const str = String(identifier).trim();
     const byLegacy = await prisma.publication.findUnique({
       where: { legacyId: str },
-      include: {
-        authors: true,
-        department: true,
-      },
+      include: { authors: { include: { personnel: true } }, department: true },
     });
     if (byLegacy) return byLegacy;
 
@@ -491,10 +464,7 @@ export class ProjectRepository {
           { title: str },
         ],
       },
-      include: {
-        authors: true,
-        department: true,
-      },
+      include: { authors: { include: { personnel: true } }, department: true },
     });
   }
 
@@ -614,10 +584,7 @@ export class ProjectRepository {
 
       return tx.publication.findUnique({
         where: { id: created.id },
-        include: {
-          authors: true,
-          department: true,
-        },
+        include: { authors: { include: { personnel: true } }, department: true },
       });
     });
   }
@@ -736,10 +703,7 @@ export class ProjectRepository {
 
       return tx.publication.findUnique({
         where: { id },
-        include: {
-          authors: true,
-          department: true,
-        },
+        include: { authors: { include: { personnel: true } }, department: true },
       });
     });
   }

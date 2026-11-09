@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { COOKIE_USER_SESSION } from '@/lib/auth/cookies';
-import { getPublicOrigin, stripBasePath } from '@/lib/auth/paths';
+import { getPublicOrigin, stripBasePath, withBasePath } from '@/lib/auth/paths';
 import { evaluateSsoRules } from '@/lib/auth/proxyRules';
 
 const SESSION_COOKIE_NAME = 'ku_session';
@@ -145,7 +145,7 @@ export async function proxy(request: NextRequest) {
   // Root path redirects directly to overview dashboard without requiring login
   if (appPath === '/') {
     const origin = getPublicOrigin(request.headers);
-    return NextResponse.redirect(new URL('/overview', origin), 307);
+    return NextResponse.redirect(new URL(withBasePath('/overview'), origin), 307);
   }
 
   // Check if route requires admin session
@@ -153,7 +153,7 @@ export async function proxy(request: NextRequest) {
 
   if (isAdminProtected && !isAuthenticated) {
     const returnUrl = appPath && appPath !== '/' && appPath.startsWith('/') && !appPath.startsWith('//') ? appPath : '/overview';
-    const loginUrl = new URL('/login', request.url);
+    const loginUrl = new URL(withBasePath('/login'), request.url);
     loginUrl.searchParams.set('returnUrl', returnUrl);
     return NextResponse.redirect(loginUrl);
   }

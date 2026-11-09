@@ -58,7 +58,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!isLoading && !isSsoLoading && !isAuthenticated && isProtectedPath) {
-      window.location.replace(`/login?returnUrl=${encodeURIComponent(pathname)}`);
+      router.replace(`/login?returnUrl=${encodeURIComponent(pathname)}`);
     }
   }, [isLoading, isSsoLoading, isAuthenticated, pathname, isProtectedPath]);
 

@@ -1,0 +1,2873 @@
+{
+  "kpis": [
+    {
+      "id": "kpi-2569-1-1-1",
+      "strategyId": "strat-1-1",
+      "planId": "plan-1-1-1",
+      "code": "1.1-1 (1)",
+      "title": "ร้อยละของหลักสูตรภายใน KU.KPS ได้รับการรับรองตามมาตรฐานการศึกษาในระดับสากล",
+      "description": "จำนวนหลักสูตรภายใน KU.KPS ที่ได้รับการรับรองตามมาตรฐานการศึกษาระดับสากล คิดเป็นร้อยละของหลักสูตรทั้งหมดของวิทยาเขตกำแพงแสนในปีการศึกษานั้น (AUN-QA, ABET, AACSB ฯลฯ)",
+      "category": "academic",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีการศึกษา",
+      "valueType": "ร้อยละ",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "ร้อยละ",
+      "targetOperator": "gte",
+      "targetValue": "15",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "PERCENTAGE",
+      "calcType": "manual",
+      "datasetKey": "academic",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวปิยวรรณ จันทร์สี",
+        "นางสุกัญญา พันยุโดด"
+      ],
+      "responsibleUnit": "งานบริการการศึกษา / คณะวิศวกรรมศาสตร์ กำแพงแสน",
+      "createdAt": "2026-11-06T11:58:40.098Z",
+      "updatedAt": "2026-11-06T11:58:40.098Z",
+      "subIndicators": [
+        {
+          "id": "kpi-2569-1-1-1-sub-1",
+          "indicatorId": "kpi-2569-1-1-1",
+          "title": "- จำนวนหลักสูตรภายใน KU.KPS ได้รับการรับรองตามมาตรฐานการศึกษาในระดับสากล",
+          "unit": "หลักสูตร",
+          "formulaRole": "numerator",
+          "valueSource": "manual",
+          "linkedDatasetKey": "academic",
+          "target": null,
+          "reporters": [
+            "นางสาวปิยวรรณ จันทร์สี",
+            "นางสุกัญญา พันยุโดด"
+          ],
+          "sortOrder": 0
+        }
+      ]
+    },
+    {
+      "id": "kpi-2569-1-1-2",
+      "strategyId": "strat-1-1",
+      "planId": "plan-1-1-2",
+      "code": "1.1-2 (2)",
+      "title": "จำนวนหลักสูตรที่พัฒนาขึ้นเพื่อการเรียนรู้ตลอดชีวิต (Non-degree / Double Degree / หลักสูตรนานาชาติ / หลักสูตรระยะสั้น SDGs)",
+      "description": "จำนวนหลักสูตรในระดับปริญญา (Degree) และหลักสูตรระยะสั้น (Non-Degree) รวมถึงโครงการฝึกอบรมเพื่อพัฒนาทักษะ (Upskill/Reskill) ที่พัฒนาหรือปรับปรุงขึ้นเพื่อส่งเสริมการเรียนรู้ตลอดชีวิต",
+      "category": "academic",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีการศึกษา",
+      "valueType": "จำนวนนับ",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "หลักสูตร",
+      "targetOperator": "gte",
+      "targetValue": "10",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "DIRECT",
+      "calcType": "manual",
+      "datasetKey": "academic",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวปิยวรรณ จันทร์สี",
+        "นางสุกัญญา พันยุโดด"
+      ],
+      "responsibleUnit": "งานบริการการศึกษา / คณะวิศวกรรมศาสตร์ กำแพงแสน",
+      "createdAt": "2026-11-06T11:58:40.130Z",
+      "updatedAt": "2026-11-06T11:58:40.130Z",
+      "subIndicators": []
+    },
+    {
+      "id": "kpi-2569-1-1-3",
+      "strategyId": "strat-1-1",
+      "planId": "plan-1-1-2",
+      "code": "1.1-2 (3)",
+      "title": "ร้อยละของผู้เรียนที่นำความรู้ที่ได้รับไปใช้ประโยชน์ (หลักสูตรการเรียนรู้ตลอดชีวิต)",
+      "description": "จำนวนผู้สำเร็จการศึกษา/ผ่านการอบรมในหลักสูตรเพื่อการเรียนรู้ตลอดชีวิตที่สามารถนำความรู้หรือทักษะไปประยุกต์ใช้ในการทำงาน การประกอบอาชีพ หรือพัฒนาตนเองได้จริง",
+      "category": "academic",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีการศึกษา",
+      "valueType": "ร้อยละ",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "ร้อยละ",
+      "targetOperator": "gte",
+      "targetValue": "20",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "PERCENTAGE",
+      "calcType": "manual",
+      "datasetKey": "academic",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวปิยวรรณ จันทร์สี",
+        "นางสุกัญญา พันยุโดด"
+      ],
+      "responsibleUnit": "คณะวิศวกรรมศาสตร์ กำแพงแสน",
+      "createdAt": "2026-11-06T11:58:40.146Z",
+      "updatedAt": "2026-11-06T11:58:40.146Z",
+      "subIndicators": [
+        {
+          "id": "kpi-2569-1-1-3-sub-3",
+          "indicatorId": "kpi-2569-1-1-3",
+          "title": "- [โครงการส่วนงาน] ความพึงพอใจต่อ Additional Online/Onsite Materials ที่พัฒนาขึ้น",
+          "unit": "คะแนนเฉลี่ย",
+          "formulaRole": "sum_part",
+          "valueSource": "manual",
+          "linkedDatasetKey": "academic",
+          "target": "3.8",
+          "reporters": [
+            "ผศ.ดร.วันรัฐ อับดุลลากาซิม"
+          ],
+          "sortOrder": 2
+        },
+        {
+          "id": "kpi-2569-1-1-3-sub-1",
+          "indicatorId": "kpi-2569-1-1-3",
+          "title": "- จำนวนผู้เรียนที่นำความรู้ที่ได้รับไปใช้ประโยชน์",
+          "unit": "ราย",
+          "formulaRole": "numerator",
+          "valueSource": "manual",
+          "linkedDatasetKey": "academic",
+          "target": "5",
+          "reporters": [
+            "ผศ.ดร.วันรัฐ อับดุลลากาซิม"
+          ],
+          "sortOrder": 0
+        },
+        {
+          "id": "kpi-2569-1-1-3-sub-2",
+          "indicatorId": "kpi-2569-1-1-3",
+          "title": "- จำนวนผู้เรียนในหลักสูตรทั้งหมด",
+          "unit": "ราย",
+          "formulaRole": "denominator",
+          "valueSource": "manual",
+          "linkedDatasetKey": "academic",
+          "target": null,
+          "reporters": [
+            "นางสาวปิยวรรณ จันทร์สี",
+            "นางสุกัญญา พันยุโดด"
+          ],
+          "sortOrder": 1
+        }
+      ]
+    },
+    {
+      "id": "kpi-2569-1-1-4",
+      "strategyId": "strat-1-1",
+      "planId": "plan-1-1-3",
+      "code": "1.1-3 (4)",
+      "title": "จำนวนผลงาน/รางวัลของนิสิตในระดับประเทศและระดับสากล",
+      "description": "จำนวนผลงานหรือรางวัลที่นิสิตได้รับจากการประกวด แข่งขัน หรือการนำเสนอผลงานทางวิชาการ วิชาชีพ นวัตกรรม คุณธรรมจริยธรรม ทั้งในระดับชาติและระดับนานาชาติ",
+      "category": "academic",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีการศึกษา",
+      "valueType": "จำนวนนับ",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "ผลงาน/รางวัล",
+      "targetOperator": "gte",
+      "targetValue": "55",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "SUM",
+      "calcType": "manual",
+      "datasetKey": "academic",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวปิยวรรณ จันทร์สี"
+      ],
+      "responsibleUnit": "งานกิจการนิสิต / งานบริการการศึกษา",
+      "createdAt": "2026-11-06T11:58:40.191Z",
+      "updatedAt": "2026-11-06T11:58:40.191Z",
+      "subIndicators": [
+        {
+          "id": "kpi-2569-1-1-4-sub-1",
+          "indicatorId": "kpi-2569-1-1-4",
+          "title": "- จำนวนผลงานดีเด่นของนิสิตปริญญาตรี ระดับชาติ",
+          "unit": "รางวัล",
+          "formulaRole": "sum_part",
+          "valueSource": "manual",
+          "linkedDatasetKey": "academic",
+          "target": null,
+          "reporters": [
+            "นางสาวปิยวรรณ จันทร์สี"
+          ],
+          "sortOrder": 0
+        },
+        {
+          "id": "kpi-2569-1-1-4-sub-2",
+          "indicatorId": "kpi-2569-1-1-4",
+          "title": "- จำนวนผลงานดีเด่นของนิสิตปริญญาตรี ระดับนานาชาติ",
+          "unit": "รางวัล",
+          "formulaRole": "sum_part",
+          "valueSource": "manual",
+          "linkedDatasetKey": "academic",
+          "target": null,
+          "reporters": [
+            "นางสาวปิยวรรณ จันทร์สี"
+          ],
+          "sortOrder": 1
+        },
+        {
+          "id": "kpi-2569-1-1-4-sub-3",
+          "indicatorId": "kpi-2569-1-1-4",
+          "title": "- จำนวนผลงานดีเด่นของนิสิตปริญญาโท ระดับชาติ",
+          "unit": "รางวัล",
+          "formulaRole": "sum_part",
+          "valueSource": "manual",
+          "linkedDatasetKey": "academic",
+          "target": null,
+          "reporters": [
+            "นางสาวปิยวรรณ จันทร์สี"
+          ],
+          "sortOrder": 2
+        },
+        {
+          "id": "kpi-2569-1-1-4-sub-4",
+          "indicatorId": "kpi-2569-1-1-4",
+          "title": "- จำนวนผลงานดีเด่นของนิสิตปริญญาโท ระดับนานาชาติ",
+          "unit": "รางวัล",
+          "formulaRole": "sum_part",
+          "valueSource": "manual",
+          "linkedDatasetKey": "academic",
+          "target": null,
+          "reporters": [
+            "นางสาวปิยวรรณ จันทร์สี"
+          ],
+          "sortOrder": 3
+        },
+        {
+          "id": "kpi-2569-1-1-4-sub-5",
+          "indicatorId": "kpi-2569-1-1-4",
+          "title": "- จำนวนผลงานดีเด่นของนิสิตปริญญาเอก ระดับชาติ",
+          "unit": "รางวัล",
+          "formulaRole": "sum_part",
+          "valueSource": "manual",
+          "linkedDatasetKey": "academic",
+          "target": null,
+          "reporters": [
+            "นางสาวปิยวรรณ จันทร์สี"
+          ],
+          "sortOrder": 4
+        },
+        {
+          "id": "kpi-2569-1-1-4-sub-6",
+          "indicatorId": "kpi-2569-1-1-4",
+          "title": "- จำนวนผลงานดีเด่นของนิสิตปริญญาเอก ระดับนานาชาติ",
+          "unit": "รางวัล",
+          "formulaRole": "sum_part",
+          "valueSource": "manual",
+          "linkedDatasetKey": "academic",
+          "target": null,
+          "reporters": [
+            "นางสาวปิยวรรณ จันทร์สี"
+          ],
+          "sortOrder": 5
+        }
+      ]
+    },
+    {
+      "id": "kpi-2569-2-3-1",
+      "strategyId": "strat-2-3",
+      "planId": "plan-2-3-1",
+      "code": "2.3-1 (1)",
+      "title": "ร้อยละของรายได้จากการจำหน่ายผลิตภัณฑ์ทางการเกษตรเพิ่มขึ้นจากปีฐาน",
+      "description": "ร้อยละที่เพิ่มขึ้นของรายได้จากการจำหน่ายผลิตภัณฑ์ทางการเกษตรและแปรรูปของส่วนงานเทียบกับปีงบประมาณที่ผ่านมา",
+      "category": "ip",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีงบประมาณ",
+      "valueType": "ร้อยละ",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "ร้อยละ",
+      "targetOperator": "gte",
+      "targetValue": "10",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "PERCENTAGE",
+      "calcType": "manual",
+      "datasetKey": "ip",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวธัญรดี เกษม"
+      ],
+      "responsibleUnit": "หน่วยวิจัยและนวัตกรรม",
+      "createdAt": "2026-11-06T11:58:40.892Z",
+      "updatedAt": "2026-11-06T11:58:40.892Z",
+      "subIndicators": []
+    },
+    {
+      "id": "kpi-2569-2-3-2",
+      "strategyId": "strat-2-3",
+      "planId": "plan-2-3-1",
+      "code": "2.3-1 (2)",
+      "title": "จำนวนผลิตภัณฑ์ทางการเกษตรที่ได้รับการพัฒนาสู่เชิงพาณิชย์ (ยื่นจดทรัพย์สินทางปัญญา/อนุสิทธิบัตร)",
+      "description": "จำนวนผลิตภัณฑ์ทางการเกษตร เครื่องจักรกลเกษตร หรือนวัตกรรมอาหาร/เกษตร ที่ได้รับการพัฒนาต่อยอดสู่เชิงพาณิชย์หรือจดทะเบียนทรัพย์สินทางปัญญา",
+      "category": "ip",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีงบประมาณ",
+      "valueType": "จำนวนนับ",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "ผลิตภัณฑ์",
+      "targetOperator": "gte",
+      "targetValue": "30",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "DIRECT",
+      "calcType": "manual",
+      "datasetKey": "ip",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวธัญรดี เกษม"
+      ],
+      "responsibleUnit": "หน่วยวิจัยและนวัตกรรม",
+      "createdAt": "2026-11-06T11:58:40.904Z",
+      "updatedAt": "2026-11-06T11:58:40.904Z",
+      "subIndicators": []
+    },
+    {
+      "id": "kpi-2569-1-2-1",
+      "strategyId": "strat-1-2",
+      "planId": "plan-1-2-1",
+      "code": "1.2-1 (1)",
+      "title": "จำนวน Platform หรือสิ่งสนับสนุน/แหล่งเรียนรู้ ที่สร้างผลกระทบต่อการจัดการเรียนการสอนและการเรียนรู้ตลอดชีวิต",
+      "description": "จำนวนแพลตฟอร์มดิจิทัล ระบบเทคโนโลยีสารสนเทศ สื่อการเรียนรู้ หรือแหล่งเรียนรู้รูปแบบใหม่ที่พัฒนาหรือนำมาใช้เพื่อสนับสนุนการเรียนการสอนและการเรียนรู้ตลอดชีวิต",
+      "category": "academic",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีการศึกษา",
+      "valueType": "จำนวนนับ",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "Platform",
+      "targetOperator": "gte",
+      "targetValue": "5",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "DIRECT",
+      "calcType": "manual",
+      "datasetKey": "academic",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวปิยวรรณ จันทร์สี",
+        "นางสุกัญญา พันยุโดด"
+      ],
+      "responsibleUnit": "งานบริการการศึกษา",
+      "createdAt": "2026-11-06T11:58:40.267Z",
+      "updatedAt": "2026-11-06T11:58:40.267Z",
+      "subIndicators": []
+    },
+    {
+      "id": "kpi-2569-1-2-2",
+      "strategyId": "strat-1-2",
+      "planId": "plan-1-2-1",
+      "code": "1.2-1 (2)",
+      "title": "จำนวนรายวิชาที่มีการนำเทคโนโลยี/Platform/สิ่งสนับสนุนการเรียนรู้ไปใช้ประโยชน์",
+      "description": "จำนวนรายวิชาที่เปิดสอนและมีการบูรณาการนำเทคโนโลยีดิจิทัล แพลตฟอร์มการเรียนรู้ออนไลน์ หรือสิ่งสนับสนุนการเรียนรู้สมัยใหม่ไปใช้ในการเรียนการสอนและการวัดประเมินผล",
+      "category": "academic",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีการศึกษา",
+      "valueType": "จำนวนนับ",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "รายวิชา",
+      "targetOperator": "gte",
+      "targetValue": "5",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "DIRECT",
+      "calcType": "manual",
+      "datasetKey": "academic",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวปิยวรรณ จันทร์สี",
+        "นางสุกัญญา พันยุโดด"
+      ],
+      "responsibleUnit": "งานบริการการศึกษา",
+      "createdAt": "2026-11-06T11:58:40.280Z",
+      "updatedAt": "2026-11-06T11:58:40.280Z",
+      "subIndicators": []
+    },
+    {
+      "id": "kpi-2569-1-2-3",
+      "strategyId": "strat-1-2",
+      "planId": "plan-1-2-1",
+      "code": "1.2-1 (3)",
+      "title": "ค่าเฉลี่ยระดับความพึงพอใจของบุคลากรและผู้เรียนต่อ Platform/สิ่งสนับสนุน/แหล่งเรียนรู้",
+      "description": "ค่าเฉลี่ยคะแนนความพึงพอใจของบุคลากรและผู้เรียนที่มีต่อการใช้งานแพลตฟอร์ม สิ่งสนับสนุนการเรียนรู้ และแหล่งเรียนรู้ภายในวิทยาเขตกำแพงแสน (คะแนนเต็ม 5.00)",
+      "category": "academic",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีการศึกษา",
+      "valueType": "ค่าเฉลี่ย",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "ค่าเฉลี่ย",
+      "targetOperator": "gte",
+      "targetValue": "4",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "AVERAGE",
+      "calcType": "manual",
+      "datasetKey": "academic",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "ผศ.ดร.วันรัฐ อับดุลลากาซิม"
+      ],
+      "responsibleUnit": "คณะวิศวกรรมศาสตร์ กำแพงแสน",
+      "createdAt": "2026-11-06T11:58:40.292Z",
+      "updatedAt": "2026-11-06T11:58:40.292Z",
+      "subIndicators": [
+        {
+          "id": "kpi-2569-1-2-3-sub-1",
+          "indicatorId": "kpi-2569-1-2-3",
+          "title": "- [โครงการส่วนงาน] ความพึงพอใจของผู้เรียนต่อ Online/Onsite Courses ที่พัฒนาขึ้น",
+          "unit": "คะแนนเฉลี่ย",
+          "formulaRole": "sum_part",
+          "valueSource": "manual",
+          "linkedDatasetKey": "academic",
+          "target": "4",
+          "reporters": [
+            "ผศ.ดร.วันรัฐ อับดุลลากาซิม"
+          ],
+          "sortOrder": 0
+        },
+        {
+          "id": "kpi-2569-1-2-3-sub-2",
+          "indicatorId": "kpi-2569-1-2-3",
+          "title": "- [โครงการส่วนงาน] อัตราการแนะนำบอกต่อให้มาเรียน (ร้อยละของผู้เรียน)",
+          "unit": "ร้อยละ",
+          "formulaRole": "sum_part",
+          "valueSource": "manual",
+          "linkedDatasetKey": "academic",
+          "target": "20",
+          "reporters": [
+            "ผศ.ดร.วันรัฐ อับดุลลากาซิม"
+          ],
+          "sortOrder": 1
+        },
+        {
+          "id": "kpi-2569-1-2-3-sub-3",
+          "indicatorId": "kpi-2569-1-2-3",
+          "title": "- [โครงการส่วนงาน] รายได้จากผู้เรียน (Online/Onsite Course)",
+          "unit": "บาท",
+          "formulaRole": "sum_part",
+          "valueSource": "manual",
+          "linkedDatasetKey": "academic",
+          "target": "> 50,000",
+          "reporters": [
+            "ผศ.ดร.วันรัฐ อับดุลลากาซิม"
+          ],
+          "sortOrder": 2
+        }
+      ]
+    },
+    {
+      "id": "kpi-2569-1-2-4",
+      "strategyId": "strat-1-2",
+      "planId": "plan-1-2-2",
+      "code": "1.2-2 (4)",
+      "title": "ระดับคะแนนผลการประเมินตามเกณฑ์คุณภาพการศึกษาเพื่อการดำเนินการที่เป็นเลิศ (EdPEx)",
+      "description": "ระดับคะแนนผลการประเมินคุณภาพองค์กรตามเกณฑ์คุณภาพการศึกษาเพื่อการดำเนินการที่เป็นเลิศ (Education Criteria for Performance Excellence: EdPEx)",
+      "category": "strategy",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีการศึกษา",
+      "valueType": "คะแนน",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "คะแนน",
+      "targetOperator": "gte",
+      "targetValue": "300",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "DIRECT",
+      "calcType": "manual",
+      "datasetKey": "academic",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวเพชรน้อย ยอดอยู่ดี"
+      ],
+      "responsibleUnit": "งานประกันคุณภาพการศึกษา",
+      "createdAt": "2026-11-06T11:58:40.337Z",
+      "updatedAt": "2026-11-06T11:58:40.337Z",
+      "subIndicators": []
+    },
+    {
+      "id": "kpi-2569-1-2-6",
+      "strategyId": "strat-1-2",
+      "planId": "plan-1-2-3",
+      "code": "1.2-3 (6)",
+      "title": "จำนวนระบบฐานข้อมูลที่ตอบสนองการดำเนินงานของ KU.KPS (ระบบ BI และ Paperless)",
+      "description": "จำนวนระบบฐานข้อมูลหรือระบบสารสนเทศเพื่อการบริหารจัดการที่ได้รับการพัฒนาหรือปรับปรุงให้สามารถเชื่อมโยงและสนับสนุนการตัดสินใจของผู้บริหาร (โครงการพัฒนาระบบ Business Intelligence เพื่อสนับสนุนการตัดสินใจของผู้บริหาร)",
+      "category": "strategy",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีการศึกษา",
+      "valueType": "จำนวนนับ",
+      "reportingLevels": [
+        "คณะ",
+        "ส่วนงาน"
+      ],
+      "unit": "ระบบ",
+      "targetOperator": "gte",
+      "targetValue": "1",
+      "targetLabel": null,
+      "departmentTarget": "1",
+      "formulaMethod": "SUM",
+      "calcType": "manual",
+      "datasetKey": "research",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางนภัสวรรณ คำฝั้น"
+      ],
+      "responsibleUnit": "หน่วยวิจัยและนวัตกรรม / สำนักงานเลขานุการ",
+      "createdAt": "2026-11-06T11:58:40.342Z",
+      "updatedAt": "2026-11-06T11:58:40.342Z",
+      "subIndicators": [
+        {
+          "id": "kpi-2569-1-2-6-sub-1",
+          "indicatorId": "kpi-2569-1-2-6",
+          "title": "- [โครงการส่วนงาน] พัฒนาระบบ Business Intelligence (BI) และระบบ Paperless เพื่อสนับสนุนการตัดสินใจของผู้บริหาร",
+          "unit": "ระบบ",
+          "formulaRole": "sum_part",
+          "valueSource": "manual",
+          "linkedDatasetKey": "research",
+          "target": "1",
+          "reporters": [
+            "นางนภัสวรรณ คำฝั้น"
+          ],
+          "sortOrder": 0
+        }
+      ]
+    },
+    {
+      "id": "kpi-2569-1-3-1",
+      "strategyId": "strat-1-3",
+      "planId": "plan-1-3-1",
+      "code": "1.3-1 (1)",
+      "title": "ร้อยละบุคลากรที่ได้รับการพัฒนาทักษะด้านการสอนด้วยเทคโนโลยีสมัยใหม่",
+      "description": "จำนวนบุคลากรสายวิชาการที่ผ่านการอบรมหรือพัฒนาทักษะการจัดการเรียนการสอนโดยใช้เทคโนโลยีสมัยใหม่ นวัตกรรมการเรียนรู้ หรือ AI คิดเป็นร้อยละของอาจารย์ทั้งหมด",
+      "category": "personnel",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีการศึกษา",
+      "valueType": "ร้อยละ",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "ร้อยละ",
+      "targetOperator": "gte",
+      "targetValue": "60",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "PERCENTAGE",
+      "calcType": "manual",
+      "datasetKey": "personnel",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวเพชรน้อย ยอดอยู่ดี",
+        "นางสาวปิยวรรณ จันทร์สี"
+      ],
+      "responsibleUnit": "งานบุคคล / งานบริการการศึกษา",
+      "createdAt": "2026-11-06T11:58:40.366Z",
+      "updatedAt": "2026-11-06T11:58:40.366Z",
+      "subIndicators": [
+        {
+          "id": "kpi-2569-1-3-1-sub-1",
+          "indicatorId": "kpi-2569-1-3-1",
+          "title": "- จำนวนบุคลากรที่ได้รับการพัฒนาทักษะด้านการสอนด้วยเทคโนโลยีสมัยใหม่",
+          "unit": "ราย",
+          "formulaRole": "numerator",
+          "valueSource": "manual",
+          "linkedDatasetKey": "personnel",
+          "target": null,
+          "reporters": [
+            "นางสาวปิยวรรณ จันทร์สี"
+          ],
+          "sortOrder": 0
+        },
+        {
+          "id": "kpi-2569-1-3-1-sub-2",
+          "indicatorId": "kpi-2569-1-3-1",
+          "title": "- จำนวนอาจารย์ทั้งหมด",
+          "unit": "ราย",
+          "formulaRole": "denominator",
+          "valueSource": "manual",
+          "linkedDatasetKey": "personnel",
+          "target": null,
+          "reporters": [
+            "นางสาวเพชรน้อย ยอดอยู่ดี"
+          ],
+          "sortOrder": 1
+        }
+      ]
+    },
+    {
+      "id": "kpi-2569-1-3-2",
+      "strategyId": "strat-1-3",
+      "planId": "plan-1-3-1",
+      "code": "1.3-1 (2)",
+      "title": "จำนวนอาจารย์ที่ได้รับการรับรองตามกรอบสมรรถนะวิชาชีพอาจารย์ (PSF / KUPSF)",
+      "description": "จำนวนอาจารย์ประจำที่ได้รับการรับรองสมรรถนะวิชาชีพอาจารย์ตามกรอบมาตรฐาน UKPSF, Thailand PSF หรือ KUPSF ในปีการศึกษานั้น",
+      "category": "personnel",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีการศึกษา",
+      "valueType": "จำนวนนับ",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "ราย",
+      "targetOperator": "gte",
+      "targetValue": "5",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "DIRECT",
+      "calcType": "manual",
+      "datasetKey": "personnel",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวเพชรน้อย ยอดอยู่ดี",
+        "รศ.ดร.สิรินาฏ น้อยพิทักษ์"
+      ],
+      "responsibleUnit": "งานบุคคล / ฝ่ายวิชาการ",
+      "createdAt": "2026-11-06T11:58:40.399Z",
+      "updatedAt": "2026-11-06T11:58:40.399Z",
+      "subIndicators": []
+    },
+    {
+      "id": "kpi-2569-1-3-3",
+      "strategyId": "strat-1-3",
+      "planId": "plan-1-3-1",
+      "code": "1.3-1 (3)",
+      "title": "จำนวนอาจารย์ที่ได้รับการรับรองสมรรถนะตามมาตรฐานวิชาชีพ (ใบอนุญาตประกอบวิชาชีพวิศวกรรมควบคุม กว.)",
+      "description": "จำนวนอาจารย์ประจำที่มีใบอนุญาตประกอบวิชาชีพ หรือได้รับการรับรองสมรรถนะตามมาตรฐานวิชาชีพจากองค์กรวิชาชีพที่เป็นที่ยอมรับ (เช่น สภาวิศวกร กว.)",
+      "category": "personnel",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีการศึกษา",
+      "valueType": "จำนวนนับ",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "ราย",
+      "targetOperator": "gte",
+      "targetValue": "5",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "DIRECT",
+      "calcType": "manual",
+      "datasetKey": "personnel",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวเพชรน้อย ยอดอยู่ดี"
+      ],
+      "responsibleUnit": "งานบุคคล / คณะวิศวกรรมศาสตร์ กำแพงแสน",
+      "createdAt": "2026-11-06T11:58:40.411Z",
+      "updatedAt": "2026-11-06T11:58:40.411Z",
+      "subIndicators": []
+    },
+    {
+      "id": "kpi-2569-1-3-4",
+      "strategyId": "strat-1-3",
+      "planId": "plan-1-3-1",
+      "code": "1.3-1 (4)",
+      "title": "จำนวนบุคลากรที่ได้รับการแต่งตั้งเป็นกรรมการ/ที่ปรึกษา/วิทยากร ในองค์กรหรือหน่วยงานระดับนานาชาติ",
+      "description": "จำนวนบุคลากรที่ได้รับเชิญหรือแต่งตั้งให้ดำรงตำแหน่งกรรมการ ที่ปรึกษา กองบรรณาธิการวารสารวิชาการนานาชาติ ผู้ทรงคุณวุฒิประเมินบทความวิชาการระดับนานาชาติ หรือวิทยากรในระดับนานาชาติ",
+      "category": "personnel",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีการศึกษา",
+      "valueType": "จำนวนนับ",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "ราย",
+      "targetOperator": "gte",
+      "targetValue": "10",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "DIRECT",
+      "calcType": "manual",
+      "datasetKey": "personnel",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวธัญรดี เกษม"
+      ],
+      "responsibleUnit": "หน่วยวิจัยและนวัตกรรม / หน่วยวิเทศสัมพันธ์",
+      "createdAt": "2026-11-06T11:58:40.423Z",
+      "updatedAt": "2026-11-06T11:58:40.423Z",
+      "subIndicators": []
+    },
+    {
+      "id": "kpi-2569-1-3-5",
+      "strategyId": "strat-1-3",
+      "planId": "plan-1-3-1",
+      "code": "1.3-1 (5)",
+      "title": "จำนวนบุคลากรที่ได้รับรางวัลในระดับนานาชาติ",
+      "description": "จำนวนบุคลากรของวิทยาเขตกำแพงแสนที่ได้รับรางวัลเชิดชูเกียรติ รางวัลผลงานวิจัย/สิ่งประดิษฐ์ หรือรางวัลทางวิชาการในเวทีระดับนานาชาติ",
+      "category": "personnel",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีการศึกษา",
+      "valueType": "จำนวนนับ",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "ราย",
+      "targetOperator": "gte",
+      "targetValue": "4",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "DIRECT",
+      "calcType": "manual",
+      "datasetKey": "personnel",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวธัญรดี เกษม"
+      ],
+      "responsibleUnit": "หน่วยวิจัยและนวัตกรรม",
+      "createdAt": "2026-11-06T11:58:40.437Z",
+      "updatedAt": "2026-11-06T11:58:40.437Z",
+      "subIndicators": []
+    },
+    {
+      "id": "kpi-2569-1-3-6",
+      "strategyId": "strat-1-3",
+      "planId": "plan-1-3-1",
+      "code": "1.3-1 (6)",
+      "title": "จำนวนบุคลากรที่ได้แลกเปลี่ยนกับสถาบันการศึกษาต่างประเทศ (Professor Visiting)",
+      "description": "จำนวนบุคลากรสายวิชาการและนักวิจัยที่เดินทางไปแลกเปลี่ยน ทำวิจัยระยะสั้น สอน หรือปฏิบัติงานทางวิชาการ (Visiting Professor / Researcher) ณ สถาบันการศึกษาในต่างประเทศ",
+      "category": "personnel",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีการศึกษา",
+      "valueType": "จำนวนนับ",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "ราย",
+      "targetOperator": "gte",
+      "targetValue": "20",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "DIRECT",
+      "calcType": "manual",
+      "datasetKey": "personnel",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวปฐมาภรณ์ อุ่นเรือน"
+      ],
+      "responsibleUnit": "หน่วยวิเทศสัมพันธ์",
+      "createdAt": "2026-11-06T11:58:40.449Z",
+      "updatedAt": "2026-11-06T11:58:40.449Z",
+      "subIndicators": []
+    },
+    {
+      "id": "kpi-2569-1-3-8",
+      "strategyId": "strat-1-3",
+      "planId": "plan-1-3-1",
+      "code": "1.3-1 (8)",
+      "title": "ร้อยละของบุคลากรสายสนับสนุนกลุ่มวิชาการ (นักวิจัย) ที่มีตำแหน่งชำนาญการพิเศษขึ้นไป",
+      "description": "สัดส่วนบุคลากรสายสนับสนุนกลุ่มวิชาการที่ได้รับการแต่งตั้งให้ดำรงตำแหน่งระดับชำนาญการพิเศษ เชี่ยวชาญ หรือเชี่ยวชาญพิเศษ",
+      "category": "personnel",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีการศึกษา",
+      "valueType": "ร้อยละ",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "ร้อยละ",
+      "targetOperator": "gte",
+      "targetValue": "9",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "PERCENTAGE",
+      "calcType": "manual",
+      "datasetKey": "personnel",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวเพชรน้อย ยอดอยู่ดี"
+      ],
+      "responsibleUnit": "งานบุคคล สำนักงานเลขานุการ",
+      "createdAt": "2026-11-06T11:58:40.462Z",
+      "updatedAt": "2026-11-06T11:58:40.462Z",
+      "subIndicators": [
+        {
+          "id": "kpi-2569-1-3-8-sub-1",
+          "indicatorId": "kpi-2569-1-3-8",
+          "title": "- จำนวนบุคลากรสายสนับสนุนกลุ่มวิชาการที่มีตำแหน่งชำนาญการพิเศษขึ้นไป",
+          "unit": "ราย",
+          "formulaRole": "numerator",
+          "valueSource": "manual",
+          "linkedDatasetKey": "personnel",
+          "target": null,
+          "reporters": [
+            "นางสาวเพชรน้อย ยอดอยู่ดี"
+          ],
+          "sortOrder": 0
+        },
+        {
+          "id": "kpi-2569-1-3-8-sub-2",
+          "indicatorId": "kpi-2569-1-3-8",
+          "title": "- จำนวนบุคลากรสายสนับสนุนทั้งหมด",
+          "unit": "ราย",
+          "formulaRole": "denominator",
+          "valueSource": "manual",
+          "linkedDatasetKey": "personnel",
+          "target": null,
+          "reporters": [
+            "นางสาวเพชรน้อย ยอดอยู่ดี"
+          ],
+          "sortOrder": 1
+        }
+      ]
+    },
+    {
+      "id": "kpi-2569-2-1-1",
+      "strategyId": "strat-2-1",
+      "planId": "plan-2-1-1",
+      "code": "2.1-1 (1)",
+      "title": "จำนวนบทความวิชาการและบทความวิจัยที่ได้รับการตีพิมพ์ในวารสารระดับนานาชาติ (Scopus / Web of Science)",
+      "description": "จำนวนบทความวิชาการ (Review Article) และบทความวิจัย (Research Article) ที่ตีพิมพ์ในวารสารวิชาการระดับนานาชาติที่ปรากฏในฐานข้อมูลสากล (Scopus, Web of Science/ISI)",
+      "category": "publications",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีงบประมาณ",
+      "valueType": "จำนวนนับ",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "บทความ",
+      "targetOperator": "gte",
+      "targetValue": "330",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "SUM",
+      "calcType": "manual",
+      "datasetKey": "publications",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวธัญรดี เกษม"
+      ],
+      "responsibleUnit": "หน่วยวิจัยและนวัตกรรม",
+      "createdAt": "2026-11-06T11:58:40.501Z",
+      "updatedAt": "2026-11-06T11:58:40.501Z",
+      "subIndicators": [
+        {
+          "id": "kpi-2569-2-1-1-sub-1",
+          "indicatorId": "kpi-2569-2-1-1",
+          "title": "- จำนวนบทความวิชาการที่ได้รับการตีพิมพ์ในวารสารระดับนานาชาติ",
+          "unit": "บทความ",
+          "formulaRole": "sum_part",
+          "valueSource": "manual",
+          "linkedDatasetKey": "publications",
+          "target": null,
+          "reporters": [
+            "นางสาวธัญรดี เกษม"
+          ],
+          "sortOrder": 0
+        },
+        {
+          "id": "kpi-2569-2-1-1-sub-2",
+          "indicatorId": "kpi-2569-2-1-1",
+          "title": "- จำนวนบทความวิจัยที่ได้รับการตีพิมพ์ในวารสารระดับนานาชาติ",
+          "unit": "บทความ",
+          "formulaRole": "sum_part",
+          "valueSource": "manual",
+          "linkedDatasetKey": "publications",
+          "target": null,
+          "reporters": [
+            "นางสาวธัญรดี เกษม"
+          ],
+          "sortOrder": 1
+        }
+      ]
+    },
+    {
+      "id": "kpi-2569-2-1-2",
+      "strategyId": "strat-2-1",
+      "planId": "plan-2-1-1",
+      "code": "2.1-1 (2)",
+      "title": "ค่าเฉลี่ย H-index ในฐานข้อมูล Scopus ของอาจารย์ประจำและนักวิจัยทั้งหมด",
+      "description": "ผลรวมค่า H-index จากฐานข้อมูล Scopus ของอาจารย์ประจำและนักวิจัยทั้งหมด หารด้วยจำนวนอาจารย์ประจำและนักวิจัยทั้งหมดของส่วนงาน",
+      "category": "publications",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีปฏิทิน",
+      "valueType": "สัดส่วน A:B",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "สัดส่วน",
+      "targetOperator": "gte",
+      "targetValue": "3.9",
+      "targetLabel": "0.6 : 1",
+      "departmentTarget": null,
+      "formulaMethod": "RATIO",
+      "calcType": "manual",
+      "datasetKey": "publications",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวธัญรดี เกษม"
+      ],
+      "responsibleUnit": "หน่วยวิจัยและนวัตกรรม",
+      "createdAt": "2026-11-06T11:58:40.532Z",
+      "updatedAt": "2026-11-06T11:58:40.532Z",
+      "subIndicators": [
+        {
+          "id": "kpi-2569-2-1-2-sub-1",
+          "indicatorId": "kpi-2569-2-1-2",
+          "title": "- ผลรวมของค่า H-index ในฐานข้อมูล Scopus ของอาจารย์ประจำและนักวิจัยทั้งหมด",
+          "unit": "ผลรวม",
+          "formulaRole": "numerator",
+          "valueSource": "manual",
+          "linkedDatasetKey": "publications",
+          "target": null,
+          "reporters": [
+            "นางสาวธัญรดี เกษม"
+          ],
+          "sortOrder": 0
+        },
+        {
+          "id": "kpi-2569-2-1-2-sub-2",
+          "indicatorId": "kpi-2569-2-1-2",
+          "title": "- จำนวนอาจารย์ประจำและนักวิจัยทั้งหมด",
+          "unit": "ราย",
+          "formulaRole": "denominator",
+          "valueSource": "manual",
+          "linkedDatasetKey": "publications",
+          "target": null,
+          "reporters": [
+            "นางสาวเพชรน้อย ยอดอยู่ดี"
+          ],
+          "sortOrder": 1
+        }
+      ]
+    },
+    {
+      "id": "kpi-2569-2-1-3",
+      "strategyId": "strat-2-1",
+      "planId": "plan-2-1-1",
+      "code": "2.1-1 (3)",
+      "title": "จำนวนผลงานวิจัย/นวัตกรรมด้านเกษตร สุขภาพ และสิ่งแวดล้อมที่มีลักษณะบูรณาการข้ามศาสตร์ (สหวิทยาการ)",
+      "description": "จำนวนโครงการวิจัยหรือผลงานนวัตกรรมด้านการเกษตร สุขภาพ หรือสิ่งแวดล้อม ที่เกิดจากการบูรณาการองค์ความรู้ข้ามศาสตร์ตั้งแต่ 2 สาขาวิชาขึ้นไป",
+      "category": "research",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีงบประมาณ",
+      "valueType": "จำนวนนับ",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "ผลงาน",
+      "targetOperator": "gte",
+      "targetValue": "70",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "DIRECT",
+      "calcType": "manual",
+      "datasetKey": "research",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวธัญรดี เกษม"
+      ],
+      "responsibleUnit": "หน่วยวิจัยและนวัตกรรม",
+      "createdAt": "2026-11-06T11:58:40.566Z",
+      "updatedAt": "2026-11-06T11:58:40.566Z",
+      "subIndicators": []
+    },
+    {
+      "id": "kpi-2569-2-1-5",
+      "strategyId": "strat-2-1",
+      "planId": "plan-2-1-1",
+      "code": "2.1-1 (5)",
+      "title": "ร้อยละบุคลากรกลุ่มวิชาการที่ได้รับประกาศนียบัตรรับรองการวิจัยในมนุษย์และสัตว์ทดลอง",
+      "description": "ร้อยละของบุคลากรสายวิชาการและนักวิจัยที่ผ่านการอบรมและได้รับใบรับรองจริยธรรมการวิจัยในมนุษย์ และ/หรือ จรรยาบรรณการใช้สัตว์เพื่องานทางวิทยาศาสตร์",
+      "category": "personnel",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีงบประมาณ",
+      "valueType": "ร้อยละ",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "ร้อยละ",
+      "targetOperator": "gte",
+      "targetValue": "50",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "PERCENTAGE",
+      "calcType": "manual",
+      "datasetKey": "personnel",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวธัญรดี เกษม"
+      ],
+      "responsibleUnit": "หน่วยวิจัยและนวัตกรรม",
+      "createdAt": "2026-11-06T11:58:40.577Z",
+      "updatedAt": "2026-11-06T11:58:40.577Z",
+      "subIndicators": [
+        {
+          "id": "kpi-2569-2-1-5-sub-1",
+          "indicatorId": "kpi-2569-2-1-5",
+          "title": "- จำนวนบุคลากรกลุ่มวิชาการที่ได้รับประกาศนียบัตรรับรองการวิจัยในมนุษย์และสัตว์ทดลอง",
+          "unit": "ราย",
+          "formulaRole": "numerator",
+          "valueSource": "manual",
+          "linkedDatasetKey": "personnel",
+          "target": null,
+          "reporters": [
+            "นางสาวธัญรดี เกษม"
+          ],
+          "sortOrder": 0
+        },
+        {
+          "id": "kpi-2569-2-1-5-sub-2",
+          "indicatorId": "kpi-2569-2-1-5",
+          "title": "- จำนวนอาจารย์ประจำและนักวิจัยทั้งหมด",
+          "unit": "ราย",
+          "formulaRole": "denominator",
+          "valueSource": "manual",
+          "linkedDatasetKey": "personnel",
+          "target": null,
+          "reporters": [
+            "นางสาวเพชรน้อย ยอดอยู่ดี"
+          ],
+          "sortOrder": 1
+        }
+      ]
+    },
+    {
+      "id": "kpi-2569-2-1-6",
+      "strategyId": "strat-2-1",
+      "planId": "plan-2-1-2",
+      "code": "2.1-2 (6)",
+      "title": "จำนวนเงินงบประมาณ โครงการวิจัยและบริการวิชาการ ที่ได้รับการสนับสนุนจากหน่วยงานภายนอก (ภาครัฐและเอกชน)",
+      "description": "จำนวนเงินงบประมาณรวมของโครงการวิจัย โครงการพัฒนาวิชาการด้านการวิจัย และโครงการบริการวิชาการ ที่ได้รับการสนับสนุนจากแหล่งทุนภายนอกมหาวิทยาลัย (ภาครัฐและเอกชน)",
+      "category": "research",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีงบประมาณ",
+      "valueType": "จำนวนเงิน",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "ล้านบาท",
+      "targetOperator": "gte",
+      "targetValue": "100",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "SUM",
+      "calcType": "manual",
+      "datasetKey": "research",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวธัญรดี เกษม"
+      ],
+      "responsibleUnit": "หน่วยวิจัยและนวัตกรรม",
+      "createdAt": "2026-11-06T11:58:40.610Z",
+      "updatedAt": "2026-11-06T11:58:40.610Z",
+      "subIndicators": [
+        {
+          "id": "kpi-2569-2-1-6-sub-1",
+          "indicatorId": "kpi-2569-2-1-6",
+          "title": "- จำนวนเงินงบประมาณ โครงการวิจัย ที่ได้รับการสนับสนุนจากหน่วยงานภายนอก (ภาครัฐและเอกชน)",
+          "unit": "บาท",
+          "formulaRole": "sum_part",
+          "valueSource": "manual",
+          "linkedDatasetKey": "research",
+          "target": null,
+          "reporters": [
+            "นางสาวธัญรดี เกษม"
+          ],
+          "sortOrder": 0
+        },
+        {
+          "id": "kpi-2569-2-1-6-sub-2",
+          "indicatorId": "kpi-2569-2-1-6",
+          "title": "- จำนวนเงินงบประมาณ โครงการบริการวิชาการ ที่ได้รับการสนับสนุนจากหน่วยงานภายนอก (ภาครัฐและเอกชน)",
+          "unit": "บาท",
+          "formulaRole": "sum_part",
+          "valueSource": "manual",
+          "linkedDatasetKey": "research",
+          "target": null,
+          "reporters": [
+            "นางสาวธัญรดี เกษม"
+          ],
+          "sortOrder": 1
+        }
+      ]
+    },
+    {
+      "id": "kpi-2569-2-1-7",
+      "strategyId": "strat-2-1",
+      "planId": "plan-2-1-2",
+      "code": "2.1-2 (7)",
+      "title": "จำนวนโครงการวิจัยและบริการวิชาการ ในระดับ Mega Project (≥ 10 ล้านบาท) ที่ได้รับการสนับสนุนจากหน่วยงานภายนอก สะสม",
+      "description": "จำนวนโครงการวิจัยและโครงการบริการวิชาการที่มีวงเงินงบประมาณตั้งแต่ 10 ล้านบาทขึ้นไป (Mega Project) ที่ได้รับการสนับสนุนจากหน่วยงานภายนอกมหาวิทยาลัย (สะสม)",
+      "category": "research",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีงบประมาณ",
+      "valueType": "จำนวนนับ",
+      "reportingLevels": [
+        "คณะ",
+        "ส่วนงาน"
+      ],
+      "unit": "โครงการ",
+      "targetOperator": "gte",
+      "targetValue": "6",
+      "targetLabel": null,
+      "departmentTarget": "2",
+      "formulaMethod": "SUM",
+      "calcType": "manual",
+      "datasetKey": "research",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวธัญรดี เกษม"
+      ],
+      "responsibleUnit": "หน่วยวิจัยและนวัตกรรม",
+      "createdAt": "2026-11-06T11:58:40.645Z",
+      "updatedAt": "2026-11-06T11:58:40.645Z",
+      "subIndicators": [
+        {
+          "id": "kpi-2569-2-1-7-sub-1",
+          "indicatorId": "kpi-2569-2-1-7",
+          "title": "- จำนวนโครงการวิจัย ในระดับ Mega Project ที่ได้รับการสนับสนุนจากหน่วยงานภายนอก สะสม",
+          "unit": "โครงการ",
+          "formulaRole": "sum_part",
+          "valueSource": "manual",
+          "linkedDatasetKey": "research",
+          "target": "2",
+          "reporters": [
+            "นางสาวธัญรดี เกษม"
+          ],
+          "sortOrder": 0
+        },
+        {
+          "id": "kpi-2569-2-1-7-sub-2",
+          "indicatorId": "kpi-2569-2-1-7",
+          "title": "- จำนวนโครงการบริการวิชาการ ในระดับ Mega Project ที่ได้รับการสนับสนุนจากหน่วยงานภายนอก สะสม",
+          "unit": "โครงการ",
+          "formulaRole": "sum_part",
+          "valueSource": "manual",
+          "linkedDatasetKey": "research",
+          "target": null,
+          "reporters": [
+            "นางสาวธัญรดี เกษม"
+          ],
+          "sortOrder": 1
+        }
+      ]
+    },
+    {
+      "id": "kpi-2569-2-2-5",
+      "strategyId": "strat-2-2",
+      "planId": "plan-2-2-2",
+      "code": "2.2-2 (5)",
+      "title": "จำนวนโครงการบริการวิชาการ ด้านเกษตร สุขภาพ และสิ่งแวดล้อม แบบให้เปล่า ที่สามารถนำไปใช้ประโยชน์และส่งเสริมความเข้มแข็งแก่ชุมชนและสังคม",
+      "description": "จำนวนโครงการบริการวิชาการแบบไม่คิดค่าบริการ (ให้เปล่า) ด้านการเกษตร สุขภาพ และสิ่งแวดล้อม ที่ถ่ายทอดองค์ความรู้หรือเทคโนโลยีสู่ชุมชนและสังคม",
+      "category": "service",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีงบประมาณ",
+      "valueType": "จำนวนนับ",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "โครงการ",
+      "targetOperator": "gte",
+      "targetValue": "35",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "DIRECT",
+      "calcType": "manual",
+      "datasetKey": "service",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวธัญรดี เกษม"
+      ],
+      "responsibleUnit": "หน่วยวิจัยและนวัตกรรม",
+      "createdAt": "2026-11-06T11:58:40.679Z",
+      "updatedAt": "2026-11-06T11:58:40.679Z",
+      "subIndicators": []
+    },
+    {
+      "id": "kpi-2569-2-2-17",
+      "strategyId": "strat-2-2",
+      "planId": "plan-2-2-5",
+      "code": "2.2-5 (17)",
+      "title": "จำนวนบริการวิชาการที่แก้ไขปัญหาสิ่งแวดล้อมที่ร่วมกับหน่วยงานภายนอกเพิ่มขึ้น",
+      "description": "จำนวนโครงการบริการวิชาการด้านการจัดการสิ่งแวดล้อม พลังงานสะอาด การจัดการน้ำ หรือมลพิษ ที่ดำเนินการร่วมกับหน่วยงานภายนอกเพิ่มขึ้น",
+      "category": "service",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีงบประมาณ",
+      "valueType": "จำนวนนับ",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "บริการวิชาการ",
+      "targetOperator": "gte",
+      "targetValue": "20",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "DIRECT",
+      "calcType": "manual",
+      "datasetKey": "service",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวธัญรดี เกษม"
+      ],
+      "responsibleUnit": "หน่วยวิจัยและนวัตกรรม",
+      "createdAt": "2026-11-06T11:58:40.881Z",
+      "updatedAt": "2026-11-06T11:58:40.881Z",
+      "subIndicators": []
+    },
+    {
+      "id": "kpi-2569-2-2-6",
+      "strategyId": "strat-2-2",
+      "planId": "plan-2-2-2",
+      "code": "2.2-2 (6)",
+      "title": "จำนวนชุมชนที่เข้าร่วมโครงการบริการวิชาการด้านเกษตร สุขภาพ และสิ่งแวดล้อม แบบให้เปล่า ที่สามารถนำความรู้ไปใช้ประโยชน์ในการประกอบอาชีพและสร้างรายได้",
+      "description": "จำนวนชุมชน วิสาหกิจชุมชน หรือกลุ่มเกษตรกร ที่เข้าร่วมโครงการบริการวิชาการแบบให้เปล่าและนำองค์ความรู้ไปประยุกต์ใช้ในการประกอบอาชีพ ลดต้นทุน หรือเพิ่มรายได้",
+      "category": "service",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีงบประมาณ",
+      "valueType": "จำนวนนับ",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "ชุมชน",
+      "targetOperator": "gte",
+      "targetValue": "30",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "DIRECT",
+      "calcType": "manual",
+      "datasetKey": "service",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวธัญรดี เกษม"
+      ],
+      "responsibleUnit": "หน่วยวิจัยและนวัตกรรม",
+      "createdAt": "2026-11-06T11:58:40.691Z",
+      "updatedAt": "2026-11-06T11:58:40.691Z",
+      "subIndicators": []
+    },
+    {
+      "id": "kpi-2569-2-2-7",
+      "strategyId": "strat-2-2",
+      "planId": "plan-2-2-2",
+      "code": "2.2-2 (7)",
+      "title": "จำนวนหน่วยงานภาครัฐ/เอกชน ที่ได้รับบริการวิชาการแบบให้เปล่า/แบบคิดค่าบริการ จาก KU.KPS",
+      "description": "จำนวนหน่วยงานภาครัฐ รัฐวิสาหกิจ และภาคเอกชน ที่ได้รับการบริการวิชาการ การทดสอบวิเคราะห์ หรือคำปรึกษาทางวิชาการ ทั้งแบบให้เปล่าและแบบคิดค่าบริการ",
+      "category": "service",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีงบประมาณ",
+      "valueType": "จำนวนนับ",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "หน่วยงาน",
+      "targetOperator": "gte",
+      "targetValue": "20",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "SUM",
+      "calcType": "manual",
+      "datasetKey": "service",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวธัญรดี เกษม"
+      ],
+      "responsibleUnit": "หน่วยวิจัยและนวัตกรรม",
+      "createdAt": "2026-11-06T11:58:40.702Z",
+      "updatedAt": "2026-11-06T11:58:40.702Z",
+      "subIndicators": [
+        {
+          "id": "kpi-2569-2-2-7-sub-1",
+          "indicatorId": "kpi-2569-2-2-7",
+          "title": "- จำนวนหน่วยงานภาครัฐ/เอกชน ที่ได้รับบริการวิชาการแบบให้เปล่า จาก KU.KPS",
+          "unit": "หน่วยงาน",
+          "formulaRole": "sum_part",
+          "valueSource": "manual",
+          "linkedDatasetKey": "service",
+          "target": null,
+          "reporters": [
+            "นางสาวธัญรดี เกษม"
+          ],
+          "sortOrder": 0
+        },
+        {
+          "id": "kpi-2569-2-2-7-sub-2",
+          "indicatorId": "kpi-2569-2-2-7",
+          "title": "- จำนวนหน่วยงานภาครัฐ/เอกชน ที่ได้รับบริการวิชาการแบบคิดค่าบริการ จาก KU.KPS",
+          "unit": "หน่วยงาน",
+          "formulaRole": "sum_part",
+          "valueSource": "manual",
+          "linkedDatasetKey": "service",
+          "target": null,
+          "reporters": [
+            "นางสาวธัญรดี เกษม"
+          ],
+          "sortOrder": 1
+        }
+      ]
+    },
+    {
+      "id": "kpi-2569-2-2-8",
+      "strategyId": "strat-2-2",
+      "planId": "plan-2-2-2",
+      "code": "2.2-2 (8)",
+      "title": "สัดส่วนของรายรับจากบริการวิชาการแบบคิดค่าบริการที่ได้จากภายนอกมหาวิทยาลัย ต่ออาจารย์ประจำและนักวิจัย",
+      "description": "สัดส่วนรายรับจากโครงการบริการวิชาการแบบคิดค่าบริการทั้งหมด (100%) ที่ได้รับจากหน่วยงานภายนอก ต่อจำนวนอาจารย์ประจำและนักวิจัยทั้งหมด",
+      "category": "service",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีงบประมาณ",
+      "valueType": "จำนวนนับ",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "ล้านบาท/ราย",
+      "targetOperator": "gte",
+      "targetValue": "1.6",
+      "targetLabel": "1.6 : 1",
+      "departmentTarget": null,
+      "formulaMethod": "SUM",
+      "calcType": "manual",
+      "datasetKey": "service",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวธัญรดี เกษม"
+      ],
+      "responsibleUnit": "หน่วยวิจัยและนวัตกรรม",
+      "createdAt": "2026-11-06T11:58:40.736Z",
+      "updatedAt": "2026-11-06T11:58:40.736Z",
+      "subIndicators": [
+        {
+          "id": "kpi-2569-2-2-8-sub-1",
+          "indicatorId": "kpi-2569-2-2-8",
+          "title": "- รายรับจากโครงการบริการวิชาการแบบคิดค่าบริการทั้งหมด (100%)",
+          "unit": "บาท",
+          "formulaRole": "sum_part",
+          "valueSource": "manual",
+          "linkedDatasetKey": "service",
+          "target": null,
+          "reporters": [
+            "นางสาวธัญรดี เกษม"
+          ],
+          "sortOrder": 0
+        },
+        {
+          "id": "kpi-2569-2-2-8-sub-2",
+          "indicatorId": "kpi-2569-2-2-8",
+          "title": "- จำนวนอาจารย์ประจำและนักวิจัยทั้งหมด",
+          "unit": "ราย",
+          "formulaRole": "sum_part",
+          "valueSource": "manual",
+          "linkedDatasetKey": "service",
+          "target": null,
+          "reporters": [
+            "นางสาวเพชรน้อย ยอดอยู่ดี"
+          ],
+          "sortOrder": 1
+        }
+      ]
+    },
+    {
+      "id": "kpi-2569-2-2-9",
+      "strategyId": "strat-2-2",
+      "planId": "plan-2-2-3",
+      "code": "2.2-3 (9)",
+      "title": "ร้อยละของรายได้จากการใช้ประโยชน์จากบริการวิชาการและผลงานสร้างสรรค์ด้านการเกษตรและนวัตกรรมการเกษตรเพิ่มขึ้นจากปีฐาน",
+      "description": "อัตราการเติบโตของรายได้จากการให้บริการวิชาการและผลงานสร้างสรรค์ด้านการเกษตรและนวัตกรรมการเกษตร เทียบกับปีงบประมาณที่ผ่านมา",
+      "category": "service",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีงบประมาณ",
+      "valueType": "ร้อยละ",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "ร้อยละ",
+      "targetOperator": "gte",
+      "targetValue": "10",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "PERCENTAGE",
+      "calcType": "manual",
+      "datasetKey": "service",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวธัญรดี เกษม"
+      ],
+      "responsibleUnit": "หน่วยวิจัยและนวัตกรรม",
+      "createdAt": "2026-11-06T11:58:40.770Z",
+      "updatedAt": "2026-11-06T11:58:40.770Z",
+      "subIndicators": [
+        {
+          "id": "kpi-2569-2-2-9-sub-1",
+          "indicatorId": "kpi-2569-2-2-9",
+          "title": "- รายได้จากการใช้ประโยชน์จากบริการวิชาการและผลงานสร้างสรรค์ด้านการเกษตรและนวัตกรรมการเกษตร ปีปัจจุบัน",
+          "unit": "บาท",
+          "formulaRole": "numerator",
+          "valueSource": "manual",
+          "linkedDatasetKey": "service",
+          "target": null,
+          "reporters": [
+            "นางสาวธัญรดี เกษม"
+          ],
+          "sortOrder": 0
+        },
+        {
+          "id": "kpi-2569-2-2-9-sub-2",
+          "indicatorId": "kpi-2569-2-2-9",
+          "title": "- รายได้จากการใช้ประโยชน์จากบริการวิชาการและผลงานสร้างสรรค์ด้านการเกษตรและนวัตกรรมการเกษตร ปีที่ผ่านมา",
+          "unit": "บาท",
+          "formulaRole": "denominator",
+          "valueSource": "manual",
+          "linkedDatasetKey": "service",
+          "target": null,
+          "reporters": [
+            "นางสาวธัญรดี เกษม"
+          ],
+          "sortOrder": 1
+        }
+      ]
+    },
+    {
+      "id": "kpi-2569-2-2-10",
+      "strategyId": "strat-2-2",
+      "planId": "plan-2-2-3",
+      "code": "2.2-3 (10)",
+      "title": "จำนวนบริการวิชาการและนวัตกรรมด้านการเกษตรที่นำออกไปเผยแพร่เพิ่มขึ้น",
+      "description": "จำนวนโครงการบริการวิชาการและผลงานนวัตกรรมด้านการเกษตรที่นำออกไปเผยแพร่หรือถ่ายทอดเทคโนโลยีสู่สังคมเพิ่มขึ้นจากปีที่ผ่านมา",
+      "category": "service",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีงบประมาณ",
+      "valueType": "จำนวนนับ",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "บริการวิชาการ/นวัตกรรม",
+      "targetOperator": "gte",
+      "targetValue": "20",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "SUM",
+      "calcType": "manual",
+      "datasetKey": "service",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวธัญรดี เกษม"
+      ],
+      "responsibleUnit": "หน่วยวิจัยและนวัตกรรม",
+      "createdAt": "2026-11-06T11:58:40.805Z",
+      "updatedAt": "2026-11-06T11:58:40.805Z",
+      "subIndicators": [
+        {
+          "id": "kpi-2569-2-2-10-sub-1",
+          "indicatorId": "kpi-2569-2-2-10",
+          "title": "- จำนวนบริการวิชาการและนวัตกรรมด้านการเกษตรที่นำออกไปเผยแพร่ ปีปัจจุบัน",
+          "unit": "บริการวิชาการ/นวัตกรรม",
+          "formulaRole": "sum_part",
+          "valueSource": "manual",
+          "linkedDatasetKey": "service",
+          "target": null,
+          "reporters": [
+            "นางสาวธัญรดี เกษม"
+          ],
+          "sortOrder": 0
+        },
+        {
+          "id": "kpi-2569-2-2-10-sub-2",
+          "indicatorId": "kpi-2569-2-2-10",
+          "title": "- จำนวนบริการวิชาการและนวัตกรรมด้านการเกษตรที่นำออกไปเผยแพร่ ปีที่ผ่านมา",
+          "unit": "บริการวิชาการ/นวัตกรรม",
+          "formulaRole": "sum_part",
+          "valueSource": "manual",
+          "linkedDatasetKey": "service",
+          "target": null,
+          "reporters": [
+            "นางสาวธัญรดี เกษม"
+          ],
+          "sortOrder": 1
+        }
+      ]
+    },
+    {
+      "id": "kpi-2569-2-2-13",
+      "strategyId": "strat-2-2",
+      "planId": "plan-2-2-5",
+      "code": "2.2-5 (13)",
+      "title": "ร้อยละของรายได้จากการใช้ประโยชน์จากบริการวิชาการและผลงานสร้างสรรค์ด้านการสร้างอาชีพและการเพิ่มรายได้เสริมเพิ่มขึ้นจากปีฐาน",
+      "description": "ร้อยละที่เพิ่มขึ้นของรายได้จากการให้บริการวิชาการและผลงานสร้างสรรค์ด้านการสร้างอาชีพและการเพิ่มรายได้เสริมเทียบกับปีที่ผ่านมา",
+      "category": "service",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีงบประมาณ",
+      "valueType": "ร้อยละ",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "ร้อยละ",
+      "targetOperator": "gte",
+      "targetValue": "10",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "PERCENTAGE",
+      "calcType": "manual",
+      "datasetKey": "service",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวธัญรดี เกษม"
+      ],
+      "responsibleUnit": "หน่วยวิจัยและนวัตกรรม",
+      "createdAt": "2026-11-06T11:58:40.838Z",
+      "updatedAt": "2026-11-06T11:58:40.838Z",
+      "subIndicators": [
+        {
+          "id": "kpi-2569-2-2-13-sub-1",
+          "indicatorId": "kpi-2569-2-2-13",
+          "title": "- รายได้จากการใช้ประโยชน์จากบริการวิชาการฯ ด้านการสร้างอาชีพ ปีปัจจุบัน",
+          "unit": "บาท",
+          "formulaRole": "numerator",
+          "valueSource": "manual",
+          "linkedDatasetKey": "service",
+          "target": null,
+          "reporters": [
+            "นางสาวธัญรดี เกษม"
+          ],
+          "sortOrder": 0
+        },
+        {
+          "id": "kpi-2569-2-2-13-sub-2",
+          "indicatorId": "kpi-2569-2-2-13",
+          "title": "- รายได้จากการใช้ประโยชน์จากบริการวิชาการฯ ด้านการสร้างอาชีพ ปีที่ผ่านมา",
+          "unit": "บาท",
+          "formulaRole": "denominator",
+          "valueSource": "manual",
+          "linkedDatasetKey": "service",
+          "target": null,
+          "reporters": [
+            "นางสาวธัญรดี เกษม"
+          ],
+          "sortOrder": 1
+        }
+      ]
+    },
+    {
+      "id": "kpi-2569-2-2-14",
+      "strategyId": "strat-2-2",
+      "planId": "plan-2-2-5",
+      "code": "2.2-5 (14)",
+      "title": "จำนวนบริการวิชาการที่สร้างอาชีพและการเพิ่มรายได้ให้แก่มหาวิทยาลัยเพิ่มขึ้น",
+      "description": "จำนวนหลักสูตรฝึกอบรมหรือโครงการบริการวิชาการที่มุ่งเน้นการสร้างอาชีพและเพิ่มรายได้ให้แก่มหาวิทยาลัยเพิ่มขึ้นจากปีฐาน",
+      "category": "service",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีงบประมาณ",
+      "valueType": "จำนวนนับ",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "บริการวิชาการ",
+      "targetOperator": "gte",
+      "targetValue": "20",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "DIRECT",
+      "calcType": "manual",
+      "datasetKey": "service",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวธัญรดี เกษม"
+      ],
+      "responsibleUnit": "หน่วยวิจัยและนวัตกรรม",
+      "createdAt": "2026-11-06T11:58:40.870Z",
+      "updatedAt": "2026-11-06T11:58:40.870Z",
+      "subIndicators": []
+    },
+    {
+      "id": "kpi-2569-2-3-3",
+      "strategyId": "strat-2-3",
+      "planId": "plan-2-3-2",
+      "code": "2.3-2 (3)",
+      "title": "ร้อยละของรายได้จากการใช้ประโยชน์จากผลการวิจัยและนวัตกรรมเกษตร",
+      "description": "รายได้จากการถ่ายทอดเทคโนโลยี ค่าใช้สิทธิ (Licensing) หรือการนำผลงานวิจัยและนวัตกรรมเกษตรไปใช้ประโยชน์เชิงพาณิชย์ (เช่น ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ / บริษัท เคยู ดีแม็ค จำกัด)",
+      "category": "ip",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีงบประมาณ",
+      "valueType": "ร้อยละ",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "ร้อยละ",
+      "targetOperator": "gte",
+      "targetValue": "10",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "PERCENTAGE",
+      "calcType": "manual",
+      "datasetKey": "ip",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวธัญรดี เกษม"
+      ],
+      "responsibleUnit": "หน่วยวิจัยและนวัตกรรม / ศูนย์เครื่องจักรกลการเกษตรแห่งชาติ",
+      "createdAt": "2026-11-06T11:58:40.916Z",
+      "updatedAt": "2026-11-06T11:58:40.916Z",
+      "subIndicators": [
+        {
+          "id": "kpi-2569-2-3-3-sub-1",
+          "indicatorId": "kpi-2569-2-3-3",
+          "title": "- รายได้จากการใช้ประโยชน์จากผลการวิจัยและนวัตกรรมเกษตร ปีปัจจุบัน",
+          "unit": "บาท",
+          "formulaRole": "numerator",
+          "valueSource": "manual",
+          "linkedDatasetKey": "ip",
+          "target": null,
+          "reporters": [
+            "นางสาวธัญรดี เกษม"
+          ],
+          "sortOrder": 0
+        },
+        {
+          "id": "kpi-2569-2-3-3-sub-2",
+          "indicatorId": "kpi-2569-2-3-3",
+          "title": "- รายได้จากการใช้ประโยชน์จากผลการวิจัยและนวัตกรรมเกษตร ปีที่ผ่านมา",
+          "unit": "บาท",
+          "formulaRole": "denominator",
+          "valueSource": "manual",
+          "linkedDatasetKey": "ip",
+          "target": null,
+          "reporters": [
+            "นางสาวธัญรดี เกษม"
+          ],
+          "sortOrder": 1
+        }
+      ]
+    },
+    {
+      "id": "kpi-2569-3-1-1",
+      "strategyId": "strat-3-1",
+      "planId": "plan-3-1-1",
+      "code": "3.1-1 (1)",
+      "title": "จำนวนกิจกรรม/โครงการ งานวิจัยและบริการวิชาการ ที่มุ่งเน้นความยั่งยืน การอนุรักษ์ทรัพยากรธรรมชาติ และการลดการใช้ทรัพยากรและพลังงาน",
+      "description": "จำนวนกิจกรรมหรือโครงการวิจัยและบริการวิชาการที่สนับสนุนเป้าหมายการพัฒนาที่ยั่งยืน (SDGs) การลดก๊าซเรือนกระจก การอนุรักษ์ทรัพยากรน้ำ ดิน และพลังงานสะอาด",
+      "category": "strategy",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีงบประมาณ",
+      "valueType": "จำนวนนับ",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "กิจกรรม/โครงการ",
+      "targetOperator": "gte",
+      "targetValue": "100",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "DIRECT",
+      "calcType": "manual",
+      "datasetKey": "research",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวธัญรดี เกษม"
+      ],
+      "responsibleUnit": "หน่วยวิจัยและนวัตกรรม",
+      "createdAt": "2026-11-06T11:58:40.950Z",
+      "updatedAt": "2026-11-06T11:58:40.950Z",
+      "subIndicators": []
+    },
+    {
+      "id": "kpi-2569-3-1-2",
+      "strategyId": "strat-3-1",
+      "planId": "plan-3-1-1",
+      "code": "3.1-1 (2)",
+      "title": "จำนวนความร่วมมือในการปรับตัวกับการเปลี่ยนแปลงสภาพภูมิอากาศ",
+      "description": "จำนวนความร่วมมือทางวิชาการหรือโครงการร่วมกับหน่วยงานภายนอกในการรับมือและปรับตัวต่อการเปลี่ยนแปลงสภาพภูมิอากาศ (Climate Adaptation)",
+      "category": "strategy",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีงบประมาณ",
+      "valueType": "จำนวนนับ",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "ความร่วมมือ",
+      "targetOperator": "gte",
+      "targetValue": "15",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "DIRECT",
+      "calcType": "manual",
+      "datasetKey": "service",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวธัญรดี เกษม"
+      ],
+      "responsibleUnit": "หน่วยวิจัยและนวัตกรรม / คณะ",
+      "createdAt": "2026-11-06T11:58:40.961Z",
+      "updatedAt": "2026-11-06T11:58:40.961Z",
+      "subIndicators": []
+    },
+    {
+      "id": "kpi-2569-3-2-1",
+      "strategyId": "strat-3-2",
+      "planId": "plan-3-2-1",
+      "code": "3.2-1 (1)",
+      "title": "ร้อยละความสำเร็จในการจัดทำแผนทำนุบำรุงศิลปวัฒนธรรมที่สอดคล้องกับค่านิยมของ KU.KPS",
+      "description": "ความสำเร็จของการจัดทำและขับเคลื่อนแผนทำนุบำรุงศิลปวัฒนธรรมที่สอดคล้องกับอัตลักษณ์และค่านิยมของมหาวิทยาลัยเกษตรศาสตร์ วิทยาเขตกำแพงแสน",
+      "category": "strategy",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีงบประมาณ",
+      "valueType": "ร้อยละ",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "ร้อยละ",
+      "targetOperator": "gte",
+      "targetValue": "100",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "PERCENTAGE",
+      "calcType": "manual",
+      "datasetKey": "academic",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวเพชรน้อย ยอดอยู่ดี",
+        "นางรัตนา เขียวแก้ว"
+      ],
+      "responsibleUnit": "สำนักงานเลขานุการ",
+      "createdAt": "2026-11-06T11:58:40.974Z",
+      "updatedAt": "2026-11-06T11:58:40.974Z",
+      "subIndicators": []
+    },
+    {
+      "id": "kpi-2569-3-2-2",
+      "strategyId": "strat-3-2",
+      "planId": "plan-3-2-1",
+      "code": "3.2-1 (2)",
+      "title": "ร้อยละของบุคลากรที่ได้รับการพัฒนาตามค่านิยมขององค์กร",
+      "description": "สัดส่วนบุคลากรที่เข้าร่วมกิจกรรมหรือโครงการพัฒนาบุคลากรตามค่านิยมองค์กรของมหาวิทยาลัย",
+      "category": "personnel",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีงบประมาณ",
+      "valueType": "ร้อยละ",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "ร้อยละ",
+      "targetOperator": "gte",
+      "targetValue": "100",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "PERCENTAGE",
+      "calcType": "manual",
+      "datasetKey": "personnel",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวเพชรน้อย ยอดอยู่ดี",
+        "รศ.ดร.สิรินาฏ น้อยพิทักษ์"
+      ],
+      "responsibleUnit": "งานบุคคล สำนักงานเลขานุการ",
+      "createdAt": "2026-11-06T11:58:40.978Z",
+      "updatedAt": "2026-11-06T11:58:40.978Z",
+      "subIndicators": []
+    },
+    {
+      "id": "kpi-2569-3-2-3",
+      "strategyId": "strat-3-2",
+      "planId": "plan-3-2-1",
+      "code": "3.2-1 (3)",
+      "title": "ร้อยละบุคลากรที่มีผลการประเมิน Core Competency ตามที่มหาวิทยาลัยคาดหวัง",
+      "description": "ร้อยละของบุคลากรที่มีผลการประเมินสมรรถนะหลัก (Core Competency) ผ่านเกณฑ์ตามที่มหาวิทยาลัยคาดหวัง",
+      "category": "personnel",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีงบประมาณ",
+      "valueType": "ร้อยละ",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "ร้อยละ",
+      "targetOperator": "gte",
+      "targetValue": "80",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "PERCENTAGE",
+      "calcType": "manual",
+      "datasetKey": "personnel",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวเพชรน้อย ยอดอยู่ดี",
+        "รศ.ดร.สิรินาฏ น้อยพิทักษ์"
+      ],
+      "responsibleUnit": "งานบุคคล สำนักงานเลขานุการ",
+      "createdAt": "2026-11-06T11:58:40.982Z",
+      "updatedAt": "2026-11-06T11:58:40.982Z",
+      "subIndicators": []
+    },
+    {
+      "id": "kpi-2569-4-1-1",
+      "strategyId": "strat-4-1",
+      "planId": "plan-4-1-1",
+      "code": "4.1-1 (1)",
+      "title": "จำนวนสถาบันการศึกษาและองค์กรที่มีความร่วมมือในประเทศ",
+      "description": "จำนวนสถาบันการศึกษา หน่วยงานภาครัฐ และองค์กรภาคเอกชนภายในประเทศ ที่มีความร่วมมือทางวิชาการ การวิจัย หรือการบริการวิชาการร่วมกับส่วนงาน",
+      "category": "strategy",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีงบประมาณ",
+      "valueType": "จำนวนนับ",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "สถาบัน/องค์กร",
+      "targetOperator": "gte",
+      "targetValue": "45",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "DIRECT",
+      "calcType": "manual",
+      "datasetKey": "service",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวปฐมาภรณ์ อุ่นเรือน",
+        "นางสาวธัญรดี เกษม"
+      ],
+      "responsibleUnit": "หน่วยวิเทศสัมพันธ์ / หน่วยวิจัยและนวัตกรรม",
+      "createdAt": "2026-11-06T11:58:40.987Z",
+      "updatedAt": "2026-11-06T11:58:40.987Z",
+      "subIndicators": []
+    },
+    {
+      "id": "kpi-2569-4-1-2",
+      "strategyId": "strat-4-1",
+      "planId": "plan-4-1-1",
+      "code": "4.1-1 (2)",
+      "title": "จำนวนสถาบันการศึกษาและองค์กรที่มีความร่วมมือต่างประเทศ",
+      "description": "จำนวนมหาวิทยาลัย สถาบันวิจัย และองค์กรในต่างประเทศ ที่มีการดำเนินกิจกรรมความร่วมมือทางวิชาการ การแลกเปลี่ยน หรือการวิจัยร่วมกัน",
+      "category": "strategy",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีงบประมาณ",
+      "valueType": "จำนวนนับ",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "สถาบัน/องค์กร",
+      "targetOperator": "gte",
+      "targetValue": "25",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "DIRECT",
+      "calcType": "manual",
+      "datasetKey": "service",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวปฐมาภรณ์ อุ่นเรือน",
+        "นางสาวธัญรดี เกษม"
+      ],
+      "responsibleUnit": "หน่วยวิเทศสัมพันธ์ / หน่วยวิจัยและนวัตกรรม",
+      "createdAt": "2026-11-06T11:58:40.999Z",
+      "updatedAt": "2026-11-06T11:58:40.999Z",
+      "subIndicators": []
+    },
+    {
+      "id": "kpi-2569-4-1-3",
+      "strategyId": "strat-4-1",
+      "planId": "plan-4-1-1",
+      "code": "4.1-1 (3)",
+      "title": "จำนวนความร่วมมือกับหน่วยงานและองค์กร ทั้งในและต่างประเทศ ที่มีกิจกรรมต่อเนื่อง สะสม",
+      "description": "จำนวนข้อตกลงความร่วมมือ (MOU/MOA) กับหน่วยงานและองค์กรทั้งในและต่างประเทศที่มีการจัดกิจกรรมต่อเนื่องร่วมกันอย่างเป็นรูปธรรม (สะสม)",
+      "category": "strategy",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีงบประมาณ",
+      "valueType": "จำนวนนับ",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "ความร่วมมือ",
+      "targetOperator": "gte",
+      "targetValue": "30",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "DIRECT",
+      "calcType": "manual",
+      "datasetKey": "service",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวปฐมาภรณ์ อุ่นเรือน",
+        "นางสาวธัญรดี เกษม"
+      ],
+      "responsibleUnit": "หน่วยวิเทศสัมพันธ์ / หน่วยวิจัยและนวัตกรรม",
+      "createdAt": "2026-11-06T11:58:41.013Z",
+      "updatedAt": "2026-11-06T11:58:41.013Z",
+      "subIndicators": []
+    },
+    {
+      "id": "kpi-2569-4-1-4",
+      "strategyId": "strat-4-1",
+      "planId": "plan-4-1-1",
+      "code": "4.1-1 (4)",
+      "title": "จำนวนโครงการวิจัยและบริการวิชาการที่มีความร่วมมือกับมหาวิทยาลัยและองค์กรทั้งในและต่างประเทศ",
+      "description": "จำนวนโครงการวิจัยและโครงการบริการวิชาการที่มีการดำเนินการร่วมกับมหาวิทยาลัยหรือองค์กรพันธมิตรทั้งในและต่างประเทศ",
+      "category": "research",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีงบประมาณ",
+      "valueType": "จำนวนนับ",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "โครงการ",
+      "targetOperator": "gte",
+      "targetValue": "300",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "SUM",
+      "calcType": "manual",
+      "datasetKey": "research",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวปฐมาภรณ์ อุ่นเรือน",
+        "นางสาวธัญรดี เกษม"
+      ],
+      "responsibleUnit": "หน่วยวิจัยและนวัตกรรม / หน่วยวิเทศสัมพันธ์",
+      "createdAt": "2026-11-06T11:58:41.025Z",
+      "updatedAt": "2026-11-06T11:58:41.025Z",
+      "subIndicators": [
+        {
+          "id": "kpi-2569-4-1-4-sub-1",
+          "indicatorId": "kpi-2569-4-1-4",
+          "title": "- จำนวนโครงการวิจัยที่มีความร่วมมือกับมหาวิทยาลัยและองค์กรทั้งในและต่างประเทศ",
+          "unit": "โครงการ",
+          "formulaRole": "sum_part",
+          "valueSource": "manual",
+          "linkedDatasetKey": "research",
+          "target": null,
+          "reporters": [
+            "นางสาวธัญรดี เกษม"
+          ],
+          "sortOrder": 0
+        },
+        {
+          "id": "kpi-2569-4-1-4-sub-2",
+          "indicatorId": "kpi-2569-4-1-4",
+          "title": "- จำนวนโครงการบริการวิชาการที่มีความร่วมมือกับมหาวิทยาลัยและองค์กรทั้งในและต่างประเทศ",
+          "unit": "โครงการ",
+          "formulaRole": "sum_part",
+          "valueSource": "manual",
+          "linkedDatasetKey": "research",
+          "target": null,
+          "reporters": [
+            "นางสาวธัญรดี เกษม"
+          ],
+          "sortOrder": 1
+        }
+      ]
+    },
+    {
+      "id": "kpi-2569-4-1-5",
+      "strategyId": "strat-4-1",
+      "planId": "plan-4-1-1",
+      "code": "4.1-1 (5)",
+      "title": "จำนวนชาวต่างชาติที่มีความร่วมมือ/รับบริการด้านการจัดการศึกษา การวิจัย และบริการวิชาการ",
+      "description": "จำนวนนิสิตต่างชาติ นักวิจัยต่างชาติ หรือผู้รับบริการชาวต่างชาติ ที่เข้าร่วมกิจกรรมความร่วมมือหรือรับบริการด้านการศึกษา การวิจัย และบริการวิชาการ",
+      "category": "academic",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีงบประมาณ",
+      "valueType": "จำนวนนับ",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "ราย",
+      "targetOperator": "gte",
+      "targetValue": "1750",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "SUM",
+      "calcType": "manual",
+      "datasetKey": "academic",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวปฐมาภรณ์ อุ่นเรือน"
+      ],
+      "responsibleUnit": "หน่วยวิเทศสัมพันธ์",
+      "createdAt": "2026-11-06T11:58:41.051Z",
+      "updatedAt": "2026-11-06T11:58:41.051Z",
+      "subIndicators": [
+        {
+          "id": "kpi-2569-4-1-5-sub-1",
+          "indicatorId": "kpi-2569-4-1-5",
+          "title": "- จำนวนชาวต่างชาติที่มีความร่วมมือด้านการจัดการศึกษา การวิจัย และบริการวิชาการ",
+          "unit": "ราย",
+          "formulaRole": "sum_part",
+          "valueSource": "manual",
+          "linkedDatasetKey": "academic",
+          "target": null,
+          "reporters": [
+            "นางสาวปฐมาภรณ์ อุ่นเรือน"
+          ],
+          "sortOrder": 0
+        },
+        {
+          "id": "kpi-2569-4-1-5-sub-2",
+          "indicatorId": "kpi-2569-4-1-5",
+          "title": "- จำนวนชาวต่างชาติที่รับบริการด้านการจัดการศึกษา การวิจัย และบริการวิชาการ",
+          "unit": "ราย",
+          "formulaRole": "sum_part",
+          "valueSource": "manual",
+          "linkedDatasetKey": "academic",
+          "target": null,
+          "reporters": [
+            "นางสาวปฐมาภรณ์ อุ่นเรือน"
+          ],
+          "sortOrder": 1
+        }
+      ]
+    },
+    {
+      "id": "kpi-2569-4-1-6",
+      "strategyId": "strat-4-1",
+      "planId": "plan-4-1-1",
+      "code": "4.1-1 (6)",
+      "title": "สัดส่วนของบทความวิจัยที่ทำร่วมกับหน่วยงานหรือสถาบันทั้งในและต่างประเทศที่ได้รับการตีพิมพ์เผยแพร่ต่อบทความวิจัยทั้งหมด",
+      "description": "สัดส่วนจำนวนบทความวิจัยที่มีผู้ร่วมวิจัยจากหน่วยงานหรือสถาบันภายนอกทั้งในและต่างประเทศ ต่อจำนวนบทความวิจัยที่ตีพิมพ์ทั้งหมด",
+      "category": "publications",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีงบประมาณ",
+      "valueType": "สัดส่วน A:B",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "สัดส่วน",
+      "targetOperator": "gte",
+      "targetValue": "0.2",
+      "targetLabel": "0.2 (20%)",
+      "departmentTarget": null,
+      "formulaMethod": "RATIO",
+      "calcType": "manual",
+      "datasetKey": "publications",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวธัญรดี เกษม"
+      ],
+      "responsibleUnit": "หน่วยวิจัยและนวัตกรรม",
+      "createdAt": "2026-11-06T11:58:41.077Z",
+      "updatedAt": "2026-11-06T11:58:41.077Z",
+      "subIndicators": [
+        {
+          "id": "kpi-2569-4-1-6-sub-1",
+          "indicatorId": "kpi-2569-4-1-6",
+          "title": "- จำนวนบทความวิจัยที่ทำร่วมกับหน่วยงานหรือสถาบันทั้งในและต่างประเทศที่ได้รับการตีพิมพ์เผยแพร่",
+          "unit": "บทความ",
+          "formulaRole": "numerator",
+          "valueSource": "manual",
+          "linkedDatasetKey": "publications",
+          "target": null,
+          "reporters": [
+            "นางสาวธัญรดี เกษม"
+          ],
+          "sortOrder": 0
+        },
+        {
+          "id": "kpi-2569-4-1-6-sub-2",
+          "indicatorId": "kpi-2569-4-1-6",
+          "title": "- จำนวนบทความวิจัยทั้งหมด",
+          "unit": "บทความ",
+          "formulaRole": "denominator",
+          "valueSource": "manual",
+          "linkedDatasetKey": "publications",
+          "target": null,
+          "reporters": [
+            "นางสาวธัญรดี เกษม"
+          ],
+          "sortOrder": 1
+        }
+      ]
+    },
+    {
+      "id": "kpi-2569-4-1-7",
+      "strategyId": "strat-4-1",
+      "planId": "plan-4-1-1",
+      "code": "4.1-1 (7)",
+      "title": "สัดส่วนของงานวิจัยและบริการวิชาการ ที่ทำร่วมกับหน่วยงานหรือสถาบัน ทั้งในและต่างประเทศ",
+      "description": "สัดส่วนของจำนวนงานวิจัยและงานบริการวิชาการที่ดำเนินการร่วมกับหน่วยงานหรือสถาบันทั้งในและต่างประเทศ ต่อจำนวนงานวิจัยและบริการวิชาการทั้งหมด",
+      "category": "research",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีงบประมาณ",
+      "valueType": "สัดส่วน A:B",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "สัดส่วน",
+      "targetOperator": "gte",
+      "targetValue": "0.2",
+      "targetLabel": "0.2 (20%)",
+      "departmentTarget": null,
+      "formulaMethod": "RATIO",
+      "calcType": "manual",
+      "datasetKey": "research",
+      "datasetKeys": [],
+      "manualIncludedProjectIds": [],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [
+        "นางสาวธัญรดี เกษม"
+      ],
+      "responsibleUnit": "หน่วยวิจัยและนวัตกรรม",
+      "createdAt": "2026-11-06T11:58:41.102Z",
+      "updatedAt": "2026-11-06T11:58:41.102Z",
+      "subIndicators": [
+        {
+          "id": "kpi-2569-4-1-7-sub-1",
+          "indicatorId": "kpi-2569-4-1-7",
+          "title": "- จำนวนงานบริการวิชาการที่ทำร่วมกับหน่วยงานหรือสถาบันทั้งในและต่างประเทศ",
+          "unit": "โครงการ",
+          "formulaRole": "numerator",
+          "valueSource": "manual",
+          "linkedDatasetKey": "research",
+          "target": null,
+          "reporters": [
+            "นางสาวธัญรดี เกษม"
+          ],
+          "sortOrder": 0
+        },
+        {
+          "id": "kpi-2569-4-1-7-sub-2",
+          "indicatorId": "kpi-2569-4-1-7",
+          "title": "- จำนวนงานวิจัยที่ทำร่วมกับหน่วยงานหรือสถาบันทั้งในและต่างประเทศ",
+          "unit": "โครงการ",
+          "formulaRole": "denominator",
+          "valueSource": "manual",
+          "linkedDatasetKey": "research",
+          "target": null,
+          "reporters": [
+            "นางสาวธัญรดี เกษม"
+          ],
+          "sortOrder": 1
+        },
+        {
+          "id": "kpi-2569-4-1-7-sub-3",
+          "indicatorId": "kpi-2569-4-1-7",
+          "title": "- จำนวนงานวิจัยและบริการวิชาการทั้งหมด",
+          "unit": "โครงการ",
+          "formulaRole": "sum_part",
+          "valueSource": "manual",
+          "linkedDatasetKey": "research",
+          "target": null,
+          "reporters": [
+            "นางสาวธัญรดี เกษม"
+          ],
+          "sortOrder": 2
+        }
+      ]
+    },
+    {
+      "id": "kpi-1793975771247",
+      "strategyId": "strat-1793975721324-gysa",
+      "planId": "plan-1793975727482-z6vq",
+      "code": "6-1 (1)",
+      "title": "เทสๆๆๆๆ",
+      "description": "เทสๆๆๆๆ",
+      "category": "research",
+      "fiscalYear": "2569",
+      "collectionPeriod": "ปีงบประมาณ",
+      "valueType": "จำนวนนับ",
+      "reportingLevels": [
+        "ส่วนงาน"
+      ],
+      "unit": "โครงการ",
+      "targetOperator": "gte",
+      "targetValue": "10",
+      "targetLabel": null,
+      "departmentTarget": null,
+      "formulaMethod": "SUM",
+      "calcType": "manual",
+      "datasetKey": "research",
+      "datasetKeys": [
+        "research"
+      ],
+      "manualIncludedProjectIds": [
+        "วศ.กพส.\n1/2568",
+        "วศ.กพส.\n2/2568",
+        "academic_idx_0",
+        "academic_idx_1",
+        "service_idx_0"
+      ],
+      "manualExcludedProjectIds": [],
+      "activeRoundIds": [
+        "round-6m",
+        "round-9m"
+      ],
+      "reporters": [],
+      "responsibleUnit": null,
+      "createdAt": "2026-11-06T14:36:11.285Z",
+      "updatedAt": "2026-11-06T15:28:15.135Z",
+      "subIndicators": []
+    }
+  ],
+  "strategies": [
+    {
+      "id": "strat-1-2",
+      "code": "1.2",
+      "name": "พัฒนาระบบการบริหารจัดการด้านการเรียนการสอน เพื่อความเป็นเลิศ",
+      "pillarGroup": "ยุทธศาสตร์ที่ 1 : การจัดการศึกษาและพัฒนาบุคลากร",
+      "fiscalYear": 2569,
+      "createdAt": "2026-11-06T11:57:04.034Z",
+      "updatedAt": "2026-11-06T11:58:39.993Z",
+      "plans": [
+        {
+          "id": "plan-1-2-1",
+          "strategyId": "strat-1-2",
+          "code": "1.2-1",
+          "name": "พัฒนาและปรับปรุงระบบนิเวศการเรียนรู้ (Learning Ecosystem) ที่ส่งเสริมการจัดการเรียนการสอนที่มุ่งเน้นนวัตกรรม เทคโนโลยี และการเรียนรู้ตลอดชีวิต",
+          "isDepartmentProject": false,
+          "createdAt": "2026-11-06T11:57:04.079Z",
+          "updatedAt": "2026-11-06T11:58:40.037Z"
+        },
+        {
+          "id": "plan-1-2-2",
+          "strategyId": "strat-1-2",
+          "code": "1.2-2",
+          "name": "พัฒนาระบบการประกันคุณภาพการศึกษาเพื่อมุ่งสู่ความเป็นเลิศตามเกณฑ์มาตรฐานสากล (EdPEx)",
+          "isDepartmentProject": false,
+          "createdAt": "2026-11-06T11:57:04.083Z",
+          "updatedAt": "2026-11-06T11:58:40.041Z"
+        },
+        {
+          "id": "plan-1-2-3",
+          "strategyId": "strat-1-2",
+          "code": "1.2-3",
+          "name": "พัฒนาระบบฐานข้อมูลด้านการเรียนการสอน และระบบการบริหารจัดการองค์กรดิจิทัล",
+          "isDepartmentProject": false,
+          "createdAt": "2026-11-06T11:57:04.088Z",
+          "updatedAt": "2026-11-06T11:58:40.044Z"
+        }
+      ]
+    },
+    {
+      "id": "strat-1-3",
+      "code": "1.3",
+      "name": "บริหารและพัฒนาขีดความสามารถของบุคลากรด้านการเรียนการสอน",
+      "pillarGroup": "ยุทธศาสตร์ที่ 1 : การจัดการศึกษาและพัฒนาบุคลากร",
+      "fiscalYear": 2569,
+      "createdAt": "2026-11-06T11:57:04.038Z",
+      "updatedAt": "2026-11-06T11:58:39.998Z",
+      "plans": [
+        {
+          "id": "plan-1-3-1",
+          "strategyId": "strat-1-3",
+          "code": "1.3-1",
+          "name": "พัฒนาสมรรถนะและทักษะการจัดการเรียนการสอนของบุคลากรสายวิชาการและสายสนับสนุนสู่มาตรฐานวิชาชีพระดับสากล",
+          "isDepartmentProject": false,
+          "createdAt": "2026-11-06T11:57:04.092Z",
+          "updatedAt": "2026-11-06T11:58:40.048Z"
+        }
+      ]
+    },
+    {
+      "id": "strat-2-1",
+      "code": "2.1",
+      "name": "สร้างองค์ความรู้การวิจัย นวัตกรรมด้านเกษตร สุขภาพ และสิ่งแวดล้อมระดับสากล",
+      "pillarGroup": "ยุทธศาสตร์ที่ 2 : การวิจัย บริการวิชาการ และสร้างรายได้จากนวัตกรรม",
+      "fiscalYear": 2569,
+      "createdAt": "2026-11-06T11:57:04.042Z",
+      "updatedAt": "2026-11-06T11:58:40.001Z",
+      "plans": [
+        {
+          "id": "plan-2-1-1",
+          "strategyId": "strat-2-1",
+          "code": "2.1-1",
+          "name": "ส่งเสริมและสนับสนุนการสร้างองค์ความรู้การวิจัยและนวัตกรรมเพื่อการตีพิมพ์ในวารสารวิชาการระดับนานาชาติ",
+          "isDepartmentProject": false,
+          "createdAt": "2026-11-06T11:57:04.096Z",
+          "updatedAt": "2026-11-06T11:58:40.051Z"
+        },
+        {
+          "id": "plan-2-1-2",
+          "strategyId": "strat-2-1",
+          "code": "2.1-2",
+          "name": "การบริหารจัดการงานวิจัยและนวัตกรรมมุ่งเป้าเพื่อแสวงหาแหล่งทุนภายนอกและสร้างเครือข่ายความร่วมมือระดับ Mega Project",
+          "isDepartmentProject": false,
+          "createdAt": "2026-11-06T11:57:04.104Z",
+          "updatedAt": "2026-11-06T11:58:40.054Z"
+        }
+      ]
+    },
+    {
+      "id": "strat-2-2",
+      "code": "2.2",
+      "name": "พัฒนาการบริการวิชาการแบบครบวงจร (นวัตกรรมการเกษตร สุขภาพ และสิ่งแวดล้อม)",
+      "pillarGroup": "ยุทธศาสตร์ที่ 2 : การวิจัย บริการวิชาการ และสร้างรายได้จากนวัตกรรม",
+      "fiscalYear": 2569,
+      "createdAt": "2026-11-06T11:57:04.045Z",
+      "updatedAt": "2026-11-06T11:58:40.005Z",
+      "plans": [
+        {
+          "id": "plan-2-2-3",
+          "strategyId": "strat-2-2",
+          "code": "2.2-3",
+          "name": "การให้บริการวิชาการด้านการเกษตรและนวัตกรรมการเกษตร",
+          "isDepartmentProject": false,
+          "createdAt": "2026-11-06T11:57:04.111Z",
+          "updatedAt": "2026-11-06T11:58:40.060Z"
+        },
+        {
+          "id": "plan-2-2-5",
+          "strategyId": "strat-2-2",
+          "code": "2.2-5",
+          "name": "การให้บริการวิชาการด้านการสร้างอาชีพ การเพิ่มรายได้เสริม และการแก้ไขปัญหาสิ่งแวดล้อม",
+          "isDepartmentProject": false,
+          "createdAt": "2026-11-06T11:57:04.115Z",
+          "updatedAt": "2026-11-06T11:58:40.064Z"
+        },
+        {
+          "id": "plan-2-2-2",
+          "strategyId": "strat-2-2",
+          "code": "2.2-2",
+          "name": "การยกระดับการบริการวิชาการแก่สังคมและชุมชนเพื่อการพัฒนาที่ยั่งยืน (SDGs)",
+          "isDepartmentProject": false,
+          "createdAt": "2026-11-06T11:57:04.108Z",
+          "updatedAt": "2026-11-06T11:58:40.057Z"
+        }
+      ]
+    },
+    {
+      "id": "strat-2-3",
+      "code": "2.3",
+      "name": "การสร้างรายได้จากผลิตภัณฑ์และนวัตกรรมการเกษตรที่มีคุณภาพสูงและตอบสนองความต้องการตลาด",
+      "pillarGroup": "ยุทธศาสตร์ที่ 2 : การวิจัย บริการวิชาการ และสร้างรายได้จากนวัตกรรม",
+      "fiscalYear": 2569,
+      "createdAt": "2026-11-06T11:57:04.049Z",
+      "updatedAt": "2026-11-06T11:58:40.009Z",
+      "plans": [
+        {
+          "id": "plan-2-3-1",
+          "strategyId": "strat-2-3",
+          "code": "2.3-1",
+          "name": "การพัฒนาผลิตภัณฑ์และนวัตกรรมการเกษตรสู่เชิงพาณิชย์",
+          "isDepartmentProject": false,
+          "createdAt": "2026-11-06T11:57:04.119Z",
+          "updatedAt": "2026-11-06T11:58:40.067Z"
+        },
+        {
+          "id": "plan-2-3-2",
+          "strategyId": "strat-2-3",
+          "code": "2.3-2",
+          "name": "การส่งเสริมการใช้ประโยชน์ผลงานวิจัย นวัตกรรม และการท่องเที่ยวเชิงเกษตร",
+          "isDepartmentProject": false,
+          "createdAt": "2026-11-06T11:57:04.122Z",
+          "updatedAt": "2026-11-06T11:58:40.071Z"
+        }
+      ]
+    },
+    {
+      "id": "strat-4-1",
+      "code": "4.1",
+      "name": "การสร้างเครือข่ายความร่วมมือทั้งการจัดการศึกษา การวิจัย บริการวิชาการ ร่วมกับมหาวิทยาลัยและองค์กรระหว่างประเทศในระดับนานาชาติ",
+      "pillarGroup": "ยุทธศาสตร์ที่ 4 : เครือข่ายความร่วมมือระดับชาติและนานาชาติ",
+      "fiscalYear": 2569,
+      "createdAt": "2026-11-06T11:57:04.061Z",
+      "updatedAt": "2026-11-06T11:58:40.020Z",
+      "plans": [
+        {
+          "id": "plan-4-1-1",
+          "strategyId": "strat-4-1",
+          "code": "4.1-1",
+          "name": "การสร้างและพัฒนาเครือข่ายความร่วมมือทางวิชาการ การวิจัย และบริการวิชาการ ทั้งในประเทศและต่างประเทศ",
+          "isDepartmentProject": false,
+          "createdAt": "2026-11-06T11:57:04.131Z",
+          "updatedAt": "2026-11-06T11:58:40.082Z"
+        }
+      ]
+    },
+    {
+      "id": "strat-1793975721324-gysa",
+      "code": "6",
+      "name": "เทส",
+      "pillarGroup": "ยุทธศาสตร์ที่ 6",
+      "fiscalYear": 2569,
+      "createdAt": "2026-11-06T14:35:21.452Z",
+      "updatedAt": "2026-11-06T14:35:21.452Z",
+      "plans": [
+        {
+          "id": "plan-1793975727482-z6vq",
+          "strategyId": "strat-1793975721324-gysa",
+          "code": "6-1",
+          "name": "เทส",
+          "isDepartmentProject": false,
+          "createdAt": "2026-11-06T14:35:27.524Z",
+          "updatedAt": "2026-11-06T14:35:27.524Z"
+        }
+      ]
+    },
+    {
+      "id": "strat-1793979345637-ctfa",
+      "code": "7",
+      "name": "ไกไฟกฟไกฟไ",
+      "pillarGroup": "ยุทธศาสตร์ที่ 7",
+      "fiscalYear": 2569,
+      "createdAt": "2026-11-06T15:35:45.688Z",
+      "updatedAt": "2026-11-06T15:35:45.688Z",
+      "plans": [
+        {
+          "id": "plan-1793979352614-t6z6",
+          "strategyId": "strat-1793979345637-ctfa",
+          "code": "7-1",
+          "name": "ไฟกไฟก",
+          "isDepartmentProject": false,
+          "createdAt": "2026-11-06T15:35:52.661Z",
+          "updatedAt": "2026-11-06T15:35:52.661Z"
+        }
+      ]
+    },
+    {
+      "id": "strat-1-1",
+      "code": "1.1",
+      "name": "พัฒนาและบริหารหลักสูตรที่มุ่งเน้นนวัตกรรม เทคโนโลยี เพื่อการเรียนรู้ตลอดชีวิต และเตรียมพร้อมบัณฑิตสู่มาตรฐานสากล",
+      "pillarGroup": "ยุทธศาสตร์ที่ 1 : การจัดการศึกษาและพัฒนาบุคลากร",
+      "fiscalYear": 2569,
+      "createdAt": "2026-11-06T11:57:04.025Z",
+      "updatedAt": "2026-11-06T11:58:39.987Z",
+      "plans": [
+        {
+          "id": "plan-1-1-1",
+          "strategyId": "strat-1-1",
+          "code": "1.1-1",
+          "name": "การยกระดับหลักสูตรการศึกษา และกระบวนการจัดการเรียนรู้ที่มุ่งเน้นนวัตกรรม เทคโนโลยี ให้มีคุณภาพตามมาตรฐานการศึกษาระดับสากล (AUN-QA, ABET, AACSB ฯลฯ)",
+          "isDepartmentProject": false,
+          "createdAt": "2026-11-06T11:57:04.065Z",
+          "updatedAt": "2026-11-06T11:58:40.025Z"
+        },
+        {
+          "id": "plan-1-1-2",
+          "strategyId": "strat-1-1",
+          "code": "1.1-2",
+          "name": "พัฒนาและปรับปรุงหลักสูตรเพื่อการเรียนรู้ตลอดชีวิต (double degree/ joint degree/ sandwich programs หลักสูตร Non-degree/ หลักสูตรนานาชาติ/ หลักสูตรระยะสั้น SDGs)",
+          "isDepartmentProject": false,
+          "createdAt": "2026-11-06T11:57:04.071Z",
+          "updatedAt": "2026-11-06T11:58:40.031Z"
+        },
+        {
+          "id": "plan-1-1-3",
+          "strategyId": "strat-1-1",
+          "code": "1.1-3",
+          "name": "การส่งเสริมศักยภาพ ภาวะผู้นำและทักษะการเรียนรู้ตลอดชีวิตของนิสิต ให้สอดคล้องกับความต้องการของตลาดงานระดับสากล",
+          "isDepartmentProject": false,
+          "createdAt": "2026-11-06T11:57:04.075Z",
+          "updatedAt": "2026-11-06T11:58:40.034Z"
+        }
+      ]
+    },
+    {
+      "id": "strat-3-1",
+      "code": "3.1",
+      "name": "สร้างระบบการพัฒนาเกษตรยั่งยืนเพื่อรองรับการเปลี่ยนแปลงทางสภาพภูมิอากาศ",
+      "pillarGroup": "ยุทธศาสตร์ที่ 3 : ความยั่งยืนและทำนุบำรุงศิลปวัฒนธรรม",
+      "fiscalYear": 2569,
+      "createdAt": "2026-11-06T11:57:04.053Z",
+      "updatedAt": "2026-11-06T11:58:40.012Z",
+      "plans": [
+        {
+          "id": "plan-3-1-1",
+          "strategyId": "strat-3-1",
+          "code": "3.1-1",
+          "name": "การวิจัย นวัตกรรม และบริการวิชาการเพื่อความยั่งยืนและรองรับการเปลี่ยนแปลงสภาพภูมิอากาศ (Climate Change & SDGs)",
+          "isDepartmentProject": false,
+          "createdAt": "2026-11-06T11:57:04.125Z",
+          "updatedAt": "2026-11-06T11:58:40.075Z"
+        }
+      ]
+    },
+    {
+      "id": "strat-3-2",
+      "code": "3.2",
+      "name": "การสร้างความยั่งยืนในทุกภาคส่วนของมหาวิทยาลัยและทำนุบำรุงศิลปวัฒนธรรม",
+      "pillarGroup": "ยุทธศาสตร์ที่ 3 : ความยั่งยืนและทำนุบำรุงศิลปวัฒนธรรม",
+      "fiscalYear": 2569,
+      "createdAt": "2026-11-06T11:57:04.057Z",
+      "updatedAt": "2026-11-06T11:58:40.015Z",
+      "plans": [
+        {
+          "id": "plan-3-2-1",
+          "strategyId": "strat-3-2",
+          "code": "3.2-1",
+          "name": "การทำนุบำรุงศิลปวัฒนธรรมและเสริมสร้างค่านิยมองค์กรเพื่อความยั่งยืน",
+          "isDepartmentProject": false,
+          "createdAt": "2026-11-06T11:57:04.128Z",
+          "updatedAt": "2026-11-06T11:58:40.078Z"
+        }
+      ]
+    }
+  ],
+  "evaluations": [
+    {
+      "id": 1,
+      "category": "research",
+      "recordId": "วศ.กพส. 1/2569",
+      "sdgIds": [
+        7,
+        9,
+        13
+      ],
+      "iType": "I_AM",
+      "journalIndex": null,
+      "evaluatedBy": "admin",
+      "evaluatedAt": "2026-10-24T21:00:19.475Z"
+    },
+    {
+      "id": 2,
+      "category": "research",
+      "recordId": "วศ.กพส.\n1/2568",
+      "sdgIds": [
+        11,
+        13
+      ],
+      "iType": "I_SEE",
+      "journalIndex": null,
+      "evaluatedBy": "admin",
+      "evaluatedAt": "2026-10-24T20:36:46.502Z"
+    },
+    {
+      "id": 3,
+      "category": "publications",
+      "recordId": "pub_001",
+      "sdgIds": [
+        3,
+        9,
+        12
+      ],
+      "iType": "I_SEE",
+      "journalIndex": "[object Object]",
+      "evaluatedBy": "admin",
+      "evaluatedAt": "2026-10-24T20:34:58.707Z"
+    },
+    {
+      "id": 4,
+      "category": "publications",
+      "recordId": "pub_002",
+      "sdgIds": [
+        7,
+        11
+      ],
+      "iType": null,
+      "journalIndex": null,
+      "evaluatedBy": "system",
+      "evaluatedAt": "2026-10-26T03:05:20.047Z"
+    },
+    {
+      "id": 5,
+      "category": "research",
+      "recordId": "วศ.กพส.\n2/2568",
+      "sdgIds": [],
+      "iType": null,
+      "journalIndex": null,
+      "evaluatedBy": "system",
+      "evaluatedAt": "2026-10-26T03:05:20.051Z"
+    },
+    {
+      "id": 6,
+      "category": "academic",
+      "recordId": "academic_idx_0",
+      "sdgIds": [
+        4,
+        11
+      ],
+      "iType": "I_SEE",
+      "journalIndex": null,
+      "evaluatedBy": "admin",
+      "evaluatedAt": "2026-10-24T20:50:50.558Z"
+    },
+    {
+      "id": 7,
+      "category": "service",
+      "recordId": "service_1792829081701",
+      "sdgIds": [
+        1,
+        2
+      ],
+      "iType": "I_AM",
+      "journalIndex": null,
+      "evaluatedBy": "admin",
+      "evaluatedAt": "2026-10-24T21:00:19.604Z"
+    },
+    {
+      "id": 8,
+      "category": "ip",
+      "recordId": "ip_1",
+      "sdgIds": [
+        9
+      ],
+      "iType": "I_AM",
+      "journalIndex": null,
+      "evaluatedBy": "admin",
+      "evaluatedAt": "2026-10-24T21:00:19.682Z"
+    }
+  ]
+}

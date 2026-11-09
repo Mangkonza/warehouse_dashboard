@@ -95,6 +95,7 @@ export function itemMatchesDateRange(
 ): boolean {
   if (!dateFrom && !dateTo) return true;
 
+  // Actual project execution/publication dates only (exclude DB inserted createdAt metadata)
   const candidates: string[] = [
     item.start_date,
     item.end_date,
@@ -104,8 +105,6 @@ export function itemMatchesDateRange(
     item.published_date,
     item.submission_date,
     item.filing_date,
-    item.createdAt,
-    item.created_at,
   ].filter(Boolean);
 
   if (candidates.length === 0 && (item.year || item.fiscal_year || item.fiscal_year_be)) {
@@ -117,7 +116,8 @@ export function itemMatchesDateRange(
     }
   }
 
-  if (candidates.length === 0) return true;
+  // If filtering by date range, undated items should not match
+  if (candidates.length === 0) return false;
 
   let minItemDate: Date | null = null;
   let maxItemDate: Date | null = null;
@@ -138,7 +138,8 @@ export function itemMatchesDateRange(
     if (!maxItemDate || parsed > maxItemDate) maxItemDate = parsed;
   }
 
-  if (!minItemDate || !maxItemDate) return true;
+  if (!minItemDate) return false;
+  if (!maxItemDate) maxItemDate = minItemDate;
 
   if (dateFrom) {
     const from = new Date(`${dateFrom}T00:00:00`);

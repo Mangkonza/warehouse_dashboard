@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useMemo, useEffect } from 'react';
+import { matchPerson, normalizePersonName } from '@/lib/personnelService';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useDashboardTabFilter, useTimeFilter } from '@/features/time-filter';
 import { usePerspectiveTab } from '@/hooks/usePerspectiveTab';
 import { ExecutiveKpiDeck, DepartmentBreakdownItem } from '@/components/data-display/ExecutiveKpiDeck';
@@ -33,7 +34,7 @@ export function PersonnelView() {
 
   const { setIsTimeModalOpen } = useTimeFilter('personnel');
 
-  const {
+    const {
     personnelMetrics,
     departmentStats,
     totalFacultyCount,
@@ -43,6 +44,40 @@ export function PersonnelView() {
     isRefreshing,
     refreshData,
   } = usePersonnelData(timeFilter);
+
+  const searchParams = useSearchParams();
+  const qParam = searchParams.get('q') || searchParams.get('search');
+
+  useEffect(() => {
+    if (!qParam || !qParam.trim()) return;
+    const normQ = normalizePersonName(qParam).toLowerCase();
+    const cleanQ = normQ.replace(/ฎ/g, 'ฏ');
+    const qParts = cleanQ.split(' ').filter(Boolean);
+
+    if (personnelMetrics && personnelMetrics.length > 0) {
+      const match = personnelMetrics.find((m) => {
+        const mClean = normalizePersonName(m.cleanName || m.name || '').toLowerCase().replace(/ฎ/g, 'ฏ');
+        if (mClean.includes(cleanQ) || cleanQ.includes(mClean)) return true;
+        if (qParts.length >= 2 && mClean.includes(qParts[0]) && mClean.includes(qParts[qParts.length - 1])) {
+          return true;
+        }
+        return false;
+      });
+
+      if (match) {
+        router.replace(`/personnel/${match.id}`);
+        return;
+      }
+    }
+
+    const matched = matchPerson(qParam) || matchPerson(normQ);
+    if (matched && matched.id) {
+      router.replace(`/personnel/${matched.id}`);
+      return;
+    }
+
+    setActivePerspective('table');
+  }, [qParam, personnelMetrics, router, setActivePerspective]);
 
   const budgetMillions = (totalCombinedBudget / 1000000).toFixed(2);
   const activePercentage =

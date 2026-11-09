@@ -18,7 +18,7 @@ import {
 } from 'react-icons/fa';
 import { IPItem } from '../_hooks/useIPData';
 import { getDepartment, getDepartmentColor } from '@/lib/departments';
-import { resolvePersonAvatar } from '@/lib/personnelService';
+import { resolvePersonAvatar, matchPerson } from '@/lib/personnelService';
 import { getClickedChartElement } from '@/lib/chartTooltipHelper';
 import { StrategicAlignmentMatrix } from '@/components/data-display';
 import { DrillDownProjectDrawer, DepartmentBadge } from '@/components/ui';

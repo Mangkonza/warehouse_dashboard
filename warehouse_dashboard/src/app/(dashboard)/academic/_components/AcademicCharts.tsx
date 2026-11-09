@@ -17,7 +17,7 @@ import { DrillDownProjectDrawer, DepartmentBadge } from '@/components/ui';
 import { CHART_PASTEL_PALETTE, normalizeAcademicMonth } from '@/lib/pastelTheme';
 import { resolveItemFiscalYear } from '@/types/timeFilter';
 import { isTestRecord } from '@/lib/sdgEngine';
-import { resolvePersonAvatar } from '@/lib/personnelService';
+import { resolvePersonAvatar, matchPerson } from '@/lib/personnelService';
 import { YearSelectDropdown } from '@/components/ui/YearSelectDropdown';
 import { STANDARD_YEAR_OPTIONS, getDefaultCompareYear } from '@/lib/fiscalYears';
 
@@ -2712,7 +2712,8 @@ export function AcademicCharts({
                         <tr
                           key={`faculty-lead-${f.head_id || f.head || idx}-${idx}`}
                           onClick={() => {
-                            if (f.head_id) router.push(`/personnel/${f.head_id}`);
+                            const targetId = f.head_id || matchPerson(f.head)?.id || matchPerson(f.head)?._id;
+                            if (targetId) router.push(`/personnel/${targetId}`);
                             else router.push(`/personnel?q=${encodeURIComponent(f.head)}`);
                           }}
                           style={{
@@ -2778,8 +2779,9 @@ export function AcademicCharts({
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                if (f.head_id) router.push(`/personnel/${f.head_id}`);
-                                else router.push(`/personnel?q=${encodeURIComponent(f.head)}`);
+                                const targetId = f.head_id || matchPerson(f.head)?.id || matchPerson(f.head)?._id;
+                            if (targetId) router.push(`/personnel/${targetId}`);
+                            else router.push(`/personnel?q=${encodeURIComponent(f.head)}`);
                               }}
                               style={{
                                 padding: '5px 10px',
