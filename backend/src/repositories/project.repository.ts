@@ -325,8 +325,10 @@ export class ProjectRepository {
   }
 
   static async createAcademic(data: any) {
+    const legacyId = data.legacyId || data.legacy_id || data._id || data.id || null;
     const created = await prisma.academicDevProject.create({
       data: {
+        ...(legacyId ? { legacyId } : {}),
         name: data.name,
         headName: data.headName || data.head || null,
         departmentCode: data.departmentCode || data.department || null,
