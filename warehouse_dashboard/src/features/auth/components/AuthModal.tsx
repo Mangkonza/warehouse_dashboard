@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { FaRedo, FaTimes } from 'react-icons/fa';
+import { FaRedo, FaTimes, FaArrowLeft } from 'react-icons/fa';
 
 export interface AuthModalProps {
   forceOpen?: boolean;
@@ -12,7 +12,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ forceOpen = false }) => {
   const basePath = (process.env.NEXT_PUBLIC_BASE_PATH || '').replace(/\/+$/, '');
   const bgUrl = `${basePath}/bg9.jpg`;
 
-
   const { user, isLoginModalOpen, closeLoginModal, loginWithCredentials, isLoading } = useAuth();
   const [step, setStep] = useState<1 | 2>(1);
   const [username, setUsername] = useState('');
@@ -20,6 +19,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({ forceOpen = false }) => {
   const [otp, setOtp] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const isOpen = forceOpen || isLoginModalOpen;
+
+  const handleBackToOverview = () => {
+    if (closeLoginModal) {
+      closeLoginModal();
+    }
+    const defaultUrl = `${basePath}/overview`;
+    if (typeof window !== 'undefined') {
+      window.location.href = defaultUrl;
+    }
+  };
 
   React.useEffect(() => {
     if (!isOpen) return;
@@ -141,7 +150,45 @@ export const AuthModal: React.FC<AuthModalProps> = ({ forceOpen = false }) => {
         }}
       />
 
-      {/* กล่อง Login สีขาว ตรงกลางจอ (สไตล์เดิมของระบบ) */}
+      {/* ปุ่มลอยมุมซ้ายบน กลับไปหน้า Overview ทันที */}
+      <button
+        type="button"
+        onClick={handleBackToOverview}
+        style={{
+          position: 'absolute',
+          top: '20px',
+          left: '20px',
+          zIndex: 100,
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '8px',
+          padding: '8px 18px',
+          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+          backdropFilter: 'blur(8px)',
+          color: '#1e293b',
+          border: '1px solid rgba(255, 255, 255, 0.6)',
+          borderRadius: '9999px',
+          fontSize: '13.5px',
+          fontWeight: 600,
+          cursor: 'pointer',
+          boxShadow: '0 4px 14px rgba(0, 0, 0, 0.18)',
+          transition: 'all 0.2s ease',
+        }}
+        onMouseOver={(e) => {
+          e.currentTarget.style.backgroundColor = '#ffffff';
+          e.currentTarget.style.transform = 'translateY(-1px)';
+          e.currentTarget.style.boxShadow = '0 6px 18px rgba(0, 0, 0, 0.25)';
+        }}
+        onMouseOut={(e) => {
+          e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = '0 4px 14px rgba(0, 0, 0, 0.18)';
+        }}
+      >
+        <FaArrowLeft style={{ fontSize: '12px', color: '#00675a' }} /> กลับหน้าแดชบอร์ด
+      </button>
+
+      {/* กล่อง Login สีขาว ตรงกลางจอ */}
       <div
         style={{
           position: 'relative',
@@ -156,28 +203,31 @@ export const AuthModal: React.FC<AuthModalProps> = ({ forceOpen = false }) => {
           boxSizing: 'border-box',
         }}
       >
-        {/* ปุ่มปิด (กรณีเปิดเป็น Popup Modal บนหน้าเว็บ) */}
-        {!forceOpen && closeLoginModal && (
-          <button
-            onClick={closeLoginModal}
-            style={{
-              position: 'absolute',
-              top: '16px',
-              right: '16px',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: '#94a3b8',
-              fontSize: '16px',
-              padding: '4px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <FaTimes />
-          </button>
-        )}
+        {/* ปุ่มปิดมุมขวาบน (กลับสู่หน้า Overview เสมอ) */}
+        <button
+          type="button"
+          onClick={handleBackToOverview}
+          title="กลับหน้าภาพรวม"
+          style={{
+            position: 'absolute',
+            top: '16px',
+            right: '16px',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            color: '#94a3b8',
+            fontSize: '16px',
+            padding: '4px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'color 0.15s ease',
+          }}
+          onMouseOver={(e) => (e.currentTarget.style.color = '#1e293b')}
+          onMouseOut={(e) => (e.currentTarget.style.color = '#94a3b8')}
+        >
+          <FaTimes />
+        </button>
 
         {/* หัวข้อ Login (ตัวอักษรสีเขียว สไตล์เดิม) */}
         <div style={{ textAlign: 'center', marginBottom: '22px' }}>
