@@ -500,37 +500,105 @@ export class ProjectRepository {
 
   static async createPublication(data: any) {
     return prisma.$transaction(async (tx) => {
+      const coAuthorsDomestic = Array.isArray(data.co_authors_domestic ?? data.coAuthorsDomestic)
+        ? (data.co_authors_domestic ?? data.coAuthorsDomestic).map((x: any) => String(x).trim()).filter(Boolean).join(', ')
+        : (data.co_authors_domestic || data.coAuthorsDomestic || null);
+
+      const coAuthorsForeign = Array.isArray(data.co_authors_foreign ?? data.coAuthorsForeign)
+        ? (data.co_authors_foreign ?? data.coAuthorsForeign).map((x: any) => String(x).trim()).filter(Boolean).join(', ')
+        : (data.co_authors_foreign || data.coAuthorsForeign || null);
+
+      const isPatent = data.type === 'เตรียมความพร้อมจดอนุสิทธิบัตร';
+      const isPrep = data.type === 'เตรียมความพร้อมตีพิมพ์' || data.type === 'เตรียมความพร้อม';
+
+      let journal = String(data.journal || '').trim() || (isPatent ? 'อนุสิทธิบัตร' : isPrep ? 'เตรียมความพร้อมตีพิมพ์' : 'ไม่ระบุ');
+      let volume = String(data.volume || '').trim() || '1';
+      let issue = String(data.issue || '').trim() || '1';
+      let pageStart = String(data.pageStart || data.page_start || '').trim() || '1';
+      let pageEnd = String(data.pageEnd || data.page_end || '').trim() || pageStart;
+
+      const numStart = parseInt(pageStart, 10);
+      const numEnd = parseInt(pageEnd, 10);
+      if (!isNaN(numStart) && !isNaN(numEnd) && numEnd < numStart) {
+        pageEnd = pageStart;
+      }
+
+      const monthYear = data.monthYear || data.month_year || null;
+      let fiscalYearBe = parseSafeInt(data.fiscalYearBe ?? data.fiscal_year_be ?? data.year ?? data.fiscal_year);
+      if (!fiscalYearBe && monthYear) {
+        const beMatch = String(monthYear).match(/(25\d{2})/);
+        if (beMatch) {
+          fiscalYearBe = parseInt(beMatch[1], 10);
+        } else {
+          const ceMatch = String(monthYear).match(/(20\d{2})/);
+          if (ceMatch) fiscalYearBe = parseInt(ceMatch[1], 10) + 543;
+        }
+      }
+      if (!fiscalYearBe) {
+        fiscalYearBe = new Date().getFullYear() + 543;
+      }
+
+      let month = data.month || null;
+      if (!month && monthYear) {
+        const thaiMonths = [
+          'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+          'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม',
+          'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
+          'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
+        ];
+        for (const tm of thaiMonths) {
+          if (String(monthYear).includes(tm)) {
+            month = tm;
+            break;
+          }
+        }
+      }
+
+      const firstAuthorPersonnelId = parseSafeInt(
+        data.firstAuthorPersonnelId ?? data.first_author_personnel_id ?? data.owner_id ?? data.person_id
+      );
+
       const created = await tx.publication.create({
         data: {
           title: data.title,
           type: data.type || null,
           level: data.level || null,
-          journal: data.journal || null,
-          volume: data.volume || null,
-          issue: data.issue || null,
-          pageStart: data.pageStart || data.page_start || null,
-          pageEnd: data.pageEnd || data.page_end || null,
+          journal,
+          volume,
+          issue,
+          pageStart,
+          pageEnd,
           budget: parseSafeNumber(data.budget, 0),
           firstAuthorName: data.firstAuthorName || data.first_author || data.owner || null,
+          firstAuthorPersonnelId,
           departmentCode: data.departmentCode || data.department || null,
-          fiscalYearBe: parseSafeInt(data.fiscalYearBe ?? data.fiscal_year_be),
-          month: data.month || null,
-          monthYear: data.monthYear || data.month_year || null,
+          fiscalYearBe,
+          month,
+          monthYear,
           quartile: data.quartile || null,
-          coAuthorsDomestic: data.co_authors_domestic || data.coAuthorsDomestic || null,
-          coAuthorsForeign: data.co_authors_foreign || data.coAuthorsForeign || null,
-          hasInternationalCoauthor: Boolean(data.has_international_coauthor ?? data.hasInternationalCoauthor ?? data.has_foreign_coauthor ?? data.hasForeignCoauthor),
-          hasDomesticCoauthor: Boolean(data.has_domestic_coauthor ?? data.hasDomesticCoauthor),
-          hasForeignCoauthor: Boolean(data.has_foreign_coauthor ?? data.hasForeignCoauthor ?? data.has_international_coauthor ?? data.hasInternationalCoauthor),
+          coAuthorsDomestic,
+          coAuthorsForeign,
+          hasInternationalCoauthor: Boolean(data.has_international_coauthor || data.hasInternationalCoauthor || data.has_foreign_coauthor || data.hasForeignCoauthor),
+          hasDomesticCoauthor: Boolean(data.has_domestic_coauthor || data.hasDomesticCoauthor),
+          hasForeignCoauthor: Boolean(data.has_foreign_coauthor || data.hasForeignCoauthor || data.has_international_coauthor || data.hasInternationalCoauthor),
           status: data.status || 'ตีพิมพ์',
           remarks: data.remarks || null,
         },
       });
 
-      const updated = await tx.publication.update({
-        where: { id: created.id },
-        data: { legacyId: data.id || `pub_${created.id}` },
-      });
+      let legacyId = data.legacyId || (typeof data.id === 'string' && data.id.startsWith('pub-') ? data.id : `pub_${created.id}`);
+      try {
+        await tx.publication.update({
+          where: { id: created.id },
+          data: { legacyId },
+        });
+      } catch {
+        legacyId = `pub_${created.id}_${Date.now()}`;
+        await tx.publication.update({
+          where: { id: created.id },
+          data: { legacyId },
+        });
+      }
 
       if (data.authorsList && data.authorsList.length > 0) {
         for (const a of data.authorsList) {
@@ -556,6 +624,67 @@ export class ProjectRepository {
 
   static async updatePublication(id: number, data: any) {
     return prisma.$transaction(async (tx) => {
+      const coAuthorsDomestic = data.co_authors_domestic !== undefined || data.coAuthorsDomestic !== undefined
+        ? (Array.isArray(data.co_authors_domestic ?? data.coAuthorsDomestic)
+            ? (data.co_authors_domestic ?? data.coAuthorsDomestic).map((x: any) => String(x).trim()).filter(Boolean).join(', ')
+            : (data.co_authors_domestic || data.coAuthorsDomestic || null))
+        : undefined;
+
+      const coAuthorsForeign = data.co_authors_foreign !== undefined || data.coAuthorsForeign !== undefined
+        ? (Array.isArray(data.co_authors_foreign ?? data.coAuthorsForeign)
+            ? (data.co_authors_foreign ?? data.coAuthorsForeign).map((x: any) => String(x).trim()).filter(Boolean).join(', ')
+            : (data.co_authors_foreign || data.coAuthorsForeign || null))
+        : undefined;
+
+      let updatePageStart = data.pageStart !== undefined || data.page_start !== undefined 
+        ? String(data.pageStart || data.page_start || '').trim() || '1' 
+        : undefined;
+      let updatePageEnd = data.pageEnd !== undefined || data.page_end !== undefined 
+        ? String(data.pageEnd || data.page_end || '').trim() || updatePageStart || '1' 
+        : undefined;
+
+      if (updatePageStart && updatePageEnd) {
+        const numStart = parseInt(updatePageStart, 10);
+        const numEnd = parseInt(updatePageEnd, 10);
+        if (!isNaN(numStart) && !isNaN(numEnd) && numEnd < numStart) {
+          updatePageEnd = updatePageStart;
+        }
+      }
+
+      const monthYear = data.monthYear || data.month_year;
+      let fiscalYearBe = data.fiscalYearBe !== undefined || data.fiscal_year_be !== undefined || data.year !== undefined || data.fiscal_year !== undefined
+        ? parseSafeInt(data.fiscalYearBe ?? data.fiscal_year_be ?? data.year ?? data.fiscal_year)
+        : undefined;
+      if (fiscalYearBe === undefined && monthYear) {
+        const beMatch = String(monthYear).match(/(25\d{2})/);
+        if (beMatch) {
+          fiscalYearBe = parseInt(beMatch[1], 10);
+        } else {
+          const ceMatch = String(monthYear).match(/(20\d{2})/);
+          if (ceMatch) fiscalYearBe = parseInt(ceMatch[1], 10) + 543;
+        }
+      }
+
+      let month = data.month;
+      if (month === undefined && monthYear) {
+        const thaiMonths = [
+          'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+          'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม',
+          'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
+          'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
+        ];
+        for (const tm of thaiMonths) {
+          if (String(monthYear).includes(tm)) {
+            month = tm;
+            break;
+          }
+        }
+      }
+
+      const firstAuthorPersonnelId = data.firstAuthorPersonnelId !== undefined || data.first_author_personnel_id !== undefined || data.owner_id !== undefined || data.person_id !== undefined
+        ? parseSafeInt(data.firstAuthorPersonnelId ?? data.first_author_personnel_id ?? data.owner_id ?? data.person_id)
+        : undefined;
+
       await tx.publication.update({
         where: { id },
         data: {
@@ -563,26 +692,29 @@ export class ProjectRepository {
           ...(data.type !== undefined ? { type: data.type } : {}),
           ...(data.level !== undefined ? { level: data.level } : {}),
           ...(data.journal !== undefined ? { journal: data.journal } : {}),
-          ...(data.volume !== undefined ? { volume: data.volume } : {}),
-          ...(data.issue !== undefined ? { issue: data.issue } : {}),
-          ...(data.pageStart !== undefined || data.page_start !== undefined ? { pageStart: data.pageStart || data.page_start } : {}),
-          ...(data.pageEnd !== undefined || data.page_end !== undefined ? { pageEnd: data.pageEnd || data.page_end } : {}),
+          ...(data.volume !== undefined ? { volume: String(data.volume || '').trim() || '1' } : {}),
+          ...(data.issue !== undefined ? { issue: String(data.issue || '').trim() || '1' } : {}),
+          ...(updatePageStart !== undefined ? { pageStart: updatePageStart } : {}),
+          ...(updatePageEnd !== undefined ? { pageEnd: updatePageEnd } : {}),
           ...(data.budget !== undefined ? { budget: parseSafeNumber(data.budget, 0) } : {}),
           ...(data.firstAuthorName !== undefined || data.first_author !== undefined || data.owner !== undefined
             ? { firstAuthorName: data.firstAuthorName || data.first_author || data.owner }
             : {}),
+          ...(firstAuthorPersonnelId !== undefined ? { firstAuthorPersonnelId } : {}),
           ...(data.departmentCode !== undefined || data.department !== undefined ? { departmentCode: data.departmentCode || data.department } : {}),
-          ...(data.fiscalYearBe !== undefined || data.fiscal_year_be !== undefined ? { fiscalYearBe: parseSafeInt(data.fiscalYearBe ?? data.fiscal_year_be) } : {}),
-          ...(data.month !== undefined ? { month: data.month } : {}),
-          ...(data.monthYear !== undefined || data.month_year !== undefined ? { monthYear: data.monthYear || data.month_year } : {}),
+          ...(fiscalYearBe !== undefined ? { fiscalYearBe } : {}),
+          ...(month !== undefined ? { month } : {}),
+          ...(monthYear !== undefined ? { monthYear } : {}),
+          ...(coAuthorsDomestic !== undefined ? { coAuthorsDomestic } : {}),
+          ...(coAuthorsForeign !== undefined ? { coAuthorsForeign } : {}),
           ...(data.has_international_coauthor !== undefined || data.hasInternationalCoauthor !== undefined || data.has_foreign_coauthor !== undefined || data.hasForeignCoauthor !== undefined
-            ? { hasInternationalCoauthor: Boolean(data.has_international_coauthor ?? data.hasInternationalCoauthor ?? data.has_foreign_coauthor ?? data.hasForeignCoauthor) }
+            ? { hasInternationalCoauthor: Boolean(data.has_international_coauthor || data.hasInternationalCoauthor || data.has_foreign_coauthor || data.hasForeignCoauthor) }
             : {}),
           ...(data.has_domestic_coauthor !== undefined || data.hasDomesticCoauthor !== undefined
-            ? { hasDomesticCoauthor: Boolean(data.has_domestic_coauthor ?? data.hasDomesticCoauthor) }
+            ? { hasDomesticCoauthor: Boolean(data.has_domestic_coauthor || data.hasDomesticCoauthor) }
             : {}),
           ...(data.has_foreign_coauthor !== undefined || data.hasForeignCoauthor !== undefined
-            ? { hasForeignCoauthor: Boolean(data.has_foreign_coauthor ?? data.hasForeignCoauthor) }
+            ? { hasForeignCoauthor: Boolean(data.has_foreign_coauthor || data.hasForeignCoauthor) }
             : {}),
           ...(data.status !== undefined ? { status: data.status } : {}),
           ...(data.remarks !== undefined ? { remarks: data.remarks } : {}),

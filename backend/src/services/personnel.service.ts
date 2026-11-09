@@ -263,18 +263,27 @@ export class PersonnelService {
     const deptCode = await resolveDepartmentCode(body.departmentCode || body.department_code || body.department);
     const imgVal = body.imageUrl !== undefined ? body.imageUrl : (body.image_url !== undefined ? body.image_url : null);
 
+    const personIdCandidate = body.personId || body.person_id || (body.id && !String(body.id).startsWith('personnel_') ? String(body.id) : null);
+    let personId: string | null = null;
+    if (personIdCandidate) {
+      const exists = await prisma.personnel.findUnique({ where: { personId: String(personIdCandidate).slice(0, 100) } });
+      if (!exists) {
+        personId = String(personIdCandidate).slice(0, 100);
+      }
+    }
+
     const created = await prisma.personnel.create({
       data: {
-        personId: body.personId || body.person_id || body.id || null,
-        titleTh: prefix || null,
-        firstName: firstName || null,
-        lastName: lastName || null,
-        nameTh: name, // dual-write
-        nameEn: body.nameEn || body.name_en || null,
-        position: body.position || null,
+        personId,
+        titleTh: prefix ? prefix.slice(0, 50) : null,
+        firstName: firstName ? firstName.slice(0, 150) : null,
+        lastName: lastName ? lastName.slice(0, 150) : null,
+        nameTh: name ? name.slice(0, 255) : '',
+        nameEn: body.nameEn ? String(body.nameEn).slice(0, 255) : body.name_en ? String(body.name_en).slice(0, 255) : null,
+        position: body.position ? String(body.position).slice(0, 255) : null,
         departmentCode: deptCode,
-        email: body.email || null,
-        imageUrl: imgVal || null,
+        email: body.email ? String(body.email).slice(0, 255) : null,
+        imageUrl: imgVal ? String(imgVal) : null,
       },
       include: { department: true },
     });
