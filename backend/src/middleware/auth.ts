@@ -77,7 +77,12 @@ export async function requireSession(req: Request, res: Response, next: NextFunc
  * ส่งได้ทั้ง AppResource (เช่น 'overview', 'kpi', 'manage') หรือ AppRole
  */
 export function requireRole(resourceOrRole: AppResource | AppRole) {
-  return (req: Request, res: Response, next: NextFunction): void => {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    if (!req.user) {
+      await requireSession(req, res, () => {});
+      if (res.headersSent) return;
+    }
+
     if (!req.user) {
       res.status(401).json({
         status: 'error',

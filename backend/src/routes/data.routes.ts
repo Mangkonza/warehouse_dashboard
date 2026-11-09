@@ -100,7 +100,7 @@ dataRouter.get('/:category', optionalSession, async (req: Request, res: Response
 });
 
 // 2. POST /api/v1/data/:category (Single item or Batch import)
-dataRouter.post('/:category', requireRole('manage'), async (req: Request, res: Response, next: NextFunction) => {
+dataRouter.post('/:category', requireSession, requireRole('manage'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const category = normCategory(String(req.params.category));
     const body = req.body;
@@ -185,7 +185,7 @@ dataRouter.post('/:category', requireRole('manage'), async (req: Request, res: R
 });
 
 // 3. PUT /api/v1/data/:category (Update item)
-dataRouter.put('/:category', requireRole('manage'), async (req: Request, res: Response, next: NextFunction) => {
+dataRouter.put('/:category', requireSession, requireRole('manage'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const category = normCategory(String(req.params.category));
     const body = req.body;
@@ -232,7 +232,7 @@ dataRouter.put('/:category', requireRole('manage'), async (req: Request, res: Re
 });
 
 // 4. DELETE /api/v1/data/:category (Delete item)
-dataRouter.delete('/:category', requireRole('manage'), async (req: Request, res: Response, next: NextFunction) => {
+dataRouter.delete('/:category', requireSession, requireRole('manage'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const category = normCategory(String(req.params.category));
     const targetId = (req.query.id as string) || (req.query.dbId as string) || req.body?.dbId || req.body?.id || req.body?._id;

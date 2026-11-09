@@ -31,7 +31,7 @@ serviceRouter.get('/:id', requireRole('service'), async (req: Request, res: Resp
 });
 
 // POST /api/v1/services
-serviceRouter.post('/', requireRole('manage'), async (req: Request, res: Response, next: NextFunction) => {
+serviceRouter.post('/', requireSession, requireRole('manage'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const created = await ServiceService.create(req.body);
     res.status(201).json({
@@ -45,7 +45,7 @@ serviceRouter.post('/', requireRole('manage'), async (req: Request, res: Respons
 });
 
 // PUT /api/v1/services/:id
-serviceRouter.put('/:id', requireRole('manage'), async (req: Request, res: Response, next: NextFunction) => {
+serviceRouter.put('/:id', requireSession, requireRole('manage'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const updated = await ServiceService.update(String(req.params.id), req.body);
     res.json({
@@ -59,7 +59,7 @@ serviceRouter.put('/:id', requireRole('manage'), async (req: Request, res: Respo
 });
 
 // DELETE /api/v1/services/:id
-serviceRouter.delete('/:id', requireRole('manage'), async (req: Request, res: Response, next: NextFunction) => {
+serviceRouter.delete('/:id', requireSession, requireRole('manage'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const deleted = await ServiceService.delete(String(req.params.id));
     res.json({

@@ -39,6 +39,7 @@ export const adminRouter = Router();
 // ป้องกันด้วย authentication ทุก endpoints
 adminRouter.use(requireSession);
 // สำหรับ operations ทั่วไปของ adminRouter ต้องมีสิทธิ์ระดับ admin (manage)
+adminRouter.use(requireSession);
 adminRouter.use(requireRole('manage'));
 
 // 1. ตรวจสอบสิทธิ์ Admin

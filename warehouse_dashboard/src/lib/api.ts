@@ -26,6 +26,12 @@ export const apiFetch = async <T = any>(
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string>),
   };
+  if (typeof window !== 'undefined' && !headers['Authorization'] && !headers['authorization']) {
+    const token = localStorage.getItem('ku_token') || localStorage.getItem('token');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+  }
 
   const baseUrl = getApiBaseUrl();
   let response: Response;

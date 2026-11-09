@@ -19,9 +19,16 @@ const LS_PREFIX = 'ku_dw_db_cache_';
 const LS_DELETED_PREFIX = 'ku_dw_deleted_';
 
 const getAuthHeaders = (): Record<string, string> => {
-  return {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('ku_token') || localStorage.getItem('token');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+  }
+  return headers;
 };
 
 function normalizeKey(val: any): string {
