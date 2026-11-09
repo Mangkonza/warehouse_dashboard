@@ -105,7 +105,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   }
 
   const getSingleRoleTitle = (): string => {
-    if (!user) return 'ผู้เยี่ยมชม (Guest)';
+    if (!user) return 'Guest';
 
     if (user.role === 'admin') {
       return 'ผู้ดูแลระบบ';
