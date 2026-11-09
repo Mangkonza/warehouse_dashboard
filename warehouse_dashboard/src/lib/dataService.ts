@@ -315,9 +315,11 @@ export async function saveCategoryRecord(
       updateLocalCache(merged);
       return { success: true, data: merged };
     } else {
-      console.warn(`[dataService] API returned non-OK (${res.status}), saving to local cache fallback:`, result);
-      updateLocalCache(recordToSave);
-      return { success: true, data: recordToSave };
+      console.error(`[dataService] API returned non-OK (${res.status}):`, result);
+      return {
+        success: false,
+        error: result.message || `เกิดข้อผิดพลาดในการบันทึกข้อมูล (HTTP ${res.status})`,
+      };
     }
   } catch (err: any) {
     console.warn(`[dataService] Network error saving to API for ${category}, saving to local cache fallback:`, err);

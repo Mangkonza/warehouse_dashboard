@@ -75,12 +75,45 @@ export function formatPersonnel(p: any) {
   };
 }
 
+const DEPT_KEYWORD_MAP: Record<string, string> = {
+  'เกษตร': 'AE',
+  'คอมพิวเตอร์': 'CPE',
+  'คอม': 'CPE',
+  'ชลประทาน': 'IRRE',
+  'อาหาร': 'FE',
+  'อุตสาหการ': 'IE',
+  'เครื่องกล': 'ME',
+  'โยธา': 'CE',
+  'พลังงาน': 'EEEC',
+  'สิ่งแวดล้อม': 'EEEC',
+  'ประตู': 'TDWCB',
+  'หน้าต่าง': 'TDWCB',
+  'กระจก': 'TDWCB',
+  'เครื่องจักรกล': 'NAMC',
+  'สำนักงาน': 'OFS',
+  'เลขานุการ': 'OFS',
+  'ท่อ': 'DWT',
+  'เทคโนโลยีน้ำ': 'DWT',
+};
+
 async function resolveDepartmentCode(deptInput?: string | null): Promise<string | null> {
   if (!deptInput) return null;
   const clean = String(deptInput).trim();
   if (!clean) return null;
-  const exact = await prisma.department.findUnique({ where: { code: clean } });
+
+  const upper = clean.toUpperCase();
+  if (upper === 'TDW' || upper === 'TDWCB' || upper === 'DWT') return 'TDWCB';
+  if (upper === 'IRE' || upper === 'IRRE') return 'IRRE';
+
+  const exact = await prisma.department.findUnique({ where: { code: upper } });
   if (exact) return exact.code;
+
+  for (const [kw, code] of Object.entries(DEPT_KEYWORD_MAP)) {
+    if (clean.includes(kw)) {
+      const match = await prisma.department.findUnique({ where: { code } });
+      if (match) return match.code;
+    }
+  }
 
   const norm = clean.replace('ภาควิชา', '').trim();
   const matched = await prisma.department.findFirst({

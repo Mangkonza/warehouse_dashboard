@@ -973,9 +973,17 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
 
       setDatasets((prev) => {
         const list = [...(prev[targetCategory] || [])];
-        if (!isNew && editingIndex !== null && editingIndex >= 0) {
-          const prevId = list[editingIndex]._id || `${targetCategory}_${editingIndex}`;
-          list[editingIndex] = { ...list[editingIndex], ...savedRecord, _id: prevId };
+        const targetId = record.dbId || record.id || record._id;
+        const targetIdx = list.findIndex(
+          (x) =>
+            (targetId && (x.dbId === targetId || x.id === targetId || x._id === targetId || String(x.dbId) === String(targetId) || String(x.id) === String(targetId) || String(x._id) === String(targetId))) ||
+            (editingIndex !== null && editingIndex >= 0 && list[editingIndex] === x)
+        );
+        const actualUpdateIdx = targetIdx >= 0 ? targetIdx : (editingIndex !== null && editingIndex >= 0 ? editingIndex : -1);
+
+        if (!isNew && actualUpdateIdx >= 0 && list[actualUpdateIdx]) {
+          const prevId = list[actualUpdateIdx]._id || `${targetCategory}_${actualUpdateIdx}`;
+          list[actualUpdateIdx] = { ...list[actualUpdateIdx], ...savedRecord, _id: prevId };
           showToast(`แก้ไขข้อมูล "${record[currentConfig.nameKey] || record.name}" สำเร็จ`, 'success');
         } else {
           list.unshift(savedRecord);
