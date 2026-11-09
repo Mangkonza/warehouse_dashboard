@@ -19,11 +19,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // ตรวจสอบ session กับเซิร์ฟเวอร์ Backend (/api/v1/auth/me) เป็น Single Source of Truth
   const checkSession = useCallback(async () => {
     try {
+      const storedToken = typeof localStorage !== 'undefined' ? localStorage.getItem(SESSION_STORAGE_KEYS.token) : null;
+      const headers: Record<string, string> = {
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
+      };
+      if (storedToken) {
+        headers['Authorization'] = `Bearer ${storedToken}`;
+      }
       const res = await fetch(`${getApiBaseUrl()}/auth/me`, {
         credentials: 'include',
-        headers: {
-          'Cache-Control': 'no-store, no-cache, must-revalidate',
-        },
+        headers,
       });
 
       if (res.ok) {
@@ -140,11 +145,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         setIsLoginModalOpen(false);
 
-        // ล้าง token/user ใน localStorage เพื่อไม่ให้ใช้ตัดสินสิทธิ์ฝั่ง client
+        // บันทึก token/user สำหรับ authentication & authorization
         try {
-          localStorage.removeItem(SESSION_STORAGE_KEYS.token);
-          localStorage.removeItem(SESSION_STORAGE_KEYS.user);
+          if (data.token) localStorage.setItem(SESSION_STORAGE_KEYS.token, data.token);
+          if (data.user) localStorage.setItem(SESSION_STORAGE_KEYS.user, JSON.stringify(data.user));
         } catch {}
+
+        window.dispatchEvent(new CustomEvent('ku_auth_login'));
+        window.dispatchEvent(new CustomEvent('ku_roles_updated'));
 
         return { success: true };
       }

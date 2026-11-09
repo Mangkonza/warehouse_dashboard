@@ -316,7 +316,7 @@ authRouter.post('/logout', (_req: Request, res: Response) => {
     path: '/',
     httpOnly: true,
     sameSite: 'lax',
-    secure: env.NODE_ENV === 'production',
+    secure: false,
   });
 
   res.json({
