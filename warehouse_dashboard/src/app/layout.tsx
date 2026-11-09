@@ -68,6 +68,7 @@ export default function RootLayout({
           backgroundColor: "#f5f7f9",
           minHeight: "100vh",
           overflowX: "hidden",
+          overflowY: "auto",
           fontFamily: "var(--font-kanit), 'Kanit', sans-serif",
         }}
       >

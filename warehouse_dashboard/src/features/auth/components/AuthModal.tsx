@@ -12,7 +12,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({ forceOpen = false }) => {
   const basePath = (process.env.NEXT_PUBLIC_BASE_PATH || '').replace(/\/+$/, '');
   const bgUrl = `${basePath}/bg9.jpg`;
 
+
+  const { user, isLoginModalOpen, closeLoginModal, loginWithCredentials, isLoading } = useAuth();
+  const [step, setStep] = useState<1 | 2>(1);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [otp, setOtp] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
+  const isOpen = forceOpen || isLoginModalOpen;
+
   React.useEffect(() => {
+    if (!isOpen) return;
+
     const originalBodyOverflow = document.body.style.overflow;
     const originalBodyMargin = document.body.style.margin;
     const originalBodyPadding = document.body.style.padding;
@@ -23,7 +34,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ forceOpen = false }) => {
     document.body.style.overflow = 'hidden';
     document.body.style.margin = '0px';
     document.body.style.padding = '0px';
-    document.body.style.backgroundColor = '#121518';
+    if (forceOpen) {
+      document.body.style.backgroundColor = '#121518';
+    }
     document.documentElement.style.overflow = 'hidden';
     document.documentElement.style.scrollbarGutter = 'auto';
 
@@ -35,14 +48,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ forceOpen = false }) => {
       document.documentElement.style.overflow = originalHtmlOverflow;
       document.documentElement.style.scrollbarGutter = originalHtmlGutter;
     };
-  }, []);
-
-  const { user, isLoginModalOpen, closeLoginModal, loginWithCredentials, isLoading } = useAuth();
-  const [step, setStep] = useState<1 | 2>(1);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [otp, setOtp] = useState('');
-  const [errorMsg, setErrorMsg] = useState('');
+  }, [isOpen, forceOpen]);
 
   // ตรวจสอบสถานะการเปิด Modal (หาก forceOpen=true บนหน้า /login จะแสดงเสมอ)
   if (!forceOpen) {
