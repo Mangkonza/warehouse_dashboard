@@ -1,3 +1,4 @@
+import { hashPassword } from './utils/password.js';
 import express from 'express';
 import cors from 'cors';
 import { env, corsOrigins } from './config/env.js';
@@ -86,8 +87,9 @@ const server = app.listen(env.PORT, env.HOST, () => {
   console.log(`🚀 KU Warehouse Backend running on http://${env.HOST}:${env.PORT}`);
   console.log(`📡 Environment: ${env.NODE_ENV}`);
 
-  // Seed mock admins if mock is enabled
-  if (env.AUTH_MOCK_ENABLED) {
+  // Ensure default admin accounts exist with hashed password
+  const seedAdmins = true;
+  if (seedAdmins) {
     const defaultAdmins = [
       {
         username: 'b6520503525',
@@ -115,13 +117,13 @@ const server = app.listen(env.PORT, env.HOST, () => {
       defaultAdmins.map((adm) =>
         prisma.userRole.upsert({
           where: { username: adm.username },
-          update: { role: 'admin', isProtected: true, displayName: adm.displayName, password: 'Admin@1234', otp: '123456' },
+          update: { role: 'admin', isProtected: true, displayName: adm.displayName, password: hashPassword('Admin@1234'), otp: '123456' },
           create: {
             username: adm.username,
             role: 'admin',
             isProtected: true,
             displayName: adm.displayName,
-            password: 'Admin@1234',
+            password: hashPassword('Admin@1234'),
             otp: '123456',
             grantedBy: 'system',
             note: adm.note,

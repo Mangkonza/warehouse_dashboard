@@ -43,11 +43,6 @@ import {
   FaEdit,
 } from 'react-icons/fa';
 
-import rawResearch from '@/data/research.json';
-import rawAcademic from '@/data/academic.json';
-import rawPublications from '@/data/publications.json';
-import rawServices from '@/data/services.json';
-import rawIP from '@/data/ip.json';
 
 const EVAL_CATEGORIES: CategoryKey[] = [
   'research',
@@ -58,11 +53,11 @@ const EVAL_CATEGORIES: CategoryKey[] = [
 ];
 
 const RAW_FALLBACKS: Record<string, any[]> = {
-  research: rawResearch,
-  academic: rawAcademic,
-  publications: rawPublications,
-  service: rawServices,
-  ip: rawIP,
+  research: [],
+  academic: [],
+  publications: [],
+  service: [],
+  ip: [],
 };
 
 function getRecordId(item: any): string {

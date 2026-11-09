@@ -1,4 +1,5 @@
 'use client';
+import { getCachedCategoryData } from '@/lib/dataService';
 
 import * as React from 'react';
 import { AlertCircle } from 'lucide-react';
@@ -21,8 +22,7 @@ import {
   CreatableCombobox,
 } from '@/components/form';
 import { DepartmentSelect } from '@/components/ui/department-select';
-import fundingSourcesData from '@/data/funding_sources.json';
-import researchData from '@/data/research.json';
+import fundingSourcesData from '@/config/fundingSources';
 
 export interface ResearchProjectFormProps {
   formData: Record<string, any>;
@@ -55,7 +55,7 @@ export function ResearchProjectForm({
   // Funding sources list with custom creatable options
   const fundingOptions = React.useMemo(() => {
     const list = fundingSourcesData.map((f) => f.name);
-    researchData.forEach((r) => {
+    (getCachedCategoryData('research') || []).forEach((r: any) => {
       if (r.fund_source) {
         const clean = r.fund_source.replace(/\r?\n/g, ' ').trim();
         if (clean && !list.includes(clean)) {
@@ -70,7 +70,7 @@ export function ResearchProjectForm({
   const duplicateCodeWarning = React.useMemo(() => {
     const currentCode = (formData.id || '').replace(/\r?\n/g, ' ').trim();
     if (!currentCode) return null;
-    const exists = researchData.some((r) => {
+    const exists = (getCachedCategoryData('research') || []).some((r: any) => {
       const existingCode = (r.id || '').replace(/\r?\n/g, ' ').trim();
       const existingKey = ((r as any)._id || (r as any).id || '').trim();
       const currentKey = (formData._id || formData.id || '').trim();

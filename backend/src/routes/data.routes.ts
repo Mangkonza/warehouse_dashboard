@@ -3,13 +3,12 @@ import { ProjectService } from '../services/project.service.js';
 import { ServiceService } from '../services/service.service.js';
 import { IpService } from '../services/ip.service.js';
 import { PersonnelService } from '../services/personnel.service.js';
-import { requireSession, requireRole } from '../middleware/auth.js';
+import { requireSession, requireRole, optionalSession } from '../middleware/auth.js';
 import { canAccess } from '../config/permissions.js';
 
 export const dataRouter = Router();
 
-// ทุก Endpoint ของ /data ต้องผ่าน requireSession
-dataRouter.use(requireSession);
+// GET รองรับ Public Dashboard (optionalSession), ส่วน POST/PUT/DELETE บังคับ requireSession
 
 // Helper to normalize category name
 function normCategory(cat: string): string {
@@ -19,22 +18,11 @@ function normCategory(cat: string): string {
 }
 
 // 1. GET /api/v1/data/:category
-dataRouter.get('/:category', async (req: Request, res: Response, next: NextFunction) => {
+dataRouter.get('/:category', optionalSession, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const category = normCategory(String(req.params.category));
 
-    // ตรวจสอบสิทธิ์เฉพาะหมวด: personnel ต้องการระดับ management ขึ้นไป
-    if (category === 'personnel') {
-      if (!canAccess(req.user?.role, 'personnel')) {
-        res.status(403).json({ status: 'error', message: 'คุณไม่มีสิทธิ์เข้าถึงข้อมูลบุคลากร' });
-        return;
-      }
-    } else {
-      if (!canAccess(req.user?.role, 'overview')) {
-        res.status(403).json({ status: 'error', message: 'คุณไม่มีสิทธิ์เข้าถึงข้อมูลในส่วนนี้' });
-        return;
-      }
-    }
+    // Public dashboard read access - ทุกคน (รวมทั้ง Guest) สามารถเข้าชมข้อมูลผลงานและบุคลากรจากฐานข้อมูลได้
 
     switch (category) {
       case 'research': {
@@ -112,7 +100,7 @@ dataRouter.get('/:category', async (req: Request, res: Response, next: NextFunct
 });
 
 // 2. POST /api/v1/data/:category (Single item or Batch import)
-dataRouter.post('/:category', requireRole('manage'), async (req: Request, res: Response, next: NextFunction) => {
+dataRouter.post('/:category', requireSession, requireRole('manage'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const category = normCategory(String(req.params.category));
     const body = req.body;
@@ -197,7 +185,7 @@ dataRouter.post('/:category', requireRole('manage'), async (req: Request, res: R
 });
 
 // 3. PUT /api/v1/data/:category (Update item)
-dataRouter.put('/:category', requireRole('manage'), async (req: Request, res: Response, next: NextFunction) => {
+dataRouter.put('/:category', requireSession, requireRole('manage'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const category = normCategory(String(req.params.category));
     const body = req.body;
@@ -244,7 +232,7 @@ dataRouter.put('/:category', requireRole('manage'), async (req: Request, res: Re
 });
 
 // 4. DELETE /api/v1/data/:category (Delete item)
-dataRouter.delete('/:category', requireRole('manage'), async (req: Request, res: Response, next: NextFunction) => {
+dataRouter.delete('/:category', requireSession, requireRole('manage'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const category = normCategory(String(req.params.category));
     const targetId = (req.query.id as string) || (req.query.dbId as string) || req.body?.dbId || req.body?.id || req.body?._id;

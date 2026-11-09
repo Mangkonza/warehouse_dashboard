@@ -9,13 +9,15 @@
 โปรเจกต์นี้ได้รับการพัฒนาภายใต้สถาปัตยกรรมแยกส่วน (Decoupled Microservice Architecture) โดยแบ่งออกเป็น 3 บริการหลัก:
 1. **Frontend Web Application (`warehouse_dashboard`)**: พัฒนาด้วย Next.js 16 (App Router + Turbopack), React 19, Tailwind CSS และ Chart.js สำหรับการแสดงผลแดชบอร์ด รายงานยุทธศาสตร์ และระบบบริหารจัดการข้อมูล
 2. **Backend API Service (`backend`)**: พัฒนาด้วย Node.js 22, Express.js 5, TypeScript และ Prisma ORM ให้บริการ RESTful API, ระบบตรวจสอบสิทธิ์, การประเมินผลงานอัตโนมัติ (SDGs/TRL/Quartile) และ Strategic KPI Engine
-3. **Database (`PostgreSQL 16`)**: จัดเก็บข้อมูลพันธกิจ 5 ด้าน (วิจัย, บริการวิชาการ, พัฒนาวิชาการ, ตีพิมพ์, ทรัพย์สินทางปัญญา), ตัวชี้วัดเชิงยุทธศาสตร์ 4 ระดับ และระบบผู้ใช้งาน
+3. **Database (`PostgreSQL 16`)**: ทำงานเป็น **Standalone / Native PostgreSQL Service** ติดตั้งโดยตรงบน Server (ไม่ได้รันผ่าน Docker Container เพื่อความเสถียรและประสิทธิภาพ I/O สูงสุดในการวิเคราะห์ข้อมูล)
 
 ```
 warehouse_dashboard/
 ├── Dockerfile.api                     # Multi-stage Dockerfile สำหรับ Backend API (Context: .)
 ├── Dockerfile.web                     # Multi-stage Dockerfile สำหรับ Frontend Next.js (Context: .)
 ├── .dockerignore                      # ป้องกัน secrets, node_modules และ build files เข้า Image
+├── schema.sql                         # DDL Schema เริ่มต้น (สร้าง DB, Role, 58 ตาราง, สิทธิ์, Super Admin)
+├── ku_warehouse_dump.sql              # Dump ข้อมูลเต็ม (Schema + ข้อมูลทั้งหมดของระบบ)
 ├── backend/                           # โฟลเดอร์บริการ Backend API
 │   ├── prisma/
 │   │   ├── schema.prisma              # Prisma Data Model (PostgreSQL 16)
@@ -44,64 +46,69 @@ warehouse_dashboard/
 
 ## 2. ข้อมูลสำคัญสำหรับการ Deploy (Deployment Specification)
 
-- **ชนิดฐานข้อมูล (Database)**: `PostgreSQL 16`
+- **ชนิดฐานข้อมูล (Database)**: `Standalone / Native PostgreSQL 16 (Host Service)`
 - **ชื่อฐานข้อมูล (Database Name)**: `ku_warehouse`
 - **พอร์ตการทำงาน (Published Ports)**:
   - Frontend Web: `3000` (รองรับการตั้งค่า `BASE_PATH`)
   - Backend API: `8000`
-  - Database: `5432`
+  - Database: `5432` (ทำงานบน Host OS)
 - **Git Branch ที่ใช้ Deploy**: `main`
 - **การเชิญ Collaborator เข้า Git**: `misterkantapat@gmail.com` | `kantp428`
 
 ---
 
-## 3. ขั้นตอนการ Build และ Run ด้วย Pure Docker (ไม่ใช้ Docker Compose)
+## 3. ขั้นตอนการเตรียมระบบและการรัน (Deployment Steps)
 
-### ขั้นตอนที่ 1: สร้าง Docker Network ร่วมสำหรับทุก Container
+### ขั้นตอนที่ 1: เตรียมฐานข้อมูล Standalone PostgreSQL (Native OS Service)
+
+ฐานข้อมูลทำงานเป็น Native Service บน Server ไม่ต้องรันผ่าน Docker
+
+#### 1.1 รันคำสั่งนำเข้า Schema และสร้างฐานข้อมูลผ่าน Terminal:
+```bash
+# กรณีที่ 1: เครื่อง Linux Server (รันด้วยสิทธิ์ postgres ประจำเครื่อง)
+sudo -u postgres psql -f schema.sql
+
+# กรณีที่ 2: เครื่อง Windows Server หรือระบุ User/Host โดยตรง
+psql -h localhost -U postgres -f schema.sql
+
+# หมายเหตุ: หากต้องการนำเข้าโครงสร้างพร้อมข้อมูลจริงทั้งหมด ให้เปลี่ยนเป็นไฟล์:
+# psql -h localhost -U postgres -f ku_warehouse_dump.sql
+```
+*(สคริปต์จะสร้างฐานข้อมูล `ku_warehouse`, เชื่อมต่ออัตโนมัติ, สร้าง Application Roles `ku_app`, `ku_admin`, `ku_owner`, สร้าง 58 ตาราง, กำหนดสิทธิ์ และสร้าง Super Admin `b0123456789` ให้อัตโนมัติ)*
+
+#### 1.2 ตรวจสอบการตั้งค่าให้ Container เชื่อมต่อเข้ามาได้:
+- ในไฟล์ `postgresql.conf`: ตั้งค่า `listen_addresses = '*'`
+- ในไฟล์ `pg_hba.conf`: ตรวจสอบว่าอนุญาตให้เชื่อมต่อเข้ามายัง `ku_warehouse` ได้ เช่น:
+  ```text
+  host    ku_warehouse    all    0.0.0.0/0    scram-sha-256
+  ```
+- สั่ง Reload / Restart PostgreSQL Service 1 ครั้ง
+
+---
+
+### ขั้นตอนที่ 2: สร้าง Docker Network สำหรับ Web & API Containers
 ```bash
 docker network create ku-warehouse-net
 ```
 
 ---
 
-### ขั้นตอนที่ 2: เริ่มต้น PostgreSQL Database Container
-```bash
-# สร้าง Named Volume สำหรับจัดเก็บข้อมูลแบบถาวร
-docker volume create ku-warehouse-pgdata
-
-# รัน PostgreSQL 16 Container
-docker run -d \
-  --name ku_warehouse_db \
-  --network ku-warehouse-net \
-  --restart unless-stopped \
-  -e POSTGRES_DB=ku_warehouse \
-  -e POSTGRES_USER=ku_owner \
-  -e POSTGRES_PASSWORD=ku_owner_secret_2026 \
-  -v ku-warehouse-pgdata:/var/lib/postgresql/data \
-  -p 5432:5432 \
-  postgres:16-alpine
-```
-
-#### การนำเข้าข้อมูลเริ่มต้น (Restore Database Dump):
-```bash
-docker exec -i ku_warehouse_db psql -U ku_owner -d ku_warehouse < ku_warehouse_dump.sql
-```
-
----
-
 ### ขั้นตอนที่ 3: Build และรัน Backend API Service (`Dockerfile.api`)
+
+> **การเชื่อมต่อไปยัง Standalone DB**: ใช้แฟล็ก `--add-host=host.docker.internal:host-gateway` เพื่อให้ Container สามารถเชื่อมต่อกับ PostgreSQL ที่รันอยู่บน Host OS ได้อย่างสมบูรณ์ (หาก Database อยู่คนละเครื่อง Server ให้ระบุ IP ของเครื่อง Database แทน `host.docker.internal`)
 
 #### 3.1 Build Backend Docker Image:
 ```bash
 docker build -f Dockerfile.api -t ku-warehouse-backend:latest .
 ```
 
-#### 3.2 รัน Database Migration (ปลอดภัย ไม่ reset หรือ seed ข้อมูลทับ):
+#### 3.2 รัน Database Migration:
 ```bash
 docker run --rm \
   --network ku-warehouse-net \
-  -e DATABASE_URL="postgresql://ku_app:ku_app_secret_2026@ku_warehouse_db:5432/ku_warehouse?schema=public" \
-  -e DIRECT_URL="postgresql://ku_owner:ku_owner_secret_2026@ku_warehouse_db:5432/ku_warehouse?schema=public" \
+  --add-host=host.docker.internal:host-gateway \
+  -e DATABASE_URL="postgresql://ku_app:ku_app_secret_2026@host.docker.internal:5432/ku_warehouse?schema=public" \
+  -e DIRECT_URL="postgresql://ku_owner:ku_owner_secret_2026@host.docker.internal:5432/ku_warehouse?schema=public" \
   ku-warehouse-backend:latest \
   npx prisma migrate deploy
 ```
@@ -116,14 +123,15 @@ docker run -d \
   --network ku-warehouse-net \
   --network-alias backend \
   --network-alias ku_warehouse_backend \
+  --add-host=host.docker.internal:host-gateway \
   --restart unless-stopped \
   -p 8000:8000 \
   -v ku-warehouse-uploads:/app/uploads \
   -e PORT=8000 \
   -e HOST=0.0.0.0 \
   -e NODE_ENV=production \
-  -e DATABASE_URL="postgresql://ku_app:ku_app_secret_2026@ku_warehouse_db:5432/ku_warehouse?schema=public" \
-  -e DIRECT_URL="postgresql://ku_owner:ku_owner_secret_2026@ku_warehouse_db:5432/ku_warehouse?schema=public" \
+  -e DATABASE_URL="postgresql://ku_app:ku_app_secret_2026@host.docker.internal:5432/ku_warehouse?schema=public" \
+  -e DIRECT_URL="postgresql://ku_owner:ku_owner_secret_2026@host.docker.internal:5432/ku_warehouse?schema=public" \
   -e AUTH_SESSION_SECRET="a8f4c91b7d3e2a0f8b1c4e9d7a2f0b8c4d9e1f7a2b0c4d8e9f1a2b3c4d5e6f7a" \
   -e CORS_ORIGIN="http://localhost:3000,http://127.0.0.1:3000" \
   ku-warehouse-backend:latest
@@ -133,7 +141,7 @@ docker run -d \
 
 ### ขั้นตอนที่ 4: Build และรัน Frontend Web Service (`Dockerfile.web`)
 
-> **หมายเหตุเรื่อง Base Path**: หากผู้ประเมินหรือผู้ติดตั้งต้องการใช้งาน Base Path เช่น `/warehouse` ให้ระบุ `--build-arg BASE_PATH="/warehouse"` และ `-e BASE_PATH="/warehouse"` หากใช้งานที่ root path ให้ปล่อยว่างไว้
+> **หมายเหตุเรื่อง Base Path**: หากต้องการใช้งาน Base Path เช่น `/warehouse` ให้ระบุ `--build-arg BASE_PATH="/warehouse"` และ `-e BASE_PATH="/warehouse"` หากใช้งานที่ root path ให้ปล่อยว่างไว้
 
 #### 4.1 Build Frontend Docker Image:
 ```bash
@@ -186,9 +194,9 @@ docker run -d \
 
 ---
 
-## 5. การหยุดและลบ Container ที่สร้างขึ้น
+## 5. การหยุดและลบ Container
 ```bash
-docker rm -f ku_warehouse_frontend ku_warehouse_backend ku_warehouse_db
+docker rm -f ku_warehouse_frontend ku_warehouse_backend
 docker network rm ku-warehouse-net
-docker volume rm ku-warehouse-pgdata ku-warehouse-uploads
+docker volume rm ku-warehouse-uploads
 ```

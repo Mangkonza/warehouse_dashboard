@@ -1,8 +1,8 @@
 export const getApiBaseUrl = (): string => {
-  // ใช้ Relative path เพื่อให้ Next.js Reverse Proxy ไปหา Backend (พอร์ต 8000) ได้อัตโนมัติ
-  // รองรับทั้ง localhost, ngrok, localtunnel และ domain จริง โดยไม่ต้องเปิดพอร์ต 8000 ให้ภายนอก
+  // รองรับ Subpath (เช่น /research_and_inovation) และ root domain
+  const basePath = (process.env.NEXT_PUBLIC_BASE_PATH || process.env.BASE_PATH || '').replace(/\/+$/, '');
   if (typeof window !== 'undefined') {
-    return '/api/v1';
+    return `${basePath}/api/v1`;
   }
   return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 };
@@ -26,6 +26,12 @@ export const apiFetch = async <T = any>(
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string>),
   };
+  if (typeof window !== 'undefined' && !headers['Authorization'] && !headers['authorization']) {
+    const token = localStorage.getItem('ku_token') || localStorage.getItem('token');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+  }
 
   const baseUrl = getApiBaseUrl();
   let response: Response;

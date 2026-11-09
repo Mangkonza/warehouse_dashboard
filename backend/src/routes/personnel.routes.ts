@@ -69,7 +69,7 @@ personnelRouter.get('/:id', requireRole('personnel'), async (req: Request, res: 
 });
 
 // 5. เพิ่มข้อมูลบุคลากร (admin)
-personnelRouter.post('/', requireRole('manage'), async (req: Request, res: Response, next: NextFunction) => {
+personnelRouter.post('/', requireSession, requireRole('manage'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const created = await PersonnelService.create(req.body);
     res.status(201).json({
@@ -83,7 +83,7 @@ personnelRouter.post('/', requireRole('manage'), async (req: Request, res: Respo
 });
 
 // 6. แก้ไขข้อมูลบุคลากร (admin)
-personnelRouter.put('/:id', requireRole('manage'), async (req: Request, res: Response, next: NextFunction) => {
+personnelRouter.put('/:id', requireSession, requireRole('manage'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const updated = await PersonnelService.update(String(req.params.id), req.body);
     res.json({
@@ -97,7 +97,7 @@ personnelRouter.put('/:id', requireRole('manage'), async (req: Request, res: Res
 });
 
 // 7. ลบข้อมูลบุคลากร (admin)
-personnelRouter.delete('/:id', requireRole('manage'), async (req: Request, res: Response, next: NextFunction) => {
+personnelRouter.delete('/:id', requireSession, requireRole('manage'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const deleted = await PersonnelService.delete(String(req.params.id));
     res.json({

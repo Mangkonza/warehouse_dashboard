@@ -2,19 +2,62 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { FaRedo } from 'react-icons/fa';
+import { FaRedo, FaTimes, FaArrowLeft } from 'react-icons/fa';
 
 export interface AuthModalProps {
   forceOpen?: boolean;
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({ forceOpen = false }) => {
-  const { user, isLoginModalOpen, loginWithCredentials, isLoading } = useAuth();
+  const basePath = (process.env.NEXT_PUBLIC_BASE_PATH || '').replace(/\/+$/, '');
+  const bgUrl = `${basePath}/bg9.jpg`;
+
+  const { user, isLoginModalOpen, closeLoginModal, loginWithCredentials, isLoading } = useAuth();
   const [step, setStep] = useState<1 | 2>(1);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [otp, setOtp] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const isOpen = forceOpen || isLoginModalOpen;
+
+  const handleBackToOverview = () => {
+    if (closeLoginModal) {
+      closeLoginModal();
+    }
+    const defaultUrl = `${basePath}/overview`;
+    if (typeof window !== 'undefined') {
+      window.location.href = defaultUrl;
+    }
+  };
+
+  React.useEffect(() => {
+    if (!isOpen) return;
+
+    const originalBodyOverflow = document.body.style.overflow;
+    const originalBodyMargin = document.body.style.margin;
+    const originalBodyPadding = document.body.style.padding;
+    const originalBodyBg = document.body.style.backgroundColor;
+    const originalHtmlOverflow = document.documentElement.style.overflow;
+    const originalHtmlGutter = document.documentElement.style.scrollbarGutter;
+
+    document.body.style.overflow = 'hidden';
+    document.body.style.margin = '0px';
+    document.body.style.padding = '0px';
+    if (forceOpen) {
+      document.body.style.backgroundColor = '#121518';
+    }
+    document.documentElement.style.overflow = 'hidden';
+    document.documentElement.style.scrollbarGutter = 'auto';
+
+    return () => {
+      document.body.style.overflow = originalBodyOverflow;
+      document.body.style.margin = originalBodyMargin;
+      document.body.style.padding = originalBodyPadding;
+      document.body.style.backgroundColor = originalBodyBg;
+      document.documentElement.style.overflow = originalHtmlOverflow;
+      document.documentElement.style.scrollbarGutter = originalHtmlGutter;
+    };
+  }, [isOpen, forceOpen]);
 
   // ตรวจสอบสถานะการเปิด Modal (หาก forceOpen=true บนหน้า /login จะแสดงเสมอ)
   if (!forceOpen) {
@@ -56,10 +99,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ forceOpen = false }) => {
       // ล็อกอินสำเร็จ นำทางไปยัง returnUrl หรือ /overview ทันที
       const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
       const rawReturnUrl = params?.get('returnUrl');
+      const defaultUrl = `${basePath}/overview`;
       const targetUrl =
         rawReturnUrl && rawReturnUrl.startsWith('/') && !rawReturnUrl.startsWith('//')
-          ? rawReturnUrl
-          : '/overview';
+          ? (rawReturnUrl.startsWith(basePath) ? rawReturnUrl : `${basePath}${rawReturnUrl}`)
+          : defaultUrl;
       window.location.href = targetUrl;
     }
   };
@@ -73,6 +117,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ forceOpen = false }) => {
     <div
       style={{
         position: 'fixed',
+        inset: 0,
         top: 0,
         left: 0,
         right: 0,
@@ -86,12 +131,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ forceOpen = false }) => {
         justifyContent: 'center',
         padding: '16px',
         backgroundColor: '#121518',
-        backgroundImage: "url('/bg9.jpg')",
+        backgroundImage: `url('${bgUrl}')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
         overflow: 'hidden',
         boxSizing: 'border-box',
+        margin: 0,
       }}
     >
       {/* Dark overlay บางๆ เพื่อความคมชัด */}
@@ -104,7 +150,45 @@ export const AuthModal: React.FC<AuthModalProps> = ({ forceOpen = false }) => {
         }}
       />
 
-      {/* กล่อง Login สีขาว ตรงกลางจอ (สไตล์ KU ALL-Login ทางการ) */}
+      {/* ปุ่มลอยมุมซ้ายบน กลับไปหน้า Overview ทันที */}
+      <button
+        type="button"
+        onClick={handleBackToOverview}
+        style={{
+          position: 'absolute',
+          top: '20px',
+          left: '20px',
+          zIndex: 100,
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '8px',
+          padding: '8px 18px',
+          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+          backdropFilter: 'blur(8px)',
+          color: '#1e293b',
+          border: '1px solid rgba(255, 255, 255, 0.6)',
+          borderRadius: '9999px',
+          fontSize: '13.5px',
+          fontWeight: 600,
+          cursor: 'pointer',
+          boxShadow: '0 4px 14px rgba(0, 0, 0, 0.18)',
+          transition: 'all 0.2s ease',
+        }}
+        onMouseOver={(e) => {
+          e.currentTarget.style.backgroundColor = '#ffffff';
+          e.currentTarget.style.transform = 'translateY(-1px)';
+          e.currentTarget.style.boxShadow = '0 6px 18px rgba(0, 0, 0, 0.25)';
+        }}
+        onMouseOut={(e) => {
+          e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = '0 4px 14px rgba(0, 0, 0, 0.18)';
+        }}
+      >
+        <FaArrowLeft style={{ fontSize: '12px', color: '#00675a' }} /> กลับหน้าแดชบอร์ด
+      </button>
+
+      {/* กล่อง Login สีขาว ตรงกลางจอ */}
       <div
         style={{
           position: 'relative',
@@ -119,20 +203,34 @@ export const AuthModal: React.FC<AuthModalProps> = ({ forceOpen = false }) => {
           boxSizing: 'border-box',
         }}
       >
-        {/* โลโก้ KU 80 ฉลองครบรอบ 80 ปี มก. */}
-        <div style={{ textAlign: 'center', marginBottom: '22px' }}>
-          <img
-            src="/KU-english-80-1024x1024.png"
-            alt="Kasetsart University 80th Anniversary"
-            style={{
-              height: '92px',
-              width: 'auto',
-              display: 'block',
-              margin: '0 auto',
-              objectFit: 'contain',
-            }}
-          />
+        {/* ปุ่มปิดมุมขวาบน (กลับสู่หน้า Overview เสมอ) */}
+        <button
+          type="button"
+          onClick={handleBackToOverview}
+          title="กลับหน้าภาพรวม"
+          style={{
+            position: 'absolute',
+            top: '16px',
+            right: '16px',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            color: '#94a3b8',
+            fontSize: '16px',
+            padding: '4px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'color 0.15s ease',
+          }}
+          onMouseOver={(e) => (e.currentTarget.style.color = '#1e293b')}
+          onMouseOut={(e) => (e.currentTarget.style.color = '#94a3b8')}
+        >
+          <FaTimes />
+        </button>
 
+        {/* หัวข้อ Login (ตัวอักษรสีเขียว สไตล์เดิม) */}
+        <div style={{ textAlign: 'center', marginBottom: '22px' }}>
           <div
             style={{
               fontSize: '34px',
@@ -143,7 +241,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ forceOpen = false }) => {
               fontFamily: 'inherit',
             }}
           >
-            ALL-Login
+            Login
           </div>
         </div>
 
@@ -215,7 +313,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ forceOpen = false }) => {
               />
             </div>
 
-            <div style={{ textAlign: 'left', marginBottom: '22px' }}>
+            <div style={{ textAlign: 'left' }}>
               <button
                 type="submit"
                 disabled={isLoading}
@@ -237,45 +335,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ forceOpen = false }) => {
                 Sign In
               </button>
             </div>
-
-            {/* ลิงก์ช่วยเหลือ (ตรงตาม Screenshot 1 ของ มก.) */}
-            {/* ตัวเลือกเข้าสู่ระบบด้วย KU Central SSO */}
-            <div style={{ marginBottom: '18px', paddingTop: '14px', borderTop: '1px solid #e2e8f0', textAlign: 'center' }}>
-              <a
-                href="/sso/login"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  width: '100%',
-                  padding: '9px 16px',
-                  borderRadius: '6px',
-                  backgroundColor: '#f8fafc',
-                  border: '1px solid #cbd5e1',
-                  color: '#0f172a',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  textDecoration: 'none',
-                  boxSizing: 'border-box',
-                  transition: 'all 0.15s ease',
-                }}
-                onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#f1f5f9')}
-                onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#f8fafc')}
-              >
-                <span>เข้าสู่ระบบผ่าน KU Central SSO</span>
-              </a>
-            </div>
-
-            <div style={{ fontSize: '11px', lineHeight: '1.7', color: '#4b5563', textAlign: 'left' }}>
-              <div><a href="https://accounts.ku.ac.th" target="_blank" rel="noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>Forgotten Password</a></div>
-              <div><a href="https://accounts.ku.ac.th" target="_blank" rel="noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>Personal information verification</a></div>
-              <div><a href="https://accounts.ku.ac.th" target="_blank" rel="noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>ยกเลิก MFA ชั่วคราว</a></div>
-              <div>กรณีไม่สามารถดำเนินการได้สามารถติดต่อแก้ไขปัญหาได้ที่ <a href="https://ocs.ku.ac.th" target="_blank" rel="noreferrer" style={{ color: '#00675a', fontWeight: 600 }}>Helpdesk</a></div>
-            </div>
           </form>
         ) : (
-          /* Step 2: One-time code (OTP) */
+          /* Step 2: One-time code (OTP) สไตล์เดิม */
           <form onSubmit={handleSubmit} style={{ width: '100%' }}>
             <div style={{ fontSize: '14.5px', color: '#1a202c', fontWeight: 700, marginBottom: '6px', textAlign: 'left' }}>
               {username}
@@ -355,24 +417,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ forceOpen = false }) => {
             </div>
           </form>
         )}
-      </div>
-
-      {/* ข้อความลิขสิทธิ์ด้านล่าง */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: '16px',
-          textAlign: 'center',
-          fontSize: '12px',
-          color: '#ffffff',
-          textShadow: '0 1px 3px rgba(0,0,0,0.85)',
-          padding: '0 16px',
-          fontWeight: 500,
-          pointerEvents: 'none',
-        }}
-      >
-        ©2023-2025 สำนักบริการคอมพิวเตอร์ มหาวิทยาลัยเกษตรศาสตร์ | Office of Computer Services,{' '}
-        <span style={{ color: '#4ade80', fontWeight: 700 }}>Kasetsart University</span>
       </div>
     </div>
   );

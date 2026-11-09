@@ -42,11 +42,6 @@ import {
 } from 'react-icons/fa';
 
 // Initial JSON datasets
-import rawResearch from '@/data/research.json';
-import rawAcademic from '@/data/academic.json';
-import rawPublications from '@/data/publications.json';
-import rawServices from '@/data/services.json';
-import rawIP from '@/data/ip.json';
 import { KPIManagementTab } from './KPIManagementTab';
 import { UserRoleManagementTab } from './UserRoleManagementTab';
 import { RoleManagementService } from '@/services/roleManagement.service';
@@ -284,12 +279,12 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
 
   // Datasets state with sanitized data and stable unique IDs
   const [datasets, setDatasets] = useState<Record<CategoryKey, any[]>>(() => ({
-    monitoring: getInitialDataset('research', rawResearch),
-    research: getInitialDataset('research', rawResearch),
-    academic: getInitialDataset('academic', rawAcademic),
-    service: getInitialDataset('service', rawServices),
-    publications: getInitialDataset('publications', rawPublications),
-    ip: getInitialDataset('ip', rawIP),
+    monitoring: getInitialDataset('research', []),
+    research: getInitialDataset('research', []),
+    academic: getInitialDataset('academic', []),
+    service: getInitialDataset('service', []),
+    publications: getInitialDataset('publications', []),
+    ip: getInitialDataset('ip', []),
     personnel: getInitialDataset('personnel', [] as PersonnelRecord[]),
     kpi: [],
     user_roles: [],
@@ -978,9 +973,17 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
 
       setDatasets((prev) => {
         const list = [...(prev[targetCategory] || [])];
-        if (!isNew && editingIndex !== null && editingIndex >= 0) {
-          const prevId = list[editingIndex]._id || `${targetCategory}_${editingIndex}`;
-          list[editingIndex] = { ...list[editingIndex], ...savedRecord, _id: prevId };
+        const targetId = record.dbId || record.id || record._id;
+        const targetIdx = list.findIndex(
+          (x) =>
+            (targetId && (x.dbId === targetId || x.id === targetId || x._id === targetId || String(x.dbId) === String(targetId) || String(x.id) === String(targetId) || String(x._id) === String(targetId))) ||
+            (editingIndex !== null && editingIndex >= 0 && list[editingIndex] === x)
+        );
+        const actualUpdateIdx = targetIdx >= 0 ? targetIdx : (editingIndex !== null && editingIndex >= 0 ? editingIndex : -1);
+
+        if (!isNew && actualUpdateIdx >= 0 && list[actualUpdateIdx]) {
+          const prevId = list[actualUpdateIdx]._id || `${targetCategory}_${actualUpdateIdx}`;
+          list[actualUpdateIdx] = { ...list[actualUpdateIdx], ...savedRecord, _id: prevId };
           showToast(`แก้ไขข้อมูล "${record[currentConfig.nameKey] || record.name}" สำเร็จ`, 'success');
         } else {
           list.unshift(savedRecord);
@@ -1728,22 +1731,38 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
             />
           )}
 
-          {/* Footer: Pagination & ข้อมูลจำนวนรายการ */}
-          <TablePagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            totalItems={filteredData.length}
-            pageSize={itemsPerPage}
-            onPageChange={setCurrentPage}
-            onPageSizeChange={(newSize) => {
-              setItemsPerPage(newSize);
-              setCurrentPage(1);
-            }}
-            pageSizeOptions={[10, 25, 50, 100]}
-            unitLabel="รายการ"
-            extraInfo={selectedDept ? ` (สังกัด: ${selectedDept.replace('ภาควิชา', '')})` : undefined}
-          />
-        </div>
+          {/* Footer: Pagination & ข้อมูลจำนวนรายการ */}
+
+          <TablePagination
+
+            currentPage={currentPage}
+
+            totalPages={totalPages}
+
+            totalItems={filteredData.length}
+
+            pageSize={itemsPerPage}
+
+            onPageChange={setCurrentPage}
+
+            onPageSizeChange={(newSize) => {
+
+              setItemsPerPage(newSize);
+
+              setCurrentPage(1);
+
+            }}
+
+            pageSizeOptions={[10, 25, 50, 100]}
+
+            unitLabel="รายการ"
+
+            extraInfo={selectedDept ? ` (สังกัด: ${selectedDept.replace('ภาควิชา', '')})` : undefined}
+
+          />
+
+        </div>
+
       )}
 
       {/* Modals */}

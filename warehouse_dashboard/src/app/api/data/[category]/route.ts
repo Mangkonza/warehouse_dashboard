@@ -4,7 +4,7 @@ import { readCategoryData, readEvaluations } from '@/lib/serverDataStore';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-const BACKEND_URL = process.env.BACKEND_INTERNAL_URL || 'http://localhost:8000';
+const BACKEND_URL = process.env.BACKEND_INTERNAL_URL || process.env.BACKEND_URL || 'http://ku_warehouse_backend:8000';
 
 interface RouteContext {
   params: Promise<{ category: string }>;
@@ -52,16 +52,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
     }
     return NextResponse.json(data, { status: res.status });
   } catch (error: any) {
-    try {
-      const { category } = await context.params;
-      const items = readCategoryData(category);
-      return NextResponse.json({ status: 'success', data: items });
-    } catch (err: any) {
-      return NextResponse.json(
-        { status: 'error', message: err?.message || 'Backend connection failed' },
-        { status: 502 }
-      );
-    }
+    return NextResponse.json(
+      { status: 'error', message: error?.message || 'Backend connection failed' },
+      { status: 502 }
+    );
   }
 }
 

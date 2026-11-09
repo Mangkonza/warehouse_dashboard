@@ -23,11 +23,6 @@ import {
 import { getCachedCategoryData } from '@/lib/dataService';
 import { isTestRecord } from '@/lib/sdgEngine';
 import { StrategyBadge } from '@/components/ui';
-import rawResearch from '@/data/research.json';
-import rawAcademic from '@/data/academic.json';
-import rawPublications from '@/data/publications.json';
-import rawServices from '@/data/services.json';
-import rawIP from '@/data/ip.json';
 import {
   FaSave,
   FaCheckCircle,
@@ -102,11 +97,11 @@ export function StrategicKpiRoundReportView({
 
   const datasets = useMemo<Record<string, any[]>>(
     () => ({
-      research: getCachedCategoryData('research') || (rawResearch as any[]),
-      academic: getCachedCategoryData('academic') || (rawAcademic as any[]),
-      publications: getCachedCategoryData('publications') || (rawPublications as any[]),
-      service: getCachedCategoryData('service') || (rawServices as any[]),
-      ip: getCachedCategoryData('ip') || (rawIP as any[]),
+      research: getCachedCategoryData('research') || [],
+      academic: getCachedCategoryData('academic') || [],
+      publications: getCachedCategoryData('publications') || [],
+      service: getCachedCategoryData('service') || [],
+      ip: getCachedCategoryData('ip') || [],
       personnel: getCachedCategoryData('personnel') || [],
     }),
     []

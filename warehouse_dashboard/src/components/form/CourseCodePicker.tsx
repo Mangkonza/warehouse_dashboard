@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { Search, BookOpen, Check, AlertCircle, Edit2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import courseCatalog from '@/data/course_catalog.json';
+import courseCatalog from '@/config/courseCatalog';
 import {
   Popover,
   PopoverContent,

@@ -77,7 +77,12 @@ export async function requireSession(req: Request, res: Response, next: NextFunc
  * ส่งได้ทั้ง AppResource (เช่น 'overview', 'kpi', 'manage') หรือ AppRole
  */
 export function requireRole(resourceOrRole: AppResource | AppRole) {
-  return (req: Request, res: Response, next: NextFunction): void => {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    if (!req.user) {
+      await requireSession(req, res, () => {});
+      if (res.headersSent) return;
+    }
+
     if (!req.user) {
       res.status(401).json({
         status: 'error',
@@ -111,3 +116,50 @@ export function requireRole(resourceOrRole: AppResource | AppRole) {
 // Backwards-compatibility aliases
 export const authenticateJWT = requireSession;
 export const requireAdmin = requireRole('manage');
+
+/**
+ * optionalSession: ตรวจสอบ Session หากมีจะแนบ req.user ให้ หากไม่มีจะปล่อยผ่าน (Guest / Public Dashboard)
+ */
+export async function optionalSession(req: Request, _res: Response, next: NextFunction): Promise<void> {
+  const cookies = (req as any).cookies || {};
+  const sessionCookie = cookies[SESSION_COOKIE_NAME];
+
+  let username: string | null = null;
+
+  if (sessionCookie) {
+    const session = verifySession(sessionCookie);
+    if (session) {
+      username = session.username;
+    }
+  }
+
+  if (!username) {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      try {
+        const token = authHeader.split(' ')[1];
+        const decoded = jwt.verify(token, env.JWT_SECRET) as JWTPayload;
+        if (decoded && decoded.nontriAccount) {
+          username = decoded.nontriAccount.toLowerCase().trim();
+        }
+      } catch {}
+    }
+  }
+
+  if (username) {
+    try {
+      const userRoleRecord = await prisma.userRole.findUnique({
+        where: { username },
+      });
+      const role: AppRole = (userRoleRecord?.role as AppRole) || 'user';
+      req.user = {
+        id: `ku-${username}`,
+        nontriAccount: username,
+        role,
+        nameTh: userRoleRecord?.displayName || username,
+      };
+    } catch {}
+  }
+
+  next();
+}

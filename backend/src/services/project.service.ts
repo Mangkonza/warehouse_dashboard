@@ -129,12 +129,11 @@ function formatAcademic(item: any) {
 
 function formatPublication(item: any) {
   if (!item) return null;
-  const domesticStr = item.authors && item.authors.length > 0
-    ? item.authors.filter((a: any) => a.affiliationType === 'domestic').map((a: any) => a.personName).join(', ')
-    : '';
-  const foreignStr = item.authors && item.authors.length > 0
-    ? item.authors.filter((a: any) => a.affiliationType === 'foreign').map((a: any) => a.personName).join(', ')
-    : '';
+  const domesticAuthors = (item.authors || []).filter((a: any) => a.affiliationType === 'domestic').map((a: any) => a.personName).filter(Boolean);
+  const domesticStr = domesticAuthors.length > 0 ? domesticAuthors.join(', ') : (item.coAuthorsDomestic || '');
+
+  const foreignAuthors = (item.authors || []).filter((a: any) => a.affiliationType === 'foreign').map((a: any) => a.personName).filter(Boolean);
+  const foreignStr = foreignAuthors.length > 0 ? foreignAuthors.join(', ') : (item.coAuthorsForeign || '');
 
   return {
     _id: item.legacyId || `pub_${item.id}`,
@@ -158,7 +157,7 @@ function formatPublication(item: any) {
     page_end: item.pageEnd || '',
     fiscal_year_be: item.fiscalYearBe || '',
     month: item.month || '',
-    month_year: item.monthYear || '',
+    month_year: item.monthYear || (item.month && item.fiscalYearBe ? `${item.month} ${item.fiscalYearBe}` : ''),
     quartile: item.quartile || '',
     has_international_coauthor: Boolean(item.hasInternationalCoauthor),
     has_domestic_coauthor: Boolean(item.hasDomesticCoauthor),
@@ -460,14 +459,14 @@ export class ProjectService {
 
     if (!isUpdate || body.has_foreign_coauthor !== undefined || body.has_domestic_coauthor !== undefined || body.co_authors_foreign !== undefined || body.co_authors_domestic !== undefined) {
       const hasForeign = Boolean(
-        body.has_foreign_coauthor ??
-        body.has_international_coauthor ??
-        (Array.isArray(body.co_authors_foreign) && body.co_authors_foreign.length > 0) ??
+        body.has_foreign_coauthor ||
+        body.has_international_coauthor ||
+        (Array.isArray(body.co_authors_foreign) && body.co_authors_foreign.length > 0) ||
         (typeof body.co_authors_foreign === 'string' && body.co_authors_foreign.trim())
       );
       const hasDomestic = Boolean(
-        body.has_domestic_coauthor ??
-        (Array.isArray(body.co_authors_domestic) && body.co_authors_domestic.length > 0) ??
+        body.has_domestic_coauthor ||
+        (Array.isArray(body.co_authors_domestic) && body.co_authors_domestic.length > 0) ||
         (typeof body.co_authors_domestic === 'string' && body.co_authors_domestic.trim())
       );
       if (!hasForeign && !hasDomestic) {
@@ -739,12 +738,18 @@ export class ProjectService {
       authorsList.push({ name: String(body.owner || body.first_author).trim(), type: 'internal' });
     }
     if (body.co_authors_domestic) {
-      String(body.co_authors_domestic).split(',').map((s: string) => s.trim()).filter(Boolean).forEach((name) => {
+      const domesticList = Array.isArray(body.co_authors_domestic)
+        ? body.co_authors_domestic
+        : String(body.co_authors_domestic).split(',');
+      domesticList.map((s: any) => String(s).trim()).filter(Boolean).forEach((name: string) => {
         authorsList.push({ name, type: 'domestic' });
       });
     }
     if (body.co_authors_foreign) {
-      String(body.co_authors_foreign).split(',').map((s: string) => s.trim()).filter(Boolean).forEach((name) => {
+      const foreignList = Array.isArray(body.co_authors_foreign)
+        ? body.co_authors_foreign
+        : String(body.co_authors_foreign).split(',');
+      foreignList.map((s: any) => String(s).trim()).filter(Boolean).forEach((name: string) => {
         authorsList.push({ name, type: 'foreign' });
       });
     }
@@ -776,12 +781,18 @@ export class ProjectService {
       const owner = body.owner !== undefined ? body.owner : existing.firstAuthorName;
       if (owner) authorsList.push({ name: String(owner).trim(), type: 'internal' });
       if (body.co_authors_domestic) {
-        String(body.co_authors_domestic).split(',').map((s: string) => s.trim()).filter(Boolean).forEach((name) => {
+        const domesticList = Array.isArray(body.co_authors_domestic)
+          ? body.co_authors_domestic
+          : String(body.co_authors_domestic).split(',');
+        domesticList.map((s: any) => String(s).trim()).filter(Boolean).forEach((name: string) => {
           authorsList!.push({ name, type: 'domestic' });
         });
       }
       if (body.co_authors_foreign) {
-        String(body.co_authors_foreign).split(',').map((s: string) => s.trim()).filter(Boolean).forEach((name) => {
+        const foreignList = Array.isArray(body.co_authors_foreign)
+          ? body.co_authors_foreign
+          : String(body.co_authors_foreign).split(',');
+        foreignList.map((s: any) => String(s).trim()).filter(Boolean).forEach((name: string) => {
           authorsList!.push({ name, type: 'foreign' });
         });
       }

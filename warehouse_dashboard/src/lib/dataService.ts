@@ -3,11 +3,6 @@ import { EvaluationRecord } from '../types/evaluation';
 import { CategoryKey } from '../types/dataManagement';
 
 // Base master datasets fallback
-import rawResearch from '@/data/research.json';
-import rawAcademic from '@/data/academic.json';
-import rawPublications from '@/data/publications.json';
-import rawServices from '@/data/services.json';
-import rawIP from '@/data/ip.json';
 
 export const DEFAULT_CATEGORY_DATA: Record<string, any[]> = {
   research: [],
@@ -24,9 +19,16 @@ const LS_PREFIX = 'ku_dw_db_cache_';
 const LS_DELETED_PREFIX = 'ku_dw_deleted_';
 
 const getAuthHeaders = (): Record<string, string> => {
-  return {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('ku_token') || localStorage.getItem('token');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+  }
+  return headers;
 };
 
 function normalizeKey(val: any): string {
@@ -313,9 +315,11 @@ export async function saveCategoryRecord(
       updateLocalCache(merged);
       return { success: true, data: merged };
     } else {
-      console.warn(`[dataService] API returned non-OK (${res.status}), saving to local cache fallback:`, result);
-      updateLocalCache(recordToSave);
-      return { success: true, data: recordToSave };
+      console.error(`[dataService] API returned non-OK (${res.status}):`, result);
+      return {
+        success: false,
+        error: result.message || `เกิดข้อผิดพลาดในการบันทึกข้อมูล (HTTP ${res.status})`,
+      };
     }
   } catch (err: any) {
     console.warn(`[dataService] Network error saving to API for ${category}, saving to local cache fallback:`, err);

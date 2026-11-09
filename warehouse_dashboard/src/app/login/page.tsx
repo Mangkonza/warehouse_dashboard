@@ -14,54 +14,27 @@ function LoginContent() {
   const isSsoLoading = sso?.status === 'loading';
 
   const rawReturnUrl = searchParams.get('returnUrl');
-  // ป้องกัน open redirect: ตรวจสอบว่า returnUrl ต้องขึ้นต้นด้วย / และไม่ใช่ //
+  const basePath = (process.env.NEXT_PUBLIC_BASE_PATH || '').replace(/\/+$/, '');
+  const defaultUrl = `${basePath}/overview`;
   const returnUrl =
-    rawReturnUrl && rawReturnUrl !== '/' && rawReturnUrl.startsWith('/') && !rawReturnUrl.startsWith('//')
-      ? rawReturnUrl
-      : '/overview';
+    rawReturnUrl && rawReturnUrl.startsWith('/') && !rawReturnUrl.startsWith('//')
+      ? (rawReturnUrl.startsWith(basePath) ? rawReturnUrl : `${basePath}${rawReturnUrl}`)
+      : defaultUrl;
 
   const isAuthenticated = Boolean(user || ssoUser);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (!isAuthLoading && !isSsoLoading && isAuthenticated) {
       window.location.replace(returnUrl);
     }
   }, [isAuthenticated, isAuthLoading, isSsoLoading, returnUrl]);
 
-  return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        width: '100vw',
-        height: '100vh',
-        minHeight: '100vh',
-        backgroundColor: '#121518',
-        backgroundImage: "url('/bg9.jpg')",
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        overflow: 'hidden',
-      }}
-    >
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.25)',
-        }}
-      />
-      <AuthModal forceOpen />
-    </div>
-  );
+  return <AuthModal forceOpen />;
 }
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div style={{ minHeight: '100vh', backgroundColor: '#121518' }} />}>
+    <Suspense fallback={<div style={{ minHeight: '100%', backgroundColor: '#121518' }} />}>
       <LoginContent />
     </Suspense>
   );

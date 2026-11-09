@@ -3,6 +3,7 @@
 import React, { Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/features/auth';
+import { LogIn } from 'lucide-react';
 import { Spinner } from '@/components/ui/Spinner';
 import { DataManagementRoot } from './DataManagementRoot';
 
@@ -38,9 +39,13 @@ export function ManageView() {
             borderRadius: '8px',
             fontWeight: 600,
             cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
           }}
         >
-          เข้าสู่ระบบ
+          <LogIn size={18} strokeWidth={2.3} />
+          <span>เข้าสู่ระบบ</span>
         </button>
       </div>
     );

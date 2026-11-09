@@ -108,12 +108,12 @@ export function OverviewView() {
         title: 'ข้อมูลถูกดึงจากฐานข้อมูลล่าสุด',
       }
     : {
-        backgroundColor: '#fff7ed',
-        border: '1px solid #fed7aa',
-        color: '#9a3412',
-        dot: '#f59e0b',
-        label: 'ข้อมูลสำรอง (JSON) · เชื่อมต่อฐานข้อมูลไม่ได้',
-        title: 'API ไม่ตอบสนอง ระบบจึงใช้ไฟล์ข้อมูลสำรองในเครื่อง ตัวเลขอาจไม่เป็นปัจจุบัน',
+        backgroundColor: '#fef2f2',
+        border: '1px solid #fecaca',
+        color: '#b91c1c',
+        dot: '#ef4444',
+        label: 'เชื่อมต่อฐานข้อมูลไม่ได้',
+        title: 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้ โปรดตรวจสอบการเชื่อมต่อ API / ฐานข้อมูล',
       };
 
   return (

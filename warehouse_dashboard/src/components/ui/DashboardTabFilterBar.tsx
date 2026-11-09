@@ -627,7 +627,7 @@ export function DashboardTabFilterBar({
 
           </div>
 
-          {/* Right Side: Actions (Overview) or Progressive Disclosure Toggle + Reset */}
+          {/* Right Side: Actions or Progressive Disclosure Toggle + Reset */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
             {showSearch && (
               <SearchInput

@@ -19,11 +19,6 @@ import { getCachedCategoryData, fetchCategoryData } from '@/lib/dataService';
 import { TimeFilterState, itemMatchesTimeFilter } from '@/types/timeFilter';
 
 // Fallback JSON data
-import rawResearch from '@/data/research.json';
-import rawAcademic from '@/data/academic.json';
-import rawPublications from '@/data/publications.json';
-import rawServices from '@/data/services.json';
-import rawIP from '@/data/ip.json';
 
 export const CATEGORY_NAMES: Record<KPICategory | 'all', string> = {
   all: 'ทุกประเภทงาน',
@@ -50,11 +45,11 @@ export function useKpiData(timeFilter?: TimeFilterState) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const [datasets, setDatasets] = useState<Record<string, any[]>>(() => ({
-    research: getCachedCategoryData('research') || rawResearch,
-    academic: getCachedCategoryData('academic') || rawAcademic,
-    publications: getCachedCategoryData('publications') || rawPublications,
-    service: getCachedCategoryData('service') || rawServices,
-    ip: getCachedCategoryData('ip') || rawIP,
+    research: getCachedCategoryData('research') || [],
+    academic: getCachedCategoryData('academic') || [],
+    publications: getCachedCategoryData('publications') || [],
+    service: getCachedCategoryData('service') || [],
+    ip: getCachedCategoryData('ip') || [],
     personnel: getCachedCategoryData('personnel') || [],
   }));
 
@@ -81,20 +76,20 @@ export function useKpiData(timeFilter?: TimeFilterState) {
         research:
           resData && resData.length > 0
             ? resData
-            : getCachedCategoryData('research') || rawResearch,
+            : getCachedCategoryData('research') || [],
         academic:
           acaData && acaData.length > 0
             ? acaData
-            : getCachedCategoryData('academic') || rawAcademic,
+            : getCachedCategoryData('academic') || [],
         publications:
           pubData && pubData.length > 0
             ? pubData
-            : getCachedCategoryData('publications') || rawPublications,
+            : getCachedCategoryData('publications') || [],
         service:
           srvData && srvData.length > 0
             ? srvData
-            : getCachedCategoryData('service') || rawServices,
-        ip: ipData && ipData.length > 0 ? ipData : getCachedCategoryData('ip') || rawIP,
+            : getCachedCategoryData('service') || [],
+        ip: ipData && ipData.length > 0 ? ipData : getCachedCategoryData('ip') || [],
         personnel:
           perData && perData.length > 0
             ? perData
@@ -129,11 +124,11 @@ export function useKpiData(timeFilter?: TimeFilterState) {
     const handleKpiUpdate = () => {
       syncLocal();
       setDatasets({
-        research: getCachedCategoryData('research') || rawResearch,
-        academic: getCachedCategoryData('academic') || rawAcademic,
-        publications: getCachedCategoryData('publications') || rawPublications,
-        service: getCachedCategoryData('service') || rawServices,
-        ip: getCachedCategoryData('ip') || rawIP,
+        research: getCachedCategoryData('research') || [],
+        academic: getCachedCategoryData('academic') || [],
+        publications: getCachedCategoryData('publications') || [],
+        service: getCachedCategoryData('service') || [],
+        ip: getCachedCategoryData('ip') || [],
         personnel: getCachedCategoryData('personnel') || [],
       });
     };
