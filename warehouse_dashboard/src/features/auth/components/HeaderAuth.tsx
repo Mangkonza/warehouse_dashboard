@@ -3,7 +3,8 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useSsoUserSafe } from '../context/SsoUserContext';
-import { FaUser, FaPowerOff } from 'react-icons/fa';
+import { LogIn } from 'lucide-react';
+import { FaPowerOff } from 'react-icons/fa';
 
 export const HeaderAuth: React.FC = () => {
   const { user: legacyUser, openLoginModal, logout: legacyLogout } = useAuth();
@@ -14,29 +15,28 @@ export const HeaderAuth: React.FC = () => {
 
   if (!isAuthenticated) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center' }}>
         <button
           onClick={openLoginModal}
           style={{
-            backgroundColor: 'rgba(255, 255, 255, 0.2)',
-            color: '#fff',
-            border: '1px solid rgba(255, 255, 255, 0.5)',
-            borderRadius: '20px',
-            padding: '6px 16px',
-            fontSize: '13px',
+            backgroundColor: 'transparent',
+            color: '#ffffff',
+            border: 'none',
+            borderRadius: '6px',
+            padding: '6px 10px',
+            fontSize: '14px',
             fontWeight: 600,
             cursor: 'pointer',
-            display: 'flex',
+            display: 'inline-flex',
             alignItems: 'center',
             gap: '8px',
-            backdropFilter: 'blur(8px)',
-            transition: 'all 0.2s',
+            transition: 'background-color 0.2s ease, opacity 0.2s ease',
           }}
-          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.35)')}
-          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)')}
+          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.15)')}
+          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
         >
-          <FaUser style={{ fontSize: '14px' }} />
-          <span>เข้าสู่ระบบ (Login)</span>
+          <LogIn size={18} strokeWidth={2.3} style={{ flexShrink: 0 }} />
+          <span>เข้าสู่ระบบ</span>
         </button>
       </div>
     );
@@ -63,8 +63,9 @@ export const HeaderAuth: React.FC = () => {
   const handleLogout = () => {
     if (sso?.status === 'authenticated' && sso.logout) {
       sso.logout();
+    } else {
+      legacyLogout();
     }
-    legacyLogout();
   };
 
   return (

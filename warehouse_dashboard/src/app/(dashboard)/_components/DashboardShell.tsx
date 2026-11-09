@@ -105,21 +105,27 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   }
 
   const getSingleRoleTitle = (): string => {
-    if (!user) return 'Guest';
+    if (!user && !ssoUser) return 'ผู้เยี่ยมชม';
 
-    if (user.role === 'admin') {
+    if (user?.role === 'admin') {
       return 'ผู้ดูแลระบบ';
     }
 
-    if (/^b\d+/i.test(user.nontriAccount) || user.typePerson === 'นิสิต') {
+    const nontri = user?.nontriAccount || ssoUser?.nontriId || '';
+
+    if (/^b\d+/i.test(nontri) || user?.typePerson === 'นิสิต') {
       return 'นิสิต';
     }
 
-    if (user.typePerson === 'อาจารย์') {
+    if (user?.typePerson === 'อาจารย์') {
       return 'อาจารย์';
     }
 
-    return 'บุคลากร';
+    if (user) {
+      return 'บุคลากร';
+    }
+
+    return 'ผู้เยี่ยมชม';
   };
 
   interface MenuDefinition {
@@ -270,7 +276,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     user?.nameTh ||
     user?.nontriAccount ||
     ssoUser?.nontriId ||
-    "ผู้ใช้งาน";
+    "Guest";
 
   const profileSubtitle =
     user?.typePerson ||
@@ -294,7 +300,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             width: '40px',
             height: '40px',
             borderRadius: '50%',
-            backgroundColor: (user || ssoUser) ? '#00e676' : '#374151',
+            backgroundColor: '#95bbdf',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -303,39 +309,35 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             overflow: 'hidden',
           }}
         >
-          {(user || ssoUser) ? (
-            <>
-              <img
-                src="/assets/profile.jfif"
-                alt={profileName}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  borderRadius: '50%',
-                }}
-                onError={(e) => {
-                  const target = e.currentTarget;
-                  target.style.display = 'none';
-                  if (target.nextElementSibling) {
-                    (target.nextElementSibling as HTMLElement).style.display = 'inline';
-                  }
-                }}
-              />
-              <span
-                style={{
-                  display: 'none',
-                  color: '#111827',
-                  fontWeight: 800,
-                  fontSize: '15px',
-                }}
-              >
-                {(profileName || 'U').charAt(0).toUpperCase()}
-              </span>
-            </>
-          ) : (
-            <FaUser style={{ color: '#9ca3af' }} />
-          )}
+          <img
+            src="/assets/profile.jfif"
+            alt={profileName}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              borderRadius: '50%',
+            }}
+            onError={(e) => {
+              const target = e.currentTarget;
+              target.style.display = 'none';
+              if (target.nextElementSibling) {
+                (target.nextElementSibling as HTMLElement).style.display = 'flex';
+              }
+            }}
+          />
+          <div
+            style={{
+              display: 'none',
+              width: '100%',
+              height: '100%',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: '#95bbdf',
+            }}
+          >
+            <FaUser style={{ color: '#ffffff', fontSize: '18px' }} />
+          </div>
         </div>
       </div>
 
