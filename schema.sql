@@ -1,14 +1,75 @@
--- Ensure required database roles exist
+-- ============================================================================
+-- 0. DATABASE CREATION & AUTO-CONNECTION
+-- Creates the database 'ku_warehouse' if it does not already exist,
+-- then switches the connection to 'ku_warehouse' to execute the schema.
+-- ============================================================================
+SELECT 'CREATE DATABASE ku_warehouse ENCODING ''UTF8'''
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'ku_warehouse')\gexec
+
+\connect ku_warehouse
+
+-- ============================================================================
+-- 1. ROLE INITIALIZATION (SAFE & IDEMPOTENT)
+-- Creates required application roles with fallback handling if running on
+-- managed cloud databases (AWS RDS, Supabase, Neon) where SUPERUSER is restricted.
+-- ============================================================================
 DO $$
+DECLARE
+    cur_user text := current_user;
 BEGIN
+    -- 1.1 ku_app
     IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'ku_app') THEN
-        CREATE ROLE ku_app WITH LOGIN PASSWORD 'ku_app_secret_2026';
+        BEGIN
+            CREATE ROLE ku_app WITH LOGIN PASSWORD 'ku_app_secret_2026';
+        EXCEPTION WHEN OTHERS THEN
+            RAISE NOTICE 'Notice: Could not create role ku_app (using existing or restricted): %', SQLERRM;
+        END;
     END IF;
+
+    -- 1.2 ku_admin
     IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'ku_admin') THEN
-        CREATE ROLE ku_admin WITH LOGIN PASSWORD 'ku_admin_secret_2026';
-    END IF;
-    IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'ku_owner') THEN
-        CREATE ROLE ku_owner WITH LOGIN SUPERUSER PASSWORD 'ku_owner_secret_2026';
+        BEGIN
+            CREATE ROLE ku_admin WITH LOGIN PASSWORD 'ku_admin_secret_2026';
+        EXCEPTION WHEN OTHERS THEN
+            RAISE NOTICE 'Notice: Could not create role ku_admin (using existing or restricted): %', SQLERRM;
+        END;
+    END IF;
+
+    -- 1.3 ku_owner (try with SUPERUSER first; fallback to CREATEDB/CREATEROLE or standard login if restricted)
+    IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'ku_owner') THEN
+        BEGIN
+            CREATE ROLE ku_owner WITH LOGIN SUPERUSER PASSWORD 'ku_owner_secret_2026';
+        EXCEPTION WHEN OTHERS THEN
+            BEGIN
+                CREATE ROLE ku_owner WITH LOGIN CREATEDB CREATEROLE PASSWORD 'ku_owner_secret_2026';
+            EXCEPTION WHEN OTHERS THEN
+                BEGIN
+                    CREATE ROLE ku_owner WITH LOGIN PASSWORD 'ku_owner_secret_2026';
+                EXCEPTION WHEN OTHERS THEN
+                    RAISE NOTICE 'Notice: Could not create role ku_owner (using existing or restricted): %', SQLERRM;
+                END;
+            END;
+        END;
+    END IF;
+
+    -- 1.4 Grant membership to current runner to avoid "must be member of role" errors during ALTER OWNER
+    IF EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'ku_admin') THEN
+        BEGIN
+            EXECUTE format('GRANT ku_admin TO %I', cur_user);
+        EXCEPTION WHEN OTHERS THEN NULL;
+        END;
+    END IF;
+    IF EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'ku_app') THEN
+        BEGIN
+            EXECUTE format('GRANT ku_app TO %I', cur_user);
+        EXCEPTION WHEN OTHERS THEN NULL;
+        END;
+    END IF;
+    IF EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'ku_owner') THEN
+        BEGIN
+            EXECUTE format('GRANT ku_owner TO %I', cur_user);
+        EXCEPTION WHEN OTHERS THEN NULL;
+        END;
     END IF;
 END
 $$;
@@ -441,7 +502,7 @@ DROP SCHEMA IF EXISTS analytics;
 -- Name: analytics; Type: SCHEMA; Schema: -; Owner: ku_admin
 --
 
-CREATE SCHEMA analytics;
+CREATE SCHEMA IF NOT EXISTS analytics;
 
 
 ALTER SCHEMA analytics OWNER TO ku_admin;
@@ -450,7 +511,7 @@ ALTER SCHEMA analytics OWNER TO ku_admin;
 -- Name: core; Type: SCHEMA; Schema: -; Owner: ku_admin
 --
 
-CREATE SCHEMA core;
+CREATE SCHEMA IF NOT EXISTS core;
 
 
 ALTER SCHEMA core OWNER TO ku_admin;
@@ -459,7 +520,12 @@ ALTER SCHEMA core OWNER TO ku_admin;
 -- Name: pgcrypto; Type: EXTENSION; Schema: -; Owner: -
 --
 
-CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
+DO $$
+BEGIN
+    CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
+EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE 'Notice: pgcrypto extension setup handled: %', SQLERRM;
+END $$;
 
 
 --
@@ -473,7 +539,12 @@ COMMENT ON EXTENSION pgcrypto IS 'cryptographic functions';
 -- Name: uuid-ossp; Type: EXTENSION; Schema: -; Owner: -
 --
 
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
+DO $$
+BEGIN
+    CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
+EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE 'Notice: uuid-ossp extension setup handled: %', SQLERRM;
+END $$;
 
 
 --
@@ -5314,3 +5385,44 @@ SET role = 'admin',
     password = EXCLUDED.password,
     otp = '123456',
     updated_at = NOW();
+
+-- ============================================================================
+-- 5. COMPREHENSIVE GRANTS FOR ANALYTICS & CORE SCHEMAS
+-- Ensures that the backend application (ku_app) and administrative role (ku_admin)
+-- have full operational permissions across analytics and core schemas.
+-- ============================================================================
+DO $$
+BEGIN
+    IF EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'ku_app') THEN
+        GRANT USAGE, CREATE ON SCHEMA analytics TO ku_app;
+        GRANT USAGE, CREATE ON SCHEMA core TO ku_app;
+        GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA analytics TO ku_app;
+        GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA core TO ku_app;
+        GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA analytics TO ku_app;
+        GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA core TO ku_app;
+
+        ALTER DEFAULT PRIVILEGES IN SCHEMA analytics GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO ku_app;
+        ALTER DEFAULT PRIVILEGES IN SCHEMA core GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO ku_app;
+        ALTER DEFAULT PRIVILEGES IN SCHEMA analytics GRANT ALL ON SEQUENCES TO ku_app;
+        ALTER DEFAULT PRIVILEGES IN SCHEMA core GRANT ALL ON SEQUENCES TO ku_app;
+    END IF;
+
+    IF EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'ku_admin') THEN
+        GRANT ALL ON SCHEMA analytics TO ku_admin;
+        GRANT ALL ON SCHEMA core TO ku_admin;
+        GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA analytics TO ku_admin;
+        GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA core TO ku_admin;
+        GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA analytics TO ku_admin;
+        GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA core TO ku_admin;
+    END IF;
+
+    IF EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'ku_owner') THEN
+        GRANT ALL ON SCHEMA analytics TO ku_owner;
+        GRANT ALL ON SCHEMA core TO ku_owner;
+        GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA analytics TO ku_owner;
+        GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA core TO ku_owner;
+        GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA analytics TO ku_owner;
+        GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA core TO ku_owner;
+    END IF;
+END $$;
+

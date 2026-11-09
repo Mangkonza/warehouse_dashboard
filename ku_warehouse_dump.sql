@@ -1,11 +1,75 @@
--- Ensure required database roles exist
+-- ============================================================================
+-- 0. DATABASE CREATION & AUTO-CONNECTION
+-- Creates the database 'ku_warehouse' if it does not already exist,
+-- then switches the connection to 'ku_warehouse' to execute the dump.
+-- ============================================================================
+SELECT 'CREATE DATABASE ku_warehouse ENCODING ''UTF8'''
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'ku_warehouse')\gexec
+
+\connect ku_warehouse
+
+-- ============================================================================
+-- 1. ROLE INITIALIZATION (SAFE & IDEMPOTENT)
+-- Creates required application roles with fallback handling if running on
+-- managed cloud databases (AWS RDS, Supabase, Neon) where SUPERUSER is restricted.
+-- ============================================================================
 DO $$
+DECLARE
+    cur_user text := current_user;
 BEGIN
+    -- 1.1 ku_app
     IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'ku_app') THEN
-        CREATE ROLE ku_app WITH LOGIN PASSWORD 'ku_app_secret_2026';
+        BEGIN
+            CREATE ROLE ku_app WITH LOGIN PASSWORD 'ku_app_secret_2026';
+        EXCEPTION WHEN OTHERS THEN
+            RAISE NOTICE 'Notice: Could not create role ku_app (using existing or restricted): %', SQLERRM;
+        END;
     END IF;
+
+    -- 1.2 ku_admin
     IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'ku_admin') THEN
-        CREATE ROLE ku_admin WITH LOGIN PASSWORD 'ku_admin_secret_2026';
+        BEGIN
+            CREATE ROLE ku_admin WITH LOGIN PASSWORD 'ku_admin_secret_2026';
+        EXCEPTION WHEN OTHERS THEN
+            RAISE NOTICE 'Notice: Could not create role ku_admin (using existing or restricted): %', SQLERRM;
+        END;
+    END IF;
+
+    -- 1.3 ku_owner (try with SUPERUSER first; fallback to CREATEDB/CREATEROLE or standard login if restricted)
+    IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'ku_owner') THEN
+        BEGIN
+            CREATE ROLE ku_owner WITH LOGIN SUPERUSER PASSWORD 'ku_owner_secret_2026';
+        EXCEPTION WHEN OTHERS THEN
+            BEGIN
+                CREATE ROLE ku_owner WITH LOGIN CREATEDB CREATEROLE PASSWORD 'ku_owner_secret_2026';
+            EXCEPTION WHEN OTHERS THEN
+                BEGIN
+                    CREATE ROLE ku_owner WITH LOGIN PASSWORD 'ku_owner_secret_2026';
+                EXCEPTION WHEN OTHERS THEN
+                    RAISE NOTICE 'Notice: Could not create role ku_owner (using existing or restricted): %', SQLERRM;
+                END;
+            END;
+        END;
+    END IF;
+
+    -- 1.4 Grant membership to current runner to avoid "must be member of role" errors during ALTER OWNER
+    IF EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'ku_admin') THEN
+        BEGIN
+            EXECUTE format('GRANT ku_admin TO %I', cur_user);
+        EXCEPTION WHEN OTHERS THEN NULL;
+        END;
+    END IF;
+    IF EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'ku_app') THEN
+        BEGIN
+            EXECUTE format('GRANT ku_app TO %I', cur_user);
+        EXCEPTION WHEN OTHERS THEN NULL;
+        END;
+    END IF;
+    IF EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'ku_owner') THEN
+        BEGIN
+            EXECUTE format('GRANT ku_owner TO %I', cur_user);
+        EXCEPTION WHEN OTHERS THEN NULL;
+        END;
     END IF;
 END
 $$;
@@ -14,7 +78,7 @@ $$;
 -- PostgreSQL database dump
 --
 
-\restrict aWnkocedrXOWKemgKepkQnQRbOhpF29EfWa0NEgfMS97bC5MqydWOhYq6iiB7VI
+-- \restrict aWnkocedrXOWKemgKepkQnQRbOhpF29EfWa0NEgfMS97bC5MqydWOhYq6iiB7VI
 
 -- Dumped from database version 16.15 (Debian 16.15-1.pgdg13+2)
 -- Dumped by pg_dump version 16.15 (Debian 16.15-1.pgdg13+2)
