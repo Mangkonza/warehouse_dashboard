@@ -632,12 +632,14 @@ export function AcademicCharts({
     items.forEach((item) => {
       const headName = String(item.head || '').replace(/\r?\n/g, ' ').trim();
       if (!headName || headName === '-' || headName === 'nan') return;
-      const key = item.head_id ? `id_${item.head_id}` : headName;
+      const matched = matchPerson(headName);
+      const headId = item.head_id || matched?.id || matched?._id || matched?.person_id;
+      const key = headId ? `id_${headId}` : headName;
       if (!map[key]) {
         map[key] = {
           key,
           head: headName,
-          head_id: item.head_id,
+          head_id: headId || item.head_id,
           deptCode: resolveDeptCode(item.department, (item as any).departmentCode),
           count: 0,
           totalBudget: 0,
@@ -2712,7 +2714,7 @@ export function AcademicCharts({
                         <tr
                           key={`faculty-lead-${f.head_id || f.head || idx}-${idx}`}
                           onClick={() => {
-                            const targetId = f.head_id || matchPerson(f.head)?.id || matchPerson(f.head)?._id;
+                            const targetId = f.head_id || matchPerson(f.head)?.id || matchPerson(f.head)?._id || matchPerson(f.head)?.person_id;
                             if (targetId) router.push(`/personnel/${targetId}`);
                             else router.push(`/personnel?q=${encodeURIComponent(f.head)}`);
                           }}
@@ -2779,7 +2781,7 @@ export function AcademicCharts({
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                const targetId = f.head_id || matchPerson(f.head)?.id || matchPerson(f.head)?._id;
+                                const targetId = f.head_id || matchPerson(f.head)?.id || matchPerson(f.head)?._id || matchPerson(f.head)?.person_id;
                             if (targetId) router.push(`/personnel/${targetId}`);
                             else router.push(`/personnel?q=${encodeURIComponent(f.head)}`);
                               }}

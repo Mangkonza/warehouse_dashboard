@@ -521,7 +521,8 @@ export function ServiceCharts({
       items.forEach((item) => {
         const pName = String(item.person || '').trim();
         if (!pName || pName === '-' || pName === 'nan') return;
-        const pId = item.person_id;
+        const matched = matchPerson(pName);
+        const pId = item.person_id || matched?.id || matched?._id || matched?.person_id;
         const key = pId ? `id_${pId}` : pName;
         if (!map[key]) {
           const deptCode = getServiceDeptCode(item);
@@ -3267,7 +3268,8 @@ export function ServiceCharts({
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (s.person_id) router.push(`/personnel/${s.person_id}`);
+                            const targetId = s.person_id || matchPerson(s.name)?.id || matchPerson(s.name)?._id || matchPerson(s.name)?.person_id;
+                            if (targetId) router.push(`/personnel/${targetId}`);
                             else router.push(`/personnel?q=${encodeURIComponent(s.name)}`);
                           }}
                           style={{
@@ -3284,7 +3286,7 @@ export function ServiceCharts({
                             gap: '4px',
                           }}
                         >
-                          <span>ดู</span>
+                          <span>ดูผลงาน</span>
                           <FaChevronRight style={{ fontSize: '8px' }} />
                         </button>
                       </td>

@@ -231,7 +231,8 @@ export function PublicationsCharts({
       const ownerName = String(item.owner || '').trim();
       if (!ownerName || ownerName === '-' || ownerName === 'nan') return;
 
-      const pId = item.person_id || item.owner_id;
+      const matched = matchPerson(ownerName);
+      const pId = item.person_id || item.owner_id || matched?.id || matched?._id || matched?.person_id;
       const key = pId ? `id_${pId}` : ownerName;
       if (!map[key]) {
         map[key] = {
@@ -1576,7 +1577,8 @@ export function PublicationsCharts({
             if (yr !== 'all' && resolvePubYear(item) !== yr) return;
             const ownerName = String(item.owner || '').trim();
             if (!ownerName || ownerName === '-' || ownerName === 'nan') return;
-            const pId = item.person_id || item.owner_id;
+            const matched = matchPerson(ownerName);
+      const pId = item.person_id || item.owner_id || matched?.id || matched?._id || matched?.person_id;
             const key = pId ? `id_${pId}` : ownerName;
             if (!map[key]) {
               map[key] = {
@@ -2114,7 +2116,8 @@ export function PublicationsCharts({
                           <tr
                             key={idx}
                             onClick={() => {
-                              if (a.person_id) router.push(`/personnel/${a.person_id}`);
+                              const targetId = a.person_id || matchPerson(a.name)?.id || matchPerson(a.name)?._id || matchPerson(a.name)?.person_id;
+                              if (targetId) router.push(`/personnel/${targetId}`);
                               else router.push(`/personnel?q=${encodeURIComponent(a.name)}`);
                             }}
                             style={{

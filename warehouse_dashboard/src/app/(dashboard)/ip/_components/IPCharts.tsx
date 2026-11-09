@@ -513,7 +513,8 @@ export function IPCharts({
       items.forEach((item) => {
         const cName = String(item.creator || '').trim();
         if (!cName || cName === '-' || cName === 'nan') return;
-        const pId = item.person_id;
+        const matched = matchPerson(cName);
+        const pId = item.person_id || matched?.id || matched?._id || matched?.person_id;
         const key = pId ? `id_${pId}` : cName;
         if (!map[key]) {
           const d = getDepartment(item.department);
@@ -3007,7 +3008,8 @@ export function IPCharts({
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (inv.person_id) router.push(`/personnel/${inv.person_id}`);
+                            const targetId = inv.person_id || matchPerson(inv.creator)?.id || matchPerson(inv.creator)?._id || matchPerson(inv.creator)?.person_id;
+                            if (targetId) router.push(`/personnel/${targetId}`);
                             else router.push(`/personnel?q=${encodeURIComponent(inv.creator)}`);
                           }}
                           style={{
@@ -3024,7 +3026,7 @@ export function IPCharts({
                             gap: '4px',
                           }}
                         >
-                          <span>ดู</span>
+                          <span>ดูผลงาน</span>
                           <FaChevronRight style={{ fontSize: '8px' }} />
                         </button>
                       </td>

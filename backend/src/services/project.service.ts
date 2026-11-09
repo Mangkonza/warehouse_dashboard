@@ -146,6 +146,8 @@ function formatPublication(item: any) {
     budget: Number(item.budget || 0),
     owner: item.firstAuthorName || '',
     first_author: item.firstAuthorName || '',
+    person_id: item.firstAuthorPersonnelId || (item.firstAuthorPersonnel?.personId ? item.firstAuthorPersonnel.personId : undefined),
+    owner_id: item.firstAuthorPersonnelId || (item.firstAuthorPersonnel?.personId ? item.firstAuthorPersonnel.personId : undefined),
     co_authors_domestic: domesticStr,
     co_authors_foreign: foreignStr,
     department: item.department?.nameTh || item.departmentCode || '',
