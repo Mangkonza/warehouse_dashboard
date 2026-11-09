@@ -12,10 +12,27 @@ export const AuthModal: React.FC<AuthModalProps> = ({ forceOpen = false }) => {
   const basePath = (process.env.NEXT_PUBLIC_BASE_PATH || '').replace(/\/+$/, '');
   const bgUrl = `${basePath}/bg9.jpg`;
   React.useEffect(() => {
-    const originalOverflow = document.body.style.overflow;
+    const originalBodyOverflow = document.body.style.overflow;
+    const originalBodyMargin = document.body.style.margin;
+    const originalBodyPadding = document.body.style.padding;
+    const originalBodyBg = document.body.style.backgroundColor;
+    const originalHtmlOverflow = document.documentElement.style.overflow;
+    const originalHtmlGutter = document.documentElement.style.scrollbarGutter;
+
     document.body.style.overflow = 'hidden';
+    document.body.style.margin = '0px';
+    document.body.style.padding = '0px';
+    document.body.style.backgroundColor = '#121518';
+    document.documentElement.style.overflow = 'hidden';
+    document.documentElement.style.scrollbarGutter = 'auto';
+
     return () => {
-      document.body.style.overflow = originalOverflow;
+      document.body.style.overflow = originalBodyOverflow;
+      document.body.style.margin = originalBodyMargin;
+      document.body.style.padding = originalBodyPadding;
+      document.body.style.backgroundColor = originalBodyBg;
+      document.documentElement.style.overflow = originalHtmlOverflow;
+      document.documentElement.style.scrollbarGutter = originalHtmlGutter;
     };
   }, []);
   const { user, isLoginModalOpen, closeLoginModal, loginWithCredentials, isLoading } = useAuth();
@@ -89,9 +106,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ forceOpen = false }) => {
         left: 0,
         right: 0,
         bottom: 0,
-        width: '100%',
-                height: '100%',
-                zIndex: 99999,
+        width: '100vw',
+        height: '100vh',
+        zIndex: 99999,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
