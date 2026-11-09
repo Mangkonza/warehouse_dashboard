@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { FaRedo, FaTimes, FaLock, FaUser } from 'react-icons/fa';
+import { FaRedo, FaTimes } from 'react-icons/fa';
 
 export interface AuthModalProps {
   forceOpen?: boolean;
@@ -11,6 +11,7 @@ export interface AuthModalProps {
 export const AuthModal: React.FC<AuthModalProps> = ({ forceOpen = false }) => {
   const basePath = (process.env.NEXT_PUBLIC_BASE_PATH || '').replace(/\/+$/, '');
   const bgUrl = `${basePath}/bg9.jpg`;
+
   React.useEffect(() => {
     const originalBodyOverflow = document.body.style.overflow;
     const originalBodyMargin = document.body.style.margin;
@@ -35,6 +36,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ forceOpen = false }) => {
       document.documentElement.style.scrollbarGutter = originalHtmlGutter;
     };
   }, []);
+
   const { user, isLoginModalOpen, closeLoginModal, loginWithCredentials, isLoading } = useAuth();
   const [step, setStep] = useState<1 | 2>(1);
   const [username, setUsername] = useState('');
@@ -55,15 +57,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({ forceOpen = false }) => {
 
     if (step === 1) {
       if (!username.trim()) {
-        setErrorMsg('กรุณากรอกชื่อผู้ใช้งาน (Username)');
+        setErrorMsg('กรุณากรอกชื่อผู้ใช้เครือข่ายนนทรี');
         return;
       }
       if (!password) {
-        setErrorMsg('กรุณากรอกรหัสผ่าน (Password)');
+        setErrorMsg('กรุณากรอกรหัสผ่าน');
         return;
       }
 
-      // ไป Step 2: One-time code (OTP)
+      // ไป Step 2: One-time code (ตรงตาม Screenshot 2 ของ มก.)
       setStep(2);
       return;
     }
@@ -82,7 +84,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ forceOpen = false }) => {
       // ล็อกอินสำเร็จ นำทางไปยัง returnUrl หรือ /overview ทันที
       const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
       const rawReturnUrl = params?.get('returnUrl');
-      const basePath = (process.env.NEXT_PUBLIC_BASE_PATH || '').replace(/\/+$/, '');
       const defaultUrl = `${basePath}/overview`;
       const targetUrl =
         rawReturnUrl && rawReturnUrl.startsWith('/') && !rawReturnUrl.startsWith('//')
@@ -117,34 +118,34 @@ export const AuthModal: React.FC<AuthModalProps> = ({ forceOpen = false }) => {
         backgroundColor: '#121518',
         backgroundImage: `url('${bgUrl}')`,
         backgroundSize: 'cover',
-        backgroundPosition: 'center center',
+        backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
         overflow: 'hidden',
         boxSizing: 'border-box',
         margin: 0,
       }}
     >
-      {/* Dark overlay เพื่อให้อ่านง่ายและชัดเจน */}
+      {/* Dark overlay บางๆ เพื่อความคมชัด */}
       <div
         style={{
           position: 'absolute',
           inset: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.35)',
+          backgroundColor: 'rgba(0, 0, 0, 0.2)',
           pointerEvents: 'none',
         }}
       />
 
-      {/* กล่อง Login สีขาว ตรงกลางจอ */}
+      {/* กล่อง Login สีขาว ตรงกลางจอ (สไตล์เดิมของระบบ) */}
       <div
         style={{
           position: 'relative',
-          backgroundColor: 'rgba(255, 255, 255, 0.98)',
-          backdropFilter: 'blur(16px)',
-          borderRadius: '20px',
+          backgroundColor: 'rgba(255, 255, 255, 0.96)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: '24px',
           width: '100%',
           maxWidth: '390px',
-          padding: '36px 32px 32px 32px',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+          padding: '36px 36px 32px 36px',
+          boxShadow: '0 20px 45px rgba(0, 0, 0, 0.35)',
           zIndex: 10,
           boxSizing: 'border-box',
         }}
@@ -172,54 +173,34 @@ export const AuthModal: React.FC<AuthModalProps> = ({ forceOpen = false }) => {
           </button>
         )}
 
-        {/* หัวข้อ Login เรียบหรู */}
-        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+        {/* หัวข้อ Login (ตัวอักษรสีเขียว สไตล์เดิม) */}
+        <div style={{ textAlign: 'center', marginBottom: '22px' }}>
           <div
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '52px',
-              height: '52px',
-              borderRadius: '14px',
-              backgroundColor: '#e6f4f1',
-              color: '#00675a',
-              fontSize: '22px',
-              marginBottom: '12px',
-            }}
-          >
-            <FaLock />
-          </div>
-          <div
-            style={{
-              fontSize: '28px',
+              fontSize: '34px',
               fontWeight: 800,
               color: '#00675a',
-              letterSpacing: '-0.5px',
-              lineHeight: '1.2',
+              letterSpacing: '-0.4px',
+              marginTop: '6px',
+              fontFamily: 'inherit',
             }}
           >
             Login
           </div>
-          <div style={{ fontSize: '13px', color: '#64748b', marginTop: '6px' }}>
-            เข้าสู่ระบบบริหารจัดการข้อมูล
-          </div>
         </div>
 
-        {/* กล่องแสดง Error */}
         {errorMsg && (
           <div
             style={{
               backgroundColor: '#fee2e2',
               color: '#dc2626',
               border: '1px solid #fecaca',
-              padding: '10px 14px',
-              borderRadius: '8px',
-              fontSize: '13px',
-              marginBottom: '16px',
+              padding: '8px 12px',
+              borderRadius: '6px',
+              fontSize: '12px',
+              marginBottom: '14px',
               textAlign: 'center',
               fontWeight: 500,
-              lineHeight: '1.4',
             }}
           >
             {errorMsg}
@@ -229,165 +210,155 @@ export const AuthModal: React.FC<AuthModalProps> = ({ forceOpen = false }) => {
         {/* Step 1: Username & Password */}
         {step === 1 ? (
           <form onSubmit={handleSubmit} style={{ width: '100%' }}>
-            <div style={{ fontSize: '12.5px', color: '#00675a', fontWeight: 600, marginBottom: '6px', textAlign: 'left' }}>
-              Step 1/2: ชื่อผู้ใช้งาน (Username)
+            <div style={{ fontSize: '12.5px', color: '#00675a', fontWeight: 600, marginBottom: '8px', textAlign: 'left' }}>
+              Step 1/2: username
             </div>
 
-            <div style={{ marginBottom: '14px' }}>
+            <div style={{ marginBottom: '12px' }}>
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="กรอกชื่อผู้ใช้งาน"
+                placeholder=""
                 autoFocus
                 style={{
                   width: '100%',
-                  height: '44px',
-                  backgroundColor: '#f8fafc',
-                  border: '1px solid #cbd5e1',
-                  borderRadius: '8px',
-                  padding: '0 14px',
+                  height: '42px',
+                  backgroundColor: '#e8f0fe',
+                  border: '1px solid #d4e3fc',
+                  borderRadius: '6px',
+                  padding: '0 12px',
                   fontSize: '14.5px',
                   color: '#1a202c',
                   outline: 'none',
                   boxSizing: 'border-box',
-                  transition: 'border 0.2s',
                 }}
-                onFocus={(e) => (e.target.style.border = '1.5px solid #00675a')}
-                onBlur={(e) => (e.target.style.border = '1px solid #cbd5e1')}
               />
             </div>
 
-            <div style={{ fontSize: '12.5px', color: '#00675a', fontWeight: 600, marginBottom: '6px', textAlign: 'left' }}>
-              รหัสผ่าน (Password)
-            </div>
-
-            <div style={{ marginBottom: '20px' }}>
+            <div style={{ marginBottom: '18px' }}>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="กรอกรหัสผ่าน"
+                placeholder=""
                 style={{
                   width: '100%',
-                  height: '44px',
-                  backgroundColor: '#f8fafc',
-                  border: '1px solid #cbd5e1',
-                  borderRadius: '8px',
-                  padding: '0 14px',
+                  height: '42px',
+                  backgroundColor: '#e8f0fe',
+                  border: '1px solid #d4e3fc',
+                  borderRadius: '6px',
+                  padding: '0 12px',
                   fontSize: '14.5px',
                   color: '#1a202c',
                   outline: 'none',
                   boxSizing: 'border-box',
-                  transition: 'border 0.2s',
                 }}
-                onFocus={(e) => (e.target.style.border = '1.5px solid #00675a')}
-                onBlur={(e) => (e.target.style.border = '1px solid #cbd5e1')}
               />
             </div>
 
-            <button
-              type="submit"
-              disabled={isLoading}
-              style={{
-                width: '100%',
-                height: '44px',
-                backgroundColor: '#00675a',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '15px',
-                fontWeight: 700,
-                cursor: isLoading ? 'not-allowed' : 'pointer',
-                transition: 'background 0.2s ease',
-                boxShadow: '0 4px 12px rgba(0, 103, 90, 0.3)',
-              }}
-              onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#004f44')}
-              onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#00675a')}
-            >
-              Sign In
-            </button>
+            <div style={{ textAlign: 'left' }}>
+              <button
+                type="submit"
+                disabled={isLoading}
+                style={{
+                  backgroundColor: '#00675a',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '8px 26px',
+                  fontSize: '13.5px',
+                  fontWeight: 700,
+                  cursor: isLoading ? 'not-allowed' : 'pointer',
+                  transition: 'background 0.15s ease',
+                  boxShadow: '0 2px 6px rgba(0, 103, 90, 0.25)',
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#004f44')}
+                onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#00675a')}
+              >
+                Sign In
+              </button>
+            </div>
           </form>
         ) : (
-          /* Step 2: One-time code (OTP) */
+          /* Step 2: One-time code (OTP) สไตล์เดิม */
           <form onSubmit={handleSubmit} style={{ width: '100%' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-              <div style={{ fontSize: '14.5px', color: '#1a202c', fontWeight: 700, textAlign: 'left' }}>
-                {username}
-              </div>
+            <div style={{ fontSize: '14.5px', color: '#1a202c', fontWeight: 700, marginBottom: '6px', textAlign: 'left' }}>
+              {username}
+            </div>
+
+            <div style={{ textAlign: 'left', marginBottom: '14px' }}>
               <button
                 type="button"
                 onClick={handleRestart}
                 style={{
-                  background: '#f1f5f9',
+                  background: '#ffffff',
                   border: '1px solid #cbd5e1',
-                  borderRadius: '6px',
-                  padding: '4px 10px',
-                  fontSize: '12px',
-                  color: '#475569',
+                  borderRadius: '4px',
+                  padding: '3px 8px',
+                  fontSize: '11.5px',
+                  color: '#334155',
                   cursor: 'pointer',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '4px',
                 }}
               >
-                <FaRedo style={{ fontSize: '10px' }} /> เปลี่ยนบัญชี
+                <FaRedo style={{ fontSize: '9px' }} /> Restart login
               </button>
             </div>
 
-            <div style={{ fontSize: '12.5px', color: '#00675a', fontWeight: 600, marginBottom: '6px', textAlign: 'left' }}>
-              Step 2/2: One-time code (OTP)
+            <div style={{ fontSize: '12.5px', color: '#00675a', fontWeight: 600, marginBottom: '8px', textAlign: 'left' }}>
+              Step 2/2: One-time code
             </div>
 
-            <div style={{ marginBottom: '20px' }}>
+            <div style={{ marginBottom: '18px' }}>
               <input
                 type="text"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
-                placeholder="กรอกรหัส 6 หลัก"
+                placeholder=""
                 autoFocus
                 maxLength={6}
                 style={{
                   width: '100%',
-                  height: '44px',
-                  backgroundColor: '#f8fafc',
+                  height: '42px',
+                  backgroundColor: '#ffffff',
                   border: '1px solid #cbd5e1',
-                  borderRadius: '8px',
-                  padding: '0 14px',
-                  fontSize: '18px',
-                  letterSpacing: '4px',
-                  textAlign: 'center',
+                  borderRadius: '6px',
+                  padding: '0 12px',
+                  fontSize: '16px',
+                  fontWeight: 600,
                   color: '#1a202c',
                   outline: 'none',
                   boxSizing: 'border-box',
-                  transition: 'border 0.2s',
+                  letterSpacing: '2px',
                 }}
-                onFocus={(e) => (e.target.style.border = '1.5px solid #00675a')}
-                onBlur={(e) => (e.target.style.border = '1px solid #cbd5e1')}
               />
             </div>
 
-            <button
-              type="submit"
-              disabled={isLoading}
-              style={{
-                width: '100%',
-                height: '44px',
-                backgroundColor: '#00675a',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '15px',
-                fontWeight: 700,
-                cursor: isLoading ? 'not-allowed' : 'pointer',
-                transition: 'background 0.2s ease',
-                boxShadow: '0 4px 12px rgba(0, 103, 90, 0.3)',
-              }}
-              onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#004f44')}
-              onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#00675a')}
-            >
-              Confirm & Sign In
-            </button>
+            <div style={{ textAlign: 'left' }}>
+              <button
+                type="submit"
+                disabled={isLoading}
+                style={{
+                  backgroundColor: '#00675a',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '8px 26px',
+                  fontSize: '13.5px',
+                  fontWeight: 700,
+                  cursor: isLoading ? 'not-allowed' : 'pointer',
+                  transition: 'background 0.15s ease',
+                  boxShadow: '0 2px 6px rgba(0, 103, 90, 0.25)',
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#004f44')}
+                onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#00675a')}
+              >
+                {isLoading ? 'Verifying...' : 'Sign In'}
+              </button>
+            </div>
           </form>
         )}
       </div>
