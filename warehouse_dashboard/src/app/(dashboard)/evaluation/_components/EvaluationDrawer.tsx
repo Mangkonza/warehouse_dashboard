@@ -76,6 +76,16 @@ export const EvaluationDrawer: React.FC<EvaluationDrawerProps> = ({
             };
           }
         }
+      } else if (category === 'publications') {
+        const rawRecJ = record.quartile || record.journal_index || record.remarks || '';
+        const trimmed = typeof rawRecJ === 'object' ? (rawRecJ.value || '') : String(rawRecJ || '').trim();
+        if (trimmed && /^(Q[1-4]|TCI\s*[1-3])/i.test(trimmed)) {
+          const type = trimmed.toUpperCase().startsWith('TCI') ? 'TCI' : 'Q';
+          journalIndexVal = {
+            type: type as any,
+            value: trimmed.toUpperCase(),
+          };
+        }
       }
 
       setDraftValue({
@@ -86,7 +96,7 @@ export const EvaluationDrawer: React.FC<EvaluationDrawerProps> = ({
       setConfirmCloseOpen(false);
       setErrorMessage(null);
     }
-  }, [record, evaluation]);
+  }, [record, evaluation, category]);
 
   // Check unsaved changes
   const hasUnsavedChanges = React.useMemo(() => {

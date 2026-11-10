@@ -1,6 +1,8 @@
 import { cookies } from 'next/headers';
+import { getBackendUrl } from '@/lib/backendUrl';
 import { redirect } from 'next/navigation';
 import { AppResource, canAccess } from '@/config/permissions';
+import { withBasePath } from '@/lib/auth/paths';
 
 /**
  * enforceServerRole: ตรวจสอบสิทธิ์ใน Server Component/Layout
@@ -12,14 +14,11 @@ export async function enforceServerRole(resource: AppResource) {
   const sessionCookie = cookieStore.get('ku_session')?.value;
 
   if (!sessionCookie) {
-    redirect('/login');
+    redirect(withBasePath('/login'));
   }
 
   try {
-    const backendUrl =
-      process.env.INTERNAL_BACKEND_URL ||
-      process.env.BACKEND_URL ||
-      'http://127.0.0.1:8000';
+    const backendUrl = getBackendUrl();
     const res = await fetch(`${backendUrl}/api/v1/auth/me`, {
       headers: {
         Cookie: `ku_session=${sessionCookie}`,
@@ -28,14 +27,14 @@ export async function enforceServerRole(resource: AppResource) {
     });
 
     if (!res.ok) {
-      redirect('/login');
+      redirect(withBasePath('/login'));
     }
 
     const data = await res.json();
     const role = data?.user?.role || 'user';
 
     if (!canAccess(role, resource)) {
-      redirect('/unauthorized');
+      redirect(withBasePath('/unauthorized'));
     }
 
     return data.user;
@@ -45,6 +44,6 @@ export async function enforceServerRole(resource: AppResource) {
       throw err;
     }
     console.error('[serverAuth] Error verifying session with backend:', err);
-    redirect('/unauthorized');
+    redirect(withBasePath('/unauthorized'));
   }
 }

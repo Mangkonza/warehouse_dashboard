@@ -1,8 +1,10 @@
-import { formatPersonName, splitFullName } from './formatPersonName';
+﻿import { formatPersonName, splitFullName } from './formatPersonName';
 import * as XLSX from 'xlsx';
 import { CATEGORIES_CONFIG, DEPARTMENTS } from '../config/dataManagementConfig';
 import { CategoryKey, ColumnDef, ParsedRowResult, SheetParseResult, ValidationIssue } from '../types/dataManagement';
 import { matchPerson, normalizePersonName } from './personnelService';
+import { exportUnifiedPageExcel } from './export';
+export { exportUnifiedPageExcel };
 
 // Sheet name mapping keywords
 const SHEET_NAME_KEYWORDS: Record<CategoryKey, string[]> = {
@@ -152,7 +154,7 @@ export function parseDateOrYear(val: any): string {
   }
 
   // รูปแบบ DD/MM/YYYY
-  const dmyMatch = str.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/);
+  const dmyMatch = str.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})$/);
   if (dmyMatch) {
     const [, d, m, y] = dmyMatch;
     return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
@@ -761,54 +763,26 @@ export function downloadExcelTemplate(categoryKey: CategoryKey) {
  */
 export function exportTableToExcel(data: any[], categoryKey: CategoryKey, fileName?: string) {
   const config = CATEGORIES_CONFIG[categoryKey];
+  const pageMap: Record<CategoryKey, any> = {
+    research: 'research',
+    academic: 'academic',
+    publications: 'publications',
+    service: 'service',
+    ip: 'ip',
+    personnel: 'manage_data',
+    kpi: 'manage_kpi',
+    monitoring: 'manage_data',
+    user_roles: 'manage_data',
+  };
 
-  if (categoryKey === 'personnel') {
-    const exportRows = data.map((row) => {
-      const split = (row.first_name || row.last_name)
-        ? { first_name: row.first_name || '', last_name: row.last_name || '' }
-        : splitFullName(row.name || row.name_th || '', row.title_th);
-      return {
-        'คำนำหน้า': row.title_th || row.prefix || '-',
-        'ชื่อ': split.first_name || '-',
-        'นามสกุล': split.last_name || '-',
-        'ตำแหน่งทางวิชาการ': row.position || '-',
-        'สังกัด': row.department || '-',
-        'อีเมล KU': row.email || '-',
-      };
-    });
-    const ws = XLSX.utils.json_to_sheet(exportRows);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, config.title.substring(0, 31));
-    const outName = fileName || `Export_${config.key}_${new Date().toISOString().substring(0, 10)}.xlsx`;
-    XLSX.writeFile(wb, outName);
-    return;
-  }
-
-  const activeCols = config.columns;
-
-  const exportRows = data.map((row) => {
-    const item: Record<string, any> = {};
-    activeCols.forEach((col) => {
-      const colTitle = col.label.replace('\n', ' ');
-      if (col.format) {
-        item[colTitle] = col.format(row[col.key], row);
-      } else if (col.type === 'ip_req_info') {
-        item[colTitle] = row.application_number || row.req_no || '-';
-      } else if (col.type === 'ip_reg_info') {
-        item[colTitle] = row.registration_number || row.reg_no || '-';
-      } else {
-        item[colTitle] = row[col.key] !== undefined && row[col.key] !== null ? row[col.key] : '-';
-      }
-    });
-    return item;
+  exportUnifiedPageExcel({
+    page: pageMap[categoryKey] || 'manage_data',
+    section: 'mission_table',
+    title: 'รายงานข้อมูลด้าน' + config.title + ' (ภาพรวมและรายละเอียด)',
+    categoryKey,
+    tableData: data,
+    fileName,
   });
-
-  const ws = XLSX.utils.json_to_sheet(exportRows);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, config.title.substring(0, 31));
-
-  const outName = fileName || `Export_${config.key}_${new Date().toISOString().substring(0, 10)}.xlsx`;
-  XLSX.writeFile(wb, outName);
 }
 
 /**

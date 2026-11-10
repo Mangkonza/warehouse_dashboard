@@ -604,7 +604,7 @@ tbody td{padding:11px 10px;border-bottom:1px solid #e2e8f0;max-width:260px;overf
 }
 
 @layer components {
-  /* I am / I see */
+  /* กลุ่มการประเมิน */
   .tag-iam {
     background-color: #831D1D !important;
     border-color: #641515 !important;

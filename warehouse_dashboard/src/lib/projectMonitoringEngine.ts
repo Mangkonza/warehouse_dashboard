@@ -1,8 +1,80 @@
 import { ProjectExtensionRecord, ProjectStatus, ProjectTimelineInfo } from '../types/projectMonitoring';
 
 /**
+ * ปรับแก้ปี พ.ศ. ที่ติดเป็น 1968 จาก Excel 2 หลัก (เช่น 68 -> 1968 แท้จริงคือ 2568 พ.ศ. = 2025 ค.ศ.)
+ */
+export function normalizeCeDate(d: Date): Date {
+  if (!d || isNaN(d.getTime())) return d;
+  const y = d.getFullYear();
+  if (y >= 1960 && y <= 1980) {
+    d.setFullYear(y + 57); // 1968 (BE 2568) -> 2025 CE
+  } else if (y > 2400) {
+    d.setFullYear(y - 543); // 2568 BE -> 2025 CE
+  }
+  return d;
+}
+
+/**
+ * ฟังก์ชันแปลง Date String หลากหลายรูปแบบ (ISO, YYYY-MM-DD, DD/MM/YYYY, Timestamp) เป็น Date Object อย่างแม่นยำ
+ */
+export function parseFlexibleDate(val: any): Date | null {
+  if (val === null || val === undefined || val === '' || val === '-' || val === 'nan' || val === 'NaT') {
+    return null;
+  }
+  if (val instanceof Date) {
+    return isNaN(val.getTime()) ? null : normalizeCeDate(new Date(val.getTime()));
+  }
+
+  const str = String(val).trim();
+  if (!str) return null;
+
+  // 1. ISO date string or timestamp (e.g., 2025-09-30, 2025-09-30T00:00:00.000Z, 2025/09/30)
+  const isoMatch = str.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+  if (isoMatch) {
+    let y = parseInt(isoMatch[1], 10);
+    const m = parseInt(isoMatch[2], 10) - 1;
+    const d = parseInt(isoMatch[3], 10);
+    if (y >= 1960 && y <= 1980) y += 57;
+    else if (y > 2400) y -= 543;
+    const date = new Date(y, m, d);
+    return isNaN(date.getTime()) ? null : date;
+  }
+
+  // 2. DD/MM/YYYY or D/M/YYYY or DD-MM-YYYY (e.g., 30/09/2568, 11/11/2026)
+  const dmyMatch = str.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})/);
+  if (dmyMatch) {
+    const d = parseInt(dmyMatch[1], 10);
+    const m = parseInt(dmyMatch[2], 10) - 1;
+    let y = parseInt(dmyMatch[3], 10);
+    if (y >= 1960 && y <= 1980) y += 57;
+    else if (y > 2400) y -= 543;
+    const date = new Date(y, m, d);
+    return isNaN(date.getTime()) ? null : date;
+  }
+
+  // 3. YYYY-MM or MM/YYYY
+  const ymMatch = str.match(/^(\d{4})[-/](\d{1,2})$/);
+  if (ymMatch) {
+    let y = parseInt(ymMatch[1], 10);
+    const m = parseInt(ymMatch[2], 10) - 1;
+    if (y >= 1960 && y <= 1980) y += 57;
+    else if (y > 2400) y -= 543;
+    const date = new Date(y, m, 1);
+    return isNaN(date.getTime()) ? null : date;
+  }
+
+  // 4. Fallback Date constructor
+  const parsed = new Date(str);
+  if (!isNaN(parsed.getTime())) {
+    return normalizeCeDate(parsed);
+  }
+
+  return null;
+}
+
+/**
  * คำนวณข้อมูลเวลาและการติดตามผลของโครงการ (Project Timeline & Monitoring Calculation)
- * แก้ไขตาม GAP Analysis 1.1: ป้องกันไม่ให้โครงการที่ไม่มีวันที่หรืออยู่ในกรอบปีงบประมาณถูกตีเป็น "ล่าช้า"
+ * ตรวจสอบความถูกต้องของสถานะโครงการ (Overdue, On Track, Extended, Completed, Cancelled)
  */
 export function calculateProjectTimeline(item: Record<string, any>, referenceDateStr?: string, isEval?: boolean): ProjectTimelineInfo {
   const today = referenceDateStr ? new Date(referenceDateStr) : new Date();
@@ -10,23 +82,22 @@ export function calculateProjectTimeline(item: Record<string, any>, referenceDat
   // 1. ดึงปีงบประมาณ หรือสกัดจากรหัสโครงการ
   let fiscalYear = Number(item.fiscal_year_be || item.fiscal_year);
   if (!fiscalYear || isNaN(fiscalYear)) {
-    const codeMatch = String(item.id || '').match(/25[6-7][0-9]/);
+    const codeMatch = String(item.id || item.code || item.legacy_id || '').match(/25[6-7][0-9]/);
     fiscalYear = codeMatch ? parseInt(codeMatch[0], 10) : 2568;
   }
   const fiscalYearCe = fiscalYear - 543;
 
-  // 2. ตรวจสอบว่ามีข้อมูลวันเริ่มและวันสิ้นสุดสัญญาจริงหรือไม่
-  const rawStart = String(item.start_date || '').trim();
-  const rawEnd = String(item.end_date || item.original_end_date || '').trim();
+  // 2. ตรวจสอบและแปลงวันเริ่มและวันสิ้นสุดสัญญาจริง
+  const rawStart = item.start_date || '';
+  const rawEnd = item.end_date || item.original_end_date || '';
 
-  const isRealDate = (s: string) => /^\d{4}-\d{2}-\d{2}$/.test(s) || /^\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4}$/.test(s);
-  const hasExplicitStartDate = isRealDate(rawStart);
-  const hasExplicitEndDate = isRealDate(rawEnd);
+  const parsedStartDate = parseFlexibleDate(rawStart);
+  const parsedEndDate = parseFlexibleDate(rawEnd);
 
   // 3. ดึงระยะเวลาโครงการ (เดือน)
   let durationMonths = Number(item.duration_months);
   if (!durationMonths || isNaN(durationMonths)) {
-    const monthMatch = rawStart.match(/(\d+)\s*เดือน/);
+    const monthMatch = String(rawStart).match(/(\d+)\s*เดือน/);
     if (monthMatch) {
       durationMonths = parseInt(monthMatch[1], 10);
     } else {
@@ -34,22 +105,10 @@ export function calculateProjectTimeline(item: Record<string, any>, referenceDat
     }
   }
 
-  // ปรับแก้ปี พ.ศ. ที่ติดเป็น 1968 จาก Excel 2 หลัก (เช่น 68 -> 1968 แท้จริงคือ 2568 พ.ศ. = 2025 ค.ศ.)
-  const normalizeCeDate = (d: Date): Date => {
-    if (isNaN(d.getTime())) return d;
-    const y = d.getFullYear();
-    if (y >= 1960 && y <= 1980) {
-      d.setFullYear(y + 57); // 1968 (BE 2568) -> 2025 CE
-    } else if (y > 2400) {
-      d.setFullYear(y - 543); // 2568 BE -> 2025 CE
-    }
-    return d;
-  };
-
   // 4. กำหนดวันเริ่มต้นโครงการ (Start Date)
   let startDate: Date;
-  if (hasExplicitStartDate) {
-    startDate = normalizeCeDate(new Date(rawStart));
+  if (parsedStartDate) {
+    startDate = parsedStartDate;
   } else {
     // กำหนดวันเริ่มต้นตามต้นปีงบประมาณของโครงการ (1 ต.ค. ของปีก่อนหน้า)
     startDate = new Date(fiscalYearCe - 1, 9, 1);
@@ -57,11 +116,10 @@ export function calculateProjectTimeline(item: Record<string, any>, referenceDat
 
   // 5. กำหนดวันสิ้นสุดเดิม (Original End Date)
   let originalEndDate: Date;
-  if (hasExplicitEndDate) {
-    originalEndDate = normalizeCeDate(new Date(rawEnd));
+  if (parsedEndDate) {
+    originalEndDate = parsedEndDate;
   } else {
-    originalEndDate = new Date(startDate);
-    originalEndDate.setMonth(originalEndDate.getMonth() + durationMonths);
+    originalEndDate = new Date(startDate.getFullYear(), startDate.getMonth() + durationMonths, startDate.getDate());
   }
 
   // 6. ประวัติการขอขยายเวลา
@@ -71,8 +129,9 @@ export function calculateProjectTimeline(item: Record<string, any>, referenceDat
   const approvedExtensions = extensions.filter((e) => e.approval_status === 'approved');
   if (approvedExtensions.length > 0) {
     const latestExtension = approvedExtensions[approvedExtensions.length - 1];
-    if (latestExtension.extended_end_date) {
-      currentEndDate = normalizeCeDate(new Date(latestExtension.extended_end_date));
+    const parsedExtEnd = parseFlexibleDate(latestExtension.extended_end_date);
+    if (parsedExtEnd) {
+      currentEndDate = parsedExtEnd;
     }
   }
 
@@ -81,66 +140,92 @@ export function calculateProjectTimeline(item: Record<string, any>, referenceDat
   const daysRemaining = Math.round((currentEndDate.getTime() - today.getTime()) / msPerDay);
   
   // โครงการจะถือว่าเกินกำหนดสัญญา (isOverdue) เมื่อพ้นวันสิ้นสุดสัญญา (daysRemaining < 0)
-  // และไม่ปิดโครงการโดยอัตโนมัติ (ต้องมีผู้ใช้มากดปิดโครงการเอง)
   const isOverdue = !isNaN(currentEndDate.getTime()) && daysRemaining < 0;
+
+  // 8. Normalization และวิเคราะห์สถานะจริงของโครงการ
+  const rawStatus = String(item.status || '').trim().toLowerCase();
+
+  const isCancelled = Boolean(
+    item.cancelled_date ||
+    rawStatus === 'cancelled' ||
+    rawStatus === 'canceled' ||
+    rawStatus === 'cancel' ||
+    rawStatus === 'ยกเลิก' ||
+    rawStatus.includes('ยกเลิก') ||
+    rawStatus.includes('ยุติ') ||
+    rawStatus.includes('ระงับ')
+  );
+
+  const isClosed = Boolean(
+    item.closed_date ||
+    item.is_completed ||
+    rawStatus === 'completed' ||
+    rawStatus === 'closed' ||
+    rawStatus === 'finished' ||
+    rawStatus === 'เสร็จสิ้น' ||
+    rawStatus === 'เสร็จ' ||
+    rawStatus === 'ปิดโครงการ' ||
+    rawStatus === 'ปิดโครงการแล้ว' ||
+    rawStatus === 'ปิดสัญญา' ||
+    rawStatus.includes('เสร็จสิ้น') ||
+    rawStatus.includes('ปิดโครงการ') ||
+    rawStatus === 'waiting_eval' ||
+    rawStatus === 'evaluated'
+  );
+
+  const isExtensionRequested = Boolean(
+    extensions.some((e) => e.approval_status === 'pending') ||
+    rawStatus === 'extension_requested' ||
+    rawStatus.includes('ขอขยายเวลา') ||
+    rawStatus.includes('ยื่นขอขยาย')
+  );
+
+  const isExtended = Boolean(
+    approvedExtensions.length > 0 ||
+    rawStatus === 'extended' ||
+    rawStatus.includes('อยู่ระหว่างขยาย') ||
+    rawStatus.includes('ขยายเวลา')
+  );
 
   // ใกล้ครบกำหนดสัญญา: เหลือน้อยกว่า 1 เดือน (<= 30 วัน) จากวันปัจจุบัน และยังไม่ปิดหรือยกเลิก
   const isExpiringSoon =
     !isOverdue &&
     daysRemaining >= 0 &&
     daysRemaining <= 30 &&
-    item.status !== 'completed' &&
-    item.status !== 'cancelled' &&
-    !item.closed_date &&
-    !item.is_completed;
+    !isClosed &&
+    !isCancelled;
 
-  // 8. คำนวณความก้าวหน้าประมาณการ (%)
+  // 9. คำนวณความก้าวหน้าประมาณการ (%)
   const totalProjectDays = Math.max(1, Math.round((currentEndDate.getTime() - startDate.getTime()) / msPerDay));
   const elapsedDays = Math.round((today.getTime() - startDate.getTime()) / msPerDay);
   let progressPercent = Math.min(100, Math.max(0, Math.round((elapsedDays / totalProjectDays) * 100)));
 
-  // 9. กำหนดสถานะโครงการ (Project Status) ตาม GAP Analysis 1.1
-  let status: ProjectStatus = (item.status as ProjectStatus) || 'active';
+  // 10. กำหนดสถานะโครงการ (Project Status)
+  let status: ProjectStatus = 'active';
 
-  const isClosed = Boolean(
-    item.closed_date ||
-    item.is_completed ||
-    item.status === 'completed' ||
-    item.status === 'waiting_eval' ||
-    item.status === 'evaluated'
-  );
-
-  if (item.status === 'cancelled') {
+  if (isCancelled) {
     status = 'cancelled';
   } else if (isClosed) {
     if (isEval) {
       status = 'evaluated';
-    } else if (item.status === 'completed' || item.is_completed) {
-      status = 'completed';
-    } else {
+    } else if (rawStatus === 'waiting_eval' && !item.is_completed && !item.closed_date) {
       status = 'waiting_eval';
+    } else {
+      status = 'completed';
     }
     progressPercent = 100;
-  } else if (
-    !item.status ||
-    item.status === 'active' ||
-    item.status === 'delayed' ||
-    item.status === 'extended' ||
-    item.status === 'extension_requested'
-  ) {
-    if (extensions.some((e) => e.approval_status === 'pending') || item.status === 'extension_requested') {
-      status = 'extension_requested';
-    } else if (approvedExtensions.length > 0 || item.status === 'extended') {
-      status = isOverdue ? 'delayed' : 'extended';
-    } else if (isOverdue) {
-      status = 'delayed';
-    } else {
-      status = 'active';
-    }
+  } else if (isExtensionRequested) {
+    status = 'extension_requested';
+  } else if (isExtended) {
+    status = isOverdue ? 'delayed' : 'extended';
+  } else if (isOverdue) {
+    status = 'delayed';
+  } else {
+    status = 'active';
   }
 
   const formatDate = (d: Date) => {
-    if (isNaN(d.getTime())) return '';
+    if (!d || isNaN(d.getTime())) return '';
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
@@ -148,7 +233,7 @@ export function calculateProjectTimeline(item: Record<string, any>, referenceDat
   };
 
   return {
-    start_date: hasExplicitStartDate ? formatDate(startDate) : (rawStart || formatDate(startDate)),
+    start_date: parsedStartDate ? formatDate(startDate) : (rawStart ? String(rawStart) : formatDate(startDate)),
     end_date: formatDate(currentEndDate),
     original_end_date: formatDate(originalEndDate),
     closed_date: item.closed_date ? String(item.closed_date) : undefined,
@@ -156,7 +241,7 @@ export function calculateProjectTimeline(item: Record<string, any>, referenceDat
     days_remaining: daysRemaining,
     progress_percent: progressPercent,
     status: status,
-    is_overdue: isOverdue && status !== 'completed' && status !== 'cancelled' && status !== 'waiting_eval' && status !== 'evaluated',
+    is_overdue: isOverdue && !isClosed && !isCancelled,
     is_expiring_soon: isExpiringSoon,
     extensions: extensions,
   };

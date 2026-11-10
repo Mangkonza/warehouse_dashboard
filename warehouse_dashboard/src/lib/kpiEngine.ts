@@ -1,3 +1,4 @@
+import { getApiBaseUrl, getClientBasePath } from './api';
 import {
   KPIItem,
   KPIComputedResult,
@@ -212,7 +213,7 @@ export const getStoredKpiLookupOptions = (category: KpiLookupCategory): string[]
 export const fetchLookupOptionsFromBackend = async (): Promise<void> => {
   if (typeof window === 'undefined') return;
   try {
-    const res = await fetch('/api/v1/kpi/options', {
+    const res = await fetch(`${getApiBaseUrl()}/kpi/options`, {
       method: 'GET',
       credentials: 'include',
       cache: 'no-store',
@@ -264,7 +265,7 @@ export const addKpiLookupOption = async (
     }
 
     // Fire-and-forget sync to backend DB lookup table
-    fetch('/api/lookups/kpi-options', {
+    fetch(`${getClientBasePath()}/api/lookups/kpi-options`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ fieldKey: category, value: clean, label: clean }),
@@ -388,7 +389,7 @@ export const fetchHierarchyFromBackend = async (): Promise<{
     return { strategies: getStoredStrategies(), plans: getStoredPlans() };
   }
   try {
-    const res = await fetch('/api/v1/kpi/hierarchy', {
+    const res = await fetch(`${getApiBaseUrl()}/kpi/hierarchy`, {
       method: 'GET',
       credentials: 'include',
       cache: 'no-store',
@@ -478,7 +479,7 @@ export const createStrategyEntity = (
   saveStoredStrategies(next);
 
   if (typeof window !== 'undefined') {
-    fetch('/api/lookups/strategic-hierarchy', {
+    fetch(`${getClientBasePath()}/api/lookups/strategic-hierarchy`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ entityType: 'strategy', ...newEntity }),
@@ -518,7 +519,7 @@ export const updateStrategyEntity = (
   saveStoredStrategies(next);
 
   if (typeof window !== 'undefined') {
-    fetch('/api/lookups/strategic-hierarchy', {
+    fetch(`${getClientBasePath()}/api/lookups/strategic-hierarchy`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ entityType: 'strategy', action: 'update', ...updated }),
@@ -546,7 +547,7 @@ export const deleteStrategyEntity = (
   saveStoredPlans(remainingPlans);
 
   if (typeof window !== 'undefined') {
-    fetch('/api/lookups/strategic-hierarchy', {
+    fetch(`${getClientBasePath()}/api/lookups/strategic-hierarchy`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ entityType: 'strategy', action: 'delete', id }),
@@ -621,7 +622,7 @@ export const createPlanEntity = (
   saveStoredPlans(next);
 
   if (typeof window !== 'undefined') {
-    fetch('/api/lookups/strategic-hierarchy', {
+    fetch(`${getClientBasePath()}/api/lookups/strategic-hierarchy`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ entityType: 'plan', ...newEntity }),
@@ -670,7 +671,7 @@ export const updatePlanEntity = (
   saveStoredPlans(next);
 
   if (typeof window !== 'undefined') {
-    fetch('/api/lookups/strategic-hierarchy', {
+    fetch(`${getClientBasePath()}/api/lookups/strategic-hierarchy`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ entityType: 'plan', action: 'update', ...updated }),
@@ -693,7 +694,7 @@ export const deletePlanEntity = (
   saveStoredPlans(next);
 
   if (typeof window !== 'undefined') {
-    fetch('/api/lookups/strategic-hierarchy', {
+    fetch(`${getClientBasePath()}/api/lookups/strategic-hierarchy`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ entityType: 'plan', action: 'delete', id }),
@@ -965,7 +966,7 @@ export const fetchKPIsFromBackend = async (): Promise<KPIItem[]> => {
       fetchLookupOptionsFromBackend(),
     ]);
 
-    const res = await fetch('/api/v1/kpi', {
+    const res = await fetch(`${getApiBaseUrl()}/kpi`, {
       method: 'GET',
       credentials: 'include',
       cache: 'no-store',
@@ -1007,7 +1008,7 @@ export const fetchKPIsFromBackend = async (): Promise<KPIItem[]> => {
 export const fetchReportingRoundsFromBackend = async (): Promise<KPIReportingRoundConfig[]> => {
   if (typeof window === 'undefined') return getStoredReportingRounds();
   try {
-    const res = await fetch('/api/v1/kpi/rounds', {
+    const res = await fetch(`${getApiBaseUrl()}/kpi/rounds`, {
       method: 'GET',
       credentials: 'include',
       cache: 'no-store',
@@ -1031,7 +1032,7 @@ export const syncRoundReportToBackend = async (
 ): Promise<void> => {
   if (typeof window === 'undefined') return;
   try {
-    await fetch(`/api/v1/kpi/${indicatorId}/results`, {
+    await fetch(`${getApiBaseUrl()}/kpi/${indicatorId}/results`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -1095,7 +1096,7 @@ export const addKPI = (kpi: Omit<KPIItem, 'id'>): KPIItem => {
   const updated = [newItem, ...current];
   saveStoredKPIs(updated);
   if (typeof window !== 'undefined') {
-    fetch('/api/v1/kpi', {
+    fetch(`${getApiBaseUrl()}/kpi`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -1111,7 +1112,7 @@ export const updateKPI = (kpi: KPIItem): KPIItem => {
   const updated = current.map((item) => (item.id === kpi.id ? enriched : item));
   saveStoredKPIs(updated);
   if (typeof window !== 'undefined') {
-    fetch(`/api/v1/kpi/${kpi.id}`, {
+    fetch(`${getApiBaseUrl()}/kpi/${kpi.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -1127,7 +1128,7 @@ export const deleteKPI = (id: string): void => {
   const updated = current.filter((item) => String(item.id).trim() !== targetId);
   saveStoredKPIs(updated);
   if (typeof window !== 'undefined') {
-    fetch(`/api/v1/kpi/${targetId}`, {
+    fetch(`${getApiBaseUrl()}/kpi/${targetId}`, {
       method: 'DELETE',
       credentials: 'include',
     }).catch((err) => console.warn('Failed to delete KPI from backend:', err));

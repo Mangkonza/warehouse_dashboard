@@ -310,7 +310,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           }}
         >
           <img
-            src="/assets/profile.jfif"
+            src={`${(process.env.NEXT_PUBLIC_BASE_PATH || '').replace(/\/+$/, '')}/assets/profile.jfif`}
             alt={profileName}
             style={{
               width: '100%',

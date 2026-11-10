@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { FaChartLine } from 'react-icons/fa';
@@ -6,6 +6,7 @@ import { autoDetectJournalRanking } from '@/config/journalRankingConfig';
 import { PublicationItem } from '../_hooks/usePublicationsData';
 import { YearSelectDropdown } from '@/components/ui/YearSelectDropdown';
 import { STANDARD_YEAR_OPTIONS, getDefaultCompareYear } from '@/lib/fiscalYears';
+import '../../research/_components/research-redesign.css';
 
 export interface PublicationsMonthlyChartProps {
   validData: PublicationItem[];
@@ -81,34 +82,101 @@ function monoSpline(p: Array<{ x: number; y: number }>): string {
   return d;
 }
 
+const THAI_MONTH_FULL = [
+  'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+  'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม',
+];
+const ENG_MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+
+function parseMonthIndex(raw: unknown): number | null {
+  if (!raw) return null;
+  const s = String(raw).trim().toLowerCase();
+  if (!s || s === '-' || s === 'nan' || s === 'nat') return null;
+
+  // 1. Full Thai month name
+  for (let i = 0; i < THAI_MONTH_FULL.length; i++) {
+    if (s.includes(THAI_MONTH_FULL[i])) return i;
+  }
+
+  // 2. Short Thai month name with or without trailing dot (e.g. 'ม.ค.', 'ม.ค.68', 'ม.ค', 'มค')
+  for (let i = 0; i < MONTHS.length; i++) {
+    const shortM = MONTHS[i];
+    const rawShort = shortM.replace(/\./g, '');
+    if (s.includes(shortM) || s.includes(shortM.slice(0, -1))) return i;
+    const reg = new RegExp(`(^|[^ก-๙])${rawShort}(\\d{2}|\\d{4}|\\s|$)`);
+    if (reg.test(s)) return i;
+  }
+
+  // 3. English month names
+  for (let i = 0; i < ENG_MONTHS.length; i++) {
+    const reg = new RegExp(`\\b${ENG_MONTHS[i]}`, 'i');
+    if (reg.test(s)) return i;
+  }
+
+  // 4. ISO month (e.g. '2025-04' or '2025-04-15' or purely numeric '04')
+  const isoMatch = s.match(/(?:^|\D)(\d{4})-(0?[1-9]|1[0-2])(?:\D|$)/);
+  if (isoMatch) {
+    return parseInt(isoMatch[2], 10) - 1;
+  }
+  if (/^(0?[1-9]|1[0-2])$/.test(s)) {
+    return parseInt(s, 10) - 1;
+  }
+
+  return null;
+}
+
 function extractItemYearAndMonth(item: PublicationItem): { yearBe: number; monthIdx: number } | null {
   let yearBe = Number(item.fiscal_year_be);
   let monthIdx: number | null = null;
 
-  const myMatch = /^(\d{4})-(0[1-9]|1[0-2])$/.exec(String(item.month_year || '').trim());
-  if (myMatch) {
-    const ceYear = Number(myMatch[1]);
-    monthIdx = Number(myMatch[2]) - 1;
-    if (!yearBe || isNaN(yearBe)) {
-      yearBe = ceYear > 2400 ? ceYear : ceYear + 543;
+  // 1. Month field (e.g. 'ม.ค.68', 'เม.ย.68', 'มีนาคม')
+  if (item.month) {
+    monthIdx = parseMonthIndex(item.month);
+    const yMatch = String(item.month).match(/(\d{2})$/);
+    if (yMatch && (!yearBe || isNaN(yearBe))) {
+      const yy = Number(yMatch[1]);
+      yearBe = yy >= 50 ? 2500 + yy : 2000 + yy;
     }
   }
 
+  // 2. Month-year field (e.g. 'มีนาคม 2569', '2025-04', 'ม.ค.68 2568')
+  if (monthIdx === null && item.month_year) {
+    monthIdx = parseMonthIndex(item.month_year);
+  }
+
+  // 3. Fallback to date / filing_date / publish_date
   if (monthIdx === null) {
     const rawDate = String(item.date || item.filing_date || item.publish_date || '');
+    monthIdx = parseMonthIndex(rawDate);
     const dMatch = /(\d{4})-(\d{1,2})-(\d{1,2})/.exec(rawDate);
     if (dMatch) {
       const y = Number(dMatch[1]);
-      monthIdx = Number(dMatch[2]) - 1;
       if (!yearBe || isNaN(yearBe)) {
         yearBe = y > 2400 ? y : y + 543;
       }
     }
   }
 
-  if (monthIdx === null && item.month) {
-    const idx = MONTHS.indexOf(String(item.month).trim());
-    if (idx >= 0) monthIdx = idx;
+  // 4. Fallback to journal / remarks text (e.g. 'February 2025' or 'มีนาคม 2568')
+  if (monthIdx === null && item.journal) {
+    monthIdx = parseMonthIndex(item.journal);
+  }
+  if (monthIdx === null && item.remarks) {
+    monthIdx = parseMonthIndex(item.remarks);
+  }
+
+  // Resolve Year if still missing or NaN
+  if (!yearBe || isNaN(yearBe)) {
+    const allText = [item.month_year, item.month, item.date, item.journal, item.remarks].filter(Boolean).join(' ');
+    const yBe = allText.match(/(25\d{2})/);
+    if (yBe) {
+      yearBe = Number(yBe[1]);
+    } else {
+      const yCe = allText.match(/(20\d{2})/);
+      if (yCe) {
+        yearBe = Number(yCe[1]) + 543;
+      }
+    }
   }
 
   if (monthIdx === null || isNaN(yearBe)) return null;
@@ -456,90 +524,54 @@ export function PublicationsMonthlyChart({ validData, currentFiscalYear, onSelec
 
   return (
     <div
+      className="rr-card"
       style={{
-        backgroundColor: '#ffffff',
-        borderRadius: '28px',
-        padding: '24px 28px 22px',
-        border: '1px solid rgba(15, 23, 42, 0.08)',
-        boxShadow: '0 1px 3px rgba(15,23,42,0.04), 0 20px 40px -24px rgba(15,23,42,0.18)',
         position: 'relative',
         width: '100%',
+        ['--acc' as any]: '#be123c',
+        ['--seg' as any]: '#eef2f6',
+        ['--segon' as any]: '#ffffff',
+        ['--muted' as any]: '#64748b',
+        ['--ink' as any]: '#0f172a',
       }}
     >
       {/* HEADER & CONTROLS */}
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'flex-start',
-          justifyContent: 'space-between',
-          gap: '14px 24px',
-        }}
-      >
+      <div className="rr-head">
         <div>
-          <h2
-            style={{
-              margin: 0,
-              fontSize: '20px',
-              fontWeight: 700,
-              color: '#0f172a',
-              letterSpacing: '-0.01em',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '9px',
-            }}
-          >
+          <h2 className="rr-title-h2">
             <FaChartLine style={{ color: '#fb7185', fontSize: '18px' }} /> ผลงานตีพิมพ์และเงินสนับสนุนรายเดือน
           </h2>
-          <p style={{ margin: '5px 0 0', fontSize: '13.5px', color: '#64748b' }}>
-            {isCompare
-              ? `แท่ง = ${metric === 'count' ? 'จำนวนผลงาน (เรื่อง)' : 'เงินสนับสนุน (ล้านบาท)'} · เปรียบเทียบปี ${compareYear} กับ${selectedYear === 'all' ? 'ทุกปี' : `ปี ${selectedYear}`}`
-              : `แท่ง = จำนวนผลงาน (เรื่อง) · เส้น = เงินสนับสนุน (ล้านบาท) · ${selectedYear === 'all' ? 'ทุกปี' : `ปี ${selectedYear}`}`}
-          </p>
+          
         </div>
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
-          {/* Year and Compare-Year Controls */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
+        <div className="rr-ctrls">
+          <YearSelectDropdown
+            label="ปี"
+            value={selectedYear}
+            onChange={(newY) => {
+              setSelectedYear(newY);
+              if (compareYear === newY) {
+                setCompareYear(getDefaultCompareYear(newY, availableYears));
+              }
+            }}
+            includeAll={true}
+            allPosition="top"
+          />
+
+          {/* Compare Year Selector (shown only in compare mode) */}
+          {isCompare && (
             <YearSelectDropdown
-              label="ปี"
-              value={selectedYear}
-              onChange={(newY) => {
-                setSelectedYear(newY);
-                if (compareYear === newY) {
-                  setCompareYear(getDefaultCompareYear(newY, availableYears));
-                }
-              }}
-              includeAll={true}
-              allPosition="top"
+              label="เทียบกับปี"
+              value={compareYear}
+              onChange={(newCmp) => setCompareYear(newCmp)}
+              excludeYear={selectedYear}
+              includeAll={false}
               hasDataByYear={hasDataByYear}
             />
+          )}
 
-            {/* Compare Year Selector (shown only in compare mode) */}
-            {isCompare && (
-              <YearSelectDropdown
-                label="เทียบกับปี"
-                value={compareYear}
-                onChange={(newCmp) => setCompareYear(newCmp)}
-                excludeYear={selectedYear}
-                includeAll={false}
-                hasDataByYear={hasDataByYear}
-              />
-            )}
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
           {/* Mode Segmented Controls */}
-          <div
-            style={{
-              display: 'inline-flex',
-              gap: '2px',
-              padding: '4px',
-              borderRadius: '14px',
-              background: '#eef2f6',
-            }}
-          >
+          <div className="rr-seg-ctl">
             {[
               { k: 'total', label: 'รวมทั้งหมด' },
               { k: 'level', label: 'แยกตามระดับ' },
@@ -550,21 +582,19 @@ export function PublicationsMonthlyChart({ validData, currentFiscalYear, onSelec
                 <button
                   key={m.k}
                   type="button"
+                  aria-pressed={active}
+                  className={active ? 'on' : ''}
                   onClick={() => setMode(m.k as any)}
-                  style={{
-                    font: 'inherit',
-                    fontSize: '13.5px',
-                    fontWeight: active ? 700 : 500,
-                    minHeight: '36px',
-                    padding: '6px 14px',
-                    border: 'none',
-                    borderRadius: '10px',
-                    backgroundColor: active ? '#ffffff' : 'transparent',
-                    color: active ? '#be123c' : '#64748b',
-                    cursor: 'pointer',
-                    boxShadow: active ? '0 1px 2px rgba(15,23,42,.1), 0 4px 10px -4px rgba(15,23,42,.12)' : 'none',
-                    transition: 'all 0.15s ease',
-                  }}
+                  style={
+                    active
+                      ? {
+                          color: '#be123c',
+                          fontWeight: 700,
+                          backgroundColor: '#ffffff',
+                          boxShadow: '0 1px 2px rgba(15,23,42,.12), 0 4px 10px -4px rgba(15,23,42,.14)',
+                        }
+                      : undefined
+                  }
                 >
                   {m.label}
                 </button>
@@ -574,15 +604,7 @@ export function PublicationsMonthlyChart({ validData, currentFiscalYear, onSelec
 
           {/* Metric Segmented Controls (compare mode only) */}
           {isCompare && (
-            <div
-              style={{
-                display: 'inline-flex',
-                gap: '2px',
-                padding: '4px',
-                borderRadius: '14px',
-                background: '#eef2f6',
-              }}
-            >
+            <div className="rr-seg-ctl">
               {[
                 { k: 'count', label: 'จำนวนผลงาน' },
                 { k: 'fund', label: 'เงินสนับสนุน' },
@@ -592,21 +614,19 @@ export function PublicationsMonthlyChart({ validData, currentFiscalYear, onSelec
                   <button
                     key={m.k}
                     type="button"
+                    aria-pressed={active}
+                    className={active ? 'on' : ''}
                     onClick={() => setMetric(m.k as any)}
-                    style={{
-                      font: 'inherit',
-                      fontSize: '13.5px',
-                      fontWeight: active ? 700 : 500,
-                      minHeight: '36px',
-                      padding: '6px 14px',
-                      border: 'none',
-                      borderRadius: '10px',
-                      backgroundColor: active ? '#ffffff' : 'transparent',
-                      color: active ? '#be123c' : '#64748b',
-                      cursor: 'pointer',
-                      boxShadow: active ? '0 1px 2px rgba(15,23,42,.1), 0 4px 10px -4px rgba(15,23,42,.12)' : 'none',
-                      transition: 'all 0.15s ease',
-                    }}
+                    style={
+                      active
+                        ? {
+                            color: '#be123c',
+                            fontWeight: 700,
+                            backgroundColor: '#ffffff',
+                            boxShadow: '0 1px 2px rgba(15,23,42,.12), 0 4px 10px -4px rgba(15,23,42,.14)',
+                          }
+                        : undefined
+                    }
                   >
                     {m.label}
                   </button>
@@ -1177,18 +1197,31 @@ export function PublicationsMonthlyChart({ validData, currentFiscalYear, onSelec
               return (
                 <g key={`bar-cmp-${i}`}>
                   {hasCompareData && pv > 0 && (
-                    <rect
-                      x={xp}
-                      y={yv(pv)}
-                      width={bw3}
-                      height={yv(0) - yv(pv)}
-                      rx={Math.min(9, (yv(0) - yv(pv)) / 2)}
-                      fill="#cbd5e1"
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => {
-                        onSelectPeriod?.(i, compareYear, compareData?.items[i] || []);
-                      }}
-                    />
+                    <>
+                      <rect
+                        x={xp}
+                        y={yv(pv)}
+                        width={bw3}
+                        height={yv(0) - yv(pv)}
+                        rx={Math.min(9, (yv(0) - yv(pv)) / 2)}
+                        fill="#cbd5e1"
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => {
+                          onSelectPeriod?.(i, compareYear, compareData?.items[i] || []);
+                        }}
+                      />
+                      <text
+                        x={xp + bw3 / 2}
+                        y={yv(pv) - 8}
+                        textAnchor="middle"
+                        fontSize="12.5"
+                        fontWeight="700"
+                        fill="#475569"
+                        pointerEvents="none"
+                      >
+                        {metric === 'count' ? pv : pv.toFixed(2)}
+                      </text>
+                    </>
                   )}
                   {cv > 0 && (
                     <>

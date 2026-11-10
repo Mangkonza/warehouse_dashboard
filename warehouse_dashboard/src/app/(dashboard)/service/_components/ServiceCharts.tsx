@@ -770,7 +770,7 @@ export function ServiceCharts({
                 }}
               >
                 <i />
-                วิชาการ/วิชาชีพ
+                วิชาการ
               </button>
               <button
                 type="button"
@@ -783,7 +783,7 @@ export function ServiceCharts({
                 }}
               >
                 <i />
-                ผู้ทรงคุณวุฒิ/ประเมิน
+                ผู้ทรงคุณวุฒิ
               </button>
               {m1Mode === 'yoy' && (
                 <>
@@ -933,7 +933,7 @@ export function ServiceCharts({
                               val: `${m.total} ครั้ง • บุคลากร ${m.staffCount} ท่าน`,
                               sub: isYoy
                                 ? `ปี ${monthlyServiceData.cmpYr}: ${pm.total} ครั้ง • บุคลากร ${pm.staffCount} ท่าน`
-                                : `วิชาการ/วิชาชีพ ${m.direct} ครั้ง • ผู้ทรงคุณวุฒิ ${m.expert} ครั้ง`,
+                                : `วิชาการ ${m.direct} ครั้ง • ผู้ทรงคุณวุฒิ ${m.expert} ครั้ง`,
                             });
                           }}
                           onMouseMove={(e) => setTip((prev) => ({ ...prev, x: e.clientX, y: e.clientY }))}
@@ -1048,7 +1048,7 @@ export function ServiceCharts({
                                           show: true,
                                           x: e.clientX,
                                           y: e.clientY,
-                                          title: `วิชาการ/วิชาชีพ · ${m.label} ${m1Year === 'all' ? '' : m1Year}`,
+                                          title: `วิชาการ · ${m.label} ${m1Year === 'all' ? '' : m1Year}`,
                                           color: '#f59e0b',
                                           val: `${m.direct} ครั้ง`,
                                           sub: `${pct}% ของเดือนนี้ (${m.total} ครั้ง) • บุคลากร ${m.staffCount} ท่าน`,
@@ -1059,7 +1059,7 @@ export function ServiceCharts({
                                         if (m.directItems.length > 0) {
                                           setDrillDown({
                                             isOpen: true,
-                                            title: `งานบริการวิชาการ (วิชาการ/วิชาชีพ): เดือน ${m.label}`,
+                                            title: `งานบริการวิชาการ (วิชาการ): เดือน ${m.label}`,
                                             subtitle: `รวม ${m.directItems.length} กิจกรรม`,
                                             accentColor: '#f59e0b',
                                             items: m.directItems,
@@ -1104,7 +1104,7 @@ export function ServiceCharts({
                                           show: true,
                                           x: e.clientX,
                                           y: e.clientY,
-                                          title: `ผู้ทรงคุณวุฒิ/ประเมิน · ${m.label} ${m1Year === 'all' ? '' : m1Year}`,
+                                          title: `ผู้ทรงคุณวุฒิ · ${m.label} ${m1Year === 'all' ? '' : m1Year}`,
                                           color: '#0284c7',
                                           val: `${m.expert} ครั้ง`,
                                           sub: `${pct}% ของเดือนนี้ (${m.total} ครั้ง) • บุคลากร ${m.staffCount} ท่าน`,
@@ -1115,7 +1115,7 @@ export function ServiceCharts({
                                         if (m.expertItems.length > 0) {
                                           setDrillDown({
                                             isOpen: true,
-                                            title: `งานบริการวิชาการ (ผู้ทรงคุณวุฒิ/ประเมิน): เดือน ${m.label}`,
+                                            title: `งานบริการวิชาการ (ผู้ทรงคุณวุฒิ): เดือน ${m.label}`,
                                             subtitle: `รวม ${m.expertItems.length} กิจกรรม`,
                                             accentColor: '#0284c7',
                                             items: m.expertItems,
@@ -1875,11 +1875,11 @@ export function ServiceCharts({
                 <>
                   <span className="rr-pill st" style={{ '--c': '#f59e0b' } as React.CSSProperties}>
                     <i />
-                    วิชาการ/วิชาชีพ
+                    วิชาการ
                   </span>
                   <span className="rr-pill st" style={{ '--c': '#0284c7' } as React.CSSProperties}>
                     <i />
-                    ผู้ทรงคุณวุฒิ/ประเมิน
+                    ผู้ทรงคุณวุฒิ
                   </span>
                 </>
               ) : (
@@ -1986,7 +1986,7 @@ export function ServiceCharts({
                               title: `${r.name} (${r.code})`,
                               color: r.color,
                               val: `${r.count} งานบริการ • บุคลากร ${r.staffCount} ท่าน`,
-                              sub: `วิชาการ/วิชาชีพ ${r.directCount} • ผู้ทรงคุณวุฒิ ${r.expertCount} • เฉลี่ย ${r.avg} งาน/ท่าน`,
+                              sub: `วิชาการ ${r.directCount} • ผู้ทรงคุณวุฒิ ${r.expertCount} • เฉลี่ย ${r.avg} งาน/ท่าน`,
                             });
                           }}
                           onMouseMove={(e) => setTip((prev) => ({ ...prev, x: e.clientX, y: e.clientY }))}
@@ -2156,7 +2156,7 @@ export function ServiceCharts({
                                           show: true,
                                           x: e.clientX,
                                           y: e.clientY,
-                                          title: `วิชาการ/วิชาชีพ · ${r.name} (${r.code})`,
+                                          title: `วิชาการ · ${r.name} (${r.code})`,
                                           color: '#f59e0b',
                                           val: `${r.directCount} งานบริการ`,
                                           sub: `${r.count > 0 ? Math.round((r.directCount / r.count) * 100) : 0}% ของสังกัดนี้ (${r.count} งาน)`,
@@ -2196,7 +2196,7 @@ export function ServiceCharts({
                                           show: true,
                                           x: e.clientX,
                                           y: e.clientY,
-                                          title: `ผู้ทรงคุณวุฒิ/ประเมิน · ${r.name} (${r.code})`,
+                                          title: `ผู้ทรงคุณวุฒิ · ${r.name} (${r.code})`,
                                           color: '#0284c7',
                                           val: `${r.expertCount} งานบริการ`,
                                           sub: `${r.count > 0 ? Math.round((r.expertCount / r.count) * 100) : 0}% ของสังกัดนี้ (${r.count} งาน)`,
@@ -2625,11 +2625,11 @@ export function ServiceCharts({
             <div className="rr-legend">
               <span className="rr-pill st" style={{ '--c': '#f59e0b' } as React.CSSProperties}>
                 <i />
-                วิชาการ/วิชาชีพ
+                วิชาการ
               </span>
               <span className="rr-pill st" style={{ '--c': '#0284c7' } as React.CSSProperties}>
                 <i />
-                ผู้ทรงคุณวุฒิ/ประเมิน
+                ผู้ทรงคุณวุฒิ
               </span>
               {m5Mode === 'yoy' && (
                 <span className="rr-pill st" style={{ '--c': '#cbd5e1' } as React.CSSProperties}>
@@ -2701,7 +2701,7 @@ export function ServiceCharts({
                               title: `${r.name} (${r.deptCode})`,
                               color: r.color,
                               val: `${r.count} งานบริการ • เครือข่าย ${r.targets.size} แห่ง`,
-                              sub: `วิชาการ/วิชาชีพ ${r.directCount} • ผู้ทรงคุณวุฒิ ${r.expertCount} • ${r.hours.toLocaleString()} ชม.`,
+                              sub: `วิชาการ ${r.directCount} • ผู้ทรงคุณวุฒิ ${r.expertCount} • ${r.hours.toLocaleString()} ชม.`,
                             });
                           }}
                           onMouseMove={(e) => setTip((prev) => ({ ...prev, x: e.clientX, y: e.clientY }))}
@@ -2862,7 +2862,7 @@ export function ServiceCharts({
                                           show: true,
                                           x: e.clientX,
                                           y: e.clientY,
-                                          title: `วิชาการ/วิชาชีพ · ${r.name}`,
+                                          title: `วิชาการ · ${r.name}`,
                                           color: '#f59e0b',
                                           val: `${r.directCount} งาน`,
                                           sub: `${r.count > 0 ? Math.round((r.directCount / r.count) * 100) : 0}% ของผลงานทั้งหมด (${r.count} งาน)`,
@@ -2872,7 +2872,7 @@ export function ServiceCharts({
                                         e.stopPropagation();
                                         setDrillDown({
                                           isOpen: true,
-                                          title: `วิชาการ/วิชาชีพ: ${r.name}`,
+                                          title: `วิชาการ: ${r.name}`,
                                           subtitle: `รวม ${r.directItems.length} งาน`,
                                           accentColor: '#f59e0b',
                                           items: r.directItems,
@@ -2912,7 +2912,7 @@ export function ServiceCharts({
                                           show: true,
                                           x: e.clientX,
                                           y: e.clientY,
-                                          title: `ผู้ทรงคุณวุฒิ/ประเมิน · ${r.name}`,
+                                          title: `ผู้ทรงคุณวุฒิ · ${r.name}`,
                                           color: '#0284c7',
                                           val: `${r.expertCount} งาน`,
                                           sub: `${r.count > 0 ? Math.round((r.expertCount / r.count) * 100) : 0}% ของผลงานทั้งหมด (${r.count} งาน)`,
@@ -2922,7 +2922,7 @@ export function ServiceCharts({
                                         e.stopPropagation();
                                         setDrillDown({
                                           isOpen: true,
-                                          title: `ผู้ทรงคุณวุฒิ/ประเมิน: ${r.name}`,
+                                          title: `ผู้ทรงคุณวุฒิ: ${r.name}`,
                                           subtitle: `รวม ${r.expertItems.length} งาน`,
                                           accentColor: '#0284c7',
                                           items: r.expertItems,

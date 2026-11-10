@@ -1,4 +1,7 @@
 'use client';
+
+const DEFAULT_AVATAR = `${(process.env.NEXT_PUBLIC_BASE_PATH || '').replace(/\/+$/, '')}/default-avatar.png`;
+
 import { formatPersonName } from '@/lib/formatPersonName';
 
 import React from 'react';
@@ -78,13 +81,13 @@ export const PersonnelGrid: React.FC<PersonnelGridProps> = ({
               }}
             >
               <img
-                src={p.image_url ? encodeURI(p.image_url) : '/default-avatar.png'}
+                src={p.image_url ? encodeURI(p.image_url) : DEFAULT_AVATAR}
                 alt={formatPersonName(p, { includePrefix: true })}
                 style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center', backgroundColor: '#99b8db' }}
                 onError={(e) => {
                   const target = e.currentTarget;
-                  if (target.src !== '/default-avatar.png' && !target.src.endsWith('/default-avatar.png')) {
-                    target.src = '/default-avatar.png';
+                  if (target.src !== DEFAULT_AVATAR && !target.src.endsWith('/default-avatar.png')) {
+                    target.src = DEFAULT_AVATAR;
                   }
                 }}
               />

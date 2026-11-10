@@ -49,7 +49,7 @@ interface FilterModalProps {
 const COLORS = {
   brand: '#00A651',
   teal: '#0f766e', // SDGs / ตัวเลือกทั่วไปที่เลือก
-  red: '#991b1b', // กรอบประเมิน (I AM / I SEE)
+  red: '#991b1b', // กรอบประเมิน (กลุ่มการประเมิน)
   brown: '#7c2d12', // ระดับคุณภาพ / ตัวเลือกย่อย (Q1-Q4)
   pillBg: '#f1f5f9',
   pillText: '#334155',

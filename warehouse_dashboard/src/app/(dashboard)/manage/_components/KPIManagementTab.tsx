@@ -31,6 +31,7 @@ import {
   FaLink,
 } from 'react-icons/fa';
 import * as XLSX from 'xlsx';
+import { exportUnifiedPageExcel } from '@/lib/export';
 import { StrategicKpiModal } from '@/app/(dashboard)/kpi/_components/StrategicKpiFormView';
 import { StrategicKpiRoundReportModal } from '@/app/(dashboard)/kpi/_components/StrategicKpiRoundReportView';
 import { KpiHoverTooltip } from '@/app/(dashboard)/kpi/_components/KpiHoverTooltip';
@@ -342,11 +343,40 @@ export const KPIManagementTab: React.FC<KPIManagementTabProps> = ({
       return rowData;
     });
 
-    const worksheet = XLSX.utils.json_to_sheet(rowsToExport);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'ตัวชี้วัดตามแผนยุทธศาสตร์');
-    const dateStr = new Date().toISOString().slice(0, 10);
-    XLSX.writeFile(workbook, `KU_KPS_Strategic_KPI_${dateStr}.xlsx`);
+        const successCount = filteredKPIs.filter((it: any) => {
+      const evalRes = evaluateKPI(it, datasets);
+      return evalRes.status === 'achieved' || evalRes.percentage >= 100;
+    }).length;
+    const warningCount = filteredKPIs.filter((it: any) => {
+      const evalRes = evaluateKPI(it, datasets);
+      return evalRes.status === 'in_progress' || evalRes.status === 'on_track';
+    }).length;
+    const dangerCount = filteredKPIs.length - successCount - warningCount;
+
+    exportUnifiedPageExcel({
+      page: 'manage_kpi',
+      section: 'kpi_table',
+      title: 'รายงานข้อมูลตัวชี้วัดตามแผนยุทธศาสตร์ (Strategic KPIs)',
+      periodLabel: 'ปีงบประมาณ 2568-2569',
+      filterSummary: {
+        'หมวดหมู่': selectedCategory === 'all' ? 'ทุกหมวดหมู่' : selectedCategory,
+        'สถานะ': selectedStatus === 'all' ? 'ทุกสถานะ' : selectedStatus,
+        'คำค้นหา': searchQuery || 'ไม่มี',
+      },
+      metrics: [
+        { label: 'ตัวชี้วัดทั้งหมดที่แสดง', value: filteredKPIs.length.toLocaleString('th-TH'), unit: 'ตัวชี้วัด', category: 'ภาพรวม' },
+        { label: 'บรรลุเป้าหมาย (Achieved >= 100%)', value: successCount.toLocaleString('th-TH'), unit: 'ตัวชี้วัด', category: 'ผลการดำเนินงาน' },
+        { label: 'ตามสัดส่วน / ดำเนินการตามแผน (In Progress / On Track)', value: warningCount.toLocaleString('th-TH'), unit: 'ตัวชี้วัด', category: 'ผลการดำเนินงาน' },
+        { label: 'ต้องเร่งรัด (At Risk / Behind)', value: dangerCount.toLocaleString('th-TH'), unit: 'ตัวชี้วัด', category: 'ผลการดำเนินงาน' },
+      ],
+      customSheets: [
+        {
+          sheetName: 'ตัวชี้วัดตามแผนยุทธศาสตร์',
+          data: rowsToExport,
+        },
+      ],
+      fileName: `KU_KPS_Strategic_KPI_${new Date().toISOString().slice(0, 10)}.xlsx`,
+    });
     if (showToast) {
       showToast(`ส่งออกข้อมูลตัวชี้วัดตามแผนยุทธศาสตร์ (${rowsToExport.length} รายการ) สำเร็จ`, 'success');
     }

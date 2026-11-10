@@ -9,6 +9,7 @@ import { ResearchDepartmentComparison } from './ResearchDepartmentComparison';
 import { TopSegmentedTabs } from '@/components/ui/TopSegmentedTabs';
 import { StrategicAlignmentMatrix } from '@/components/data-display/StrategicAlignmentMatrix';
 import { MissionDataTable } from '@/components/data-display/MissionDataTable';
+import { ExportContextProps } from '@/lib/export';
 import { DashboardTabFilterBar } from '@/components/ui/DashboardTabFilterBar';
 import { UndatedNotice } from '@/components/ui/UndatedNotice';
 import { ExecutiveKpiDeck } from '@/components/data-display/ExecutiveKpiDeck';

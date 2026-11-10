@@ -22,6 +22,7 @@ import { FilterModal } from './FilterModal';
 import { FilterPopover, ActiveFilterChips, PersonnelMissingField } from '@/components/ui';
 import { itemMatchesDepartmentMulti, itemMatchesDateRange, itemMatchesNumericRanges } from '@/lib/filterMatching';
 import { downloadExcelTemplate, exportTableToExcel } from '@/lib/etlEngine';
+import { exportUnifiedPageExcel } from '@/lib/export';
 import {
   FaCheckCircle,
   FaTimesCircle,
@@ -35,7 +36,10 @@ import {
   FaDownload,
   FaFileExport,
   FaPlus,
-  FaFileExcel,  FaClock,
+  FaFileExcel,
+  FaChevronLeft,
+  FaChevronRight,
+  FaClock,
 } from 'react-icons/fa';
 
 // Initial JSON datasets
@@ -402,6 +406,47 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
   const [recentlyAddedIds, setRecentlyAddedIds] = useState<string[]>([]);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [personnelViewMode, setPersonnelViewMode] = useState<'grid' | 'table'>(resolveInitialPersonnelViewMode);
+
+  // Ref สำหรับจัดการ Scroll แถบ Bubble
+  const tabsScrollContainerRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  // State สำหรับคลิกลากเมาส์ (Mouse Drag to Scroll)
+  const isDraggingRef = useRef(false);
+  const startXRef = useRef(0);
+  const scrollLeftRef = useRef(0);
+
+  // ฟังก์ชันตรวจสอบตำแหน่ง Scroll เพื่อเปิด/ปิดการแสดงปุ่มลูกศร
+  const checkScrollState = () => {
+    if (!tabsScrollContainerRef.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } = tabsScrollContainerRef.current;
+    setCanScrollLeft(scrollLeft > 4);
+    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 4);
+  };
+
+  useEffect(() => {
+    checkScrollState();
+    window.addEventListener('resize', checkScrollState);
+    return () => window.removeEventListener('resize', checkScrollState);
+  }, []);
+
+  // เลื่อนตำแหน่ง Scroll อัตโนมัติเมื่อเลือกแท็บ
+  useEffect(() => {
+    if (!tabsScrollContainerRef.current) return;
+    if (activeCategory === 'kpi') {
+      tabsScrollContainerRef.current.scrollTo({
+        left: tabsScrollContainerRef.current.scrollWidth,
+        behavior: 'smooth',
+      });
+    } else if (activeCategory === 'research' || activeCategory === 'monitoring') {
+      tabsScrollContainerRef.current.scrollTo({
+        left: 0,
+        behavior: 'smooth',
+      });
+    }
+    setTimeout(checkScrollState, 350);
+  }, [activeCategory]);
 
   // Synchronize URL and handle browser back/forward navigation
   useEffect(() => {
@@ -1193,14 +1238,118 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
         </div>
       </div>
 
-      {/* 2. Top Segmented Horizontal Tabs */}
-      <div style={{ position: 'relative', width: '100%', padding: '2px 0 6px 0' }}>
-        <TopSegmentedTabs
-          activeCategory={activeCategory}
-          onSelectCategory={handleTabChange}
-          counts={counts}
-          tabs={managementTabs}
-        />
+      {/* 2. Top Segmented Horizontal Tabs (รองรับปุ่มเลื่อน, ลูกกลิ้งเมาส์, และการคลิกลาก) */}
+      <div style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center' }}>
+        {/* ปุ่มเลื่อนซ้าย */}
+        {canScrollLeft && (
+          <button
+            type="button"
+            onClick={() => {
+              tabsScrollContainerRef.current?.scrollBy({ left: -260, behavior: 'smooth' });
+            }}
+            style={{
+              position: 'absolute',
+              left: 0,
+              zIndex: 20,
+              height: '38px',
+              width: '32px',
+              borderRadius: '8px 0 0 8px',
+              border: '1px solid #cbd5e1',
+              borderRight: 'none',
+              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(4px)',
+              color: '#334155',
+              boxShadow: '2px 0 8px rgba(0,0,0,0.08)',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            title="เลื่อนไปทางซ้าย"
+          >
+            <FaChevronLeft style={{ fontSize: '11px' }} />
+          </button>
+        )}
+
+        {/* คอนเทนเนอร์ Bubble Tabs */}
+        <div
+          ref={tabsScrollContainerRef}
+          onScroll={checkScrollState}
+          onWheel={(e) => {
+            if (tabsScrollContainerRef.current) {
+              tabsScrollContainerRef.current.scrollLeft += e.deltaY;
+            }
+          }}
+          onMouseDown={(e) => {
+            if (!tabsScrollContainerRef.current) return;
+            isDraggingRef.current = true;
+            startXRef.current = e.pageX - tabsScrollContainerRef.current.offsetLeft;
+            scrollLeftRef.current = tabsScrollContainerRef.current.scrollLeft;
+          }}
+          onMouseLeave={() => {
+            isDraggingRef.current = false;
+          }}
+          onMouseUp={() => {
+            isDraggingRef.current = false;
+          }}
+          onMouseMove={(e) => {
+            if (!isDraggingRef.current || !tabsScrollContainerRef.current) return;
+            e.preventDefault();
+            const x = e.pageX - tabsScrollContainerRef.current.offsetLeft;
+            const walk = (x - startXRef.current) * 1.5;
+            tabsScrollContainerRef.current.scrollLeft = scrollLeftRef.current - walk;
+          }}
+          style={{
+            width: '100%',
+            overflowX: 'auto',
+            overflowY: 'hidden',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+            WebkitOverflowScrolling: 'touch',
+            padding: '2px 0px 6px 0px',
+            cursor: 'grab',
+          }}
+        >
+          <div style={{ display: 'inline-flex', minWidth: 'max-content' }}>
+            <TopSegmentedTabs
+              activeCategory={activeCategory}
+              onSelectCategory={handleTabChange}
+              counts={counts}
+              tabs={managementTabs}
+            />
+          </div>
+        </div>
+
+        {/* ปุ่มเลื่อนขวา */}
+        {canScrollRight && (
+          <button
+            type="button"
+            onClick={() => {
+              tabsScrollContainerRef.current?.scrollBy({ left: 260, behavior: 'smooth' });
+            }}
+            style={{
+              position: 'absolute',
+              right: 0,
+              zIndex: 20,
+              height: '38px',
+              width: '32px',
+              borderRadius: '0 8px 8px 0',
+              border: '1px solid #cbd5e1',
+              borderLeft: 'none',
+              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(4px)',
+              color: '#334155',
+              boxShadow: '-2px 0 8px rgba(0,0,0,0.08)',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            title="เลื่อนไปทางขวา"
+          >
+            <FaChevronRight style={{ fontSize: '11px' }} />
+          </button>
+        )}
       </div>
 
       {activeCategory === 'user_roles' ? (
@@ -1442,7 +1591,22 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
 
               {/* ส่งออก Excel */}
               <button
-                onClick={() => exportTableToExcel(sortedData, activeCategory)}
+                onClick={() => {
+                  const catConfig = CATEGORIES_CONFIG[activeCategory];
+                  exportUnifiedPageExcel({
+                    page: 'manage_data',
+                    section: 'data_table',
+                    title: `รายงานข้อมูลด้าน${catConfig.title} (ภาพรวมและรายละเอียด)`,
+                    periodLabel: 'ปีงบประมาณ 2568-2569',
+                    categoryKey: activeCategory,
+                    filterSummary: {
+                      'หมวดหมู่': catConfig.title,
+                      'ภาควิชา/สังกัด': selectedDept || 'ทุกภาควิชา',
+                      'คำค้นหา': searchTerm || 'ไม่มี',
+                    },
+                    tableData: sortedData,
+                  });
+                }}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',

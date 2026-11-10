@@ -1,4 +1,5 @@
 'use client';
+import { getApiBaseUrl } from './api';
 import { EvaluationRecord } from '../types/evaluation';
 import { CategoryKey } from '../types/dataManagement';
 
@@ -203,7 +204,7 @@ export function setCachedCategoryData(category: string, data: any[], broadcast =
 
 export async function fetchCategoryData(category: string): Promise<any[]> {
   try {
-    const res = await fetch(`/api/v1/data/${category}`, {
+    const res = await fetch(`${getApiBaseUrl()}/data/${category}`, {
       method: 'GET',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -272,7 +273,7 @@ export async function saveCategoryRecord(
 
   // 1. Send API request to backend route
   try {
-    let res = await fetch(`/api/v1/data/${category}`, {
+    let res = await fetch(`${getApiBaseUrl()}/data/${category}`, {
       method,
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -281,7 +282,7 @@ export async function saveCategoryRecord(
 
     // If PUT returned 404, try POST to upsert into backend database
     if (!isNew && res.status === 404) {
-      res = await fetch(`/api/v1/data/${category}`, {
+      res = await fetch(`${getApiBaseUrl()}/data/${category}`, {
         method: 'POST',
         headers: getAuthHeaders(),
         credentials: 'include',
@@ -335,7 +336,7 @@ export async function deleteCategoryRecord(
   try {
     saveDeletedId(category, recordId);
 
-    const res = await fetch(`/api/v1/data/${category}?id=${encodeURIComponent(recordId)}`, {
+    const res = await fetch(`${getApiBaseUrl()}/data/${category}?id=${encodeURIComponent(recordId)}`, {
       method: 'DELETE',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -384,7 +385,7 @@ export async function batchImportCategoryRecords(
 
   // 2. Call API
   try {
-    const res = await fetch(`/api/v1/data/${category}`, {
+    const res = await fetch(`${getApiBaseUrl()}/data/${category}`, {
       method: 'POST',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -466,7 +467,7 @@ function normalizeJournalIndex(raw: any): { type: 'Q' | 'TCI'; value: string } |
 
 export async function fetchEvaluations(category?: string): Promise<Record<string, EvaluationRecord>> {
   try {
-    const url = category ? `/api/v1/evaluation?category=${encodeURIComponent(category)}` : '/api/v1/evaluation';
+    const url = category ? `${getApiBaseUrl()}/evaluation?category=${encodeURIComponent(category)}` : '/api/v1/evaluation';
     const res = await fetch(url, {
       method: 'GET',
       headers: getAuthHeaders(),
@@ -503,7 +504,7 @@ export async function saveEvaluationRecord(
   evalData: Partial<EvaluationRecord>
 ): Promise<{ success: boolean; data?: EvaluationRecord; error?: string }> {
   try {
-    const res = await fetch('/api/v1/evaluation', {
+    const res = await fetch(`${getApiBaseUrl()}/evaluation`, {
       method: 'POST',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -534,7 +535,7 @@ export async function bulkSaveEvaluationRecords(
   items: Partial<EvaluationRecord>[]
 ): Promise<{ success: boolean; data?: EvaluationRecord[]; error?: string }> {
   try {
-    const res = await fetch('/api/v1/evaluation/bulk', {
+    const res = await fetch(`${getApiBaseUrl()}/evaluation/bulk`, {
       method: 'POST',
       headers: getAuthHeaders(),
       credentials: 'include',

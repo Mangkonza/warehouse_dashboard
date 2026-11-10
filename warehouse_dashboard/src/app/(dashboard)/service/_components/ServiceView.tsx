@@ -7,6 +7,7 @@ import { ServiceCharts, ServicePerspective } from './ServiceCharts';
 import { TopSegmentedTabs } from '@/components/ui/TopSegmentedTabs';
 import { StrategicAlignmentMatrix } from '@/components/data-display/StrategicAlignmentMatrix';
 import { MissionDataTable } from '@/components/data-display/MissionDataTable';
+import { ExportContextProps } from '@/lib/export';
 import { FaChartLine, FaBuilding, FaUserTie, FaLeaf, FaHandshake, FaUsers, FaGlobeAsia, FaTable } from 'react-icons/fa';
 import { DashboardTabFilterBar } from '@/components/ui/DashboardTabFilterBar';
 import { UndatedNotice } from '@/components/ui/UndatedNotice';
@@ -98,7 +99,7 @@ export function ServiceView() {
   const serviceSegments = useMemo(() => {
     return [
       {
-        label: 'วิชาการ/วิชาชีพ',
+        label: 'วิชาการ',
         value: directServiceCount,
         displayValue: `${directServiceCount} ครั้ง`,
         unit: 'ครั้ง',
@@ -106,7 +107,7 @@ export function ServiceView() {
         color: '#fde68a',
       },
       {
-        label: 'ผู้ทรงคุณวุฒิ/ประเมิน',
+        label: 'ผู้ทรงคุณวุฒิ',
         value: expertCount,
         displayValue: `${expertCount} ครั้ง`,
         unit: 'ครั้ง',

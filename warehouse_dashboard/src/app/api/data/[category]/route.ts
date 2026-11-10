@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getBackendUrl } from '@/lib/backendUrl';
 import { readCategoryData, readEvaluations } from '@/lib/serverDataStore';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-const BACKEND_URL = process.env.BACKEND_INTERNAL_URL || process.env.BACKEND_URL || 'http://ku_warehouse_backend:8000';
+// ดึง BACKEND_URL ผ่าน helper ส่วนกลาง (throw error ใน production หากไม่ได้กำหนด)
+const getBackend = () => getBackendUrl();
 
 interface RouteContext {
   params: Promise<{ category: string }>;
@@ -25,7 +27,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
   try {
     const { category } = await context.params;
     const { search } = new URL(request.url);
-    const res = await fetch(`${BACKEND_URL}/api/v1/data/${category}${search}`, {
+    const res = await fetch(`${getBackend()}/api/v1/data/${category}${search}`, {
       method: 'GET',
       headers: getForwardHeaders(request),
       cache: 'no-store',
@@ -63,7 +65,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
   try {
     const { category } = await context.params;
     const body = await request.json();
-    const res = await fetch(`${BACKEND_URL}/api/v1/data/${category}`, {
+    const res = await fetch(`${getBackend()}/api/v1/data/${category}`, {
       method: 'POST',
       headers: getForwardHeaders(request),
       body: JSON.stringify(body),
@@ -100,7 +102,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
   try {
     const { category } = await context.params;
     const body = await request.json();
-    const res = await fetch(`${BACKEND_URL}/api/v1/data/${category}`, {
+    const res = await fetch(`${getBackend()}/api/v1/data/${category}`, {
       method: 'PUT',
       headers: getForwardHeaders(request),
       body: JSON.stringify(body),
@@ -137,7 +139,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
   try {
     const { category } = await context.params;
     const { search } = new URL(request.url);
-    const res = await fetch(`${BACKEND_URL}/api/v1/data/${category}${search}`, {
+    const res = await fetch(`${getBackend()}/api/v1/data/${category}${search}`, {
       method: 'DELETE',
       headers: getForwardHeaders(request),
     });

@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getBackendUrl } from '@/lib/backendUrl';
 import { aggregateSdgsData, SdgFilterParams } from '@/lib/sdgAggregationService';
 
 export const dynamic = 'force-dynamic';
 
-const BACKEND_URL = process.env.BACKEND_INTERNAL_URL || process.env.BACKEND_URL || 'http://localhost:8000';
+// ดึง BACKEND_URL ผ่าน helper ส่วนกลาง (throw error ใน production หากไม่ได้กำหนด)
+const getBackend = () => getBackendUrl();
 
 export async function GET(req: NextRequest) {
   try {
@@ -48,7 +50,7 @@ export async function GET(req: NextRequest) {
     await Promise.all([
       ...categoriesToFetch.map(async (cat) => {
         try {
-          const res = await fetch(`${BACKEND_URL}/api/v1/data/${cat}`, { cache: 'no-store' });
+          const res = await fetch(`${getBackend()}/api/v1/data/${cat}`, { cache: 'no-store' });
           if (res.ok) {
             const json = await res.json();
             customDatasets[cat] = Array.isArray(json.data) ? json.data : [];
@@ -60,7 +62,7 @@ export async function GET(req: NextRequest) {
       }),
       (async () => {
         try {
-          const res = await fetch(`${BACKEND_URL}/api/v1/evaluation`, { cache: 'no-store' });
+          const res = await fetch(`${getBackend()}/api/v1/evaluation`, { cache: 'no-store' });
           if (res.ok) {
             const json = await res.json();
             if (Array.isArray(json.data)) {

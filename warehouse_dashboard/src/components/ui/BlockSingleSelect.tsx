@@ -21,7 +21,7 @@ export interface BlockSingleSelectProps<T extends string = string> {
 
 /**
  * Global single-select block component used for both:
- * 1. I AM / I SEE (colorVariant="iam")
+ * 1. กลุ่มการประเมิน (colorVariant="iam")
  * 2. Q / TCI (colorVariant="journal")
  *
  * Requirements:

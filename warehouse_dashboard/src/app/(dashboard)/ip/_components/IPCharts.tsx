@@ -1,5 +1,7 @@
 'use client';
 
+const DEFAULT_AVATAR = `${(process.env.NEXT_PUBLIC_BASE_PATH || '').replace(/\/+$/, '')}/default-avatar.png`;
+
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import Chart from 'chart.js/auto';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
@@ -2982,8 +2984,8 @@ export function IPCharts({
                             style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }}
                             onError={(e) => {
                               const target = e.currentTarget;
-                              if (target.src !== '/default-avatar.png' && !target.src.endsWith('/default-avatar.png')) {
-                                target.src = '/default-avatar.png';
+                              if (target.src !== DEFAULT_AVATAR && !target.src.endsWith('/default-avatar.png')) {
+                                target.src = DEFAULT_AVATAR;
                               }
                             }}
                           />
