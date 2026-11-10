@@ -14,7 +14,7 @@ export async function enforceServerRole(resource: AppResource) {
   const sessionCookie = cookieStore.get('ku_session')?.value;
 
   if (!sessionCookie) {
-    redirect(withBasePath('/login'));
+    redirect('/login');
   }
 
   try {
@@ -27,14 +27,14 @@ export async function enforceServerRole(resource: AppResource) {
     });
 
     if (!res.ok) {
-      redirect(withBasePath('/login'));
+      redirect('/login');
     }
 
     const data = await res.json();
     const role = data?.user?.role || 'user';
 
     if (!canAccess(role, resource)) {
-      redirect(withBasePath('/unauthorized'));
+      redirect('/unauthorized');
     }
 
     return data.user;
@@ -44,6 +44,6 @@ export async function enforceServerRole(resource: AppResource) {
       throw err;
     }
     console.error('[serverAuth] Error verifying session with backend:', err);
-    redirect(withBasePath('/unauthorized'));
+    redirect('/unauthorized');
   }
 }

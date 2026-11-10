@@ -2,6 +2,7 @@
 
 const DEFAULT_AVATAR = `${(process.env.NEXT_PUBLIC_BASE_PATH || '').replace(/\/+$/, '')}/default-avatar.png`;
 
+import { getAssetUrl } from '@/lib/api';
 import { formatPersonName } from '@/lib/formatPersonName';
 
 import React, { useState } from 'react';
@@ -93,7 +94,7 @@ export const DataTable: React.FC<DataTableProps> = ({
       case 'avatar': {
         const valStr = rawVal ? String(rawVal).trim() : '';
         const isValid = valStr !== '' && valStr !== '-' && valStr !== 'nan' && valStr !== 'NaT' && valStr !== 'null' && valStr !== 'undefined';
-        const imgSrc = isValid ? encodeURI(valStr) : DEFAULT_AVATAR;
+        const imgSrc = isValid ? getAssetUrl(encodeURI(valStr)) : DEFAULT_AVATAR;
         return (
           <div
             style={{

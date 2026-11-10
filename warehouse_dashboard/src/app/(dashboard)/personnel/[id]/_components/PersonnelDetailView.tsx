@@ -2,6 +2,7 @@
 
 const DEFAULT_AVATAR = `${(process.env.NEXT_PUBLIC_BASE_PATH || '').replace(/\/+$/, '')}/default-avatar.png`;
 
+import { getAssetUrl } from '@/lib/api';
 import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePersonnelData } from '../../_hooks/usePersonnelData';
@@ -253,9 +254,9 @@ export function PersonnelDetailView({ personnelId, fallbackName }: PersonnelDeta
                 profileImageUrl && !imageError
                   ? (() => {
                       try {
-                        return encodeURI(decodeURI(profileImageUrl.trim()));
+                        return getAssetUrl(encodeURI(decodeURI(profileImageUrl.trim())));
                       } catch {
-                        return encodeURI(profileImageUrl.trim());
+                        return getAssetUrl(encodeURI(profileImageUrl.trim()));
                       }
                     })()
                   : DEFAULT_AVATAR

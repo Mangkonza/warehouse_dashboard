@@ -2,6 +2,7 @@
 
 const DEFAULT_AVATAR = `${(process.env.NEXT_PUBLIC_BASE_PATH || '').replace(/\/+$/, '')}/default-avatar.png`;
 
+import { getAssetUrl } from '@/lib/api';
 import React, { useState, useEffect, useRef } from 'react';
 import { PersonnelRecord } from '@/types/dataManagement';
 import { getDepartmentAbbr } from '@/config/dataManagementConfig';
@@ -140,7 +141,7 @@ export const SmartAutocomplete: React.FC<SmartAutocompleteProps> = ({
                 }}
               >
                 <img
-                  src={p.image_url ? encodeURI(p.image_url) : DEFAULT_AVATAR}
+                  src={p.image_url ? getAssetUrl(encodeURI(p.image_url)) : DEFAULT_AVATAR}
                   alt={p.name}
                   style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center', backgroundColor: '#99b8db' }}
                   onError={(e) => {
