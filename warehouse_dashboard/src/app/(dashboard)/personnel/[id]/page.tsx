@@ -2,6 +2,7 @@ import { PersonnelDetailView } from './_components/PersonnelDetailView';
 
 interface PersonnelDetailPageProps {
   params: Promise<{ id: string }>;
+  searchParams?: Promise<{ name?: string }>;
 }
 
 export const metadata = {
@@ -9,7 +10,8 @@ export const metadata = {
   description: 'รายละเอียดผลงาน 5 พันธกิจหลักสะสมรายบุคคล',
 };
 
-export default async function PersonnelDetailPage({ params }: PersonnelDetailPageProps) {
+export default async function PersonnelDetailPage({ params, searchParams }: PersonnelDetailPageProps) {
   const { id } = await params;
-  return <PersonnelDetailView personnelId={id} />;
+  const sp = searchParams ? await searchParams : undefined;
+  return <PersonnelDetailView personnelId={id} fallbackName={sp?.name} />;
 }

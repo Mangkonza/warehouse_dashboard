@@ -34,6 +34,7 @@ import {
 
 interface PersonnelDetailViewProps {
   personnelId: string;
+  fallbackName?: string;
 }
 
 type TabKey = 'all' | 'research' | 'publications' | 'ip' | 'academic' | 'service';
@@ -46,7 +47,7 @@ function parseItemBudget(item: any): number {
   return intVal + extVal;
 }
 
-export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
+export function PersonnelDetailView({ personnelId, fallbackName }: PersonnelDetailViewProps) {
   const router = useRouter();
   const { timeFilter, setTimeFilter, resetTimeFilter } = useTimeFilter();
   const [activeTab, setActiveTab] = useState<TabKey>('all');
@@ -95,11 +96,11 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
 
   // Hook with time filter or undefined when user chooses all-time
   const activeFilter = ignoreTimeFilter ? undefined : timeFilter;
-  const { getPersonPortfolio, personnelMetrics } = usePersonnelData(activeFilter);
+  const { getPersonPortfolio, personnelMetrics, isLoaded } = usePersonnelData(activeFilter);
 
   const portfolio = useMemo(() => {
-    return getPersonPortfolio(personnelId);
-  }, [getPersonPortfolio, personnelId]);
+    return getPersonPortfolio(personnelId, fallbackName);
+  }, [getPersonPortfolio, personnelId, fallbackName]);
 
   const profileImageUrl =
     portfolio?.imageUrl ||
@@ -107,6 +108,23 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
     resolvePersonAvatar(portfolio?.id || personnelId, portfolio?.name);
 
   if (!portfolio) {
+    if (!isLoaded) {
+      return (
+        <div
+          style={{
+            padding: '48px',
+            textAlign: 'center',
+            backgroundColor: '#ffffff',
+            borderRadius: '12px',
+            border: '1px solid #e2e8f0',
+            color: '#64748b',
+            fontSize: '14px',
+          }}
+        >
+          กำลังโหลดข้อมูลแฟ้มผลงานบุคลากร...
+        </div>
+      );
+    }
     return (
       <div
         style={{

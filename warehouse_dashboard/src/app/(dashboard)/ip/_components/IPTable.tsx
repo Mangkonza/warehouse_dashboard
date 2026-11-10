@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { resolvePersonnelHref } from '@/lib/personnelService';
 import { FaTable, FaFileExcel, FaTimes, FaHourglassHalf } from 'react-icons/fa';
 import { SearchInput, DepartmentBadge, RecordDetailDrawer, IPTypeBadge, StrategyBadges } from '@/components/ui';
 import { IPItem } from '../_hooks/useIPData';
@@ -251,10 +252,11 @@ export function IPTable({
                       {item.title || item.name}
                     </td>
                     <td style={{ fontWeight: 500, color: '#334155' }}>
-                      {item.creator && item.creator !== 'nan' ? (
-                        item.person_id ? (
+                      {item.creator && item.creator !== 'nan' ? (() => {
+                        const personHref = resolvePersonnelHref(item.person_id, item.creator);
+                        return personHref ? (
                           <Link
-                            href={`/personnel/${item.person_id}`}
+                            href={personHref}
                             onClick={(e) => e.stopPropagation()}
                             style={{ color: '#7c3aed', fontWeight: 600, textDecoration: 'none' }}
                             title="คลิกเพื่อดูแฟ้มผลงานอาจารย์"
@@ -263,8 +265,8 @@ export function IPTable({
                           </Link>
                         ) : (
                           item.creator
-                        )
-                      ) : (
+                        );
+                      })() : (
                         '-'
                       )}
                     </td>

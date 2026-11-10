@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { resolvePersonnelHref } from '@/lib/personnelService';
 import { FaTable, FaTimes, FaFileExcel } from 'react-icons/fa';
 import { SearchInput, DepartmentBadge, RecordDetailDrawer, StrategyBadges } from '@/components/ui';
 import { ServiceItem } from '../_hooks/useServiceData';
@@ -236,10 +237,11 @@ export function ServiceTable({
                     </span>
                   </td>
                   <td style={{ fontWeight: 500, color: '#334155' }}>
-                    {item.person && item.person !== 'nan' ? (
-                      item.person_id ? (
+                    {item.person && item.person !== 'nan' ? (() => {
+                      const personHref = resolvePersonnelHref(item.person_id, item.person);
+                      return personHref ? (
                         <Link
-                          href={`/personnel/${item.person_id}`}
+                          href={personHref}
                           onClick={(e) => e.stopPropagation()}
                           style={{ color: '#d97706', fontWeight: 600, textDecoration: 'none' }}
                           title="คลิกเพื่อดูแฟ้มผลงานบุคลากร"
@@ -248,8 +250,8 @@ export function ServiceTable({
                         </Link>
                       ) : (
                         item.person
-                      )
-                    ) : (
+                      );
+                    })() : (
                       '-'
                     )}
                   </td>

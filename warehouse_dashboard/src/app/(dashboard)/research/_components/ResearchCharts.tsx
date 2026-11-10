@@ -26,7 +26,7 @@ import { resolveItemFiscalYear } from '@/types/timeFilter';
 import { YearSelectDropdown } from '@/components/ui/YearSelectDropdown';
 import { STANDARD_YEAR_OPTIONS, getDefaultCompareYear } from '@/lib/fiscalYears';
 import { isTestRecord } from '@/lib/sdgEngine';
-import { resolvePersonAvatar, matchPerson, normalizePersonName } from '@/lib/personnelService';
+import { resolvePersonAvatar, resolvePersonnelTargetId, resolvePersonnelHref, normalizePersonName } from '@/lib/personnelService';
 
 const UCOL: Record<string, string> = {
   AE: '#65B98A',
@@ -190,7 +190,7 @@ export function ResearchCharts({
       const rawHead = String(item.head || '').trim();
       if (!rawHead || rawHead === '-' || rawHead === 'nan') return;
       const headName = normalizePersonName(rawHead);
-      const resolvedHeadId = item.head_id || matchPerson(headName)?.id || (matchPerson(headName) as any)?._id;
+      const resolvedHeadId = resolvePersonnelTargetId(item.head_id, headName) ?? undefined;
       const key = resolvedHeadId ? `id_${resolvedHeadId}` : headName;
       if (!map[key]) {
         map[key] = {
@@ -2172,9 +2172,8 @@ export function ResearchCharts({
                           <tr
                             key={idx}
                             onClick={() => {
-                              const targetId = f.head_id || matchPerson(f.head)?.id || matchPerson(f.head)?._id;
-                              if (targetId) router.push(`/personnel/${targetId}`);
-                              else router.push(`/personnel?q=${encodeURIComponent(f.head)}`);
+                              const href = resolvePersonnelHref(f.head_id, f.head);
+                              if (href) router.push(href);
                             }}
                             style={{
                               borderBottom: '1px solid #f1f5f9',
@@ -2239,9 +2238,8 @@ export function ResearchCharts({
                                 type="button"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  const targetId = f.head_id || matchPerson(f.head)?.id || matchPerson(f.head)?._id;
-                                  if (targetId) router.push(`/personnel/${targetId}`);
-                                  else router.push(`/personnel?q=${encodeURIComponent(f.head)}`);
+                                  const href = resolvePersonnelHref(f.head_id, f.head);
+                                  if (href) router.push(href);
                                 }}
                                 style={{
                                   padding: '5px 10px',

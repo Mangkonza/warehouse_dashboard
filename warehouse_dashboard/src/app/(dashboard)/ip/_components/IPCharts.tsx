@@ -20,7 +20,7 @@ import {
 } from 'react-icons/fa';
 import { IPItem } from '../_hooks/useIPData';
 import { getDepartment, getDepartmentColor } from '@/lib/departments';
-import { resolvePersonAvatar, matchPerson } from '@/lib/personnelService';
+import { resolvePersonAvatar, resolvePersonnelTargetId, resolvePersonnelHref } from '@/lib/personnelService';
 import { getClickedChartElement } from '@/lib/chartTooltipHelper';
 import { StrategicAlignmentMatrix } from '@/components/data-display';
 import { DrillDownProjectDrawer, DepartmentBadge } from '@/components/ui';
@@ -515,8 +515,7 @@ export function IPCharts({
       items.forEach((item) => {
         const cName = String(item.creator || '').trim();
         if (!cName || cName === '-' || cName === 'nan') return;
-        const matched = matchPerson(cName);
-        const pId = item.person_id || matched?.id || matched?._id || matched?.person_id;
+        const pId = resolvePersonnelTargetId(item.person_id, cName) ?? undefined;
         const key = pId ? `id_${pId}` : cName;
         if (!map[key]) {
           const d = getDepartment(item.department);
@@ -703,14 +702,14 @@ export function IPCharts({
                 <div className="rr-seg-ctl">
                   <button
                     type="button"
-                    className={ip1Mode === 'single' ? 'on' : ''}
+                    aria-pressed={ip1Mode === 'single'}
                     onClick={() => setIp1Mode('single')}
                   >
                     ภาพรวม
                   </button>
                   <button
                     type="button"
-                    className={ip1Mode === 'yoy' ? 'on' : ''}
+                    aria-pressed={ip1Mode === 'yoy'}
                     onClick={() => setIp1Mode('yoy')}
                   >
                     เปรียบเทียบข้ามปี
@@ -729,37 +728,20 @@ export function IPCharts({
                   <div className="rr-seg-ctl">
                     <button
                       type="button"
-                      className={ip1Layout === 'grouped' ? 'on' : ''}
+                      aria-pressed={ip1Layout === 'grouped'}
                       onClick={() => setIp1Layout('grouped')}
                     >
                       แยกแท่ง
                     </button>
                     <button
                       type="button"
-                      className={ip1Layout === 'stacked' ? 'on' : ''}
+                      aria-pressed={ip1Layout === 'stacked'}
                       onClick={() => setIp1Layout('stacked')}
                     >
                       แท่งซ้อน
                     </button>
                   </div>
                 )}
-
-                <div className="rr-seg-ctl">
-                  <button
-                    type="button"
-                    className={deptStackMode === 'type' ? 'on' : ''}
-                    onClick={() => setDeptStackMode('type')}
-                  >
-                    แยกตามประเภท
-                  </button>
-                  <button
-                    type="button"
-                    className={deptStackMode === 'stage' ? 'on' : ''}
-                    onClick={() => setDeptStackMode('stage')}
-                  >
-                    แยกตามสถานะ
-                  </button>
-                </div>
               </div>
             </div>
 
@@ -1293,14 +1275,14 @@ export function IPCharts({
                 <div className="rr-seg-ctl">
                   <button
                     type="button"
-                    className={ip2Mode === 'single' ? 'on' : ''}
+                    aria-pressed={ip2Mode === 'single'}
                     onClick={() => setIp2Mode('single')}
                   >
                     ภาพรวม
                   </button>
                   <button
                     type="button"
-                    className={ip2Mode === 'yoy' ? 'on' : ''}
+                    aria-pressed={ip2Mode === 'yoy'}
                     onClick={() => setIp2Mode('yoy')}
                   >
                     เปรียบเทียบข้ามปี
@@ -1504,14 +1486,14 @@ export function IPCharts({
                 <div className="rr-seg-ctl">
                   <button
                     type="button"
-                    className={ip3Mode === 'single' ? 'on' : ''}
+                    aria-pressed={ip3Mode === 'single'}
                     onClick={() => setIp3Mode('single')}
                   >
                     ภาพรวม
                   </button>
                   <button
                     type="button"
-                    className={ip3Mode === 'yoy' ? 'on' : ''}
+                    aria-pressed={ip3Mode === 'yoy'}
                     onClick={() => setIp3Mode('yoy')}
                   >
                     เปรียบเทียบข้ามปี
@@ -1530,14 +1512,14 @@ export function IPCharts({
                   <div className="rr-seg-ctl">
                     <button
                       type="button"
-                      className={ip3Layout === 'grouped' ? 'on' : ''}
+                      aria-pressed={ip3Layout === 'grouped'}
                       onClick={() => setIp3Layout('grouped')}
                     >
                       แยกแท่ง
                     </button>
                     <button
                       type="button"
-                      className={ip3Layout === 'stacked' ? 'on' : ''}
+                      aria-pressed={ip3Layout === 'stacked'}
                       onClick={() => setIp3Layout('stacked')}
                     >
                       แท่งซ้อน
@@ -1548,14 +1530,14 @@ export function IPCharts({
                 <div className="rr-seg-ctl">
                   <button
                     type="button"
-                    className={ip3Metric === 'count' ? 'on' : ''}
+                    aria-pressed={ip3Metric === 'count'}
                     onClick={() => setIp3Metric('count')}
                   >
                     จำนวนรายการ
                   </button>
                   <button
                     type="button"
-                    className={ip3Metric === 'support' ? 'on' : ''}
+                    aria-pressed={ip3Metric === 'support'}
                     onClick={() => setIp3Metric('support')}
                   >
                     งบสนับสนุน (บาท)
@@ -1924,14 +1906,14 @@ export function IPCharts({
                 <div className="rr-seg-ctl">
                   <button
                     type="button"
-                    className={ip4Mode === 'single' ? 'on' : ''}
+                    aria-pressed={ip4Mode === 'single'}
                     onClick={() => setIp4Mode('single')}
                   >
                     ภาพรวม
                   </button>
                   <button
                     type="button"
-                    className={ip4Mode === 'yoy' ? 'on' : ''}
+                    aria-pressed={ip4Mode === 'yoy'}
                     onClick={() => setIp4Mode('yoy')}
                   >
                     เปรียบเทียบข้ามปี
@@ -1941,14 +1923,14 @@ export function IPCharts({
                 <div className="rr-seg-ctl">
                   <button
                     type="button"
-                    className={ip4BreakBy === 'type' ? 'on' : ''}
+                    aria-pressed={ip4BreakBy === 'type'}
                     onClick={() => setIp4BreakBy('type')}
                   >
                     แยกตามประเภท
                   </button>
                   <button
                     type="button"
-                    className={ip4BreakBy === 'dept' ? 'on' : ''}
+                    aria-pressed={ip4BreakBy === 'dept'}
                     onClick={() => setIp4BreakBy('dept')}
                   >
                     แยกตามสังกัด
@@ -1959,14 +1941,14 @@ export function IPCharts({
                   <div className="rr-seg-ctl">
                     <button
                       type="button"
-                      className={ip4Layout === 'grouped' ? 'on' : ''}
+                      aria-pressed={ip4Layout === 'grouped'}
                       onClick={() => setIp4Layout('grouped')}
                     >
                       แยกแท่ง
                     </button>
                     <button
                       type="button"
-                      className={ip4Layout === 'stacked' ? 'on' : ''}
+                      aria-pressed={ip4Layout === 'stacked'}
                       onClick={() => setIp4Layout('stacked')}
                     >
                       แท่งซ้อน
@@ -2457,14 +2439,14 @@ export function IPCharts({
                 <div className="rr-seg-ctl">
                   <button
                     type="button"
-                    className={ip5Mode === 'single' ? 'on' : ''}
+                    aria-pressed={ip5Mode === 'single'}
                     onClick={() => setIp5Mode('single')}
                   >
                     ภาพรวม
                   </button>
                   <button
                     type="button"
-                    className={ip5Mode === 'yoy' ? 'on' : ''}
+                    aria-pressed={ip5Mode === 'yoy'}
                     onClick={() => setIp5Mode('yoy')}
                   >
                     เปรียบเทียบข้ามปี
@@ -2483,14 +2465,14 @@ export function IPCharts({
                   <div className="rr-seg-ctl">
                     <button
                       type="button"
-                      className={ip5Layout === 'grouped' ? 'on' : ''}
+                      aria-pressed={ip5Layout === 'grouped'}
                       onClick={() => setIp5Layout('grouped')}
                     >
                       แยกแท่ง
                     </button>
                     <button
                       type="button"
-                      className={ip5Layout === 'stacked' ? 'on' : ''}
+                      aria-pressed={ip5Layout === 'stacked'}
                       onClick={() => setIp5Layout('stacked')}
                     >
                       แท่งซ้อน
@@ -3010,9 +2992,8 @@ export function IPCharts({
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            const targetId = inv.person_id || matchPerson(inv.creator)?.id || matchPerson(inv.creator)?._id || matchPerson(inv.creator)?.person_id;
-                            if (targetId) router.push(`/personnel/${targetId}`);
-                            else router.push(`/personnel?q=${encodeURIComponent(inv.creator)}`);
+                            const href = resolvePersonnelHref(inv.person_id, inv.creator);
+                            if (href) router.push(href);
                           }}
                           style={{
                             padding: '4px 8px',

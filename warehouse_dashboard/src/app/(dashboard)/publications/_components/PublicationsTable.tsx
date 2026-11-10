@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
+import { resolvePersonnelHref } from '@/lib/personnelService';
 import { FaTable, FaCalendarAlt, FaDownload, FaQuoteRight } from 'react-icons/fa';
 import { SearchInput, DepartmentBadge, RecordDetailDrawer, LevelBadge, PublicationTypeBadge, StrategyBadges, JournalTierBadge } from '@/components/ui';
 import { JOURNAL_TIER_STYLES } from '@/config/journalRankingConfig';
@@ -233,10 +234,11 @@ export function PublicationsTable({
                           {Number(item.budget || 0) > 0 ? `${Number(item.budget).toLocaleString('th-TH')} ฿` : '-'}
                         </td>
                         <td style={{ color: '#334155', padding: '10px 8px' }}>
-                          {item.owner && item.owner !== 'nan' ? (
-                            item.person_id || item.owner_id ? (
+                          {item.owner && item.owner !== 'nan' ? (() => {
+                            const personHref = resolvePersonnelHref(item.person_id || item.owner_id, item.owner);
+                            return personHref ? (
                               <Link
-                                href={`/personnel/${item.person_id || item.owner_id}`}
+                                href={personHref}
                                 onClick={(e) => e.stopPropagation()}
                                 style={{ color: '#be123c', fontWeight: 600, textDecoration: 'none' }}
                                 title="คลิกดูแฟ้มผลงาน"
@@ -245,8 +247,8 @@ export function PublicationsTable({
                               </Link>
                             ) : (
                               item.owner
-                            )
-                          ) : (
+                            );
+                          })() : (
                             '-'
                           )}
                         </td>

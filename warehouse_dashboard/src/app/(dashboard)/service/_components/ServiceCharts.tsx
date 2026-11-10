@@ -16,7 +16,7 @@ import {
 } from 'react-icons/fa';
 import { ServiceItem } from '../_hooks/useServiceData';
 import { getDepartment, getDepartmentColor } from '@/lib/departments';
-import { resolvePersonAvatar, matchPerson } from '@/lib/personnelService';
+import { resolvePersonAvatar, resolvePersonnelTargetId, resolvePersonnelHref } from '@/lib/personnelService';
 import { getClickedChartElement } from '@/lib/chartTooltipHelper';
 import { StrategicAlignmentMatrix } from '@/components/data-display';
 import { DrillDownProjectDrawer, DepartmentBadge } from '@/components/ui';
@@ -521,8 +521,7 @@ export function ServiceCharts({
       items.forEach((item) => {
         const pName = String(item.person || '').trim();
         if (!pName || pName === '-' || pName === 'nan') return;
-        const matched = matchPerson(pName);
-        const pId = item.person_id || matched?.id || matched?._id || matched?.person_id;
+        const pId = resolvePersonnelTargetId(item.person_id, pName) ?? undefined;
         const key = pId ? `id_${pId}` : pName;
         if (!map[key]) {
           const deptCode = getServiceDeptCode(item);
@@ -714,14 +713,14 @@ export function ServiceCharts({
                 <div className="rr-seg-ctl">
                   <button
                     type="button"
-                    className={m1Mode === 'single' ? 'on' : ''}
+                    aria-pressed={m1Mode === 'single'}
                     onClick={() => setM1Mode('single')}
                   >
                     ภาพรวม
                   </button>
                   <button
                     type="button"
-                    className={m1Mode === 'yoy' ? 'on' : ''}
+                    aria-pressed={m1Mode === 'yoy'}
                     onClick={() => setM1Mode('yoy')}
                   >
                     เปรียบเทียบข้ามปี
@@ -740,14 +739,14 @@ export function ServiceCharts({
                   <div className="rr-seg-ctl">
                     <button
                       type="button"
-                      className={m1Layout === 'grouped' ? 'on' : ''}
+                      aria-pressed={m1Layout === 'grouped'}
                       onClick={() => setM1Layout('grouped')}
                     >
                       แยกแท่ง
                     </button>
                     <button
                       type="button"
-                      className={m1Layout === 'stacked' ? 'on' : ''}
+                      aria-pressed={m1Layout === 'stacked'}
                       onClick={() => setM1Layout('stacked')}
                     >
                       แท่งซ้อน
@@ -1411,14 +1410,14 @@ export function ServiceCharts({
                 <div className="rr-seg-ctl">
                   <button
                     type="button"
-                    className={m2Mode === 'single' ? 'on' : ''}
+                    aria-pressed={m2Mode === 'single'}
                     onClick={() => setM2Mode('single')}
                   >
                     ภาพรวม
                   </button>
                   <button
                     type="button"
-                    className={m2Mode === 'yoy' ? 'on' : ''}
+                    aria-pressed={m2Mode === 'yoy'}
                     onClick={() => setM2Mode('yoy')}
                   >
                     เปรียบเทียบข้ามปี
@@ -1437,14 +1436,14 @@ export function ServiceCharts({
                   <div className="rr-seg-ctl">
                     <button
                       type="button"
-                      className={m2Layout === 'grouped' ? 'on' : ''}
+                      aria-pressed={m2Layout === 'grouped'}
                       onClick={() => setM2Layout('grouped')}
                     >
                       แยกแท่ง
                     </button>
                     <button
                       type="button"
-                      className={m2Layout === 'stacked' ? 'on' : ''}
+                      aria-pressed={m2Layout === 'stacked'}
                       onClick={() => setM2Layout('stacked')}
                     >
                       แท่งซ้อน
@@ -1455,21 +1454,21 @@ export function ServiceCharts({
                 <div className="rr-seg-ctl">
                   <button
                     type="button"
-                    className={m2Metric === 'count' ? 'on' : ''}
+                    aria-pressed={m2Metric === 'count'}
                     onClick={() => setM2Metric('count')}
                   >
                     จำนวนงาน
                   </button>
                   <button
                     type="button"
-                    className={m2Metric === 'staff' ? 'on' : ''}
+                    aria-pressed={m2Metric === 'staff'}
                     onClick={() => setM2Metric('staff')}
                   >
                     บุคลากร (ท่าน)
                   </button>
                   <button
                     type="button"
-                    className={m2Metric === 'hours' ? 'on' : ''}
+                    aria-pressed={m2Metric === 'hours'}
                     onClick={() => setM2Metric('hours')}
                   >
                     ชั่วโมงบริการ
@@ -1827,14 +1826,14 @@ export function ServiceCharts({
                 <div className="rr-seg-ctl">
                   <button
                     type="button"
-                    className={m3Mode === 'single' ? 'on' : ''}
+                    aria-pressed={m3Mode === 'single'}
                     onClick={() => setM3Mode('single')}
                   >
                     ภาพรวม
                   </button>
                   <button
                     type="button"
-                    className={m3Mode === 'yoy' ? 'on' : ''}
+                    aria-pressed={m3Mode === 'yoy'}
                     onClick={() => setM3Mode('yoy')}
                   >
                     เปรียบเทียบข้ามปี
@@ -1853,14 +1852,14 @@ export function ServiceCharts({
                   <div className="rr-seg-ctl">
                     <button
                       type="button"
-                      className={m3Layout === 'grouped' ? 'on' : ''}
+                      aria-pressed={m3Layout === 'grouped'}
                       onClick={() => setM3Layout('grouped')}
                     >
                       แยกแท่ง
                     </button>
                     <button
                       type="button"
-                      className={m3Layout === 'stacked' ? 'on' : ''}
+                      aria-pressed={m3Layout === 'stacked'}
                       onClick={() => setM3Layout('stacked')}
                     >
                       แท่งซ้อน
@@ -2405,14 +2404,14 @@ export function ServiceCharts({
                 <div className="rr-seg-ctl">
                   <button
                     type="button"
-                    className={m4Mode === 'single' ? 'on' : ''}
+                    aria-pressed={m4Mode === 'single'}
                     onClick={() => setM4Mode('single')}
                   >
                     ภาพรวม
                   </button>
                   <button
                     type="button"
-                    className={m4Mode === 'yoy' ? 'on' : ''}
+                    aria-pressed={m4Mode === 'yoy'}
                     onClick={() => setM4Mode('yoy')}
                   >
                     เปรียบเทียบข้ามปี
@@ -2432,28 +2431,28 @@ export function ServiceCharts({
                 <div className="rr-seg-ctl">
                   <button
                     type="button"
-                    className={m4Metric === 'avg' ? 'on' : ''}
+                    aria-pressed={m4Metric === 'avg'}
                     onClick={() => setM4Metric('avg')}
                   >
                     ภาระงานเฉลี่ย (งาน/ท่าน)
                   </button>
                   <button
                     type="button"
-                    className={m4Metric === 'count' ? 'on' : ''}
+                    aria-pressed={m4Metric === 'count'}
                     onClick={() => setM4Metric('count')}
                   >
                     จำนวนงานบริการ
                   </button>
                   <button
                     type="button"
-                    className={m4Metric === 'staff' ? 'on' : ''}
+                    aria-pressed={m4Metric === 'staff'}
                     onClick={() => setM4Metric('staff')}
                   >
                     บุคลากร (ท่าน)
                   </button>
                   <button
                     type="button"
-                    className={m4Metric === 'hours' ? 'on' : ''}
+                    aria-pressed={m4Metric === 'hours'}
                     onClick={() => setM4Metric('hours')}
                   >
                     ชั่วโมงบริการ
@@ -2579,14 +2578,14 @@ export function ServiceCharts({
                 <div className="rr-seg-ctl">
                   <button
                     type="button"
-                    className={m5Mode === 'single' ? 'on' : ''}
+                    aria-pressed={m5Mode === 'single'}
                     onClick={() => setM5Mode('single')}
                   >
                     ภาพรวม
                   </button>
                   <button
                     type="button"
-                    className={m5Mode === 'yoy' ? 'on' : ''}
+                    aria-pressed={m5Mode === 'yoy'}
                     onClick={() => setM5Mode('yoy')}
                   >
                     เปรียบเทียบข้ามปี
@@ -2605,14 +2604,14 @@ export function ServiceCharts({
                   <div className="rr-seg-ctl">
                     <button
                       type="button"
-                      className={m5Layout === 'grouped' ? 'on' : ''}
+                      aria-pressed={m5Layout === 'grouped'}
                       onClick={() => setM5Layout('grouped')}
                     >
                       แยกแท่ง
                     </button>
                     <button
                       type="button"
-                      className={m5Layout === 'stacked' ? 'on' : ''}
+                      aria-pressed={m5Layout === 'stacked'}
                       onClick={() => setM5Layout('stacked')}
                     >
                       แท่งซ้อน
@@ -3025,14 +3024,14 @@ export function ServiceCharts({
                 <div className="rr-seg-ctl">
                   <button
                     type="button"
-                    className={m6DisplayMode === 'count' ? 'on' : ''}
+                    aria-pressed={m6DisplayMode === 'count'}
                     onClick={() => setM6DisplayMode('count')}
                   >
                     จำนวนนับ (ท่าน)
                   </button>
                   <button
                     type="button"
-                    className={m6DisplayMode === 'pct' ? 'on' : ''}
+                    aria-pressed={m6DisplayMode === 'pct'}
                     onClick={() => setM6DisplayMode('pct')}
                   >
                     เปอร์เซ็นต์ (%)
@@ -3268,9 +3267,8 @@ export function ServiceCharts({
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            const targetId = s.person_id || matchPerson(s.name)?.id || matchPerson(s.name)?._id || matchPerson(s.name)?.person_id;
-                            if (targetId) router.push(`/personnel/${targetId}`);
-                            else router.push(`/personnel?q=${encodeURIComponent(s.name)}`);
+                            const href = resolvePersonnelHref(s.person_id, s.name);
+                            if (href) router.push(href);
                           }}
                           style={{
                             padding: '4px 8px',

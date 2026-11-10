@@ -285,6 +285,42 @@ export class ProjectService {
     }
   }
 
+  static validatePublication(body: any, isUpdate = false) {
+    if (!isUpdate) {
+      const title = String(body.title || body.name || '').trim();
+      if (!title) {
+        const err: any = new Error('กรุณากรอกชื่อเรื่อง / ผลงานตีพิมพ์ (title)');
+        err.status = 400;
+        err.field = 'title';
+        throw err;
+      }
+      const dept = resolveDeptCode(body.departmentCode || body.department_code || body.department);
+      if (!dept) {
+        const err: any = new Error('กรุณาระบุสังกัดภาควิชา (department)');
+        err.status = 400;
+        err.field = 'department';
+        throw err;
+      }
+    } else {
+      if ((body.title !== undefined || body.name !== undefined) && String(body.title || body.name || '').trim() === '') {
+        const err: any = new Error('ชื่อเรื่อง / ผลงานตีพิมพ์ต้องไม่เป็นค่าว่าง');
+        err.status = 400;
+        err.field = 'title';
+        throw err;
+      }
+    }
+
+    if (body.budget !== undefined && body.budget !== null && String(body.budget).trim() !== '') {
+      const b = Number(body.budget);
+      if (isNaN(b) || b < 0) {
+        const err: any = new Error('จำนวนเงินสนับสนุนต้องเป็นตัวเลขที่ไม่ติดลบ (budget >= 0)');
+        err.status = 400;
+        err.field = 'budget';
+        throw err;
+      }
+    }
+  }
+
   static async createResearch(body: any) {
     this.validateResearch(body, false);
     const name = String(body.name || '').trim();

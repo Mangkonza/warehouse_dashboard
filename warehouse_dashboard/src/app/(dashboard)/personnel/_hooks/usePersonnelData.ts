@@ -88,6 +88,7 @@ const toNorm = (str?: string | null): string =>
 export function usePersonnelData(timeFilter?: TimeFilterState) {
   const [datasets, setDatasets] = useState<DatasetsState>(loadInitialDatasets);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isLoaded, setIsLoaded] = useState<boolean>(() => Boolean(datasets.personnel.length));
 
   const fetchAllData = useCallback(async () => {
     try {
@@ -110,6 +111,8 @@ export function usePersonnelData(timeFilter?: TimeFilterState) {
       }));
     } catch (err) {
       console.error('Failed to load personnel data:', err);
+    } finally {
+      setIsLoaded(true);
     }
   }, []);
 
@@ -160,9 +163,8 @@ export function usePersonnelData(timeFilter?: TimeFilterState) {
     return datasets.ip.filter((item) => itemMatchesTimeFilter(item, timeFilter, 'ip'));
   }, [datasets.ip, timeFilter]);
 
-  // Aggregate works for all personnel - Optimized with upfront pre-normalization (50ms instead of 1140ms)
-  const personnelMetrics = useMemo(() => {
-    // 1. Pre-process research items ONCE
+  // Pre-process all 5 mission datasets once so both personnelMetrics and fallback lookups share the exact same matcher
+  const preparedDatasets = useMemo(() => {
     const prepResearch = filteredResearch.map((r) => {
       const hId = r.head_id ? Number(r.head_id) : null;
       const hNorm = toNorm(r.head);
@@ -176,14 +178,12 @@ export function usePersonnelData(timeFilter?: TimeFilterState) {
       return { item: r, budget: parseItemBudget(r), hId, hNorm, mNorms };
     });
 
-    // 2. Pre-process academic items ONCE
     const prepAcademic = filteredAcademic.map((a) => {
       const hId = a.head_id ? Number(a.head_id) : null;
       const hNorm = toNorm(a.head);
       return { item: a, budget: parseItemBudget(a), hId, hNorm };
     });
 
-    // 3. Pre-process publication items ONCE (including quartile detection)
     const prepPub = filteredPub.map((b) => {
       const pId = b.person_id || b.owner_id ? Number(b.person_id || b.owner_id) : null;
       const oNorm = toNorm(b.owner || b.first_author);
@@ -197,7 +197,6 @@ export function usePersonnelData(timeFilter?: TimeFilterState) {
       return { item: b, pId, oNorm, dNorms, tier };
     });
 
-    // 4. Pre-process service items ONCE
     const prepService = filteredService.map((s) => {
       const pId = s.person_id ? Number(s.person_id) : null;
       const pNorm = toNorm(s.person);
@@ -205,7 +204,6 @@ export function usePersonnelData(timeFilter?: TimeFilterState) {
       return { item: s, pId, pNorm, hours };
     });
 
-    // 5. Pre-process IP items ONCE
     const prepIp = filteredIP.map((i) => {
       const pId = i.person_id ? Number(i.person_id) : null;
       const cNorm = toNorm(i.creator);
@@ -219,8 +217,12 @@ export function usePersonnelData(timeFilter?: TimeFilterState) {
       return { item: i, pId, cNorm, iNorms };
     });
 
-    // 6. Map over personnel with fast comparisons
-    return datasets.personnel.map((person) => {
+    return { prepResearch, prepAcademic, prepPub, prepService, prepIp };
+  }, [filteredResearch, filteredAcademic, filteredPub, filteredService, filteredIP]);
+
+  const computeMetricForPerson = useCallback(
+    (person: PersonnelRecord): PersonnelWorkMetric => {
+      const { prepResearch, prepAcademic, prepPub, prepService, prepIp } = preparedDatasets;
       const pId = Number(person.id) || 0;
       const clean = normalizePersonName(person.clean_name || person.name || '');
       const normClean = toNorm(clean);
@@ -341,15 +343,14 @@ export function usePersonnelData(timeFilter?: TimeFilterState) {
         pubQuartiles: quartiles,
         serviceHours,
       } as PersonnelWorkMetric;
-    });
-  }, [
-    datasets.personnel,
-    filteredResearch,
-    filteredAcademic,
-    filteredPub,
-    filteredService,
-    filteredIP,
-  ]);
+    },
+    [preparedDatasets]
+  );
+
+  // Aggregate works for all personnel
+  const personnelMetrics = useMemo(() => {
+    return datasets.personnel.map(computeMetricForPerson);
+  }, [datasets.personnel, computeMetricForPerson]);
 
   // Department statistics
   const departmentStats = useMemo(() => {
@@ -390,18 +391,67 @@ export function usePersonnelData(timeFilter?: TimeFilterState) {
     [personnelMetrics]
   );
 
-  // Helper to fetch a single person's portfolio
-  const getPersonPortfolio = (targetId: string | number) => {
-    const idNum = Number(targetId);
-    return (
-      personnelMetrics.find(
-        (m) =>
-          m.id === idNum ||
-          String(m.id) === String(targetId) ||
-          String(m.personnel._id) === String(targetId)
-      ) || null
-    );
-  };
+  // Helper to fetch a single person's portfolio (with name fallback for external/retired personnel or stale IDs)
+  const getPersonPortfolio = useCallback(
+    (targetId: string | number, fallbackName?: string) => {
+      const targetStr = String(targetId || '').trim();
+      if (targetStr && targetStr !== 'lookup') {
+        const idNum = Number(targetStr);
+        const byId = personnelMetrics.find(
+          (m) =>
+            (!Number.isNaN(idNum) && idNum > 0 && m.id === idNum) ||
+            String(m.id) === targetStr ||
+            String(m.personnel._id) === targetStr
+        );
+        if (byId) return byId;
+      }
+
+      if (fallbackName && fallbackName.trim()) {
+        const cleanQuery = toNorm(fallbackName.split(/,|،|\s+และ\s*/i)[0].trim());
+        const qParts = cleanQuery.split(' ').filter(Boolean);
+        if (cleanQuery.length >= 3) {
+          const byName = personnelMetrics.find((m) => {
+            const mNorm = toNorm(m.cleanName || m.name);
+            if (!mNorm) return false;
+            if (mNorm === cleanQuery || mNorm.includes(cleanQuery) || cleanQuery.includes(mNorm)) return true;
+            if (qParts.length >= 2 && mNorm.includes(qParts[0]) && mNorm.includes(qParts[qParts.length - 1])) {
+              return true;
+            }
+            return false;
+          });
+          if (byName) return byName;
+
+          const displayRaw = fallbackName.split(/,|،|\s+และ\s*/i)[0].trim();
+          const synthetic: PersonnelRecord = {
+            id: 0,
+            _id: 'lookup',
+            name: displayRaw,
+            title_th: '',
+            clean_name: normalizePersonName(displayRaw),
+            department: '',
+            position: 'อาจารย์/นักวิจัย',
+            email: '',
+            image_url: '',
+          };
+          const metric = computeMetricForPerson(synthetic);
+          const inferredDept =
+            metric.researchItems[0]?.department ||
+            metric.academicItems[0]?.department ||
+            metric.pubItems[0]?.department ||
+            metric.serviceItems[0]?.department ||
+            metric.ipItems[0]?.department ||
+            'ไม่ระบุสังกัด';
+          return {
+            ...metric,
+            department: inferredDept,
+          };
+        }
+      }
+
+      return null;
+    },
+    [personnelMetrics, computeMetricForPerson]
+  );
 
   return {
     personnelMetrics,
@@ -410,6 +460,7 @@ export function usePersonnelData(timeFilter?: TimeFilterState) {
     activeFacultyCount,
     totalCombinedWorks,
     totalCombinedBudget,
+    isLoaded,
     isRefreshing,
     refreshData,
     getPersonPortfolio,

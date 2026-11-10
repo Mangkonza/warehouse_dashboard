@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { resolvePersonnelHref } from '@/lib/personnelService';
 import { FaListUl, FaTimes, FaDownload } from 'react-icons/fa';
 import { SearchInput, RecordDetailDrawer, StrategyBadges, DepartmentBadge } from '@/components/ui';
 import { AcademicItem } from '../_hooks/useAcademicData';
@@ -192,20 +193,22 @@ export function AcademicTable({
                     {item.name}
                   </td>
                   <td style={{ color: '#334155', fontWeight: 400, padding: '10px 8px' }}>
-                    {item.head && item.head !== 'nan' ? (
-                      item.head_id ? (
+                    {item.head && item.head !== 'nan' ? (() => {
+                      const cleanHead = String(item.head).replace('\n', ' ');
+                      const personHref = resolvePersonnelHref(item.head_id, cleanHead);
+                      return personHref ? (
                         <Link
-                          href={`/personnel/${item.head_id}`}
+                          href={personHref}
                           onClick={(e) => e.stopPropagation()}
                           style={{ color: '#0284c7', fontWeight: 600, textDecoration: 'none' }}
                           title="คลิกเพื่อดูแฟ้มผลงานอาจารย์"
                         >
-                          {String(item.head).replace('\n', ' ')}
+                          {cleanHead}
                         </Link>
                       ) : (
-                        String(item.head).replace('\n', ' ')
-                      )
-                    ) : (
+                        cleanHead
+                      );
+                    })() : (
                       '-'
                     )}
                   </td>

@@ -27,7 +27,7 @@ import { YearSelectDropdown } from '@/components/ui/YearSelectDropdown';
 import { STANDARD_YEAR_OPTIONS, getDefaultCompareYear } from '@/lib/fiscalYears';
 import { resolveItemFiscalYear } from '@/types/timeFilter';
 import { isTestRecord } from '@/lib/sdgEngine';
-import { resolvePersonAvatar, matchPerson } from '@/lib/personnelService';
+import { resolvePersonAvatar, resolvePersonnelTargetId, resolvePersonnelHref } from '@/lib/personnelService';
 
 const UCOL: Record<string, string> = {
   AE: '#65B98A',
@@ -231,8 +231,7 @@ export function PublicationsCharts({
       const ownerName = String(item.owner || '').trim();
       if (!ownerName || ownerName === '-' || ownerName === 'nan') return;
 
-      const matched = matchPerson(ownerName);
-      const pId = item.person_id || item.owner_id || matched?.id || matched?._id || matched?.person_id;
+      const pId = resolvePersonnelTargetId(item.person_id || item.owner_id, ownerName) ?? undefined;
       const key = pId ? `id_${pId}` : ownerName;
       if (!map[key]) {
         map[key] = {
@@ -1577,8 +1576,7 @@ export function PublicationsCharts({
             if (yr !== 'all' && resolvePubYear(item) !== yr) return;
             const ownerName = String(item.owner || '').trim();
             if (!ownerName || ownerName === '-' || ownerName === 'nan') return;
-            const matched = matchPerson(ownerName);
-      const pId = item.person_id || item.owner_id || matched?.id || matched?._id || matched?.person_id;
+            const pId = resolvePersonnelTargetId(item.person_id || item.owner_id, ownerName) ?? undefined;
             const key = pId ? `id_${pId}` : ownerName;
             if (!map[key]) {
               map[key] = {
@@ -2116,9 +2114,8 @@ export function PublicationsCharts({
                           <tr
                             key={idx}
                             onClick={() => {
-                              const targetId = a.person_id || matchPerson(a.name)?.id || matchPerson(a.name)?._id || matchPerson(a.name)?.person_id;
-                              if (targetId) router.push(`/personnel/${targetId}`);
-                              else router.push(`/personnel?q=${encodeURIComponent(a.name)}`);
+                              const href = resolvePersonnelHref(a.person_id, a.name);
+                              if (href) router.push(href);
                             }}
                             style={{
                               borderBottom: '1px solid #f1f5f9',
@@ -2198,8 +2195,8 @@ export function PublicationsCharts({
                                 type="button"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  if (a.person_id) router.push(`/personnel/${a.person_id}`);
-                                  else router.push(`/personnel?q=${encodeURIComponent(a.name)}`);
+                                  const href = resolvePersonnelHref(a.person_id, a.name);
+                                  if (href) router.push(href);
                                 }}
                                 style={{
                                   padding: '5px 10px',
