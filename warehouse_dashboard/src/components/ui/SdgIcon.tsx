@@ -58,6 +58,13 @@ export const SdgIcon: React.FC<SdgIconProps> = ({
       height={size}
       className={cn('inline-block shrink-0 rounded object-contain', className)}
       style={{ width: `${size}px`, height: `${size}px`, ...style }}
+      onError={(e) => {
+        // Fallback to wheel or hide broken image
+        const wheelUrl = getAssetUrl(SDG_WHEEL_ICON_PATH);
+        if (e.currentTarget.src !== wheelUrl) {
+          e.currentTarget.src = wheelUrl;
+        }
+      }}
     />
   );
 };

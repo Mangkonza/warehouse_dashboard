@@ -4,8 +4,32 @@ import { aggregateSdgsData, SdgFilterParams } from '@/lib/sdgAggregationService'
 
 export const dynamic = 'force-dynamic';
 
-// ดึง BACKEND_URL ผ่าน helper ส่วนกลาง (throw error ใน production หากไม่ได้กำหนด)
-const getBackend = () => getBackendUrl();
+async function fetchFromBackend(endpoint: string): Promise<any | null> {
+  const candidates = [
+    getBackendUrl(),
+    'http://backend:8000',
+    'http://ku_warehouse_backend:8000',
+    'http://127.0.0.1:8000',
+    'http://localhost:8000',
+  ];
+  const uniqueCandidates = Array.from(new Set(candidates.filter(Boolean)));
+
+  for (const base of uniqueCandidates) {
+    try {
+      const cleanBase = base.replace(/\/+$/, '').replace(/\/api\/v1\/?$/, '');
+      const res = await fetch(`${cleanBase}${endpoint}`, {
+        cache: 'no-store',
+        signal: AbortSignal.timeout(3500),
+      });
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch {
+      // try next candidate
+    }
+  }
+  return null;
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -50,10 +74,11 @@ export async function GET(req: NextRequest) {
     await Promise.all([
       ...categoriesToFetch.map(async (cat) => {
         try {
-          const res = await fetch(`${getBackend()}/api/v1/data/${cat}`, { cache: 'no-store' });
-          if (res.ok) {
-            const json = await res.json();
-            customDatasets[cat] = Array.isArray(json.data) ? json.data : [];
+          const json = await fetchFromBackend(`/api/v1/data/${cat}`);
+          if (json && Array.isArray(json.data)) {
+            customDatasets[cat] = json.data;
+          } else {
+            customDatasets[cat] = [];
           }
         } catch (e) {
           console.error(`[API /api/sdgs/aggregation] Error fetching data for ${cat}:`, e);
@@ -62,19 +87,16 @@ export async function GET(req: NextRequest) {
       }),
       (async () => {
         try {
-          const res = await fetch(`${getBackend()}/api/v1/evaluation`, { cache: 'no-store' });
-          if (res.ok) {
-            const json = await res.json();
-            if (Array.isArray(json.data)) {
-              const map: Record<string, any> = {};
-              json.data.forEach((ev: any) => {
-                if (ev && ev.id) map[ev.id] = ev;
-                if (ev && ev.category && ev.record_id) {
-                  map[`${ev.category.toLowerCase()}_${ev.record_id}`] = ev;
-                }
-              });
-              customEvaluations = map;
-            }
+          const json = await fetchFromBackend('/api/v1/evaluation');
+          if (json && Array.isArray(json.data)) {
+            const map: Record<string, any> = {};
+            json.data.forEach((ev: any) => {
+              if (ev && ev.id) map[ev.id] = ev;
+              if (ev && ev.category && ev.record_id) {
+                map[`${ev.category.toLowerCase()}_${ev.record_id}`] = ev;
+              }
+            });
+            customEvaluations = map;
           }
         } catch (e) {
           console.error('[API /api/sdgs/aggregation] Error fetching evaluations:', e);

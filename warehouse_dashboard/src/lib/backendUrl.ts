@@ -3,10 +3,8 @@
  *
  * กฎการทำงาน:
  * - อ่านจาก BACKEND_INTERNAL_URL หรือ BACKEND_URL
- * - ใน Production (NODE_ENV === 'production'):
- *   หากไม่มีค่า ต้อง throw Error ชัดเจน ห้าม fallback เป็น localhost หรือสตริงว่าง
- * - ใน Development (NODE_ENV === 'development'):
- *   หากไม่มีค่า ให้ fallback เป็น 'http://127.0.0.1:8000'
+ * - ใน Production: หากไม่มีค่า ให้ fallback เป็น 'http://backend:8000' (ชื่อ service ใน Docker network)
+ * - ใน Development: หากไม่มีค่า ให้ fallback เป็น 'http://127.0.0.1:8000'
  */
 export function getBackendUrl(): string {
   const raw = (process.env.BACKEND_INTERNAL_URL || process.env.BACKEND_URL || '').trim();
@@ -17,10 +15,7 @@ export function getBackendUrl(): string {
   }
 
   if (process.env.NODE_ENV === 'production') {
-    throw new Error(
-      '[backendUrl] ไม่พบตัวแปรสภาพแวดล้อม BACKEND_URL (หรือ BACKEND_INTERNAL_URL) ใน Production! ' +
-      'กรุณากำหนด URL ของ Backend Service เพื่อให้ Next.js สามารถส่งต่อคำขอ (Proxy) ได้อย่างถูกต้อง'
-    );
+    return 'http://backend:8000';
   }
 
   return 'http://127.0.0.1:8000';
