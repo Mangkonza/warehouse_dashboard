@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { CategoryKey } from '@/types/dataManagement';
 import { CATEGORIES_CONFIG } from '@/config/dataManagementConfig';
 import { LiquidButton } from '@/components/ui/liquid-glass';
 import { cn } from '@/lib/utils';
+import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
 export type TabColorTheme = 'emerald' | 'blue' | 'rose' | 'purple' | 'amber' | 'teal';
 
@@ -65,6 +66,10 @@ export const TopSegmentedTabs = <T extends string = CategoryKey>({
   colorTheme = 'emerald',
   className,
 }: TopSegmentedTabsProps<T>) => {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
   const defaultCategoryKeys: CategoryKey[] = [
     'research',
     'academic',
@@ -88,61 +93,159 @@ export const TopSegmentedTabs = <T extends string = CategoryKey>({
 
   const theme = THEME_CLASSES[colorTheme] || THEME_CLASSES.emerald;
 
+  const checkScroll = useCallback(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const hasScroll = el.scrollWidth > el.clientWidth;
+    setCanScrollLeft(hasScroll && el.scrollLeft > 6);
+    setCanScrollRight(hasScroll && el.scrollLeft < el.scrollWidth - el.clientWidth - 6);
+  }, []);
+
+  useEffect(() => {
+    checkScroll();
+    const el = scrollContainerRef.current;
+    if (!el) return;
+
+    el.addEventListener('scroll', checkScroll, { passive: true });
+    window.addEventListener('resize', checkScroll);
+
+    // Recheck after fonts and layout settle
+    const timer = setTimeout(checkScroll, 200);
+    let ro: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined') {
+      ro = new ResizeObserver(checkScroll);
+      ro.observe(el);
+    }
+
+    return () => {
+      el.removeEventListener('scroll', checkScroll);
+      window.removeEventListener('resize', checkScroll);
+      clearTimeout(timer);
+      if (ro) ro.disconnect();
+    };
+  }, [checkScroll, resolvedTabs]);
+
+  // Auto-scroll active tab into view when changed
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const activeEl = el.querySelector('[data-active="true"]') as HTMLElement;
+    if (activeEl) {
+      activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+  }, [activeCategory]);
+
+  const handleScroll = (direction: 'left' | 'right') => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const step = 320;
+    el.scrollBy({ left: direction === 'left' ? -step : step, behavior: 'smooth' });
+    setTimeout(checkScroll, 350);
+  };
+
   return (
-    <div
-      className={cn('flex items-center gap-2 overflow-x-auto py-1 px-0.5 scrollbar-none', className)}
-      style={{
-        scrollbarWidth: 'none',
-      }}
-    >
-      {resolvedTabs.map((tab) => {
-        const isActive = activeCategory === tab.key;
-        const count = tab.count ?? (counts[tab.key] ?? undefined);
+    <div className="relative flex items-center w-full group/tabs">
+      <style>{`
+        .no-scrollbar::-webkit-scrollbar,
+        .scrollbar-none::-webkit-scrollbar {
+          display: none !important;
+          width: 0 !important;
+          height: 0 !important;
+        }
+      `}</style>
+      {/* Left Scroll Button */}
+      {canScrollLeft && (
+        <button
+          type="button"
+          onClick={() => handleScroll('left')}
+          aria-label="เลื่อนแท็บไปทางซ้าย"
+          className="absolute left-0 z-30 flex items-center justify-center w-8 h-8 rounded-full bg-white/95 text-slate-700 shadow-[0_4px_14px_rgba(0,0,0,0.18)] border border-slate-200/90 hover:bg-white hover:text-slate-900 hover:scale-110 active:scale-95 transition-all -translate-x-1"
+          style={{ backdropFilter: 'blur(8px)' }}
+        >
+          <FaChevronLeft className="text-[11px]" />
+        </button>
+      )}
 
-        return (
-          <LiquidButton
-            key={String(tab.key)}
-            onClick={() => onSelectCategory(tab.key)}
-            variant="default"
-            size="tab"
-            className={cn(
-              'cursor-pointer select-none transition-all duration-300 h-11 px-5 py-2 outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 focus-visible:border-transparent active:outline-none active:ring-0 border',
-              isActive
-                ? cn(
-                    'rounded-full text-white scale-[1.02] [&>div:nth-child(-n+2)]:hidden',
-                    theme.active
-                  )
-                : cn(
-                    'bg-white/70 hover:bg-white text-slate-700 hover:scale-[1.02] border-slate-200/70 shadow-[0_2px_8px_rgba(0,0,0,0.03),inset_0_1px_1px_rgba(255,255,255,0.9)] backdrop-blur-md',
-                    theme.hover
-                  )
-            )}
-          >
-            {tab.icon && (
-              <span className="text-[15px] shrink-0 mr-2 opacity-90">
-                {tab.icon}
+      {/* Tabs Container */}
+      <div
+        ref={scrollContainerRef}
+        onWheel={(e) => {
+          if (e.deltaY !== 0 && scrollContainerRef.current) {
+            scrollContainerRef.current.scrollLeft += e.deltaY;
+          }
+        }}
+        className={cn(
+          'flex items-center gap-2 overflow-x-auto py-1 px-1 scrollbar-none no-scrollbar scroll-smooth w-full',
+          className
+        )}
+        style={{
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+        }}
+      >
+        {resolvedTabs.map((tab) => {
+          const isActive = activeCategory === tab.key;
+          const count = tab.count ?? (counts[tab.key] ?? undefined);
+
+          return (
+            <LiquidButton
+              key={String(tab.key)}
+              onClick={() => onSelectCategory(tab.key)}
+              data-active={isActive ? 'true' : 'false'}
+              variant="default"
+              size="tab"
+              className={cn(
+                'cursor-pointer select-none transition-all duration-300 h-11 px-5 py-2 outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 focus-visible:border-transparent active:outline-none active:ring-0 border shrink-0',
+                isActive
+                  ? cn(
+                      'rounded-full text-white scale-[1.02] [&>div:nth-child(-n+2)]:hidden',
+                      theme.active
+                    )
+                  : cn(
+                      'bg-white/70 hover:bg-white text-slate-700 hover:scale-[1.02] border-slate-200/70 shadow-[0_2px_8px_rgba(0,0,0,0.03),inset_0_1px_1px_rgba(255,255,255,0.9)] backdrop-blur-md',
+                      theme.hover
+                    )
+              )}
+            >
+              {tab.icon && (
+                <span className="text-[15px] shrink-0 mr-2 opacity-90">
+                  {tab.icon}
+                </span>
+              )}
+
+              <span className="font-bold text-[14.5px] whitespace-nowrap">
+                {tab.label}
               </span>
-            )}
 
-            <span className="font-bold text-[14.5px] whitespace-nowrap">
-              {tab.label}
-            </span>
+              {count !== undefined && (
+                <span
+                  className={cn(
+                    'inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs min-w-[24px] ml-2 transition-all',
+                    isActive
+                      ? 'bg-white/25 text-white font-bold'
+                      : 'bg-slate-100 text-slate-600 font-semibold border border-slate-200/60'
+                  )}
+                >
+                  {count.toLocaleString()}
+                </span>
+              )}
+            </LiquidButton>
+          );
+        })}
+      </div>
 
-            {count !== undefined && (
-              <span
-                className={cn(
-                  'inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs min-w-[24px] ml-2 transition-all',
-                  isActive
-                    ? 'bg-white/25 text-white font-bold'
-                    : 'bg-slate-100 text-slate-600 font-semibold border border-slate-200/60'
-                )}
-              >
-                {count.toLocaleString()}
-              </span>
-            )}
-          </LiquidButton>
-        );
-      })}
+      {/* Right Scroll Button */}
+      {canScrollRight && (
+        <button
+          type="button"
+          onClick={() => handleScroll('right')}
+          aria-label="เลื่อนแท็บไปทางขวา"
+          className="absolute right-0 z-30 flex items-center justify-center w-8 h-8 rounded-full bg-white/95 text-slate-700 shadow-[0_4px_14px_rgba(0,0,0,0.18)] border border-slate-200/90 hover:bg-white hover:text-slate-900 hover:scale-110 active:scale-95 transition-all translate-x-1"
+          style={{ backdropFilter: 'blur(8px)' }}
+        >
+          <FaChevronRight className="text-[11px]" />
+        </button>
+      )}
     </div>
   );
 };

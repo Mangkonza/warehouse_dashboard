@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useMemo } from 'react';
 import { CategoryKey } from '@/types/dataManagement';
@@ -10,7 +10,7 @@ import {
   itemMatchesDateRange,
   itemMatchesNumericRanges,
 } from '@/lib/filterMatching';
-import { exportTableToExcel } from '@/lib/etlEngine';
+import { exportUnifiedPageExcel, ExportContextProps } from '@/lib/export';
 import {
   FaFileExport,
   FaTimes,
@@ -24,6 +24,7 @@ export interface MissionDataTableProps {
   items: any[];
   title?: string;
   initialSearch?: string;
+  exportContext?: ExportContextProps;
 }
 
 const parseBudget = (val: any): number => {
@@ -54,11 +55,48 @@ export const MissionDataTable: React.FC<MissionDataTableProps> = ({
   items,
   title,
   initialSearch = '',
+  exportContext,
 }) => {
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [filterState, setFilterState] = useState<FilterState>(DEFAULT_FILTER_STATE);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+
+    const handleExport = () => {
+    const pageMap: Record<CategoryKey, any> = {
+      research: 'research',
+      academic: 'academic',
+      publications: 'publications',
+      service: 'service',
+      ip: 'ip',
+      personnel: 'manage_data',
+      kpi: 'manage_kpi',
+      monitoring: 'manage_data',
+      user_roles: 'manage_data',
+    };
+
+    const activeFiltersSummary: Record<string, any> = {};
+    if (searchQuery.trim()) activeFiltersSummary['คำค้นหา'] = searchQuery.trim();
+    if (filterState.departments.length > 0) activeFiltersSummary['สังกัด/ภาควิชา'] = filterState.departments.join(', ');
+    if (filterState.dateFrom || filterState.dateTo) {
+      activeFiltersSummary['ช่วงเวลา'] = `${filterState.dateFrom ? new Date(filterState.dateFrom).toLocaleDateString('th-TH') : 'เริ่มต้น'} ถึง ${filterState.dateTo ? new Date(filterState.dateTo).toLocaleDateString('th-TH') : 'ปัจจุบัน'}`;
+    }
+    if (exportContext?.filterSummary) {
+      Object.assign(activeFiltersSummary, exportContext.filterSummary);
+    }
+
+    exportUnifiedPageExcel({
+      page: exportContext?.page || pageMap[categoryKey] || 'research',
+      section: exportContext?.section || 'mission_table',
+      title: exportContext?.title || `รายงานข้อมูลด้าน${tableTitle} (ภาพรวมและรายละเอียด)`,
+      periodLabel: exportContext?.periodLabel || 'ปีงบประมาณ 2568-2569',
+      categoryKey,
+      filterSummary: activeFiltersSummary,
+      metrics: exportContext?.metrics,
+      breakdowns: exportContext?.breakdowns,
+      tableData: filteredData,
+    });
+  };
 
   const config = CATEGORIES_CONFIG[categoryKey];
   const tableTitle = title || config?.title || 'รายการข้อมูล';
@@ -294,7 +332,7 @@ export const MissionDataTable: React.FC<MissionDataTableProps> = ({
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <button
               type="button"
-              onClick={() => exportTableToExcel(filteredData, categoryKey)}
+              onClick={handleExport}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',

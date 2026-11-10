@@ -27,30 +27,31 @@ export interface EvaluationRecord extends EvaluationValue {
 
 /**
  * Completion rule in one function:
- * At least one SDG and an I am / I see value, plus Q / TCI for publications.
+ * A record is evaluated if it has been assigned at least one evaluation attribute
+ * (e.g. SDGs, กลุ่มการประเมิน, or Q/TCI Journal Index).
  */
 export function isEvaluated(
   category: string,
   evaluation?: Partial<EvaluationRecord> | Partial<EvaluationValue> | null
 ): boolean {
   if (!evaluation) return false;
-  const hasSdg = Array.isArray(evaluation.sdg_ids) && evaluation.sdg_ids.length > 0;
-  if (!hasSdg) return false;
 
-  if (category && category.toLowerCase() === 'publications') {
-    const j: any = evaluation.journal_index;
-    if (!j) return false;
+  const hasSdg = Array.isArray(evaluation.sdg_ids) && evaluation.sdg_ids.length > 0;
+  const hasIType = Boolean(evaluation.i_type);
+
+  let hasJournal = false;
+  const j: any = evaluation.journal_index;
+  if (j) {
     if (typeof j === 'object' && j.value) {
-      return String(j.value).trim() !== '' && String(j.value) !== '[object Object]';
-    }
-    if (typeof j === 'string') {
+      const v = String(j.value).trim();
+      hasJournal = v !== '' && v !== '[object Object]';
+    } else if (typeof j === 'string') {
       const trimmed = j.trim();
-      return trimmed !== '' && trimmed !== '[object Object]';
+      hasJournal = trimmed !== '' && trimmed !== '[object Object]';
     }
-    return false;
   }
 
-  return true;
+  return hasSdg || hasIType || hasJournal;
 }
 
 /**

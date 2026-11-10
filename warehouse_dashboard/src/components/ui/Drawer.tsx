@@ -89,17 +89,25 @@ export const Drawer: React.FC<DrawerProps> = ({
   }, [isOpen, closeOnEsc, onClose]);
 
   // Prevent background scroll without layout shift
-  // html in globals.css has scrollbar-gutter: stable, so we do NOT add redundant paddingRight!
+  // Keep lock active while rendered (including close animation) and preserve scrollbar gutter if a scrollbar was present
   useEffect(() => {
-    if (isOpen) {
-      const originalOverflow = document.documentElement.style.overflow;
-      document.documentElement.style.overflow = 'hidden';
+    if (!isRendered) return;
 
-      return () => {
-        document.documentElement.style.overflow = originalOverflow;
-      };
+    const docEl = document.documentElement;
+    const hasScrollbar = window.innerWidth > docEl.clientWidth;
+    const originalOverflow = docEl.style.overflow;
+    const originalScrollbarGutter = docEl.style.scrollbarGutter;
+
+    if (hasScrollbar) {
+      docEl.style.scrollbarGutter = 'stable';
     }
-  }, [isOpen]);
+    docEl.style.overflow = 'hidden';
+
+    return () => {
+      docEl.style.overflow = originalOverflow;
+      docEl.style.scrollbarGutter = originalScrollbarGutter;
+    };
+  }, [isRendered]);
 
   if (!isRendered) return null;
 

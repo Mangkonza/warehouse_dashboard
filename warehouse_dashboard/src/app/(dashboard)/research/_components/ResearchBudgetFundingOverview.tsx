@@ -629,6 +629,17 @@ export function ResearchBudgetFundingOverview({ allItems, filteredItems, current
                   }, {})}
                 />
               )}
+
+              {!isCmp && (
+                <div className="rr-seg-ctl" role="group" aria-label="รูปแบบแท่ง">
+                  <button type="button" aria-pressed={barMode === 'group'} onClick={() => setBarMode('group')}>
+                    แยกแท่ง
+                  </button>
+                  <button type="button" aria-pressed={barMode === 'stack'} onClick={() => setBarMode('stack')}>
+                    แท่งซ้อน
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -636,19 +647,6 @@ export function ResearchBudgetFundingOverview({ allItems, filteredItems, current
             <p className="rr-note" style={{ color: '#dc2626' }}>
               ปี {cmpYear} ไม่มีข้อมูล จึงยังเทียบไม่ได้ ลองเลือกปีอื่นที่ช่อง เทียบกับปี
             </p>
-          )}
-
-          {!isCmp && (
-            <div className="rr-ctrls rr-row2">
-              <div className="rr-seg-ctl" role="group" aria-label="รูปแบบแท่ง">
-                <button type="button" aria-pressed={barMode === 'group'} onClick={() => setBarMode('group')}>
-                  แยกแท่ง
-                </button>
-                <button type="button" aria-pressed={barMode === 'stack'} onClick={() => setBarMode('stack')}>
-                  แท่งซ้อน
-                </button>
-              </div>
-            </div>
           )}
 
           {/* Legend */}

@@ -1,4 +1,4 @@
-import { IpRepository } from '../repositories/ip.repository.js';
+﻿import { IpRepository } from '../repositories/ip.repository.js';
 import { parseSafeDate, parseSafeNumber, parseSafeInt, extractNumericId, resolveDepartmentCode } from '../utils/sanitize.js';
 
 function formatIpRecord(item: any) {
@@ -24,6 +24,8 @@ function formatIpRecord(item: any) {
     work_category: item.workCategory || '',
     work_character: item.workCharacter || '',
     creator: item.creatorName || inventorsStr,
+    // person_id: ID ผู้สร้างหลัก (creatorPersonnelId) สำหรับ ID-based matching
+    person_id: item.creatorPersonnelId || (item.creator?.personId ? Number(item.creator.personId) : undefined),
     inventors: inventorsStr,
     department: item.departmentCode || deptsStr,
     departments: deptsStr,

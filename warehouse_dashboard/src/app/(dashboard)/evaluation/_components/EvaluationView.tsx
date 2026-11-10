@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import * as XLSX from 'xlsx';
+import { exportUnifiedPageExcel } from '@/lib/export';
 import { CategoryKey } from '@/types/dataManagement';
 import { CATEGORIES_CONFIG, DEPARTMENTS, getDepartmentAbbr } from '@/config/dataManagementConfig';
 import { EvaluationRecord, EvaluationValue, isEvaluated, formatSdgLabel } from '@/types/evaluation';
@@ -68,6 +69,34 @@ function getRecordEvalKey(category: string, item: any): string {
   return `${category.toLowerCase()}_${getRecordId(item)}`;
 }
 
+function getRecordEval(
+  category: string,
+  item: any,
+  evalMap: Record<string, EvaluationRecord>
+): EvaluationRecord | undefined {
+  if (!item || !evalMap) return undefined;
+  if (item.evaluation) return item.evaluation;
+
+  const cat = String(category || '').toLowerCase().trim();
+  const candidateIds = [
+    item.id,
+    item._id,
+    item.code,
+    item.legacyId,
+    item.recordId,
+    item.record_id,
+    item.project_code,
+    item.name,
+  ].filter((v) => v !== undefined && v !== null && String(v).trim() !== '');
+
+  for (const cid of candidateIds) {
+    const s = String(cid).trim();
+    if (evalMap[`${cat}_${s}`]) return evalMap[`${cat}_${s}`];
+    if (evalMap[s]) return evalMap[s];
+  }
+  return undefined;
+}
+
 export const EvaluationView: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -94,7 +123,7 @@ export const EvaluationView: React.FC = () => {
 
   // Toolbar filters
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'evaluated' | 'auto_detected' | 'unevaluated'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'evaluated' | 'pending'>('all');
   const [selectedDept, setSelectedDept] = useState('');
   const [selectedDeptCustom, setSelectedDeptCustom] = useState('');
   const [selectedDateFrom, setSelectedDateFrom] = useState('');
@@ -214,31 +243,18 @@ export const EvaluationView: React.FC = () => {
       } else if (statusFilter === 'evaluated') {
         let count = 0;
         list.forEach((item) => {
-          const key = getRecordEvalKey(cat, item);
-          if (isEvaluated(cat, evalMap[key])) {
+          const ev = getRecordEval(cat, item, evalMap);
+          if (isEvaluated(cat, ev)) {
             count += 1;
           }
         });
         counts[cat] = count;
-      } else if (statusFilter === 'auto_detected') {
-        let count = 0;
-        list.forEach((item) => {
-          const key = getRecordEvalKey(cat, item);
-          const isEv = isEvaluated(cat, evalMap[key]);
-          if (!isEv) {
-            const hybrid = resolveHybridSDG(item, cat, evalMap);
-            if (hybrid.sdgIds.length > 0) {
-              count += 1;
-            }
-          }
-        });
-        counts[cat] = count;
       } else {
-        // 'unevaluated'
+        // 'pending' (รอยืนยันการประเมิน)
         let count = 0;
         list.forEach((item) => {
-          const key = getRecordEvalKey(cat, item);
-          if (!isEvaluated(cat, evalMap[key])) {
+          const ev = getRecordEval(cat, item, evalMap);
+          if (!isEvaluated(cat, ev)) {
             count += 1;
           }
         });
@@ -269,8 +285,8 @@ export const EvaluationView: React.FC = () => {
     let evaluated = 0;
     let autoDetected = 0;
     currentCategoryList.forEach((item) => {
-      const key = getRecordEvalKey(activeCategory, item);
-      if (isEvaluated(activeCategory, evalMap[key])) {
+      const ev = getRecordEval(activeCategory, item, evalMap);
+      if (isEvaluated(activeCategory, ev)) {
         evaluated += 1;
       } else {
         const hybrid = resolveHybridSDG(item, activeCategory, evalMap);
@@ -286,16 +302,14 @@ export const EvaluationView: React.FC = () => {
   // Filtered dataset
   const filteredData = useMemo(() => {
     return currentCategoryList.filter((item: any) => {
-      const key = getRecordEvalKey(activeCategory, item);
-      const ev = evalMap[key];
-      const evaluated = isEvaluated(activeCategory, ev);
+      const ev = getRecordEval(activeCategory, item, evalMap);
+                  const evaluated = isEvaluated(activeCategory, ev);
       const hybrid = resolveHybridSDG(item, activeCategory, evalMap);
       const isAuto = !evaluated && hybrid.sdgIds.length > 0;
 
       // 1. Status Filter
       if (statusFilter === 'evaluated' && !evaluated) return false;
-      if (statusFilter === 'auto_detected' && !isAuto) return false;
-      if (statusFilter === 'unevaluated' && evaluated) return false;
+      if ((statusFilter as string) === 'pending' && evaluated) return false;
 
       // 2. Department Filter
       if (selectedDept || selectedDeptCustom) {
@@ -454,8 +468,26 @@ export const EvaluationView: React.FC = () => {
     });
 
     if (result.success && result.data) {
-      const key = `${activeCategory.toLowerCase()}_${recordId}`;
-      setEvalMap((prev) => ({ ...prev, [key]: result.data! }));
+      const saved = result.data!;
+      const cat = activeCategory.toLowerCase();
+      setEvalMap((prev) => {
+        const next = { ...prev };
+        const candidateIds = [
+          recordId,
+          record?.id,
+          record?._id,
+          record?.code,
+          record?.legacyId,
+          record?.name,
+        ]
+          .filter((v) => v !== undefined && v !== null && String(v).trim() !== '')
+          .map((v) => String(v).trim());
+
+        candidateIds.forEach((cid) => {
+          next[`${cat}_${cid}`] = saved;
+        });
+        return next;
+      });
       showToast('บันทึกการประเมินเรียบร้อย');
     } else {
       throw new Error(result.error || 'เกิดข้อผิดพลาดในการบันทึกการประเมิน');
@@ -476,7 +508,7 @@ export const EvaluationView: React.FC = () => {
       const newSdgs = Array.isArray(draft.sdg_ids) ? draft.sdg_ids : [];
       const mergedSdgs = Array.from(new Set([...existingSdgs, ...newSdgs])).sort((a, b) => a - b);
 
-      // Merge I am / I see (update if draft set)
+      // Merge กลุ่มการประเมิน (update if draft set)
       const mergedIType = draft.i_type !== null ? draft.i_type : (existing?.i_type ?? null);
 
       // Merge Journal Index (update if draft set)
@@ -510,9 +542,8 @@ export const EvaluationView: React.FC = () => {
   const handleExportExcel = () => {
     const catConfig = CATEGORIES_CONFIG[activeCategory];
     const exportRows = filteredData.map((item, idx) => {
-      const key = getRecordEvalKey(activeCategory, item);
-      const ev = evalMap[key];
-      const evaluated = isEvaluated(activeCategory, ev);
+      const ev = getRecordEval(activeCategory, item, evalMap);
+                  const evaluated = isEvaluated(activeCategory, ev);
 
       const row: Record<string, any> = {
         ลำดับที่: idx + 1,
@@ -555,25 +586,45 @@ export const EvaluationView: React.FC = () => {
               .join(', ')
           : '-';
 
-      row['I am / I see'] =
+      row['กลุ่มการประเมิน'] =
         ev?.i_type === 'I_AM' ? 'I am' : ev?.i_type === 'I_SEE' ? 'I see' : '-';
 
       if (activeCategory === 'publications') {
         row['Q / TCI'] = ev?.journal_index?.value || (typeof ev?.journal_index === 'string' && ev.journal_index !== '[object Object]' ? ev.journal_index : '-');
       }
 
-      row['สถานะ'] = evaluated ? 'ประเมินแล้ว' : 'ยังไม่ประเมิน';
+      row['สถานะ'] = evaluated ? 'ประเมินแล้ว' : 'รอยืนยันการประเมิน';
 
       return row;
     });
 
-    const ws = XLSX.utils.json_to_sheet(exportRows);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, `การประเมิน_${catConfig.title}`.substring(0, 31));
-    XLSX.writeFile(
-      wb,
-      `การประเมิน_${catConfig.key}_${new Date().toISOString().substring(0, 10)}.xlsx`
-    );
+    exportUnifiedPageExcel({
+      page: 'evaluation',
+      section: 'evaluation_table',
+      title: `รายงานผลการประเมินตัวชี้วัด SDGs / ยุทธศาสตร์ - ${catConfig.title}`,
+      periodLabel: 'ปีงบประมาณ 2568-2569',
+      categoryKey: activeCategory,
+      filterSummary: {
+        'หมวดหมู่': catConfig.title,
+        'สถานะการประเมิน': statusFilter === 'evaluated' ? 'ประเมินแล้ว' : statusFilter === 'pending' ? 'รอยืนยันการประเมิน' : 'ทั้งหมด',
+        'ภาควิชา/สังกัด': selectedDept || 'ทุกภาควิชา',
+        'คำค้นหา': searchTerm || 'ไม่มี',
+      },
+      metrics: [
+        { label: 'รายการทั้งหมดในหมวดนี้', value: categoryProgress.total.toLocaleString('th-TH'), unit: 'รายการ', category: 'ความก้าวหน้า' },
+        { label: 'ประเมินแล้ว', value: categoryProgress.evaluated.toLocaleString('th-TH'), unit: 'รายการ', category: 'ความก้าวหน้า' },
+        { label: 'รอยืนยันการประเมิน', value: (categoryProgress.total - categoryProgress.evaluated).toLocaleString('th-TH'), unit: 'รายการ', category: 'ความก้าวหน้า' },
+        { label: 'สัดส่วนความก้าวหน้ารวม', value: `${categoryProgress.percent}%`, unit: '', category: 'ความก้าวหน้า' },
+        { label: 'จำนวนรายการที่แสดงตามตัวกรอง', value: filteredData.length.toLocaleString('th-TH'), unit: 'รายการ', category: 'ตัวกรอง' },
+      ],
+      customSheets: [
+        {
+          sheetName: `การประเมิน_${catConfig.title}`.substring(0, 31),
+          data: exportRows,
+        },
+      ],
+      fileName: `การประเมิน_${catConfig.key}_${new Date().toISOString().substring(0, 10)}.xlsx`,
+    });
   };
 
   const tabsConfig: TabItem<CategoryKey>[] = [
@@ -635,32 +686,18 @@ export const EvaluationView: React.FC = () => {
             การประเมิน
           </h2>
           <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
-            ประเมินความสอดคล้องเป้าหมายการพัฒนาที่ยั่งยืน (SDGs), กรอบ I am / I see และคุณภาพผลงานทางวิชาการ
+            ประเมินความสอดคล้องเป้าหมายการพัฒนาที่ยั่งยืน (SDGs), กรอบกลุ่มการประเมินและคุณภาพผลงานทางวิชาการ
           </div>
         </div>
       </div>
 
       {/* 2. Top Segmented Horizontal Tabs */}
-      <div style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center' }}>
-        <div
-          style={{
-            width: '100%',
-            overflowX: 'auto',
-            overflowY: 'hidden',
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none',
-            WebkitOverflowScrolling: 'touch',
-            padding: '2px 0px 6px 0px',
-          }}
-        >
-          <div style={{ display: 'inline-flex', minWidth: 'max-content' }}>
-            <TopSegmentedTabs
-              activeCategory={activeCategory}
-              onSelectCategory={handleTabChange}
-              tabs={tabsConfig}
-            />
-          </div>
-        </div>
+      <div style={{ position: 'relative', width: '100%', padding: '2px 0 6px 0' }}>
+        <TopSegmentedTabs
+          activeCategory={activeCategory}
+          onSelectCategory={handleTabChange}
+          tabs={tabsConfig}
+        />
       </div>
 
       {/* 3. Main Card Container */}
@@ -793,14 +830,14 @@ export const EvaluationView: React.FC = () => {
                   setSelectedSdgs(newFilters.sdgs || []);
                   setSelectedFramework(newFilters.framework || 'all');
                   if (newFilters.evaluationStatus) {
-                    setStatusFilter(newFilters.evaluationStatus);
+                    setStatusFilter(newFilters.evaluationStatus === 'evaluated' ? 'evaluated' : newFilters.evaluationStatus === 'all' ? 'all' : 'pending');
                   }
                   setCurrentPage(1);
                 }}
                 onReset={handleResetFilters}
               />
 
-              {/* Status Toggle Control (ยังไม่ประเมิน / ประเมินแล้ว / จำแนกอัตโนมัติ / ทั้งหมด) */}
+              {/* Status Toggle Control (ทั้งหมด / ประเมินแล้ว / รอยืนยันการประเมิน) */}
               <div
                 style={{
                   display: 'inline-flex',
@@ -821,7 +858,7 @@ export const EvaluationView: React.FC = () => {
                     setCurrentPage(1);
                   }}
                   style={{
-                    padding: '5px 11px',
+                    padding: '5px 12px',
                     borderRadius: '6px',
                     border: 'none',
                     fontSize: '12px',
@@ -843,7 +880,7 @@ export const EvaluationView: React.FC = () => {
                     setCurrentPage(1);
                   }}
                   style={{
-                    padding: '5px 11px',
+                    padding: '5px 12px',
                     borderRadius: '6px',
                     border: 'none',
                     fontSize: '12px',
@@ -861,45 +898,23 @@ export const EvaluationView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => {
-                    setStatusFilter('auto_detected');
+                    setStatusFilter('pending');
                     setCurrentPage(1);
                   }}
                   style={{
-                    padding: '5px 11px',
+                    padding: '5px 12px',
                     borderRadius: '6px',
                     border: 'none',
                     fontSize: '12px',
                     fontWeight: 400,
                     cursor: 'pointer',
-                    backgroundColor: statusFilter === 'auto_detected' ? '#ffffff' : 'transparent',
-                    color: statusFilter === 'auto_detected' ? '#0f172a' : '#64748b',
-                    boxShadow: statusFilter === 'auto_detected' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                    backgroundColor: statusFilter === 'pending' ? '#ffffff' : 'transparent',
+                    color: statusFilter === 'pending' ? '#0f172a' : '#64748b',
+                    boxShadow: statusFilter === 'pending' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
                     transition: 'all 0.15s',
                   }}
                 >
-                  จำแนกอัตโนมัติ
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setStatusFilter('unevaluated');
-                    setCurrentPage(1);
-                  }}
-                  style={{
-                    padding: '5px 11px',
-                    borderRadius: '6px',
-                    border: 'none',
-                    fontSize: '12px',
-                    fontWeight: 400,
-                    cursor: 'pointer',
-                    backgroundColor: statusFilter === 'unevaluated' ? '#ffffff' : 'transparent',
-                    color: statusFilter === 'unevaluated' ? '#0f172a' : '#64748b',
-                    boxShadow: statusFilter === 'unevaluated' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-                    transition: 'all 0.15s',
-                  }}
-                >
-                  ยังไม่ประเมิน
+                  รอยืนยันการประเมิน
                 </button>
               </div>
             </div>
@@ -1156,7 +1171,7 @@ export const EvaluationView: React.FC = () => {
                   SDGs
                 </th>
                 <th style={{ width: '90px', padding: '12px 10px', textAlign: 'center', color: '#ffffff', backgroundColor: '#00A651', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>
-                  I am / I see
+                  กลุ่มการประเมิน
                 </th>
                 {activeCategory === 'publications' && (
                   <th style={{ width: '90px', padding: '12px 10px', textAlign: 'center', color: '#ffffff', backgroundColor: '#00A651', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>
@@ -1187,9 +1202,8 @@ export const EvaluationView: React.FC = () => {
               ) : (
                 pageItems.map((item, rowIdx) => {
                   const recordId = getRecordId(item);
-                  const key = getRecordEvalKey(activeCategory, item);
-                  const ev = evalMap[key];
-                  const evaluated = isEvaluated(activeCategory, ev);
+                  const ev = getRecordEval(activeCategory, item, evalMap);
+      const evaluated = isEvaluated(activeCategory, ev);
                   const hybrid = resolveHybridSDG(item, activeCategory, evalMap);
                   const isAuto = !evaluated && hybrid.sdgIds && hybrid.sdgIds.length > 0;
                   const actualRowNo = startIndex + rowIdx + 1;
@@ -1320,33 +1334,17 @@ export const EvaluationView: React.FC = () => {
                             sdgIds={ev.sdg_ids}
                             maxSdgs={3}
                           />
-                        ) : isAuto ? (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                            <SdgTagList
-                              sdgIds={hybrid.sdgIds}
-                              maxSdgs={3}
-                            />
-                            <span
-                              style={{
-                                fontSize: '10px',
-                                fontWeight: 700,
-                                padding: '1px 5px',
-                                borderRadius: '4px',
-                                backgroundColor: '#fef3c7',
-                                color: '#b45309',
-                                border: '1px solid #fde68a',
-                              }}
-                              title="SDG ที่จำแนกอัตโนมัติจากชื่อโครงการ/สังกัด"
-                            >
-                              Auto
-                            </span>
-                          </div>
+                        ) : hybrid.sdgIds && hybrid.sdgIds.length > 0 ? (
+                          <SdgTagList
+                            sdgIds={hybrid.sdgIds}
+                            maxSdgs={3}
+                          />
                         ) : (
                           <span className="text-slate-300">-</span>
                         )}
                       </td>
 
-                      {/* Evaluation: I am / I see (Tag component with .tag-iam) */}
+                      {/* Evaluation: กลุ่มการประเมิน (Tag component with .tag-iam) */}
                       <td style={{ padding: '10px 10px', textAlign: 'center' }}>
                         {ev?.i_type ? (
                           <EvaluationTag
@@ -1386,12 +1384,10 @@ export const EvaluationView: React.FC = () => {
                           className={`inline-block px-2.5 py-0.5 rounded-full text-[11.5px] font-bold ${
                             evaluated
                               ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                              : isAuto
-                              ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                              : 'bg-slate-100 text-slate-500 border border-slate-200'
+                              : 'bg-amber-50 text-amber-700 border border-amber-200'
                           }`}
                         >
-                          {evaluated ? 'ประเมินแล้ว' : isAuto ? 'จำแนกอัตโนมัติ' : 'ยังไม่ประเมิน'}
+                          {evaluated ? 'ประเมินแล้ว' : 'รอยืนยันการประเมิน'}
                         </span>
                       </td>
                     </tr>
@@ -1426,7 +1422,7 @@ export const EvaluationView: React.FC = () => {
         record={drawerRecord}
         evaluation={
           drawerRecord
-            ? evalMap[getRecordEvalKey(activeCategory, drawerRecord)] || null
+            ? getRecordEval(activeCategory, drawerRecord, evalMap) || null
             : null
         }
         onSave={handleSaveEvaluation}

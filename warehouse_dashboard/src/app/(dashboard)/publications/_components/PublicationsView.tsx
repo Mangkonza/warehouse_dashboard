@@ -7,6 +7,7 @@ import { PublicationsCharts, PubPerspective } from './PublicationsCharts';
 import { TopSegmentedTabs } from '@/components/ui/TopSegmentedTabs';
 import { StrategicAlignmentMatrix } from '@/components/data-display/StrategicAlignmentMatrix';
 import { MissionDataTable } from '@/components/data-display/MissionDataTable';
+import { ExportContextProps } from '@/lib/export';
 import { DashboardTabFilterBar } from '@/components/ui/DashboardTabFilterBar';
 import { UndatedNotice } from '@/components/ui/UndatedNotice';
 import { ExecutiveKpiDeck } from '@/components/data-display/ExecutiveKpiDeck';
@@ -156,7 +157,7 @@ export function PublicationsView() {
       </div>
 
       {/* Top Segmented Tabs - Style identical to manage?tab=research */}
-      <div style={{ overflowX: 'auto', padding: '2px 0 6px 0' }}>
+      <div style={{ position: 'relative', width: '100%', padding: '2px 0 6px 0' }}>
         <TopSegmentedTabs
           activeCategory={activePerspective}
           onSelectCategory={setActivePerspective}

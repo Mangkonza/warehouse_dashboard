@@ -93,7 +93,9 @@ export interface CategoryConfig {
 export interface PersonnelRecord {
   _id?: string;
   id: number | string;
+  person_id?: number | string;
   name: string;
+  name_th?: string;
   first_name?: string;
   last_name?: string;
   clean_name: string;

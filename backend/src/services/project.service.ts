@@ -46,7 +46,7 @@ function formatResearch(item: any) {
     name: item.name,
     name_en: item.nameEn || '',
     head: item.headName || '',
-    head_id: item.headPersonnelId || '',
+    head_id: item.headPersonnel?.personId || (item.headPersonnelId ? String(item.headPersonnelId) : ''),
     department: item.headDepartmentCode || deptsStr,
     departments: deptsStr,
     status: item.status || 'กำลังดำเนินการ',
@@ -92,7 +92,7 @@ function formatAcademic(item: any) {
     dbId: item.id,
     name: item.name,
     head: item.headName || '',
-    head_id: item.headPersonnelId || '',
+    head_id: item.headPersonnel?.personId || (item.headPersonnelId ? String(item.headPersonnelId) : ''),
     department: item.department?.nameTh || item.departmentCode || '',
     departmentCode: item.departmentCode || '',
     client: item.client || '',
@@ -146,6 +146,8 @@ function formatPublication(item: any) {
     budget: Number(item.budget || 0),
     owner: item.firstAuthorName || '',
     first_author: item.firstAuthorName || '',
+    person_id: item.firstAuthorPersonnelId || (item.firstAuthorPersonnel?.personId ? item.firstAuthorPersonnel.personId : undefined),
+    owner_id: item.firstAuthorPersonnelId || (item.firstAuthorPersonnel?.personId ? item.firstAuthorPersonnel.personId : undefined),
     co_authors_domestic: domesticStr,
     co_authors_foreign: foreignStr,
     department: item.department?.nameTh || item.departmentCode || '',
@@ -183,75 +185,28 @@ export class ProjectService {
     return { status: 'success', category: 'research', total, data: items.map(formatResearch) };
   }
   static validateResearch(body: any, isUpdate = false) {
-    if (!isUpdate || body.id !== undefined || body.code !== undefined) {
-      const id = String(body.id || body.code || '').trim();
-      if (!id) {
-        const err: any = new Error('กรุณากรอก "รหัสโครงการวิจัย" (id)');
-        err.status = 400;
-        err.field = 'id';
-        throw err;
-      }
-    }
-
-    if (!isUpdate || body.fiscal_year_be !== undefined || body.fiscal_year !== undefined || body.fiscalYear !== undefined) {
-      const fy = body.fiscal_year_be ?? body.fiscal_year ?? body.fiscalYear;
-      if (fy === undefined || fy === null || String(fy).trim() === '') {
-        const err: any = new Error('กรุณาระบุ "ปีงบประมาณ (พ.ศ.)" (fiscal_year_be)');
-        err.status = 400;
-        err.field = 'fiscal_year_be';
-        throw err;
-      }
-    }
-
-    if (!isUpdate || body.name !== undefined) {
+    if (!isUpdate) {
       const name = String(body.name || '').trim();
       if (!name) {
-        const err: any = new Error('กรุณากรอก "ชื่อโครงการวิจัย (ภาษาไทย)" (name)');
+        const err: any = new Error('กรุณากรอกชื่อโครงการวิจัย (name)');
         err.status = 400;
         err.field = 'name';
         throw err;
       }
-    }
-
-    if (!isUpdate || body.fund_type !== undefined || body.fundType !== undefined) {
-      const ft = String(body.fund_type || body.fundType || '').trim();
-      if (!ft || !['ภายใน', 'ภายนอก'].includes(ft)) {
-        const err: any = new Error('กรุณาระบุประเภททุนวิจัย (fund_type: ภายใน หรือ ภายนอก)');
+      const head = String(body.head || '').trim();
+      if (!head) {
+        const err: any = new Error('กรุณาระบุหัวหน้าโครงการวิจัย (head)');
         err.status = 400;
-        err.field = 'fund_type';
+        err.field = 'head';
         throw err;
       }
-    }
-
-    const start = body.start_date !== undefined ? body.start_date : body.startDate;
-    const end = body.end_date !== undefined ? body.end_date : body.endDate;
-
-    if (!isUpdate || start !== undefined) {
-      if (!start || !String(start).trim()) {
-        const err: any = new Error('กรุณาระบุเดือน/ปี หรือวันที่เริ่มต้นโครงการวิจัย (start_date)');
+      const dept = resolveDeptCode(body.departmentCode || body.department_code || body.department);
+      if (!dept) {
+        const err: any = new Error('กรุณาระบุสังกัดภาควิชา (department)');
         err.status = 400;
-        err.field = 'start_date';
+        err.field = 'department';
         throw err;
       }
-    }
-
-    if (!isUpdate || end !== undefined) {
-      if (!end || !String(end).trim()) {
-        const err: any = new Error('กรุณาระบุเดือน/ปี หรือวันที่สิ้นสุดโครงการวิจัย (end_date)');
-        err.status = 400;
-        err.field = 'end_date';
-        throw err;
-      }
-    }
-
-    if (start && end && String(end) < String(start)) {
-      const err: any = new Error('วันที่สิ้นสุดโครงการวิจัยต้องไม่เกิดขึ้นก่อนวันที่เริ่มต้น (end_date >= start_date)');
-      err.status = 400;
-      err.field = 'end_date';
-      throw err;
-    }
-
-    if (!isUpdate || body.project_nature !== undefined || body.projectNature !== undefined) {
       const pn = body.project_nature ?? body.projectNature;
       const list = Array.isArray(pn)
         ? pn
@@ -259,39 +214,29 @@ export class ProjectService {
         ? pn.split(',').map((s: string) => s.trim()).filter(Boolean)
         : [];
       if (list.length === 0) {
-        const err: any = new Error('กรุณาเลือกลักษณะโครงการวิจัยอย่างน้อย 1 ประเภท (project_nature)');
+        body.project_nature = ['วิจัยพื้นฐาน'];
+      }
+    } else {
+      if (body.name !== undefined && String(body.name || '').trim() === '') {
+        const err: any = new Error('ชื่อโครงการวิจัยต้องไม่เป็นค่าว่าง');
         err.status = 400;
-        err.field = 'project_nature';
+        err.field = 'name';
         throw err;
       }
     }
 
-    if (!isUpdate || body.budget_internal !== undefined || body.budget_external !== undefined || body.budgetInternal !== undefined || body.budgetExternal !== undefined) {
-      const bInt = Number(body.budget_internal ?? body.budgetInternal ?? 0);
-      const bExt = Number(body.budget_external ?? body.budgetExternal ?? 0);
-      if (isNaN(bInt) || bInt < 0) {
-        const err: any = new Error('งบประมาณภายในต้องไม่ติดลบ (budget_internal)');
-        err.status = 400;
-        err.field = 'budget_internal';
-        throw err;
-      }
-      if (isNaN(bExt) || bExt < 0) {
-        const err: any = new Error('งบประมาณภายนอกต้องไม่ติดลบ (budget_external)');
-        err.status = 400;
-        err.field = 'budget_external';
-        throw err;
-      }
-      if (bInt + bExt <= 0) {
-        const err: any = new Error('งบประมาณรวม (งบภายใน + งบภายนอก) ต้องมากกว่า 0 บาท');
-        err.status = 400;
-        err.field = 'budget';
-        throw err;
-      }
+    const start = body.start_date || body.startDate;
+    const end = body.end_date || body.endDate;
+    if (start && end && String(end) < String(start)) {
+      const err: any = new Error('วันที่สิ้นสุดโครงการวิจัยต้องไม่เกิดขึ้นก่อนวันที่เริ่มต้น (end_date >= start_date)');
+      err.status = 400;
+      err.field = 'end_date';
+      throw err;
     }
   }
 
   static validateAcademic(body: any, isUpdate = false) {
-    if (!isUpdate || body.record_number !== undefined || body.req_no !== undefined || body.legacy_id !== undefined || body.id !== undefined) {
+    if (!isUpdate) {
       const rec = String(body.record_number || body.req_no || body.legacy_id || body.id || '').trim();
       if (!rec) {
         const err: any = new Error('กรุณาระบุเลขที่คำขอ / เลขระเบียน (record_number)');
@@ -299,9 +244,6 @@ export class ProjectService {
         err.field = 'record_number';
         throw err;
       }
-    }
-
-    if (!isUpdate || body.name !== undefined) {
       const name = String(body.name || '').trim();
       if (!name) {
         const err: any = new Error('กรุณากรอกชื่อโครงการพัฒนาวิชาการ (name)');
@@ -309,33 +251,6 @@ export class ProjectService {
         err.field = 'name';
         throw err;
       }
-    }
-
-    if (!isUpdate || body.client !== undefined) {
-      const client = String(body.client || '').trim();
-      if (!client) {
-        const err: any = new Error('กรุณาระบุผู้ขอรับบริการ / ว่าจ้าง (client)');
-        err.status = 400;
-        err.field = 'client';
-        throw err;
-      }
-    }
-
-    if (!isUpdate || body.characteristics !== undefined) {
-      const chars = Array.isArray(body.characteristics)
-        ? body.characteristics
-        : typeof body.characteristics === 'string' && body.characteristics.trim()
-        ? body.characteristics.split(',').map((s: string) => s.trim()).filter(Boolean)
-        : [];
-      if (chars.length === 0) {
-        const err: any = new Error('กรุณาเลือกลักษณะโครงการอย่างน้อย 1 รายการ (characteristics)');
-        err.status = 400;
-        err.field = 'characteristics';
-        throw err;
-      }
-    }
-
-    if (!isUpdate || body.department !== undefined || body.departmentCode !== undefined || body.department_code !== undefined) {
       const dept = resolveDeptCode(body.departmentCode || body.department_code || body.department);
       if (!dept) {
         const err: any = new Error('กรุณาระบุสังกัดที่ดำเนินการ (department)');
@@ -343,85 +258,35 @@ export class ProjectService {
         err.field = 'department';
         throw err;
       }
-    }
-
-    if (!isUpdate || body.co_members_internal !== undefined) {
-      if (body.co_members_internal === undefined || body.co_members_internal === null || String(body.co_members_internal).trim() === '') {
-        const err: any = new Error('กรุณาระบุจำนวนผู้ร่วมโครงการ (ภายใน) (co_members_internal)');
-        err.status = 400;
-        err.field = 'co_members_internal';
-        throw err;
-      }
-    }
-
-    if (!isUpdate || body.co_members_external !== undefined) {
-      if (body.co_members_external === undefined || body.co_members_external === null || String(body.co_members_external).trim() === '') {
-        const err: any = new Error('กรุณาระบุจำนวนผู้ร่วมโครงการ (ภายนอก) (co_members_external)');
-        err.status = 400;
-        err.field = 'co_members_external';
-        throw err;
-      }
-    }
-
-    if (!isUpdate || body.project_type_category !== undefined || body.project_type_categories !== undefined) {
-      const cats = Array.isArray(body.project_type_categories)
-        ? body.project_type_categories
-        : Array.isArray(body.project_type_category)
-        ? body.project_type_category
-        : typeof body.project_type_category === 'string' && body.project_type_category.trim()
-        ? body.project_type_category.split(',').map((s: string) => s.trim()).filter(Boolean)
+      const chars = Array.isArray(body.characteristics)
+        ? body.characteristics
+        : typeof body.characteristics === 'string' && body.characteristics.trim()
+        ? body.characteristics.split(',').map((s: string) => s.trim()).filter(Boolean)
         : [];
-      if (cats.length === 0) {
-        const err: any = new Error('กรุณาเลือกประเภทโครงการพัฒนาวิชาการอย่างน้อย 1 ประเภท (project_type_category)');
+      if (chars.length === 0) {
+        body.characteristics = ['บริการวิชาการ'];
+      }
+    } else {
+      if (body.name !== undefined && String(body.name || '').trim() === '') {
+        const err: any = new Error('ชื่อโครงการพัฒนาวิชาการต้องไม่เป็นค่าว่าง');
         err.status = 400;
-        err.field = 'project_type_category';
+        err.field = 'name';
         throw err;
       }
     }
 
-    const start = body.start_date !== undefined ? body.start_date : body.startDate;
-    const end = body.end_date !== undefined ? body.end_date : body.endDate;
+    const start = body.start_date || body.startDate;
+    const end = body.end_date || body.endDate;
     if (start && end && String(end) < String(start)) {
-      const err: any = new Error('วันที่สิ้นสุดดำเนินการต้องไม่เกิดขึ้นก่อนวันที่เริ่มต้นดำเนินการ (end_date >= start_date)');
+      const err: any = new Error('วันที่สิ้นสุดโครงการพัฒนาวิชาการต้องไม่เกิดขึ้นก่อนวันที่เริ่มต้น (end_date >= start_date)');
       err.status = 400;
       err.field = 'end_date';
-      throw err;
-    }
-
-    // Conditional rule for integration
-    const hasIntegration = Boolean(
-      (Array.isArray(body.research_projects) && body.research_projects.length > 0) ||
-      (body.patent_integration && String(body.patent_integration).trim()) ||
-      body.has_integration
-    );
-    const intStart = body.integration_start_date !== undefined ? body.integration_start_date : body.integrationStartDate;
-    const intEnd = body.integration_end_date !== undefined ? body.integration_end_date : body.integrationEndDate;
-
-    if (hasIntegration) {
-      if (!intStart || !String(intStart).trim()) {
-        const err: any = new Error('กรุณาระบุวันที่เริ่มต้นนำไปบูรณาการ (integration_start_date)');
-        err.status = 400;
-        err.field = 'integration_start_date';
-        throw err;
-      }
-      if (!intEnd || !String(intEnd).trim()) {
-        const err: any = new Error('กรุณาระบุวันที่สิ้นสุดนำไปบูรณาการ (integration_end_date)');
-        err.status = 400;
-        err.field = 'integration_end_date';
-        throw err;
-      }
-    }
-
-    if (intStart && intEnd && String(intEnd) < String(intStart)) {
-      const err: any = new Error('วันที่สิ้นสุดนำไปบูรณาการต้องไม่เกิดขึ้นก่อนวันที่เริ่มต้นนำไปบูรณาการ (integration_end_date >= integration_start_date)');
-      err.status = 400;
-      err.field = 'integration_end_date';
       throw err;
     }
   }
 
   static validatePublication(body: any, isUpdate = false) {
-    if (!isUpdate || body.title !== undefined || body.name !== undefined) {
+    if (!isUpdate) {
       const title = String(body.title || body.name || '').trim();
       if (!title) {
         const err: any = new Error('กรุณากรอกชื่อเรื่อง / ผลงานตีพิมพ์ (title)');
@@ -429,15 +294,23 @@ export class ProjectService {
         err.field = 'title';
         throw err;
       }
-    }
-
-    if (!isUpdate || body.budget !== undefined) {
-      if (body.budget === undefined || body.budget === null || String(body.budget).trim() === '') {
-        const err: any = new Error('กรุณาระบุจำนวนเงินสนับสนุน (budget)');
+      const dept = resolveDeptCode(body.departmentCode || body.department_code || body.department);
+      if (!dept) {
+        const err: any = new Error('กรุณาระบุสังกัดภาควิชา (department)');
         err.status = 400;
-        err.field = 'budget';
+        err.field = 'department';
         throw err;
       }
+    } else {
+      if ((body.title !== undefined || body.name !== undefined) && String(body.title || body.name || '').trim() === '') {
+        const err: any = new Error('ชื่อเรื่อง / ผลงานตีพิมพ์ต้องไม่เป็นค่าว่าง');
+        err.status = 400;
+        err.field = 'title';
+        throw err;
+      }
+    }
+
+    if (body.budget !== undefined && body.budget !== null && String(body.budget).trim() !== '') {
       const b = Number(body.budget);
       if (isNaN(b) || b < 0) {
         const err: any = new Error('จำนวนเงินสนับสนุนต้องเป็นตัวเลขที่ไม่ติดลบ (budget >= 0)');
@@ -446,95 +319,7 @@ export class ProjectService {
         throw err;
       }
     }
-
-    if (!isUpdate || body.month_year !== undefined || body.month !== undefined || body.fiscal_year_be !== undefined || body.fiscalYearBe !== undefined) {
-      const my = body.month_year || body.month || body.fiscal_year_be || body.fiscalYearBe;
-      if (!my || !String(my).trim()) {
-        const err: any = new Error('กรุณาระบุเดือน/ปี (พ.ศ.) ของผลงานตีพิมพ์ (month_year)');
-        err.status = 400;
-        err.field = 'month_year';
-        throw err;
-      }
-    }
-
-    if (!isUpdate || body.has_foreign_coauthor !== undefined || body.has_domestic_coauthor !== undefined || body.co_authors_foreign !== undefined || body.co_authors_domestic !== undefined) {
-      const hasForeign = Boolean(
-        body.has_foreign_coauthor ||
-        body.has_international_coauthor ||
-        (Array.isArray(body.co_authors_foreign) && body.co_authors_foreign.length > 0) ||
-        (typeof body.co_authors_foreign === 'string' && body.co_authors_foreign.trim())
-      );
-      const hasDomestic = Boolean(
-        body.has_domestic_coauthor ||
-        (Array.isArray(body.co_authors_domestic) && body.co_authors_domestic.length > 0) ||
-        (typeof body.co_authors_domestic === 'string' && body.co_authors_domestic.trim())
-      );
-      if (!hasForeign && !hasDomestic) {
-        const err: any = new Error('กรุณาระบุข้อมูลผู้แต่งร่วม (มีผู้ร่วมต่างชาติ หรือ มีผู้ร่วมภายในประเทศ) (co_authors)');
-        err.status = 400;
-        err.field = 'co_authors';
-        throw err;
-      }
-    }
-
-    const type = String(body.type || '').trim();
-    if (type !== 'เตรียมความพร้อมจดอนุสิทธิบัตร') {
-      if (!isUpdate || body.journal !== undefined) {
-        if (!body.journal || !String(body.journal).trim()) {
-          const err: any = new Error('กรุณากรอกรายละเอียดวารสาร/การประชุม (journal)');
-          err.status = 400;
-          err.field = 'journal';
-          throw err;
-        }
-      }
-      if (!isUpdate || body.volume !== undefined) {
-        if (!body.volume || !String(body.volume).trim()) {
-          const err: any = new Error('กรุณาระบุ Volume (เล่มที่) (volume)');
-          err.status = 400;
-          err.field = 'volume';
-          throw err;
-        }
-      }
-      if (!isUpdate || body.issue !== undefined) {
-        if (!body.issue || !String(body.issue).trim()) {
-          const err: any = new Error('กรุณาระบุ Issue (ฉบับที่) (issue)');
-          err.status = 400;
-          err.field = 'issue';
-          throw err;
-        }
-      }
-      const pStart = body.page_start !== undefined ? body.page_start : body.pageStart;
-      const pEnd = body.page_end !== undefined ? body.page_end : body.pageEnd;
-      if (!isUpdate || pStart !== undefined) {
-        if (!pStart || !String(pStart).trim()) {
-          const err: any = new Error('กรุณาระบุหน้าเริ่มต้น (page_start)');
-          err.status = 400;
-          err.field = 'page_start';
-          throw err;
-        }
-      }
-      if (!isUpdate || pEnd !== undefined) {
-        if (!pEnd || !String(pEnd).trim()) {
-          const err: any = new Error('กรุณาระบุหน้าสิ้นสุด (page_end)');
-          err.status = 400;
-          err.field = 'page_end';
-          throw err;
-        }
-      }
-      if (pStart && pEnd) {
-        const numStart = parseInt(String(pStart).trim(), 10);
-        const numEnd = parseInt(String(pEnd).trim(), 10);
-        if (!isNaN(numStart) && !isNaN(numEnd) && numEnd < numStart) {
-          const err: any = new Error('หน้าสิ้นสุดต้องมากกว่าหรือเท่ากับหน้าเริ่มต้น (page_end >= page_start)');
-          err.status = 400;
-          err.field = 'page_end';
-          throw err;
-        }
-      }
-    }
   }
-
-
 
   static async createResearch(body: any) {
     this.validateResearch(body, false);

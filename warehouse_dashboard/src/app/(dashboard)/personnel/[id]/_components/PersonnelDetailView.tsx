@@ -1,10 +1,18 @@
 'use client';
 
+const DEFAULT_AVATAR = `${(process.env.NEXT_PUBLIC_BASE_PATH || '').replace(/\/+$/, '')}/default-avatar.png`;
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePersonnelData } from '../../_hooks/usePersonnelData';
 import { useTimeFilter, TimeFilterBar } from '@/features/time-filter';
-import { DepartmentBadge, PublicationTypeBadge, IPTypeBadge, ServiceTypeBadge } from '@/components/ui';
+import {
+  DepartmentBadge,
+  PublicationTypeBadge,
+  IPTypeBadge,
+  ServiceTypeBadge,
+  RecordDetailDrawer,
+} from '@/components/ui';
 import { resolvePersonAvatar } from '@/lib/personnelService';
 import { autoDetectJournalRanking, JOURNAL_TIER_STYLES } from '@/config/journalRankingConfig';
 import { JournalTierBadge } from '@/components/ui/JournalTierBadge';
@@ -26,6 +34,7 @@ import {
 
 interface PersonnelDetailViewProps {
   personnelId: string;
+  fallbackName?: string;
 }
 
 type TabKey = 'all' | 'research' | 'publications' | 'ip' | 'academic' | 'service';
@@ -38,12 +47,16 @@ function parseItemBudget(item: any): number {
   return intVal + extVal;
 }
 
-export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
+export function PersonnelDetailView({ personnelId, fallbackName }: PersonnelDetailViewProps) {
   const router = useRouter();
   const { timeFilter, setTimeFilter, resetTimeFilter } = useTimeFilter();
   const [activeTab, setActiveTab] = useState<TabKey>('all');
   const [ignoreTimeFilter, setIgnoreTimeFilter] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [selectedDetail, setSelectedDetail] = useState<{
+    item: any;
+    categoryKey: string;
+  } | null>(null);
 
   const handleBack = () => {
     if (typeof window !== 'undefined') {
@@ -83,11 +96,11 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
 
   // Hook with time filter or undefined when user chooses all-time
   const activeFilter = ignoreTimeFilter ? undefined : timeFilter;
-  const { getPersonPortfolio, personnelMetrics } = usePersonnelData(activeFilter);
+  const { getPersonPortfolio, personnelMetrics, isLoaded } = usePersonnelData(activeFilter);
 
   const portfolio = useMemo(() => {
-    return getPersonPortfolio(personnelId);
-  }, [getPersonPortfolio, personnelId]);
+    return getPersonPortfolio(personnelId, fallbackName);
+  }, [getPersonPortfolio, personnelId, fallbackName]);
 
   const profileImageUrl =
     portfolio?.imageUrl ||
@@ -95,6 +108,23 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
     resolvePersonAvatar(portfolio?.id || personnelId, portfolio?.name);
 
   if (!portfolio) {
+    if (!isLoaded) {
+      return (
+        <div
+          style={{
+            padding: '48px',
+            textAlign: 'center',
+            backgroundColor: '#ffffff',
+            borderRadius: '12px',
+            border: '1px solid #e2e8f0',
+            color: '#64748b',
+            fontSize: '14px',
+          }}
+        >
+          กำลังโหลดข้อมูลแฟ้มผลงานบุคลากร...
+        </div>
+      );
+    }
     return (
       <div
         style={{
@@ -181,31 +211,7 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
           <span>ย้อนกลับ</span>
         </button>
 
-        {/* Time Filter Mode Toggle */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <label
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              fontSize: '12.5px',
-              color: '#334155',
-              backgroundColor: '#ffffff',
-              padding: '6px 12px',
-              borderRadius: '8px',
-              border: '1px solid #cbd5e1',
-              cursor: 'pointer',
-            }}
-          >
-            <input
-              type="checkbox"
-              checked={ignoreTimeFilter}
-              onChange={(e) => setIgnoreTimeFilter(e.target.checked)}
-              style={{ accentColor: '#00A651', cursor: 'pointer' }}
-            />
-            <span>แสดงผลงานทั้งหมดตลอดอายุงาน (ไม่จำกัดช่วงเวลา)</span>
-          </label>
-        </div>
+        
       </div>
 
       {/* TimeFilterBar if not in ignore mode */}
@@ -252,7 +258,7 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
                         return encodeURI(profileImageUrl.trim());
                       }
                     })()
-                  : '/default-avatar.png'
+                  : DEFAULT_AVATAR
               }
               alt={portfolio.name}
               onError={() => setImageError(true)}
@@ -575,20 +581,26 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                     <thead>
                       <tr style={{ backgroundColor: '#f1f5f9', color: '#475569', textAlign: 'left', borderBottom: '1px solid #cbd5e1' }}>
-                        <th style={{ padding: '9px 12px', width: '90px' }}>รหัสโครงการ</th>
-                        <th style={{ padding: '9px 12px' }}>ชื่อโครงการวิจัย</th>
+                        <th style={{ padding: '9px 12px', width: '60px', textAlign: 'center' }}>ลำดับ</th>
+                        <th style={{ padding: '9px 12px', width: '38%', minWidth: '380px' }}>ชื่อโครงการวิจัย</th>
                         <th style={{ padding: '9px 12px', width: '130px' }}>บทบาท</th>
                         <th style={{ padding: '9px 12px', width: '130px', textAlign: 'right' }}>งบประมาณ</th>
-                        <th style={{ padding: '9px 12px', width: '140px' }}>แหล่งทุน</th>
+                        <th style={{ padding: '9px 12px', width: '150px' }}>แหล่งทุน</th>
                         <th style={{ padding: '9px 12px', width: '100px', textAlign: 'center' }}>สถานะ</th>
+                        <th style={{ padding: '9px 12px', width: '90px', textAlign: 'center' }}>ดูเพิ่มเติม</th>
                       </tr>
                     </thead>
                     <tbody>
                       {portfolio.researchItems.map((r, idx) => {
                         const totalB = parseItemBudget(r);
                         return (
-                          <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                            <td style={{ padding: '10px 12px', color: '#64748b', fontWeight: 600 }}>{r.id || '-'}</td>
+                          <tr
+                            key={idx}
+                            onClick={() => setSelectedDetail({ item: r, categoryKey: 'research' })}
+                            style={{ borderBottom: '1px solid #f1f5f9', cursor: 'pointer', transition: 'background-color 0.1s ease' }}
+                            className="hover:bg-emerald-50/50"
+                          >
+                            <td style={{ padding: '10px 12px', textAlign: 'center', color: '#64748b', fontWeight: 600 }}>{idx + 1}</td>
                             <td style={{ padding: '10px 12px', fontWeight: 600, color: '#0f172a' }}>{r.name}</td>
                             <td style={{ padding: '10px 12px', color: '#475569' }}>
                               {r.head && (r.head.includes(portfolio.cleanName) || r.head.includes(portfolio.name))
@@ -596,7 +608,7 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
                                 : 'ผู้ร่วมวิจัย'}
                             </td>
                             <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 600, color: '#047857' }}>
-                              {totalB > 0 ? `${totalB.toLocaleString('th-TH')} ` : '-'}
+                              {totalB > 0 ? totalB.toLocaleString('th-TH') + ' บาท' : '-'}
                             </td>
                             <td style={{ padding: '10px 12px', color: '#64748b' }}>{r.fund_source || '-'}</td>
                             <td style={{ padding: '10px 12px', textAlign: 'center' }}>
@@ -612,6 +624,32 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
                               >
                                 {r.status || 'ดำเนินการ'}
                               </span>
+                            </td>
+                            <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedDetail({ item: r, categoryKey: 'research' });
+                                }}
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  padding: '4px 8px',
+                                  borderRadius: '6px',
+                                  fontSize: '11.5px',
+                                  fontWeight: 600,
+                                  color: '#00A651',
+                                  backgroundColor: '#ecfdf5',
+                                  border: '1px solid #a7f3d0',
+                                  cursor: 'pointer',
+                                }}
+                                title="คลิกเพื่อดูรายละเอียดเพิ่มเติม"
+                              >
+                                <FaExternalLinkAlt style={{ fontSize: '10px' }} />
+                                <span>ดูเพิ่มเติม</span>
+                              </button>
                             </td>
                           </tr>
                         );
@@ -652,34 +690,37 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                     <thead>
                       <tr style={{ backgroundColor: '#f1f5f9', color: '#475569', textAlign: 'left', borderBottom: '1px solid #cbd5e1' }}>
-                        <th style={{ padding: '9px 12px' }}>ชื่อบทความ / ผลงาน</th>
+                        <th style={{ padding: '9px 12px', width: '60px', textAlign: 'center' }}>ลำดับ</th>
+                        <th style={{ padding: '9px 12px', width: '38%', minWidth: '380px' }}>ชื่อบทความ / ผลงาน</th>
+                        <th style={{ padding: '9px 12px', width: '130px', textAlign: 'center' }}>สถานะ</th>
                         <th style={{ padding: '9px 12px', width: '220px' }}>วารสาร</th>
-                        <th style={{ padding: '9px 12px', width: '120px', textAlign: 'center' }}>ระดับ</th>
+                        <th style={{ padding: '9px 12px', width: '110px', textAlign: 'center' }}>ระดับ</th>
                         <th style={{ padding: '9px 12px', width: '90px', textAlign: 'center' }}>ปี / เดือน</th>
                         <th style={{ padding: '9px 12px', width: '110px', textAlign: 'right' }}>เงินสนับสนุน</th>
+                        <th style={{ padding: '9px 12px', width: '90px', textAlign: 'center' }}>ดูเพิ่มเติม</th>
                       </tr>
                     </thead>
                     <tbody>
                       {portfolio.pubItems.map((p, idx) => {
                         const tier = autoDetectJournalRanking(p.journal || '', p.level || '');
-                        const tierStyle = JOURNAL_TIER_STYLES[tier] || {
-                          bg: '#f1f5f9',
-                          text: '#475569',
-                          border: '#cbd5e1',
-                        };
-
                         return (
-                          <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                          <tr
+                            key={idx}
+                            onClick={() => setSelectedDetail({ item: p, categoryKey: 'publications' })}
+                            style={{ borderBottom: '1px solid #f1f5f9', cursor: 'pointer', transition: 'background-color 0.1s ease' }}
+                            className="hover:bg-rose-50/50"
+                          >
+                            <td style={{ padding: '10px 12px', textAlign: 'center', color: '#64748b', fontWeight: 600 }}>{idx + 1}</td>
                             <td style={{ padding: '10px 12px', fontWeight: 600, color: '#0f172a' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                                <span>{p.name}</span>
-                                <PublicationTypeBadge value={p.type || p.status || 'ตีพิมพ์'} />
-                              </div>
+                              <div>{p.name}</div>
                               {p.remarks && (
-                                <div style={{ fontSize: '11.5px', color: '#64748b', marginTop: '2px' }}>
+                                <div style={{ fontSize: '11.5px', color: '#64748b', marginTop: '2px', fontWeight: 400 }}>
                                   {p.remarks}
                                 </div>
                               )}
+                            </td>
+                            <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                              <PublicationTypeBadge value={p.type || p.status || 'ตีพิมพ์'} />
                             </td>
                             <td style={{ padding: '10px 12px', color: '#475569' }}>
                               {p.journal || '-'}
@@ -691,7 +732,33 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
                               {p.fiscal_year_be || p.month_year || p.month || '-'}
                             </td>
                             <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 600, color: '#e11d48' }}>
-                              {p.budget ? `${Number(p.budget).toLocaleString('th-TH')} ` : '-'}
+                              {p.budget ? Number(p.budget).toLocaleString('th-TH') + ' บาท' : '-'}
+                            </td>
+                            <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedDetail({ item: p, categoryKey: 'publications' });
+                                }}
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  padding: '4px 8px',
+                                  borderRadius: '6px',
+                                  fontSize: '11.5px',
+                                  fontWeight: 600,
+                                  color: '#e11d48',
+                                  backgroundColor: '#fff1f2',
+                                  border: '1px solid #fecdd3',
+                                  cursor: 'pointer',
+                                }}
+                                title="คลิกเพื่อดูรายละเอียดเพิ่มเติม"
+                              >
+                                <FaExternalLinkAlt style={{ fontSize: '10px' }} />
+                                <span>ดูเพิ่มเติม</span>
+                              </button>
                             </td>
                           </tr>
                         );
@@ -732,16 +799,24 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                     <thead>
                       <tr style={{ backgroundColor: '#f1f5f9', color: '#475569', textAlign: 'left', borderBottom: '1px solid #cbd5e1' }}>
-                        <th style={{ padding: '9px 12px' }}>ชื่อการประดิษฐ์ / ผลงาน</th>
+                        <th style={{ padding: '9px 12px', width: '60px', textAlign: 'center' }}>ลำดับ</th>
+                        <th style={{ padding: '9px 12px', width: '38%', minWidth: '380px' }}>ชื่อการประดิษฐ์ / ผลงาน</th>
                         <th style={{ padding: '9px 12px', width: '130px' }}>ประเภท</th>
                         <th style={{ padding: '9px 12px', width: '140px' }}>เลขที่คำขอ/ทะเบียน</th>
                         <th style={{ padding: '9px 12px', width: '140px' }}>วันที่ยื่นคำขอ/จดทะเบียน</th>
                         <th style={{ padding: '9px 12px', width: '100px', textAlign: 'center' }}>สถานะ</th>
+                        <th style={{ padding: '9px 12px', width: '90px', textAlign: 'center' }}>ดูเพิ่มเติม</th>
                       </tr>
                     </thead>
                     <tbody>
                       {portfolio.ipItems.map((i, idx) => (
-                        <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <tr
+                          key={idx}
+                          onClick={() => setSelectedDetail({ item: i, categoryKey: 'ip' })}
+                          style={{ borderBottom: '1px solid #f1f5f9', cursor: 'pointer', transition: 'background-color 0.1s ease' }}
+                          className="hover:bg-purple-50/50"
+                        >
+                          <td style={{ padding: '10px 12px', textAlign: 'center', color: '#64748b', fontWeight: 600 }}>{idx + 1}</td>
                           <td style={{ padding: '10px 12px', fontWeight: 600, color: '#0f172a' }}>
                             {i.name || i.title}
                           </td>
@@ -777,6 +852,32 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
                                 </span>
                               );
                             })()}
+                          </td>
+                          <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedDetail({ item: i, categoryKey: 'ip' });
+                              }}
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                padding: '4px 8px',
+                                borderRadius: '6px',
+                                fontSize: '11.5px',
+                                fontWeight: 600,
+                                color: '#7c3aed',
+                                backgroundColor: '#f5f3ff',
+                                border: '1px solid #ddd6fe',
+                                cursor: 'pointer',
+                              }}
+                              title="คลิกเพื่อดูรายละเอียดเพิ่มเติม"
+                            >
+                              <FaExternalLinkAlt style={{ fontSize: '10px' }} />
+                              <span>ดูเพิ่มเติม</span>
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -816,24 +917,58 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                     <thead>
                       <tr style={{ backgroundColor: '#f1f5f9', color: '#475569', textAlign: 'left', borderBottom: '1px solid #cbd5e1' }}>
-                        <th style={{ padding: '9px 12px' }}>ชื่อโครงการ</th>
+                        <th style={{ padding: '9px 12px', width: '60px', textAlign: 'center' }}>ลำดับ</th>
+                        <th style={{ padding: '9px 12px', width: '38%', minWidth: '380px' }}>ชื่อโครงการ</th>
                         <th style={{ padding: '9px 12px', width: '200px' }}>หน่วยงานผู้ว่าจ้าง</th>
                         <th style={{ padding: '9px 12px', width: '130px', textAlign: 'right' }}>งบประมาณ</th>
                         <th style={{ padding: '9px 12px', width: '110px', textAlign: 'center' }}>ระยะเวลา</th>
+                        <th style={{ padding: '9px 12px', width: '90px', textAlign: 'center' }}>ดูเพิ่มเติม</th>
                       </tr>
                     </thead>
                     <tbody>
                       {portfolio.academicItems.map((a, idx) => {
                         const bVal = parseItemBudget(a);
                         return (
-                          <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                          <tr
+                            key={idx}
+                            onClick={() => setSelectedDetail({ item: a, categoryKey: 'academic' })}
+                            style={{ borderBottom: '1px solid #f1f5f9', cursor: 'pointer', transition: 'background-color 0.1s ease' }}
+                            className="hover:bg-sky-50/50"
+                          >
+                            <td style={{ padding: '10px 12px', textAlign: 'center', color: '#64748b', fontWeight: 600 }}>{idx + 1}</td>
                             <td style={{ padding: '10px 12px', fontWeight: 600, color: '#0f172a' }}>{a.name}</td>
                             <td style={{ padding: '10px 12px', color: '#475569' }}>{a.client || '-'}</td>
                             <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 600, color: '#0284c7' }}>
-                              {bVal > 0 ? `${bVal.toLocaleString('th-TH')} ` : '-'}
+                              {bVal > 0 ? bVal.toLocaleString('th-TH') + ' บาท' : '-'}
                             </td>
                             <td style={{ padding: '10px 12px', textAlign: 'center', color: '#64748b' }}>
                               {a.month || a.start_date || '-'}
+                            </td>
+                            <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedDetail({ item: a, categoryKey: 'academic' });
+                                }}
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  padding: '4px 8px',
+                                  borderRadius: '6px',
+                                  fontSize: '11.5px',
+                                  fontWeight: 600,
+                                  color: '#0284c7',
+                                  backgroundColor: '#f0f9ff',
+                                  border: '1px solid #bae6fd',
+                                  cursor: 'pointer',
+                                }}
+                                title="คลิกเพื่อดูรายละเอียดเพิ่มเติม"
+                              >
+                                <FaExternalLinkAlt style={{ fontSize: '10px' }} />
+                                <span>ดูเพิ่มเติม</span>
+                              </button>
                             </td>
                           </tr>
                         );
@@ -874,16 +1009,24 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                     <thead>
                       <tr style={{ backgroundColor: '#f1f5f9', color: '#475569', textAlign: 'left', borderBottom: '1px solid #cbd5e1' }}>
-                        <th style={{ padding: '9px 12px' }}>หัวข้องานบริการวิชาการ</th>
-                        <th style={{ padding: '9px 12px', width: '160px' }}>ประเภทบริการ</th>
+                        <th style={{ padding: '9px 12px', width: '60px', textAlign: 'center' }}>ลำดับ</th>
+                        <th style={{ padding: '9px 12px', width: '38%', minWidth: '380px' }}>หัวข้องานบริการวิชาการ</th>
+                        <th style={{ padding: '9px 12px', width: '140px' }}>ประเภทบริการ</th>
                         <th style={{ padding: '9px 12px', width: '180px' }}>หน่วยงาน / กลุ่มเป้าหมาย</th>
-                        <th style={{ padding: '9px 12px', width: '90px', textAlign: 'center' }}>วันที่</th>
-                        <th style={{ padding: '9px 12px', width: '100px', textAlign: 'center' }}>ชม. ที่ใช้</th>
+                        <th style={{ padding: '9px 12px', width: '100px', textAlign: 'center' }}>วันที่</th>
+                        <th style={{ padding: '9px 12px', width: '90px', textAlign: 'center' }}>ชม. ที่ใช้</th>
+                        <th style={{ padding: '9px 12px', width: '90px', textAlign: 'center' }}>ดูเพิ่มเติม</th>
                       </tr>
                     </thead>
                     <tbody>
                       {portfolio.serviceItems.map((s, idx) => (
-                        <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <tr
+                          key={idx}
+                          onClick={() => setSelectedDetail({ item: s, categoryKey: 'service' })}
+                          style={{ borderBottom: '1px solid #f1f5f9', cursor: 'pointer', transition: 'background-color 0.1s ease' }}
+                          className="hover:bg-amber-50/50"
+                        >
+                          <td style={{ padding: '10px 12px', textAlign: 'center', color: '#64748b', fontWeight: 600 }}>{idx + 1}</td>
                           <td style={{ padding: '10px 12px', fontWeight: 600, color: '#0f172a' }}>
                             {s.name || s.topic_title}
                           </td>
@@ -897,7 +1040,33 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
                             {s.date || s.start_date || '-'}
                           </td>
                           <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 600, color: '#d97706' }}>
-                            {s.hours_spent ? `${s.hours_spent} ชม.` : '-'}
+                            {s.hours_spent ? s.hours_spent + ' ชม.' : '-'}
+                          </td>
+                          <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedDetail({ item: s, categoryKey: 'service' });
+                              }}
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                padding: '4px 8px',
+                                borderRadius: '6px',
+                                fontSize: '11.5px',
+                                fontWeight: 600,
+                                color: '#d97706',
+                                backgroundColor: '#fffbeb',
+                                border: '1px solid #fde68a',
+                                cursor: 'pointer',
+                              }}
+                              title="คลิกเพื่อดูรายละเอียดเพิ่มเติม"
+                            >
+                              <FaExternalLinkAlt style={{ fontSize: '10px' }} />
+                              <span>ดูเพิ่มเติม</span>
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -909,6 +1078,15 @@ export function PersonnelDetailView({ personnelId }: PersonnelDetailViewProps) {
           )}
         </div>
       </div>
+
+      {/* Slide-over Drawer for Record Details */}
+      <RecordDetailDrawer
+        isOpen={Boolean(selectedDetail)}
+        onClose={() => setSelectedDetail(null)}
+        categoryKey={selectedDetail?.categoryKey}
+        record={selectedDetail?.item}
+        readOnly={true}
+      />
     </div>
   );
 }

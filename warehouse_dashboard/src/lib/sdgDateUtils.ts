@@ -98,7 +98,7 @@ export function extractRecordDate(item: any, category: string): { year: number; 
   }
 
   // Pattern 2: DD/MM/YYYY or MM/YYYY or YYYY
-  const parts = s.split(/[\/\-.\s]+/);
+  const parts = s.split(/[-/.\s]+/);
   if (parts.length === 1 && /^\d{4}$/.test(parts[0])) {
     const y = toCeYear(parseInt(parts[0], 10));
     return { year: y, month: 0 };

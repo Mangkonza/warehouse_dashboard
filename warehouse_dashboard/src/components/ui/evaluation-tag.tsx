@@ -116,7 +116,7 @@ export interface EvaluationTagsProps {
 /**
  * Group of Evaluation Tags rendered in order:
  * 1. SDG tags (sorted ascending)
- * 2. I am / I see tag
+ * 2. กลุ่มการประเมิน tag
  * 3. Q / TCI tag
  * 
  * If not evaluated, shows "ยังไม่ประเมิน" chip with a deep link to the evaluation page.
@@ -163,7 +163,7 @@ export const EvaluationTags: React.FC<EvaluationTagsProps> = ({
       {/* 1. SDG tags: uses shared SdgTagList */}
       <SdgTagList sdgs={rawSdgs} maxVisible={maxSdgs} />
 
-      {/* 2. I AM / I SEE tag */}
+      {/* 2. กลุ่มการประเมิน tag */}
       {value?.i_type && (
         <EvaluationTag
           kind="iam"

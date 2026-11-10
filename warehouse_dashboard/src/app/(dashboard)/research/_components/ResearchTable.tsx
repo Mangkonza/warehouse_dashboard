@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { resolvePersonnelHref } from '@/lib/personnelService';
 import { FaTable, FaTimes, FaDownload } from 'react-icons/fa';
 import { SearchInput, DepartmentBadge, RecordDetailDrawer, StrategyBadges } from '@/components/ui';
 import { dashboardCardStyle } from '@/lib/dashboardTheme';
@@ -197,10 +198,11 @@ export function ResearchTable({
                     {item.name}
                   </td>
                   <td style={{ fontWeight: 400, color: '#334155', padding: '10px 8px' }}>
-                    {item.head && item.head !== 'nan' ? (
-                      item.head_id ? (
+                    {item.head && item.head !== 'nan' ? (() => {
+                      const personHref = resolvePersonnelHref(item.head_id, item.head);
+                      return personHref ? (
                         <Link
-                          href={`/personnel/${item.head_id}`}
+                          href={personHref}
                           onClick={(e) => e.stopPropagation()}
                           style={{ color: '#10b981', fontWeight: 600, textDecoration: 'none' }}
                           title="คลิกเพื่อดูแฟ้มผลงานอาจารย์"
@@ -209,8 +211,8 @@ export function ResearchTable({
                         </Link>
                       ) : (
                         item.head
-                      )
-                    ) : (
+                      );
+                    })() : (
                       '-'
                     )}
                   </td>

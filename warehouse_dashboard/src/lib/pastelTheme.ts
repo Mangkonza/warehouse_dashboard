@@ -210,7 +210,7 @@ export function categorizeServiceActivity(name?: string, topic?: string, target?
     return 'คณะกรรมการ/อนุกรรมการ/คณะทำงาน';
   }
   if (text.includes('ผู้ทรงคุณวุฒิ') || text.includes('ประเมิน') || text.includes('พิจารณา') || text.includes('กลั่นกรอง') || text.includes('ตรวจอ่าน')) {
-    return 'ผู้ทรงคุณวุฒิ/ประเมินผลงาน';
+    return 'ผู้ทรงคุณวุฒิผลงาน';
   }
   if (text.includes('วิทยากร') || text.includes('บรรยาย') || text.includes('keynote') || text.includes('อาจารย์พิเศษ') || text.includes('สอน')) {
     return 'วิทยากร/บรรยายพิเศษ';

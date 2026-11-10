@@ -175,11 +175,31 @@ export function resolveHybridSDG(
   // 1. ตรวจสอบผลประเมินจริงจากผู้ประเมิน
   let verifiedSdgs: number[] = [];
 
-  const recId = String(item.id || item._id || item.name || '').trim();
   const catKey = (category || item._category || '').toLowerCase();
-  const ev =
-    item.evaluation ||
-    (evaluationsMap && catKey ? evaluationsMap[`${catKey}_${recId}`] || evaluationsMap[recId] : null);
+  const candidateIds = [
+    item.id,
+    item._id,
+    item.code,
+    item.legacyId,
+    item.recordId,
+    item.record_id,
+    item.project_code,
+    item.name,
+  ].filter((v) => v !== undefined && v !== null && String(v).trim() !== '');
+  let ev = item.evaluation || null;
+  if (!ev && evaluationsMap && catKey) {
+    for (const cid of candidateIds) {
+      const s = String(cid).trim();
+      if (evaluationsMap[`${catKey}_${s}`]) {
+        ev = evaluationsMap[`${catKey}_${s}`];
+        break;
+      }
+      if (evaluationsMap[s]) {
+        ev = evaluationsMap[s];
+        break;
+      }
+    }
+  }
 
   const rawSdgs =
     ev?.sdg_ids ||

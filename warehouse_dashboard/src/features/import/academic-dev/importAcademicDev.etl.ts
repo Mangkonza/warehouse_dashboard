@@ -391,7 +391,7 @@ export function parseDateValue(raw: any): string | null {
 
   // C. String date parsing
   // Matches "DD/MM/YYYY", "DD-MM-YYYY", "D/M/YYYY"
-  const dmyMatch = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+  const dmyMatch = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{2,4})$/);
   if (dmyMatch) {
     const d = parseInt(dmyMatch[1], 10);
     const m = parseInt(dmyMatch[2], 10);

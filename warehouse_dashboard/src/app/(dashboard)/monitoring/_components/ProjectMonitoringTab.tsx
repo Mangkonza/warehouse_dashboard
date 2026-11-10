@@ -202,7 +202,7 @@ export default function ProjectMonitoringTab({}: ProjectMonitoringTabProps) {
       return {
         ...p,
         _projectCategory: 'research' as const,
-        _uniqueKey: `research_${p.id || p._id || idx}`,
+        _uniqueKey: `research_${p.id || p._id || 'item'}_${idx}`,
         _timeline: timeline,
         _isEvaluated: isEval,
       };
@@ -220,7 +220,7 @@ export default function ProjectMonitoringTab({}: ProjectMonitoringTabProps) {
       return {
         ...p,
         _projectCategory: 'academic' as const,
-        _uniqueKey: `academic_${p._id || p.name || idx}`,
+        _uniqueKey: `academic_${p._id || p.id || p.name || 'item'}_${idx}`,
         _timeline: timeline,
         _isEvaluated: isEval,
       };
@@ -265,7 +265,7 @@ export default function ProjectMonitoringTab({}: ProjectMonitoringTabProps) {
       else if (st === 'extension_requested') extensionReq++;
       else if (st === 'extended') extended++;
       else if (st === 'delayed') delayed++;
-      else if (st === 'completed') completed++;
+      else if (st === 'completed' || st === 'waiting_eval' || st === 'evaluated') completed++;
       else if (st === 'cancelled') cancelled++;
     });
 
@@ -323,6 +323,10 @@ export default function ProjectMonitoringTab({}: ProjectMonitoringTabProps) {
           p._timeline.days_remaining >= 0 &&
           p._timeline.days_remaining <= 30; // <= 30 วัน
         if (!isExpiring) return false;
+      } else if (statusFilter === 'completed') {
+        if (p._timeline.status !== 'completed' && p._timeline.status !== 'waiting_eval' && p._timeline.status !== 'evaluated') {
+          return false;
+        }
       } else if (statusFilter !== 'all' && p._timeline.status !== statusFilter) {
         return false;
       }
@@ -490,6 +494,9 @@ export default function ProjectMonitoringTab({}: ProjectMonitoringTabProps) {
       status: 'completed',
       closed_date: todayStr,
       is_completed: true,
+      ...(isResearch
+        ? { project_nature: item.project_nature && item.project_nature.length > 0 ? item.project_nature : ['วิจัยพื้นฐาน'] }
+        : { characteristics: item.characteristics && item.characteristics.length > 0 ? item.characteristics : ['บริการวิชาการ'] }),
     };
 
     const res = await saveCategoryRecord(cat, updatedItem, false);
@@ -540,6 +547,9 @@ export default function ProjectMonitoringTab({}: ProjectMonitoringTabProps) {
       status: 'cancelled',
       cancelled_date: todayStr,
       is_completed: false,
+      ...(isResearch
+        ? { project_nature: item.project_nature && item.project_nature.length > 0 ? item.project_nature : ['วิจัยพื้นฐาน'] }
+        : { characteristics: item.characteristics && item.characteristics.length > 0 ? item.characteristics : ['บริการวิชาการ'] }),
     };
 
     const res = await saveCategoryRecord(cat, updatedItem, false);
@@ -1158,7 +1168,7 @@ export default function ProjectMonitoringTab({}: ProjectMonitoringTabProps) {
 
                   return (
                     <tr
-                      key={item._uniqueKey || rowIdx}
+                      key={item._uniqueKey || `row-${actualRowNo}`}
                       onClick={() => setSelectedDetailTarget({ item, category: activeTab })}
                       style={{
                         borderBottom: '1px solid #f1f5f9',

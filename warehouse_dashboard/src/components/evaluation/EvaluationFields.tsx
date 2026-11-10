@@ -49,7 +49,7 @@ export const EvaluationFields: React.FC<EvaluationFieldsProps> = ({
     });
   };
 
-  // 2. I AM / I SEE handler
+  // 2. กลุ่มการประเมิน handler
   const handleITypeChange = (nextVal: IType | null) => {
     onChange({
       ...value,
@@ -83,7 +83,7 @@ export const EvaluationFields: React.FC<EvaluationFieldsProps> = ({
         />
       </div>
 
-      {/* Field 2: I AM / I SEE (BlockSingleSelect with colorVariant="iam") */}
+      {/* Field 2: กลุ่มการประเมิน (BlockSingleSelect with colorVariant="iam") */}
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
           <label className="text-xs font-bold text-slate-800">
@@ -101,7 +101,7 @@ export const EvaluationFields: React.FC<EvaluationFieldsProps> = ({
         />
       </div>
 
-      {/* Field 3: Q / TCI (Publications only: Auto-determined by recordLevel, exact same block sizing as I AM / I SEE) */}
+      {/* Field 3: Q / TCI (Publications only: Auto-determined by recordLevel, exact same block sizing as กลุ่มการประเมิน) */}
       {isPublication && (
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">

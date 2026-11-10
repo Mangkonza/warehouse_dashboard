@@ -136,7 +136,7 @@ function computeDelta(
  */
 export function aggregateSdgsData(
   params: SdgFilterParams = {},
-  customDatasets?: Record<string, any[]>
+  customDatasets?: Record<string, any[]>, customEvaluations?: Record<string, any>
 ): SdgAggregationResult {
   const categoriesToFetch =
     params.category && params.category !== 'all'
@@ -154,7 +154,7 @@ export function aggregateSdgsData(
   }
 
   const allRecords: ProcessedRecord[] = [];
-  const evaluationsMap = readEvaluations();
+  const evaluationsMap = customEvaluations && Object.keys(customEvaluations).length > 0 ? customEvaluations : readEvaluations();
 
   for (const cat of categoriesToFetch) {
     const rawItems = customDatasets && customDatasets[cat] ? customDatasets[cat] : readCategoryData(cat);

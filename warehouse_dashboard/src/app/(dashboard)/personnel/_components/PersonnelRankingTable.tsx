@@ -1,5 +1,7 @@
 'use client';
 
+const DEFAULT_AVATAR = `${(process.env.NEXT_PUBLIC_BASE_PATH || '').replace(/\/+$/, '')}/default-avatar.png`;
+
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -854,8 +856,8 @@ export function PersonnelRankingTable({ metrics }: PersonnelRankingTableProps) {
                           alt={item.name}
                           onError={(e) => {
                             const target = e.currentTarget;
-                            if (target.src !== '/default-avatar.png' && !target.src.endsWith('/default-avatar.png')) {
-                              target.src = '/default-avatar.png';
+                            if (target.src !== DEFAULT_AVATAR && !target.src.endsWith('/default-avatar.png')) {
+                              target.src = DEFAULT_AVATAR;
                             }
                           }}
                           style={{

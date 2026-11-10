@@ -16,7 +16,7 @@ import {
 } from 'react-icons/fa';
 import { ServiceItem } from '../_hooks/useServiceData';
 import { getDepartment, getDepartmentColor } from '@/lib/departments';
-import { resolvePersonAvatar } from '@/lib/personnelService';
+import { resolvePersonAvatar, resolvePersonnelTargetId, resolvePersonnelHref } from '@/lib/personnelService';
 import { getClickedChartElement } from '@/lib/chartTooltipHelper';
 import { StrategicAlignmentMatrix } from '@/components/data-display';
 import { DrillDownProjectDrawer, DepartmentBadge } from '@/components/ui';
@@ -521,7 +521,7 @@ export function ServiceCharts({
       items.forEach((item) => {
         const pName = String(item.person || '').trim();
         if (!pName || pName === '-' || pName === 'nan') return;
-        const pId = item.person_id;
+        const pId = resolvePersonnelTargetId(item.person_id, pName) ?? undefined;
         const key = pId ? `id_${pId}` : pName;
         if (!map[key]) {
           const deptCode = getServiceDeptCode(item);
@@ -713,14 +713,14 @@ export function ServiceCharts({
                 <div className="rr-seg-ctl">
                   <button
                     type="button"
-                    className={m1Mode === 'single' ? 'on' : ''}
+                    aria-pressed={m1Mode === 'single'}
                     onClick={() => setM1Mode('single')}
                   >
                     ภาพรวม
                   </button>
                   <button
                     type="button"
-                    className={m1Mode === 'yoy' ? 'on' : ''}
+                    aria-pressed={m1Mode === 'yoy'}
                     onClick={() => setM1Mode('yoy')}
                   >
                     เปรียบเทียบข้ามปี
@@ -739,14 +739,14 @@ export function ServiceCharts({
                   <div className="rr-seg-ctl">
                     <button
                       type="button"
-                      className={m1Layout === 'grouped' ? 'on' : ''}
+                      aria-pressed={m1Layout === 'grouped'}
                       onClick={() => setM1Layout('grouped')}
                     >
                       แยกแท่ง
                     </button>
                     <button
                       type="button"
-                      className={m1Layout === 'stacked' ? 'on' : ''}
+                      aria-pressed={m1Layout === 'stacked'}
                       onClick={() => setM1Layout('stacked')}
                     >
                       แท่งซ้อน
@@ -769,7 +769,7 @@ export function ServiceCharts({
                 }}
               >
                 <i />
-                วิชาการ/วิชาชีพ
+                วิชาการ
               </button>
               <button
                 type="button"
@@ -782,7 +782,7 @@ export function ServiceCharts({
                 }}
               >
                 <i />
-                ผู้ทรงคุณวุฒิ/ประเมิน
+                ผู้ทรงคุณวุฒิ
               </button>
               {m1Mode === 'yoy' && (
                 <>
@@ -932,7 +932,7 @@ export function ServiceCharts({
                               val: `${m.total} ครั้ง • บุคลากร ${m.staffCount} ท่าน`,
                               sub: isYoy
                                 ? `ปี ${monthlyServiceData.cmpYr}: ${pm.total} ครั้ง • บุคลากร ${pm.staffCount} ท่าน`
-                                : `วิชาการ/วิชาชีพ ${m.direct} ครั้ง • ผู้ทรงคุณวุฒิ ${m.expert} ครั้ง`,
+                                : `วิชาการ ${m.direct} ครั้ง • ผู้ทรงคุณวุฒิ ${m.expert} ครั้ง`,
                             });
                           }}
                           onMouseMove={(e) => setTip((prev) => ({ ...prev, x: e.clientX, y: e.clientY }))}
@@ -1047,7 +1047,7 @@ export function ServiceCharts({
                                           show: true,
                                           x: e.clientX,
                                           y: e.clientY,
-                                          title: `วิชาการ/วิชาชีพ · ${m.label} ${m1Year === 'all' ? '' : m1Year}`,
+                                          title: `วิชาการ · ${m.label} ${m1Year === 'all' ? '' : m1Year}`,
                                           color: '#f59e0b',
                                           val: `${m.direct} ครั้ง`,
                                           sub: `${pct}% ของเดือนนี้ (${m.total} ครั้ง) • บุคลากร ${m.staffCount} ท่าน`,
@@ -1058,7 +1058,7 @@ export function ServiceCharts({
                                         if (m.directItems.length > 0) {
                                           setDrillDown({
                                             isOpen: true,
-                                            title: `งานบริการวิชาการ (วิชาการ/วิชาชีพ): เดือน ${m.label}`,
+                                            title: `งานบริการวิชาการ (วิชาการ): เดือน ${m.label}`,
                                             subtitle: `รวม ${m.directItems.length} กิจกรรม`,
                                             accentColor: '#f59e0b',
                                             items: m.directItems,
@@ -1103,7 +1103,7 @@ export function ServiceCharts({
                                           show: true,
                                           x: e.clientX,
                                           y: e.clientY,
-                                          title: `ผู้ทรงคุณวุฒิ/ประเมิน · ${m.label} ${m1Year === 'all' ? '' : m1Year}`,
+                                          title: `ผู้ทรงคุณวุฒิ · ${m.label} ${m1Year === 'all' ? '' : m1Year}`,
                                           color: '#0284c7',
                                           val: `${m.expert} ครั้ง`,
                                           sub: `${pct}% ของเดือนนี้ (${m.total} ครั้ง) • บุคลากร ${m.staffCount} ท่าน`,
@@ -1114,7 +1114,7 @@ export function ServiceCharts({
                                         if (m.expertItems.length > 0) {
                                           setDrillDown({
                                             isOpen: true,
-                                            title: `งานบริการวิชาการ (ผู้ทรงคุณวุฒิ/ประเมิน): เดือน ${m.label}`,
+                                            title: `งานบริการวิชาการ (ผู้ทรงคุณวุฒิ): เดือน ${m.label}`,
                                             subtitle: `รวม ${m.expertItems.length} กิจกรรม`,
                                             accentColor: '#0284c7',
                                             items: m.expertItems,
@@ -1410,14 +1410,14 @@ export function ServiceCharts({
                 <div className="rr-seg-ctl">
                   <button
                     type="button"
-                    className={m2Mode === 'single' ? 'on' : ''}
+                    aria-pressed={m2Mode === 'single'}
                     onClick={() => setM2Mode('single')}
                   >
                     ภาพรวม
                   </button>
                   <button
                     type="button"
-                    className={m2Mode === 'yoy' ? 'on' : ''}
+                    aria-pressed={m2Mode === 'yoy'}
                     onClick={() => setM2Mode('yoy')}
                   >
                     เปรียบเทียบข้ามปี
@@ -1436,14 +1436,14 @@ export function ServiceCharts({
                   <div className="rr-seg-ctl">
                     <button
                       type="button"
-                      className={m2Layout === 'grouped' ? 'on' : ''}
+                      aria-pressed={m2Layout === 'grouped'}
                       onClick={() => setM2Layout('grouped')}
                     >
                       แยกแท่ง
                     </button>
                     <button
                       type="button"
-                      className={m2Layout === 'stacked' ? 'on' : ''}
+                      aria-pressed={m2Layout === 'stacked'}
                       onClick={() => setM2Layout('stacked')}
                     >
                       แท่งซ้อน
@@ -1454,21 +1454,21 @@ export function ServiceCharts({
                 <div className="rr-seg-ctl">
                   <button
                     type="button"
-                    className={m2Metric === 'count' ? 'on' : ''}
+                    aria-pressed={m2Metric === 'count'}
                     onClick={() => setM2Metric('count')}
                   >
                     จำนวนงาน
                   </button>
                   <button
                     type="button"
-                    className={m2Metric === 'staff' ? 'on' : ''}
+                    aria-pressed={m2Metric === 'staff'}
                     onClick={() => setM2Metric('staff')}
                   >
                     บุคลากร (ท่าน)
                   </button>
                   <button
                     type="button"
-                    className={m2Metric === 'hours' ? 'on' : ''}
+                    aria-pressed={m2Metric === 'hours'}
                     onClick={() => setM2Metric('hours')}
                   >
                     ชั่วโมงบริการ
@@ -1826,14 +1826,14 @@ export function ServiceCharts({
                 <div className="rr-seg-ctl">
                   <button
                     type="button"
-                    className={m3Mode === 'single' ? 'on' : ''}
+                    aria-pressed={m3Mode === 'single'}
                     onClick={() => setM3Mode('single')}
                   >
                     ภาพรวม
                   </button>
                   <button
                     type="button"
-                    className={m3Mode === 'yoy' ? 'on' : ''}
+                    aria-pressed={m3Mode === 'yoy'}
                     onClick={() => setM3Mode('yoy')}
                   >
                     เปรียบเทียบข้ามปี
@@ -1852,14 +1852,14 @@ export function ServiceCharts({
                   <div className="rr-seg-ctl">
                     <button
                       type="button"
-                      className={m3Layout === 'grouped' ? 'on' : ''}
+                      aria-pressed={m3Layout === 'grouped'}
                       onClick={() => setM3Layout('grouped')}
                     >
                       แยกแท่ง
                     </button>
                     <button
                       type="button"
-                      className={m3Layout === 'stacked' ? 'on' : ''}
+                      aria-pressed={m3Layout === 'stacked'}
                       onClick={() => setM3Layout('stacked')}
                     >
                       แท่งซ้อน
@@ -1874,11 +1874,11 @@ export function ServiceCharts({
                 <>
                   <span className="rr-pill st" style={{ '--c': '#f59e0b' } as React.CSSProperties}>
                     <i />
-                    วิชาการ/วิชาชีพ
+                    วิชาการ
                   </span>
                   <span className="rr-pill st" style={{ '--c': '#0284c7' } as React.CSSProperties}>
                     <i />
-                    ผู้ทรงคุณวุฒิ/ประเมิน
+                    ผู้ทรงคุณวุฒิ
                   </span>
                 </>
               ) : (
@@ -1985,7 +1985,7 @@ export function ServiceCharts({
                               title: `${r.name} (${r.code})`,
                               color: r.color,
                               val: `${r.count} งานบริการ • บุคลากร ${r.staffCount} ท่าน`,
-                              sub: `วิชาการ/วิชาชีพ ${r.directCount} • ผู้ทรงคุณวุฒิ ${r.expertCount} • เฉลี่ย ${r.avg} งาน/ท่าน`,
+                              sub: `วิชาการ ${r.directCount} • ผู้ทรงคุณวุฒิ ${r.expertCount} • เฉลี่ย ${r.avg} งาน/ท่าน`,
                             });
                           }}
                           onMouseMove={(e) => setTip((prev) => ({ ...prev, x: e.clientX, y: e.clientY }))}
@@ -2155,7 +2155,7 @@ export function ServiceCharts({
                                           show: true,
                                           x: e.clientX,
                                           y: e.clientY,
-                                          title: `วิชาการ/วิชาชีพ · ${r.name} (${r.code})`,
+                                          title: `วิชาการ · ${r.name} (${r.code})`,
                                           color: '#f59e0b',
                                           val: `${r.directCount} งานบริการ`,
                                           sub: `${r.count > 0 ? Math.round((r.directCount / r.count) * 100) : 0}% ของสังกัดนี้ (${r.count} งาน)`,
@@ -2195,7 +2195,7 @@ export function ServiceCharts({
                                           show: true,
                                           x: e.clientX,
                                           y: e.clientY,
-                                          title: `ผู้ทรงคุณวุฒิ/ประเมิน · ${r.name} (${r.code})`,
+                                          title: `ผู้ทรงคุณวุฒิ · ${r.name} (${r.code})`,
                                           color: '#0284c7',
                                           val: `${r.expertCount} งานบริการ`,
                                           sub: `${r.count > 0 ? Math.round((r.expertCount / r.count) * 100) : 0}% ของสังกัดนี้ (${r.count} งาน)`,
@@ -2404,14 +2404,14 @@ export function ServiceCharts({
                 <div className="rr-seg-ctl">
                   <button
                     type="button"
-                    className={m4Mode === 'single' ? 'on' : ''}
+                    aria-pressed={m4Mode === 'single'}
                     onClick={() => setM4Mode('single')}
                   >
                     ภาพรวม
                   </button>
                   <button
                     type="button"
-                    className={m4Mode === 'yoy' ? 'on' : ''}
+                    aria-pressed={m4Mode === 'yoy'}
                     onClick={() => setM4Mode('yoy')}
                   >
                     เปรียบเทียบข้ามปี
@@ -2431,28 +2431,28 @@ export function ServiceCharts({
                 <div className="rr-seg-ctl">
                   <button
                     type="button"
-                    className={m4Metric === 'avg' ? 'on' : ''}
+                    aria-pressed={m4Metric === 'avg'}
                     onClick={() => setM4Metric('avg')}
                   >
                     ภาระงานเฉลี่ย (งาน/ท่าน)
                   </button>
                   <button
                     type="button"
-                    className={m4Metric === 'count' ? 'on' : ''}
+                    aria-pressed={m4Metric === 'count'}
                     onClick={() => setM4Metric('count')}
                   >
                     จำนวนงานบริการ
                   </button>
                   <button
                     type="button"
-                    className={m4Metric === 'staff' ? 'on' : ''}
+                    aria-pressed={m4Metric === 'staff'}
                     onClick={() => setM4Metric('staff')}
                   >
                     บุคลากร (ท่าน)
                   </button>
                   <button
                     type="button"
-                    className={m4Metric === 'hours' ? 'on' : ''}
+                    aria-pressed={m4Metric === 'hours'}
                     onClick={() => setM4Metric('hours')}
                   >
                     ชั่วโมงบริการ
@@ -2578,14 +2578,14 @@ export function ServiceCharts({
                 <div className="rr-seg-ctl">
                   <button
                     type="button"
-                    className={m5Mode === 'single' ? 'on' : ''}
+                    aria-pressed={m5Mode === 'single'}
                     onClick={() => setM5Mode('single')}
                   >
                     ภาพรวม
                   </button>
                   <button
                     type="button"
-                    className={m5Mode === 'yoy' ? 'on' : ''}
+                    aria-pressed={m5Mode === 'yoy'}
                     onClick={() => setM5Mode('yoy')}
                   >
                     เปรียบเทียบข้ามปี
@@ -2604,14 +2604,14 @@ export function ServiceCharts({
                   <div className="rr-seg-ctl">
                     <button
                       type="button"
-                      className={m5Layout === 'grouped' ? 'on' : ''}
+                      aria-pressed={m5Layout === 'grouped'}
                       onClick={() => setM5Layout('grouped')}
                     >
                       แยกแท่ง
                     </button>
                     <button
                       type="button"
-                      className={m5Layout === 'stacked' ? 'on' : ''}
+                      aria-pressed={m5Layout === 'stacked'}
                       onClick={() => setM5Layout('stacked')}
                     >
                       แท่งซ้อน
@@ -2624,11 +2624,11 @@ export function ServiceCharts({
             <div className="rr-legend">
               <span className="rr-pill st" style={{ '--c': '#f59e0b' } as React.CSSProperties}>
                 <i />
-                วิชาการ/วิชาชีพ
+                วิชาการ
               </span>
               <span className="rr-pill st" style={{ '--c': '#0284c7' } as React.CSSProperties}>
                 <i />
-                ผู้ทรงคุณวุฒิ/ประเมิน
+                ผู้ทรงคุณวุฒิ
               </span>
               {m5Mode === 'yoy' && (
                 <span className="rr-pill st" style={{ '--c': '#cbd5e1' } as React.CSSProperties}>
@@ -2700,7 +2700,7 @@ export function ServiceCharts({
                               title: `${r.name} (${r.deptCode})`,
                               color: r.color,
                               val: `${r.count} งานบริการ • เครือข่าย ${r.targets.size} แห่ง`,
-                              sub: `วิชาการ/วิชาชีพ ${r.directCount} • ผู้ทรงคุณวุฒิ ${r.expertCount} • ${r.hours.toLocaleString()} ชม.`,
+                              sub: `วิชาการ ${r.directCount} • ผู้ทรงคุณวุฒิ ${r.expertCount} • ${r.hours.toLocaleString()} ชม.`,
                             });
                           }}
                           onMouseMove={(e) => setTip((prev) => ({ ...prev, x: e.clientX, y: e.clientY }))}
@@ -2861,7 +2861,7 @@ export function ServiceCharts({
                                           show: true,
                                           x: e.clientX,
                                           y: e.clientY,
-                                          title: `วิชาการ/วิชาชีพ · ${r.name}`,
+                                          title: `วิชาการ · ${r.name}`,
                                           color: '#f59e0b',
                                           val: `${r.directCount} งาน`,
                                           sub: `${r.count > 0 ? Math.round((r.directCount / r.count) * 100) : 0}% ของผลงานทั้งหมด (${r.count} งาน)`,
@@ -2871,7 +2871,7 @@ export function ServiceCharts({
                                         e.stopPropagation();
                                         setDrillDown({
                                           isOpen: true,
-                                          title: `วิชาการ/วิชาชีพ: ${r.name}`,
+                                          title: `วิชาการ: ${r.name}`,
                                           subtitle: `รวม ${r.directItems.length} งาน`,
                                           accentColor: '#f59e0b',
                                           items: r.directItems,
@@ -2911,7 +2911,7 @@ export function ServiceCharts({
                                           show: true,
                                           x: e.clientX,
                                           y: e.clientY,
-                                          title: `ผู้ทรงคุณวุฒิ/ประเมิน · ${r.name}`,
+                                          title: `ผู้ทรงคุณวุฒิ · ${r.name}`,
                                           color: '#0284c7',
                                           val: `${r.expertCount} งาน`,
                                           sub: `${r.count > 0 ? Math.round((r.expertCount / r.count) * 100) : 0}% ของผลงานทั้งหมด (${r.count} งาน)`,
@@ -2921,7 +2921,7 @@ export function ServiceCharts({
                                         e.stopPropagation();
                                         setDrillDown({
                                           isOpen: true,
-                                          title: `ผู้ทรงคุณวุฒิ/ประเมิน: ${r.name}`,
+                                          title: `ผู้ทรงคุณวุฒิ: ${r.name}`,
                                           subtitle: `รวม ${r.expertItems.length} งาน`,
                                           accentColor: '#0284c7',
                                           items: r.expertItems,
@@ -3024,14 +3024,14 @@ export function ServiceCharts({
                 <div className="rr-seg-ctl">
                   <button
                     type="button"
-                    className={m6DisplayMode === 'count' ? 'on' : ''}
+                    aria-pressed={m6DisplayMode === 'count'}
                     onClick={() => setM6DisplayMode('count')}
                   >
                     จำนวนนับ (ท่าน)
                   </button>
                   <button
                     type="button"
-                    className={m6DisplayMode === 'pct' ? 'on' : ''}
+                    aria-pressed={m6DisplayMode === 'pct'}
                     onClick={() => setM6DisplayMode('pct')}
                   >
                     เปอร์เซ็นต์ (%)
@@ -3267,8 +3267,8 @@ export function ServiceCharts({
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (s.person_id) router.push(`/personnel/${s.person_id}`);
-                            else router.push(`/personnel?q=${encodeURIComponent(s.name)}`);
+                            const href = resolvePersonnelHref(s.person_id, s.name);
+                            if (href) router.push(href);
                           }}
                           style={{
                             padding: '4px 8px',
@@ -3284,7 +3284,7 @@ export function ServiceCharts({
                             gap: '4px',
                           }}
                         >
-                          <span>ดู</span>
+                          <span>ดูผลงาน</span>
                           <FaChevronRight style={{ fontSize: '8px' }} />
                         </button>
                       </td>

@@ -61,7 +61,7 @@ export function formatDateBE(val?: any): string {
   }
 
   // DD/MM/YYYY or D/M/YYYY
-  const dmyMatch = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+  const dmyMatch = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](d{4})/);
   if (dmyMatch) {
     const d = dmyMatch[1].padStart(2, '0');
     const m = dmyMatch[2].padStart(2, '0');
@@ -246,7 +246,14 @@ export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
       return <span className="text-slate-800 font-normal text-[13.5px]">{field.format(rawVal, displayItem)}</span>;
     }
 
-    if (rawVal === undefined || rawVal === null || rawVal === '' || rawVal === 'nan' || rawVal === 'NaT') {
+    const isCoAuthorStatusField =
+      field.type === 'person_list' &&
+      (field.key === 'co_authors_foreign' || field.key === 'co_authors_domestic');
+
+    if (
+      !isCoAuthorStatusField &&
+      (rawVal === undefined || rawVal === null || rawVal === '' || rawVal === 'nan' || rawVal === 'NaT')
+    ) {
       return <span className="text-slate-800 font-normal text-[13.5px]">-</span>;
     }
 
@@ -392,33 +399,50 @@ export const RecordDetailDrawer: React.FC<RecordDetailDrawerProps> = ({
       }
 
       case 'person_list': {
-        // For publications co-authors (ต่างชาติ / ภายในประเทศ): display status มี / ไม่มี
+        // For publications co-authors (ต่างชาติ / ภายในประเทศ): display status มี / ไม่มี พร้อมรายชื่อผู้ร่วม (ถ้ามี)
         if (field.key === 'co_authors_foreign' || field.key === 'co_authors_domestic') {
           const isForeign = field.key === 'co_authors_foreign';
+          const parsedNames: string[] = Array.isArray(rawVal)
+            ? rawVal
+                .map((p: any) =>
+                  typeof p === 'object' && p !== null
+                    ? String(p.name || p.clean_name || p.personName || '').trim()
+                    : String(p ?? '').trim()
+                )
+                .filter((s) => Boolean(s) && s !== '-' && s !== 'nan' && s !== '[object Object]')
+            : typeof rawVal === 'string' && rawVal.trim() !== '' && rawVal.trim() !== '-' && rawVal.trim() !== 'nan'
+            ? rawVal
+                .split(/[,،;]+/)
+                .map((s) => s.trim())
+                .filter((s) => Boolean(s) && s !== '-' && s !== 'nan' && s !== '[object Object]')
+            : [];
+
           const hasCoAuthor = isForeign
-            ? Boolean(
-                displayItem.has_foreign_coauthor ??
-                displayItem.has_international_coauthor ??
-                ((Array.isArray(rawVal) && rawVal.length > 0 && rawVal[0] !== '') ||
-                (typeof rawVal === 'string' && rawVal.trim() !== '' && rawVal !== '-' && rawVal !== 'nan'))
-              )
-            : Boolean(
-                displayItem.has_domestic_coauthor ??
-                ((Array.isArray(rawVal) && rawVal.length > 0 && rawVal[0] !== '') ||
-                (typeof rawVal === 'string' && rawVal.trim() !== '' && rawVal !== '-' && rawVal !== 'nan'))
-              );
+            ? Boolean(displayItem.has_foreign_coauthor || displayItem.has_international_coauthor || parsedNames.length > 0)
+            : Boolean(displayItem.has_domestic_coauthor || parsedNames.length > 0);
 
           return (
-            <div className="pt-0.5">
-              <span
-                className={
-                  hasCoAuthor
-                    ? 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-normal bg-emerald-50 text-emerald-700 border border-emerald-200'
-                    : 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-normal bg-slate-100 text-slate-600 border border-slate-200'
-                }
-              >
-                {hasCoAuthor ? 'มี' : 'ไม่มี'}
-              </span>
+            <div className="flex flex-col gap-1.5 pt-0.5">
+              <div>
+                <span
+                  className={
+                    hasCoAuthor
+                      ? 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-normal bg-emerald-50 text-emerald-700 border border-emerald-200'
+                      : 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-normal bg-slate-100 text-slate-600 border border-slate-200'
+                  }
+                >
+                  {hasCoAuthor ? 'มี' : 'ไม่มี'}
+                </span>
+              </div>
+              {parsedNames.length > 0 && (
+                <div className="flex flex-col gap-1">
+                  {parsedNames.map((n, idx) => (
+                    <div key={idx} className="text-slate-800 font-normal text-[13.5px]">
+                      {n}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           );
         }

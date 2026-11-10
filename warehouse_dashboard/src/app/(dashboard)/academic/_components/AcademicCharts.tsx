@@ -1,5 +1,7 @@
 'use client';
 
+const DEFAULT_AVATAR = `${(process.env.NEXT_PUBLIC_BASE_PATH || '').replace(/\/+$/, '')}/default-avatar.png`;
+
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import Chart from 'chart.js/auto';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
@@ -17,7 +19,7 @@ import { DrillDownProjectDrawer, DepartmentBadge } from '@/components/ui';
 import { CHART_PASTEL_PALETTE, normalizeAcademicMonth } from '@/lib/pastelTheme';
 import { resolveItemFiscalYear } from '@/types/timeFilter';
 import { isTestRecord } from '@/lib/sdgEngine';
-import { resolvePersonAvatar } from '@/lib/personnelService';
+import { resolvePersonAvatar, resolvePersonnelTargetId, resolvePersonnelHref } from '@/lib/personnelService';
 import { YearSelectDropdown } from '@/components/ui/YearSelectDropdown';
 import { STANDARD_YEAR_OPTIONS, getDefaultCompareYear } from '@/lib/fiscalYears';
 
@@ -632,12 +634,13 @@ export function AcademicCharts({
     items.forEach((item) => {
       const headName = String(item.head || '').replace(/\r?\n/g, ' ').trim();
       if (!headName || headName === '-' || headName === 'nan') return;
-      const key = item.head_id ? `id_${item.head_id}` : headName;
+      const headId = resolvePersonnelTargetId(item.head_id, headName) ?? undefined;
+      const key = headId ? `id_${headId}` : headName;
       if (!map[key]) {
         map[key] = {
           key,
           head: headName,
-          head_id: item.head_id,
+          head_id: headId || item.head_id,
           deptCode: resolveDeptCode(item.department, (item as any).departmentCode),
           count: 0,
           totalBudget: 0,
@@ -812,26 +815,24 @@ export function AcademicCharts({
                       : 'กราฟจำนวนโครงการและงบประมาณสัญญารายเดือน'}
                   </span>
                 </h2>
-                {renderYearControls()}
+                {renderYearControls(
+                  !isCmp ? (
+                    <div className="rr-seg-ctl" role="group" aria-label="รูปแบบแท่ง">
+                      <button type="button" aria-pressed={barMode === 'group'} onClick={() => setBarMode('group')}>
+                        แยกแท่ง
+                      </button>
+                      <button type="button" aria-pressed={barMode === 'stack'} onClick={() => setBarMode('stack')}>
+                        แท่งซ้อน
+                      </button>
+                    </div>
+                  ) : undefined
+                )}
               </div>
 
               {isCompare && !hasCmpData && (
                 <p className="rr-note" style={{ color: '#dc2626' }}>
                   ปี {cmpYear} ไม่มีข้อมูลในฐานข้อมูล จึงแสดงเฉพาะข้อมูลปี {year}
                 </p>
-              )}
-
-              {!isCmp && (
-                <div className="rr-ctrls rr-row2">
-                  <div className="rr-seg-ctl" role="group" aria-label="รูปแบบแท่ง">
-                    <button type="button" aria-pressed={barMode === 'group'} onClick={() => setBarMode('group')}>
-                      แยกแท่ง
-                    </button>
-                    <button type="button" aria-pressed={barMode === 'stack'} onClick={() => setBarMode('stack')}>
-                      แท่งซ้อน
-                    </button>
-                  </div>
-                </div>
               )}
 
               <div className="rr-legend">
@@ -2712,8 +2713,8 @@ export function AcademicCharts({
                         <tr
                           key={`faculty-lead-${f.head_id || f.head || idx}-${idx}`}
                           onClick={() => {
-                            if (f.head_id) router.push(`/personnel/${f.head_id}`);
-                            else router.push(`/personnel?q=${encodeURIComponent(f.head)}`);
+                            const href = resolvePersonnelHref(f.head_id, f.head);
+                            if (href) router.push(href);
                           }}
                           style={{
                             borderBottom: '1px solid #f1f5f9',
@@ -2750,7 +2751,7 @@ export function AcademicCharts({
                                 onError={(e) => {
                                   const img = e.currentTarget;
                                   if (!img.src.endsWith('/default-avatar.png')) {
-                                    img.src = '/default-avatar.png';
+                                    img.src = DEFAULT_AVATAR;
                                   }
                                 }}
                               />
@@ -2778,8 +2779,8 @@ export function AcademicCharts({
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                if (f.head_id) router.push(`/personnel/${f.head_id}`);
-                                else router.push(`/personnel?q=${encodeURIComponent(f.head)}`);
+                                const href = resolvePersonnelHref(f.head_id, f.head);
+                            if (href) router.push(href);
                               }}
                               style={{
                                 padding: '5px 10px',

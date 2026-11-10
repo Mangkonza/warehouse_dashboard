@@ -1,5 +1,5 @@
 import { getDepartment } from '@/lib/departments';
-import { parseSdgNumber } from '@/types/evaluation';
+import { parseSdgNumber, isEvaluated } from '@/types/evaluation';
 import { resolveHybridSDG } from '@/lib/sdgEngine';
 export function getRecordId(item: any): string {
   return String(item.id || item._id || item.name || '').trim();
@@ -95,6 +95,7 @@ export function itemMatchesDateRange(
 ): boolean {
   if (!dateFrom && !dateTo) return true;
 
+  // Actual project execution/publication dates only (exclude DB inserted createdAt metadata)
   const candidates: string[] = [
     item.start_date,
     item.end_date,
@@ -104,8 +105,6 @@ export function itemMatchesDateRange(
     item.published_date,
     item.submission_date,
     item.filing_date,
-    item.createdAt,
-    item.created_at,
   ].filter(Boolean);
 
   if (candidates.length === 0 && (item.year || item.fiscal_year || item.fiscal_year_be)) {
@@ -117,7 +116,8 @@ export function itemMatchesDateRange(
     }
   }
 
-  if (candidates.length === 0) return true;
+  // If filtering by date range, undated items should not match
+  if (candidates.length === 0) return false;
 
   let minItemDate: Date | null = null;
   let maxItemDate: Date | null = null;
@@ -138,7 +138,8 @@ export function itemMatchesDateRange(
     if (!maxItemDate || parsed > maxItemDate) maxItemDate = parsed;
   }
 
-  if (!minItemDate || !maxItemDate) return true;
+  if (!minItemDate) return false;
+  if (!maxItemDate) maxItemDate = minItemDate;
 
   if (dateFrom) {
     const from = new Date(`${dateFrom}T00:00:00`);
@@ -153,7 +154,7 @@ export function itemMatchesDateRange(
 }
 
 /**
- * Checks if an item matches evaluation criteria (SDGs, I AM / I SEE framework, Q/TCI journals, and evaluation status)
+ * Checks if an item matches evaluation criteria (SDGs, กลุ่มการประเมิน framework, Q/TCI journals, and evaluation status)
  */
 export function itemMatchesEvaluation(
   item: any,
@@ -162,17 +163,43 @@ export function itemMatchesEvaluation(
   selectedSdgs?: string[],
   selectedFramework?: string,
   selectedJournals?: string[],
-  evaluationStatus?: 'all' | 'evaluated' | 'auto_detected' | 'unevaluated'
+  evaluationStatus?: 'all' | 'evaluated' | 'pending' | 'auto_detected' | 'unevaluated'
 ): boolean {
-  const key = getRecordEvalKey(category, item);
-  const ev = evalMap?.[key] || item.evaluation;
+  const cat = String(category || '').toLowerCase().trim();
+  const candidateIds = [
+    item.id,
+    item._id,
+    item.code,
+    item.legacyId,
+    item.recordId,
+    item.record_id,
+    item.project_code,
+    item.name,
+  ].filter((v) => v !== undefined && v !== null && String(v).trim() !== '');
+
+  let ev = item.evaluation || null;
+  if (!ev && evalMap && cat) {
+    for (const cid of candidateIds) {
+      const s = String(cid).trim();
+      if (evalMap[`${cat}_${s}`]) {
+        ev = evalMap[`${cat}_${s}`];
+        break;
+      }
+      if (evalMap[s]) {
+        ev = evalMap[s];
+        break;
+      }
+    }
+  }
   const hybrid = resolveHybridSDG(item, category, evalMap);
 
   // Status Check ('all' | 'evaluated' | 'auto_detected' | 'unevaluated')
   if (evaluationStatus && evaluationStatus !== 'all') {
-    if (evaluationStatus === 'evaluated' && !hybrid.isVerified) return false;
-    if (evaluationStatus === 'auto_detected' && (hybrid.isVerified || hybrid.sdgIds.length === 0)) return false;
-    if (evaluationStatus === 'unevaluated' && hybrid.isVerified) return false;
+    const isEv = isEvaluated(category, ev);
+    const isAuto = !isEv && hybrid.sdgIds && hybrid.sdgIds.length > 0;
+    if (evaluationStatus === 'evaluated' && !isEv) return false;
+    if (evaluationStatus === 'auto_detected' && !isAuto) return false;
+    if (evaluationStatus === 'unevaluated' && (isEv || isAuto)) return false;
   }
 
   // Extract SDG numbers (using hybrid SDGs which supports verified + auto fallback)

@@ -52,7 +52,20 @@ BEGIN
         END;
     END IF;
 
-    -- 1.4 Grant membership to current runner to avoid "must be member of role" errors during ALTER OWNER
+    -- 1.4 Ensure credentials and grant membership to current runner to avoid "must be member of role" errors during ALTER OWNER
+    BEGIN
+        ALTER ROLE ku_app WITH LOGIN PASSWORD 'ku_app_secret_2026';
+    EXCEPTION WHEN OTHERS THEN NULL;
+    END;
+    BEGIN
+        ALTER ROLE ku_admin WITH LOGIN PASSWORD 'ku_admin_secret_2026';
+    EXCEPTION WHEN OTHERS THEN NULL;
+    END;
+    BEGIN
+        ALTER ROLE ku_owner WITH LOGIN PASSWORD 'ku_owner_secret_2026';
+    EXCEPTION WHEN OTHERS THEN NULL;
+    END;
+
     IF EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'ku_admin') THEN
         BEGIN
             EXECUTE format('GRANT ku_admin TO %I', cur_user);
@@ -1807,12 +1820,12 @@ ALTER TABLE public._prisma_migrations OWNER TO ku_owner;
 
 CREATE TABLE public.academic_dev_projects (
     id integer NOT NULL,
-    legacy_id character varying(100) NOT NULL,
+    legacy_id character varying(100),
     name character varying(500) NOT NULL,
     head_name character varying(255),
     head_personnel_id integer,
-    department_code character varying(10) NOT NULL,
-    client character varying(255) NOT NULL,
+    department_code character varying(10),
+    client character varying(255),
     budget numeric(15,2) DEFAULT 0 NOT NULL,
     month character varying(50),
     fiscal_year integer,
@@ -2219,16 +2232,16 @@ ALTER TABLE public.kpi_reporting_rounds OWNER TO ku_owner;
 
 CREATE TABLE public.personnel (
     id integer NOT NULL,
-    person_id character varying(50),
+    person_id character varying(100),
     title_th character varying(50),
     name_th character varying(255) NOT NULL,
     name_en character varying(255),
-    "position" character varying(100),
+    "position" character varying(255),
     department_code character varying(10),
     email character varying(255),
     created_at timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at timestamp(3) without time zone NOT NULL,
-    image_url character varying(500),
+    image_url text,
     first_name character varying(150),
     last_name character varying(150)
 );
@@ -2305,11 +2318,11 @@ CREATE TABLE public.publications (
     title character varying(500) NOT NULL,
     type character varying(100),
     level character varying(50),
-    journal character varying(500) NOT NULL,
-    volume character varying(50) NOT NULL,
-    issue character varying(50) NOT NULL,
-    page_start character varying(50) NOT NULL,
-    page_end character varying(50) NOT NULL,
+    journal character varying(500),
+    volume character varying(50),
+    issue character varying(50),
+    page_start character varying(50),
+    page_end character varying(50),
     budget numeric(15,2) DEFAULT 0 NOT NULL,
     first_author_name character varying(255),
     first_author_personnel_id integer,
@@ -5375,54 +5388,81 @@ ALTER DEFAULT PRIVILEGES FOR ROLE ku_owner IN SCHEMA public GRANT SELECT,INSERT,
 -- \unrestrict dnheXEGuMQIfIi79ERO4QCEpsZvGWUOfZrHVJfdaYXIkPk23ywysBtBfIhzwSOE
 
 
--- Ensure master admin account exists
+-- ============================================================================
+-- 4. MASTER SUPER ADMIN ACCOUNTS
+-- Configures the 4 default Super Admin accounts used by the web application:
+-- 'b0123456789', 'superadmin', 'b6520503525', 'admin'
+-- Default password: 'Admin@1234' (hashed via PBKDF2-SHA512), OTP: '123456'
+-- ============================================================================
 INSERT INTO public.user_roles (username, role, is_protected, display_name, password, otp, granted_by, note, updated_at)
-VALUES ('b0123456789', 'admin', true, 'Admin', 'pbkdf2', '123456', 'system', 'Master Super Admin', NOW())
+VALUES 
+    ('b0123456789', 'admin', true, 'Admin', 'pbkdf2$68b8a8e252bd1ac04048c75fff5cfe15$c19531743ac78d34bbc3b87511c4e5a255495dd151bfc180cbf2823226d0f82dd80fc6078d64d5f726ecce346f1e7a09847b4e38006a24125496232b10b2bc43', '123456', 'system', 'Mock Protected Admin for testing environment', NOW()),
+    ('superadmin', 'admin', true, 'Super Admin', 'pbkdf2$7bd02323e4032771b660c0aa2ec09f26$b2c0ed5029c2d79acb074cc5ac5ca15cd2827627b111c73ad5f096e95031061d548acf6a855afa9e83b0eed2a056d8a97e74f853dfabb608e538ba2fe0420597', '123456', 'system', 'Default superadmin alias account', NOW()),
+    ('b6520503525', 'admin', true, 'Super Admin (b6520503525)', 'pbkdf2$1f05af31dc787ea4c4bb3384d380248b$0ce3a99bb1d5a0979efb4bd979ec21a79fafcc440af932b85c1cf123a5f3b47f18adc8b0838b4411dc21874fe43977a4544591141d884944021888d353e35a96', '123456', 'system', 'Initial system super admin account', NOW()),
+    ('admin', 'admin', true, 'Super Admin (Admin)', 'pbkdf2$0aa7e8548677a5abf34a3552025d95b0$2826304bc2aa5e7986db083f9985e6a94150ac5223c08fa2670efdd0a89d7d52dce8943285864c783e5aa7890a2efac457a6849088ff55ccc39265c5fb897850', '123456', 'system', 'Default admin alias account', NOW())
 ON CONFLICT (username) DO UPDATE
 SET role = 'admin',
     is_protected = true,
-    display_name = 'Admin',
+    display_name = EXCLUDED.display_name,
     password = EXCLUDED.password,
-    otp = '123456',
+    otp = EXCLUDED.otp,
+    note = EXCLUDED.note,
     updated_at = NOW();
 
 -- ============================================================================
--- 5. COMPREHENSIVE GRANTS FOR ANALYTICS & CORE SCHEMAS
--- Ensures that the backend application (ku_app) and administrative role (ku_admin)
--- have full operational permissions across analytics and core schemas.
+-- 5. COMPREHENSIVE GRANTS ACROSS ALL SCHEMAS (PUBLIC, ANALYTICS, CORE)
+-- Ensures that the backend application (ku_app), administrative role (ku_admin),
+-- and owner (ku_owner) have complete operational permissions without 'Permission Denied'.
 -- ============================================================================
 DO $$
+DECLARE
+    sch text;
 BEGIN
-    IF EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'ku_app') THEN
-        GRANT USAGE, CREATE ON SCHEMA analytics TO ku_app;
-        GRANT USAGE, CREATE ON SCHEMA core TO ku_app;
-        GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA analytics TO ku_app;
-        GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA core TO ku_app;
-        GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA analytics TO ku_app;
-        GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA core TO ku_app;
+    FOR sch IN SELECT nspname FROM pg_namespace WHERE nspname IN ('public', 'analytics', 'core') LOOP
+        -- 5.1 Grant full permissions to application role (ku_app)
+        IF EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'ku_app') THEN
+            BEGIN
+                EXECUTE format('GRANT USAGE, CREATE ON SCHEMA %I TO ku_app', sch);
+                EXECUTE format('GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA %I TO ku_app', sch);
+                EXECUTE format('GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA %I TO ku_app', sch);
+                EXECUTE format('GRANT ALL PRIVILEGES ON ALL ROUTINES IN SCHEMA %I TO ku_app', sch);
+                EXECUTE format('ALTER DEFAULT PRIVILEGES IN SCHEMA %I GRANT ALL PRIVILEGES ON TABLES TO ku_app', sch);
+                EXECUTE format('ALTER DEFAULT PRIVILEGES IN SCHEMA %I GRANT ALL PRIVILEGES ON SEQUENCES TO ku_app', sch);
+                EXECUTE format('ALTER DEFAULT PRIVILEGES IN SCHEMA %I GRANT ALL PRIVILEGES ON ROUTINES TO ku_app', sch);
+            EXCEPTION WHEN OTHERS THEN
+                RAISE NOTICE 'Notice granting ku_app on schema %: %', sch, SQLERRM;
+            END;
+        END IF;
 
-        ALTER DEFAULT PRIVILEGES IN SCHEMA analytics GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO ku_app;
-        ALTER DEFAULT PRIVILEGES IN SCHEMA core GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO ku_app;
-        ALTER DEFAULT PRIVILEGES IN SCHEMA analytics GRANT ALL ON SEQUENCES TO ku_app;
-        ALTER DEFAULT PRIVILEGES IN SCHEMA core GRANT ALL ON SEQUENCES TO ku_app;
-    END IF;
+        -- 5.2 Grant full permissions to admin role (ku_admin)
+        IF EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'ku_admin') THEN
+            BEGIN
+                EXECUTE format('GRANT ALL ON SCHEMA %I TO ku_admin', sch);
+                EXECUTE format('GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA %I TO ku_admin', sch);
+                EXECUTE format('GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA %I TO ku_admin', sch);
+                EXECUTE format('GRANT ALL PRIVILEGES ON ALL ROUTINES IN SCHEMA %I TO ku_admin', sch);
+                EXECUTE format('ALTER DEFAULT PRIVILEGES IN SCHEMA %I GRANT ALL PRIVILEGES ON TABLES TO ku_admin', sch);
+                EXECUTE format('ALTER DEFAULT PRIVILEGES IN SCHEMA %I GRANT ALL PRIVILEGES ON SEQUENCES TO ku_admin', sch);
+                EXECUTE format('ALTER DEFAULT PRIVILEGES IN SCHEMA %I GRANT ALL PRIVILEGES ON ROUTINES TO ku_admin', sch);
+            EXCEPTION WHEN OTHERS THEN
+                RAISE NOTICE 'Notice granting ku_admin on schema %: %', sch, SQLERRM;
+            END;
+        END IF;
 
-    IF EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'ku_admin') THEN
-        GRANT ALL ON SCHEMA analytics TO ku_admin;
-        GRANT ALL ON SCHEMA core TO ku_admin;
-        GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA analytics TO ku_admin;
-        GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA core TO ku_admin;
-        GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA analytics TO ku_admin;
-        GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA core TO ku_admin;
-    END IF;
-
-    IF EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'ku_owner') THEN
-        GRANT ALL ON SCHEMA analytics TO ku_owner;
-        GRANT ALL ON SCHEMA core TO ku_owner;
-        GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA analytics TO ku_owner;
-        GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA core TO ku_owner;
-        GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA analytics TO ku_owner;
-        GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA core TO ku_owner;
-    END IF;
+        -- 5.3 Grant full permissions to owner role (ku_owner)
+        IF EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'ku_owner') THEN
+            BEGIN
+                EXECUTE format('GRANT ALL ON SCHEMA %I TO ku_owner', sch);
+                EXECUTE format('GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA %I TO ku_owner', sch);
+                EXECUTE format('GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA %I TO ku_owner', sch);
+                EXECUTE format('GRANT ALL PRIVILEGES ON ALL ROUTINES IN SCHEMA %I TO ku_owner', sch);
+                EXECUTE format('ALTER DEFAULT PRIVILEGES IN SCHEMA %I GRANT ALL PRIVILEGES ON TABLES TO ku_owner', sch);
+                EXECUTE format('ALTER DEFAULT PRIVILEGES IN SCHEMA %I GRANT ALL PRIVILEGES ON SEQUENCES TO ku_owner', sch);
+                EXECUTE format('ALTER DEFAULT PRIVILEGES IN SCHEMA %I GRANT ALL PRIVILEGES ON ROUTINES TO ku_owner', sch);
+            EXCEPTION WHEN OTHERS THEN
+                RAISE NOTICE 'Notice granting ku_owner on schema %: %', sch, SQLERRM;
+            END;
+        END IF;
+    END LOOP;
 END $$;
 

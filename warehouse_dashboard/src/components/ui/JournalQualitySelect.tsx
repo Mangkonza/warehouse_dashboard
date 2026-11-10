@@ -26,7 +26,7 @@ const Q_OPTIONS: BlockSelectOption[] = [
 /**
  * Journal Quality Selector:
  * Automatically provides TCI 1-3 for 'ชาติ' and Q1-Q4 for 'นานาชาติ'.
- * Uses BlockSingleSelect so blocks have identical sizing as I AM / I SEE.
+ * Uses BlockSingleSelect so blocks have identical sizing as กลุ่มการประเมิน.
  * If level is empty or unmapped, displays a concise fallback notice without options.
  */
 export const JournalQualitySelect: React.FC<JournalQualitySelectProps> = ({

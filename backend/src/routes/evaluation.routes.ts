@@ -1,16 +1,12 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { EvaluationService } from '../services/evaluation.service.js';
-import { requireSession, requireRole } from '../middleware/auth.js';
+import { requireSession, requireRole, optionalSession } from '../middleware/auth.js';
 
 export const evaluationRouter = Router();
 
-// การประเมินต้องผ่าน Session และมีสิทธิ์ระดับ management ขึ้นไป
-evaluationRouter.use(requireSession);
-evaluationRouter.use(requireRole('evaluation'));
-
-// GET /api/v1/evaluation
+// GET /api/v1/evaluation รองรับ Public Dashboard (optionalSession)
 // Supports ?category=... and optional &record_id=...
-evaluationRouter.get('/', async (req: Request, res: Response, next: NextFunction) => {
+evaluationRouter.get('/', optionalSession, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const category = req.query.category ? String(req.query.category) : undefined;
     const recordId = req.query.record_id || req.query.recordId ? String(req.query.record_id || req.query.recordId) : undefined;
@@ -21,6 +17,10 @@ evaluationRouter.get('/', async (req: Request, res: Response, next: NextFunction
     next(err);
   }
 });
+
+// การประเมินแบบเขียน/แก้ไข/ลบ ต้องผ่าน Session และมีสิทธิ์ระดับ evaluation ขึ้นไป
+evaluationRouter.use(requireSession);
+evaluationRouter.use(requireRole('evaluation'));
 
 // POST /api/v1/evaluation
 evaluationRouter.post('/', async (req: Request, res: Response, next: NextFunction) => {

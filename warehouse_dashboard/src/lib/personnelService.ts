@@ -1,3 +1,4 @@
+import { getApiBaseUrl } from './api';
 import { PersonnelRecord } from '../types/dataManagement';
 
 let personnelList: PersonnelRecord[] = [];
@@ -26,11 +27,17 @@ export function normalizeSpellingVariant(str: string): string {
   return str.replace(/ฎ/g, 'ฏ');
 }
 
+// แคชสำหรับ normalizePersonName เพื่อป้องกันการประมวลผล regex ซ้ำซ้อนนับแสนครั้ง
+const normalizePersonNameCache = new Map<string, string>();
+
 /**
  * ตัดคำนำหน้าชื่อ สัญลักษณ์ และคำต่อท้ายที่ไม่จำเป็น เพื่อทำความสะอาดชื่อ
  */
 export function normalizePersonName(rawName: string): string {
   if (!rawName) return '';
+  const cached = normalizePersonNameCache.get(rawName);
+  if (cached !== undefined) return cached;
+
   // Replace non-breaking spaces and unusual unicode whitespace
   let clean = String(rawName).replace(/[\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000\uFEFF\u200b]/g, ' ').trim();
   
@@ -54,7 +61,9 @@ export function normalizePersonName(rawName: string): string {
     }
   }
 
-  return clean.replace(/\s+/g, ' ').trim();
+  const result = clean.replace(/\s+/g, ' ').trim();
+  normalizePersonNameCache.set(rawName, result);
+  return result;
 }
 
 /**
@@ -79,7 +88,7 @@ export function getAllPersonnel(): PersonnelRecord[] {
         }
       } else if (!isFetchingFromApi && personnelList.length === 0) {
         isFetchingFromApi = true;
-        fetch('/api/v1/data/personnel')
+        fetch(`${getApiBaseUrl()}/data/personnel`)
           .then((res) => (res.ok ? res.json() : null))
           .then((json) => {
             const list = Array.isArray(json?.data) ? json.data : (Array.isArray(json) ? json : []);
@@ -128,10 +137,12 @@ export function resolvePersonAvatar(
   const direct = cleanUrl(explicitUrl);
   if (direct) return direct;
 
-  if (personId !== null && personId !== undefined && personId !== '') {
+    if (personId !== null && personId !== undefined && personId !== '') {
     const byId = getPersonById(personId);
-    const urlById = cleanUrl(byId?.image_url);
-    if (urlById) return urlById;
+    if (byId && isPersonNameCompatible(byId, rawName)) {
+      const urlById = cleanUrl(byId?.image_url);
+      if (urlById) return urlById;
+    }
 
     const fromMap = cleanUrl(staticImageMap.get(String(personId).trim()));
     if (fromMap) return fromMap;
@@ -250,12 +261,73 @@ export function matchPerson(rawName: string): PersonnelRecord | null {
     }
   }
 
-  // 4. กรณีชื่อมีเครื่องหมายคอมม่า (เช่น หลายคนในช่องเดียว) ให้ลองชื่อแรก
-  if (rawName.includes(',')) {
-    const firstPerson = rawName.split(',')[0].trim();
-    return matchPerson(firstPerson);
+  // 4. กรณีชื่อมีเครื่องหมายคอมม่าหรือคำว่า "และ" (เช่น หลายคนในช่องเดียว) ให้ลองชื่อแรก
+  const multiMatch = rawName.split(/,|،|\s+และ\s*/i);
+  if (multiMatch.length > 1) {
+    const firstPerson = multiMatch[0].trim();
+    if (firstPerson && firstPerson !== rawName.trim()) {
+      return matchPerson(firstPerson);
+    }
   }
 
+  return null;
+}
+
+/**
+ * ตรวจสอบว่าชื่อที่ขอมาสอดคล้องกับระเบียนบุคลากรที่พบจาก ID หรือไม่ (กันกรณี ID เก่าคลาดเคลื่อน)
+ */
+export function isPersonNameCompatible(person: PersonnelRecord, rawName?: string | null): boolean {
+  if (!rawName || rawName.trim().length < 3) return true;
+  const cleanReq = normalizeSpellingVariant(normalizePersonName(rawName).toLowerCase());
+  const cleanById = normalizeSpellingVariant(normalizePersonName(person.clean_name || person.name || person.name_th || '').toLowerCase());
+  if (!cleanReq || !cleanById) return true;
+  if (cleanById.includes(cleanReq) || cleanReq.includes(cleanById)) return true;
+  const reqParts = cleanReq.split(' ').filter(Boolean);
+  if (reqParts.length >= 2 && cleanById.includes(reqParts[0]) && cleanById.includes(reqParts[reqParts.length - 1])) {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * หา ID จริงของบุคลากรที่มีอยู่จริงในตาราง personnel (ป้องกันลิงก์ไปหา ID เก่าที่ไม่มีในฐานข้อมูล)
+ */
+export function resolvePersonnelTargetId(
+  personId?: number | string | null,
+  rawName?: string | null
+): string | null {
+  getAllPersonnel();
+  if (personId !== null && personId !== undefined && personId !== '') {
+    const byId = getPersonById(personId);
+    if (byId && isPersonNameCompatible(byId, rawName)) {
+      return String(byId.id ?? byId._id);
+    }
+  }
+  if (rawName) {
+    const cleanRaw = String(rawName).trim();
+    if (cleanRaw && cleanRaw !== '-' && cleanRaw !== 'nan') {
+      const matched = matchPerson(cleanRaw);
+      if (matched) {
+        return String(matched.id ?? matched._id);
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * คืนค่า URL ปลายทางของหน้าแฟ้มผลงานบุคลากร (รองรับทั้งผู้ที่มี ID ในระบบ และ fallback ค้นด้วยชื่อ)
+ */
+export function resolvePersonnelHref(
+  personId?: number | string | null,
+  rawName?: string | null
+): string | null {
+  const targetId = resolvePersonnelTargetId(personId, rawName);
+  if (targetId) return `/personnel/${targetId}`;
+  const cleanRaw = String(rawName || '').trim();
+  if (cleanRaw && cleanRaw !== '-' && cleanRaw !== 'nan' && cleanRaw !== 'null' && cleanRaw !== 'undefined') {
+    return `/personnel/lookup?name=${encodeURIComponent(cleanRaw)}`;
+  }
   return null;
 }
 

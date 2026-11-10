@@ -26,7 +26,7 @@ import { resolveItemFiscalYear } from '@/types/timeFilter';
 import { YearSelectDropdown } from '@/components/ui/YearSelectDropdown';
 import { STANDARD_YEAR_OPTIONS, getDefaultCompareYear } from '@/lib/fiscalYears';
 import { isTestRecord } from '@/lib/sdgEngine';
-import { resolvePersonAvatar } from '@/lib/personnelService';
+import { resolvePersonAvatar, resolvePersonnelTargetId, resolvePersonnelHref, normalizePersonName } from '@/lib/personnelService';
 
 const UCOL: Record<string, string> = {
   AE: '#65B98A',
@@ -187,14 +187,15 @@ export function ResearchCharts({
   const facultyPiRanking = useMemo(() => {
     const map: Record<string, { head: string; head_id?: number | string; dept: string; count: number; totalBudget: number; extBudget: number; items: ResearchItem[] }> = {};
     validData.forEach((item) => {
-      const headName = String(item.head || '').trim();
-      if (!headName || headName === '-' || headName === 'nan') return;
-
-      const key = item.head_id ? `id_${item.head_id}` : headName;
+      const rawHead = String(item.head || '').trim();
+      if (!rawHead || rawHead === '-' || rawHead === 'nan') return;
+      const headName = normalizePersonName(rawHead);
+      const resolvedHeadId = resolvePersonnelTargetId(item.head_id, headName) ?? undefined;
+      const key = resolvedHeadId ? `id_${resolvedHeadId}` : headName;
       if (!map[key]) {
         map[key] = {
           head: headName,
-          head_id: item.head_id,
+          head_id: resolvedHeadId || item.head_id,
           dept: item.department || '-',
           count: 0,
           totalBudget: 0,
@@ -2171,8 +2172,8 @@ export function ResearchCharts({
                           <tr
                             key={idx}
                             onClick={() => {
-                              if (f.head_id) router.push(`/personnel/${f.head_id}`);
-                              else router.push(`/personnel?q=${encodeURIComponent(f.head)}`);
+                              const href = resolvePersonnelHref(f.head_id, f.head);
+                              if (href) router.push(href);
                             }}
                             style={{
                               borderBottom: '1px solid #f1f5f9',
@@ -2237,8 +2238,8 @@ export function ResearchCharts({
                                 type="button"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  if (f.head_id) router.push(`/personnel/${f.head_id}`);
-                                  else router.push(`/personnel?q=${encodeURIComponent(f.head)}`);
+                                  const href = resolvePersonnelHref(f.head_id, f.head);
+                                  if (href) router.push(href);
                                 }}
                                 style={{
                                   padding: '5px 10px',
