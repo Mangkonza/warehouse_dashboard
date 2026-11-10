@@ -1,5 +1,6 @@
 'use client';
 
+import { getClientBasePath } from '@/lib/api';
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { FaCheckCircle, FaChevronDown, FaPlus, FaSlidersH, FaTimes } from 'react-icons/fa';
 import {
@@ -72,7 +73,7 @@ export const OptionPopoverSelect: React.FC<OptionPopoverSelectProps> = ({
     syncLocal();
 
     // ดึงข้อมูลจาก API lookup table กลางเพิ่มเติม
-    fetch(`/api/lookups/kpi-options?fieldKey=${encodeURIComponent(lookupCategory)}`)
+    fetch(`${getClientBasePath()}/api/lookups/kpi-options?fieldKey=${encodeURIComponent(lookupCategory)}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((res) => {
         if (res && Array.isArray(res.data)) {

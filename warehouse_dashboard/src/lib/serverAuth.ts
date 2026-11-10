@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { AppResource, canAccess } from '@/config/permissions';
+import { withBasePath } from '@/lib/auth/paths';
 
 /**
  * enforceServerRole: ตรวจสอบสิทธิ์ใน Server Component/Layout
@@ -12,7 +13,7 @@ export async function enforceServerRole(resource: AppResource) {
   const sessionCookie = cookieStore.get('ku_session')?.value;
 
   if (!sessionCookie) {
-    redirect('/login');
+    redirect(withBasePath('/login'));
   }
 
   try {
@@ -28,14 +29,14 @@ export async function enforceServerRole(resource: AppResource) {
     });
 
     if (!res.ok) {
-      redirect('/login');
+      redirect(withBasePath('/login'));
     }
 
     const data = await res.json();
     const role = data?.user?.role || 'user';
 
     if (!canAccess(role, resource)) {
-      redirect('/unauthorized');
+      redirect(withBasePath('/unauthorized'));
     }
 
     return data.user;
@@ -45,6 +46,6 @@ export async function enforceServerRole(resource: AppResource) {
       throw err;
     }
     console.error('[serverAuth] Error verifying session with backend:', err);
-    redirect('/unauthorized');
+    redirect(withBasePath('/unauthorized'));
   }
 }

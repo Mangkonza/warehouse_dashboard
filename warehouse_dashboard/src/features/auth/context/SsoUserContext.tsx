@@ -94,8 +94,9 @@ export function SsoUserProvider({ children }: { children: React.ReactNode }) {
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('ku_auth_logout'));
       const ADMIN_PATHS = ['/manage', '/evaluation', '/monitoring', '/kpi', '/user-roles', '/admin'];
-      if (ADMIN_PATHS.some((p) => window.location.pathname.startsWith(p))) {
-        window.location.replace('/overview');
+      const _bp = (process.env.NEXT_PUBLIC_BASE_PATH || '').replace(/\/+$/, '');
+      if (ADMIN_PATHS.some((p) => window.location.pathname.startsWith(`${_bp}${p}`))) {
+        window.location.replace(`${_bp}/overview`);
       }
     }
   }, []);

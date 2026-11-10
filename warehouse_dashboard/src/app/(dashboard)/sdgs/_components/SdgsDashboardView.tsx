@@ -1,5 +1,6 @@
 'use client';
 
+import { getClientBasePath } from '@/lib/api';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useDashboardTabFilter } from '@/hooks/useDashboardTabFilter';
 import { DashboardTabFilterBar } from '@/components/ui/DashboardTabFilterBar';
@@ -121,7 +122,7 @@ export function SdgsDashboardView({
     query.set('monthFrom', String(monthFrom));
     query.set('monthTo', String(monthTo));
 
-    fetch(`/api/sdgs/aggregation?${query.toString()}`)
+    fetch(`${getClientBasePath()}/api/sdgs/aggregation?${query.toString()}`)
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
@@ -190,7 +191,7 @@ export function SdgsDashboardView({
             });
           } else {
             try {
-              const res = await fetch(`/api/data/${cat}`);
+              const res = await fetch(`${getClientBasePath()}/api/data/${cat}`);
               if (res.ok) {
                 const json = await res.json();
                 const list = Array.isArray(json) ? json : json.data || json.items || [];
@@ -327,7 +328,7 @@ export function SdgsDashboardView({
             });
           } else {
             try {
-              const res = await fetch(`/api/data/${cat}`);
+              const res = await fetch(`${getClientBasePath()}/api/data/${cat}`);
               if (res.ok) {
                 const json = await res.json();
                 const list = Array.isArray(json) ? json : json.data || json.items || [];

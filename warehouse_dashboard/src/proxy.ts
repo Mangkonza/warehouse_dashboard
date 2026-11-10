@@ -144,8 +144,9 @@ export async function proxy(request: NextRequest) {
 
   // Root path redirects directly to overview dashboard without requiring login
   if (appPath === '/') {
-    const origin = getPublicOrigin(request.headers);
-    return NextResponse.redirect(new URL(withBasePath('/overview'), origin), 307);
+    const overviewUrl = request.nextUrl.clone();
+    overviewUrl.pathname = '/overview';
+    return NextResponse.redirect(overviewUrl, 307);
   }
 
   // Check if route requires admin session
@@ -153,7 +154,8 @@ export async function proxy(request: NextRequest) {
 
   if (isAdminProtected && !isAuthenticated) {
     const returnUrl = appPath && appPath !== '/' && appPath.startsWith('/') && !appPath.startsWith('//') ? appPath : '/overview';
-    const loginUrl = new URL(withBasePath('/login'), request.url);
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = '/login';
     loginUrl.searchParams.set('returnUrl', returnUrl);
     return NextResponse.redirect(loginUrl);
   }

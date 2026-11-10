@@ -22,6 +22,7 @@ import { FilterModal } from './FilterModal';
 import { FilterPopover, ActiveFilterChips, PersonnelMissingField } from '@/components/ui';
 import { itemMatchesDepartmentMulti, itemMatchesDateRange, itemMatchesNumericRanges } from '@/lib/filterMatching';
 import { downloadExcelTemplate, exportTableToExcel } from '@/lib/etlEngine';
+import { exportUnifiedPageExcel } from '@/lib/export';
 import {
   FaCheckCircle,
   FaTimesCircle,
@@ -1590,7 +1591,22 @@ export const DataManagementRoot: React.FC<DataManagementRootProps> = ({
 
               {/* ส่งออก Excel */}
               <button
-                onClick={() => exportTableToExcel(sortedData, activeCategory)}
+                onClick={() => {
+                  const catConfig = CATEGORIES_CONFIG[activeCategory];
+                  exportUnifiedPageExcel({
+                    page: 'manage_data',
+                    section: 'data_table',
+                    title: `รายงานข้อมูลด้าน${catConfig.title} (ภาพรวมและรายละเอียด)`,
+                    periodLabel: 'ปีงบประมาณ 2568-2569',
+                    categoryKey: activeCategory,
+                    filterSummary: {
+                      'หมวดหมู่': catConfig.title,
+                      'ภาควิชา/สังกัด': selectedDept || 'ทุกภาควิชา',
+                      'คำค้นหา': searchTerm || 'ไม่มี',
+                    },
+                    tableData: sortedData,
+                  });
+                }}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',

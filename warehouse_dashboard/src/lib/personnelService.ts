@@ -1,3 +1,4 @@
+import { getApiBaseUrl } from './api';
 import { PersonnelRecord } from '../types/dataManagement';
 
 let personnelList: PersonnelRecord[] = [];
@@ -79,7 +80,7 @@ export function getAllPersonnel(): PersonnelRecord[] {
         }
       } else if (!isFetchingFromApi && personnelList.length === 0) {
         isFetchingFromApi = true;
-        fetch('/api/v1/data/personnel')
+        fetch(`${getApiBaseUrl()}/data/personnel`)
           .then((res) => (res.ok ? res.json() : null))
           .then((json) => {
             const list = Array.isArray(json?.data) ? json.data : (Array.isArray(json) ? json : []);

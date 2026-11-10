@@ -12,5 +12,147 @@
     "evaluated_by": "user",
     "evaluated_at": "2026-11-07T20:17:26.421Z",
     "updated_at": "2026-11-07T20:17:26.421Z"
+  },
+  "ip_ip_1062": {
+    "id": "ip_ip_1062",
+    "category": "ip",
+    "record_id": "ip_1062",
+    "sdg_ids": [
+      1,
+      8
+    ],
+    "i_type": null,
+    "journal_index": null,
+    "evaluated_by": "user",
+    "evaluated_at": "2026-11-09T17:45:57.252Z",
+    "updated_at": "2026-11-09T17:45:57.252Z"
+  },
+  "service_srv_4404": {
+    "id": "service_srv_4404",
+    "category": "service",
+    "record_id": "srv_4404",
+    "sdg_ids": [
+      1
+    ],
+    "i_type": null,
+    "journal_index": null,
+    "evaluated_by": "user",
+    "evaluated_at": "2026-11-09T17:47:08.006Z",
+    "updated_at": "2026-11-09T17:47:08.006Z"
+  },
+  "research_test": {
+    "id": "research_test",
+    "category": "research",
+    "record_id": "test",
+    "sdg_ids": [
+      1
+    ],
+    "i_type": null,
+    "journal_index": null,
+    "evaluated_by": "user",
+    "evaluated_at": "2026-11-09T17:48:43.182Z",
+    "updated_at": "2026-11-09T17:48:43.182Z"
+  },
+  "academic_acad_823": {
+    "id": "academic_acad_823",
+    "category": "academic",
+    "record_id": "acad_823",
+    "sdg_ids": [
+      1
+    ],
+    "i_type": null,
+    "journal_index": null,
+    "evaluated_by": "user",
+    "evaluated_at": "2026-11-09T17:50:31.671Z",
+    "updated_at": "2026-11-09T17:50:31.671Z"
+  },
+  "publications_pub-2569-05-09": {
+    "id": "publications_pub-2569-05-09",
+    "category": "publications",
+    "record_id": "pub-2569-05-09",
+    "sdg_ids": [
+      1
+    ],
+    "i_type": null,
+    "journal_index": null,
+    "evaluated_by": "user",
+    "evaluated_at": "2026-11-10T06:07:07.938Z",
+    "updated_at": "2026-11-10T06:07:07.938Z"
+  },
+  "publications_pub-2569-05-05": {
+    "id": "publications_pub-2569-05-05",
+    "category": "publications",
+    "record_id": "pub-2569-05-05",
+    "sdg_ids": [],
+    "i_type": null,
+    "journal_index": null,
+    "evaluated_by": "user",
+    "evaluated_at": "2026-11-09T17:52:12.188Z",
+    "updated_at": "2026-11-09T17:52:12.188Z"
+  },
+  "research_วศ.กพส.8/2568": {
+    "id": "research_วศ.กพส.8/2568",
+    "category": "research",
+    "record_id": "วศ.กพส.8/2568",
+    "sdg_ids": [
+      9
+    ],
+    "i_type": null,
+    "journal_index": null,
+    "evaluated_by": "user",
+    "evaluated_at": "2026-11-10T06:06:43.671Z",
+    "updated_at": "2026-11-10T06:06:43.671Z"
+  },
+  "academic_acad-2569-04-02": {
+    "id": "academic_acad-2569-04-02",
+    "category": "academic",
+    "record_id": "acad-2569-04-02",
+    "sdg_ids": [
+      6
+    ],
+    "i_type": null,
+    "journal_index": null,
+    "evaluated_by": "user",
+    "evaluated_at": "2026-11-10T06:31:22.760Z",
+    "updated_at": "2026-11-10T06:31:22.760Z"
+  },
+  "service_srv_68_325": {
+    "id": "service_srv_68_325",
+    "category": "service",
+    "record_id": "srv_68_325",
+    "sdg_ids": [
+      6
+    ],
+    "i_type": null,
+    "journal_index": null,
+    "evaluated_by": "user",
+    "evaluated_at": "2026-11-10T06:31:27.622Z",
+    "updated_at": "2026-11-10T06:31:27.622Z"
+  },
+  "ip_ip-pet-038": {
+    "id": "ip_ip-pet-038",
+    "category": "ip",
+    "record_id": "ip-pet-038",
+    "sdg_ids": [
+      2
+    ],
+    "i_type": null,
+    "journal_index": null,
+    "evaluated_by": "user",
+    "evaluated_at": "2026-11-10T06:31:37.460Z",
+    "updated_at": "2026-11-10T06:31:37.460Z"
+  },
+  "ip_ip-pet-037": {
+    "id": "ip_ip-pet-037",
+    "category": "ip",
+    "record_id": "ip-pet-037",
+    "sdg_ids": [
+      2
+    ],
+    "i_type": null,
+    "journal_index": null,
+    "evaluated_by": "user",
+    "evaluated_at": "2026-11-10T06:31:41.113Z",
+    "updated_at": "2026-11-10T06:31:41.113Z"
   }
 }

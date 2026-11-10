@@ -1,3 +1,4 @@
+import { getApiBaseUrl } from '@/lib/api';
 import { AppRole } from '@/config/permissions';
 
 export interface UserRoleItem {
@@ -45,7 +46,7 @@ export const RoleManagementService = {
     if (params?.page) query.set('page', String(params.page));
     if (params?.limit) query.set('limit', String(params.limit));
 
-    const res = await fetch(`/api/v1/admin/roles?${query.toString()}`, {
+    const res = await fetch(`${getApiBaseUrl()}/admin/roles?${query.toString()}`, {
       credentials: 'include',
     });
 
@@ -69,7 +70,7 @@ export const RoleManagementService = {
     displayName?: string;
     note?: string;
   }): Promise<UserRoleItem> {
-    const res = await fetch('/api/v1/admin/roles', {
+    const res = await fetch(`${getApiBaseUrl()}/admin/roles`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -88,7 +89,7 @@ export const RoleManagementService = {
     username: string,
     data: { role: AppRole; displayName?: string; note?: string }
   ): Promise<UserRoleItem> {
-    const res = await fetch(`/api/v1/admin/roles/${encodeURIComponent(username)}`, {
+    const res = await fetch(`${getApiBaseUrl()}/admin/roles/${encodeURIComponent(username)}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -104,7 +105,7 @@ export const RoleManagementService = {
   },
 
   async revokeRole(username: string): Promise<void> {
-    const res = await fetch(`/api/v1/admin/roles/${encodeURIComponent(username)}`, {
+    const res = await fetch(`${getApiBaseUrl()}/admin/roles/${encodeURIComponent(username)}`, {
       method: 'DELETE',
       credentials: 'include',
     });
@@ -116,7 +117,7 @@ export const RoleManagementService = {
   },
 
   async getAuditLogs(limit = 100): Promise<RoleAuditLogItem[]> {
-    const res = await fetch(`/api/v1/admin/roles/audit-logs?limit=${limit}`, {
+    const res = await fetch(`${getApiBaseUrl()}/admin/roles/audit-logs?limit=${limit}`, {
       credentials: 'include',
     });
 

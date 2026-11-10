@@ -676,7 +676,7 @@ export function migrateExistingEvaluations(): { migratedCount: number; details: 
           else if (clean.includes('TCI 3') || clean.includes('TCI3')) journalIndex = { type: 'TCI', value: 'TCI 3' };
         }
 
-        // 3. Extract I am / I see if stored
+        // 3. Extract กลุ่มการประเมิน if stored
         let iType: 'I_AM' | 'I_SEE' | null = null;
         if (item.i_type === 'I_AM' || item.i_type === 'I_SEE') {
           iType = item.i_type;

@@ -1,3 +1,19 @@
+/** Returns the client-side base path prefix (e.g. "/research" or ""). */
+export const getClientBasePath = (): string => {
+  return (process.env.NEXT_PUBLIC_BASE_PATH || '').replace(/\/+$/, '');
+};
+
+/** Returns full public asset URL supporting dynamic basePath in deployment */
+export const getAssetUrl = (assetPath: string): string => {
+  if (!assetPath) return '';
+  if (assetPath.startsWith('http://') || assetPath.startsWith('https://') || assetPath.startsWith('data:')) {
+    return assetPath;
+  }
+  const basePath = getClientBasePath();
+  const normalized = assetPath.startsWith('/') ? assetPath : `/${assetPath}`;
+  return `${basePath}${normalized}`;
+};
+
 export const getApiBaseUrl = (): string => {
   // รองรับ Subpath (เช่น /research_and_inovation) และ root domain
   const basePath = (process.env.NEXT_PUBLIC_BASE_PATH || process.env.BASE_PATH || '').replace(/\/+$/, '');

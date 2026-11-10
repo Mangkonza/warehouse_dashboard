@@ -16,7 +16,7 @@ export interface SdgTagProps extends React.HTMLAttributes<HTMLSpanElement> {
 
 /**
  * Universal SDG Tag component:
- * - Perfectly standardized dimensions, padding, font size, and pill radius matching DepartmentBadge and I AM / I SEE (BADGE_BASE_CLASSES)
+ * - Perfectly standardized dimensions, padding, font size, and pill radius matching DepartmentBadge and กลุ่มการประเมิน (BADGE_BASE_CLASSES)
  * - Background: official UN SDG color
  * - Text color: contrast-based (White on dark colors, Black on light colors)
  * - Tooltip title: Full official Thai goal title

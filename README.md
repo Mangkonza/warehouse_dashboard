@@ -16,8 +16,8 @@ warehouse_dashboard/
 ├── Dockerfile.api                     # Multi-stage Dockerfile สำหรับ Backend API (Context: .)
 ├── Dockerfile.web                     # Multi-stage Dockerfile สำหรับ Frontend Next.js (Context: .)
 ├── .dockerignore                      # ป้องกัน secrets, node_modules และ build files เข้า Image
-├── schema.sql                         # DDL Schema เริ่มต้น (สร้าง DB, Role, 58 ตาราง, สิทธิ์, Super Admin)
-├── ku_warehouse_dump.sql              # Dump ข้อมูลเต็ม (Schema + ข้อมูลทั้งหมดของระบบ)
+├── schema.sql                         # DDL Schema โครงสร้างระบบหลัก (สร้าง DB, Role, 58 ตาราง, สิทธิ์, Super Admin)
+├── data.sql                           # ข้อมูลเริ่มต้นระบบหลัก (รันหลัง schema.sql เพื่อนำเข้าข้อมูลบุคลากร และข้อมูลย้อนหลัง)
 ├── backend/                           # โฟลเดอร์บริการ Backend API
 │   ├── prisma/
 │   │   ├── schema.prisma              # Prisma Data Model (PostgreSQL 16)
@@ -63,18 +63,23 @@ warehouse_dashboard/
 
 ฐานข้อมูลทำงานเป็น Native Service บน Server ไม่ต้องรันผ่าน Docker
 
-#### 1.1 รันคำสั่งนำเข้า Schema และสร้างฐานข้อมูลผ่าน Terminal:
+#### 1.1 รันคำสั่งนำเข้า Schema และนำเข้าข้อมูลระบบ (รัน `schema.sql` ก่อน แล้วตามด้วย `data.sql`):
 ```bash
-# กรณีที่ 1: เครื่อง Linux Server (รันด้วยสิทธิ์ postgres ประจำเครื่อง)
+# --- กรณีที่ 1: เครื่อง Linux Server (รันด้วยสิทธิ์ postgres ประจำเครื่อง) ---
+# ขั้นตอนที่ 1.1.1: สร้างฐานข้อมูล ku_warehouse, โครงสร้าง Schema, Application Roles, กำหนดสิทธิ์ และ Super Admin
 sudo -u postgres psql -f schema.sql
 
-# กรณีที่ 2: เครื่อง Windows Server หรือระบุ User/Host โดยตรง
+# ขั้นตอนที่ 1.1.2: นำเข้าข้อมูลระบบหลัก (บุคลากร, โครงการวิจัย, ทรัพย์สินทางปัญญา, บริการวิชาการ, ผลงานตีพิมพ์)
+sudo -u postgres psql -d ku_warehouse -f data.sql
+
+# --- กรณีที่ 2: เครื่อง Windows Server หรือระบุ User/Host โดยตรง ---
+# ขั้นตอนที่ 1.1.1: สร้างฐานข้อมูล และโครงสร้าง Schema
 psql -h localhost -U postgres -f schema.sql
 
-# หมายเหตุ: หากต้องการนำเข้าโครงสร้างพร้อมข้อมูลจริงทั้งหมด ให้เปลี่ยนเป็นไฟล์:
-# psql -h localhost -U postgres -f ku_warehouse_dump.sql
+# ขั้นตอนที่ 1.1.2: นำเข้าข้อมูลระบบหลัก
+psql -h localhost -U postgres -d ku_warehouse -f data.sql
 ```
-*(สคริปต์จะสร้างฐานข้อมูล `ku_warehouse`, เชื่อมต่ออัตโนมัติ, สร้าง Application Roles `ku_app`, `ku_admin`, `ku_owner`, สร้าง 58 ตาราง, กำหนดสิทธิ์ และสร้าง Super Admin `b0123456789` ให้อัตโนมัติ)*
+*(สคริปต์ `schema.sql` จะสร้างฐานข้อมูล `ku_warehouse`, เชื่อมต่ออัตโนมัติ, สร้าง Application Roles `ku_app`, `ku_admin`, `ku_owner`, สร้าง 58 ตาราง, กำหนดสิทธิ์ครบทุก Schema และสร้าง Super Admin ทั้ง 4 บัญชี (`admin`, `superadmin`, `b0123456789`, `b6520503525`) พร้อมรหัสผ่านเริ่มต้น `Admin@1234` และ OTP `123456` ให้อัตโนมัติ จากนั้นรัน `data.sql` เพื่อนำเข้าข้อมูลหลักทั้งหมดเข้าสู่ระบบ)*
 
 #### 1.2 ตรวจสอบการตั้งค่าให้ Container เชื่อมต่อเข้ามาได้:
 - ในไฟล์ `postgresql.conf`: ตั้งค่า `listen_addresses = '*'`

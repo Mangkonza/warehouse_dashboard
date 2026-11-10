@@ -61,7 +61,7 @@ export function formatDateBE(val?: any): string {
   }
 
   // DD/MM/YYYY or D/M/YYYY
-  const dmyMatch = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+  const dmyMatch = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](d{4})/);
   if (dmyMatch) {
     const d = dmyMatch[1].padStart(2, '0');
     const m = dmyMatch[2].padStart(2, '0');

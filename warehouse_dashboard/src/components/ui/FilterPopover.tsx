@@ -44,7 +44,7 @@ export interface FilterState {
   subFilter?: string;
   sdgs?: string[];
   framework?: EvalFramework;
-  evaluationStatus?: 'all' | 'evaluated' | 'auto_detected' | 'unevaluated';
+  evaluationStatus?: 'all' | 'evaluated' | 'pending' | 'auto_detected' | 'unevaluated';
   kpiStrategy?: string;
   kpiCalcType?: string;
   kpiStatus?: string;
@@ -1910,7 +1910,7 @@ export function FilterPopover({
                 )}
 
                 {/* ========================================================= */}
-                {/* 4. การประเมิน (SDGs, I AM / I SEE, Q / TCI ใช้ shared components) */}
+                {/* 4. การประเมิน (SDGs, กลุ่มการประเมิน, Q / TCI ใช้ shared components) */}
                 {/* ========================================================= */}
                 {activeFlyout === 'evaluation' && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -1923,7 +1923,7 @@ export function FilterPopover({
                       />
                     </div>
 
-                    {/* Framework I AM / I SEE */}
+                    {/* Framework กลุ่มการประเมิน */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <span style={{ fontSize: '13px', color: '#1f2937', fontWeight: 400 }}>
