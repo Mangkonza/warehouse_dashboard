@@ -16,11 +16,12 @@ export const getAssetUrl = (assetPath: string): string => {
 
 export const getApiBaseUrl = (): string => {
   // รองรับ Subpath (เช่น /research_and_inovation) และ root domain
+  // คืน relative path เสมอ (basePath + NEXT_PUBLIC_API_URL || '/api/v1') เพื่อให้ deploy ได้ทุก domain โดยไม่ต้อง build ใหม่
   const basePath = (process.env.NEXT_PUBLIC_BASE_PATH || process.env.BASE_PATH || '').replace(/\/+$/, '');
-  if (typeof window !== 'undefined') {
-    return `${basePath}/api/v1`;
-  }
-  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+  const rawApiUrl = (process.env.NEXT_PUBLIC_API_URL || '/api/v1').trim();
+  const cleanApiUrl = rawApiUrl.replace(/\/+$/, '') || '/api/v1';
+  const normalizedPath = cleanApiUrl.startsWith('/') ? cleanApiUrl : `/${cleanApiUrl}`;
+  return `${basePath}${normalizedPath}`;
 };
 
 export interface ApiResponse<T = any> {
@@ -59,7 +60,7 @@ export const apiFetch = async <T = any>(
     });
   } catch (err: any) {
     throw new Error(
-      `ไม่สามารถเชื่อมต่อ Backend API ได้ (${baseUrl}) - กรุณาตรวจสอบว่าเซิร์ฟเวอร์ Backend (พอร์ต 8000) เปิดทำงานอยู่หรือไม่`
+      `ไม่สามารถเชื่อมต่อ Backend API ได้ (${baseUrl}) - กรุณาตรวจสอบว่าเซิร์ฟเวอร์ Backend เปิดทำงานและตั้งค่า BACKEND_URL ถูกต้องหรือไม่`
     );
   }
 

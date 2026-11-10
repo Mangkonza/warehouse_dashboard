@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers';
+import { getBackendUrl } from '@/lib/backendUrl';
 import { redirect } from 'next/navigation';
 import { AppResource, canAccess } from '@/config/permissions';
 import { withBasePath } from '@/lib/auth/paths';
@@ -17,10 +18,7 @@ export async function enforceServerRole(resource: AppResource) {
   }
 
   try {
-    const backendUrl =
-      process.env.INTERNAL_BACKEND_URL ||
-      process.env.BACKEND_URL ||
-      'http://127.0.0.1:8000';
+    const backendUrl = getBackendUrl();
     const res = await fetch(`${backendUrl}/api/v1/auth/me`, {
       headers: {
         Cookie: `ku_session=${sessionCookie}`,

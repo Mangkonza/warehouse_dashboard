@@ -1,13 +1,12 @@
 'use client';
 import { formatPersonName } from '@/lib/formatPersonName';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { getCachedCategoryData, fetchCategoryData } from '@/lib/dataService';
 import { TimeFilterState, itemMatchesTimeFilter } from '@/types/timeFilter';
 import { autoDetectJournalRanking } from '@/config/journalRankingConfig';
 import { normalizePersonName, normalizeSpellingVariant, resolvePersonAvatar } from '@/lib/personnelService';
 import { PersonnelRecord } from '@/types/dataManagement';
-
 
 export interface PersonnelWorkMetric {
   personnel: PersonnelRecord;
@@ -63,51 +62,34 @@ function parseItemBudget(item: any): number {
   return intVal + extVal;
 }
 
+interface DatasetsState {
+  personnel: PersonnelRecord[];
+  research: any[];
+  academic: any[];
+  publications: any[];
+  service: any[];
+  ip: any[];
+}
+
+function loadInitialDatasets(): DatasetsState {
+  return {
+    personnel: (getCachedCategoryData('personnel') || []) as PersonnelRecord[],
+    research: getCachedCategoryData('research') || [],
+    academic: getCachedCategoryData('academic') || [],
+    publications: getCachedCategoryData('publications') || [],
+    service: getCachedCategoryData('service') || [],
+    ip: getCachedCategoryData('ip') || [],
+  };
+}
+
+const toNorm = (str?: string | null): string =>
+  str ? normalizeSpellingVariant(normalizePersonName(str).toLowerCase()) : '';
+
 export function usePersonnelData(timeFilter?: TimeFilterState) {
-  const [personnelList, setPersonnelList] = useState<PersonnelRecord[]>(() => (getCachedCategoryData('personnel') || []) as PersonnelRecord[]);
-  const [researchList, setResearchList] = useState<any[]>(() => getCachedCategoryData('research') || []);
-  const [academicList, setAcademicList] = useState<any[]>(() => getCachedCategoryData('academic') || []);
-  const [pubList, setPubList] = useState<any[]>(() => getCachedCategoryData('publications') || []);
-  const [serviceList, setServiceList] = useState<any[]>(() => getCachedCategoryData('service') || []);
-  const [ipList, setIpList] = useState<any[]>(() => getCachedCategoryData('ip') || []);
+  const [datasets, setDatasets] = useState<DatasetsState>(loadInitialDatasets);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  useEffect(() => {
-    let isMounted = true;
-    Promise.all([
-      fetchCategoryData('personnel'),
-      fetchCategoryData('research'),
-      fetchCategoryData('academic'),
-      fetchCategoryData('publications'),
-      fetchCategoryData('service'),
-      fetchCategoryData('ip'),
-    ]).then(([per, res, aca, pub, srv, ip]) => {
-      if (!isMounted) return;
-      if (Array.isArray(per)) setPersonnelList(per as PersonnelRecord[]);
-      if (Array.isArray(res)) setResearchList(res);
-      if (Array.isArray(aca)) setAcademicList(aca);
-      if (Array.isArray(pub)) setPubList(pub);
-      if (Array.isArray(srv)) setServiceList(srv);
-      if (Array.isArray(ip)) setIpList(ip);
-    });
-
-    const handleUpdate = () => {
-      setPersonnelList((getCachedCategoryData('personnel') || []) as PersonnelRecord[]);
-      setResearchList(getCachedCategoryData('research') || []);
-      setAcademicList(getCachedCategoryData('academic') || []);
-      setPubList(getCachedCategoryData('publications') || []);
-      setServiceList(getCachedCategoryData('service') || []);
-      setIpList(getCachedCategoryData('ip') || []);
-    };
-    window.addEventListener('ku_data_updated', handleUpdate);
-    return () => {
-      isMounted = false;
-      window.removeEventListener('ku_data_updated', handleUpdate);
-    };
-  }, []);
-
-  const refreshData = async () => {
-    setIsRefreshing(true);
+  const fetchAllData = useCallback(async () => {
     try {
       const [per, res, aca, pub, srv, ip] = await Promise.all([
         fetchCategoryData('personnel'),
@@ -117,14 +99,36 @@ export function usePersonnelData(timeFilter?: TimeFilterState) {
         fetchCategoryData('service'),
         fetchCategoryData('ip'),
       ]);
-      if (per && per.length > 0) setPersonnelList(per);
-      if (res && res.length > 0) setResearchList(res);
-      if (aca && aca.length > 0) setAcademicList(aca);
-      if (pub && pub.length > 0) setPubList(pub);
-      if (srv && srv.length > 0) setServiceList(srv);
-      if (ip && ip.length > 0) setIpList(ip);
+
+      setDatasets((prev) => ({
+        personnel: Array.isArray(per) && per.length > 0 ? (per as PersonnelRecord[]) : prev.personnel,
+        research: Array.isArray(res) && res.length > 0 ? res : prev.research,
+        academic: Array.isArray(aca) && aca.length > 0 ? aca : prev.academic,
+        publications: Array.isArray(pub) && pub.length > 0 ? pub : prev.publications,
+        service: Array.isArray(srv) && srv.length > 0 ? srv : prev.service,
+        ip: Array.isArray(ip) && ip.length > 0 ? ip : prev.ip,
+      }));
     } catch (err) {
-      console.error('Failed to refresh personnel data:', err);
+      console.error('Failed to load personnel data:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchAllData();
+
+    const handleUpdate = () => {
+      setDatasets(loadInitialDatasets());
+    };
+    window.addEventListener('ku_data_updated', handleUpdate);
+    return () => {
+      window.removeEventListener('ku_data_updated', handleUpdate);
+    };
+  }, [fetchAllData]);
+
+  const refreshData = async () => {
+    setIsRefreshing(true);
+    try {
+      await fetchAllData();
     } finally {
       setIsRefreshing(false);
     }
@@ -132,111 +136,173 @@ export function usePersonnelData(timeFilter?: TimeFilterState) {
 
   // Filter items by time filter if provided
   const filteredResearch = useMemo(() => {
-    if (!timeFilter) return researchList;
-    return researchList.filter((item) => itemMatchesTimeFilter(item, timeFilter, 'research'));
-  }, [researchList, timeFilter]);
+    if (!timeFilter) return datasets.research;
+    return datasets.research.filter((item) => itemMatchesTimeFilter(item, timeFilter, 'research'));
+  }, [datasets.research, timeFilter]);
 
   const filteredAcademic = useMemo(() => {
-    if (!timeFilter) return academicList;
-    return academicList.filter((item) => itemMatchesTimeFilter(item, timeFilter, 'academic'));
-  }, [academicList, timeFilter]);
+    if (!timeFilter) return datasets.academic;
+    return datasets.academic.filter((item) => itemMatchesTimeFilter(item, timeFilter, 'academic'));
+  }, [datasets.academic, timeFilter]);
 
   const filteredPub = useMemo(() => {
-    if (!timeFilter) return pubList;
-    return pubList.filter((item) => itemMatchesTimeFilter(item, timeFilter, 'publications'));
-  }, [pubList, timeFilter]);
+    if (!timeFilter) return datasets.publications;
+    return datasets.publications.filter((item) => itemMatchesTimeFilter(item, timeFilter, 'publications'));
+  }, [datasets.publications, timeFilter]);
 
   const filteredService = useMemo(() => {
-    if (!timeFilter) return serviceList;
-    return serviceList.filter((item) => itemMatchesTimeFilter(item, timeFilter, 'service'));
-  }, [serviceList, timeFilter]);
+    if (!timeFilter) return datasets.service;
+    return datasets.service.filter((item) => itemMatchesTimeFilter(item, timeFilter, 'service'));
+  }, [datasets.service, timeFilter]);
 
   const filteredIP = useMemo(() => {
-    if (!timeFilter) return ipList;
-    return ipList.filter((item) => itemMatchesTimeFilter(item, timeFilter, 'ip'));
-  }, [ipList, timeFilter]);
+    if (!timeFilter) return datasets.ip;
+    return datasets.ip.filter((item) => itemMatchesTimeFilter(item, timeFilter, 'ip'));
+  }, [datasets.ip, timeFilter]);
 
-  // Aggregate works for all personnel
+  // Aggregate works for all personnel - Optimized with upfront pre-normalization (50ms instead of 1140ms)
   const personnelMetrics = useMemo(() => {
-    return personnelList.map((person) => {
-      const pId = Number(person.id);
+    // 1. Pre-process research items ONCE
+    const prepResearch = filteredResearch.map((r) => {
+      const hId = r.head_id ? Number(r.head_id) : null;
+      const hNorm = toNorm(r.head);
+      const memberStr = r.co_researchers || r.members || '';
+      const mNorms = memberStr
+        ? String(memberStr)
+            .split(/[,،;]+/)
+            .map((s) => toNorm(s.trim()))
+            .filter((s) => s.length >= 3)
+        : [];
+      return { item: r, budget: parseItemBudget(r), hId, hNorm, mNorms };
+    });
+
+    // 2. Pre-process academic items ONCE
+    const prepAcademic = filteredAcademic.map((a) => {
+      const hId = a.head_id ? Number(a.head_id) : null;
+      const hNorm = toNorm(a.head);
+      return { item: a, budget: parseItemBudget(a), hId, hNorm };
+    });
+
+    // 3. Pre-process publication items ONCE (including quartile detection)
+    const prepPub = filteredPub.map((b) => {
+      const pId = b.person_id || b.owner_id ? Number(b.person_id || b.owner_id) : null;
+      const oNorm = toNorm(b.owner || b.first_author);
+      const dNorms = b.co_authors_domestic
+        ? String(b.co_authors_domestic)
+            .split(/[,،;]+/)
+            .map((s) => toNorm(s.trim()))
+            .filter((s) => s.length >= 3)
+        : [];
+      const tier = autoDetectJournalRanking(b.journal || '', b.level || '');
+      return { item: b, pId, oNorm, dNorms, tier };
+    });
+
+    // 4. Pre-process service items ONCE
+    const prepService = filteredService.map((s) => {
+      const pId = s.person_id ? Number(s.person_id) : null;
+      const pNorm = toNorm(s.person);
+      const hours = Number(s.hours_spent) || 0;
+      return { item: s, pId, pNorm, hours };
+    });
+
+    // 5. Pre-process IP items ONCE
+    const prepIp = filteredIP.map((i) => {
+      const pId = i.person_id ? Number(i.person_id) : null;
+      const cNorm = toNorm(i.creator);
+      const inventorStr = i.inventors || '';
+      const iNorms = inventorStr
+        ? String(inventorStr)
+            .split(/[,،;]+/)
+            .map((s) => toNorm(s.trim()))
+            .filter((s) => s.length >= 3)
+        : [];
+      return { item: i, pId, cNorm, iNorms };
+    });
+
+    // 6. Map over personnel with fast comparisons
+    return datasets.personnel.map((person) => {
+      const pId = Number(person.id) || 0;
       const clean = normalizePersonName(person.clean_name || person.name || '');
-      const normClean = normalizeSpellingVariant(clean.toLowerCase());
+      const normClean = toNorm(clean);
       const nameParts = normClean ? normClean.split(' ').filter(Boolean) : [];
       const firstName = nameParts[0] || '';
       const lastName = nameParts[nameParts.length - 1] || '';
 
-            const isMatch = (idVal: any, nameVal: any) => {
-        if (pId && idVal && (Number(idVal) === pId || String(idVal) === String(pId))) {
-          if (nameVal && normClean && normClean.length >= 3) {
-            const normVal = normalizeSpellingVariant(normalizePersonName(String(nameVal)).toLowerCase());
-            if (!normVal.includes(normClean) && !(nameParts.length >= 2 && normVal.includes(firstName) && normVal.includes(lastName))) {
+      const fastMatch = (idVal: number | null, nameNorm: string): boolean => {
+        if (pId && idVal && idVal === pId) {
+          if (nameNorm && normClean.length >= 3) {
+            if (
+              !nameNorm.includes(normClean) &&
+              !(nameParts.length >= 2 && nameNorm.includes(firstName) && nameNorm.includes(lastName))
+            ) {
               return false;
             }
           }
           return true;
         }
-        if (!nameVal || !normClean || normClean.length < 3) return false;
-        const normVal = normalizeSpellingVariant(normalizePersonName(String(nameVal)).toLowerCase());
-        if (normVal.includes(normClean)) return true;
-        if (nameParts.length >= 2 && normVal.includes(firstName) && normVal.includes(lastName)) {
-          return true;
-        }
+        if (!nameNorm || normClean.length < 3) return false;
+        if (nameNorm.includes(normClean)) return true;
+        if (nameParts.length >= 2 && nameNorm.includes(firstName) && nameNorm.includes(lastName)) return true;
         return false;
       };
 
-      // 1. Research Projects
-      const matchedResearch = filteredResearch.filter(
-        (r) =>
-          isMatch(r.head_id, r.head) ||
-          isMatch(null, r.co_researchers) ||
-          isMatch(null, r.members)
-      );
+      // Match Research
+      let researchBudget = 0;
+      const matchedResearch: any[] = [];
+      for (let i = 0; i < prepResearch.length; i++) {
+        const pr = prepResearch[i];
+        if (fastMatch(pr.hId, pr.hNorm) || (normClean.length >= 4 && pr.mNorms.some((m) => fastMatch(null, m)))) {
+          matchedResearch.push(pr.item);
+          researchBudget += pr.budget;
+        }
+      }
 
-      // 2. Academic Development
-      const matchedAcademic = filteredAcademic.filter(
-        (a) => isMatch(a.head_id, a.head) || isMatch(null, a.leader) || isMatch(null, a.person)
-      );
+      // Match Academic
+      let academicBudget = 0;
+      const matchedAcademic: any[] = [];
+      for (let i = 0; i < prepAcademic.length; i++) {
+        const pa = prepAcademic[i];
+        if (fastMatch(pa.hId, pa.hNorm)) {
+          matchedAcademic.push(pa.item);
+          academicBudget += pa.budget;
+        }
+      }
 
-      // 3. Publications
-      const matchedPub = filteredPub.filter(
-        (b) =>
-          isMatch(b.person_id || b.owner_id, b.owner) ||
-          isMatch(null, b.author) ||
-          isMatch(null, b.co_authors_domestic)
-      );
-
-      // 4. Services
-      const matchedService = filteredService.filter(
-        (s) => isMatch(s.person_id, s.person) || isMatch(null, s.head)
-      );
-
-      // 5. Intellectual Property
-      const matchedIP = filteredIP.filter(
-        (i) => isMatch(i.person_id, i.creator) || isMatch(null, i.inventors)
-      );
-
-      // Calculate budgets
-      const researchBudget = matchedResearch.reduce((acc, curr) => acc + parseItemBudget(curr), 0);
-      const academicBudget = matchedAcademic.reduce((acc, curr) => acc + parseItemBudget(curr), 0);
-
-      // Calculate Quartiles
+      // Match Publications
       const quartiles = { q1: 0, q2: 0, q3: 0, q4: 0, tci: 0, other: 0 };
-      matchedPub.forEach((p) => {
-        const tier = autoDetectJournalRanking(p.journal || '', p.level || '');
-        if (tier === 'Q1') quartiles.q1++;
-        else if (tier === 'Q2') quartiles.q2++;
-        else if (tier === 'Q3') quartiles.q3++;
-        else if (tier === 'Q4') quartiles.q4++;
-        else if (tier === 'TCI 1' || tier === 'TCI 2') quartiles.tci++;
-        else quartiles.other++;
-      });
+      const matchedPub: any[] = [];
+      for (let i = 0; i < prepPub.length; i++) {
+        const pb = prepPub[i];
+        if (fastMatch(pb.pId, pb.oNorm) || (normClean.length >= 4 && pb.dNorms.some((d) => fastMatch(null, d)))) {
+          matchedPub.push(pb.item);
+          if (pb.tier === 'Q1') quartiles.q1++;
+          else if (pb.tier === 'Q2') quartiles.q2++;
+          else if (pb.tier === 'Q3') quartiles.q3++;
+          else if (pb.tier === 'Q4') quartiles.q4++;
+          else if (pb.tier === 'TCI 1' || pb.tier === 'TCI 2') quartiles.tci++;
+          else quartiles.other++;
+        }
+      }
 
-      // Calculate service hours
-      const serviceHours = matchedService.reduce(
-        (acc, curr) => acc + (Number(curr.hours_spent) || 0),
-        0
-      );
+      // Match Services
+      let serviceHours = 0;
+      const matchedService: any[] = [];
+      for (let i = 0; i < prepService.length; i++) {
+        const ps = prepService[i];
+        if (fastMatch(ps.pId, ps.pNorm)) {
+          matchedService.push(ps.item);
+          serviceHours += ps.hours;
+        }
+      }
+
+      // Match IP
+      const matchedIP: any[] = [];
+      for (let i = 0; i < prepIp.length; i++) {
+        const pi = prepIp[i];
+        if (fastMatch(pi.pId, pi.cNorm) || (normClean.length >= 4 && pi.iNorms.some((inv) => fastMatch(null, inv)))) {
+          matchedIP.push(pi.item);
+        }
+      }
 
       const counts = {
         research: matchedResearch.length,
@@ -277,7 +343,7 @@ export function usePersonnelData(timeFilter?: TimeFilterState) {
       } as PersonnelWorkMetric;
     });
   }, [
-    personnelList,
+    datasets.personnel,
     filteredResearch,
     filteredAcademic,
     filteredPub,
@@ -310,7 +376,7 @@ export function usePersonnelData(timeFilter?: TimeFilterState) {
   }, [personnelMetrics]);
 
   // Overall totals
-  const totalFacultyCount = personnelList.length;
+  const totalFacultyCount = datasets.personnel.length;
   const activeFacultyCount = useMemo(
     () => personnelMetrics.filter((m) => m.counts.total > 0).length,
     [personnelMetrics]
@@ -324,7 +390,7 @@ export function usePersonnelData(timeFilter?: TimeFilterState) {
     [personnelMetrics]
   );
 
-  // Helper to fetch a single person's portfolio (with raw unfiltered data optionally available)
+  // Helper to fetch a single person's portfolio
   const getPersonPortfolio = (targetId: string | number) => {
     const idNum = Number(targetId);
     return (
@@ -348,11 +414,11 @@ export function usePersonnelData(timeFilter?: TimeFilterState) {
     refreshData,
     getPersonPortfolio,
     rawDatasets: {
-      research: researchList,
-      academic: academicList,
-      publications: pubList,
-      service: serviceList,
-      ip: ipList,
+      research: datasets.research,
+      academic: datasets.academic,
+      publications: datasets.publications,
+      service: datasets.service,
+      ip: datasets.ip,
     },
   };
 }

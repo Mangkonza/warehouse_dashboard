@@ -1,4 +1,4 @@
-import { ServiceRepository } from '../repositories/service.repository.js';
+﻿import { ServiceRepository } from '../repositories/service.repository.js';
 import { parseSafeDate, parseSafeNumber, parseSafeInt, extractNumericId } from '../utils/sanitize.js';
 
 export const VALID_SERVICE_CATEGORIES = [
@@ -50,6 +50,8 @@ function formatServiceRecord(item: any) {
     service_category: item.serviceCategory,
     service_type: item.serviceCategory,
     person: item.providerName || '',
+    // person_id: ID ผู้ให้บริการ (providerPersonnelId) สำหรับ ID-based matching
+    person_id: item.providerPersonnelId || (item.provider?.personId ? Number(item.provider.personId) : undefined),
     department: item.department?.nameTh || item.departmentCode || '',
     departmentCode: item.departmentCode || '',
     target_group: item.targetGroup || '',

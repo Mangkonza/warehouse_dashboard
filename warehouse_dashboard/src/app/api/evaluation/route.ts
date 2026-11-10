@@ -1,10 +1,12 @@
 import { saveEvaluation } from '@/lib/serverDataStore';
+import { getBackendUrl } from '@/lib/backendUrl';
 import { NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-const BACKEND_URL = process.env.BACKEND_INTERNAL_URL || process.env.BACKEND_URL || 'http://ku_warehouse_backend:8000';
+// ดึง BACKEND_URL ผ่าน helper ส่วนกลาง (throw error ใน production หากไม่ได้กำหนด)
+const getBackend = () => getBackendUrl();
 
 const getForwardHeaders = (request: NextRequest): Record<string, string> => {
   const headers: Record<string, string> = {
@@ -20,7 +22,7 @@ const getForwardHeaders = (request: NextRequest): Record<string, string> => {
 export async function GET(request: NextRequest) {
   try {
     const { search } = new URL(request.url);
-    const res = await fetch(`${BACKEND_URL}/api/v1/evaluation${search}`, {
+    const res = await fetch(`${getBackend()}/api/v1/evaluation${search}`, {
       method: 'GET',
       headers: getForwardHeaders(request),
       cache: 'no-store',
@@ -39,7 +41,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     try { saveEvaluation(body); } catch {}
-    const res = await fetch(`${BACKEND_URL}/api/v1/evaluation`, {
+    const res = await fetch(`${getBackend()}/api/v1/evaluation`, {
       method: 'POST',
       headers: getForwardHeaders(request),
       body: JSON.stringify(body),

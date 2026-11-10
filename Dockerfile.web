@@ -21,7 +21,7 @@ COPY warehouse_dashboard/ ./
 # Build arguments for paths and endpoints
 ARG BASE_PATH=""
 ARG NEXT_PUBLIC_BASE_PATH=""
-ARG NEXT_PUBLIC_API_URL="http://localhost:8000/api/v1"
+ARG NEXT_PUBLIC_API_URL="/api/v1"
 ARG NEXT_PUBLIC_USE_MOCK=""
 ARG BACKEND_URL="http://backend:8000"
 
@@ -46,7 +46,7 @@ ENV HOSTNAME="0.0.0.0"
 
 ARG BASE_PATH=""
 ARG NEXT_PUBLIC_BASE_PATH=""
-ARG NEXT_PUBLIC_API_URL="http://localhost:8000/api/v1"
+ARG NEXT_PUBLIC_API_URL="/api/v1"
 ARG NEXT_PUBLIC_USE_MOCK=""
 ARG BACKEND_URL="http://backend:8000"
 

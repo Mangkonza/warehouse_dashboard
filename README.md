@@ -146,15 +146,16 @@ docker run -d \
 
 ### ขั้นตอนที่ 4: Build และรัน Frontend Web Service (`Dockerfile.web`)
 
-> **หมายเหตุเรื่อง Base Path**: หากต้องการใช้งาน Base Path เช่น `/warehouse` ให้ระบุ `--build-arg BASE_PATH="/warehouse"` และ `-e BASE_PATH="/warehouse"` หากใช้งานที่ root path ให้ปล่อยว่างไว้
+> **หมายเหตุเรื่อง API Path และ Base Path**:
+> - Frontend เรียก API ผ่าน Relative Path `/api/v1` (Same-Origin) โดย Next.js จะส่งต่อ (Rewrites) ไปยัง Backend ตามค่า `BACKEND_URL` ตอน Runtime โดยอัตโนมัติ ทำให้**ไม่ต้อง Rebuild Image ใหม่เมื่อเปลี่ยนโดเมนหรือ IP**
+> - หากต้องการใช้งาน Base Path เช่น `/warehouse` ให้ระบุ `--build-arg BASE_PATH="/warehouse"` และ `-e BASE_PATH="/warehouse"` หากใช้งานที่ root path ให้ปล่อยว่างไว้
 
 #### 4.1 Build Frontend Docker Image:
 ```bash
 docker build -f Dockerfile.web \
   --build-arg BASE_PATH="" \
   --build-arg NEXT_PUBLIC_BASE_PATH="" \
-  --build-arg NEXT_PUBLIC_API_URL="http://localhost:8000/api/v1" \
-  --build-arg BACKEND_URL="http://ku_warehouse_backend:8000" \
+  --build-arg NEXT_PUBLIC_API_URL="/api/v1" \
   -t ku-warehouse-frontend:latest .
 ```
 
@@ -170,6 +171,7 @@ docker run -d \
   -e PUBLIC_ORIGIN="http://localhost:3000" \
   -e BASE_PATH="" \
   -e NEXT_PUBLIC_BASE_PATH="" \
+  -e NEXT_PUBLIC_API_URL="/api/v1" \
   -e BACKEND_URL="http://ku_warehouse_backend:8000" \
   -e JWT_COOKIE_SECRET="a8f4c91b7d3e2a0f8b1c4e9d7a2f0b8c4d9e1f7a2b0c4d8e9f1a2b3c4d5e6f7a" \
   -e AUTH_SESSION_SECRET="a8f4c91b7d3e2a0f8b1c4e9d7a2f0b8c4d9e1f7a2b0c4d8e9f1a2b3c4d5e6f7a" \

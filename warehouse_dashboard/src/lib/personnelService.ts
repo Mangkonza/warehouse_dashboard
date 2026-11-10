@@ -27,11 +27,17 @@ export function normalizeSpellingVariant(str: string): string {
   return str.replace(/ฎ/g, 'ฏ');
 }
 
+// แคชสำหรับ normalizePersonName เพื่อป้องกันการประมวลผล regex ซ้ำซ้อนนับแสนครั้ง
+const normalizePersonNameCache = new Map<string, string>();
+
 /**
  * ตัดคำนำหน้าชื่อ สัญลักษณ์ และคำต่อท้ายที่ไม่จำเป็น เพื่อทำความสะอาดชื่อ
  */
 export function normalizePersonName(rawName: string): string {
   if (!rawName) return '';
+  const cached = normalizePersonNameCache.get(rawName);
+  if (cached !== undefined) return cached;
+
   // Replace non-breaking spaces and unusual unicode whitespace
   let clean = String(rawName).replace(/[\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000\uFEFF\u200b]/g, ' ').trim();
   
@@ -55,7 +61,9 @@ export function normalizePersonName(rawName: string): string {
     }
   }
 
-  return clean.replace(/\s+/g, ' ').trim();
+  const result = clean.replace(/\s+/g, ' ').trim();
+  normalizePersonNameCache.set(rawName, result);
+  return result;
 }
 
 /**
