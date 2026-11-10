@@ -50,7 +50,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   // AuthGate: ป้องกันเฉพาะหน้าที่ต้องใช้สิทธิ์ Admin เท่านั้น
   // หน้าสาธารณะ (Overview, Research, Academic Dev, Publications, Services, IP, Personnel, SDGs) ทุกคนสามารถเข้าชมได้
-  const ADMIN_PATHS = ['/manage', '/evaluation', '/monitoring', '/kpi', '/user-roles', '/admin'];
+  const ADMIN_PATHS = ['/manage', '/evaluation', '/monitoring', '/kpi', '/user-roles'];
   const isProtectedPath = Boolean(pathname && ADMIN_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`)));
 
   useEffect(() => {
