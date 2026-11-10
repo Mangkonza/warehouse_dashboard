@@ -111,11 +111,17 @@ export const TopSegmentedTabs = <T extends string = CategoryKey>({
 
     // Recheck after fonts and layout settle
     const timer = setTimeout(checkScroll, 200);
+    let ro: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined') {
+      ro = new ResizeObserver(checkScroll);
+      ro.observe(el);
+    }
 
     return () => {
       el.removeEventListener('scroll', checkScroll);
       window.removeEventListener('resize', checkScroll);
       clearTimeout(timer);
+      if (ro) ro.disconnect();
     };
   }, [checkScroll, resolvedTabs]);
 
@@ -163,6 +169,11 @@ export const TopSegmentedTabs = <T extends string = CategoryKey>({
       {/* Tabs Container */}
       <div
         ref={scrollContainerRef}
+        onWheel={(e) => {
+          if (e.deltaY !== 0 && scrollContainerRef.current) {
+            scrollContainerRef.current.scrollLeft += e.deltaY;
+          }
+        }}
         className={cn(
           'flex items-center gap-2 overflow-x-auto py-1 px-1 scrollbar-none no-scrollbar scroll-smooth w-full',
           className

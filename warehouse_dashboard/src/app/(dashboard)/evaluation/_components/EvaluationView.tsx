@@ -644,26 +644,12 @@ export const EvaluationView: React.FC = () => {
       </div>
 
       {/* 2. Top Segmented Horizontal Tabs */}
-      <div style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center' }}>
-        <div
-          style={{
-            width: '100%',
-            overflowX: 'auto',
-            overflowY: 'hidden',
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none',
-            WebkitOverflowScrolling: 'touch',
-            padding: '2px 0px 6px 0px',
-          }}
-        >
-          <div style={{ display: 'inline-flex', minWidth: 'max-content' }}>
-            <TopSegmentedTabs
-              activeCategory={activeCategory}
-              onSelectCategory={handleTabChange}
-              tabs={tabsConfig}
-            />
-          </div>
-        </div>
+      <div style={{ position: 'relative', width: '100%', padding: '2px 0 6px 0' }}>
+        <TopSegmentedTabs
+          activeCategory={activeCategory}
+          onSelectCategory={handleTabChange}
+          tabs={tabsConfig}
+        />
       </div>
 
       {/* 3. Main Card Container */}
