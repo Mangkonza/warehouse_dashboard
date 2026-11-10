@@ -1,24 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { COOKIE_USER_SESSION } from '@/lib/auth/cookies';
-import { getPublicOrigin, stripBasePath, withBasePath } from '@/lib/auth/paths';
-import { evaluateSsoRules } from '@/lib/auth/proxyRules';
+import { stripBasePath } from '@/lib/auth/paths';
 
 const SESSION_COOKIE_NAME = 'ku_session';
-
-// Helper to get candidate secrets for HMAC verification:
-// Checks runtime env, hardcoded configured secret, and dev fallback
-function getCandidateSecrets(): string[] {
-  const secrets = [
-    process.env['AUTH_SESSION_SECRET'],
-    process.env.AUTH_SESSION_SECRET,
-    'a8f4c91b7d3e2a0f8b1c4e9d7a2f0b8c4d9e1f7a2b0c4d8e9f1a2b3c4d5e6f7a',
-    'ku_warehouse_auth_session_secret_2026_dev_key',
-  ];
-  return Array.from(
-    new Set(secrets.filter((s): s is string => Boolean(s && typeof s === 'string' && s.length > 0)))
-  );
-}
 
 // Helper to decode base64url to Uint8Array
 function base64UrlToBytes(base64Url: string): Uint8Array {
@@ -33,7 +17,7 @@ function base64UrlToBytes(base64Url: string): Uint8Array {
   return bytes;
 }
 
-// Verify legacy HMAC-SHA256 signature and expiration for ku_session
+// Verify HMAC-SHA256 signature and expiration for ku_session
 async function verifyKuSessionCookie(cookieValue?: string): Promise<{ username: string; expiresAt: number } | null> {
   if (!cookieValue || typeof cookieValue !== 'string') return null;
 
@@ -45,7 +29,13 @@ async function verifyKuSessionCookie(cookieValue?: string): Promise<{ username: 
 
   try {
     const enc = new TextEncoder();
-    const candidateSecrets = getCandidateSecrets();
+    const secrets = [
+      process.env.AUTH_SESSION_SECRET,
+      'a8f4c91b7d3e2a0f8b1c4e9d7a2f0b8c4d9e1f7a2b0c4d8e9f1a2b3c4d5e6f7a',
+      'ku_warehouse_auth_session_secret_2026_dev_key',
+    ].filter((s): s is string => Boolean(s && typeof s === 'string' && s.length > 0));
+
+    const candidateSecrets = Array.from(new Set(secrets));
     let isValid = false;
 
     for (const secret of candidateSecrets) {
@@ -88,15 +78,13 @@ async function verifyKuSessionCookie(cookieValue?: string): Promise<{ username: 
   }
 }
 
-// Protected dashboard routes requiring legacy authentication
-// Only admin / management paths require authentication
+// Protected dashboard routes requiring authentication
 const ADMIN_PROTECTED_PREFIXES = [
   '/kpi',
   '/evaluation',
   '/monitoring',
   '/manage',
   '/user-roles',
-  '/admin',
 ];
 
 export async function proxy(request: NextRequest) {
@@ -110,9 +98,6 @@ export async function proxy(request: NextRequest) {
     appPath.startsWith('/api/health') ||
     appPath.startsWith('/api/auth') ||
     appPath === '/login' ||
-    appPath === '/auth' ||
-    appPath === '/sso/login' ||
-    appPath === '/sso/logout' ||
     appPath === '/forbidden' ||
     appPath === '/unauthorized' ||
     appPath === '/favicon.ico' ||
@@ -121,35 +106,18 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2. SSO rules evaluation for /admin/* and /user/*
-  const ssoDecision = evaluateSsoRules({
-    pathname,
-    searchParams: request.nextUrl.searchParams,
-    hasUserSession: Boolean(request.cookies.get(COOKIE_USER_SESSION)?.value),
-  });
-
-  if (ssoDecision.action === 'redirect_portal_session' || ssoDecision.action === 'redirect_sso_login') {
-    const origin = getPublicOrigin(request.headers);
-    return NextResponse.redirect(new URL(ssoDecision.destination, origin), 307);
-  }
-  if (ssoDecision.action === 'allow') {
-    return NextResponse.next();
-  }
-
-  // 3. Existing ku_session legacy behavior or Central SSO session
-  const kuCookie = request.cookies.get(SESSION_COOKIE_NAME)?.value;
-  const session = await verifyKuSessionCookie(kuCookie);
-  const hasUserSession = Boolean(request.cookies.get(COOKIE_USER_SESSION)?.value);
-  const isAuthenticated = Boolean(session || hasUserSession);
-
-  // Root path redirects directly to overview dashboard without requiring login
+  // 2. Root path redirects to overview
   if (appPath === '/') {
     const overviewUrl = request.nextUrl.clone();
     overviewUrl.pathname = '/overview';
     return NextResponse.redirect(overviewUrl, 307);
   }
 
-  // Check if route requires admin session
+  // 3. Check ku_session cookie for protected routes
+  const kuCookie = request.cookies.get(SESSION_COOKIE_NAME)?.value;
+  const session = await verifyKuSessionCookie(kuCookie);
+  const isAuthenticated = Boolean(session);
+
   const isAdminProtected = ADMIN_PROTECTED_PREFIXES.some((prefix) => appPath.startsWith(prefix));
 
   if (isAdminProtected && !isAuthenticated) {
@@ -165,9 +133,6 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except static files
-     */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };

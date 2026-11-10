@@ -1,11 +1,8 @@
 /**
- * Single source of truth for app paths and public origin (server-side).
- *
- * `BASE_PATH` is read ONLY here and in `next.config.ts`. Empty/unset = root.
- * All app-relative paths below are WITHOUT the base path; use `withBasePath`
- * when building an absolute URL (e.g. a redirect Location built from the origin).
+ * Single source of truth for app paths (server-side).
+ * SSO paths removed.
  */
-import { AuthConfigError, isProduction, parseOrigin } from './env';
+import { AuthConfigError } from './env';
 
 const BASE_PATH_PATTERN = /^(\/[A-Za-z0-9._~-]+)+$/;
 
@@ -20,15 +17,10 @@ export function getBasePath(): string {
 
 /** App-relative routes (no base path). */
 export const APP_ROUTES = {
-  ssoLogin: '/sso/login',
-  ssoLogout: '/sso/logout',
-  admin: '/admin',
-  user: '/user',
+  login: '/login',
   forbidden: '/forbidden',
   home: '/',
-  portalSession: '/api/auth/portal-session',
-  roles: '/api/auth/roles',
-  session: '/api/auth/session',
+  overview: '/overview',
 } as const;
 
 /** Prefixes `path` (must start with "/") with the base path. */
@@ -55,37 +47,30 @@ export type HeaderSource = { get(name: string): string | null };
 const HOST_PATTERN = /^[A-Za-z0-9.-]+(:\d{1,5})?$/;
 
 /**
- * Public origin used for redirects/cookies:
- *   1. `PUBLIC_ORIGIN` env (preferred; required in production and for JWT `iss`)
- *   2. Outside production only: `x-forwarded-proto` + `x-forwarded-host` (only trustworthy behind a proxy that overwrites them)
- * Throws if neither yields a valid origin. In production, missing PUBLIC_ORIGIN fails closed immediately.
+ * Public origin used for redirects:
+ *   1. `PUBLIC_ORIGIN` env (preferred)
+ *   2. Outside production only: `x-forwarded-proto` + `x-forwarded-host`
  */
 export function getPublicOrigin(headers?: HeaderSource): string {
-  if (process.env.ALLOW_DIRECT_TOKEN === 'true' && headers) {
-    const rawHost = headers.get('x-forwarded-host') || headers.get('host');
-    const host = rawHost?.split(',')[0]?.trim();
-    if (host && HOST_PATTERN.test(host)) {
-      const proto = headers.get('x-forwarded-proto')?.split(',')[0]?.trim().toLowerCase() || 'http';
-      return parseOrigin(`${proto}://${host}`, 'headers');
-    }
+  const envOrigin = (process.env.PUBLIC_ORIGIN ?? '').trim();
+  if (envOrigin) {
+    const parsed = new URL(envOrigin);
+    return parsed.origin;
   }
 
-  const envOrigin = (process.env.PUBLIC_ORIGIN ?? '').trim();
-  if (envOrigin) return parseOrigin(envOrigin);
-
-  if (isProduction()) {
+  if (process.env.NODE_ENV === 'production') {
     throw new AuthConfigError('PUBLIC_ORIGIN must be set in production');
   }
 
   const host = headers?.get('x-forwarded-host')?.split(',')[0]?.trim();
   const proto = headers?.get('x-forwarded-proto')?.split(',')[0]?.trim().toLowerCase();
   if (host && proto && HOST_PATTERN.test(host) && (proto === 'https' || proto === 'http')) {
-    return parseOrigin(`${proto}://${host}`, 'x-forwarded-host/x-forwarded-proto');
+    return new URL(`${proto}://${host}`).origin;
   }
-  throw new AuthConfigError('Cannot determine public origin: set PUBLIC_ORIGIN');
+  return 'http://localhost:3000';
 }
 
-/** Absolute URL for an app-relative path, e.g. appUrl('/admin', req.headers). */
+/** Absolute URL for an app-relative path. */
 export function appUrl(path: string, headers?: HeaderSource): URL {
   return new URL(withBasePath(path), getPublicOrigin(headers));
 }
