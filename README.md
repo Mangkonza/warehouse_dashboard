@@ -19,6 +19,7 @@ warehouse_dashboard/
 ├── schema.sql                         # DDL Schema โครงสร้างระบบหลัก (สร้าง DB, Role, 58 ตาราง, สิทธิ์, Super Admin)
 ├── data.sql                           # ข้อมูลเริ่มต้นระบบหลัก (รันหลัง schema.sql เพื่อนำเข้าข้อมูลบุคลากร และข้อมูลย้อนหลัง)
 ├── backend/                           # โฟลเดอร์บริการ Backend API
+│   ├── .env.example                   # แม่แบบตัวแปรสภาพแวดล้อม Backend (ใช้งานจริงเป็น backend/.env)
 │   ├── prisma/
 │   │   ├── schema.prisma              # Prisma Data Model (PostgreSQL 16)
 │   │   └── migrations/                # ประวัติ Database Migrations ทั้งหมด
@@ -31,6 +32,7 @@ warehouse_dashboard/
 │   ├── scripts/                       # สคริปต์สำรองข้อมูล, นำเข้าข้อมูล, Seed KPI
 │   └── package.json                   # Dependencies (Node 22, Express 5, Prisma 6)
 ├── warehouse_dashboard/               # โฟลเดอร์บริการ Frontend Dashboard
+│   ├── .env.example                   # แม่แบบตัวแปรสภาพแวดล้อม Frontend (ใช้งานจริงเป็น warehouse_dashboard/.env)
 │   ├── next.config.ts                 # Next.js Standalone Configuration & Base Path Resolver
 │   ├── public/                        # Static assets, icons, fonts
 │   ├── src/
@@ -41,6 +43,9 @@ warehouse_dashboard/
 │   └── package.json                   # Dependencies (Next.js 16, React 19, Tailwind)
 └── README.md                          # เอกสารแนะนำการติดตั้งและรันระบบ
 ```
+
+> **หมายเหตุเรื่องไฟล์ `.env` (แยกตาม Service)**:
+> โปรเจกต์นี้แยก `.env` ออกเป็น 2 ชุดตาม service (ไม่ได้วาง `.env` รวมไว้ที่ root) ได้แก่ `backend/.env` สำหรับ Backend API และ `warehouse_dashboard/.env` สำหรับ Frontend Web โดยไฟล์ `.env` ทั้งหมดถูกกันไว้ใน `.dockerignore` เพื่อไม่ให้ติดเข้าไปใน Image และส่งค่าตอน Runtime ผ่าน `--env-file` หรือ `-e` แทน
 
 ---
 
@@ -142,6 +147,21 @@ docker run -d \
   ku-warehouse-backend:latest
 ```
 
+หรือหากเตรียมไฟล์ `backend/.env` (อ้างอิงจาก [backend/.env.example](backend/.env.example)) ไว้บน Server แล้ว สามารถใช้ `--env-file` แทนการส่ง `-e` ทีละตัวได้:
+```bash
+docker run -d \
+  --name ku_warehouse_backend \
+  --network ku-warehouse-net \
+  --network-alias backend \
+  --network-alias ku_warehouse_backend \
+  --add-host=host.docker.internal:host-gateway \
+  --restart unless-stopped \
+  -p 8000:8000 \
+  -v ku-warehouse-uploads:/app/uploads \
+  --env-file backend/.env \
+  ku-warehouse-backend:latest
+```
+
 ---
 
 ### ขั้นตอนที่ 4: Build และรัน Frontend Web Service (`Dockerfile.web`)
@@ -177,6 +197,24 @@ docker run -d \
   -e AUTH_SESSION_SECRET="a8f4c91b7d3e2a0f8b1c4e9d7a2f0b8c4d9e1f7a2b0c4d8e9f1a2b3c4d5e6f7a" \
   ku-warehouse-frontend:latest
 ```
+
+หรือหากเตรียมไฟล์ `warehouse_dashboard/.env` (อ้างอิงจาก [warehouse_dashboard/.env.example](warehouse_dashboard/.env.example)) ไว้บน Server แล้ว สามารถใช้ `--env-file` แทนได้:
+```bash
+docker run -d \
+  --name ku_warehouse_frontend \
+  --network ku-warehouse-net \
+  --restart unless-stopped \
+  -p 3000:3000 \
+  --env-file warehouse_dashboard/.env \
+  ku-warehouse-frontend:latest
+```
+
+> **ค่าสำคัญที่ผู้ Deploy ต้องกำหนดเพิ่มบน Production Server**:
+> - หากนำ `.env` สำหรับ Local Dev มาใช้กับ `--env-file` ใน Docker ให้เปลี่ยน `NODE_ENV=production`, แก้ `DATABASE_URL`/`DIRECT_URL` จาก `127.0.0.1` เป็น `host.docker.internal` (หรือ IP เครื่อง DB), และแก้ `BACKEND_URL` / `BACKEND_INTERNAL_URL` จาก `http://127.0.0.1:8000` เป็น `http://ku_warehouse_backend:8000`
+> - เปลี่ยน `PUBLIC_ORIGIN` (ในโหมด `production` ต้องขึ้นต้นด้วย `https://`) และ `CORS_ORIGIN` ให้ตรงกับโดเมนจริง
+> - หาก Deploy ใต้ subpath (เช่น `/warehouse`) ให้ตั้ง `BASE_PATH` และ `NEXT_PUBLIC_BASE_PATH` ให้ตรงกันทั้งตอน `docker build` และ `docker run`
+> - หากเปิดใช้งาน Central SSO ของคณะ ให้กำหนดชุดตัวแปร `ENG_SYSTEM_ID` (ค่าเริ่มต้น `warehouse_ku`), `ENG_LOGIN_URL`, `ENG_LOGOUT_URL`, `ENG_TOKEN_EXCHANGE_URL`, `ENG_AUTH_ME_URL`, `ALL_LOGIN_STATUS_URL`, `ENG_MAIN_ROLE_URL` และ `CENTRAL_AUTH_STRICT_TLS=true` ตาม [warehouse_dashboard/.env.example](warehouse_dashboard/.env.example)
+> - เปลี่ยน `AUTH_SESSION_SECRET`, `JWT_COOKIE_SECRET` (ความยาวอย่างน้อย 32 ตัวอักษร) และ `JWT_SECRET` ให้ปลอดภัยสำหรับ Production
 
 ---
 
