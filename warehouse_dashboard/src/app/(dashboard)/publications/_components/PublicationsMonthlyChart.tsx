@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { FaChartLine } from 'react-icons/fa';
@@ -529,6 +529,10 @@ export function PublicationsMonthlyChart({ validData, currentFiscalYear, onSelec
         position: 'relative',
         width: '100%',
         ['--acc' as any]: '#be123c',
+        ['--seg' as any]: '#eef2f6',
+        ['--segon' as any]: '#ffffff',
+        ['--muted' as any]: '#64748b',
+        ['--ink' as any]: '#0f172a',
       }}
     >
       {/* HEADER & CONTROLS */}
@@ -537,11 +541,7 @@ export function PublicationsMonthlyChart({ validData, currentFiscalYear, onSelec
           <h2 className="rr-title-h2">
             <FaChartLine style={{ color: '#fb7185', fontSize: '18px' }} /> ผลงานตีพิมพ์และเงินสนับสนุนรายเดือน
           </h2>
-          <p className="rr-sub">
-            {isCompare
-              ? `แท่ง = ${metric === 'count' ? 'จำนวนผลงาน (เรื่อง)' : 'เงินสนับสนุน (ล้านบาท)'} · เปรียบเทียบปี ${compareYear} กับ${selectedYear === 'all' ? 'ทุกปี' : `ปี ${selectedYear}`}`
-              : `แท่ง = จำนวนผลงาน (เรื่อง) · เส้น = เงินสนับสนุน (ล้านบาท) · ${selectedYear === 'all' ? 'ทุกปี' : `ปี ${selectedYear}`}`}
-          </p>
+          
         </div>
 
         <div className="rr-ctrls">
@@ -1197,18 +1197,31 @@ export function PublicationsMonthlyChart({ validData, currentFiscalYear, onSelec
               return (
                 <g key={`bar-cmp-${i}`}>
                   {hasCompareData && pv > 0 && (
-                    <rect
-                      x={xp}
-                      y={yv(pv)}
-                      width={bw3}
-                      height={yv(0) - yv(pv)}
-                      rx={Math.min(9, (yv(0) - yv(pv)) / 2)}
-                      fill="#cbd5e1"
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => {
-                        onSelectPeriod?.(i, compareYear, compareData?.items[i] || []);
-                      }}
-                    />
+                    <>
+                      <rect
+                        x={xp}
+                        y={yv(pv)}
+                        width={bw3}
+                        height={yv(0) - yv(pv)}
+                        rx={Math.min(9, (yv(0) - yv(pv)) / 2)}
+                        fill="#cbd5e1"
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => {
+                          onSelectPeriod?.(i, compareYear, compareData?.items[i] || []);
+                        }}
+                      />
+                      <text
+                        x={xp + bw3 / 2}
+                        y={yv(pv) - 8}
+                        textAnchor="middle"
+                        fontSize="12.5"
+                        fontWeight="700"
+                        fill="#475569"
+                        pointerEvents="none"
+                      >
+                        {metric === 'count' ? pv : pv.toFixed(2)}
+                      </text>
+                    </>
                   )}
                   {cv > 0 && (
                     <>
