@@ -13,13 +13,16 @@
 
 ```
 warehouse_dashboard/
+├── deploy.sh                          # สคริปต์อัตโนมัติ (One-command Deploy) สำหรับ Build และรัน Production
+├── .env.backend                       # ตัวแปรสภาพแวดล้อมสำหรับ Backend Production
+├── .env.frontend                      # ตัวแปรสภาพแวดล้อมสำหรับ Frontend Production (พร้อม BASE_PATH)
 ├── Dockerfile.api                     # Multi-stage Dockerfile สำหรับ Backend API (Context: .)
 ├── Dockerfile.web                     # Multi-stage Dockerfile สำหรับ Frontend Next.js (Context: .)
 ├── .dockerignore                      # ป้องกัน secrets, node_modules และ build files เข้า Image
 ├── schema.sql                         # DDL Schema โครงสร้างระบบหลัก (สร้าง DB, Role, 58 ตาราง, สิทธิ์, Super Admin)
 ├── data.sql                           # ข้อมูลเริ่มต้นระบบหลัก (รันหลัง schema.sql เพื่อนำเข้าข้อมูลบุคลากร และข้อมูลย้อนหลัง)
 ├── backend/                           # โฟลเดอร์บริการ Backend API
-│   ├── .env.example                   # แม่แบบตัวแปรสภาพแวดล้อม Backend (ใช้งานจริงเป็น backend/.env)
+│   ├── .env.example                   # แม่แบบตัวแปรสภาพแวดล้อม Backend
 │   ├── prisma/
 │   │   ├── schema.prisma              # Prisma Data Model (PostgreSQL 16)
 │   │   └── migrations/                # ประวัติ Database Migrations ทั้งหมด
@@ -32,7 +35,7 @@ warehouse_dashboard/
 │   ├── scripts/                       # สคริปต์สำรองข้อมูล, นำเข้าข้อมูล, Seed KPI
 │   └── package.json                   # Dependencies (Node 22, Express 5, Prisma 6)
 ├── warehouse_dashboard/               # โฟลเดอร์บริการ Frontend Dashboard
-│   ├── .env.example                   # แม่แบบตัวแปรสภาพแวดล้อม Frontend (ใช้งานจริงเป็น warehouse_dashboard/.env)
+│   ├── .env.example                   # แม่แบบตัวแปรสภาพแวดล้อม Frontend
 │   ├── next.config.ts                 # Next.js Standalone Configuration & Base Path Resolver
 │   ├── public/                        # Static assets, icons, fonts
 │   ├── src/
@@ -44,8 +47,8 @@ warehouse_dashboard/
 └── README.md                          # เอกสารแนะนำการติดตั้งและรันระบบ
 ```
 
-> **หมายเหตุเรื่องไฟล์ `.env` (แยกตาม Service)**:
-> โปรเจกต์นี้แยก `.env` ออกเป็น 2 ชุดตาม service (ไม่ได้วาง `.env` รวมไว้ที่ root) ได้แก่ `backend/.env` สำหรับ Backend API และ `warehouse_dashboard/.env` สำหรับ Frontend Web โดยไฟล์ `.env` ทั้งหมดถูกกันไว้ใน `.dockerignore` เพื่อไม่ให้ติดเข้าไปใน Image และส่งค่าตอน Runtime ผ่าน `--env-file` หรือ `-e` แทน
+> **หมายเหตุเรื่องไฟล์ `.env`**:
+> โปรเจกต์รองรับทั้งการใช้ `.env.backend` และ `.env.frontend` ที่โฟลเดอร์ Root สำหรับการรันผ่านสคริปต์ `deploy.sh` หรือแยกไฟล์ไว้ใน `backend/.env` และ `warehouse_dashboard/.env` ตามความสะดวก โดยไฟล์ `.env` ทั้งหมดถูกระบุไว้ใน `.dockerignore` จึงไม่ติดเข้าไปใน Docker Image และส่งค่าตอน Runtime ผ่าน `--env-file` แทน
 
 ---
 
@@ -57,6 +60,9 @@ warehouse_dashboard/
   - Frontend Web: `3000` (รองรับการตั้งค่า `BASE_PATH`)
   - Backend API: `8000`
   - Database: `5432` (ทำงานบน Host OS)
+- **โดเมนและเส้นทาง Production จริง**: `https://sac.eng.kps.ku.ac.th/research_and_inovation/`
+  - `PUBLIC_ORIGIN`: `https://sac.eng.kps.ku.ac.th`
+  - `BASE_PATH`: `/research_and_inovation`
 - **Git Branch ที่ใช้ Deploy**: `main`
 - **การเชิญ Collaborator เข้า Git**: `misterkantapat@gmail.com` | `kantp428`
 
@@ -96,125 +102,105 @@ psql -h localhost -U postgres -d ku_warehouse -f data.sql
 
 ---
 
-### ขั้นตอนที่ 2: สร้าง Docker Network สำหรับ Web & API Containers
-```bash
-docker network create ku-warehouse-net
-```
+### วิธีที่ 1 (แนะนำ): Deploy อัตโนมัติด้วยคำสั่งเดียวผ่าน `deploy.sh`
+
+สำหรับสภาพแวดล้อม Production (เช่น `sac.eng.kps.ku.ac.th`) มีสคริปต์ `deploy.sh` ที่รวบรวมขั้นตอน Build, สร้าง Network และรัน Container ทั้ง Frontend & Backend ให้โดยอัตโนมัติ:
+
+1. **เตรียมไฟล์ Environment**: ตรวจสอบค่าใน `.env.backend` และ `.env.frontend` ที่โฟลเดอร์ Root ให้ถูกต้อง
+2. **รันคำสั่ง Deploy**:
+   ```bash
+   bash deploy.sh
+   ```
+   *สคริปต์จะทำการ:*
+   - Build Image `ku_warehouse_backend:latest`
+   - Build Image `ku_warehouse_frontend:latest` พร้อมฝัง `BASE_PATH=/research_and_inovation`
+   - สร้าง Docker Network `ku_warehouse_net`
+   - รัน Backend Container (Port 8000) พร้อมเชื่อมต่อ Host Database ด้วย `--add-host=host.docker.internal:host-gateway`
+   - รัน Frontend Container (Port 3000)
 
 ---
 
-### ขั้นตอนที่ 3: Build และรัน Backend API Service (`Dockerfile.api`)
+### วิธีที่ 2: ขั้นตอนการ Build และ Deploy แบบแยกคำสั่ง (Manual Step-by-Step)
+
+#### ขั้นตอนที่ 2.1: สร้าง Docker Network สำหรับ Web & API Containers
+```bash
+docker network create ku_warehouse_net
+```
+
+#### ขั้นตอนที่ 2.2: Build และรัน Backend API Service (`Dockerfile.api`)
 
 > **การเชื่อมต่อไปยัง Standalone DB**: ใช้แฟล็ก `--add-host=host.docker.internal:host-gateway` เพื่อให้ Container สามารถเชื่อมต่อกับ PostgreSQL ที่รันอยู่บน Host OS ได้อย่างสมบูรณ์ (หาก Database อยู่คนละเครื่อง Server ให้ระบุ IP ของเครื่อง Database แทน `host.docker.internal`)
 
-#### 3.1 Build Backend Docker Image:
+**Build Backend Docker Image:**
 ```bash
-docker build -f Dockerfile.api -t ku-warehouse-backend:latest .
+docker build -f Dockerfile.api -t ku_warehouse_backend:latest .
 ```
 
-#### 3.2 รัน Database Migration:
+**รัน Database Migration (กรณีต้องการอัปเดต Prisma Schema):**
 ```bash
 docker run --rm \
-  --network ku-warehouse-net \
+  --network ku_warehouse_net \
   --add-host=host.docker.internal:host-gateway \
   -e DATABASE_URL="postgresql://ku_app:ku_app_secret_2026@host.docker.internal:5432/ku_warehouse?schema=public" \
   -e DIRECT_URL="postgresql://ku_owner:ku_owner_secret_2026@host.docker.internal:5432/ku_warehouse?schema=public" \
-  ku-warehouse-backend:latest \
+  ku_warehouse_backend:latest \
   npx prisma migrate deploy
 ```
 
-#### 3.3 รัน Backend API Container:
+**รัน Backend API Container:**
 ```bash
 # สร้าง Named Volume สำหรับเก็บไฟล์อัปโหลด
 docker volume create ku-warehouse-uploads
 
 docker run -d \
   --name ku_warehouse_backend \
-  --network ku-warehouse-net \
+  --network ku_warehouse_net \
   --network-alias backend \
   --network-alias ku_warehouse_backend \
   --add-host=host.docker.internal:host-gateway \
   --restart unless-stopped \
   -p 8000:8000 \
   -v ku-warehouse-uploads:/app/uploads \
-  -e PORT=8000 \
-  -e HOST=0.0.0.0 \
-  -e NODE_ENV=production \
-  -e DATABASE_URL="postgresql://ku_app:ku_app_secret_2026@host.docker.internal:5432/ku_warehouse?schema=public" \
-  -e DIRECT_URL="postgresql://ku_owner:ku_owner_secret_2026@host.docker.internal:5432/ku_warehouse?schema=public" \
-  -e AUTH_SESSION_SECRET="a8f4c91b7d3e2a0f8b1c4e9d7a2f0b8c4d9e1f7a2b0c4d8e9f1a2b3c4d5e6f7a" \
-  -e CORS_ORIGIN="http://localhost:3000,http://127.0.0.1:3000" \
-  ku-warehouse-backend:latest
+  --env-file .env.backend \
+  ku_warehouse_backend:latest
 ```
 
-หรือหากเตรียมไฟล์ `backend/.env` (อ้างอิงจาก [backend/.env.example](backend/.env.example)) ไว้บน Server แล้ว สามารถใช้ `--env-file` แทนการส่ง `-e` ทีละตัวได้:
+#### ขั้นตอนที่ 2.3: Build และรัน Frontend Web Service (`Dockerfile.web`)
+
+> **หมายเหตุเรื่อง API Path และ Base Path**:
+> - Frontend เรียก API ผ่าน Relative Path `/api/v1` (Same-Origin) โดย Next.js จะส่งต่อ (Rewrites) ไปยัง Backend ตามค่า `BACKEND_URL` ตอน Runtime โดยอัตโนมัติ ทำให้**ไม่ต้อง Rebuild Image ใหม่เมื่อเปลี่ยนโดเมนหรือ IP**
+> - หากต้องการใช้งาน Base Path เช่น `/research_and_inovation` ให้ระบุ `--build-arg BASE_PATH="/research_and_inovation"` และตั้งใน `.env.frontend`
+
+**Build Frontend Docker Image:**
+```bash
+docker build -f Dockerfile.web \
+  --build-arg BASE_PATH="/research_and_inovation" \
+  --build-arg NEXT_PUBLIC_BASE_PATH="/research_and_inovation" \
+  --build-arg NEXT_PUBLIC_API_URL="/api/v1" \
+  --build-arg BACKEND_URL="http://backend:8000" \
+  -t ku_warehouse_frontend:latest .
+```
+
+**รัน Frontend Container:**
 ```bash
 docker run -d \
-  --name ku_warehouse_backend \
-  --network ku-warehouse-net \
-  --network-alias backend \
-  --network-alias ku_warehouse_backend \
-  --add-host=host.docker.internal:host-gateway \
+  --name ku_warehouse_frontend \
+  --network ku_warehouse_net \
   --restart unless-stopped \
-  -p 8000:8000 \
-  -v ku-warehouse-uploads:/app/uploads \
-  --env-file backend/.env \
-  ku-warehouse-backend:latest
+  -p 3000:3000 \
+  --env-file .env.frontend \
+  ku_warehouse_frontend:latest
 ```
 
 ---
 
-### ขั้นตอนที่ 4: Build และรัน Frontend Web Service (`Dockerfile.web`)
+### ข้อกำหนดสำคัญสำหรับไฟล์ Environment (.env)
 
-> **หมายเหตุเรื่อง API Path และ Base Path**:
-> - Frontend เรียก API ผ่าน Relative Path `/api/v1` (Same-Origin) โดย Next.js จะส่งต่อ (Rewrites) ไปยัง Backend ตามค่า `BACKEND_URL` ตอน Runtime โดยอัตโนมัติ ทำให้**ไม่ต้อง Rebuild Image ใหม่เมื่อเปลี่ยนโดเมนหรือ IP**
-> - หากต้องการใช้งาน Base Path เช่น `/warehouse` ให้ระบุ `--build-arg BASE_PATH="/warehouse"` และ `-e BASE_PATH="/warehouse"` หากใช้งานที่ root path ให้ปล่อยว่างไว้
-
-#### 4.1 Build Frontend Docker Image:
-```bash
-docker build -f Dockerfile.web \
-  --build-arg BASE_PATH="" \
-  --build-arg NEXT_PUBLIC_BASE_PATH="" \
-  --build-arg NEXT_PUBLIC_API_URL="/api/v1" \
-  -t ku-warehouse-frontend:latest .
-```
-
-#### 4.2 รัน Frontend Container:
-```bash
-docker run -d \
-  --name ku_warehouse_frontend \
-  --network ku-warehouse-net \
-  --restart unless-stopped \
-  -p 3000:3000 \
-  -e PORT=3000 \
-  -e NODE_ENV=production \
-  -e PUBLIC_ORIGIN="http://localhost:3000" \
-  -e BASE_PATH="" \
-  -e NEXT_PUBLIC_BASE_PATH="" \
-  -e NEXT_PUBLIC_API_URL="/api/v1" \
-  -e BACKEND_URL="http://ku_warehouse_backend:8000" \
-  -e JWT_COOKIE_SECRET="a8f4c91b7d3e2a0f8b1c4e9d7a2f0b8c4d9e1f7a2b0c4d8e9f1a2b3c4d5e6f7a" \
-  -e AUTH_SESSION_SECRET="a8f4c91b7d3e2a0f8b1c4e9d7a2f0b8c4d9e1f7a2b0c4d8e9f1a2b3c4d5e6f7a" \
-  ku-warehouse-frontend:latest
-```
-
-หรือหากเตรียมไฟล์ `warehouse_dashboard/.env` (อ้างอิงจาก [warehouse_dashboard/.env.example](warehouse_dashboard/.env.example)) ไว้บน Server แล้ว สามารถใช้ `--env-file` แทนได้:
-```bash
-docker run -d \
-  --name ku_warehouse_frontend \
-  --network ku-warehouse-net \
-  --restart unless-stopped \
-  -p 3000:3000 \
-  --env-file warehouse_dashboard/.env \
-  ku-warehouse-frontend:latest
-```
-
-> **ค่าสำคัญที่ผู้ Deploy ต้องกำหนดเพิ่มบน Production Server**:
-> - หากนำ `.env` สำหรับ Local Dev มาใช้กับ `--env-file` ใน Docker ให้เปลี่ยน `NODE_ENV=production`, แก้ `DATABASE_URL`/`DIRECT_URL` จาก `127.0.0.1` เป็น `host.docker.internal` (หรือ IP เครื่อง DB), และแก้ `BACKEND_URL` / `BACKEND_INTERNAL_URL` จาก `http://127.0.0.1:8000` เป็น `http://ku_warehouse_backend:8000`
-> - เปลี่ยน `PUBLIC_ORIGIN` (ในโหมด `production` ต้องขึ้นต้นด้วย `https://`) และ `CORS_ORIGIN` ให้ตรงกับโดเมนจริง
-> - หาก Deploy ใต้ subpath (เช่น `/warehouse`) ให้ตั้ง `BASE_PATH` และ `NEXT_PUBLIC_BASE_PATH` ให้ตรงกันทั้งตอน `docker build` และ `docker run`
-> - หากเปิดใช้งาน Central SSO ของคณะ ให้กำหนดชุดตัวแปร `ENG_SYSTEM_ID` (ค่าเริ่มต้น `warehouse_ku`), `ENG_LOGIN_URL`, `ENG_LOGOUT_URL`, `ENG_TOKEN_EXCHANGE_URL`, `ENG_AUTH_ME_URL`, `ALL_LOGIN_STATUS_URL`, `ENG_MAIN_ROLE_URL` และ `CENTRAL_AUTH_STRICT_TLS=true` ตาม [warehouse_dashboard/.env.example](warehouse_dashboard/.env.example)
-> - เปลี่ยน `AUTH_SESSION_SECRET`, `JWT_COOKIE_SECRET` (ความยาวอย่างน้อย 32 ตัวอักษร) และ `JWT_SECRET` ให้ปลอดภัยสำหรับ Production
+- **`PUBLIC_ORIGIN`**: ในโหมด `production` ต้องขึ้นต้นด้วย `https://` เช่น `https://sac.eng.kps.ku.ac.th`
+- **`BASE_PATH` & `NEXT_PUBLIC_BASE_PATH`**: หากทำงานใต้ Subpath ให้กำหนดให้ตรงกัน เช่น `/research_and_inovation` (หากรันที่ Root Path ให้เว้นว่าง)
+- **`CORS_ORIGIN`**: ระบุโดเมนที่อนุญาต เช่น `https://sac.eng.kps.ku.ac.th,http://localhost:3000`
+- **`BACKEND_URL`**: ภายใน Docker Network ให้ชี้ไปที่ `http://backend:8000` (หรือ `http://ku_warehouse_backend:8000`)
+- **`AUTH_SESSION_SECRET` & `JWT_COOKIE_SECRET`**: กำหนดคีย์ลับความยาวอย่างน้อย 32 ตัวอักษร สำหรับการเข้ารหัสและตรวจสอบ Session Cookie (HMAC Verification)
 
 ---
 
@@ -231,7 +217,8 @@ docker run -d \
   # ผลลัพธ์: HTTP/1.1 200 OK
   ```
 - **การเข้าใช้งานผ่านเบราว์เซอร์**:
-  - URL: `http://localhost:3000`
+  - URL (Production): `https://sac.eng.kps.ku.ac.th/research_and_inovation`
+  - URL (Localhost): `http://localhost:3000/research_and_inovation` (หรือ `http://localhost:3000`)
   - **บัญชีผู้ดูแลระบบ (Super Admin)**:
     - **ชื่อผู้ใช้งาน (Username)**: `b0123456789`
     - **รหัสผ่าน (Password)**: `Admin@1234`
@@ -242,6 +229,6 @@ docker run -d \
 ## 5. การหยุดและลบ Container
 ```bash
 docker rm -f ku_warehouse_frontend ku_warehouse_backend
-docker network rm ku-warehouse-net
+docker network rm ku_warehouse_net
 docker volume rm ku-warehouse-uploads
 ```
