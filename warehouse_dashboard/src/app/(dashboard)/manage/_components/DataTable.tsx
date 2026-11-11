@@ -1,7 +1,6 @@
 'use client';
 
-const DEFAULT_AVATAR = `${(process.env.NEXT_PUBLIC_BASE_PATH || '').replace(/\/+$/, '')}/default-avatar.png`;
-
+import { getAssetUrl, getDefaultAvatar } from '@/lib/api';
 import { formatPersonName } from '@/lib/formatPersonName';
 
 import React, { useState } from 'react';
@@ -93,7 +92,7 @@ export const DataTable: React.FC<DataTableProps> = ({
       case 'avatar': {
         const valStr = rawVal ? String(rawVal).trim() : '';
         const isValid = valStr !== '' && valStr !== '-' && valStr !== 'nan' && valStr !== 'NaT' && valStr !== 'null' && valStr !== 'undefined';
-        const imgSrc = isValid ? encodeURI(valStr) : DEFAULT_AVATAR;
+        const imgSrc = isValid ? getAssetUrl(encodeURI(valStr)) : getDefaultAvatar();
         return (
           <div
             style={{
@@ -116,8 +115,9 @@ export const DataTable: React.FC<DataTableProps> = ({
               style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }}
               onError={(e) => {
                 const target = e.currentTarget;
-                if (target.src !== DEFAULT_AVATAR && !target.src.endsWith('/default-avatar.png')) {
-                  target.src = DEFAULT_AVATAR;
+                const fallback = getDefaultAvatar();
+                if (target.src !== fallback && !target.src.endsWith('/default-avatar.png')) {
+                  target.src = fallback;
                 }
               }}
             />

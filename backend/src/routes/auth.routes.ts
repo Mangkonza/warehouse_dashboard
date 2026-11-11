@@ -71,7 +71,7 @@ const handleLogin = async (req: Request, res: Response) => {
         isMock: false,
       };
 
-      const { cookieValue, payload } = signSession(normalizedLower, false);
+      const { cookieValue, payload } = signSession(normalizedLower, false, role);
       res.cookie(SESSION_COOKIE_NAME, cookieValue, getSessionCookieOptions());
 
       const token = AuthService.generateToken(user);
@@ -97,7 +97,7 @@ const handleLogin = async (req: Request, res: Response) => {
       resetLoginAttempts(req);
 
       // สร้าง session cookie พร้อม flag isMock: true
-      const { cookieValue, payload } = signSession(user.nontriAccount.toLowerCase().trim(), isMock);
+      const { cookieValue, payload } = signSession(user.nontriAccount.toLowerCase().trim(), isMock, user.role);
       res.cookie(SESSION_COOKIE_NAME, cookieValue, getSessionCookieOptions());
 
       const token = AuthService.generateToken(user);
@@ -197,7 +197,7 @@ const handleLogin = async (req: Request, res: Response) => {
   };
 
   // สร้างและลงนามคุกกี้ ku_session (HMAC-SHA256, httpOnly, Lax, 8 ชั่วโมง)
-  const { cookieValue, payload } = signSession(normalizedLower, false);
+  const { cookieValue, payload } = signSession(normalizedLower, false, role);
   res.cookie(SESSION_COOKIE_NAME, cookieValue, getSessionCookieOptions());
 
   // ส่ง legacy JWT token คู่ไปด้วย เพื่อความเข้ากันได้ย้อนหลัง
@@ -251,7 +251,7 @@ authRouter.post('/exchange', async (req: Request, res: Response) => {
     };
 
     // เซ็นคุกกี้ ku_session
-    const { cookieValue, payload } = signSession(normalizedUsername, false);
+    const { cookieValue, payload } = signSession(normalizedUsername, false, role);
     res.cookie(SESSION_COOKIE_NAME, cookieValue, getSessionCookieOptions());
 
     const token = AuthService.generateToken(user);

@@ -1,4 +1,3 @@
-
 import crypto from 'crypto';
 import { env } from '../config/env.js';
 
@@ -11,9 +10,9 @@ function getCandidateSecrets(): string[] {
   return Array.from(new Set(secrets.filter((s): s is string => Boolean(s && typeof s === 'string' && s.length > 0))));
 }
 
-
 export interface SessionPayload {
   username: string; // nontriAccount
+  role?: string;
   issuedAt: number; // Unix timestamp ms
   expiresAt: number; // Unix timestamp ms
   isMock: boolean;
@@ -23,10 +22,11 @@ export interface SessionPayload {
 export const SESSION_COOKIE_NAME = 'ku_session';
 export const SESSION_DURATION_MS = 8 * 60 * 60 * 1000; // 8 hours
 
-export function signSession(username: string, isMock = false): { cookieValue: string; payload: SessionPayload } {
+export function signSession(username: string, isMock = false, role?: string): { cookieValue: string; payload: SessionPayload } {
   const now = Date.now();
   const payload: SessionPayload = {
     username: username.toLowerCase().trim(),
+    role: role || undefined,
     issuedAt: now,
     expiresAt: now + SESSION_DURATION_MS,
     isMock,

@@ -1,7 +1,6 @@
 'use client';
 
-const DEFAULT_AVATAR = `${(process.env.NEXT_PUBLIC_BASE_PATH || '').replace(/\/+$/, '')}/default-avatar.png`;
-
+import { getAssetUrl, getDefaultAvatar } from '@/lib/api';
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import Chart from 'chart.js/auto';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
@@ -2751,7 +2750,7 @@ export function AcademicCharts({
                                 onError={(e) => {
                                   const img = e.currentTarget;
                                   if (!img.src.endsWith('/default-avatar.png')) {
-                                    img.src = DEFAULT_AVATAR;
+                                    img.src = getDefaultAvatar();
                                   }
                                 }}
                               />

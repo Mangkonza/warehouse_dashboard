@@ -1,4 +1,4 @@
-import { getApiBaseUrl } from './api';
+import { getApiBaseUrl, getAssetUrl } from './api';
 import { PersonnelRecord } from '../types/dataManagement';
 
 let personnelList: PersonnelRecord[] = [];
@@ -128,9 +128,9 @@ export function resolvePersonAvatar(
     const s = String(u || '').trim();
     if (!s || s === '-' || s === 'nan' || s === 'NaT' || s === 'null' || s === 'undefined') return '';
     try {
-      return encodeURI(decodeURI(s));
+      return getAssetUrl(encodeURI(decodeURI(s)));
     } catch {
-      return encodeURI(s);
+      return getAssetUrl(encodeURI(s));
     }
   };
 
@@ -157,7 +157,7 @@ export function resolvePersonAvatar(
     if (fromMap) return fromMap;
   }
 
-  return '/default-avatar.png';
+  return getAssetUrl('/default-avatar.png');
 }
 
 /**

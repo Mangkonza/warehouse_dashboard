@@ -7,7 +7,7 @@ import { DashboardTabFilterBar } from '@/components/ui/DashboardTabFilterBar';
 import { SdgIcon } from '@/components/ui/SdgIcon';
 import { SdgNumberBadge } from '@/components/ui/SdgCard';
 import { SdgSummaryKpiDeck } from './SdgSummaryKpiDeck';
-import type { SdgAggregationResult, SdgTileData } from '@/lib/sdgAggregationService';
+import type { SdgAggregationResult, SdgTileData, SdgKpiSummary } from '@/lib/sdgAggregationService';
 import { extractRecordDate, toBeYear, toCeYear, THAI_MONTHS } from '@/lib/sdgDateUtils';
 import { getSdgTextColor, SDG_DEFINITIONS, getSdgInfo } from '@/lib/sdg';
 import { cn } from '@/lib/utils';
@@ -47,6 +47,200 @@ export interface SdgsDashboardViewProps {
   embeddedCategory?: string;
   isEmbedded?: boolean;
   embeddedItems?: any[];
+}
+
+function computeLocalSdgAggregation(
+  items: any[],
+  category: string,
+  targetYearBeStr: string,
+  compareYearsCount: number = 3
+): SdgAggregationResult {
+  const currentBe = new Date().getFullYear() + 543;
+  let targetYearBe = parseInt(targetYearBeStr, 10);
+  if (isNaN(targetYearBe) || targetYearBeStr === 'all') {
+    targetYearBe = currentBe;
+  }
+  const targetYearCe = toCeYear(targetYearBe);
+
+  const compBeYears: number[] = [];
+  const compCeYears: number[] = [];
+  for (let i = 0; i < compareYearsCount; i++) {
+    const yBe = targetYearBe - i;
+    compBeYears.push(yBe);
+    compCeYears.push(toCeYear(yBe));
+  }
+
+  const sdgYearCounts: Record<number, Record<number, number>> = {};
+  const sdgYearVerified: Record<number, Record<number, number>> = {};
+  const sdgYearAuto: Record<number, Record<number, number>> = {};
+  const distinctProjectsInTargetYear = new Set<string>();
+
+  for (let s = 1; s <= 17; s++) {
+    sdgYearCounts[s] = {};
+    sdgYearVerified[s] = {};
+    sdgYearAuto[s] = {};
+    for (const yBe of compBeYears) {
+      sdgYearCounts[s][yBe] = 0;
+      sdgYearVerified[s][yBe] = 0;
+      sdgYearAuto[s][yBe] = 0;
+    }
+  }
+
+  items.forEach((item, idx) => {
+    if (isTestRecord(item)) return;
+    const hybrid = resolveHybridSDG(item, category, {});
+    if (!hybrid.sdgIds || hybrid.sdgIds.length === 0) return;
+
+    let itemYearBe = targetYearBe;
+    const fy = item.fiscal_year || item.fiscal_year_be || item.fiscalYear || item.fiscalYearBe;
+    if (fy && /^\d{4}$/.test(String(fy).trim())) {
+      const parsedFy = parseInt(String(fy).trim(), 10);
+      itemYearBe = parsedFy >= 2400 ? parsedFy : toBeYear(parsedFy);
+    } else {
+      const d = extractRecordDate(item, category);
+      if (d) {
+        itemYearBe = toBeYear(d.year);
+      }
+    }
+
+    const itemId = String(item.id || item._id || idx);
+    if (targetYearBeStr === 'all' || itemYearBe === targetYearBe) {
+      distinctProjectsInTargetYear.add(itemId);
+    }
+
+    hybrid.sdgIds.forEach((sdgNum) => {
+      if (sdgNum >= 1 && sdgNum <= 17) {
+        if (!sdgYearCounts[sdgNum][itemYearBe]) {
+          sdgYearCounts[sdgNum][itemYearBe] = 0;
+          sdgYearVerified[sdgNum][itemYearBe] = 0;
+          sdgYearAuto[sdgNum][itemYearBe] = 0;
+        }
+        sdgYearCounts[sdgNum][itemYearBe]++;
+        if (hybrid.isVerified) {
+          sdgYearVerified[sdgNum][itemYearBe]++;
+        } else {
+          sdgYearAuto[sdgNum][itemYearBe]++;
+        }
+      }
+    });
+  });
+
+  const tiles: SdgTileData[] = [];
+  let topSdg = 1;
+  let topCount = -1;
+  let highestGrowthSdg: number | null = null;
+  let highestGrowthPct = -999;
+  let coveredCount = 0;
+
+  for (let s = 1; s <= 17; s++) {
+    const def = SDG_DEFINITIONS[s];
+    const curCount = sdgYearCounts[s][targetYearBe] || 0;
+    const prevYearBe = targetYearBe - 1;
+    const prevCount = sdgYearCounts[s][prevYearBe] || 0;
+    if (curCount > 0) coveredCount++;
+
+    if (curCount > topCount) {
+      topCount = curCount;
+      topSdg = s;
+    }
+
+    let deltaLabel = '–';
+    let deltaType: 'up' | 'down' | 'neutral' | 'new' = 'neutral';
+    let deltaPct: number | null = null;
+
+    if (prevCount === 0 && curCount > 0) {
+      deltaLabel = 'ใหม่';
+      deltaType = 'new';
+    } else if (prevCount > 0) {
+      const diff = curCount - prevCount;
+      deltaPct = Math.round((diff / prevCount) * 100);
+      if (deltaPct > 0) {
+        deltaLabel = `+${deltaPct}%`;
+        deltaType = 'up';
+      } else if (deltaPct < 0) {
+        deltaLabel = `${deltaPct}%`;
+        deltaType = 'down';
+      } else {
+        deltaLabel = '- 0%';
+        deltaType = 'neutral';
+      }
+
+      if (deltaPct > highestGrowthPct) {
+        highestGrowthPct = deltaPct;
+        highestGrowthSdg = s;
+      }
+    }
+
+    const yearCounts = compBeYears.map((yBe) => ({
+      year: toCeYear(yBe),
+      yearBe: yBe,
+      count: sdgYearCounts[s][yBe] || 0,
+      verifiedCount: sdgYearVerified[s][yBe] || 0,
+      autoDetectedCount: sdgYearAuto[s][yBe] || 0,
+      hasData: Boolean(sdgYearCounts[s][yBe]),
+    }));
+
+    tiles.push({
+      sdgNumber: s,
+      code: def.code,
+      nameTh: def.nameTh,
+      color: def.color,
+      textColor: def.color,
+      iconPath: def.iconPath,
+      currentCount: curCount,
+      verifiedCount: sdgYearVerified[s][targetYearBe] || 0,
+      autoDetectedCount: sdgYearAuto[s][targetYearBe] || 0,
+      deltaPercent: deltaPct,
+      deltaLabel,
+      deltaType,
+      yearCounts,
+    });
+  }
+
+  const topDef = SDG_DEFINITIONS[topSdg];
+  const highGrowthDef = highestGrowthSdg ? SDG_DEFINITIONS[highestGrowthSdg] : null;
+
+  const kpis: SdgKpiSummary = {
+    distinctProjectsCount: distinctProjectsInTargetYear.size,
+    distinctVerifiedCount: 0,
+    distinctAutoCount: 0,
+    distinctProjectsDeltaPercent: null,
+    distinctProjectsDeltaLabel: '–',
+    distinctProjectsDeltaType: 'neutral',
+    yearBreakdownText: `ปีงบประมาณ ${targetYearBe}`,
+    topSdgNumber: topSdg,
+    topSdgNameTh: topDef?.nameTh || '',
+    topSdgCount: topCount > 0 ? topCount : 0,
+    topSdgVerifiedCount: sdgYearVerified[topSdg]?.[targetYearBe] || 0,
+    topSdgAutoCount: sdgYearAuto[topSdg]?.[targetYearBe] || 0,
+    highestGrowingSdgNumber: highestGrowthSdg,
+    highestGrowingSdgNameTh: highGrowthDef?.nameTh || '–',
+    highestGrowingDeltaLabel: highestGrowthPct > -999 ? `+${highestGrowthPct}%` : '–',
+    coveredSdgCount: coveredCount,
+  };
+
+  return {
+    targetYear: targetYearCe,
+    targetYearBe,
+    comparisonYears: compCeYears,
+    comparisonYearsBe: compBeYears,
+    yearsWithData: compCeYears,
+    basisNote: 'คำนวณจากข้อมูลโครงการปัจจุบัน',
+    isLikeForLike: true,
+    maxMonthCompared: 11,
+    kpis,
+    tiles,
+    monthlyBars: [],
+    heatmap: [],
+    filterEcho: {
+      department: 'all',
+      category,
+      selectedSdg: null,
+      year: targetYearCe,
+    },
+    totalVerifiedRecords: 0,
+    totalAutoDetectedRecords: 0,
+  };
 }
 
 export function SdgsDashboardView({
@@ -129,14 +323,25 @@ export function SdgsDashboardView({
       })
       .then((resData: SdgAggregationResult) => {
         if (isMounted) {
-          setData(resData);
+          const totalFromApi = resData?.tiles ? resData.tiles.reduce((acc, t) => acc + (t.currentCount || 0), 0) : 0;
+          if (totalFromApi === 0 && embeddedItems && embeddedItems.length > 0) {
+            const fallbackResult = computeLocalSdgAggregation(embeddedItems, activeCategory, currentFiscalYear, compareYearsCount);
+            setData(fallbackResult);
+          } else {
+            setData(resData);
+          }
           setIsLoading(false);
         }
       })
       .catch((err) => {
         if (isMounted) {
           console.error('[SdgsDashboardView] Fetch error:', err);
-          setFetchError('ไม่สามารถดึงข้อมูลสรุป SDGs ได้ กรุณาลองใหม่อีกครั้ง');
+          if (embeddedItems && embeddedItems.length > 0) {
+            const fallbackResult = computeLocalSdgAggregation(embeddedItems, activeCategory, currentFiscalYear, compareYearsCount);
+            setData(fallbackResult);
+          } else {
+            setFetchError('ไม่สามารถดึงข้อมูลสรุป SDGs ได้ กรุณาลองใหม่อีกครั้ง');
+          }
           setIsLoading(false);
         }
       });

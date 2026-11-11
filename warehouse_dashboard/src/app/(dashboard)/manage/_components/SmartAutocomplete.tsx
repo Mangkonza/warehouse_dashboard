@@ -1,7 +1,6 @@
 'use client';
 
-const DEFAULT_AVATAR = `${(process.env.NEXT_PUBLIC_BASE_PATH || '').replace(/\/+$/, '')}/default-avatar.png`;
-
+import { getAssetUrl, getDefaultAvatar } from '@/lib/api';
 import React, { useState, useEffect, useRef } from 'react';
 import { PersonnelRecord } from '@/types/dataManagement';
 import { getDepartmentAbbr } from '@/config/dataManagementConfig';
@@ -140,13 +139,14 @@ export const SmartAutocomplete: React.FC<SmartAutocompleteProps> = ({
                 }}
               >
                 <img
-                  src={p.image_url ? encodeURI(p.image_url) : DEFAULT_AVATAR}
+                  src={p.image_url ? getAssetUrl(encodeURI(p.image_url)) : getDefaultAvatar()}
                   alt={p.name}
                   style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center', backgroundColor: '#99b8db' }}
                   onError={(e) => {
                     const target = e.currentTarget;
-                    if (target.src !== DEFAULT_AVATAR && !target.src.endsWith('/default-avatar.png')) {
-                      target.src = DEFAULT_AVATAR;
+                    const fallback = getDefaultAvatar();
+                    if (target.src !== fallback && !target.src.endsWith('/default-avatar.png')) {
+                      target.src = fallback;
                     }
                   }}
                 />

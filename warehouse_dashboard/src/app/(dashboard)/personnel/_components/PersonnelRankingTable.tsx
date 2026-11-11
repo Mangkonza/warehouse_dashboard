@@ -1,7 +1,6 @@
 'use client';
 
-const DEFAULT_AVATAR = `${(process.env.NEXT_PUBLIC_BASE_PATH || '').replace(/\/+$/, '')}/default-avatar.png`;
-
+import { getAssetUrl, getDefaultAvatar } from '@/lib/api';
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -856,8 +855,9 @@ export function PersonnelRankingTable({ metrics }: PersonnelRankingTableProps) {
                           alt={item.name}
                           onError={(e) => {
                             const target = e.currentTarget;
-                            if (target.src !== DEFAULT_AVATAR && !target.src.endsWith('/default-avatar.png')) {
-                              target.src = DEFAULT_AVATAR;
+                            const fallback = getDefaultAvatar();
+                            if (target.src !== fallback && !target.src.endsWith('/default-avatar.png')) {
+                              target.src = fallback;
                             }
                           }}
                           style={{

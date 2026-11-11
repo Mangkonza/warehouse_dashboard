@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Sidebar, SidebarMenuItem, SidebarCategory } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
-import { HeaderAuth, useAuth, useSsoUserSafe } from '@/features/auth';
+import { HeaderAuth, useAuth } from '@/features/auth';
 import { TimeFilterModal, useTimeFilter } from '@/features/time-filter';
 import { PageLoader } from '@/components/ui/PageLoader';
 import { SITE_CONFIG } from '@/config/site';
@@ -31,8 +31,6 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   const { user, isLoading } = useAuth();
-  const sso = useSsoUserSafe();
-  const ssoUser = sso?.user;
   const { timeFilter, setTimeFilter, isTimeModalOpen, setIsTimeModalOpen } = useTimeFilter();
 
   const [isSidebarHovered, setIsSidebarHovered] = useState(false);
@@ -48,19 +46,18 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const isSsoLoading = sso?.status === 'loading';
-  const isAuthenticated = Boolean(user || ssoUser);
+  const isAuthenticated = Boolean(user);
 
   // AuthGate: ป้องกันเฉพาะหน้าที่ต้องใช้สิทธิ์ Admin เท่านั้น
   // หน้าสาธารณะ (Overview, Research, Academic Dev, Publications, Services, IP, Personnel, SDGs) ทุกคนสามารถเข้าชมได้
-  const ADMIN_PATHS = ['/manage', '/evaluation', '/monitoring', '/kpi', '/user-roles', '/admin'];
+  const ADMIN_PATHS = ['/manage', '/evaluation', '/monitoring', '/kpi', '/user-roles'];
   const isProtectedPath = Boolean(pathname && ADMIN_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`)));
 
   useEffect(() => {
-    if (!isLoading && !isSsoLoading && !isAuthenticated && isProtectedPath) {
+    if (!isLoading && !isAuthenticated && isProtectedPath) {
       router.replace(`/login?returnUrl=${encodeURIComponent(pathname)}`);
     }
-  }, [isLoading, isSsoLoading, isAuthenticated, pathname, isProtectedPath]);
+  }, [isLoading, isAuthenticated, pathname, isProtectedPath]);
 
   const handleTogglePin = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -96,7 +93,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   }, [isForceCollapsed]);
 
   // Loading Screen ระหว่างตรวจสอบสิทธิ์
-  if (isLoading || isSsoLoading) {
+  if (isLoading) {
     return <PageLoader message="กำลังตรวจสอบสิทธิ์การเข้าใช้งาน..." />;
   }
 
@@ -105,13 +102,13 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   }
 
   const getSingleRoleTitle = (): string => {
-    if (!user && !ssoUser) return 'ผู้เยี่ยมชม';
+    if (!user) return 'ผู้เยี่ยมชม';
 
     if (user?.role === 'admin') {
       return 'ผู้ดูแลระบบ';
     }
 
-    const nontri = user?.nontriAccount || ssoUser?.nontriId || '';
+    const nontri = user?.nontriAccount || '';
 
     if (/^b\d+/i.test(nontri) || user?.typePerson === 'นิสิต') {
       return 'นิสิต';
@@ -269,18 +266,12 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const layoutLeftOffset = isSidebarPinned && isExpanded ? 255 : 70;
 
   const profileName =
-    (ssoUser?.firstName && ssoUser?.lastName
-      ? `${ssoUser.firstName} ${ssoUser.lastName}`
-      : null) ||
-    ssoUser?.name ||
     user?.nameTh ||
     user?.nontriAccount ||
-    ssoUser?.nontriId ||
     "Guest";
 
   const profileSubtitle =
     user?.typePerson ||
-    (ssoUser?.faculty ? `คณะ${ssoUser.faculty.replace(/^คณะ/, "")}` : null) ||
     singleRole;
 
   const userSlot = (
